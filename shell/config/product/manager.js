@@ -2,6 +2,7 @@ import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
+  EXT,
   NORMAN,
   HCI,
   MANAGEMENT,
@@ -125,14 +126,17 @@ export function init(store) {
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
-  weightType(CATALOG.CLUSTER_REPO, 1, true);
+  configureType(EXT.KUBECONFIG, { canYaml: false });
+  weightType(EXT.KUBECONFIG, 1, true);
+  weightType(CATALOG.CLUSTER_REPO, 0, true);
   weightType(MANAGEMENT.PSA, 5, true);
-  weightType(VIRTUAL_TYPES.JWT_AUTHENTICATION, 0, true);
+  weightType(VIRTUAL_TYPES.JWT_AUTHENTICATION, -1, true);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
+    EXT.KUBECONFIG,
     CATALOG.CLUSTER_REPO,
     MANAGEMENT.PSA,
     VIRTUAL_TYPES.JWT_AUTHENTICATION
@@ -191,5 +195,28 @@ export function init(store) {
     NAME_COL,
     MACHINE_SUMMARY,
     AGE
+  ]);
+
+  headers(EXT.KUBECONFIG, [
+    STATE,
+    {
+      name:      'clusters',
+      labelKey:  'tableHeaders.clusters',
+      value:     'spec.clusters',
+      sort:      ['referencedClustersSortable'],
+      search:    ['referencedClustersSortable'],
+      formatter: 'KubeconfigClusters',
+    },
+    {
+      name:          'ttl',
+      labelKey:      'tableHeaders.ttl',
+      value:         'expiresAt',
+      formatter:     'LiveDate',
+      formatterOpts: { isCountdown: true },
+    },
+    {
+      ...AGE,
+      defaultSort: true,
+    },
   ]);
 }

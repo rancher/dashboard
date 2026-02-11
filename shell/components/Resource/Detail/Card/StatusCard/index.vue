@@ -83,7 +83,10 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <Card :title="title">
+  <Card
+    :title="title"
+    data-testid="resource-detail-status-card"
+  >
     <template
       v-if="props.showScaling"
       #heading-action

@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 
 import { isAlternate } from '@shell/utils/platform';
 import { RcDropdownMenu } from '@components/RcDropdown';
-import { ButtonVariantProps, ButtonSizeProps } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 import { DropdownOption } from '@components/RcDropdown/types';
 
 defineOptions({ inheritAttrs: false });
@@ -13,8 +13,8 @@ defineOptions({ inheritAttrs: false });
 const store = useStore();
 
 type RcDropdownMenuComponentProps = {
-  buttonVariant?: keyof ButtonVariantProps;
-  buttonSize?: keyof ButtonSizeProps;
+  buttonVariant?: ButtonVariant;
+  buttonSize?: ButtonSize;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
   dataTestid?: string;
@@ -30,7 +30,15 @@ const openChanged = (event: boolean) => {
   }
 };
 
-const emit = defineEmits<{(event: string, payload: any): void;(event: 'action-invoked'): void;}>();
+export interface ActionMenuSelection {
+  action: string;
+  actionData: any;
+  event: MouseEvent;
+  route: ReturnType<typeof useRoute>;
+  [key: string]: any;
+}
+
+const emit = defineEmits<{(event: 'action-invoked', payload?: ActionMenuSelection): void;}>();
 const route = useRoute();
 
 const execute = (action: any, event: MouseEvent, args?: any) => {
@@ -38,7 +46,15 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
     return;
   }
 
-  emit('action-invoked');
+  const payload: ActionMenuSelection = {
+    action:     action.action,
+    actionData: action,
+    event,
+    ...args,
+    route,
+  };
+
+  emit('action-invoked', payload);
 
   // this will come from extensions...
   if (action.invoke) {
@@ -56,24 +72,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
         fn.apply(this, [opts, resources]);
       }
     }
-  } else if (props.customActions) {
-    // If the state of this component is controlled
-    // by props instead of Vuex, we assume you wouldn't want
-    // the mutation to have a dependency on Vuex either.
-    // So in that case we use events to execute actions instead.
-    // If an action list item is clicked, this
-    // component emits that event, then we assume the parent
-    // component will execute the action.
-    emit(
-      action.action,
-      {
-        action,
-        event,
-        ...args,
-        route,
-      }
-    );
-  } else {
+  } else if (!props.customActions) {
     // If the state of this component is controlled
     // by Vuex, mutate the store when an action is clicked.
     const opts = { alt: isAlternate(event) };

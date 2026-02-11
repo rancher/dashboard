@@ -11,7 +11,7 @@ import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/containe
 import { WorkloadType } from '@shell/types/fleet';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-
+import CardPo from '~/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';
 export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   static url: string;
 
@@ -53,6 +53,10 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
     return new WorkloadPagePo();
   }
 
+  private card() {
+    return new CardPo();
+  }
+
   deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
@@ -62,23 +66,34 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   podScaleUp(): Cypress.Chainable {
-    return this.self().find('.btn-sm .icon-plus');
+    return this.card().scaleUp();
   }
 
   podScaleDown(): Cypress.Chainable {
-    return this.self().find('.btn-sm .icon-minus');
+    return this.card().scaleDown();
   }
 
   podsRunningTotal(): Cypress.Chainable {
-    return this.self().find('.count-gauge h1').first();
+    return this.card().podsRunningTotal();
   }
 
   replicaCount(): Cypress.Chainable {
-    return this.self().find('.plus-minus .value');
+    return this.card().replicaCount();
   }
 
-  gaugesPods(): Cypress.Chainable {
-    return this.self().find('.gauges__pods');
+  podsStatus(): Cypress.Chainable {
+    return this.card().podsStatus();
+  }
+
+  podsStatusCount(): Cypress.Chainable {
+    return this.card().podsStatusCount();
+  }
+
+  /**
+   * Wait until there's exactly one pods status count element
+   */
+  waitForSinglePodsStatusCount(): Cypress.Chainable {
+    return cy.get('[data-testid="rc-counter-badge"]').should('have.length', 1);
   }
 
   /**

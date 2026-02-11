@@ -247,5 +247,55 @@ describe('oidc.vue', () => {
       expect(groupsClaim.exists()).toBe(true);
       expect(emailClaim.exists()).toBe(true);
     });
+
+    it('should render addCustomClaims and supportsGroupSearch  checkbox when provider is keycloak', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      await nextTick();
+
+      const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
+      const groupSearchCheckbox = wrapper.find('[data-testid="input-group-search"]');
+
+      expect(addCustomClaimsCheckbox.exists()).toBe(true);
+      expect(groupSearchCheckbox.exists()).toBe(true);
+    });
+
+    it('should render custom claims section when provider is keycloak and addCustomClaims is true', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      wrapper.vm.addCustomClaims = true;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(true);
+      expect(groupsClaim.exists()).toBe(true);
+      expect(emailClaim.exists()).toBe(true);
+    });
+
+    it('should render both addCustomClaims and groupSearch checkboxes when provider is genericoidc', async() => {
+      wrapper.vm.model.id = 'genericoidc';
+      await nextTick();
+
+      const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
+      const groupSearchCheckbox = wrapper.find('[data-testid="input-group-search"]');
+
+      expect(addCustomClaimsCheckbox.exists()).toBe(true);
+      expect(groupSearchCheckbox.exists()).toBe(true);
+    });
+
+    it('should NOT render custom claims section when provider is keycloak and addCustomClaims is false', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      wrapper.vm.addCustomClaims = false;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(false);
+      expect(groupsClaim.exists()).toBe(false);
+      expect(emailClaim.exists()).toBe(false);
+    });
   });
 });

@@ -207,7 +207,7 @@ export default {
         return TabLocation.OTHER;
       }
     },
-    hasIcon(tab) {
+    hasErrorIcon(tab) {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
     hashChange() {
@@ -346,6 +346,10 @@ export default {
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
+          <i
+            v-if="tab.labelIcon"
+            :class="`tab-label-icon icon ${tab.labelIcon}`"
+          />
           <span>
             {{ tab.labelDisplay }}
           </span>
@@ -354,7 +358,7 @@ export default {
             class="tab-badge"
           >{{ tab.badge }}</span>
           <i
-            v-if="hasIcon(tab)"
+            v-if="hasErrorIcon(tab)"
             v-clean-tooltip="t('validation.tab')"
             class="conditions-alert-icon icon-error"
           />
@@ -514,9 +518,13 @@ export default {
     }
 
     &.error {
-      & A > i {
+      & A > .icon-error {
         color: var(--error);
       }
+    }
+
+    .tab-label-icon {
+      margin-right: 8px;
     }
 
     .tab-badge {

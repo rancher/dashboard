@@ -159,7 +159,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -560,10 +564,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token'].default);
 
     // Check kubeconfig file
+    cy.deleteDownloadsFolder();
     const downloadsFolder = Cypress.config('downloadsFolder');
 
     clusterList.goTo();
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
 
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
@@ -571,8 +578,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
       const obj: any = jsyaml.load(buffer);
 
       // checks on the downloaded YAML
-      expect(obj.clusters.length).to.equal(1);
-      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.clusters.length).to.be.gte(1);
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.users[0].user.token).to.have.length.gt(0);
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');

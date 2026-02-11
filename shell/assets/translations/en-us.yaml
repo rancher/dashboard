@@ -1183,7 +1183,7 @@ catalog:
       subHeaderItem:
         missingVersionDate: Last updated date is not available for this chart
       footerItem:
-        ariaLabel: Apply filter
+        ariaLabel: 'Apply {filter} filter'
     statusFilterCautions:
       installation: Installation status cannot be determined with 100% accuracy
       upgradeable: Upgradeable status cannot be determined with 100% accuracy
@@ -2550,7 +2550,7 @@ cluster:
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Snapshot retention count
+        label: Local snapshot retention count
         tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
@@ -2559,6 +2559,13 @@ cluster:
       s3backups:
         label: Save Backups to S3
       s3config:
+        snapshotRetention:
+          title: S3 Snapshot Retention
+          label: S3 Snapshot Retention Count
+          options:
+            manual: Set manually
+            localDefined: Same as local ({count} Snaphots)
+            localUndefined: Same as local
         bucket:
           label: Bucket
         folder:
@@ -3886,6 +3893,8 @@ istio:
 itemCard:
   ariaLabel:
     clickable: Click on card for {cardTitle}
+  actionMenu:
+    label: '{cardTitle} actions'
 jwt:
   title: JWT Authentication
   actions:
@@ -6893,6 +6902,7 @@ tableHeaders:
   targetPort: Target
   template: Template
   totalSnapshotQuota: Total Snapshot Quota
+  ttl: TTL
   type: Type
   updated: Updated
   up-to-date: Up To Date
@@ -8866,6 +8876,7 @@ notifications:
     showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
+  banner: Limit resource consumption in a project for both standard (e.g. CPU Limit) and custom resource types. For custom resource types you have to provide the resource identifier yourself. Want to learn more about resource quotas? Read our <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">documentation <i class="icon icon-external-link"></i></a><span class="sr-only">Opens in a new tab</span>
   label: Resource Quotas
   headers:
     limit: Limit
@@ -8873,9 +8884,14 @@ resourceQuota:
     projectLimit: Project Limit
     projectResourceAvailability: Project Resource Availability
     resourceType: Resource Type
+    resourceIdentifier: Resource Identifier
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  custom: Custom
+  resourceIdentifier:
+    placeholder: e.g. configmaps
+    tooltip: Select 'Custom' from the 'Resource Type' list and enter the resource identifier (e.g. requests.nvidia.com/gpu) to add custom resources quotas.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
@@ -8905,6 +8921,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   add:
     label: Add Resource
+  errors:
+    customTypeRequired: Resource identifier is required
   tooltip:
     reserved: 'Other Namespaces:'
     namespace: 'This Namespace:'
@@ -9309,3 +9327,7 @@ autoscaler:
       unavailable: Unavailable
   tab:
     title: Autoscaler
+
+ext.cattle.io.kubeconfig:
+  deleted: "{name} (deleted)"
+  moreClusterCount: " + {remainingCount} more"

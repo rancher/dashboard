@@ -66,6 +66,7 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
+import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/defaults';
 import { mapGetters } from 'vuex';
 
 const HARVESTER = 'harvester';
@@ -1067,7 +1068,7 @@ export default {
         this.rkeConfig.etcd = {
           disableSnapshots:     false,
           s3:                   null,
-          snapshotRetention:    5,
+          snapshotRetention:    RETENTION_DEFAULT,
           snapshotScheduleCron: '0 */5 * * *',
         };
       } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {

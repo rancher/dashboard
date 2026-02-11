@@ -155,6 +155,14 @@ export default {
       return this.model?.id === 'genericoidc';
     },
 
+    isKeycloak() {
+      return this.model?.id === 'keycloakoidc';
+    },
+
+    supportsCustomClaims() {
+      return this.isGenericOidc || this.isKeycloak;
+    },
+
     isLogoutAllSupported() {
       return this.model?.logoutAllSupported;
     },
@@ -275,7 +283,7 @@ export default {
     },
 
     willSave() {
-      if (this.isGenericOidc && !this.addCustomClaims) {
+      if (this.supportsCustomClaims && !this.addCustomClaims) {
         this.model.nameClaim = undefined;
         this.model.groupsClaim = undefined;
         this.model.emailClaim = undefined;
@@ -436,29 +444,27 @@ export default {
               :label="t('authConfig.oidc.pkce.label')"
               :tooltip="t('authConfig.oidc.pkce.tooltip')"
             />
-            <template v-if="isGenericOidc || supportsGroupSearch">
-              <Checkbox
-                v-if="supportsGroupSearch"
-                v-model:value="model.groupSearchEnabled"
-                data-testid="input-group-search"
-                :label="t('authConfig.oidc.groupSearch.label')"
-                :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
-                :mode="mode"
-              />
-              <Checkbox
-                v-if="isGenericOidc"
-                v-model:value="addCustomClaims"
-                data-testid="input-add-custom-claims"
-                :label="t('authConfig.oidc.customClaims.enable.label')"
-                :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
-                :mode="mode"
-              />
-            </template>
+            <Checkbox
+              v-if="supportsGroupSearch"
+              v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
+              :label="t('authConfig.oidc.groupSearch.label')"
+              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
+              v-if="supportsCustomClaims"
+              v-model:value="addCustomClaims"
+              data-testid="input-add-custom-claims"
+              :label="t('authConfig.oidc.customClaims.enable.label')"
+              :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
+              :mode="mode"
+            />
           </div>
         </div>
 
         <!-- Custom Claims -->
-        <template v-if="addCustomClaims && isGenericOidc">
+        <template v-if="addCustomClaims && supportsCustomClaims">
           <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
           <div class="row mb-20">
             <div class="col span-6">

@@ -46,8 +46,8 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   explore(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(7)
-      .find('.btn');
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .get('[data-testid="cluster-manager-list-explore-management"]');
   }
 
   actionMenu(clusterName: string) {
