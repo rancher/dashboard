@@ -204,12 +204,25 @@ function registerHooks(on, config) {
     });
   });
 
-  on('after:run', () => {
+  on('after:run', (results) => {
     const root = chain[0];
 
     tidy(root);
 
-    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
+    const stats = { ...results };
+
+    delete stats.runs;
+    delete stats.config;
+    delete stats.runUrl;
+    delete stats.osName;
+    delete stats.osVersion;
+
+    const data = {
+      stats,
+      children: root.children
+    };
+
+    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(data, null, 2));
 
     const reportHTML = createHtmlReport({
       results: { violations: deDuplicate(allViolations) },

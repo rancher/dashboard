@@ -573,7 +573,7 @@ export default class Secret extends SteveModel {
       const id = this.id?.replace(/.*\//, '');
 
       return {
-        name:   `c-cluster-product-resource-namespace-id`,
+        name:   `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
         params: {
           product:   this.$rootGetters['productId'],
           cluster:   this.$rootGetters['clusterId'],
