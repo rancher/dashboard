@@ -42,7 +42,7 @@ defineProps({
     type:     Boolean,
     required: true
   },
-  displayHelmRepoURLRegex: {
+  displayHelmRepoUrlRegex: {
     type:     Boolean,
     required: true
   },
@@ -159,7 +159,7 @@ const updatePollingInterval = (value) => {
     />
 
     <div
-      v-if="displayHelmRepoURLRegex"
+      v-if="displayHelmRepoUrlRegex"
       class="row mt-20"
     >
       <div

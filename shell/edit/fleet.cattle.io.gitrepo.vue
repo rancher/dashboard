@@ -95,7 +95,7 @@ export default {
       pollingInterval,
       ref,
       refValue,
-      displayHelmRepoURLRegex: false,
+      displayHelmRepoUrlRegex: false,
       targetsCreated:          '',
       fvFormRuleSets:          [{
         path:  'spec.repo',
@@ -239,7 +239,7 @@ export default {
     },
 
     toggleHelmRepoURLRegex(active) {
-      this.displayHelmRepoURLRegex = active;
+      this.displayHelmRepoUrlRegex = active;
 
       if (!active) {
         delete this.value.spec?.helmRepoURLRegex;
@@ -457,7 +457,7 @@ export default {
         :tls-options="tlsOptions"
         :ca-bundle="caBundle"
         :is-tls="isTls"
-        :display-helm-repo-url-regex="displayHelmRepoURLRegex"
+        :display-helm-repo-url-regex="displayHelmRepoUrlRegex"
         :temp-cached-values="tempCachedValues"
         :correct-drift-enabled="correctDriftEnabled"
         :polling-interval="pollingInterval"
@@ -547,7 +547,7 @@ export default {
             :tls-options="tlsOptions"
             :ca-bundle="caBundle"
             :is-tls="isTls"
-            :display-helm-repo-url-regex="displayHelmRepoURLRegex"
+            :display-helm-repo-url-regex="displayHelmRepoUrlRegex"
             :temp-cached-values="tempCachedValues"
             :correct-drift-enabled="correctDriftEnabled"
             :polling-interval="pollingInterval"
