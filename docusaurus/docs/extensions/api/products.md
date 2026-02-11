@@ -228,30 +228,6 @@ It's defined by using the property `type`:
 }
 ```
 
-#### Custom resource components {#custom-resource-components}
-
-By default, resource pages use Rancher's built-in list/create/edit/show components. If you need to override these, pass custom components via `config`:
-
-```ts
-{
-  type:   'my.custom.io.resource',
-  label:  'My Resources',
-  config: {
-    resourceListComponent:           () => import('./components/MyList.vue'),
-    resourceCreateComponent:         () => import('./components/MyCreate.vue'),
-    resourceItemComponent:           () => import('./components/MyDetail.vue'),
-    resourceItemNamespacedComponent: () => import('./components/MyNamespacedDetail.vue'),
-  }
-}
-```
-
-| Component option | Route | Purpose |
-| --- | --- | --- |
-| `resourceListComponent` | List view | Renders the list of resources |
-| `resourceCreateComponent` | Create view | Renders the create/new resource form |
-| `resourceItemComponent` | Detail view | Renders a non-namespaced resource's detail page |
-| `resourceItemNamespacedComponent` | Namespaced detail view | Renders a namespaced resource's detail page |
-
 ### Groups and overview pages
 
 - A **group** is a **custom page item** with `children`. Its `name` becomes the nav id; it's children are second-level entries.
