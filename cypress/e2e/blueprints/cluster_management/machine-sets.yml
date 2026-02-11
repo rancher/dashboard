@@ -28,7 +28,7 @@ spec:
 #          name: string
 #          uid: string
     spec:
-       bootstrap:
+      bootstrap:
 #        configRef:
 #          apiVersion: string
 #          fieldPath: string
@@ -39,16 +39,12 @@ spec:
 #          uid: string
 #        data: string
          dataSecretName: secretName
-       clusterName: local
+      clusterName: local
 #      failureDomain: string
-#      infrastructureRef:
-#        apiVersion: string
-#        fieldPath: string
-#        kind: string
-#        name: string
-#        namespace: string
-#        resourceVersion: string
-#        uid: string
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123
 #      nodeDrainTimeout: string
 #      providerID: string
 #      version: string

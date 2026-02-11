@@ -28,3 +28,7 @@ spec:
     dataSecretName: secretname
   clusterName: local
   nodeDeletionTimeout: 10s
+  infrastructureRef:
+    apiGroup: rke-machine.cattle.io
+    kind: Amazonec2Machine
+    name: name123

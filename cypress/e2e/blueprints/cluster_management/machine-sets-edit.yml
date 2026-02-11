@@ -39,6 +39,10 @@ spec:
       labels:
         cluster.x-k8s.io/set-name: e2e-machine-name-1701906098950
     spec:
-      bootstrap: {}
+      bootstrap: 
+        dataSecretName: secretname
       clusterName: local
-      infrastructureRef: {}
+    infrastructureRef:
+      apiGroup: rke-machine.cattle.io
+      kind: Amazonec2Machine
+      name: name123

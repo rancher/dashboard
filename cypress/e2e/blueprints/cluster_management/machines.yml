@@ -19,8 +19,10 @@ spec:
      dataSecretName: secretname
    clusterName: local
 #  failureDomain: string
-#  infrastructureRef:
-#    apiVersion: string
+   infrastructureRef:
+    apiGroup: rke-machine.cattle.io
+    kind: Amazonec2Machine
+    name: name123
 #    fieldPath: string
 #    kind: string
 #    name: string
