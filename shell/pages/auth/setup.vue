@@ -301,6 +301,7 @@ export default {
             <BrandImage
               :class="{[customizations.logoClass]: !!customizations.logoClass}"
               :file-name="brandLogo"
+              :alt="t('setup.setup')"
             />
           </div>
           <h1 class="text-center">
