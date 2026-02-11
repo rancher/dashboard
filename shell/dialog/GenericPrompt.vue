@@ -38,6 +38,10 @@ export default {
       type:    Function,
       default: () => { }
     },
+    actionColor: {
+      type:    String,
+      default: 'role-primary',
+    },
   },
   data() {
     return { errors: [] };
@@ -107,6 +111,7 @@ export default {
 
           <AsyncButton
             :mode="applyMode"
+            :action-color="actionColor"
             @click="apply"
           />
         </div>

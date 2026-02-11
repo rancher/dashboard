@@ -151,6 +151,7 @@ export default {
 <template>
   <GenericPrompt
     v-bind="config"
+    action-color="bg-error role-primary"
     @close="$emit('close')"
   >
     <template #body>
