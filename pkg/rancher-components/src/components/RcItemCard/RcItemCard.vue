@@ -110,6 +110,8 @@ interface RcItemCardProps {
 
   /** Makes the card clickable and emits 'card-click' on click/enter/space */
   clickable?: boolean;
+
+  role?: 'link' | 'button' | undefined;
 }
 
 const props = defineProps<RcItemCardProps>();
@@ -173,27 +175,23 @@ const statusTooltips = computed(() => props.header.statuses?.map((status) => lab
 const cardMeta = computed(() => ({
   ariaLabel:       props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
   tabIndex:        props.clickable ? '0' : undefined,
-  role:            props.clickable ? 'button' : undefined,
-  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) })
+  role:            props.role ?? (props.clickable ? 'button' : undefined),
+  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) }),
 }));
 
+const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
 </script>
 
 <template>
   <div
     ref="cardEl"
     class="item-card"
+    :data-testid="`item-card-${id}`"
     :class="{
       'clickable':
         clickable
     }"
-    :role="cardMeta.role"
-    :tabindex="cardMeta.tabIndex"
-    :aria-label="cardMeta.ariaLabel"
-    :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
-    @keydown.enter="_handleCardClick"
-    @keydown.space.prevent="_handleCardClick"
   >
     <div :class="['item-card-body', variant]">
       <template v-if="variant !== 'small'">
@@ -226,7 +224,16 @@ const cardMeta = computed(() => ({
 
       <div :class="['item-card-body-details', variant]">
         <div :class="['item-card-header', variant]">
-          <div class="item-card-header-left">
+          <div
+            class="item-card-header-left"
+            :data-testid="`card-header-left`"
+            :role="cardMeta.role"
+            :tabindex="cardMeta.tabIndex"
+            :aria-label="cardMeta.ariaLabel"
+            @click.self="_handleCardClick"
+            @keydown.enter="_handleCardClick"
+            @keydown.space.prevent="_handleCardClick"
+          >
             <template v-if="variant === 'small'">
               <slot name="item-card-image">
                 <div
@@ -327,14 +334,20 @@ $image-medium-box-width: 48px;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border);
   background: var(--body-bg);
+  cursor: v-bind(cursorValue);
 
   &.clickable:hover {
     border-color: var(--primary);
   }
 
-  &:focus-visible {
+  &:has(.item-card-header-left:focus-visible) {
+    border-color: var(--primary);
     @include focus-outline;
     outline-offset: -2px;
+  }
+
+  &:focus-visible {
+    outline: none;
   }
 
   &-image {
@@ -370,6 +383,10 @@ $image-medium-box-width: 48px;
     &-left {
       flex-grow: 1;
       min-width: 0;
+
+      &:focus-visible {
+        outline: none;
+      }
     }
 
     &-title {

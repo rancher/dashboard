@@ -124,7 +124,7 @@ describe('rcItemCard', () => {
       }
     });
 
-    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+    const root = wrapper.get(`[data-testid="card-header-left"]`);
 
     expect(root.attributes('role')).toBe('button');
     expect(root.attributes('tabindex')).toBe('0');
@@ -152,7 +152,9 @@ describe('rcItemCard', () => {
       }
     });
 
-    await wrapper.trigger('keydown.enter');
+    const clickTarget = wrapper.find('.item-card-header-left');
+
+    await clickTarget.trigger('keydown.enter');
     expect(wrapper.emitted('card-click')).toBeTruthy();
   });
 
