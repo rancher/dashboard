@@ -29,4 +29,8 @@ export default class CardPo extends ComponentPo {
   podsStatus(): Cypress.Chainable {
     return this.self().find('.status-row .label');
   }
+
+  podsStatusCount(): Cypress.Chainable {
+    return this.self().find('[data-testid="rc-counter-badge"]');
+  }
 }
