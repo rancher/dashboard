@@ -31,7 +31,7 @@ export default {
       }
       const machineSetPromises = this.safeMachinesToDelete.filter((machine) => machine.isWorker).map((machine) => this.getMachineSets(machine));
 
-      this.machineSets = await Promise.all(machineSetPromises);
+      this.workerMachineSets = await Promise.all(machineSetPromises);
     } catch (e) {}
     this.loading = false;
   },
@@ -59,13 +59,13 @@ export default {
         applyMode:   'delete',
         applyAction: this.remove,
       },
-      machineSets: [],
-      loading:     false
+      workerMachineSets: [],
+      loading:           false
     };
   },
   computed: {
     showScaling() {
-      for (const machineSet of this.machineSets) {
+      for (const machineSet of this.workerMachineSets) {
         const data = machineSet?.data || [];
 
         for (const ms of data) {
