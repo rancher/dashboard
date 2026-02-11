@@ -49,7 +49,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
-  it.skip('can create an RKE2 cluster using Amazon cloud provider', () => {
+  it('can create an RKE2 cluster using Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -135,7 +135,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       });
   });
 
-  it('can see details of cluster in cluster list', () => {
+  it('can see details of cluster in cluster list', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -163,7 +163,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterList.list().machines(this.rke2Ec2ClusterName).find('.piece').should('have.length', 1);
   });
 
-  it.skip('cluster details page', () => {
+  it('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -181,7 +181,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
-  it.skip('can scale up a machine pool', () => {
+  it('can scale up a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
 
@@ -257,7 +257,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
   });
 
-  it.skip('can scale down a machine pool', () => {
+  it('can scale down a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     // Set user preference to ensure the scale down confirmation modal always appears
     cy.setUserPreference({ 'scale-pool-prompt': false });
@@ -319,7 +319,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('be.disabled');
   });
 
-  it.skip('can upgrade Kubernetes version', () => {
+  it('can upgrade Kubernetes version', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -381,7 +381,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('have.class', 'vs__dropdown-option--disabled');
   });
 
-  it.skip('can create snapshot', () => {
+  it('can create snapshot', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -411,7 +411,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
   });
 
-  it.skip('can delete an Amazon EC2 RKE2 cluster', () => {
+  it('can delete an Amazon EC2 RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Delete').click();
