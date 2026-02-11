@@ -69,7 +69,7 @@
     "@smithy/fetch-http-handler": "5.1.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.54",
+    "@rancher/icons": "2.0.55",
     "@vee-validate/zod": "4.15.0",
     "ansi_up": "5.0.0",
     "axios": "1.13.2",
