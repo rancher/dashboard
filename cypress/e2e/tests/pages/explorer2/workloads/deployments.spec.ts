@@ -125,7 +125,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         .should('contain.text', 'Running');
 
       // Wait until there's only one pods status count element
-      cy.get('[data-testid="rc-counter-badge"]').should('have.length', 1);
+      workloadDetailsPage.waitForSinglePodsStatusCount();
 
       workloadDetailsPage.podsStatusCount().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain', '2');

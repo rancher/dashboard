@@ -3,6 +3,7 @@ import semver from 'semver';
 import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 import { SETTING } from '@shell/config/settings';
+import { getVersionData } from '@shell/config/version';
 
 export function parse(str) {
   str = `${ str }`;
@@ -83,8 +84,10 @@ export function isDevBuild(version) {
 }
 
 export function getVersionInfo(store) {
-  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
-  const fullVersion = setting?.value || 'unknown';
+  const fullVersion = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value ??
+    getVersionData()?.Version ??
+    'unknown';
+
   let displayVersion = fullVersion;
 
   const match = fullVersion.match(/^(.*)-([0-9a-f]{40})-(.*)$/);
