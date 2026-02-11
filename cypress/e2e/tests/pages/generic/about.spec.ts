@@ -15,7 +15,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     aboutPage.waitForPage();
   });
 
-  it('no Prime info when community', () => {
+  it('no Prime info when community', { tags: '@noPrime' }, () => {
     HomePagePo.goToAndWaitForGet();
     AboutPagePo.navTo();
     aboutPage.waitForPage();

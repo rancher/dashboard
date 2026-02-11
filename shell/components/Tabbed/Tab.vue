@@ -15,6 +15,10 @@ export default {
       default: null,
       type:    String
     },
+    labelIcon: {
+      type:    String,
+      default: null
+    },
     name: {
       required: true,
       type:     String
