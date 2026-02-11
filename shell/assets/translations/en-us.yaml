@@ -1186,7 +1186,7 @@ catalog:
       subHeaderItem:
         missingVersionDate: Last updated date is not available for this chart
       footerItem:
-        ariaLabel: Apply filter
+        ariaLabel: 'Apply {filter} filter'
     statusFilterCautions:
       installation: Installation status cannot be determined with 100% accuracy
       upgradeable: Upgradeable status cannot be determined with 100% accuracy
@@ -6963,6 +6963,7 @@ tableHeaders:
   targetPort: Target
   template: Template
   totalSnapshotQuota: Total Snapshot Quota
+  ttl: TTL
   type: Type
   updated: Updated
   up-to-date: Up To Date
@@ -9389,3 +9390,7 @@ autoscaler:
       unavailable: Unavailable
   tab:
     title: Autoscaler
+
+ext.cattle.io.kubeconfig:
+  deleted: "{name} (deleted)"
+  moreClusterCount: " + {remainingCount} more"
