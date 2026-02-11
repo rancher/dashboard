@@ -113,7 +113,6 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // Set the network
     createRKE2ClusterPage.machinePoolTab().networks().toggle();
     createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('default');
-    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('nb-subnet-public1-us-west-2a');
 
     // Create the cluster
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('createRke2Cluster');
