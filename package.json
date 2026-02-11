@@ -154,7 +154,7 @@
     "@cypress/code-coverage": "3.10.4",
     "@cypress/grep": "3.1.5",
     "@cypress/vue": "5.0.5",
-    "@cypress/webpack-dev-server": "3.4.1",
+    "@cypress/webpack-dev-server": "4.0.0",
     "@percy/cli": "1.30.7",
     "@percy/cypress": "3.1.6",
     "@types/copy-webpack-plugin": "5.0.3",
