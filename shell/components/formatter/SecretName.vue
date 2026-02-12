@@ -65,7 +65,8 @@ export default {
     <i
       v-if="tooltip"
       v-clean-tooltip="tooltip"
-      class="icon icon-info"
+      class="icon"
+      :class="{'icon-info': row.isProjectScoped, 'icon-dot': row.isProjectSecretCopy}"
     />
   </div>
 </template>
@@ -75,7 +76,7 @@ export default {
     display: flex;
     align-items: center;
 
-    .icon-info {
+    .icon {
       margin-left: 8px;
     }
   }
