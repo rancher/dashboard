@@ -93,10 +93,6 @@ export class Plugin implements IPlugin {
     throw new Error('Method not implemented.');
   }
 
-  resourceNameFor(apiGroup: string, type: string): string {
-    throw new Error('Method not implemented.');
-  }
-
   get environment(): ExtensionEnvironment {
     const versionData = getVersionData();
 
