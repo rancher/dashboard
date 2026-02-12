@@ -349,11 +349,12 @@ corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 #   (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
 # - @noPrime: on Prime/alpha/latest, skip tests that assume non-Prime defaults
 #   (e.g. priority/oidc-provider-setup.spec.ts — OIDC Provider is already enabled on Prime).
+# - @prime: on community builds, skip tests that are Prime-only.
 if [[ -n "${CYPRESS_TAGS}" ]]; then
   if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" || "${RANCHER_HELM_REPO}" == "rancher-latest" || "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
     CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai+-@noPrime"
   else
-    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
+    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai+-@prime"
   fi
 fi
 corral config vars set cypress_tags "${CYPRESS_TAGS}"
