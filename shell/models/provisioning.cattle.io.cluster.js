@@ -236,6 +236,13 @@ export default class ProvCluster extends SteveModel {
       return null;
     }
 
+    // Check if NORMAN.CLUSTER schema exists (it won't when MCM is disabled)
+    const normanSchema = this.$rootGetters['rancher/schemaFor'](NORMAN.CLUSTER, false, false);
+
+    if (!normanSchema) {
+      return null;
+    }
+
     return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: name }, { root: true });
   }
 
