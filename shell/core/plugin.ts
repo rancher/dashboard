@@ -19,14 +19,16 @@ import {
   PaginationTableColumn,
   ExtensionEnvironment,
   ServerSidePaginationExtensionConfig,
-  ProductMetadata,
   ProductOptions,
-  ProductSinglePage,
-  ProductChild,
-  StandardProductName,
   TableAction,
   ResourceTypeConfig
 } from './types';
+import {
+  ProductMetadata,
+  ProductSinglePage,
+  ProductChild,
+  StandardProductName
+} from './plugin-types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';

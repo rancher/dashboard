@@ -1,9 +1,10 @@
+import { IPlugin } from '@shell/core/types';
 import {
-  IPlugin, StandardProductName, ProductChild, ProductChildGroup,
-  ProductMetadata, ProductChildPage, ProductSinglePage, ProductChildResource,
+  StandardProductName, ProductChild, ProductChildGroup,
+  ProductMetadata, ProductChildPage, ProductSinglePage,
   VirtualTypeConfiguration, ConfigureTypeConfiguration
-} from '@shell/core/types';
-import { Router } from 'vue-router';
+} from '@shell/core/plugin-types';
+import { Router, RouteRecordRaw } from 'vue-router';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { processHeadersConfig } from '@shell/core/column-builder';
 // import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
@@ -61,7 +62,7 @@ export class PluginProduct {
       // Add the route to vue-router (here we go with the 'plain' layout for simple single page products)
       const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: singlePageProduct.component });
 
-      plugin.addRoute('plain', route);
+      plugin.addRoute('plain', route as RouteRecordRaw);
     } else if (this.config.length === 0) {
       // If no config is provided, add a default empty page
       this.config = [{
@@ -126,7 +127,13 @@ export class PluginProduct {
       if ((this.config[0] as any).name) {
         // IF the first page is a group AND doesn't have a component, then route to the first child of the group
         if ((this.config[0] as any).children && (this.config[0] as any).children.length && !(this.config[0] as any).component) {
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, (this.config[0] as ProductChildGroup).children[0] as ProductChildPage, { omitPath: true, extendProduct: !this.newProduct });
+          const entryChild = (this.config[0] as ProductChildGroup).children[0] as ProductChildPage;
+
+          if (entryChild.type) {
+            defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+          } else {
+            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+          }
         } else if ((this.config[0] as any).children && (this.config[0] as any).children.length && (this.config[0] as any).component) {
           // IF the first page is a group AND HAS a component, then route to the group page itself
           defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, undefined, {
@@ -285,7 +292,7 @@ export class PluginProduct {
       virtualType({ ...virtualTypeConfig, ...(pageChild.config || {}) });
     } else if ((item as any).type) {
       // Page with a "type" specified maps to a configureType
-      const typeItem = item as ProductChildResource;
+      const typeItem = item as ProductChildPage;
 
       const pageChild = item as ProductChildPage;
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, pageChild, { extendProduct: !this.newProduct });
@@ -295,7 +302,7 @@ export class PluginProduct {
         isEditable:  true,
         isRemovable: true,
         canYaml:     true,
-        customRoute: route
+        customRoute: route as RouteRecordRaw
       };
 
       configureType(typeItem.type, { ...configureTypeConfig, ...(pageChild.config || {}) });
@@ -355,7 +362,7 @@ export class PluginProduct {
 
         const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageChild, { component: pageChild.component, extendProduct: !this.newProduct });
 
-        plugin.addRoute(route);
+        plugin.addRoute(route as RouteRecordRaw);
       } else if ((child as any).type) {
         if ((child as ProductChildPage).component) {
           throw new Error('Resource pages cannot have a "component" property - only custom pages can use "component".');

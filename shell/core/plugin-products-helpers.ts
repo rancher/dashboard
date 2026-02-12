@@ -1,7 +1,7 @@
 import {
   RouteRecordRawWithParams, ProductChildGroup,
   ProductChildPage, ProductRegistrationRouteGenerationOptions
-} from '@shell/core/types';
+} from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 class PluginProductsHelpers {

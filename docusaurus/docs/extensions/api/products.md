@@ -164,8 +164,6 @@ Current enum values for `StandardProductName`:
 - `EXPLORER` — Cluster explorer
 - `MANAGER` — Cluster management
 - `SETTINGS` — Global settings
-- `FLEET` — Fleet
-- `HARVESTER_MANAGER` — Harvester manager
 - `AUTH` — Users & Authentication
 
 
