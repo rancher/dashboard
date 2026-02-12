@@ -6142,6 +6142,10 @@ secret:
     warnings:
       expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
       expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
+  projectScoped:
+    tooltip:
+      source: "Project Scoped Secret (for Project \"{project}\" in cluster \"{cluster}\")"
+      copy: "Managed via Project Scoped Secret (\"{secret}\" in Project \"{project}\")"
   data: Data
   registry:
     address: Registry
