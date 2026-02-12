@@ -2,7 +2,7 @@
 import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
 import GenericPrompt from './GenericPrompt';
-
+import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
   emits: ['close'],
 
@@ -33,7 +33,7 @@ export default {
         ]);
       }
     } catch (e) {
-      this.errors.push(e);
+      this.errors = exceptionToErrorsArray(e);
     }
     this.loading = false;
   },

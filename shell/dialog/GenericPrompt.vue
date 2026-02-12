@@ -48,6 +48,16 @@ export default {
     }
   },
 
+  data() {
+    return { applyErrors: [] };
+  },
+
+  computed: {
+    allErrors() {
+      return [...this.errors, ...this.applyErrors];
+    }
+  },
+
   methods: {
     decodeHtml,
     close() {
@@ -56,13 +66,14 @@ export default {
     },
 
     async apply(buttonDone) {
+      this.applyErrors = [];
       try {
         await this.applyAction(buttonDone);
         this.confirm(true);
         this.$emit('close');
       } catch (err) {
         console.error(err); // eslint-disable-line
-        this.errors = exceptionToErrorsArray(err);
+        this.applyErrors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
     }
@@ -97,7 +108,7 @@ export default {
     <template #actions>
       <div class="bottom">
         <Banner
-          v-for="(err, i) in errors"
+          v-for="(err, i) in allErrors"
           :key="i"
           color="error"
           :label="err"
