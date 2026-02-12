@@ -1285,6 +1285,7 @@ describe('component: FleetClusterTargets', () => {
     describe('clusterGroup Data Management', () => {
       it('should initialize with empty selectedClusterGroups', () => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1308,6 +1309,7 @@ describe('component: FleetClusterTargets', () => {
         ];
 
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1338,6 +1340,7 @@ describe('component: FleetClusterTargets', () => {
         ];
 
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1360,6 +1363,7 @@ describe('component: FleetClusterTargets', () => {
     describe('clusterGroup Selection Methods', () => {
       it('should update selectedClusterGroups when selectClusterGroups is called', async() => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1378,6 +1382,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should emit update:value when selectClusterGroups is called', async() => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1393,6 +1398,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should handle empty array in selectClusterGroups', async() => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1413,6 +1419,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should replace existing selectedClusterGroups on new selection', async() => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1441,6 +1448,7 @@ describe('component: FleetClusterTargets', () => {
         ];
 
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets,
             namespace: 'fleet-default',
@@ -1454,6 +1462,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should include clusterGroups in normalizeTargets output', () => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1477,6 +1486,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should handle only clusterGroups in normalizeTargets', () => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1494,6 +1504,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should return undefined when normalizeTargets has no inputs', () => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1508,6 +1519,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should include clusterGroups in toTargets when targetMode is clusters', () => {
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1539,6 +1551,7 @@ describe('component: FleetClusterTargets', () => {
         ];
 
         const wrapper = mount(FleetClusterTargets, {
+          ...requiredSetup(),
           props: {
             targets,
             namespace: 'fleet-default',
@@ -1560,6 +1573,7 @@ describe('component: FleetClusterTargets', () => {
       ];
 
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets,
           namespace: 'fleet-default',
@@ -1575,6 +1589,7 @@ describe('component: FleetClusterTargets', () => {
 
     it('should reset selectedClusterGroups when reset method is called', () => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1603,6 +1618,7 @@ describe('component: FleetClusterTargets', () => {
   describe('clusterGroup Event Handling and Updates', () => {
     it('should emit correct targets when both clusters and clusterGroups are selected', async() => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1630,6 +1646,7 @@ describe('component: FleetClusterTargets', () => {
 
     it('should handle clusterGroup selection in CREATE mode with proper event emission', async() => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1657,6 +1674,7 @@ describe('component: FleetClusterTargets', () => {
       const initialTargets = [{ clusterGroup: 'initial-group' }];
 
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   initialTargets,
           namespace: 'fleet-default',
@@ -1691,6 +1709,7 @@ describe('component: FleetClusterTargets', () => {
       ];
 
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   targets as any,
           namespace: 'fleet-default',
@@ -1708,6 +1727,7 @@ describe('component: FleetClusterTargets', () => {
       ];
 
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   targets as any,
           namespace: 'fleet-default',
@@ -1720,6 +1740,7 @@ describe('component: FleetClusterTargets', () => {
 
     it('should handle empty allClusterGroups data', () => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1746,6 +1767,7 @@ describe('component: FleetClusterTargets', () => {
       ];
 
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1767,6 +1789,7 @@ describe('component: FleetClusterTargets', () => {
   describe('clusterGroup Component Lifecycle', () => {
     it('should preserve clusterGroup selections during component updates', async() => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1788,6 +1811,7 @@ describe('component: FleetClusterTargets', () => {
 
     it('should clear clusterGroup selections on namespace change in CREATE mode', async() => {
       const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
