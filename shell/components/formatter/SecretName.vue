@@ -2,6 +2,7 @@
 import LinkDetail from '@shell/components/formatter/LinkDetail';
 import { MANAGEMENT } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
+import { mapGetters } from 'vuex';
 
 export default {
   components: { LinkDetail },
@@ -15,22 +16,30 @@ export default {
       required: true
     },
   },
+  async fetch() {
+    if (this.row.isProjectScoped && this.currentCluster?.isLocal) {
+      const id = this.row.projectScopedClusterId;
+
+      if (id && !this.$store.getters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, id)) {
+        try {
+          await this.$store.dispatch(`${ STORE.MANAGEMENT }/find`, { type: MANAGEMENT.CLUSTER, id });
+        } catch (e) {
+          // Ignore error
+        }
+      }
+    }
+  },
   computed: {
-    isProjectScoped() {
-      return this.row.isProjectScoped;
-    },
-    isProjectSecretCopy() {
-      return this.row.isProjectSecretCopy;
-    },
+    ...mapGetters(['currentCluster']),
     tooltip() {
-      if (this.isProjectScoped) {
+      if (this.row.isProjectScoped) {
         const projectName = this.row.project?.nameDisplay || this.row.projectScopedProjectId;
         const clusterName = this.row.projectCluster?.nameDisplay || this.row.projectScopedClusterId;
 
         return this.t('secret.projectScoped.tooltip.source', { project: projectName, cluster: clusterName });
-      } else if (this.isProjectSecretCopy) {
+      } else if (this.row.isProjectSecretCopy) {
         const projectID = this.row.projectScopedProjectId;
-        const clusterId = this.$store.getters['clusterId'];
+        const clusterId = this.currentCluster?.id;
 
         // Try to fetch the project.
         // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.

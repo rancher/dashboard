@@ -271,14 +271,14 @@ export function init(store) {
 
   headers(SECRET, [
     STATE,
-    NAME_COL,
+    { ...NAME_COL, formatter: 'SecretName' },
     NAMESPACE_COL,
     SUB_TYPE,
     SECRET_DATA,
     AGE
   ], [
     STEVE_STATE_COL,
-    STEVE_NAME_COL,
+    { ...STEVE_NAME_COL, formatter: 'SecretName' },
     STEVE_NAMESPACE_COL, {
       ...SUB_TYPE,
       value:  'metadata.fields.1',

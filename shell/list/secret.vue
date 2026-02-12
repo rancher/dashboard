@@ -51,36 +51,9 @@ export default {
   async created() {
     this.canViewProjects = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](MANAGEMENT.PROJECT);
 
-    if (this.canViewProjects && this.currentCluster.isLocal) {
-      // this is needed to display the project name in the tooltip for project-scoped secrets
-      this.$store.dispatch(`${ STORE.MANAGEMENT }/findAll`, { type: MANAGEMENT.CLUSTER });
-    }
-
     this.managementSchema = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET);
-    const headers = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
-    const headersSSP = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
-
-    this.namespacedHeaders = headers.map((h) => {
-      if (h.name === 'name') {
-        return {
-          ...h,
-          formatter: 'SecretName'
-        };
-      }
-
-      return h;
-    });
-
-    this.namespacedHeadersSsp = headersSSP.map((h) => {
-      if (h.name === 'name') {
-        return {
-          ...h,
-          formatter: 'SecretName'
-        };
-      }
-
-      return h;
-    });
+    this.namespacedHeaders = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
+    this.namespacedHeadersSsp = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
   },
 
   computed: {
