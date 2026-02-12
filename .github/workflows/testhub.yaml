@@ -33,10 +33,7 @@ jobs:
       TESTHUB_URL: ${{ secrets.TESTHUB_URL }}
       TESTHUB_TOKEN: ${{ secrets.TESTHUB_TOKEN }}
     # Only run for workflow_run events when env vars are configured
-    if: |
-      github.event_name == 'workflow_run' &&
-      ${{ env.TESTHUB_URL != '' }} &&
-      ${{ env.TESTHUB_TOKEN != '' }}
+    if: github.event_name == 'workflow_run'
     steps:
       - name: Determine target type and name
         id: target
@@ -69,26 +66,22 @@ jobs:
           echo "  Target: ${{ steps.target.outputs.type }}/${{ steps.target.outputs.name }}"
           echo "  Workflow: ${{ github.event.workflow_run.name }}"
           echo "  Conclusion: ${{ github.event.workflow_run.conclusion }}"
-          
+
+          if [ -z "${TESTHUB_URL}" ]; then
+            echo "TESTHUB_URL is not set. Skipping registration."
+            exit 1
+          fi
+
+          if [ -z "${TESTHUB_TOKEN}" ]; then
+            echo "TESTHUB_TOKEN is not set. Skipping registration."
+            exit 1
+          fi          
+
           # Build the API URL
           API_URL="${TESTHUB_URL}/api/${{ github.repository }}/register/${{ steps.target.outputs.type }}/${{ steps.target.outputs.name }}/${{ github.event.workflow_run.id }}"
           
           # Make the API call
-          HTTP_STATUS=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer ${TESTHUB_TOKEN}" \
-            -H "Content-Type: application/json" \
-            "${API_URL}")
-          
-          echo "HTTP Status: ${HTTP_STATUS}"
-          
-          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-            echo "✅ Successfully registered test run"
-            cat /tmp/response.txt
-          else
-            echo "⚠️ Failed to register test run (non-fatal)"
-            cat /tmp/response.txt
-          fi
+          curl -X POST -H "Authorization: Bearer ${TESTHUB_TOKEN}" "${API_URL}"
 
   # Job to sync PR info with TestHub when PR events occur
   sync-pull-request:
@@ -99,10 +92,7 @@ jobs:
       TESTHUB_TOKEN: ${{ secrets.TESTHUB_TOKEN }}
 
     # Only run for pull_request events when env vars are configured
-    if: |
-      github.event_name == 'pull_request' &&
-      ${{ env.TESTHUB_URL != '' }} &&
-      ${{ env.TESTHUB_TOKEN != '' }}
+    if: github.event_name == 'pull_request'
     steps:
       - name: Sync PR info with TestHub
         # Continue even if this fails - we don't want to fail the workflow
@@ -113,23 +103,19 @@ jobs:
           echo "  PR Number: ${{ github.event.pull_request.number }}"
           echo "  Action: ${{ github.event.action }}"
           echo "  Title: ${{ github.event.pull_request.title }}"
+
+          if [ -z "${TESTHUB_URL}" ]; then
+            echo "TESTHUB_URL is not set. Skipping registration."
+            exit 1
+          fi
+
+          if [ -z "${TESTHUB_TOKEN}" ]; then
+            echo "TESTHUB_TOKEN is not set. Skipping registration."
+            exit 1
+          fi
           
           # Build the API URL
           API_URL="${TESTHUB_URL}/api/${{ github.repository }}/pull-request/refresh/${{ github.event.pull_request.number }}"
           
           # Make the API call
-          HTTP_STATUS=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer ${TESTHUB_TOKEN}" \
-            -H "Content-Type: application/json" \
-            "${API_URL}")
-          
-          echo "HTTP Status: ${HTTP_STATUS}"
-          
-          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-            echo "✅ Successfully synced PR info"
-            cat /tmp/response.txt
-          else
-            echo "⚠️ Failed to sync PR info (non-fatal)"
-            cat /tmp/response.txt
-          fi
+          curl -X POST -H "Authorization: Bearer ${TESTHUB_TOKEN}" "${API_URL}"
