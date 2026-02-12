@@ -315,6 +315,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
   });
 
   after(() => {
+    cy.login(); // this is needed to avoid getting "Unauthorized 401: must authenticate" error
     for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {
       cy.deleteRancherResource('v3', `cloudcredentials`, doCreatedCloudCredsIds[i]);
     }
