@@ -167,8 +167,12 @@ export default {
 
     clustersOptions() {
       return this.allClusters
-        .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x)))
-        .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
+        .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x) || this.selectedClusters.includes(x.name)))
+        .map((x) => ({
+          label:    x.nameDisplay,
+          value:    x.metadata.name,
+          disabled: !this.areHarvesterHostsVisible && isHarvesterCluster(x)
+        }));
     },
 
     clusterGroupsOptions() {
