@@ -60,4 +60,12 @@ export default class SupportPagePo extends PagePo {
       .invoke('removeAttr', 'target')
       .click();
   }
+
+  clickSccLink() {
+    return this.self().get('a[href="https://scc.suse.com"]').then((el) => {
+      expect(el).to.have.attr('target');
+    })
+      .invoke('removeAttr', 'target')
+      .click();
+  }
 }

@@ -159,7 +159,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {

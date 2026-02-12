@@ -3,6 +3,7 @@ import semver from 'semver';
 import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 import { SETTING } from '@shell/config/settings';
+import { getVersionData } from '@shell/config/version';
 
 export function parse(str) {
   str = `${ str }`;
@@ -74,21 +75,6 @@ export function isPrerelease(version = '') {
   return !!semver.prerelease(version);
 }
 
-export function isUpgradeFromPreToStable(currentVersion, targetVersion) {
-  if (!isPrerelease(currentVersion) || isPrerelease(targetVersion)) {
-    return false;
-  }
-
-  const cVersion = semver.clean(currentVersion, { loose: true });
-  const tVersion = semver.clean(targetVersion, { loose: true });
-
-  if (cVersion && tVersion && semver.valid(cVersion) && semver.valid(tVersion)) {
-    return semver.lt(cVersion, tVersion);
-  }
-
-  return false;
-}
-
 export function isDevBuild(version) {
   if ( ['dev', 'master', 'head'].includes(version) || version.endsWith('-head') || version.match(/-rc\d+$/) || version.match(/-alpha\d+$/) ) {
     return true;
@@ -98,8 +84,10 @@ export function isDevBuild(version) {
 }
 
 export function getVersionInfo(store) {
-  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
-  const fullVersion = setting?.value || 'unknown';
+  const fullVersion = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value ??
+    getVersionData()?.Version ??
+    'unknown';
+
   let displayVersion = fullVersion;
 
   const match = fullVersion.match(/^(.*)-([0-9a-f]{40})-(.*)$/);

@@ -9,6 +9,7 @@ import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { getVersionInfo } from '@shell/utils/version';
 
 export default {
   components: {
@@ -30,7 +31,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return this.settings.find((s) => s.id === SETTING.VERSION_RANCHER);
+      return getVersionInfo(this.$store).fullVersion;
     },
     appName() {
       return getVendor();
@@ -124,7 +125,7 @@ export default {
           >
             {{ t("about.versions.rancher") }}
           </a>
-        </td><td>{{ rancherVersion.value }}</td>
+        </td><td>{{ rancherVersion }}</td>
       </tr>
       <tr v-if="dashboardVersion">
         <td>

@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: Filters rendering & initial state should render with default props (snapshot) 1`] = `
+<div>
+  <div
+    class="row mb-40"
+  >
+    <div
+      class="col span-12"
+    >
+      <array-list-stub
+        a11ylabel=""
+        addallowed="true"
+        addclass=""
+        adddisabled="false"
+        addicon=""
+        addlabel="auditPolicy.filters.add"
+        componenttestid="array-list"
+        defaultaddvalue="[object Object]"
+        disabled="false"
+        initialemptyrow="false"
+        loading="false"
+        mode="create"
+        protip="false"
+        removeallowed="true"
+        removelabel=""
+        required="false"
+        rules=""
+        showheader="true"
+        title=""
+        value=""
+        valuelabel="Value"
+        valuemultiline="false"
+        valueplaceholder="auditPolicy.filters.placeholder"
+      />
+    </div>
+  </div>
+</div>
+`;

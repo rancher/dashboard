@@ -8,6 +8,7 @@
     "bannerClass": "suse-login-banner-graphic",
     "logo": "rancher-logo.svg",
     "logoClass": "suse-logo-login",
-    "welcomeLabelKey": "login.login"
+    "welcomeLabelKey": "login.login",
+    "setupLabelKey": "setup.setup"
   }  
 }
