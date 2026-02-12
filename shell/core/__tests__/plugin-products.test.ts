@@ -1,8 +1,9 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import {
-  IPlugin, ProductMetadata, ProductSinglePage, ProductChildPage,
-  ProductChildGroup, ProductChildResource, StandardProductName
-} from '@shell/core/types';
+  ProductMetadata, ProductSinglePage, ProductChildPage,
+  ProductChildGroup, StandardProductName
+} from '@shell/core/plugin-types';
+import { IPlugin } from '@shell/core/types';
 import { Router } from 'vue-router';
 
 // Mock the helper functions
@@ -18,10 +19,24 @@ jest.mock('@shell/core/plugin-products-helpers', () => ({
     path:      opts?.omitPath ? '' : `/${ parentName }/${ page?.name || 'group' }`,
     component: opts?.component,
   })),
-  generateConfigureTypeRoute: jest.fn((parentName, page, opts) => ({
-    name: `${ parentName }-${ page.name }`,
-    path: opts?.omitPath ? '' : `/${ parentName }/${ page.name }`,
-  })),
+  generateConfigureTypeRoute: jest.fn((parentName, page, opts) => {
+    const routeName = opts?.extendProduct ? `c-cluster-${ parentName }-resource` : `${ parentName }-c-cluster-resource`;
+    const routePath = opts?.extendProduct ? `c/:cluster/${ parentName }/:resource` : `${ parentName }/c/:cluster/:resource`;
+    const cluster = opts?.extendProduct ? undefined : '__BLANK_CLUSTER__';
+
+    return {
+      name:   routeName,
+      path:   opts?.omitPath ? '' : routePath,
+      params: cluster ? {
+        product:  parentName.replace(/-/g, ''),
+        cluster,
+        resource: page?.type,
+      } : {
+        product:  parentName,
+        resource: page?.type,
+      },
+    };
+  }),
   generateResourceRoutes: jest.fn((parentName, child) => [
     {
       name: `${ parentName }-${ child.type }-list`,
@@ -334,7 +349,7 @@ describe('pluginProduct', () => {
         name:  'resource-product',
         label: 'Resources',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:   'custom.resource',
           weight: 5,
@@ -635,6 +650,55 @@ describe('pluginProduct', () => {
         expect.objectContaining({ to: expect.objectContaining({ name: expect.stringContaining('general') }) })
       );
     });
+
+    it('should use first group child with resource type as default route when first item is group', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockRouter = createMockRouter();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'group-resource-default',
+        label: 'Group Resource Default',
+      };
+      const config: ProductChildGroup[] = [
+        {
+          name:     'resources',
+          label:    'Resources',
+          children: [
+            { type: 'provisioning.cattle.io.cluster' },
+          ],
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(mockDSL.product).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: expect.objectContaining({
+            name:   'groupresourcedefault-c-cluster-resource',
+            params: expect.objectContaining({
+              product:  'groupresourcedefault',
+              cluster:  '__BLANK_CLUSTER__',
+              resource: 'provisioning.cattle.io.cluster',
+            }),
+          }),
+        })
+      );
+    });
   });
 
   describe('mixed config types', () => {
@@ -659,16 +723,13 @@ describe('pluginProduct', () => {
         name:  'mixed-product',
         label: 'Mixed Content',
       };
-      const mixedConfig: (ProductChildPage | ProductChildResource)[] = [
+      const mixedConfig: ProductChildPage[] = [
         {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewComponent' },
         },
-        {
-          type:  'resources.io',
-          label: 'Resources',
-        },
+        { type: 'resources.io' },
       ];
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, mixedConfig);
@@ -848,7 +909,7 @@ describe('pluginProduct', () => {
           weight: -100,
           label:  'Simple with Children',
         };
-        const config: (ProductChildPage | ProductChildResource)[] = [
+        const config: ProductChildPage[] = [
           {
             name:      'page1',
             label:     'My label for page 1',
@@ -894,7 +955,7 @@ describe('pluginProduct', () => {
           weight: -100,
           label:  'Simple with Children',
         };
-        const config: (ProductChildResource | ProductChildGroup | ProductChildPage)[] = [
+        const config: (ProductChildGroup | ProductChildPage)[] = [
           { type: 'fleet.cattle.io.clustergroup' },
           {
             name:      'page1',
@@ -1013,7 +1074,7 @@ describe('pluginProduct', () => {
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
         const validStandardProduct = StandardProductName.EXPLORER;
-        const config: (ProductChildGroup | ProductChildResource | ProductChildPage)[] = [
+        const config: (ProductChildGroup | ProductChildPage)[] = [
           {
             name:     'page1',
             label:    'My label for page 1',
@@ -1096,7 +1157,7 @@ describe('pluginProduct', () => {
         name:  'test-product',
         label: 'Test',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           headers: {
@@ -1128,7 +1189,7 @@ describe('pluginProduct', () => {
         name:  'test-product',
         label: 'Test',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'core.service',
           headers: {
@@ -1158,7 +1219,7 @@ describe('pluginProduct', () => {
         name:  'test-product',
         label: 'Test',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         { type: 'apps.deployment' },
       ];
 
@@ -1181,7 +1242,7 @@ describe('pluginProduct', () => {
         name:  'test-product',
         label: 'Test',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           headers: { preset: 'invalid-preset' } as any,
@@ -1207,7 +1268,7 @@ describe('pluginProduct', () => {
         name:  'multi-resource-product',
         label: 'Multi Resource',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           headers: {
@@ -1258,7 +1319,7 @@ describe('pluginProduct', () => {
     it('should process headers when extending standard product', () => {
       const { processHeadersConfig } = require('@shell/core/column-builder');
 
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           headers: {
@@ -1287,7 +1348,7 @@ describe('pluginProduct', () => {
         name:  'mixed-product',
         label: 'Mixed',
       };
-      const config: (ProductChildResource | ProductChildPage)[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           headers: {
@@ -1324,7 +1385,7 @@ describe('pluginProduct', () => {
         name:  'test-product',
         label: 'Test',
       };
-      const config: ProductChildResource[] = [
+      const config: ProductChildPage[] = [
         {
           type:    'apps.deployment',
           weight:  100,
