@@ -97,7 +97,7 @@ const menuOptions = () => {
 <template>
   <rc-dropdown-menu
     :button-variant="buttonVariant || 'link'"
-    :button-size="buttonSize || 'small'"
+    :button-size="buttonSize || 'medium'"
     :button-aria-label="buttonAriaLabel"
     :dropdown-aria-label="dropdownAriaLabel"
     :options="menuOptions()"

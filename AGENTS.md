@@ -84,29 +84,60 @@ To get started, follow the `Getting Started` section.
   - `storybook/`: Component documentation source
 
 
+## Unit Tests
+
+Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://extensions.rancher.io/internal/testing/unit-test) for more information
+
+### Writing Unit Tests
+
+- Tests use the Jest framework (Chai based assertions in a Mocha like structure)
+- Unit tests should be written in TypeScript
+- Some global helpers for component based unit tests can be found in `jest.setup.js`
+- Tests associated with files should be in a similarly named file in a `__tests__` directory. The file name should end in `.test.ts`
+  - For example the tests for `shell/utils/uiplugins.ts` are in `shell/utils/__tests__/uiplugins.test.ts`
+- Use describe blocks to group related tests
+- Write tests covering both happy and unhappy paths, edge cases (null values, empty strings, extremely large numbers) and error handling
+- Ensure each test case is atomic and tests only one specific assertion
+- Use `it.each` to run the same test logic against a table of different input/output pairs.
+
+### Boundaries
+
+- ✅ **Always:**
+  - Act as a QA Software Developer
+  - Use `toStrictEqual` instead of `toEqual`
+  - Use `toHaveBeenCalledWith` instead of `toHaveBeenCalled`
+- 🚫 **Never:**
+  - Overwrite existing test files
+
+### Running Unit Tests
+
+- To run all tests: `yarn test`
+- To run a single test file: `yarn test <full-path-to-test-file>`
+
 ## E2E Tests (Cypress)
+
+### Writing E2E Tests
+- E2E tests use the Cypress framework, Mocha for structure and Chai based assertions
+- E2E tests should be written in TypeScript
+- E2E files can be found in the `./cypress` directory
+
+#### Running E2E Tests
 
 - Interactive mode: `yarn cy:e2e`
 - Headless mode: `yarn cy:run`
 - Run a specific spec file: `yarn cy:run --spec cypress/e2e/tests/<path-to-spec>.spec.ts`
 
-### Required Environment Variables
+##### Required Environment Variables
 
 - `TEST_PASSWORD` - Password for login (or CATTLE_BOOTSTRAP_PASSWORD for setup tests)
 - `TEST_BASE_URL` - Dashboard URL (defaults to https://localhost:8005)
 - `TEST_USERNAME` - Username (defaults to admin)
 
-### Optional Environment Variables
+##### Optional Environment Variables
 
 - `TEST_SKIP` - Comma-separated test directories to skip (e.g., setup,extensions)
 - `TEST_ONLY` - Comma-separated test directories to run exclusively
 - `GREP_TAGS` - Filter tests by tags
-
-## Unit Tests
-
-Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://extensions.rancher.io/internal/testing/unit-test) for more information
-
-- To run a single test file: yarn test `<full-path-to-test-file>`
 
 ## Milestone guidance
 
@@ -115,7 +146,7 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
   - github issue
     - `/backport <target milestone>` e.g `/backport v2.12.2`
   - pull requests
-    - `/backport <target milestone> <target branch>` e.g. `/backport v2.12.2 release-12`
+    - `/backport <target milestone> <target branch>` e.g. `/backport v2.12.2 release-2.12`
     - All backported pull requests must link to a backported issue
 
 
