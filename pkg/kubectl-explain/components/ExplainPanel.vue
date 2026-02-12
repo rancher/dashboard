@@ -119,7 +119,7 @@ export default {
           </a>
         </div>
         <div
-          v-if="field.type && field.type !== 'array'"
+          v-if="field.type && field.type !== 'array' && !field.$refName"
           class="field-type"
         >
           <div>
@@ -161,7 +161,7 @@ export default {
             v-else
             class="field-type"
           >
-            {{ t('kubectl-explain.object') }}
+            {{ field.type === 'array' && field.items?.type ? field.items.type : t('kubectl-explain.object') }}
           </div>
         </div>
       </div>
