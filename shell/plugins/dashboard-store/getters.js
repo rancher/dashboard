@@ -351,12 +351,18 @@ export default {
     return out;
   },
 
+  /**
+   * Can the user GET a resource of the given type
+   */
   canGet: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
     return schema?.canGet;
   },
 
+  /**
+   * Can the user LIST a resource of the given type
+   */
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 

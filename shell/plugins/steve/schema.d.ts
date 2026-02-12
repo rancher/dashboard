@@ -17,6 +17,8 @@ export interface SchemaAttribute {
 }
 
 /**
+ * Interface for a steve schema, represents raw json
+ *
  * At some point this will be properly typed, until then...
  */
 export interface Schema {
