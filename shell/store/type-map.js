@@ -508,9 +508,17 @@ export const getters = {
 
   groupLabel(state) {
     return (group) => {
+      // Handle null/undefined
+      if (!group) {
+        return;
+      }
+
+      // commit is done with lowercase group names, so lowercase here to match
+      const groupName = group.toLowerCase();
+
       // If this has been explicitly set, use that
-      if (state.groupLabels[group]) {
-        return state.groupLabels[group];
+      if (groupName && state.groupLabels[groupName]) {
+        return state.groupLabels[groupName];
       }
     };
   },

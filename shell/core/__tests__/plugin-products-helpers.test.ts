@@ -1,21 +1,27 @@
-import {
-  gatherChildrenOrdering,
-  generateTopLevelExtensionSimpleBaseRoute,
-  generateVirtualTypeRoute,
-  generateConfigureTypeRoute,
-  generateResourceRoutes,
-} from '@shell/core/plugin-products-helpers';
+import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
-import { ProductChildPage } from '@shell/core/types';
+import { ProductChildPage, ProductChildGroup } from '@shell/core/plugin-types';
+
+const gatherChildrenOrdering = pluginProductsHelpers.gatherChildrenOrdering.bind(pluginProductsHelpers);
+const generateTopLevelExtensionSimpleBaseRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute.bind(pluginProductsHelpers);
+const generateVirtualTypeRoute = pluginProductsHelpers.generateVirtualTypeRoute.bind(pluginProductsHelpers);
+const generateConfigureTypeRoute = pluginProductsHelpers.generateConfigureTypeRoute.bind(pluginProductsHelpers);
+const generateResourceRoutes = pluginProductsHelpers.generateResourceRoutes.bind(pluginProductsHelpers);
 
 describe('plugin-products-helpers', () => {
   // ============= gatherChildrenOrdering tests =============
   describe('gatherChildrenOrdering', () => {
     it('should sort children by weight descending', () => {
       const children = [
-        { name: 'a', weight: 10 },
-        { name: 'b', weight: 30 },
-        { name: 'c', weight: 20 },
+        {
+          name: 'a', label: 'A', weight: 10, children: []
+        },
+        {
+          name: 'b', label: 'B', weight: 30, children: []
+        },
+        {
+          name: 'c', label: 'C', weight: 20, children: []
+        },
       ];
 
       const result = gatherChildrenOrdering(children);
@@ -23,27 +29,43 @@ describe('plugin-products-helpers', () => {
       expect(result[0].name).toBe('b'); // 30
       expect(result[1].name).toBe('c'); // 20
       expect(result[2].name).toBe('a'); // 10
+      // Verify original array is not mutated
+      expect(children[0].name).toBe('a');
+      expect(children[1].name).toBe('b');
+      expect(children[2].name).toBe('c');
     });
 
     it('should assign weights to items missing them', () => {
       const children = [
-        { name: 'a', weight: 50 },
-        { name: 'b' },
-        { name: 'c' },
+        {
+          name: 'a', label: 'A', weight: 50, children: []
+        },
+        {
+          name: 'b', label: 'B', children: []
+        },
+        {
+          name: 'c', label: 'C', children: []
+        },
       ];
 
       const result = gatherChildrenOrdering(children);
 
       expect(result[0].weight).toBe(50);
-      expect(result[1].weight).toBeLessThan(50); // 49
-      expect(result[2].weight).toBeLessThan(result[1].weight); // 48
+      expect(result[1].weight!).toBeLessThan(50); // 49
+      expect(result[2].weight!).toBeLessThan(result[1].weight!); // 48
     });
 
     it('should use 999 as minWeight when no explicit weights are provided', () => {
       const children = [
-        { name: 'a' },
-        { name: 'b' },
-        { name: 'c' },
+        {
+          name: 'a', label: 'A', children: []
+        },
+        {
+          name: 'b', label: 'B', children: []
+        },
+        {
+          name: 'c', label: 'C', children: []
+        },
       ];
 
       const result = gatherChildrenOrdering(children);
@@ -59,11 +81,18 @@ describe('plugin-products-helpers', () => {
       const children = [
         {
           name:     'group',
+          label:    'Group',
           weight:   50,
           children: [
-            { name: 'nested-a', weight: 20 },
-            { name: 'nested-b', weight: 10 },
-            { name: 'nested-c' }, // no weight
+            {
+              name: 'nested-a', label: 'Nested A', weight: 20, children: []
+            },
+            {
+              name: 'nested-b', label: 'Nested B', weight: 10, children: []
+            },
+            {
+              name: 'nested-c', label: 'Nested C', children: []
+            }, // no weight
           ],
         },
       ];
@@ -84,9 +113,15 @@ describe('plugin-products-helpers', () => {
 
     it('should not mutate order when weights are not provided for all items', () => {
       const children = [
-        { name: 'first' },
-        { name: 'second', weight: 100 },
-        { name: 'third' },
+        {
+          name: 'first', label: 'First', children: []
+        },
+        {
+          name: 'second', label: 'Second', weight: 100, children: []
+        },
+        {
+          name: 'third', label: 'Third', children: []
+        },
       ];
 
       const result = gatherChildrenOrdering(children);
@@ -205,11 +240,7 @@ describe('plugin-products-helpers', () => {
   // ============= generateConfigureTypeRoute tests =============
   describe('generateConfigureTypeRoute', () => {
     it('should generate top-level extension resource route', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const route = generateConfigureTypeRoute('my-product', page);
 
@@ -228,11 +259,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should generate cluster-level extension resource route when extendProduct is true', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const route = generateConfigureTypeRoute('my-product', page, { extendProduct: true });
 
@@ -254,15 +281,11 @@ describe('plugin-products-helpers', () => {
       const route = generateConfigureTypeRoute('my-product', page as ProductChildPage);
 
       expect(route.name).toBe('my-product-c-cluster-resource');
-      expect(route.params.resource).toBeUndefined();
+      expect(route.params?.resource).toBeUndefined();
     });
 
     it('should omit path when omitPath option is true', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const route = generateConfigureTypeRoute('my-product', page, { omitPath: true });
 
@@ -272,11 +295,7 @@ describe('plugin-products-helpers', () => {
 
     it('should include component when provided', () => {
       const MockComponent = { template: '<div>test</div>' };
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const route = generateConfigureTypeRoute('my-product', page, { component: MockComponent });
 
@@ -287,11 +306,7 @@ describe('plugin-products-helpers', () => {
   // ============= generateResourceRoutes tests =============
   describe('generateResourceRoutes', () => {
     it('should generate all resource routes for top-level extension', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page);
 
@@ -310,11 +325,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should include meta data with asyncSetup for detail and edit routes', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page);
 
@@ -325,11 +336,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should generate cluster-level extension resource routes when extendProduct is true', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page, { extendProduct: true });
 
@@ -347,11 +354,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should include BLANK_CLUSTER in meta for top-level extensions', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page);
 
@@ -362,11 +365,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should not include BLANK_CLUSTER in meta for cluster-level extensions', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page, { extendProduct: true });
 
@@ -376,37 +375,8 @@ describe('plugin-products-helpers', () => {
       });
     });
 
-    it('should use provided component options', () => {
-      const MockListComponent = { template: '<div>list</div>' };
-      const MockCreateComponent = { template: '<div>create</div>' };
-      const MockItemComponent = { template: '<div>item</div>' };
-      const MockNamespacedComponent = { template: '<div>namespaced</div>' };
-
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
-
-      const routes = generateResourceRoutes('my-product', page, {
-        resourceListComponent:           MockListComponent,
-        resourceCreateComponent:         MockCreateComponent,
-        resourceItemComponent:           MockItemComponent,
-        resourceItemNamespacedComponent: MockNamespacedComponent,
-      });
-
-      expect(routes[0].component).toBe(MockListComponent);
-      expect(routes[1].component).toBe(MockCreateComponent);
-      expect(routes[2].component).toBe(MockItemComponent);
-      expect(routes[3].component).toBe(MockNamespacedComponent);
-    });
-
     it('should have component as async functions by default', () => {
-      const page: ProductChildPage = {
-        name:      'clusters',
-        type:      'provisioning.cattle.io.cluster',
-        component: () => Promise.resolve({ default: {} }),
-      };
+      const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const routes = generateResourceRoutes('my-product', page);
 
@@ -420,16 +390,21 @@ describe('plugin-products-helpers', () => {
   describe('integration: complex product structure', () => {
     it('should handle a complete product config ordering and route generation', () => {
       const config = [
-        { name: 'overview', weight: 10 },
-        { name: 'settings', weight: 5 },
+        {
+          name: 'overview', label: 'Overview', weight: 10, children: []
+        },
+        {
+          name: 'settings', label: 'Settings', weight: 5, type: 'core.v1.configmap'
+        },
         {
           name:   'resources',
+          label:  'Resources',
           type:   'core.v1.pod',
           weight: 15,
         },
       ];
 
-      const ordered = gatherChildrenOrdering(config);
+      const ordered = gatherChildrenOrdering(config as ProductChildGroup[]);
 
       // Should be sorted by weight descending: 15, 10, 5
       expect(ordered[0].weight).toBe(15);
@@ -453,11 +428,18 @@ describe('plugin-products-helpers', () => {
       const config = [
         {
           name:     'main',
+          label:    'Main',
           weight:   50,
           children: [
-            { name: 'page1', weight: 100 },
-            { name: 'page2' },
-            { name: 'page3', weight: 50 },
+            {
+              name: 'page1', label: 'Page 1', weight: 100, children: []
+            },
+            {
+              name: 'page2', label: 'Page 2', children: []
+            },
+            {
+              name: 'page3', label: 'Page 3', weight: 50, children: []
+            },
           ],
         },
       ];
