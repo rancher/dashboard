@@ -11,7 +11,6 @@ import { FLEET as FLEET_LABELS, CAPI } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 import { FleetDashboardState, FleetResourceState, Target, TargetMode } from '@shell/types/fleet';
 import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
-import { HARVESTER_CONTAINER } from '@shell/store/features';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
