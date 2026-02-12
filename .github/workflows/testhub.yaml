@@ -1,0 +1,135 @@
+# GitHub workflow for integrating with TestHub
+
+# After the Tests workflow completes, this workflow will register the test run with TestHub
+# It will also listen for PR events to keep TestHub's PR info up to date
+
+name: TestHub Integration
+
+on:
+  # Trigger when a workflow run completes
+  workflow_run:
+    workflows: [Tests]
+    types:
+      - completed
+
+  # Trigger on PR events to sync PR info (don't need all events)
+  pull_request:
+    types:
+      - edited
+      - closed
+      - reopened
+      - synchronize
+      - milestoned
+      - demilestoned
+      - ready_for_review
+      - converted_to_draft
+
+jobs:
+  # Job to register completed test runs with TestHub
+  register-test-run:
+    name: Register Test Run
+    runs-on: ubuntu-latest
+    env:
+      TESTHUB_URL: ${{ secrets.TESTHUB_URL }}
+      TESTHUB_TOKEN: ${{ secrets.TESTHUB_TOKEN }}
+    # Only run for workflow_run events when env vars are configured
+    if: |
+      github.event_name == 'workflow_run' &&
+      ${{ env.TESTHUB_URL != '' }} &&
+      ${{ env.TESTHUB_TOKEN != '' }}
+    steps:
+      - name: Determine target type and name
+        id: target
+        run: |
+          if [[ "${{ github.event.workflow_run.event }}" == "pull_request" ]]; then
+            # For PR-triggered runs, extract PR number from head branch or use run info
+            # GitHub workflow_run for PRs includes pull_requests array
+            PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+            if [[ -n "$PR_NUMBER" ]]; then
+              echo "type=pr" >> $GITHUB_OUTPUT
+              echo "name=$PR_NUMBER" >> $GITHUB_OUTPUT
+            else
+              # Fallback to branch if PR number not available
+              echo "type=branch" >> $GITHUB_OUTPUT
+              echo "name=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+            fi
+          else
+            # For branch/push triggered runs
+            echo "type=branch" >> $GITHUB_OUTPUT
+            echo "name=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Register test run with TestHub
+        # Continue even if this fails - we don't want to fail the workflow
+        continue-on-error: true
+        run: |
+          echo "Registering test run with TestHub..."
+          echo "  Repository: ${{ github.repository }}"
+          echo "  Run ID: ${{ github.event.workflow_run.id }}"
+          echo "  Target: ${{ steps.target.outputs.type }}/${{ steps.target.outputs.name }}"
+          echo "  Workflow: ${{ github.event.workflow_run.name }}"
+          echo "  Conclusion: ${{ github.event.workflow_run.conclusion }}"
+          
+          # Build the API URL
+          API_URL="${TESTHUB_URL}/api/${{ github.repository }}/register/${{ steps.target.outputs.type }}/${{ steps.target.outputs.name }}/${{ github.event.workflow_run.id }}"
+          
+          # Make the API call
+          HTTP_STATUS=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TESTHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API_URL}")
+          
+          echo "HTTP Status: ${HTTP_STATUS}"
+          
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+            echo "✅ Successfully registered test run"
+            cat /tmp/response.txt
+          else
+            echo "⚠️ Failed to register test run (non-fatal)"
+            cat /tmp/response.txt
+          fi
+
+  # Job to sync PR info with TestHub when PR events occur
+  sync-pull-request:
+    name: Sync Pull Request
+    runs-on: ubuntu-latest
+    env:
+      TESTHUB_URL: ${{ secrets.TESTHUB_URL }}
+      TESTHUB_TOKEN: ${{ secrets.TESTHUB_TOKEN }}
+
+    # Only run for pull_request events when env vars are configured
+    if: |
+      github.event_name == 'pull_request' &&
+      ${{ env.TESTHUB_URL != '' }} &&
+      ${{ env.TESTHUB_TOKEN != '' }}
+    steps:
+      - name: Sync PR info with TestHub
+        # Continue even if this fails - we don't want to fail the workflow
+        continue-on-error: true
+        run: |
+          echo "Syncing PR info with TestHub..."
+          echo "  Repository: ${{ github.repository }}"
+          echo "  PR Number: ${{ github.event.pull_request.number }}"
+          echo "  Action: ${{ github.event.action }}"
+          echo "  Title: ${{ github.event.pull_request.title }}"
+          
+          # Build the API URL
+          API_URL="${TESTHUB_URL}/api/${{ github.repository }}/pull-request/refresh/${{ github.event.pull_request.number }}"
+          
+          # Make the API call
+          HTTP_STATUS=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${TESTHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API_URL}")
+          
+          echo "HTTP Status: ${HTTP_STATUS}"
+          
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+            echo "✅ Successfully synced PR info"
+            cat /tmp/response.txt
+          else
+            echo "⚠️ Failed to sync PR info (non-fatal)"
+            cat /tmp/response.txt
+          fi
