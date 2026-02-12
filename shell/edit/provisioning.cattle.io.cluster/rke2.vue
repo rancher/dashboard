@@ -2124,6 +2124,8 @@ export default {
     handleKubernetesChange(value, old) {
       if (value) {
         this.togglePsaDefault();
+        // Need to make sure we explicitly set ingress due to a default change
+        this.updateNginxConfiguration(this.serverConfig?.disable || []);
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
@@ -2149,7 +2151,7 @@ export default {
     updateNginxConfiguration(val) {
       if (val.includes(NGINX_SUPPORTED) || !this.nginxSupported) {
         this.serverConfig[INGRESS_CONTROLLER] = undefined;
-      } else {
+      } else if (this.serverConfig[INGRESS_CONTROLLER] !== INGRESS_NGINX) {
         this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
       }
     },
