@@ -684,11 +684,6 @@ export interface IExtension {
    */
   configureResourceType(type: string, config: ResourceTypeConfig): void;
 
-  /*
-    Get the type name for a given API group and type
-  */
-  resourceNameFor(apiGroup: string, type: string): string;
-
   /**
    * Add a locale to the i18n store
    * @param locale Locale id (e.g. en-us)
