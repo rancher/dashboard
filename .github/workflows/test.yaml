@@ -358,7 +358,7 @@ jobs:
             echo "Storing PR number ${PR_NUMBER} for TestHub registration"
             echo "pr/$PR_NUMBER" > ./origin/origin
           else
-            echo "Storing branch name ${GITHUB_REF} for TestHub registration"
+            echo "Storing branch name ${GITHUB_REF_NAME} for TestHub registration"
             echo "branch/$GITHUB_REF_NAME" > ./origin/origin
           fi
 
