@@ -140,7 +140,7 @@ export default {
 
       try {
         // never use "password" as it's deprecated!
-        const user = await this.$store.dispatch('rancher/create', {
+        const user = await this.$store.dispatch('management/create', {
           type:               MANAGEMENT.USER,
           description:        this.form.description,
           enabled:            true,
@@ -149,12 +149,11 @@ export default {
           username:           this.form.username
         });
 
-        // cannot seem to find the schema when doing save, so manually specify url
-        userSaved = await user.save({ url: '/v1/management.cattle.io.users' });
+        userSaved = await user.save();
 
         if (this.form.password.password) {
           // create secret to hold user password
-          const secret = await this.$store.dispatch('cluster/create', {
+          const secret = await this.$store.dispatch('management/create', {
             type:     SECRET,
             metadata: {
               namespace: 'cattle-local-user-passwords',
@@ -163,7 +162,7 @@ export default {
             data: { password: base64Encode(this.form.password.password) }
           });
 
-          await secret.save({ url: '/v1/secrets' });
+          await secret.save();
         }
       } catch (error) {
         throw new Error(error);
