@@ -29,8 +29,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          WORKFLOW_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
+          RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
         run: |
-          echo "Retrying workflow: $WORKFLOW_ID"
+          echo "Retrying workflow run: $RUN_ID"
           sleep 30
-          gh run rerun $WORKFLOW_ID --failed --repo $REPO
+          gh run rerun $RUN_ID --failed --repo $REPO
