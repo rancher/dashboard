@@ -557,7 +557,7 @@ export default {
     </template>
 
     <template
-      v-if="isView"
+      v-if="isView && steps.length === 5"
       #single
     >
       <NameNsDescription
@@ -573,6 +573,7 @@ export default {
         :use-hash="true"
       >
         <Tab
+          v-if="steps[1]"
           :name="steps[1].name"
           :label="steps[1].label"
           :weight="4"
@@ -588,6 +589,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="steps[2]"
           :name="steps[2].name"
           :label="steps[2].label"
           :weight="3"
@@ -612,6 +614,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="steps[3]"
           :name="steps[3].name"
           :label="steps[3].label"
           :weight="2"
@@ -627,6 +630,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="steps[4]"
           :name="steps[4].name"
           :label="steps[4].label"
           :weight="1"

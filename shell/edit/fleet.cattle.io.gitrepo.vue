@@ -505,11 +505,12 @@ export default {
       />
 
       <Tabbed
-        v-if="isView"
+        v-if="isView && steps.length === 4"
         :side-tabs="true"
         :use-hash="true"
       >
         <Tab
+          v-if="steps[1]"
           :name="steps[1].name"
           :label="steps[1].label"
           :weight="3"
@@ -528,6 +529,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="steps[2]"
           :name="steps[2].name"
           :label="steps[2].label"
           :weight="2"
@@ -542,6 +544,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="steps[3]"
           :name="steps[3].name"
           :label="steps[3].label"
           :weight="1"
