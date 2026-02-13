@@ -836,7 +836,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     clusterList.sortableTable().noRowsShouldNotExist();
 
     // hide elements before taking percy snapshot
-    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', 'td.col-live-date span.live-date');
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="sortable-cell-0-5"]');
     // takes percy snapshot.
     cy.percySnapshot('cluster manager list page');
   });
