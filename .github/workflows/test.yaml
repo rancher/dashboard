@@ -342,3 +342,29 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build-pkg --verify
+
+  # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message
+  store-origin:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - name: Save PR number or Branch name
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          mkdir -p ./origin
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Storing PR number ${PR_NUMBER} for TestHub registration"
+            echo "pr/$PR_NUMBER" > ./origin/origin
+          else
+            echo "Storing branch name ${GITHUB_REF_NAME} for TestHub registration"
+            echo "branch/$GITHUB_REF_NAME" > ./origin/origin
+          fi
+
+          cat ./origin/origin
+      - uses: actions/upload-artifact@v6
+        name: Upload origin artifact
+        with:
+          name: origin
+          path: origin/

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { AUTH_TYPE } from '@shell/config/types';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
 
@@ -236,4 +237,92 @@ describe.each([
   });
 
   it.todo('test paths and subpaths');
+});
+
+describe('view: fleet.cattle.io.gitrepo, GitHub password banner - should', () => {
+  it('show GitHub password banner when GitHub.com repository and basic auth is selected', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    // Check computed properties
+    expect(wrapper.vm.isGitHubDotComRepository).toBeTruthy();
+
+    // Set basic auth selection in tempCachedValues
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    // Check computed property after setting data
+    expect(wrapper.vm.isBasicAuthSelected).toBeTruthy();
+
+    await wrapper.vm.$nextTick();
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeTruthy();
+
+    // Check the banner element
+    const bannerElement = wrapper.find('.banner.warning');
+
+    expect(bannerElement.exists()).toBeTruthy();
+  });
+
+  it('show GitHub password banner in edit mode when conditions are met', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _EDIT }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeTruthy();
+  });
+
+  it('hide GitHub password banner when not using GitHub.com repository', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://gitlab.com/user/repo' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._SSH } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it('hide GitHub password banner when not using basic auth', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._SSH } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it('hide GitHub password banner when no auth is selected', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._NONE } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it.each([
+    ['https://github.com/user/repo', true],
+    ['https://GitHub.com/user/repo', true],
+    ['HTTPS://GITHUB.COM/user/repo', true],
+    ['https://api.github.com/user/repo', false], // subdomain doesn't match
+    ['https://raw.github.com/user/repo', false], // subdomain doesn't match
+    ['https://company-github.com/user/repo', false], // doesn't contain exact 'https://github.com'
+    ['https://github.company.com/user/repo', true], // contains exact 'https://github.com' at start
+    ['https://gitlab.com/user/repo', false],
+    ['https://bitbucket.org/user/repo', false],
+    ['http://github.com/user/repo', false], // not https
+    ['git@github.com:user/repo.git', false], // not https
+  ])('correctly detect GitHub.com repository for URL: %s (expected: %s)', async(repoUrl, shouldShowBanner) => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: repoUrl } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBe(shouldShowBanner);
+  });
 });
