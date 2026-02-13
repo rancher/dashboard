@@ -496,7 +496,10 @@ export default class Secret extends SteveModel {
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET]; // is this a project scoped secret .... or also a cloned project scoped secret
+    /**
+     * is this a project scoped secret .... or also a cloned project scoped secret
+     */
+    const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET];
 
     return isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
@@ -584,18 +587,18 @@ export default class Secret extends SteveModel {
   }
 
   get listLocation() {
-    if (!this.isProjectScoped) {
-      return super.listLocation;
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+        }
+      };
     }
 
-    return {
-      name:   'c-cluster-product-resource',
-      params: {
-        product:  this.$rootGetters['productId'],
-        cluster:  this.$rootGetters['clusterId'],
-        resource: VIRTUAL_TYPES.PROJECT_SECRETS,
-      }
-    };
+    return super.listLocation;
   }
 
   get hasProjectScopedUrlQueryParam() {
@@ -612,14 +615,7 @@ export default class Secret extends SteveModel {
 
   get parentLocationOverride() {
     if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
-      return {
-        name:   'c-cluster-product-resource',
-        params: {
-          product:  this.$rootGetters['productId'],
-          cluster:  this.$rootGetters['clusterId'],
-          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
-        }
-      };
+      return this.listLocation;
     }
 
     return super.parentLocationOverride;
