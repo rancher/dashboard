@@ -90,58 +90,59 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
         mustChangePassword: false,
         username:           e2eName
       }).then((resp: any) => {
-      if (resp.status !== 201) {
-        cy.log('ERROR: User creation failed', { status: resp.status, body: resp.body });
-        // eslint-disable-next-line no-console
-        console.error('ERROR: User creation failed', { status: resp.status, body: resp.body });
-      }
-      expect(resp.status).to.eq(201);
+        if (resp.status !== 201) {
+          cy.log('ERROR: User creation failed', { status: resp.status, body: resp.body });
+          // eslint-disable-next-line no-console
+          console.error('ERROR: User creation failed', { status: resp.status, body: resp.body });
+        }
+        expect(resp.status).to.eq(201);
 
-      // Wait for the user to be fully created before proceeding with next steps
-      // seen some weirdness where we don't have principalIds available immediately after user creation,
-      // which causes subsequent API calls to fail, so adding a wait here to mitigate that
-      cy.wait(200); // eslint-disable-line cypress/no-unnecessary-waiting
+        // Wait for the user to be fully created before proceeding with next steps
+        // seen some weirdness where we don't have principalIds available immediately after user creation,
+        // which causes subsequent API calls to fail, so adding a wait here to mitigate that
+        cy.wait(200); // eslint-disable-line cypress/no-unnecessary-waiting
 
-      // we now need to do a GET to the user to get the principalId to set the role bindings
-      // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
-      // and also create the user password as secret, which is required for login
-      cy.getRancherResource('v1', 'management.cattle.io.users', resp.body.id)
-        .then((userDataResp) => {
-          if (userDataResp.status !== 200) {
-            cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
-            // eslint-disable-next-line no-console
-            console.error('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
-          }
+        // we now need to do a GET to the user to get the principalId to set the role bindings
+        // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
+        // and also create the user password as secret, which is required for login
+        cy.getRancherResource('v1', 'management.cattle.io.users', resp.body.id)
+          .then((userDataResp) => {
+            if (userDataResp.status !== 200) {
+              cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+              // eslint-disable-next-line no-console
+              console.error('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+            }
 
-          const userPrincipalId = userDataResp.body.principalIds[0];
+            const userPrincipalId = userDataResp.body.principalIds[0];
 
-          return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
-            .then(() => {
-              if (globalRole) {
-                return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
-                  .then(() => {
-                    if (clusterRole) {
-                      const { clusterId, role } = clusterRole;
+            return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
+              .then(() => {
+                if (globalRole) {
+                  return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+                    .then(() => {
+                      if (clusterRole) {
+                        const { clusterId, role } = clusterRole;
 
-                      return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
-                    }
-                  })
-                  .then(() => {
-                    if (projectRole) {
-                      const { clusterId, projectName, role } = projectRole;
+                        return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+                      }
+                    })
+                    .then(() => {
+                      if (projectRole) {
+                        const { clusterId, projectName, role } = projectRole;
 
-                      return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
-                    }
-                  })
-                  .then(() => {
-                  // return response of original user
-                    return resp;
-                  });
-              } else {
-                return resp;
-              }
-            });
-        });
+                        return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+                      }
+                    })
+                    .then(() => {
+                      // return response of original user
+                      return resp;
+                    });
+                } else {
+                  return resp;
+                }
+              });
+          });
+      });
     });
 });
 
