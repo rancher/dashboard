@@ -1,5 +1,5 @@
 import { formatPercent } from '@shell/utils/string';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, NODE_ROLES_LABEL, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
@@ -171,10 +171,23 @@ export default class ClusterNode extends SteveModel {
       });
   }
 
-  get roles() {
-    const { isControlPlane, isWorker, isEtcd } = this;
+  get customRoles() {
+    const standardRoles = Object.values(NODE_ROLES);
+    const customRoles = [];
 
-    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
+    for (const labelKey in this.labels) {
+      if (labelKey.startsWith(NODE_ROLES_LABEL) && !standardRoles.includes(labelKey)) {
+        customRoles.push(labelKey.replace(NODE_ROLES_LABEL, ''));
+      }
+    }
+
+    return customRoles;
+  }
+
+  get roles() {
+    const { isControlPlane, isWorker, isEtcd, customRoles } = this;
+
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, customRoles, this.t('generic.all'));
   }
 
   get version() {
@@ -472,22 +485,31 @@ function calculatePercentage(allocatable, capacity) {
   return formatPercent(percent);
 }
 
-export function listNodeRoles(isControlPlane, isWorker, isEtcd, allString) {
+export function listNodeRoles(isControlPlane, isWorker, isEtcd, customRoles = [], allString) {
   const res = [];
+  const hasAllStandardRoles = isControlPlane && isWorker && isEtcd;
 
-  if (isControlPlane) {
-    res.push('Control Plane');
+  if (hasAllStandardRoles) {
+    res.push(allString);
+  } else {
+    if (isControlPlane) {
+      res.push('Control Plane');
+    }
+
+    if (isWorker) {
+      res.push('Worker');
+    }
+
+    if (isEtcd) {
+      res.push('Etcd');
+    }
   }
 
-  if (isWorker) {
-    res.push('Worker');
-  }
+  customRoles.forEach((role) => {
+    res.push(role.charAt(0).toUpperCase() + role.slice(1));
+  });
 
-  if (isEtcd) {
-    res.push('Etcd');
-  }
-
-  if (res.length === 3 || res.length === 0) {
+  if (res.length === 0) {
     return allString;
   }
 
