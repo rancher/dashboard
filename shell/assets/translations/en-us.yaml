@@ -3115,6 +3115,7 @@ fleet:
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
+      githubdotcomPasswordBanner: 'GitHub no longer supports password authentication for repositories. Please enter a personal access token with the required permissions instead of your GitHub password.'
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -5782,7 +5783,11 @@ promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
-
+  scaling: |-
+    {count, plural,
+      =1 {This machine pool is still reconciling. A different node may be deleted instead of the one you selected. It’s best to wait until reconciliation finishes.<br> Do you still want to mark this node for deletion?}
+      other {At least one of these machine pools is still reconciling. Different nodes may be deleted instead of the ones you selected. It’s best to wait until reconciliation finishes.<br> Do you still want to mark these nodes for deletion?}
+    }
 promptSlo:
   title: "Log out"
   text: "Log out of only Rancher, or all {name} applications."
@@ -6246,6 +6251,7 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
+    passwordPersonalAccessToken: Password/Personal Access Token
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
   namespaceGroup: "Namespace: {name}"
@@ -6400,6 +6406,7 @@ setup:
   useRandom: Use a randomly generated password
   copyRandom: Copy random password to clipboard
   welcome: Welcome to {vendor}!
+  setup: Setup
 
 sortableTable:
   ariaLabel:

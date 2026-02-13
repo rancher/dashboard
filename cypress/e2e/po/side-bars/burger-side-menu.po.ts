@@ -206,7 +206,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   support(): Cypress.Chainable {
-    return this.self().contains('Get Support');
+    return this.self().find('[aria-label="Support page link"]');
   }
 
   /**

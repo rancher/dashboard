@@ -43,8 +43,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
           .name()
           .set(projectName);
         createProjectPage.resourceDetail().createEditView()
-          .create()
-          .click();
+          .create();
 
         cy.wait('@createProjectRequest').then(({ request }) => {
           expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');

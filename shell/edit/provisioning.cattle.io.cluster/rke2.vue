@@ -66,7 +66,7 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
-import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/defaults';
+import { RETENTION_DEFAULT, NGINX_SUPPORTED, INGRESS_CONTROLLER, INGRESS_NGINX } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 const HARVESTER = 'harvester';
 const GOOGLE = 'google';
@@ -892,7 +892,13 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid;
     },
+    nginxSupported() {
+      if (this.serverArgs?.disable?.options.includes(NGINX_SUPPORTED)) {
+        return true;
+      }
 
+      return false;
+    },
   },
 
   watch: {
@@ -1000,7 +1006,7 @@ export default {
 
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
-    },
+    }
   },
 
   created() {
@@ -1883,6 +1889,7 @@ export default {
       if (!this.serverConfig?.profile) {
         this.serverConfig.profile = null;
       }
+      this.updateNginxConfiguration(this.serverConfig?.disable || []);
     },
 
     chartVersionKey(name) {
@@ -2117,6 +2124,8 @@ export default {
     handleKubernetesChange(value, old) {
       if (value) {
         this.togglePsaDefault();
+        // Need to make sure we explicitly set ingress due to a default change
+        this.updateNginxConfiguration(this.serverConfig?.disable || []);
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
@@ -2138,8 +2147,18 @@ export default {
         this.machinePoolValidation[id] = value;
       }
     },
+
+    updateNginxConfiguration(val) {
+      if (val.includes(NGINX_SUPPORTED) || !this.nginxSupported) {
+        this.serverConfig[INGRESS_CONTROLLER] = undefined;
+      } else if (this.serverConfig[INGRESS_CONTROLLER] !== INGRESS_NGINX) {
+        this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
+      }
+    },
+
     handleEnabledSystemServicesChanged(val) {
       this.serverConfig.disable = val;
+      this.updateNginxConfiguration(val);
     },
 
     handleCiliumValuesChanged(neu) {
