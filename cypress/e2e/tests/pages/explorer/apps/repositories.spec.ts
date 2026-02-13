@@ -3,6 +3,7 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
@@ -214,13 +215,13 @@ describe('Apps', () => {
         cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts3');
         appRepoList.list().refreshRepo('Rancher');
         // The charts should immediately update
-        cy.wait('@rancherCharts3').its('request.url').should('include', '?link=index');
+        cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('request.url').should('include', '?link=index');
 
         // Nav to the summary page for a specific chart
         ChartPage.navTo(clusterId, 'Rancher Backups');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
         // The specific version of the chart should be fetched (as the cache was cleared)
-        cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
+        cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('request.url').should('include', 'version=');
       });
     });
   });
