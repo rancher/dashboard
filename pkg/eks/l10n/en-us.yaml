@@ -41,6 +41,11 @@ eks:
     nodeGroupsRequired: Clusters must have at least one node group.
   import:
     label: Cluster to Register
+  ipFamily:
+    label: IP Family
+    options:
+      ipv4: IPv4
+      ipv6: IPv6
   label: Amazon EKS
   nodeGroups:
     architecture:

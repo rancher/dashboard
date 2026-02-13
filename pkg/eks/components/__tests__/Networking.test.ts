@@ -269,4 +269,22 @@ describe('eKS Networking', () => {
     subnetOpts = subnetDropdown.props().options;
     expect(subnetOpts.filter((opt) => opt.disabled && opt.kind !== 'group')).toHaveLength(5);
   });
+
+  it('should emit update:ipFamily when the dropdown value changes', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE },
+      ...setup
+    });
+
+    const ipFamilyDropdown = wrapper.findComponent('[data-testid="eks-ip-family-dropdown"]');
+
+    expect(ipFamilyDropdown.exists()).toBe(true);
+
+    // Simulate updating the value from LabeledSelect
+    ipFamilyDropdown.vm.$emit('update:value', 'ipv6');
+
+    expect(wrapper.emitted('update:ipFamily')).toBeTruthy();
+    expect(wrapper.emitted('update:ipFamily')?.[0]).toStrictEqual(['ipv6']);
+  });
 });
