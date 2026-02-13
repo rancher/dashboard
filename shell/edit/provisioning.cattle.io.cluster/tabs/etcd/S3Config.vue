@@ -7,7 +7,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { _CREATE } from '@shell/config/query-params';
-import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/defaults';
+import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
   emits: ['update:value', 'validationChanged'],
