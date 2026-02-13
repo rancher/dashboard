@@ -129,13 +129,7 @@ export default {
     },
 
     async createUser() {
-      // Ensure username is unique (this does not happen in the backend)
       let userSaved;
-      const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
-
-      if (users.find((u) => u.username === this.form.username)) {
-        throw new Error(this.t('user.edit.credentials.username.exists'));
-      }
 
       try {
         // never use "password" as it's deprecated!
@@ -164,7 +158,7 @@ export default {
           await secret.save();
         }
       } catch (error) {
-        throw new Error(error);
+        throw new Error(error.message);
       }
 
       return userSaved;
