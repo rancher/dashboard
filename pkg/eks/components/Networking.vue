@@ -332,6 +332,19 @@ export default defineComponent({
         />
       </div>
     </div>
+    <div class="row mb-10">
+      <div class="col span-2">
+        <LabeledSelect
+          :value="ipFamily"
+          :mode="mode"
+          :options="ipFamilyOptions"
+          label-key="eks.ipFamily.label"
+          :disabled="mode!=='create'"
+          data-testid="eks-ip-family-dropdown"
+          @update:value="$emit('update:ipFamily', $event)"
+        />
+      </div>
+    </div>
     <div
       class="row mb-10"
     >
@@ -371,19 +384,6 @@ export default defineComponent({
           :loading="loadingSecurityGroups"
           data-testid="eks-security-groups-dropdown"
           @update:value="$emit('update:securityGroups', $event)"
-        />
-      </div>
-    </div>
-    <div class="row mb-10">
-      <div class="col span-2">
-        <LabeledSelect
-          :value="ipFamily"
-          :mode="mode"
-          :options="ipFamilyOptions"
-          label-key="eks.ipFamily.label"
-          :disabled="mode!=='create'"
-          data-testid="eks-ip-family-dropdown"
-          @update:value="$emit('update:ipFamily', $event)"
         />
       </div>
     </div>
