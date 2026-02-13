@@ -273,8 +273,9 @@ export default class User extends SteveModel {
     return true;
   }
 
-  // TODO: can this be removed safely? not easy to track usage...
   get norman() {
+    console.warn('Norman "user" is deprecated. Use Steve "management.cattle.io.user" user instead.'); // eslint-disable-line no-console
+
     return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
   }
 }
