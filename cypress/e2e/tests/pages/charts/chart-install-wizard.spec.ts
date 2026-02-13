@@ -77,19 +77,16 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const chartName = 'Rancher Backups';
     const customRegistry = 'my.custom.registry:5000';
 
-    // Clean up before as well to not have the resource on retries
-    before('clean up', () => {
+    it('should persist custom registry when changing chart version', () => {
+      const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
+
       const chartNamespace = 'cattle-resources-system';
       const chartApp = 'rancher-backup';
       const chartCrd = 'rancher-backup-crd';
 
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}');
-      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}');
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
-    });
-
-    it('should persist custom registry when changing chart version', () => {
-      const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
       // We need to install the chart first to have the versions selector show up later when we come back to the install page
       ChartPage.navTo(undefined, chartName);
