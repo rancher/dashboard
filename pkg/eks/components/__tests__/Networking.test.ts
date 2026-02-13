@@ -270,21 +270,45 @@ describe('eKS Networking', () => {
     expect(subnetOpts.filter((opt) => opt.disabled && opt.kind !== 'group')).toHaveLength(5);
   });
 
-  it('should emit update:ipFamily when the dropdown value changes', async() => {
+  it('should emit update:ipFamily when the radio selection changes', async() => {
     const setup = requiredSetup();
     const wrapper = shallowMount(Networking, {
       propsData: { mode: _CREATE },
       ...setup
     });
 
-    const ipFamilyDropdown = wrapper.findComponent('[data-testid="eks-ip-family-dropdown"]');
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
 
-    expect(ipFamilyDropdown.exists()).toBe(true);
+    expect(ipFamilyRadio.exists()).toBe(true);
 
-    // Simulate updating the value from LabeledSelect
-    ipFamilyDropdown.vm.$emit('update:value', 'ipv6');
+    // Simulate updating the value from RadioGroup
+    ipFamilyRadio.vm.$emit('update:value', 'ipv6');
 
     expect(wrapper.emitted('update:ipFamily')).toBeTruthy();
     expect(wrapper.emitted('update:ipFamily')?.[0]).toStrictEqual(['ipv6']);
+  });
+
+  it('should enable ipFamily selection when isNewOrUnprovisioned is true', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, isNewOrUnprovisioned: true },
+      ...setup
+    });
+
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+
+    expect(ipFamilyRadio.props().disabled).toBe(false);
+  });
+
+  it('should disable ipFamily selection when isNewOrUnprovisioned is false', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, isNewOrUnprovisioned: false },
+      ...setup
+    });
+
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+
+    expect(ipFamilyRadio.props().disabled).toBe(true);
   });
 });

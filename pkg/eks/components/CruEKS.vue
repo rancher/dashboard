@@ -798,6 +798,7 @@ export default defineComponent({
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :status-subnets="statusSubnets"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
             :rules="{subnets:fvGetAndReportPathRules('subnets')}"
           />
         </Accordion>

@@ -79,6 +79,11 @@ export default defineComponent({
     ipFamily: {
       type:    String,
       default: 'ipv4'
+    },
+
+    isNewOrUnprovisioned: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -317,18 +322,28 @@ export default defineComponent({
         </ArrayList>
       </div>
     </div>
-    <div class="row mb-10">
+    <div class="row">
       <div class="col span-2">
-        <LabeledSelect
+        <RadioGroup
           :value="ipFamily"
+          name="ip-family"
           :mode="mode"
           :options="ipFamilyOptions"
           label-key="eks.ipFamily.label"
-          :disabled="mode!=='create'"
-          data-testid="eks-ip-family-dropdown"
+          :disabled="!isNewOrUnprovisioned"
+          data-testid="eks-ip-family-radio"
           @update:value="$emit('update:ipFamily', $event)"
         />
       </div>
+    </div>
+    <div
+      v-if="isNewOrUnprovisioned"
+      class="row mb-10"
+    >
+      <Banner
+        color="info"
+        :label="t('eks.ipFamily.banner')"
+      />
     </div>
     <div class="row mb-10 mt-20">
       <div

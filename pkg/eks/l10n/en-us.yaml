@@ -43,6 +43,7 @@ eks:
     label: Cluster to Register
   ipFamily:
     label: IP Family
+    banner: Changing the IP Family will clear the current subnet selection
     options:
       ipv4: IPv4
       ipv6: IPv6
