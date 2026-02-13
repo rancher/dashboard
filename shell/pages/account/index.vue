@@ -126,11 +126,7 @@ export default {
 
       const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      if (passwordChangeRequest?.canChangePassword) {
-        return !!passwordChangeRequest?.canChangePassword;
-      }
-
-      return false;
+      return !!passwordChangeRequest?.canChangePassword;
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {

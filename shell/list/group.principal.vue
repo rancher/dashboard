@@ -41,6 +41,7 @@ export default {
     const nonLocalAuthProvider = !!providers.find((p) => p.name !== 'local' && p.enabled === true);
 
     this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
   },
   data() {
@@ -48,6 +49,7 @@ export default {
       rows:                       [],
       membershipRefreshRequests:  undefined,
       canCreateGlobalRoleBinding: false,
+      canRefreshMemberships:      false,
       assignLocation:             {
         path:  `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
@@ -55,14 +57,8 @@ export default {
       initialLoad: true,
     };
   },
-  computed: {
-    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
-
-    canRefreshMemberships() {
-      return !!this.membershipRefreshRequests?.canRefreshMemberships;
-    }
-  },
-  watch: {
+  computed: { ...mapState('action-menu', ['showPromptRemove', 'toRemove']) },
+  watch:    {
     async toRemove(resources) {
       if (this.initialLoad) {
         this.initialLoad = false;

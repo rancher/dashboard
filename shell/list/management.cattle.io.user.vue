@@ -41,6 +41,7 @@ export default {
     await this.$fetchType(this.resource);
 
     this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
   },
 
   data() {
@@ -50,7 +51,8 @@ export default {
 
     return {
       schema,
-      membershipRefreshRequests: undefined
+      membershipRefreshRequests: undefined,
+      canRefreshMemberships:     false
     };
   },
 
@@ -88,10 +90,6 @@ export default {
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
-    },
-
-    canRefreshMemberships() {
-      return !!this.membershipRefreshRequests?.canRefreshMemberships;
     }
   },
 

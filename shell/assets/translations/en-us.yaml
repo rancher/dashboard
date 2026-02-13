@@ -1451,7 +1451,7 @@ changePassword:
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
     cannotChange: This user does not have permissions to change their password
-    cannotFetchSelf: This user does not have permissions get it's own user information
+    cannotFetchSelf: This user does not have permissions to get it's own user information
 
 chartHeading:
   overview: Overview

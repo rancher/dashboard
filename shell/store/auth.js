@@ -110,6 +110,7 @@ export const mutations = {
     state.loggedIn = false;
     state.principalId = null;
     state.user = null;
+    state.selfUser = null;
     state.initialPass = null;
   },
 

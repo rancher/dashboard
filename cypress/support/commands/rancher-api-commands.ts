@@ -84,21 +84,11 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
 
   return cy.createE2EResourceName(username, options?.createNameOptions)
     .then((e2eName) => {
-      // Store the username for potential cleanup
-      return cy.request({
-        method:           'POST',
-        url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
-        failOnStatusCode: false,
-        headers:          {
-          'x-api-csrf': token.value,
-          Accept:       'application/json'
-        },
-        body: {
-          type:               'user',
-          enabled:            true,
-          mustChangePassword: false,
-          username:           e2eName
-        }
+      cy.createRancherResource('v1', 'management.cattle.io.users', {
+        type:               'user',
+        enabled:            true,
+        mustChangePassword: false,
+        username:           e2eName
       }).then((resp) => {
         // If user already exists, delete and recreate
         if ((resp.status === 400 || resp.status === 422) &&
@@ -106,15 +96,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
           cy.log('User already exists. Deleting and recreating...', e2eName);
 
           // Get the existing user ID first
-          return cy.request({
-            method:           'GET',
-            url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
-            failOnStatusCode: false,
-            headers:          {
-              'x-api-csrf': token.value,
-              Accept:       'application/json'
-            }
-          }).then((usersResp) => {
+          cy.getRancherResource('v1', 'management.cattle.io.users').then((usersResp: Cypress.Response<any>) => {
             const existingUser = usersResp.body.data?.find((u: any) => u.username === e2eName);
 
             if (existingUser) {
@@ -125,20 +107,11 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
                   cy.log('Deleted existing user, recreating...', e2eName);
 
                   // Recreate the user
-                  return cy.request({
-                    method:           'POST',
-                    url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
-                    failOnStatusCode: false,
-                    headers:          {
-                      'x-api-csrf': token.value,
-                      Accept:       'application/json'
-                    },
-                    body: {
-                      type:               'user',
-                      enabled:            true,
-                      mustChangePassword: false,
-                      username:           e2eName
-                    }
+                  return cy.createRancherResource('v1', 'management.cattle.io.users', {
+                    type:               'user',
+                    enabled:            true,
+                    mustChangePassword: false,
+                    username:           e2eName
                   });
                 });
             }
@@ -166,15 +139,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
       // we now need to do a GET to the user to get the principalId to set the role bindings
       // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
       // and also create the user password as secret, which is required for login
-      cy.request({
-        method:           'GET',
-        url:              `${ Cypress.env('api') }/v1/management.cattle.io.users/${ resp.body.id }`,
-        failOnStatusCode: false,
-        headers:          {
-          'x-api-csrf': token.value,
-          Accept:       'application/json'
-        },
-      })
+      cy.getRancherResource('v1', 'management.cattle.io.users', resp.body.id)
         .then((userDataResp) => {
           if (userDataResp.status !== 200) {
             cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
