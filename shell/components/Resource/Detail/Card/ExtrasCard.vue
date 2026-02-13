@@ -7,40 +7,60 @@ import { isAdminUser } from '@shell/store/type-map';
 import { DOCS_BASE } from '@shell/config/private-label';
 </script>
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import { computed } from 'vue';
 
 const store = useStore();
-const router = useRouter();
 const i18n = useI18n(store);
 const isAdmin = computed(() => isAdminUser(store.getters));
 
-const extensionsUrl = computed(() => {
-  const pageUrl = router.resolve({
-    name:   'c-cluster-uiplugins',
-    params: { cluster: BLANK_CLUSTER }
-  }).href;
-  const docsUrl = `${ DOCS_BASE }/integrations-in-rancher/rancher-extensions`;
+const extensionsRoute = { name: 'c-cluster-uiplugins', params: { cluster: BLANK_CLUSTER } };
+const extensionsDocsUrl = `${ DOCS_BASE }/integrations-in-rancher/rancher-extensions`;
 
-  return isAdmin.value ? pageUrl : docsUrl;
-});
-
-const clusterToolsUrl = computed(() => {
-  const pageUrl = router.resolve({ name: 'c-cluster-explorer-tools' }).href;
-  const docsUrl = `${ DOCS_BASE }/reference-guides/rancher-cluster-tools`;
-
-  return isAdmin.value ? pageUrl : docsUrl;
-});
-
-const linkTarget = computed(() => isAdmin.value ? '_self' : '_blank');
+const clusterToolsRoute = { name: 'c-cluster-explorer-tools' };
+const clusterToolsDocsUrl = `${ DOCS_BASE }/reference-guides/rancher-cluster-tools`;
 </script>
 
 <template>
   <Card :title="i18n.t('component.resource.detail.card.extrasCard.title')">
-    <p
-      v-clean-html="i18n.t('component.resource.detail.card.extrasCard.message', { extensionsUrl, clusterToolsUrl, linkTarget }, true)"
-      class="message text-deemphasized"
-    />
+    <p class="message text-deemphasized">
+      <RichTranslation k="component.resource.detail.card.extrasCard.message">
+        <template #extensionsLink="{ content }">
+          <router-link
+            v-if="isAdmin"
+            class="secondary text-deemphasized"
+            :to="extensionsRoute"
+          >
+            {{ content }}
+          </router-link>
+          <a
+            v-else
+            class="secondary text-deemphasized"
+            :href="extensionsDocsUrl"
+            target="_blank"
+          >
+            {{ content }}
+          </a>
+        </template>
+        <template #clusterToolsLink="{ content }">
+          <router-link
+            v-if="isAdmin"
+            class="secondary-text-link"
+            :to="clusterToolsRoute"
+          >
+            {{ content }}
+          </router-link>
+          <a
+            v-else
+            class="secondary-text-link"
+            :href="clusterToolsDocsUrl"
+            target="_blank"
+          >
+            {{ content }}
+          </a>
+        </template>
+      </RichTranslation>
+    </p>
   </Card>
 </template>
 
