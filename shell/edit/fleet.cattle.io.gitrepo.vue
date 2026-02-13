@@ -112,6 +112,15 @@ export default {
       return _SPECIFY;
     },
 
+    isGithubDotComRepository() {
+      // It needs to be specifically https://github.com, if different it could have something like https://company-intranet.github.com/ or https://company.com/github.com/
+      return this.value.spec.repo?.toLowerCase().includes('https://github.com');
+    },
+
+    isBasicAuthSelected() {
+      return this.tempCachedValues.clientSecretName?.selected === AUTH_TYPE._BASIC;
+    },
+
     steps() {
       return [
         {
@@ -179,7 +188,6 @@ export default {
       handler:   'updateTls',
       immediate: true
     },
-
     workspace(neu) {
       if ( this.isCreate ) {
         set(this.value, 'metadata.namespace', neu);
@@ -462,6 +470,8 @@ export default {
         :show-polling-interval-warning="showPollingIntervalWarning"
         :specify-option="_SPECIFY"
         :register-before-hook="registerBeforeHook"
+        :is-github-dot-com-repository="isGithubDotComRepository"
+        :is-basic-auth-selected="isBasicAuthSelected"
         @update:tls-mode="updateTlsMode"
         @update:ca-bundle="caBundle = $event"
         @update:auth="updateAuth($event.value, $event.key)"

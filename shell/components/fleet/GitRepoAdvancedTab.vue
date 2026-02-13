@@ -70,6 +70,14 @@ defineProps({
   registerBeforeHook: {
     type:     Function,
     required: true
+  },
+  isGithubDotComRepository: {
+    type:     Boolean,
+    required: true,
+  },
+  isBasicAuthSelected: {
+    type:     Boolean,
+    required: true,
   }
 });
 
@@ -125,6 +133,12 @@ const updatePollingInterval = (value) => {
     />
 
     <h2>{{ t('fleet.gitRepo.auth.title') }}</h2>
+    <Banner
+      v-if="isGithubDotComRepository && isBasicAuthSelected"
+      color="warning"
+      label-key="fleet.gitRepo.auth.githubdotcomPasswordBanner"
+      data-testid="gitrepo-githubdotcom-password-warning"
+    />
     <SelectOrCreateAuthSecret
       data-testid="gitrepo-git-auth"
       :value="value.spec.clientSecretName"

@@ -177,11 +177,17 @@ describe('Home Page', () => {
     it('can click on Docs link', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
 
-      homePage.supportLinks().should('have.length', 6);
+      homePage.supportLinks().should('have.length.at.least', 6);
       homePage.clickSupportLink(0, true);
 
-      cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        cy.url().should('include', 'ranchermanager.docs.rancher.com');
+      // Doc link differs between Rancher Prime and Community
+      cy.getRancherVersion().then((version) => {
+        const expectedOrigin = version.RancherPrime === 'true' ? 'https://documentation.suse.com' : 'https://ranchermanager.docs.rancher.com';
+        const expectedUrl = version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'ranchermanager.docs.rancher.com';
+
+        cy.origin(expectedOrigin, { args: { expectedUrl } }, ({ expectedUrl }) => {
+          cy.url().should('include', expectedUrl);
+        });
       });
     });
 
@@ -223,22 +229,27 @@ describe('Home Page', () => {
       cy.url().should('include', 'getting-started/overview');
     });
 
-    it('can click on Commercial Support link', () => {
+    it('can click on Commercial Support link', { tags: '@noPrime' }, () => {
       // click Commercial Support link
       homePage.clickSupportLink(5);
 
       cy.url().should('include', '/support');
+    });
+
+    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
+      // click SUSE Application Collection link
+      homePage.clickSupportLink(5, true);
+      cy.origin('https://apps.rancher.io/', () => {
+        cy.url().should('include', 'apps.rancher.io/');
+      });
     });
   });
 
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
-    });
-
-    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      HomePagePo.navTo();
-      homePage.waitForPage();
     });
 
     it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -259,8 +270,8 @@ describe('Home Page', () => {
       nc.checkHasUnread();
       nc.checkCount(1);
 
-      // Get the release notes notification - this is the first (and only) one
-      let item = nc.getNotificationByIndex(0);
+      // Get the release notes notification - this is the first one on Community builds, second on Prime builds
+      let item = nc.getNotificationByName('release-notes');
 
       item.checkExists();
 
@@ -289,7 +300,7 @@ describe('Home Page', () => {
       nc.checkAllRead();
 
       // Now mark the notification as unread
-      item = nc.getNotificationByIndex(0);
+      item = nc.getNotificationByName('release-notes');
 
       item.title().should('contain', `Welcome to Rancher v`);
       item.primaryActionButton().should('exist');
@@ -316,6 +327,11 @@ describe('Home Page', () => {
       // Show the banner graphic
       homePage.toggleBanner();
       homePage.bannerGraphic().graphicBanner().should('exist');
+    });
+
+    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      HomePagePo.navTo();
+      homePage.waitForPage();
     });
 
     it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
