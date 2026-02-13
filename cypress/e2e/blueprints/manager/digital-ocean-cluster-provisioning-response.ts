@@ -169,7 +169,8 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
             machineGlobalConfig: {
               cni:                   'calico',
               'disable-kube-proxy':  false,
-              'etcd-expose-metrics': false
+              'etcd-expose-metrics': false,
+              'ingress-controller':  'ingress-nginx'
             },
             machinePoolDefaults: {},
             machinePools:        [

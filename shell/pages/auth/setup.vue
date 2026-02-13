@@ -21,6 +21,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import isUrl from 'is-url';
 import { isLocalhost } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
+import { getBrandMeta } from '@shell/utils/brand';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -188,6 +189,21 @@ export default {
 
     showLocalhostWarning() {
       return isLocalhost(this.serverUrl);
+    },
+
+    customizations() {
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
+      const login = brandMeta?.login || {};
+
+      return {
+        setupLabelKey: 'setup.welcome',
+        logoClass:     'login-logo',
+        ...login,
+      };
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
     }
   },
 
@@ -278,8 +294,18 @@ export default {
           &nbsp;
         </div>
         <div>
+          <div
+            v-if="brandLogo"
+            class="brand-logo"
+          >
+            <BrandImage
+              :class="{[customizations.logoClass]: !!customizations.logoClass}"
+              :file-name="brandLogo"
+              :alt="t('setup.setup')"
+            />
+          </div>
           <h1 class="text-center">
-            {{ t('setup.welcome', {product}) }}
+            {{ t(customizations.setupLabelKey, {product}) }}
           </h1>
 
           <template v-if="mustChangePassword">
@@ -466,6 +492,11 @@ export default {
 
   .setup {
     overflow: hidden;
+
+    .brand-logo {
+      display: flex;
+      justify-content: center;
+    }
 
     .row {
       & .checkbox {

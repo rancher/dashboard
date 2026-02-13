@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: AdditionalRedactions rendering & initial state should render with default props (snapshot) 1`] = `
+<div>
+  <div
+    class="row mb-40"
+  >
+    <div
+      class="col span-12"
+    >
+      <tabbed-stub
+        componenttestid="tabbed"
+        flat="false"
+        hidesingletab="false"
+        nocontent="false"
+        removeborders="false"
+        scrollonchange="false"
+        showextensiontabs="true"
+        showtabsaddremove="true"
+        sidetabs="true"
+        tabsonly="false"
+        usehash="true"
+      />
+    </div>
+  </div>
+</div>
+`;

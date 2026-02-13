@@ -2747,10 +2747,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
 
-"@rancher/icons@2.0.54":
-  version "2.0.54"
-  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.54.tgz#7e8d4baeac36a483f18f4ce4043809371c4f0117"
-  integrity sha512-Fc5xpT/yuOJJin7ChxAdB6aoG1bREgisktnePUPXpY9nIMHSHYT/Ov8GsC3yLLgoqgpm450nMvPICUO3AYcPdQ==
+"@rancher/icons@2.0.55":
+  version "2.0.55"
+  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.55.tgz#394159bddbf786c17a12bc38e59b88346b30dcf4"
+  integrity sha512-hPcmsvfYNO36dJ7/lb3JbJC5BOnHbwBylic7HRqhSCSIcFlFaKnRt9aB/hvv3ip0Wo6J5yVEv2o7oXGErXkWFw==
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"

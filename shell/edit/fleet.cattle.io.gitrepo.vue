@@ -122,6 +122,15 @@ export default {
       return _SPECIFY;
     },
 
+    isGitHubDotComRepository() {
+      // It needs to be specifically https://github.com, if different it could have something like https://company-intranet.github.com/ or https://company.com/github.com/
+      return this.value.spec.repo?.toLowerCase().includes('https://github.com');
+    },
+
+    isBasicAuthSelected() {
+      return this.tempCachedValues.clientSecretName?.selected === AUTH_TYPE._BASIC;
+    },
+
     steps() {
       return [
         {
@@ -189,7 +198,6 @@ export default {
       handler:   'updateTls',
       immediate: true
     },
-
     workspace(neu) {
       if ( this.isCreate ) {
         set(this.value, 'metadata.namespace', neu);
@@ -502,6 +510,12 @@ export default {
 
       <h2 v-t="'fleet.gitRepo.auth.title'" />
 
+      <Banner
+        v-if="isGitHubDotComRepository && isBasicAuthSelected"
+        color="warning"
+        label-key="fleet.gitRepo.auth.githubdotcomPasswordBanner"
+        data-testid="gitrepo-githubdotcom-password-warning"
+      />
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-git-auth"
         :value="value.spec.clientSecretName"
@@ -515,6 +529,7 @@ export default {
         label-key="fleet.gitRepo.auth.git"
         :cache-secrets="true"
         :show-ssh-known-hosts="true"
+        :is-github-dot-com-repository="isGitHubDotComRepository"
         @update:value="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />

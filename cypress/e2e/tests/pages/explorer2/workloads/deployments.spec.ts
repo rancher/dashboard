@@ -42,7 +42,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         volumeDeploymentId = name;
 
         // Create a deployment with volumes for the volume-related tests
-        const volumeDeployment = { ...createDeploymentBlueprint };
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
 
         volumeDeployment.metadata.name = volumeDeploymentId;
         cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
@@ -118,13 +118,18 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
-
       workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
 
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
-      workloadDetailsPage.podScaleDown().should('be.enabled').click();
+
+      // Wait until there's only one pods status count element
+      workloadDetailsPage.waitForSinglePodsStatusCount();
+
+      workloadDetailsPage.podsStatusCount().should('be.visible', MEDIUM_TIMEOUT_OPT)
+        .should('contain', '2');
+      workloadDetailsPage.podScaleDown().click();
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -502,7 +507,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       cy.createE2EResourceName('volume-deployment-2').then((name) => {
         volumeDeploymentId = name;
 
-        const volumeDeployment = { ...createDeploymentBlueprint };
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
 
         volumeDeployment.metadata.name = volumeDeploymentId;
 
