@@ -496,7 +496,9 @@ export default class Secret extends SteveModel {
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    return !!this.metadata.labels?.[UI_PROJECT_SECRET] && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+    const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET]; // is this a project scoped secret .... or also a cloned project scoped secret
+
+    return isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
 
   get projectScopedClusterId() {
