@@ -74,6 +74,10 @@ export interface VPC {
   Tags: {
     Key: string,
     Value: string
+  }[],
+  CidrBlock?: string,
+  Ipv6CidrBlockAssociationSet?: {
+    Ipv6CidrBlock: string
   }[]
 }
 
@@ -84,6 +88,10 @@ export interface Subnet {
   Tags: {
     Key: string,
     Value: string
+  }[],
+  CidrBlock?: string,
+  Ipv6CidrBlockAssociationSet?: {
+    Ipv6CidrBlock: string
   }[]
 }
 

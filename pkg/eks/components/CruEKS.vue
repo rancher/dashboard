@@ -94,6 +94,7 @@ export const DEFAULT_EKS_CONFIG = {
   tags:                {},
   subnets:             [],
   loggingTypes:        [],
+  ipFamily:            'ipv4',
 };
 
 export default defineComponent({
@@ -792,10 +793,12 @@ export default defineComponent({
             v-model:public-access-sources="config.publicAccessSources"
             v-model:subnets="config.subnets"
             v-model:security-groups="config.securityGroups"
+            v-model:ip-family="config.ipFamily"
             :mode="mode"
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :status-subnets="statusSubnets"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
             :rules="{subnets:fvGetAndReportPathRules('subnets')}"
           />
         </Accordion>

@@ -58,6 +58,7 @@ export interface EKSConfig {
   subnets?: string[],
   tags?: string[]
   enableNetworkPolicy?: boolean
+  ipFamily?: string
 }
 
 export interface NormanCluster extends NormanModel {

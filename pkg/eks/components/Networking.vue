@@ -1,5 +1,6 @@
 <script lang="ts">
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { isEmpty } from '@shell/utils/object';
 import { PropType, defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
@@ -14,7 +15,7 @@ import { AWS } from '../types';
 export default defineComponent({
   name: 'EKSNetworking',
 
-  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources'],
+  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources', 'update:ipFamily'],
 
   components: {
     LabeledSelect,
@@ -73,10 +74,23 @@ export default defineComponent({
     rules: {
       type:    Object,
       default: () => {}
+    },
+
+    ipFamily: {
+      type:    String,
+      default: 'ipv4'
+    },
+
+    isNewOrUnprovisioned: {
+      type:    Boolean,
+      default: false
     }
   },
 
   watch: {
+    ipFamily() {
+      this.$emit('update:subnets', []);
+    },
     amazonCredentialSecret: {
       handler(neu) {
         if (neu && !this.isView) {
@@ -117,7 +131,8 @@ export default defineComponent({
       vpcInfo:               [] as AWS.VPC[],
       subnetInfo:            [] as AWS.Subnet[],
       securityGroupInfo:     {} as {SecurityGroups: AWS.SecurityGroup[]},
-      chooseSubnet:          !!this.subnets && !!this.subnets.length
+      chooseSubnet:          !!this.subnets && !!this.subnets.length,
+      ipFamilyOptions:       [{ value: 'ipv4', label: this.t('eks.ipFamily.options.ipv4') }, { value: 'ipv6', label: this.t('eks.ipFamily.options.ipv6') }],
     };
   },
 
@@ -132,6 +147,17 @@ export default defineComponent({
       const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
       subnets.forEach((s) => {
+        const hasIpv6 = !!s.Ipv6CidrBlockAssociationSet && !isEmpty(s.Ipv6CidrBlockAssociationSet);
+        const hasIpv4 = !!s.CidrBlock;
+
+        if (this.ipFamily === 'ipv4' && !hasIpv4) {
+          return;
+        }
+
+        if (this.ipFamily === 'ipv6' && (!hasIpv4 || !hasIpv6)) {
+          return;
+        }
+
         if (!mappedSubnets[s.VpcId]) {
           mappedSubnets[s.VpcId] = [s];
         } else {
@@ -295,6 +321,29 @@ export default defineComponent({
           </template>
         </ArrayList>
       </div>
+    </div>
+    <div class="row">
+      <div class="col span-2">
+        <RadioGroup
+          :value="ipFamily"
+          name="ip-family"
+          :mode="mode"
+          :options="ipFamilyOptions"
+          label-key="eks.ipFamily.label"
+          :disabled="!isNewOrUnprovisioned"
+          data-testid="eks-ip-family-radio"
+          @update:value="$emit('update:ipFamily', $event)"
+        />
+      </div>
+    </div>
+    <div
+      v-if="isNewOrUnprovisioned"
+      class="row mb-10"
+    >
+      <Banner
+        color="info"
+        :label="t('eks.ipFamily.banner')"
+      />
     </div>
     <div class="row mb-10 mt-20">
       <div
