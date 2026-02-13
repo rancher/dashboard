@@ -407,8 +407,6 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <!-- :steps="!isView ? steps : undefined" -->
-
   <CruResource
     v-else
     :done-route="doneRoute"
@@ -417,7 +415,7 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="steps"
+    :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
     class="wizard"
     @cancel="done"

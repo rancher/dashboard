@@ -4,6 +4,55 @@ import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/ind
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { Selector } from '@shell/types/fleet';
 
+function requiredSetup() {
+  return {
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'cluster/all':           () => [],
+            'management/all':        () => [],
+            'management/byId':       () => () => ({}),
+            'i18n/t':                () => '',
+            'i18n/withFallback':     () => '',
+            currentStore:            () => 'current_store',
+            'current_store/all':     () => [],
+            'current_store/inStore': () => 'current_store',
+            'prefs/theme':           () => 'light',
+            'prefs/get':             () => false,
+            'features/get':          () => false
+          },
+          dispatch: () => {}
+        },
+        $router: {
+          resolve: () => ({ href: '' }),
+          push:    () => {},
+          replace: () => {}
+        },
+        $route: {
+          query: {},
+          hash:  ''
+        }
+      },
+      stubs: {
+        'router-link':    { template: '<a><slot /></a>' },
+        'n-link':         { template: '<a><slot /></a>' },
+        'nuxt-link':      { template: '<a><slot /></a>' },
+        FleetTargetsList: { template: '<div class="fleet-targets-list-stub"><slot /></div>' }
+      }
+    }
+  };
+}
+
+function mountWithSetup(component: any, options: any = {}) {
+  const setup = requiredSetup();
+
+  return mount(component, {
+    ...options,
+    ...setup
+  });
+}
+
 describe('component: FleetClusterTargets', () => {
   describe('mode: edit', () => {
     const mode = _EDIT;
@@ -14,7 +63,7 @@ describe('component: FleetClusterTargets', () => {
           clusterName:     'fleet-5-france',
           clusterSelector: { matchLabels: { foo: 'true' } }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -42,7 +91,7 @@ describe('component: FleetClusterTargets', () => {
             }]
           }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -64,7 +113,7 @@ describe('component: FleetClusterTargets', () => {
 
         const target2 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -89,7 +138,7 @@ describe('component: FleetClusterTargets', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
         const target2 = { clusterSelector: { matchLabels: { hci: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -117,7 +166,7 @@ describe('component: FleetClusterTargets', () => {
       it('should set targetMode to "advanced" and return early if clusterGroupSelector is present', () => {
         const target1 = { clusterGroupSelector: {} };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -158,7 +207,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'tt1',
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -177,7 +226,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should return early and not modify state if targets is empty', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -196,7 +245,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should return targetMode local if namespace is fleet-local', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-local',
@@ -212,7 +261,7 @@ describe('component: FleetClusterTargets', () => {
       it('should handle targets with multiple clusterName', () => {
         const target1 = { clusterName: 'prod-cluster' };
         const target2 = { clusterName: 'test-cluster' };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -244,7 +293,7 @@ describe('component: FleetClusterTargets', () => {
           }
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -272,7 +321,7 @@ describe('component: FleetClusterTargets', () => {
       it('should correctly process targets when targetMode is "all" and no clusterName or clusterSelector is present', () => {
         const target1 = { name: 'simple-target' };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -301,7 +350,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'simple-target'
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -325,7 +374,7 @@ describe('component: FleetClusterTargets', () => {
           clusterName:     'fleet-5-france',
           clusterSelector: { matchLabels: { foo: 'true' } }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -350,7 +399,7 @@ describe('component: FleetClusterTargets', () => {
             }]
           }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -375,7 +424,7 @@ describe('component: FleetClusterTargets', () => {
 
         const target2 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -393,7 +442,7 @@ describe('component: FleetClusterTargets', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
         const target2 = { clusterSelector: { matchLabels: { hci: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -410,7 +459,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit advanced cases untouched', async() => {
         const target1 = { clusterGroupSelector: {} };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -447,7 +496,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'tt1',
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -478,7 +527,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should emit harvester rule from empty targets source', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [], // targetMode === 'none'
             namespace: 'fleet-default',
@@ -495,7 +544,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit untouched targets from source when operating in fleet-local workspace', async() => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-local',
@@ -524,7 +573,7 @@ describe('component: FleetClusterTargets', () => {
           }
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -547,7 +596,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit targets excluding target names and adding harvester rule', async() => {
         const target1 = { name: 'simple-target' };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -579,7 +628,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'simple-target'
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -610,7 +659,7 @@ describe('component: FleetClusterTargets', () => {
           clusterName:     'fleet-5-france',
           clusterSelector: { matchLabels: { foo: 'true' } }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -639,7 +688,7 @@ describe('component: FleetClusterTargets', () => {
             }]
           }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -661,7 +710,7 @@ describe('component: FleetClusterTargets', () => {
 
         const target2 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -687,7 +736,7 @@ describe('component: FleetClusterTargets', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
         const target2 = { clusterSelector: { matchLabels: { hci: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -716,7 +765,7 @@ describe('component: FleetClusterTargets', () => {
       it('should set targetMode to "advanced" and return early if clusterGroupSelector is present', () => {
         const target1 = { clusterGroupSelector: {} };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -758,7 +807,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'tt1',
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -778,7 +827,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should return early and not modify state if targets is empty', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -798,7 +847,7 @@ describe('component: FleetClusterTargets', () => {
 
       it('should return targetMode local if namespace is fleet-local', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-local',
@@ -815,7 +864,7 @@ describe('component: FleetClusterTargets', () => {
       it('should handle targets with multiple clusterName', () => {
         const target1 = { clusterName: 'prod-cluster' };
         const target2 = { clusterName: 'test-cluster' };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -848,7 +897,7 @@ describe('component: FleetClusterTargets', () => {
           }
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -877,7 +926,7 @@ describe('component: FleetClusterTargets', () => {
       it('should correctly process targets when targetMode is "all" and no clusterName or clusterSelector is present', () => {
         const target1 = { name: 'simple-target' };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -906,7 +955,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'simple-target'
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -930,7 +979,7 @@ describe('component: FleetClusterTargets', () => {
           clusterName:     'fleet-5-france',
           clusterSelector: { matchLabels: { foo: 'true' } }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -957,7 +1006,7 @@ describe('component: FleetClusterTargets', () => {
             }]
           }
         };
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -982,7 +1031,7 @@ describe('component: FleetClusterTargets', () => {
 
         const target2 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -1002,7 +1051,7 @@ describe('component: FleetClusterTargets', () => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
         const target2 = { clusterSelector: { matchLabels: { hci: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1, target2],
             namespace: 'fleet-default',
@@ -1021,7 +1070,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit advanced cases untouched', async() => {
         const target1 = { clusterGroupSelector: {} };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -1060,7 +1109,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'tt1',
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -1093,7 +1142,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should emit harvester rule from empty targets source', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [], // targetMode === 'none'
             namespace: 'fleet-default',
@@ -1112,7 +1161,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit untouched targets from source when operating in fleet-local workspace', async() => {
         const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-local',
@@ -1143,7 +1192,7 @@ describe('component: FleetClusterTargets', () => {
           }
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -1168,7 +1217,7 @@ describe('component: FleetClusterTargets', () => {
       it('should emit targets excluding target names and adding harvester rule', async() => {
         const target1 = { name: 'simple-target' };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -1200,7 +1249,7 @@ describe('component: FleetClusterTargets', () => {
           name: 'simple-target'
         };
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [target1],
             namespace: 'fleet-default',
@@ -1225,7 +1274,7 @@ describe('component: FleetClusterTargets', () => {
   describe('clusterGroup Functionality Tests', () => {
     describe('clusterGroup Data Management', () => {
       it('should initialize with empty selectedClusterGroups', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1248,7 +1297,7 @@ describe('component: FleetClusterTargets', () => {
           }
         ];
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1278,7 +1327,7 @@ describe('component: FleetClusterTargets', () => {
           }
         ];
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1300,7 +1349,7 @@ describe('component: FleetClusterTargets', () => {
 
     describe('clusterGroup Selection Methods', () => {
       it('should update selectedClusterGroups when selectClusterGroups is called', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1318,7 +1367,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should emit update:value when selectClusterGroups is called', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1333,7 +1382,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should handle empty array in selectClusterGroups', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1353,7 +1402,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should replace existing selectedClusterGroups on new selection', async() => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1381,7 +1430,7 @@ describe('component: FleetClusterTargets', () => {
           { clusterName: 'specific-cluster' }
         ];
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets,
             namespace: 'fleet-default',
@@ -1394,7 +1443,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should include clusterGroups in normalizeTargets output', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1417,7 +1466,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should handle only clusterGroups in normalizeTargets', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1434,7 +1483,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should return undefined when normalizeTargets has no inputs', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1448,7 +1497,7 @@ describe('component: FleetClusterTargets', () => {
       });
 
       it('should include clusterGroups in toTargets when targetMode is clusters', () => {
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets:   [],
             namespace: 'fleet-default',
@@ -1479,7 +1528,7 @@ describe('component: FleetClusterTargets', () => {
           { clusterGroup: 'test-group' }
         ];
 
-        const wrapper = mount(FleetClusterTargets, {
+        const wrapper = mountWithSetup(FleetClusterTargets, {
           props: {
             targets,
             namespace: 'fleet-default',
@@ -1500,7 +1549,7 @@ describe('component: FleetClusterTargets', () => {
         { clusterGroup: 'development-group' }
       ];
 
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets,
           namespace: 'fleet-default',
@@ -1515,7 +1564,7 @@ describe('component: FleetClusterTargets', () => {
     });
 
     it('should reset selectedClusterGroups when reset method is called', () => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1543,7 +1592,7 @@ describe('component: FleetClusterTargets', () => {
 
   describe('clusterGroup Event Handling and Updates', () => {
     it('should emit correct targets when both clusters and clusterGroups are selected', async() => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1570,7 +1619,7 @@ describe('component: FleetClusterTargets', () => {
     });
 
     it('should handle clusterGroup selection in CREATE mode with proper event emission', async() => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1597,7 +1646,7 @@ describe('component: FleetClusterTargets', () => {
     it('should update component state correctly when clusterGroups prop changes', async() => {
       const initialTargets = [{ clusterGroup: 'initial-group' }];
 
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   initialTargets,
           namespace: 'fleet-default',
@@ -1631,7 +1680,7 @@ describe('component: FleetClusterTargets', () => {
         { clusterName: 'cluster-1' }
       ];
 
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   targets as any,
           namespace: 'fleet-default',
@@ -1648,7 +1697,7 @@ describe('component: FleetClusterTargets', () => {
         { clusterGroup: 'valid-group' }
       ];
 
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   targets as any,
           namespace: 'fleet-default',
@@ -1660,7 +1709,7 @@ describe('component: FleetClusterTargets', () => {
     });
 
     it('should handle empty allClusterGroups data', () => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1686,7 +1735,7 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1707,7 +1756,7 @@ describe('component: FleetClusterTargets', () => {
 
   describe('clusterGroup Component Lifecycle', () => {
     it('should preserve clusterGroup selections during component updates', async() => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1728,7 +1777,7 @@ describe('component: FleetClusterTargets', () => {
     });
 
     it('should clear clusterGroup selections on namespace change in CREATE mode', async() => {
-      const wrapper = mount(FleetClusterTargets, {
+      const wrapper = mountWithSetup(FleetClusterTargets, {
         props: {
           targets:   [],
           namespace: 'fleet-default',

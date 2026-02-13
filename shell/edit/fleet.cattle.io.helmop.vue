@@ -470,7 +470,7 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="steps"
+    :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
     class="wizard"
     @cancel="done"
