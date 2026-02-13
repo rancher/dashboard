@@ -130,7 +130,6 @@ export default {
 
     async createUser() {
       // Ensure username is unique (this does not happen in the backend)
-      // TODO: if users are a big list, then this should be paginated - use "filter"
       let userSaved;
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
 
