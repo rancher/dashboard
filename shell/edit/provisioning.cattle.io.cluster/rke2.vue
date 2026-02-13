@@ -905,8 +905,7 @@ export default {
       }
 
       return false;
-    }
-
+    },
   },
 
   watch: {
@@ -1012,7 +1011,7 @@ export default {
 
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
-    },
+    }
   },
 
   created() {
@@ -1902,6 +1901,7 @@ export default {
       if (!this.serverConfig?.profile) {
         this.serverConfig.profile = null;
       }
+      this.updateNginxConfiguration(this.serverConfig?.disable || []);
     },
 
     chartVersionKey(name) {
@@ -2136,6 +2136,8 @@ export default {
     handleKubernetesChange(value, old) {
       if (value) {
         this.togglePsaDefault();
+        // Need to make sure we explicitly set ingress due to a default change
+        this.updateNginxConfiguration(this.serverConfig?.disable || []);
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
@@ -2178,6 +2180,7 @@ export default {
 
     handleEnabledSystemServicesChanged(val) {
       this.serverConfig.disable = val;
+      this.updateNginxConfiguration(val);
     },
 
     handleCiliumValuesChanged(neu) {

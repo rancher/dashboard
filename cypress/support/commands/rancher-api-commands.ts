@@ -748,7 +748,8 @@ Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2Cluster
                     machineGlobalConfig: {
                       cni:                   'calico',
                       'disable-kube-proxy':  false,
-                      'etcd-expose-metrics': false
+                      'etcd-expose-metrics': false,
+                      'ingress-controller':  'ingress-nginx'
                     },
                     machineSelectorConfig: [
                       { config: { 'protect-kernel-defaults': false } }
@@ -863,7 +864,8 @@ Cypress.Commands.add('createAmazonRke2ClusterWithoutMachineConfig', (params: Cre
               machineGlobalConfig: {
                 cni:                   'calico',
                 'disable-kube-proxy':  false,
-                'etcd-expose-metrics': false
+                'etcd-expose-metrics': false,
+                'ingress-controller':  'ingress-nginx'
               },
               machineSelectorConfig: [
                 { config: { 'protect-kernel-defaults': false } }
