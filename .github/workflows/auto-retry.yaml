@@ -6,9 +6,6 @@ on:
     workflows: ["Tests"]
     types:
       - completed
-    branches:
-      - master
-      - 'release-*'
   workflow_dispatch: # Added to test and debug if required
     inputs:
       workflow_run_id:
