@@ -184,7 +184,6 @@ export function init(store) {
 
   const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
   const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true });
-  const dePaginateSteveUsers = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true });
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
@@ -193,7 +192,6 @@ export function init(store) {
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
   configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
-  configureType(MANAGEMENT.USER, { depaginate: dePaginateSteveUsers });
   configureType(SNAPSHOT, { depaginate: true });
 
   configureType(SECRET, { showListMasthead: false });

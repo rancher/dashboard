@@ -243,16 +243,16 @@ export default {
 
     async save() {
       if (this.isChange) {
-        await this.changePassword(true);
+        await this.changePassword('change');
         if (this.form.deleteKeys) {
           await this.deleteKeys();
         }
       } else if (this.isEdit) {
-        return this.changePassword();
+        return this.changePassword('set');
       }
     },
 
-    async changePassword(isChangingPassword = false) {
+    async changePassword(mode) {
       if (!this.canChangePassword) {
         this.errorMessages = [this.t('changePassword.errors.cannotChange')];
         throw new Error(this.t('changePassword.errors.cannotChange'));
@@ -263,7 +263,7 @@ export default {
         userID:      this.userId
       };
 
-      if (isChangingPassword) {
+      if (mode === 'change') {
         spec.currentPassword = this.form.currentP;
       }
 

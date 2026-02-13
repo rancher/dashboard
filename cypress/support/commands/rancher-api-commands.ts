@@ -89,41 +89,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
         enabled:            true,
         mustChangePassword: false,
         username:           e2eName
-      }).then((resp) => {
-        // If user already exists, delete and recreate
-        if ((resp.status === 400 || resp.status === 422) &&
-            (resp.body.message?.includes('already in use') || resp.body.message?.includes('already exists'))) {
-          cy.log('User already exists. Deleting and recreating...', e2eName);
-
-          // Get the existing user ID first
-          cy.getRancherResource('v1', 'management.cattle.io.users').then((usersResp: Cypress.Response<any>) => {
-            const existingUser = usersResp.body.data?.find((u: any) => u.username === e2eName);
-
-            if (existingUser) {
-              cy.log('Found existing user, deleting...', existingUser.id);
-
-              return cy.deleteRancherResource('v1', 'management.cattle.io.users', existingUser.id, false)
-                .then(() => {
-                  cy.log('Deleted existing user, recreating...', e2eName);
-
-                  // Recreate the user
-                  return cy.createRancherResource('v1', 'management.cattle.io.users', {
-                    type:               'user',
-                    enabled:            true,
-                    mustChangePassword: false,
-                    username:           e2eName
-                  });
-                });
-            }
-
-            return resp;
-          });
-        }
-
-        return cy.wrap(resp);
-      });
-    })
-    .then((resp: any) => {
+      }).then((resp: any) => {
       if (resp.status !== 201) {
         cy.log('ERROR: User creation failed', { status: resp.status, body: resp.body });
         // eslint-disable-next-line no-console
