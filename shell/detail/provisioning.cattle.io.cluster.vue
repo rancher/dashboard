@@ -364,7 +364,8 @@ export default {
         const machineFullName = machineNameFn(this.value.name, mp.name);
 
         const machines = this.value.machines.filter((machine) => {
-          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          // elemental machines use an older version of CAPI CRDs that use apiVersion instead of apiGroup
+          const isElementalCluster = (machine.spec?.infrastructureRef?.apiGroup || machine.spec?.infrastructureRef?.apiVersion).startsWith('elemental.cattle.io');
           const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
           if (isElementalCluster) {

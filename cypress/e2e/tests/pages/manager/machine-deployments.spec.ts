@@ -144,7 +144,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
-      expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
+      expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta2');
       expect(obj.metadata.name).to.equal(this.machineDeploymentsName);
       expect(obj.kind).to.equal('MachineDeployment');
     });

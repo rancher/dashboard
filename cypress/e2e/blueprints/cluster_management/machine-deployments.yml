@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   name: e2etest
@@ -28,27 +28,17 @@ spec:
 #          name: string
 #          uid: string
     spec:
-#      bootstrap:
-#        configRef:
-#          apiVersion: string
-#          fieldPath: string
-#          kind: string
-#          name: string
-#          namespace: string
-#          resourceVersion: string
-#          uid: string
-#        data: string
-#        dataSecretName: string
+      bootstrap: 
+        configRef:
+          apiGroup: rke.cattle.io
+          kind: RKEBootstrapTemplate
+          name: name123
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123
       clusterName: local
 #      failureDomain: string
-#      infrastructureRef:
-#        apiVersion: string
-#        fieldPath: string
-#        kind: string
-#        name: string
-#        namespace: string
-#        resourceVersion: string
-#        uid: string
 #      nodeDrainTimeout: string
 #      providerID: string
 #      version: string
