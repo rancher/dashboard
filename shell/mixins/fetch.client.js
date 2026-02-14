@@ -5,6 +5,12 @@ const hasFetch = (component) => component.$options && typeof component.$options.
 export const addLifecycleHook = (vm, hook, fn) => {
   if (!vm.$options[hook]) {
     vm.$options[hook] = [];
+  } else if (!Array.isArray(vm.$options[hook]) && typeof vm.$options[hook] === 'function' ) {
+    // This caters for when....
+    // - component has mixins, but they have no hooks of this type (vm.$options[hook] is then not an array)
+    // - component has the hook (vm.$options[hook] is then a function)
+    // - component has both fetch and beforeMount (the component beforeMount replaces this files beforeMount with $fetch call)
+    vm.$options[hook] = [vm.$options[hook]];
   }
 
   if (Array.isArray(vm.$options[hook]) && !vm.$options[hook].includes(fn)) {

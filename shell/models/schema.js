@@ -7,6 +7,24 @@ export default class Schema extends Resource {
   get groupName() {
     return this.attributes.namespaced ? 'ns' : 'cluster';
   }
+
+  /**
+   * Legacy check to determine if the user can GET a specific resource of this type.
+   *
+   * This supports things like spoof or norman schemas.
+   */
+  get canGet() {
+    return this.hasLink('collection');
+  }
+
+  /**
+   * Legacy check to determine if the user can LIST a resource of this type.
+   *
+   * This supports things like spoof or norman schemas.
+   */
+  get canList() {
+    return this.hasLink('collection');
+  }
 }
 
 /**
