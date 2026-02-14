@@ -2164,7 +2164,7 @@ export default class Resource {
   get insightCardProps() {
     const rows = [
       useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.conditions'), this.resourceConditions, undefined, 'condition', '#conditions'),
-      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, undefined, undefined, '#events'),
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, 'insightsColor', 'eventType', '#events'),
     ];
 
     return {
@@ -2181,7 +2181,8 @@ export default class Resource {
   }
 
   get _cards() {
-    return [this.insightCard];
+    // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
+    return [];
   }
 
   get cards() {

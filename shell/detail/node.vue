@@ -196,7 +196,6 @@ export default {
     v-else
     class="node"
   >
-    <div class="spacer" />
     <div class="alerts">
       <Alert
         class="mr-10"

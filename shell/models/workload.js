@@ -755,7 +755,7 @@ export default class Workload extends WorkloadService {
   get podsCard() {
     const supportedTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET];
 
-    if (!supportedTypes.includes(this.type)) {
+    if (!supportedTypes.includes(this.type) || (this.pods?.length || 0) <= 0) {
       return null;
     }
 
@@ -776,7 +776,7 @@ export default class Workload extends WorkloadService {
   get jobsCard() {
     const supportedTypes = [WORKLOAD_TYPES.CRON_JOB];
 
-    if (!supportedTypes.includes(this.type)) {
+    if (!supportedTypes.includes(this.type) || (this.jobs?.length || 0) <= 0) {
       return null;
     }
 
@@ -794,6 +794,7 @@ export default class Workload extends WorkloadService {
     return [
       this.podsCard,
       this.jobsCard,
+      this.insightCard,
       ...this._cards
     ];
   }

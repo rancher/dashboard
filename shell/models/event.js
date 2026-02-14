@@ -38,4 +38,9 @@ export default class K8sEvent extends SteveModel {
 
     return schema && rowValueGetter ? rowValueGetter(schema, 'Last Seen')(this) : null;
   }
+
+  // Because we're using eventType which is a non-standard state we don't have a reliable way to provide a state color anymore and have therefore disabled the color.
+  get insightsColor() {
+    return 'disabled';
+  }
 }

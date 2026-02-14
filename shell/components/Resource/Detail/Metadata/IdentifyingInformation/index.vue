@@ -103,7 +103,9 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     flex-direction: column;
 
     .row {
-      margin-bottom: 8px;
+      &:not(:last-of-type) {
+        margin-bottom: 8px;
+      }
 
       .full-custom-value {
         flex: 1;
