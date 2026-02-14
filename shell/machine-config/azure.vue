@@ -17,6 +17,7 @@ import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import azureManagedDisksModal from '@shell/machine-config/azure-managed-disks-modal.vue';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -96,7 +97,7 @@ const storageTypes = [
 ];
 
 export default {
-  emits: ['expandAdvanced', 'error'],
+  emits: ['expandAdvanced', 'error', 'validationChanged'],
 
   components: {
     ArrayList,
@@ -127,6 +128,10 @@ export default {
     disabled: {
       type:    Boolean,
       default: false
+    },
+    machinePools: {
+      type:     Array,
+      required: true,
     },
   },
 
@@ -238,7 +243,7 @@ export default {
       if (neu && (!this.value.managedDisks || !this.value.enablePublicIpStandardSku || !this.value.staticPublicIp)) {
         this.$emit('expandAdvanced');
       }
-    }
+    },
   },
 
   computed: {
@@ -419,6 +424,17 @@ export default {
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
     }
+
+    /**
+     * Override the default managedDisks value to match the base pool.
+     * Azure does not allow mixing managed and unmanaged disks.
+     **/
+    if (
+      (this.mode === _EDIT || this.mode === _CREATE) &&
+      this.machinePools.length > 1
+    ) {
+      this.value.managedDisks = this.machinePools[0].config.managedDisks;
+    }
   },
 
   methods: {
@@ -496,7 +512,25 @@ export default {
       // set will take precedent and the zone will not be saved.
         this.value.availabilitySet = null;
       }
-    }
+    },
+    openManagedDisksModal() {
+      if (this.machinePools.length <= 1) {
+        this.value.managedDisks = !this.value.managedDisks;
+
+        return;
+      }
+
+      this.$shell.modal.open(
+        azureManagedDisksModal,
+        { props: { onUpdate: this.updateAllManagedDisks } }
+      );
+    },
+    updateAllManagedDisks() {
+      this.value.managedDisks = !this.value.managedDisks;
+      this.machinePools.forEach((machinePool) => {
+        machinePool.config.managedDisks = this.value.managedDisks;
+      });
+    },
   },
 };
 </script>
@@ -838,10 +872,11 @@ export default {
         </div>
         <div class="col span-6 inline-banner-container">
           <Checkbox
-            v-model:value="value.managedDisks"
+            :value="value.managedDisks"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
+            @update:value="openManagedDisksModal"
           />
           <Banner
             v-if="value.availabilityZone && !value.managedDisks"

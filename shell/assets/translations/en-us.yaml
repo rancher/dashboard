@@ -22,6 +22,7 @@ generic:
   back: Back
   cancel: Cancel
   confirm: Confirm
+  update: Update
   colorPicker: Color picker
   clear: Clear
   clearAll: Clear All
@@ -1887,6 +1888,9 @@ cluster:
         label: Location
       managedDisks:
         label: Use Managed Disks
+        modal:
+          header: Update all machine pools? 
+          body: Azure does not allow mixing managed and unmanaged disks. Do you want to update all machine pools to use the new setting?
       managedDisksSize:
         label: Managed Disk Size
       nsg:
