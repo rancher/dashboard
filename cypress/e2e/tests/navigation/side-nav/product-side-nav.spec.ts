@@ -124,6 +124,16 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   });
 
   after(() => {
+    // Disable session management and force complete logout
+    Cypress.session.clearAllSavedSessions();
+    cy.logout();
+
+    // Clear all possible session storage
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.window().then((win) => {
+      win.sessionStorage.clear();
+    });
     cy.login();
     deploymentsListPage?.goTo();
 
