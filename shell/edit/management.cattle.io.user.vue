@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
 import ChangePassword from '@shell/components/form/ChangePassword';
@@ -9,6 +9,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { wait } from '@shell/utils/async';
+import { base64Encode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -128,26 +129,39 @@ export default {
     },
 
     async createUser() {
-      // Ensure username is unique (this does not happen in the backend)
-      const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
+      let userSaved;
 
-      if (users.find((u) => u.username === this.form.username)) {
-        throw new Error(this.t('user.edit.credentials.username.exists'));
+      try {
+        // never use "password" as it's deprecated!
+        const user = await this.$store.dispatch('management/create', {
+          type:               MANAGEMENT.USER,
+          description:        this.form.description,
+          enabled:            true,
+          mustChangePassword: this.form.password.userChangeOnLogin,
+          displayName:        this.form.displayName,
+          username:           this.form.username
+        });
+
+        userSaved = await user.save();
+
+        if (this.form.password.password) {
+          // create secret to hold user password
+          const secret = await this.$store.dispatch('management/create', {
+            type:     SECRET,
+            metadata: {
+              namespace: 'cattle-local-user-passwords',
+              name:      userSaved.id
+            },
+            data: { password: base64Encode(this.form.password.password) }
+          });
+
+          await secret.save();
+        }
+      } catch (error) {
+        throw new Error(error.message);
       }
 
-      const user = await this.$store.dispatch('rancher/create', {
-        type:               NORMAN.USER,
-        description:        this.form.description,
-        enabled:            true,
-        mustChangePassword: this.form.password.userChangeOnLogin,
-        name:               this.form.displayName,
-        password:           this.form.password.password,
-        username:           this.form.username
-      });
-
-      const newNormanUser = await user.save();
-
-      return this.$store.dispatch('management/find', { type: MANAGEMENT.USER, id: newNormanUser.id });
+      return userSaved;
     },
 
     async editUser() {
@@ -155,16 +169,13 @@ export default {
         return;
       }
 
-      const normanUser = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.USER,
-        id:   this.value.id || this.user?.id,
-      });
+      // never use this.value.password as it's deprecated!
+      this.value.description = this.form.description;
+      this.value.displayName = this.form.displayName;
+      this.value.mustChangePassword = this.form.password.userChangeOnLogin;
 
-      // Save change of password
-      // - Password must be changed before editing mustChangePassword (setpassword action sets this to false)
       if (this.form.password.password) {
-        await this.$refs.changePassword.save(normanUser);
-
+        await this.$refs.changePassword.save(this.value);
         // Why the wait? Without these the user updates below are ignored
         // - The update request succeeds and shows the correct values in it's response.
         // - Fetching the norman user again sometimes shows the correct value, sometimes not
@@ -173,18 +184,11 @@ export default {
         await wait(5000);
       }
 
-      // Save user updates
-      normanUser.description = this.form.description;
-      normanUser._name = this.form.displayName;
-      normanUser.mustChangePassword = this.form.password.userChangeOnLogin;
-
-      await normanUser.save();
-
-      return await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.USER,
-        id:   this.value.id,
-        opt:  { force: true }
-      });
+      try {
+        this.value.save();
+      } catch (error) {
+        throw new Error(error);
+      }
     },
 
     async updateRoles(userId) {

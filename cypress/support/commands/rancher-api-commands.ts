@@ -2,7 +2,8 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { MEDIUM_API_DELAY } from '~/cypress/support/utils/api-endpoints';
+import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { base64Encode } from '@shell/utils/crypto/index.js';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -83,55 +84,90 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
 
   return cy.createE2EResourceName(username, options?.createNameOptions)
     .then((e2eName) => {
-      return cy.request({
-        method:           'POST',
-        url:              `${ Cypress.env('api') }/v3/users`,
-        failOnStatusCode: false,
-        headers:          {
-          'x-api-csrf': token.value,
-          Accept:       'application/json'
-        },
-        body: {
-          type:               'user',
-          enabled:            true,
-          mustChangePassword: false,
-          username:           e2eName,
-          password:           password || Cypress.env('password')
+      cy.createRancherResource('v1', 'management.cattle.io.users', {
+        type:               'user',
+        enabled:            true,
+        mustChangePassword: false,
+        username:           e2eName
+      }).then((resp: any) => {
+        if (resp.status !== 201) {
+          cy.log('ERROR: User creation failed', { status: resp.status, body: resp.body });
+          // eslint-disable-next-line no-console
+          console.error('ERROR: User creation failed', { status: resp.status, body: resp.body });
         }
-      });
-    })
-    .then((resp) => {
-      if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
-        cy.log('User already exists. Skipping user creation');
-
-        return '';
-      } else {
         expect(resp.status).to.eq(201);
 
-        const userPrincipalId = resp.body.principalIds[0];
+        // Wait for the user to be fully created before proceeding with next steps
+        // seen some weirdness where we don't have principalIds available immediately after user creation,
+        // which causes subsequent API calls to fail, so adding a wait here to mitigate that
+        cy.wait(200); // eslint-disable-line cypress/no-unnecessary-waiting
 
-        if (globalRole) {
-          return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
-            .then(() => {
-              if (clusterRole) {
-                const { clusterId, role } = clusterRole;
+        // we now need to do a GET to the user to get the principalId to set the role bindings
+        // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
+        // and also create the user password as secret, which is required for login
+        cy.getRancherResource('v1', 'management.cattle.io.users', resp.body.id)
+          .then((userDataResp) => {
+            if (userDataResp.status !== 200) {
+              cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+              // eslint-disable-next-line no-console
+              console.error('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+            }
 
-                return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
-              }
-            })
-            .then(() => {
-              if (projectRole) {
-                const { clusterId, projectName, role } = projectRole;
+            const userPrincipalId = userDataResp.body.principalIds[0];
 
-                return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
-              }
-            })
-            .then(() => {
-              // return response of original user
-              return resp;
-            });
-        }
-      }
+            return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
+              .then(() => {
+                if (globalRole) {
+                  return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+                    .then(() => {
+                      if (clusterRole) {
+                        const { clusterId, role } = clusterRole;
+
+                        return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+                      }
+                    })
+                    .then(() => {
+                      if (projectRole) {
+                        const { clusterId, projectName, role } = projectRole;
+
+                        return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+                      }
+                    })
+                    .then(() => {
+                      // return response of original user
+                      return resp;
+                    });
+                } else {
+                  return resp;
+                }
+              });
+          });
+      });
+    });
+});
+
+/**
+ * Create user password as Secret via api request
+ */
+Cypress.Commands.add('createUserPasswordAsSecret', (userId, password) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/secrets`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'secret',
+      metadata: {
+        namespace: 'cattle-local-user-passwords',
+        name:      userId
+      },
+      data: { password: base64Encode(password) }
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
     });
 });
 
@@ -457,14 +493,22 @@ Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, e
     url += `/${ resourceId }`;
   }
 
-  return cy.request({
+  const requestData: any = {
     method:  'GET',
     url,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-  })
+  };
+
+  if (resourceType === 'ext.cattle.io.selfuser') {
+    requestData.method = 'POST';
+    requestData.body = {};
+    expectedStatusCode = 201;
+  }
+
+  return cy.request(requestData)
     .then((resp) => {
       if (expectedStatusCode) {
         expect(resp.status).to.eq(expectedStatusCode);
@@ -948,8 +992,8 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 
 // update resource list view preference
 Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
-  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.data[0].id.trim();
+  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.status.userID;
 
     const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
 
@@ -1134,8 +1178,8 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
 
-  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.data[0].id.trim();
+  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.status.userID;
     const payload = {
       id:   `${ userId }`,
       type: 'userpreference',

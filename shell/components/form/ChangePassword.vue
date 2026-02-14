@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { NORMAN } from '@shell/config/types';
+import { NORMAN, EXT, MANAGEMENT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 // Component handles three use cases
@@ -27,20 +27,30 @@ export default {
     }
   },
   async fetch() {
-    if (this.isChange) {
-      // Fetch the username for hidden input fields. The value itself is not needed if create or changing another user's password
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
-      });
-      const user = users?.[0];
+    this.selfUser = await this.$store.dispatch('auth/getSelfUser');
+    this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
+    if (this.selfUser?.canGetUser && this.selfUser.status?.userID) {
+      // Fetch the username for hidden input fields. The former "setpassword" action did not require userID, but the new
+      // PasswordChangeRequest does.
+      const user = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   this.selfUser.status?.userID
+      });
+
+      this.userId = user?.id;
       this.username = user?.username;
+
+      this.userChangeOnLogin = this.mustChangePassword;
+    } else {
+      this.errorMessages = [this.t('changePassword.errors.cannotFetchSelf')];
+      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
     }
-    this.userChangeOnLogin = this.mustChangePassword;
   },
-  data(ctx) {
+  data() {
     return {
+      passwordChangeRequest:      undefined,
+      userId:                     '',
       username:                   '',
       errorMessages:              [],
       pCanShowMismatchedPassword: false,
@@ -57,6 +67,10 @@ export default {
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    canChangePassword() {
+      return !!this.passwordChangeRequest?.canChangePassword;
+    },
 
     isRandomGenerated: {
       get() {
@@ -227,37 +241,36 @@ export default {
       });
     },
 
-    async save(user) {
+    async save() {
       if (this.isChange) {
-        await this.changePassword();
+        await this.changePassword('change');
         if (this.form.deleteKeys) {
           await this.deleteKeys();
         }
       } else if (this.isEdit) {
-        return this.setPassword(user);
+        return this.changePassword('set');
       }
     },
 
-    async setPassword(user) {
-      // Error handling is catered for by caller
-      await this.$store.dispatch('rancher/resourceAction', {
-        type:       NORMAN.USER,
-        actionName: 'setpassword',
-        resource:   user,
-        body:       { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
-      });
-    },
+    async changePassword(mode) {
+      if (!this.canChangePassword) {
+        this.errorMessages = [this.t('changePassword.errors.cannotChange')];
+        throw new Error(this.t('changePassword.errors.cannotChange'));
+      }
 
-    async changePassword() {
+      const spec = {
+        newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP,
+        userID:      this.userId
+      };
+
+      if (mode === 'change') {
+        spec.currentPassword = this.form.currentP;
+      }
+
       try {
-        await this.$store.dispatch('rancher/collectionAction', {
-          type:       NORMAN.USER,
-          actionName: 'changepassword',
-          body:       {
-            currentPassword: this.form.currentP,
-            newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP
-          },
-        });
+        this.passwordChangeRequest.spec = spec;
+
+        await this.passwordChangeRequest.save();
       } catch (err) {
         this.errorMessages = [err.message || this.t('changePassword.errors.failedToChange')];
         throw err;

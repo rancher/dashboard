@@ -1,24 +1,14 @@
-import { NORMAN } from '@shell/config/types';
-import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
+import { NORMAN, EXT } from '@shell/config/types';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import day from 'dayjs';
 
-export default class User extends HybridModel {
+export default class User extends SteveModel {
   // Preserve description
   constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
     const _description = data.description;
 
     super(data, ctx, rehydrateNamespace, setClone);
     this.description = _description;
-  }
-
-  // Clean the Norman properties, but keep description
-  cleanResource(data) {
-    const desc = data.description;
-    const clean = cleanHybridResources(data);
-
-    clean._description = desc;
-
-    return clean;
   }
 
   get isSystem() {
@@ -175,13 +165,13 @@ export default class User extends HybridModel {
     const clone = await this.$dispatch('clone', { resource: this });
 
     // Remove local properties
-    delete clone.canRefreshAccess;
+    delete clone.canRefreshMemberships;
 
     return clone._save(opt);
   }
 
   async setEnabled(enabled) {
-    const clone = await this.$dispatch('rancher/clone', { resource: this.norman }, { root: true });
+    const clone = await this.$dispatch('clone', { resource: this });
 
     clone.enabled = enabled;
     await clone.save();
@@ -204,12 +194,11 @@ export default class User extends HybridModel {
   }
 
   async refreshGroupMembership() {
-    const user = await this.$dispatch('rancher/find', {
-      type: NORMAN.USER,
-      id:   this.id,
-    }, { root: true });
+    const membershipRefreshRequests = await this.$dispatch('create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
 
-    await user.doAction('refreshauthprovideraccess');
+    // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+    membershipRefreshRequests.spec = { userId: this.id };
+    await membershipRefreshRequests.save();
   }
 
   canActivate(state) {
@@ -285,18 +274,8 @@ export default class User extends HybridModel {
   }
 
   get norman() {
+    console.warn('Norman "user" is deprecated. Use Steve "management.cattle.io.user" user instead.'); // eslint-disable-line no-console
+
     return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
-  }
-
-  get canDelete() {
-    return this.norman?.hasLink('remove') && !this.isCurrentUser;
-  }
-
-  get canUpdate() {
-    return this.norman?.hasLink('update');
-  }
-
-  remove() {
-    return this.norman?.remove();
   }
 }

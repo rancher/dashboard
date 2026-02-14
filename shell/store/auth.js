@@ -1,6 +1,5 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
-import { NORMAN } from '@shell/config/types';
-import { _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { MANAGEMENT, EXT } from '@shell/config/types';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
@@ -41,8 +40,9 @@ export const state = function() {
     hasAuth:     null,
     loggedIn:    false,
     principalId: null,
-    v3User:      null,
+    user:        null,
     initialPass: null,
+    selfUser:    null,
   };
 };
 
@@ -63,8 +63,8 @@ export const getters = {
     return state.principalId;
   },
 
-  v3User(state) {
-    return state.v3User;
+  user(state) {
+    return state.user;
   },
 
   initialPass(state) {
@@ -73,6 +73,10 @@ export const getters = {
 
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
+  },
+
+  selfUser(state) {
+    return state.selfUser;
   }
 };
 
@@ -81,9 +85,13 @@ export const mutations = {
     state.fromHeader = fromHeader;
   },
 
-  gotUser(state, v3User) {
+  gotUser(state, user) {
     // Always deference to avoid race condition when setting `mustChangePassword`
-    state.v3User = { ...v3User };
+    state.user = { ...user };
+  },
+
+  gotSelfUser(state, selfUser) {
+    state.selfUser = selfUser;
   },
 
   hasAuth(state, hasAuth) {
@@ -101,7 +109,8 @@ export const mutations = {
 
     state.loggedIn = false;
     state.principalId = null;
-    state.v3User = null;
+    state.user = null;
+    state.selfUser = null;
     state.initialPass = null;
   },
 
@@ -115,22 +124,46 @@ export const actions = {
     commit('gotHeader', fromHeader);
   },
 
+  async updateSelfUser({ dispatch, commit }, selfUser) {
+    const classifiedSelfUser = await dispatch('management/create', selfUser, { root: true });
+
+    commit('gotSelfUser', classifiedSelfUser);
+  },
+
+  async getSelfUser({ commit, dispatch, getters }) {
+    if (getters.selfUser) {
+      return Promise.resolve(getters.selfUser);
+    }
+
+    try {
+      const selfUser = await dispatch('management/request', {
+        url:    `/v1/${ EXT.SELFUSER }`,
+        method: 'POST',
+        data:   {},
+      }, { root: true });
+
+      await dispatch('updateSelfUser', selfUser);
+    } catch (err) {
+      throw new Error(err);
+    }
+  },
+
   async getUser({ dispatch, commit, getters }) {
-    if (getters.v3User) {
+    if (getters.user) {
       return;
     }
 
     try {
-      const user = await dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  {
-          url:    '/v3/users',
-          filter: { me: true },
-          load:   _MULTI
-        }
-      }, { root: true });
+      let mgmtUser;
 
-      commit('gotUser', user?.[0]);
+      await dispatch('getSelfUser');
+      const selfUser = getters.selfUser;
+
+      if (selfUser) {
+        mgmtUser = await dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` }, { root: true });
+      }
+
+      commit('gotUser', mgmtUser);
     } catch { }
   },
 

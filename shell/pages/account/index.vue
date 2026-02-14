@@ -1,6 +1,6 @@
 <script>
 import BackLink from '@shell/components/BackLink';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import Loading from '@shell/components/Loading';
 import Principal from '@shell/components/auth/Principal';
@@ -124,16 +124,9 @@ export default {
         return !!this.principal.loginName;
       }
 
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
-      });
+      const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      if (users && users.length === 1) {
-        return !!users[0].username;
-      }
-
-      return false;
+      return !!passwordChangeRequest?.canChangePassword;
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {
