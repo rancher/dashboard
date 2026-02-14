@@ -3,6 +3,7 @@ import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } fr
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
 import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -492,17 +493,15 @@ export default class Secret extends SteveModel {
   }
 
   /**
-   * is this a project scoped secret .... or also a cloned project scoped secret
-   */
-  get isProjectScopedRelated() {
-    return !!this.metadata.labels?.[UI_PROJECT_SECRET];
-  }
-
-  /**
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    return this.isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+    /**
+     * is this a project scoped secret .... or also a cloned project scoped secret
+     */
+    const isProjectScopedRelated = !!this.metadata.labels?.[UI_PROJECT_SECRET];
+
+    return isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
 
   get projectScopedClusterId() {
@@ -588,34 +587,38 @@ export default class Secret extends SteveModel {
   }
 
   get listLocation() {
-    if (!this.isProjectScoped) {
-      return super.listLocation;
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+        }
+      };
     }
 
-    return {
-      name:   'c-cluster-product-resource',
-      params: {
-        product:  this.$rootGetters['productId'],
-        cluster:  this.$rootGetters['clusterId'],
-        resource: VIRTUAL_TYPES.PROJECT_SECRETS,
-      }
-    };
+    return super.listLocation;
+  }
+
+  get hasProjectScopedUrlQueryParam() {
+    return this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED;
   }
 
   get parentNameOverride() {
-    if (!this.isProjectScoped) {
-      return super.parentNameOverride;
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
     }
 
-    return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+    return super.parentNameOverride;
   }
 
   get parentLocationOverride() {
-    if (!this.isProjectScoped) {
-      return super.parentNameOverride;
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return this.listLocation;
     }
 
-    return this.listLocation;
+    return super.parentLocationOverride;
   }
 
   get groupByProject() {
