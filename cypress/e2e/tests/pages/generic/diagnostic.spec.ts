@@ -13,8 +13,14 @@ describe('Diagnostics Page', { tags: ['@generic', '@adminUser'] }, () => {
 
     diagnosticsPage.goTo();
 
+    // Wait for page to fully load before opening modal
+    diagnosticsPage.diagnosticsPackageBtn().self().should('be.visible').and('be.enabled');
+
     // open modal
     diagnosticsPage.diagnosticsPackageBtn().click(true);
+
+    // Wait for modal to appear and download button to be ready
+    diagnosticsPage.downloadDiagnosticsModalActionBtn().self().should('be.visible').and('be.enabled');
 
     // modal button to actually trigger the download
     diagnosticsPage.downloadDiagnosticsModalActionBtn().click(true);
