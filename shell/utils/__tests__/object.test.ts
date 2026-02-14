@@ -212,6 +212,56 @@ describe('fx: diff', () => {
   });
 });
 
+describe('nested object behavior', () => {
+  it('should preserve nested objects when transitioning from null to object', () => {
+    const from = { a: null };
+    const to = { a: { b: { c: 'value' } } };
+
+    const result = diff(from, to);
+
+    expect(result).toStrictEqual({ a: { b: { c: 'value' } } });
+    expect(result.a).not.toBeNull();
+  });
+
+  it('returns { config: {} } when user clears nested object', () => {
+    const from = { config: { setting: 'value' } };
+    const to = { config: {} }; // User explicitly clears config
+
+    const result = diff(from, to);
+
+    expect(result).toStrictEqual({ config: {} });
+    expect(result).not.toStrictEqual({});
+  });
+
+  it('should not emit empty nested objects when no differences exist', () => {
+    const from = { a: { b: { c: 1 } } };
+    const to = { a: { b: { c: 1 } } };
+
+    const result = diff(from, to);
+
+    expect(result).toStrictEqual({});
+  });
+
+  it('should correctly nullify a nested key when removed', () => {
+    const from = { a: { b: 1, c: 2 } };
+    const to = { a: { b: 1 } };
+
+    const result = diff(from, to);
+
+    expect(result).toStrictEqual({ a: { c: null } });
+  });
+
+  it('should preserve parent keys when deep nested values are added', () => {
+    const from = { level1: null };
+    const to = { level1: { level2: { level3: { value: 42 } } } };
+
+    const result = diff(from, to);
+
+    expect(result.level1.level2.level3.value).toBe(42);
+    expect(result.level1).not.toBeNull();
+  });
+});
+
 describe('fx: definedKeys', () => {
   it('should return an array of keys within an array', () => {
     const obj = {

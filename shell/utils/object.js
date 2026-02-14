@@ -220,8 +220,14 @@ export function diff(from, to, preventNull = false) {
     if ( Array.isArray(toVal) || Array.isArray(fromVal) ) {
       // Don't diff arrays, just use the whole value
       res[k] = toVal;
-    } else if ( isObject(toVal) && isObject(from[k]) ) {
-      res[k] = diff(fromVal, toVal);
+    } else if ( isObject(toVal) && isObject(fromVal) ) {
+      const nested = diff(fromVal, toVal, preventNull);
+
+      if (isEmpty(toVal) && !isEmpty(fromVal)) {
+        res[k] = {};
+      } else if (!isEmpty(nested)) {
+        res[k] = nested;
+      }
     } else {
       res[k] = toVal;
     }
@@ -235,6 +241,31 @@ export function diff(from, to, preventNull = false) {
 
   for ( const k of missing ) {
     // we need to gate this in order to prevent unforseen problems with addonConfig
+    const hasDescendant = toKeys.some(
+      (tk) => tk.startsWith(`${ k }.`)
+    );
+
+    if (hasDescendant) {
+      continue;
+    }
+
+    // If we already have a value in 'out' for any parent of this missing key, do NOT nullify the child.
+    const parts = splitObjectPath(k);
+    let hasUpdatedParent = false;
+
+    for (let i = 1; i < parts.length; i++) {
+      const parentPath = joinObjectPath(parts.slice(0, i));
+
+      if (get(out, parentPath) !== undefined) {
+        hasUpdatedParent = true;
+        break;
+      }
+    }
+
+    if (hasUpdatedParent) {
+      continue;
+    }
+
     if (preventNull) {
     // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
       // so that we can access the value of the obj property
