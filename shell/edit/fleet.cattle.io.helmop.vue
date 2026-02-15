@@ -14,23 +14,19 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
 import FormValidation from '@shell/mixins/form-validation';
-import Labels from '@shell/components/form/Labels';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import Banner from '@components/Banner/Banner.vue';
-import ButtonGroup from '@shell/components/ButtonGroup';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
+
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
-import UnitInput from '@shell/components/form/UnitInput';
-import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
-import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
-import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
-import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import { EDITOR_MODES } from '@shell/components/YamlEditor';
+import Tab from '@shell/components/Tabbed/Tab.vue';
+import Tabbed from '@shell/components/Tabbed/index.vue';
+import HelmOpMetadataTab from '@shell/components/fleet/HelmOpMetadataTab.vue';
+import HelmOpChartTab from '@shell/components/fleet/HelmOpChartTab.vue';
+import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
+import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
+import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -47,22 +43,16 @@ export default {
   emits: ['input'],
 
   components: {
-    Banner,
-    ButtonGroup,
-    Checkbox,
     CruResource,
-    FleetClusterTargets,
-    FleetConfigMapSelector,
-    FleetSecretSelector,
-    FleetValuesFrom,
-    YamlEditor,
-    LabeledInput,
-    LabeledSelect,
-    Labels,
     Loading,
     NameNsDescription,
-    SelectOrCreateAuthSecret,
-    UnitInput,
+    Tabbed,
+    Tab,
+    HelmOpMetadataTab,
+    HelmOpChartTab,
+    HelmOpValuesTab,
+    HelmOpTargetTab,
+    HelmOpAdvancedTab,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -256,6 +246,7 @@ export default {
 
   methods: {
     onSourceTypeSelect(type) {
+      this.sourceType = type;
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
       delete this.value.spec.helm.version;
@@ -479,7 +470,7 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="steps"
+    :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
     class="wizard"
     @cancel="done"
@@ -487,340 +478,199 @@ export default {
     @finish="save"
   >
     <template #basics>
+      <HelmOpMetadataTab
+        :value="value"
+        :mode="mode"
+        :is-view="isView"
+        @update:value="$emit('input', $event)"
+      />
+    </template>
+
+    <template #chart>
+      <HelmOpChartTab
+        :value="value"
+        :mode="mode"
+        :is-view="isView"
+        :source-type="sourceType"
+        :source-type-options="sourceTypeOptions"
+        :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+        @update:source-type="onSourceTypeSelect"
+      />
+    </template>
+
+    <template #values>
+      <HelmOpValuesTab
+        :value="value"
+        :mode="mode"
+        :real-mode="realMode"
+        :is-view="isView"
+        :chart-values="chartValues"
+        :chart-values-init="chartValuesInit"
+        :yaml-form="yamlForm"
+        :yaml-form-options="yamlFormOptions"
+        :yaml-diff-mode-options="yamlDiffModeOptions"
+        :is-yaml-diff="isYamlDiff"
+        :editor-mode="editorMode"
+        :diff-mode="diffMode"
+        :is-real-mode-edit="isRealModeEdit"
+        @update:yaml-form="updateYamlForm"
+        @update:chart-values="updateChartValues"
+        @update:diff-mode="diffMode = $event"
+      />
+    </template>
+
+    <template #target>
+      <HelmOpTargetTab
+        :value="value"
+        :mode="mode"
+        :real-mode="realMode"
+        :is-view="isView"
+        :targets-created="targetsCreated"
+        @update:targets="updateTargets"
+        @targets-created="targetsCreated=$event"
+      />
+    </template>
+
+    <template #advanced>
+      <HelmOpAdvancedTab
+        :value="value"
+        :mode="mode"
+        :is-view="isView"
+        :source-type="sourceType"
+        :temp-cached-values="tempCachedValues"
+        :correct-drift-enabled="correctDriftEnabled"
+        :polling-interval="pollingInterval"
+        :is-polling-enabled="isPollingEnabled"
+        :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
+        :enable-polling-tooltip="enablePollingTooltip"
+        :is-null-or-static-version="isNullOrStaticVersion"
+        :downstream-secrets-list="downstreamSecretsList"
+        :downstream-config-maps-list="downstreamConfigMapsList"
+        :register-before-hook="registerBeforeHook"
+        @update:auth="updateAuth($event.value, $event.key)"
+        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+        @update:correct-drift="correctDriftEnabled = $event"
+        @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
+        @toggle-polling="togglePolling"
+        @update:polling-interval="updatePollingInterval"
+      />
+    </template>
+
+    <template
+      v-if="isView && steps.length === 5"
+      #single
+    >
       <NameNsDescription
-        v-if="!isView"
         :value="value"
         :namespaced="false"
         :mode="mode"
         @update:value="$emit('input', $event)"
       />
-      <Labels
-        :value="value"
-        :mode="mode"
-        :display-side-by-side="false"
-        :add-icon="'icon-plus'"
-      />
-    </template>
 
-    <template #chart>
-      <h2 v-t="'fleet.helmOp.source.release.title'" />
-
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.helm.releaseName"
-            :mode="mode"
-            :label-key="`fleet.helmOp.source.release.label`"
-            :placeholder="t(`fleet.helmOp.source.release.placeholder`, null, true)"
-          />
-        </div>
-      </div>
-
-      <h2 v-t="'fleet.helmOp.source.title'" />
-
-      <div
-        v-if="!isView"
-        class="row mb-20"
+      <Tabbed
+        v-if="isView"
+        :side-tabs="true"
+        :use-hash="true"
       >
-        <div class="col span-6">
-          <LabeledSelect
-            v-model:value="sourceType"
-            :options="sourceTypeOptions"
-            option-key="value"
-            :mode="mode"
-            :selectable="option => !option.disabled"
-            :label="t('fleet.helmOp.source.selectLabel')"
-            @update:value="onSourceTypeSelect"
-          />
-        </div>
-      </div>
-
-      <template v-if="sourceType === SOURCE_TYPE.TARBALL">
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value="value.spec.helm.chart"
-              :mode="mode"
-              label-key="fleet.helmOp.source.tarball.label"
-              :placeholder="t('fleet.helmOp.source.tarball.placeholder', null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.chart')"
-              :required="true"
-            />
-          </div>
-        </div>
-      </template>
-
-      <template v-if="sourceType === SOURCE_TYPE.REPO">
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value="value.spec.helm.repo"
-              :mode="mode"
-              :label-key="`fleet.helmOp.source.${ sourceType }.repo.label`"
-              :placeholder="t(`fleet.helmOp.source.${ sourceType }.repo.placeholder`, null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.repo')"
-              :required="true"
-            />
-          </div>
-        </div>
-
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value="value.spec.helm.chart"
-              :mode="mode"
-              :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
-              :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.chart')"
-              :required="true"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model:value="value.spec.helm.version"
-              :mode="mode"
-              label-key="fleet.helmOp.source.version.label"
-              :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.version')"
-            />
-          </div>
-        </div>
-      </template>
-
-      <template v-if="sourceType === SOURCE_TYPE.OCI">
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value="value.spec.helm.repo"
-              :mode="mode"
-              :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
-              :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.repo')"
-              :required="true"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model:value="value.spec.helm.version"
-              :mode="mode"
-              label-key="fleet.helmOp.source.version.label"
-              :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.version')"
-            />
-          </div>
-        </div>
-      </template>
-    </template>
-
-    <template #values>
-      <Banner
-        color="info"
-        class="description"
-        label-key="fleet.helmOp.values.description"
-      />
-
-      <h2 v-t="'fleet.helmOp.values.title'" />
-
-      <div class="mb-15">
-        <div
-          v-if="isRealModeEdit"
-          class="yaml-form-controls"
+        <Tab
+          v-if="steps[1]"
+          :name="steps[1].name"
+          :label="steps[1].label"
+          :weight="4"
         >
-          <ButtonGroup
-            v-model:value="yamlForm"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
-            :options="yamlFormOptions"
-            @update:value="updateYamlForm"
-          />
-          <div
-            class="yaml-form-controls-spacer"
-            style="flex:1"
-          >
-            &nbsp;
-          </div>
-          <ButtonGroup
-            v-if="isYamlDiff"
-            v-model:value="diffMode"
-            :options="yamlDiffModeOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
-          />
-        </div>
-
-        <YamlEditor
-          ref="yaml"
-          v-model:value="chartValues"
-          :mode="mode"
-          :initial-yaml-values="chartValuesInit"
-          :scrolling="true"
-          :editor-mode="editorMode"
-          :hide-preview-buttons="true"
-          @update:value="updateChartValues"
-        />
-      </div>
-
-      <div class="mb-20">
-        <FleetValuesFrom
-          v-model:value="value.spec.helm.valuesFrom"
-          :namespace="value.metadata.namespace"
-          :mode="realMode"
-        />
-      </div>
-    </template>
-
-    <template #target>
-      <h2 v-t="'fleet.helmOp.target.label'" />
-      <FleetClusterTargets
-        :targets="value.spec.targets"
-        :matching="value.targetClusters"
-        :namespace="value.metadata.namespace"
-        :mode="realMode"
-        :created="targetsCreated"
-        @update:value="updateTargets"
-        @created="targetsCreated=$event"
-      />
-
-      <h3 class="mmt-16">
-        {{ t('fleet.helmOp.target.additionalOptions') }}
-      </h3>
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.serviceAccount"
+          <HelmOpChartTab
+            :value="value"
             :mode="mode"
-            label-key="fleet.helmOp.serviceAccount.label"
-            placeholder-key="fleet.helmOp.serviceAccount.placeholder"
+            :is-view="isView"
+            :source-type="sourceType"
+            :source-type-options="sourceTypeOptions"
+            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+            @update:source-type="onSourceTypeSelect"
           />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.namespace"
+        </Tab>
+        <Tab
+          v-if="steps[2]"
+          :name="steps[2].name"
+          :label="steps[2].label"
+          :weight="3"
+        >
+          <HelmOpValuesTab
+            :value="value"
             :mode="mode"
-            label-key="fleet.helmOp.targetNamespace.label"
-            placeholder-key="fleet.helmOp.targetNamespace.placeholder"
-            label="Target Namespace"
-            placeholder="Optional: Require all resources to be in this namespace"
+            :real-mode="realMode"
+            :is-view="isView"
+            :chart-values="chartValues"
+            :chart-values-init="chartValuesInit"
+            :yaml-form="yamlForm"
+            :yaml-form-options="yamlFormOptions"
+            :yaml-diff-mode-options="yamlDiffModeOptions"
+            :is-yaml-diff="isYamlDiff"
+            :editor-mode="editorMode"
+            :diff-mode="diffMode"
+            :is-real-mode-edit="isRealModeEdit"
+            @update:yaml-form="updateYamlForm"
+            @update:chart-values="updateChartValues"
+            @update:diff-mode="diffMode = $event"
           />
-        </div>
-      </div>
-    </template>
-
-    <template #advanced>
-      <Banner
-        v-if="!isView"
-        color="info"
-        label-key="fleet.helmOp.add.steps.advanced.info"
-        data-testid="helmOp-advanced-info"
-      />
-
-      <h2 v-t="'fleet.helmOp.auth.title'" />
-
-      <SelectOrCreateAuthSecret
-        :value="value.spec.helmSecretName"
-        :register-before-hook="registerBeforeHook"
-        :namespace="value.metadata.namespace"
-        :delegate-create-to-parent="true"
-        in-store="management"
-        :mode="mode"
-        generate-name="helmrepo-auth-"
-        label-key="fleet.helmOp.auth.helm"
-        :pre-select="tempCachedValues.helmSecretName"
-        :cache-secrets="true"
-        :show-ssh-known-hosts="true"
-        @update:value="updateAuth($event, 'helmSecretName')"
-        @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
-      />
-
-      <div class="row mt-20 mb-20">
-        <div class="col span-6">
-          <Checkbox
-            v-model:value="value.spec.insecureSkipTLSVerify"
-            type="checkbox"
-            label-key="fleet.helmOp.tls.insecure"
+        </Tab>
+        <Tab
+          v-if="steps[3]"
+          :name="steps[3].name"
+          :label="steps[3].label"
+          :weight="2"
+        >
+          <HelmOpTargetTab
+            :value="value"
             :mode="mode"
+            :real-mode="realMode"
+            :is-view="isView"
+            :targets-created="targetsCreated"
+            @update:targets="updateTargets"
+            @targets-created="targetsCreated=$event"
           />
-        </div>
-      </div>
-
-      <h2 v-t="'fleet.helmOp.resources.label'" />
-
-      <div class="row mt-20 mb-20">
-        <div class="col span-6">
-          <FleetSecretSelector
-            :value="downstreamSecretsList"
-            :namespace="value.metadata.namespace"
+        </Tab>
+        <Tab
+          v-if="steps[4]"
+          :name="steps[4].name"
+          :label="steps[4].label"
+          :weight="1"
+        >
+          <HelmOpAdvancedTab
+            :value="value"
             :mode="mode"
-            @update:value="updateDownstreamResources('Secret', $event)"
+            :is-view="isView"
+            :source-type="sourceType"
+            :temp-cached-values="tempCachedValues"
+            :correct-drift-enabled="correctDriftEnabled"
+            :polling-interval="pollingInterval"
+            :is-polling-enabled="isPollingEnabled"
+            :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
+            :enable-polling-tooltip="enablePollingTooltip"
+            :is-null-or-static-version="isNullOrStaticVersion"
+            :downstream-secrets-list="downstreamSecretsList"
+            :downstream-config-maps-list="downstreamConfigMapsList"
+            :register-before-hook="registerBeforeHook"
+            @update:auth="updateAuth($event.value, $event.key)"
+            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+            @update:correct-drift="correctDriftEnabled = $event"
+            @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
+            @toggle-polling="togglePolling"
+            @update:polling-interval="updatePollingInterval"
           />
-        </div>
-      </div>
-      <div class="row mt-20 mb-20">
-        <div class="col span-6">
-          <FleetConfigMapSelector
-            :value="downstreamConfigMapsList"
-            :namespace="value.metadata.namespace"
+        </Tab>
+        <Tab
+          name="labels"
+          label-key="generic.labelsAndAnnotations"
+          :weight="5"
+        >
+          <HelmOpMetadataTab
+            :value="value"
             :mode="mode"
-            @update:value="updateDownstreamResources('ConfigMap', $event)"
+            :is-view="isView"
+            @update:value="$emit('input', $event)"
           />
-        </div>
-      </div>
-      <div class="resource-handling mb-30">
-        <Checkbox
-          v-model:value="correctDriftEnabled"
-          :tooltip="t('fleet.helmOp.resources.correctDriftTooltip')"
-          type="checkbox"
-          label-key="fleet.helmOp.resources.correctDrift"
-          :mode="mode"
-        />
-        <Checkbox
-          v-model:value="value.spec.keepResources"
-          :tooltip="t('fleet.helmOp.resources.keepResourcesTooltip')"
-          type="checkbox"
-          label-key="fleet.helmOp.resources.keepResources"
-          :mode="mode"
-        />
-      </div>
-
-      <template v-if="sourceType === SOURCE_TYPE.REPO">
-        <h2 v-t="'fleet.helmOp.polling.label'" />
-        <div class="row polling">
-          <div class="col span-6">
-            <Checkbox
-              :value="isPollingEnabled"
-              type="checkbox"
-              label-key="fleet.helmOp.polling.enable"
-              data-testid="helmOp-enablePolling-checkbox"
-              :tooltip="enablePollingTooltip"
-              :mode="mode"
-              :disabled="isNullOrStaticVersion"
-              @update:value="togglePolling"
-            />
-          </div>
-          <template v-if="isPollingEnabled">
-            <div class="col">
-              <Banner
-                v-if="showPollingIntervalMinValueWarning"
-                color="warning"
-                label-key="fleet.helmOp.polling.pollingInterval.minimumValueWarning"
-                data-testid="helmOp-pollingInterval-minimumValueWarning"
-              />
-            </div>
-            <div class="col span-6">
-              <UnitInput
-                v-model:value="pollingInterval"
-                min="1"
-                data-testid="helmOp-pollingInterval-input"
-                :suffix="t('suffix.seconds', { count: pollingInterval })"
-                :label="t('fleet.helmOp.polling.pollingInterval.label')"
-                :mode="mode"
-                tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
-                @blur.capture="updatePollingInterval(pollingInterval)"
-              />
-            </div>
-          </template>
-        </div>
-      </template>
+        </Tab>
+      </Tabbed>
     </template>
   </CruResource>
 </template>

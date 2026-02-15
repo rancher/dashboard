@@ -244,7 +244,7 @@ describe('view: fleet.cattle.io.gitrepo, GitHub password banner - should', () =>
     const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
 
     // Check computed properties
-    expect(wrapper.vm.isGitHubDotComRepository).toBeTruthy();
+    expect(wrapper.vm.isGithubDotComRepository).toBeTruthy();
 
     // Set basic auth selection in tempCachedValues
     await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
