@@ -410,3 +410,7 @@ export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
 export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
 export const HOSTED_PROVIDER = 'hostedprovider';
+
+// Named saved counts
+
+export const SAVED_COUNTS = { K8S_CLUSTERS: 'k8sClusters' };

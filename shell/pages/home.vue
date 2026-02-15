@@ -10,7 +10,7 @@ import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
+import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { AGE, STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
@@ -256,8 +256,14 @@ export default defineComponent({
      */
     altClusterList() {
       return this.tooManyClusters && !this.altClusterListDisabled;
-    }
+    },
 
+    clusterCountDisplay() {
+      // If we have the cluster count from the store, use that instead
+      const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+
+      return !!savedCount ? savedCount : this.clusterCount;
+    }
   },
 
   watch: {
@@ -806,7 +812,7 @@ export default defineComponent({
                     </h1>
                     <BadgeState
                       v-if="clusterCount && !tooManyClusters"
-                      :label="clusterCount.toString()"
+                      :label="clusterCountDisplay.toString()"
                       color="bg-info ml-20 mr-20"
                     />
                   </div>

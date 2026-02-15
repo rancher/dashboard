@@ -21,8 +21,9 @@ describe('component: Type', () => {
     const defaultCount = 1;
     const storeMock = {
       getters: {
-        currentStore:    () => 'cluster',
-        'cluster/count': () => defaultCount,
+        currentStore:          () => 'cluster',
+        'cluster/count':       () => defaultCount,
+        'type-map/optionsFor': () => {},
       }
     };
     const routerMock = {
@@ -449,8 +450,9 @@ describe('component: Type', () => {
 
               $store: {
                 getters: {
-                  currentStore:    () => 'cluster',
-                  'cluster/count': () => null,
+                  currentStore:          () => 'cluster',
+                  'cluster/count':       () => null,
+                  'type-map/optionsFor': () => {},
                 }
               },
               $router: routerMock,

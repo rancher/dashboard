@@ -3,16 +3,20 @@ import {
   CAPI,
   CATALOG,
   EXT,
+  COUNT,
   NORMAN,
   HCI,
   MANAGEMENT,
   SNAPSHOT,
   VIRTUAL_TYPES,
-  HOSTED_PROVIDER
+  HOSTED_PROVIDER,
+  SAVED_COUNTS
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { markRaw } from 'vue';
+
 export const NAME = 'manager';
 
 export function init(store) {
@@ -219,4 +223,17 @@ export function init(store) {
       defaultSort: true,
     },
   ]);
+
+  // Configure custom count getter for cluster count (so we don't include Harvester clusters)
+  configureType(CAPI.RANCHER_CLUSTER, {
+    custom: {
+      countGetter: markRaw((getters) => {
+        const savedClusterCount = getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+        const counts = getters[`management/all`](COUNT)?.[0]?.counts || {};
+        const clusterCount = counts[CAPI.RANCHER_CLUSTER]?.summary.count;
+
+        return savedClusterCount || clusterCount;
+      })
+    }
+  });
 }

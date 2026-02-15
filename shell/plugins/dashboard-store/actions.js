@@ -515,6 +515,13 @@ export default {
       });
     }
 
+    if (opt.saveCountAs) {
+      commit('setSavedCount', {
+        name:  opt.saveCountAs,
+        count: out.count,
+      });
+    }
+
     if ( !opt.transient && opt.watch !== false ) {
       dispatch('watch', watchArgs);
     }
