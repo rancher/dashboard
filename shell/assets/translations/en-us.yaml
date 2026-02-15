@@ -2199,6 +2199,7 @@ cluster:
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   agentConfig:
     tabs:
+      agentsScheduling: Agents Scheduling
       cluster: Cluster Agent
       fleet: Fleet Agent
     groups:
@@ -2208,13 +2209,19 @@ cluster:
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
       schedulingCustomization: Scheduling Customization
+      agentsScheduling:
+        text: Ensure that cluster- and/or fleet-agent pods are not evicted due to node pressure, resource constraints or scheduler policies When enabled, these settings may be configured in the 
+        textLink: Global Settings
+        label: 'Prevent agent pod eviction for:'
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
-      schedulingCustomization:
-        label: Prevent Rancher cluster agent pod eviction
-        description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
-        banner: This feature has been enabled with settings that are different from the global default settings.
+      agentsScheduling:
+        cluster: Cluster Agent
+        fleet: Fleet Agent
+        label: Prevent Rancher {agent} pod eviction
+        description: This ensures that the {agent} pod is not evicted due to node pressure, resource constraints or scheduler policies.
+        banner: This feature is currently configured with settings which differ to the default Global Settings. Enable the checkbox below to overwrite the current settings with the default Global Settings.
         innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
@@ -8698,6 +8705,10 @@ advancedSettings:
     moreActions: More actions for setting - { setting }
     label: Edit Setting
     changeSetting: "Change Setting:"
+    agentConfigBanner: 
+      text: Editing this value will not change the value set in running clusters! In order to update a running cluster to use the new values, edit the cluster and click on “Apply global settings for Priority Class and Pod Disruption Budget” in the {agent} Agent configuration tab.
+      cluster: Cluster
+      fleet: Fleet
     trueOption: "True"
     falseOption: "False"
     value: Value

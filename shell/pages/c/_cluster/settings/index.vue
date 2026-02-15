@@ -18,7 +18,9 @@ export default {
         product:  SETTINGS,
         // Will have one or t'other
         resource: hasSettings ? MANAGEMENT.SETTING : MANAGEMENT.FEATURE,
-      }
+      },
+      // Used to keep the route on the redirected page when coming from a link with a hash
+      hash: this.$route.hash
     });
   }
 };
