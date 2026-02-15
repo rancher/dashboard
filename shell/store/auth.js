@@ -266,7 +266,16 @@ export const actions = {
     }
 
     if (driver?.scopes) {
-      scopes = [joinStringList(scopes[0], driver.scopes)];
+      // In some cases, driver scopes can be an array. We need to convert this
+      // to a string that can be parsed by `joinStringList()`
+      try {
+        const driverScopes = Array.isArray(driver.scopes) ? driver.scopes.join(' ') : driver.scopes;
+
+        scopes = [joinStringList(scopes[0], driverScopes)];
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to join driver scopes', error);
+      }
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
