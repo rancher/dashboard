@@ -269,8 +269,9 @@ export default {
         @keyup.space="groupSelected()"
       >
         <slot name="header">
+          <!-- Group overview with link -->
           <router-link
-            v-if="hasOverview"
+            v-if="hasOverview && hasChildren"
             :to="headerRoute"
             :exact="group.children[0].exact"
             :tabindex="-1"
@@ -279,15 +280,32 @@ export default {
               <span v-clean-html="group.labelDisplay || group.label" />
             </h6>
           </router-link>
+          <!-- Non-linked group header -->
           <h6
-            v-else
+            v-else-if="hasChildren"
           >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>
+          <!-- Simple child (nav item) -->
+          <ul
+            v-else
+            class="list-unstyled body root-depth"
+            v-bind="$attrs"
+          >
+            <Type
+
+              :key="id+'_' + group.name + '_type'"
+              :is-root="depth == 0 && !showHeader"
+              :type="group"
+              :depth="depth"
+              :highlight-route="highlightRoute"
+              @selected="selectType($event)"
+            />
+          </ul>
         </slot>
       </div>
       <i
-        v-if="!onlyHasOverview && canCollapse"
+        v-if="!onlyHasOverview && canCollapse && hasChildren"
         class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
@@ -377,6 +395,7 @@ export default {
       display: block;
       box-sizing:border-box;
       height: 100%;
+
       &:hover{
         text-decoration: none;
       }
@@ -483,6 +502,10 @@ export default {
             background: var(--category-active-hover, var(--primary));
           }
         }
+      }
+
+      .root-depth :deep() > .child.nav-type a {
+        padding-left: 14px;
       }
     }
 

@@ -2,6 +2,7 @@ import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import type { ProductMetadata, ProductChild, ProductSinglePage, StandardProductName } from './plugin-types';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -21,14 +22,14 @@ export interface PackageMetadata {
 //   children: Route[];
 // }
 
+export type PluginRouteRecordRaw = { [key: string]: any }
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
 export type CoreStoreInit = (store: any, ctx: any) => void;
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
-
-export type PluginRouteRecordRaw = { [key: string]: any }
 
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
@@ -291,6 +292,18 @@ export interface ProductOptions {
   name?: string;
 
   /**
+   *
+   */
+  label?: string;
+
+  labelKey?: string;
+
+  iconHeader?: string;
+
+  // Do not use - internal use only
+  version?: number;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
@@ -367,6 +380,17 @@ export interface HeaderOptions {
  * Configuration required to show a header in a ResourceTable when server-side pagination is enable
  */
 export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
+
+export type ResourceTypeConfig = {
+  options?: {
+    isCreatable?: boolean;
+    isEditable?: boolean;
+  },
+  listHeaders?: {
+    legacy?: HeaderOptions[];
+    paginated?: PaginationHeaderOptions[];
+  }
+};
 
 /**
  * External extension configuration for @HeaderOptions
@@ -492,6 +516,8 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
    * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
    */
   route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+
+  weight?: number;
 }
 
 export interface DSLReturnType {
@@ -501,7 +527,7 @@ export interface DSLReturnType {
    * @param group Conditionally a group you want to places all the types in
    * @returns {@link void}
    */
-  basicType: (types: string[], group?: string) => void;
+  basicType: (types: string[] | string, group?: string) => void;
 
   /**
    * Configure a myriad of options for the specified type
@@ -572,6 +598,10 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
+
+  labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
+
+  setGroupDefaultType: (group: string, defaultType: string) => void;
 }
 
 /**
@@ -610,14 +640,49 @@ export type ModelExtensionContext = {
 export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
 /**
- * Interface for a Dashboard plugin
+ * Interface for a UI Extension
  */
-export interface IPlugin {
+export interface IExtension {
   /**
-   * Add a product
+   * Register a top-level product as a flag on the plugin
+   */
+  registerTopLevelProduct(): void;
+
+  /**
+   * Add a product to the sidebar, with children and a side menu for navigation for internal pages
+   * @param name
+   * @param config
+   * @param options
+   */
+  addProduct(product: ProductMetadata, config: ProductChild[]): void;
+
+  /**
+   * Add a product to the sidebar, without children (no side menu, single page only)
+   * @param product
+   */
+  addProduct(product: ProductSinglePage): void;
+
+  /**
+   * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
+   * @deprecated Use other `addProduct` signatures instead
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
+
+  /**
+   * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages
+   *
+   * @param product Product to be extended
+   * @param config Product extension configuration
+   */
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void;
+
+  /**
+   * Configure a resource type
+   * @param type Name of resource type to configure
+   * @param config Resource type configuration
+   */
+  configureResourceType(type: string, config: ResourceTypeConfig): void;
 
   /**
    * Add a locale to the i18n store
@@ -755,6 +820,7 @@ export interface IPlugin {
 
   /**
    * Will return all of the configuration functions used for creating a new product.
+   * @deprecated Should use `addProduct` and `extendProduct` instead and avoid using this directly
    * @param store The store that was passed to the function that's passed to `plugin.addProduct(function)`
    * @param productName The name of the new product. This name is displayed in the navigation.
    */
@@ -765,6 +831,12 @@ export interface IPlugin {
    */
   get environment(): ExtensionEnvironment;
 }
+
+/**
+ * Legacy interface for a plugin, which is just an extension but with the `DSL` function.
+ * @deprecated Should use `IExtension` interface instead
+ */
+export type IPlugin = IExtension;
 
 // Internal interface
 // Built-in extensions may use this, but external extensions should not, as this is subject to change

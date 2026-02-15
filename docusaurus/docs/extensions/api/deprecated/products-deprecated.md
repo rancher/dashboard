@@ -1,4 +1,4 @@
-# Products
+# Products  (deprecated)
 
 A product is a top-level view in Rancher. A product typically adds a navigation entry into the
 top-level slide-in menu in Rancher. When the user navigates to the link, the product renders
@@ -6,7 +6,7 @@ the entire view beneath the header bar.
 
 Products typically declare their navigation such that it is presented on the left-hand side, e.g.
 
-## Registering a Product
+## Registering a Product (deprecated)
 
 Defining a product leverages the `addProduct` extension method, which should be defined on the `index.ts` on your root folder:
 
@@ -29,14 +29,14 @@ appropriate point in its lifecycle to create the product.
 
 You can register more than one product in an extension.
 
-## Product Definition
+## Product Definition (deprecated)
 
 The module registered via `addProduct` must export an `init` method. This is invoked with two parameters;
 
 - The `$extension` API
 - The VueX store
 
-### Creating a product
+### Creating a product (deprecated)
 
 An example `init` function for creating a new product is shown below:
 

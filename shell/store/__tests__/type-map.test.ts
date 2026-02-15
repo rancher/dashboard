@@ -7,6 +7,17 @@ import {
   SCHEMA,
 } from '@shell/config/types';
 
+// Type definitions for test data
+interface TestSchema {
+  id: string;
+  type: string;
+  attributes?: { kind: string };
+  _group?: string;
+  _id?: string;
+}
+
+type SchemaOrType = TestSchema | string;
+
 /**
  * types in the store
  */
@@ -115,9 +126,9 @@ describe('type-map', () => {
       /**
        * Stick in the required mode param to the expected menu items
        */
-      const setTypeMode = (modes, resourcesById) => {
-        return modes.reduce((res, mode) => {
-          const newResource = { };
+      const setTypeMode = (modes: string[], resourcesById: Record<string, any>) => {
+        return modes.reduce((res: Record<string, any>, mode: string) => {
+          const newResource: Record<string, any> = { };
 
           Object.entries(resourcesById).forEach(([id, resource]: [string, any]) => {
             newResource[id] = {
@@ -146,17 +157,17 @@ describe('type-map', () => {
             spoofedTypes: { [productName]: [] }
           },
           typeMapGetters: {
-            labelFor:          (schema, count) => '',
-            optionsFor:        (schema) => {},
+            labelFor:          (schema: SchemaOrType, count: number) => '',
+            optionsFor:        (schema: SchemaOrType) => ({}),
             groupForBasicType: () => {},
-            typeWeightFor:     (label, isBasic) => 1
+            typeWeightFor:     (label: string, isBasic: boolean) => 1
           },
           rootState:   {},
           rootGetters: {
             [`${ productStore }/all`]: (schema: string) => {
               return [];
             },
-            'prefs/get': (pref) => {},
+            'prefs/get': (pref: string) => {},
 
           },
 
@@ -201,9 +212,9 @@ describe('type-map', () => {
 
           const testTypeMapGetters = {
             ...typeMapGetters,
-            labelFor:          (schema, count) => 'Pod',
+            labelFor:          (schema: SchemaOrType, count: number) => 'Pod',
             groupForBasicType: () => true,
-            optionsFor:        (schema) => ({
+            optionsFor:        (schema: SchemaOrType) => ({
               namespaced:  true,
               customRoute: 'cde'
             }),
@@ -320,7 +331,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              groupForBasicType: (product, id) => false
+              groupForBasicType: (product: string, id: string) => false
             };
 
             const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
@@ -473,7 +484,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              optionsFor: (schema) => ({
+              optionsFor: (schema: SchemaOrType) => ({
                 namespaced:       true,
                 customRoute:      'cde',
                 ifRancherCluster: true
@@ -497,7 +508,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              optionsFor: (schema) => ({
+              optionsFor: (schema: SchemaOrType) => ({
                 namespaced:       true,
                 customRoute:      'cde',
                 ifRancherCluster: false
@@ -521,7 +532,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              optionsFor: (schema) => ({
+              optionsFor: (schema: SchemaOrType) => ({
                 namespaced:       true,
                 customRoute:      'cde',
                 ifRancherCluster: true
@@ -545,7 +556,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              optionsFor: (schema) => ({
+              optionsFor: (schema: SchemaOrType) => ({
                 namespaced:  true,
                 customRoute: 'cde',
                 localOnly:   true
@@ -569,7 +580,7 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              optionsFor: (schema) => ({
+              optionsFor: (schema: SchemaOrType) => ({
                 namespaced:  true,
                 customRoute: 'cde',
                 localOnly:   true
@@ -630,9 +641,9 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              labelFor:          (schema, count) => 'Secret',
+              labelFor:          (schema: SchemaOrType, count: number) => 'Secret',
               groupForBasicType: () => true,
-              optionsFor:        (schema) => ({
+              optionsFor:        (schema: SchemaOrType) => ({
                 namespaced:  true,
                 customRoute: 'cde'
               }),
@@ -882,8 +893,10 @@ describe('type-map', () => {
 
             const testTypeMapGetters = {
               ...typeMapGetters,
-              labelFor: (schema, count) => {
-                switch (schema.id) {
+              labelFor: (schema: SchemaOrType, count: number) => {
+                const schemaId = typeof schema === 'object' ? schema.id : schema;
+
+                switch (schemaId) {
                 case 'secret':
                   return 'Secret';
                 default:
@@ -891,11 +904,11 @@ describe('type-map', () => {
                 }
               },
               groupForBasicType: () => true,
-              optionsFor:        (schema) => ({
+              optionsFor:        (schema: SchemaOrType) => ({
                 namespaced:  true,
                 customRoute: 'cde'
               }),
-              isFavorite: (id) => id === 'secret',
+              isFavorite: (id: string) => id === 'secret',
             };
 
             return {
@@ -1134,14 +1147,14 @@ describe('type-map', () => {
         },
       };
 
-      const createProductState = (products) => ({
+      const createProductState = (products: any) => ({
         products,
         schemaGeneration: 1,
       });
 
-      const createProductRootGetters = (moduleSchemas = [], moduleName = 'cluster') => ({
+      const createProductRootGetters = (moduleSchemas: any[] = [], moduleName = 'cluster') => ({
         'prefs/get':             () => false,
-        [`${ moduleName }/all`]: (resource) => {
+        [`${ moduleName }/all`]: (resource: any) => {
           if (resource === SCHEMA) {
             return moduleSchemas;
           }
@@ -1279,6 +1292,53 @@ describe('type-map', () => {
           expect(active).toHaveLength(0);
         });
       });
+    });
+  });
+
+  describe('groupLabel', () => {
+    it('should return groupLabel when it exists in state', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group Label', labelKey: undefined } } };
+
+      const result = getters.groupLabel(state)('mygroup');
+
+      expect(result).toStrictEqual({ label: 'My Group Label', labelKey: undefined });
+    });
+
+    it('should return groupLabel with labelKey when set', () => {
+      const state = { groupLabels: { anothergroup: { label: undefined, labelKey: 'typeLabel.myKey' } } };
+
+      const result = getters.groupLabel(state)('anothergroup');
+
+      expect(result).toStrictEqual({ label: undefined, labelKey: 'typeLabel.myKey' });
+    });
+
+    it('should handle case-insensitive group names', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group', labelKey: undefined } } };
+
+      const result = getters.groupLabel(state)('MyGroup');
+
+      expect(result).toStrictEqual({ label: 'My Group', labelKey: undefined });
+    });
+
+    it('should return undefined when group label does not exist', () => {
+      const state = { groupLabels: {} };
+
+      const result = getters.groupLabel(state)('nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for empty, null, undefined, or non-existent group name', () => {
+      const state = { groupLabels: { mygroup: { label: 'My Group', labelKey: undefined } } };
+
+      // Empty string fails the groupName check and returns undefined
+      expect(getters.groupLabel(state)('')).toBeUndefined();
+      // null returns undefined
+      expect(getters.groupLabel(state)(null)).toBeUndefined();
+      // undefined returns undefined
+      expect(getters.groupLabel(state)(undefined)).toBeUndefined();
+      // Non-existent group returns undefined
+      expect(getters.groupLabel(state)('nonexistent')).toBeUndefined();
     });
   });
 });
