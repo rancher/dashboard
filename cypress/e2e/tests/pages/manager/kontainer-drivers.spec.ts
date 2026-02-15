@@ -285,3 +285,27 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     }
   });
 });
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+  });
+
+  it('should display kontainer drivers list page', () => {
+    const driversPage = new KontainerDriversPagePo();
+
+    KontainerDriversPagePo.goTo('_');
+    driversPage.checkIsCurrentPage();
+
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    driversPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('kontainer drivers list page');
+  });
+});
