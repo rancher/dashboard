@@ -35,6 +35,10 @@ export default class CheckboxInputPo extends ComponentPo {
     return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
   }
 
+  isNotChecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'false');
+  }
+
   // to check custom box element width and height in order to prevent regression
   // https://github.com/rancher/dashboard/issues/10000
   hasAppropriateWidth(): Cypress.Chainable {

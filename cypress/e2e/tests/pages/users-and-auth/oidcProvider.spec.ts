@@ -131,6 +131,8 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
     });
 
+    // Wait for the page to refresh and show the new secret
+    oidcClientDetailPage.waitForPage();
     oidcClientDetailPage.clientFullSecretCopy(1).exists();
     oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
   });

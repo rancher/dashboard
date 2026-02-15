@@ -48,7 +48,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     });
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
-      ChartPage.navTo(null, 'rancher-demo');
+      ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
       installChartPage.chartName().type('rancher-demo');
@@ -80,21 +80,36 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     it('should persist custom registry when changing chart version', () => {
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
+      const chartNamespace = 'cattle-resources-system';
+      const chartApp = 'rancher-backup';
+      const chartCrd = 'rancher-backup-crd';
+
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+
       // We need to install the chart first to have the versions selector show up later when we come back to the install page
-      ChartPage.navTo(null, chartName);
+      ChartPage.navTo(undefined, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
       installChartPage.nextPage();
 
-      cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
-      installChartPage.installChart();
+      // Set up namespace selection before installing
       namespacePicker.toggle();
       namespacePicker.clickOptionByLabel('All Namespaces');
       namespacePicker.isChecked('All Namespaces');
       namespacePicker.closeDropdown();
-      installedAppsPage.waitForInstallCloseTerminal('installApp', ['rancher-backup', 'rancher-backup-crd']);
 
-      ChartPage.navTo(null, chartName);
+      // Set up API intercept right before the install action - use a single pattern that matches both
+      cy.intercept('POST', /\/v1\/catalog\.cattle\.io\.(clusterrepos|apps)\/.*\?action=(install|upgrade)/).as('installOrUpgradeApp');
+
+      // Now install the chart
+      installChartPage.installChart();
+
+      // Wait for install or upgrade to complete
+      installedAppsPage.waitForInstallCloseTerminal('installOrUpgradeApp', ['rancher-backup', 'rancher-backup-crd']);
+
+      ChartPage.navTo(undefined, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
 

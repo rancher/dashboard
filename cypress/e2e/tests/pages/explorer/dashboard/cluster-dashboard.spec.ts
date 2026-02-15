@@ -439,6 +439,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   after(function() {
     if (removePods) {
+      // Ensure we're logged in as admin for cleanup operations
+      cy.login();
+
       podNames.forEach((podName) => {
         cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
       });

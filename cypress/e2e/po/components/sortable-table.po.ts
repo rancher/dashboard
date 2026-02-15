@@ -223,6 +223,15 @@ export default class SortableTablePo extends ComponentPo {
         expect(el).to.have.attr('aria-expanded', 'true');
       });
 
+    // Wait for the dropdown menu to appear and be populated with actual content
+    cy.get('[dropdown-menu-collection]:visible').should('exist');
+
+    // Wait for the dropdown to finish loading (not show "No actions available")
+    cy.get('[dropdown-menu-collection]:visible').should('not.contain', 'No actions available');
+
+    // Ensure at least one non-disabled menu item is present
+    cy.get('[dropdown-menu-collection]:visible [dropdown-menu-item]:not([disabled])').should('exist');
+
     return this.rowActionMenu();
   }
 

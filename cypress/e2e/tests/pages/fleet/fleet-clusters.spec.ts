@@ -421,8 +421,16 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
   });
 
   it('should only display action menu with allowed actions only', () => {
+    // Ensure table is fully loaded before interacting with action menu
+    fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
+    fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
       .rowActionMenuOpen('local');
+
+    // Wait for action menu dropdown to be fully rendered and populated
+    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
+    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
 
     const allowedActions: MenuActions[] = [
       MenuActions.Pause,
@@ -438,9 +446,11 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
       constActionMenu.getMenuItem(action).should('exist');
     });
 
-    // Disabled actions should not exist
+    // For disabled actions, check that they don't exist in the dropdown
     disabledActions.forEach((action) => {
-      constActionMenu.getMenuItem(action).should('not.exist');
+      cy.get('[dropdown-menu-collection]:visible').within(() => {
+        cy.get('[dropdown-menu-item]').contains(action).should('not.exist');
+      });
     });
   });
 

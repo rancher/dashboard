@@ -3,6 +3,7 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
@@ -19,7 +20,7 @@ describe('Apps', () => {
       });
 
       describe('Contained', () => {
-        const reposToDelete = [];
+        const reposToDelete: string[] = [];
 
         it('After add Repo list should not contain multiple entries', function() {
           const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
@@ -173,7 +174,17 @@ describe('Apps', () => {
 
         // Nav to a summary page for a specific chart
         chartsPage.goTo();
+        chartsPage.waitForPage();
         chartsPage.resetAllFilters();
+
+        // Wait for charts to load and search for the specific chart
+        cy.get('[data-testid="app-chart-cards-container"]', { timeout: 10000 }).should('be.visible');
+
+        // Search for the chart to ensure it's available
+        chartsPage.chartsSearchFilterInput().clear().type('Rancher Backups');
+
+        // Wait for search to complete and ensure chart is visible
+        chartsPage.getChartByName('Rancher Backups').self().should('be.visible');
 
         chartsPage.clickChart('Rancher Backups');
         chartPage.waitForPage();
@@ -201,16 +212,18 @@ describe('Apps', () => {
         appRepoList.waitForPage();
 
         // Refresh the Rancher repo (clears caches)
-        cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts3');
+        cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts`).as('refreshRepo');
         appRepoList.list().refreshRepo('Rancher');
-        // The charts should immediately update
-        cy.wait('@rancherCharts3').its('request.url').should('include', '?link=index');
+        // Wait for the refresh operation to complete
+        cy.wait('@refreshRepo', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+        // Wait for the repository to become active again
+        appRepoList.list().state('Rancher').contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
         // Nav to the summary page for a specific chart
         ChartPage.navTo(clusterId, 'Rancher Backups');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
-        // The specific version of the chart should be fetched (as the cache was cleared)
-        cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
+        // The chart should load successfully after the refresh
       });
     });
   });

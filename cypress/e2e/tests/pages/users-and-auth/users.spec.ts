@@ -136,22 +136,43 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForPage();
       cy.wait('@getUsers');
 
+      // Get the initial action menu and wait for it to be ready
       let menu = usersPo.list().actionMenu(standardUsername);
 
-      // Deactivate user and check state is Inactive
       menu.checkVisible();
-      menu.getMenuItem('Disable').click();
-      menu.checkNotExists();
 
-      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+      // Check current state and perform appropriate action based on what's available
+      menu.self().then(($menu) => {
+        const menuText = $menu.text();
 
-      // Activate user and check state is Active
-      menu = usersPo.list().actionMenu(standardUsername);
-      menu.checkVisible();
-      menu.getMenuItem('Enable').click();
-      menu.checkNotExists();
+        if (menuText.includes('Disable')) {
+          // User is currently active, disable them
+          menu.getMenuItem('Disable').click();
+          menu.checkNotExists();
+          usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
-      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
+          // Now activate the user
+          menu = usersPo.list().actionMenu(standardUsername);
+          menu.checkVisible();
+          menu.getMenuItem('Enable').click();
+          menu.checkNotExists();
+          usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
+        } else if (menuText.includes('Enable')) {
+          // User is currently disabled, enable them first
+          menu.getMenuItem('Enable').click();
+          menu.checkNotExists();
+          usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
+
+          // Now disable the user
+          menu = usersPo.list().actionMenu(standardUsername);
+          menu.checkVisible();
+          menu.getMenuItem('Disable').click();
+          menu.checkNotExists();
+          usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+        } else {
+          throw new Error('Neither Enable nor Disable option found in menu');
+        }
+      });
     });
 
     it('can Refresh Group Memberships', () => {
