@@ -262,7 +262,7 @@ export default defineComponent({
       // If we have the cluster count from the store, use that instead
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
 
-      return !!savedCount ? savedCount : this.clusterCount;
+      return typeof savedCount !== 'undefined' ? savedCount : this.clusterCount;
     }
   },
 
