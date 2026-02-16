@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, EXT } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
@@ -14,6 +14,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 import { SETTING } from '@shell/config/settings';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 export default {
   components: {
@@ -24,6 +25,7 @@ export default {
     LabeledSelect,
     RadioGroup,
     Select,
+    Checkbox,
   },
 
   mixins: [CreateEditView],
@@ -41,7 +43,11 @@ export default {
 
     return {
       errors: null,
+      user:   null,
       form:   {
+        enabled:           true,
+        description:       '',
+        clusterName:       '',
         expiryType:        'never',
         customExpiry:      0,
         customExpiryUnits: 'minute',
@@ -51,11 +57,13 @@ export default {
       accessKey:  '',
       secretKey:  '',
       maxTTL,
+      ttl:        ''
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
@@ -79,7 +87,7 @@ export default {
         const expiry = now.add(this.maxTTL, 'minute');
         const max = diffFrom(expiry, now, this.t);
 
-        opts = opts.filter((opt) => opt.value === 'custom');
+        opts = opts.filter((opt) => opt.value === 'custom' || opt.value === 'never');
         opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
       }
 
@@ -115,31 +123,33 @@ export default {
       });
     },
 
-    async actuallySave(url) {
+    async actuallySave() {
+      // update expiration value before save
       this.updateExpiry();
+
       if ( this.isCreate ) {
-        // Description is a bit weird, so need to clone and set this
-        // rather than use this.value - need to find a way to set this if we ever
-        // want to allow edit (which I don't think we do)
-        const res = await this.value.save();
+        const steveToken = await this.$store.dispatch('management/create', {
+          type: EXT.TOKEN,
+          spec: {
+            description:   this.form.description,
+            kind:          '',
+            userPrincipal: null, // will be set by the backend to the current user
+            clusterName:   this.form.clusterName,
+            enabled:       this.form.enabled,
+            ttl:           this.ttl
+            // userID: not needed as it will be set by the backend to the current user
+          }
+        });
 
-        this.created = res;
-        this.ttlLimited = res.ttl !== this.value.ttl;
-        const token = this.created.token.split(':');
+        const steveTokenSaved = await steveToken.save();
 
-        this.accessKey = token[0];
+        this.created = steveTokenSaved;
+        this.ttlLimited = this.created?.spec?.ttl !== this.ttl;
+        const token = this.created?.status?.bearerToken?.split(':');
+
+        this.accessKey = token[0]?.replace('ext/', '');
         this.secretKey = (token.length > 1) ? token[1] : '';
-        this.token = this.created.token;
-
-        // Force a refresh of the token so we get the expiry date correctly
-        await this.$store.dispatch('rancher/find', {
-          type: NORMAN.TOKEN,
-          id:   res.id,
-          opt:  { force: true }
-        }, { root: true });
-      } else {
-        // Note: update of existing key not supported currently
-        await this.value.save();
+        this.token = this.created?.status?.bearerToken?.replace('ext/', '');
       }
     },
 
@@ -159,7 +169,10 @@ export default {
       const units = (v === 'custom') ? this.form.customExpiryUnits : v;
       let ttl = 0;
 
-      if (units === 'max') {
+      // TODO: never doesn't seem to be working as expected - needs further investigation
+      if (v === 'never') {
+        ttl = -1;
+      } else if (units === 'max') {
         ttl = this.maxTTL * 60 * 1000;
       } else if ( units !== 'never' ) {
         const now = day();
@@ -167,7 +180,8 @@ export default {
 
         ttl = expiry.diff(now);
       }
-      this.value.ttl = ttl;
+
+      this.ttl = ttl;
     }
   }
 };
@@ -178,7 +192,7 @@ export default {
     <div class="pl-10 pr-10">
       <LabeledInput
         key="description"
-        v-model:value="value.description"
+        v-model:value="form.description"
         :placeholder="t('accountAndKeys.apiKeys.add.description.placeholder')"
         label-key="accountAndKeys.apiKeys.add.description.label"
         mode="edit"
@@ -186,10 +200,17 @@ export default {
       />
 
       <LabeledSelect
-        v-model:value="value.clusterId"
+        v-model:value="form.clusterName"
         class="mt-20 scope-select"
         label-key="accountAndKeys.apiKeys.add.scope"
         :options="scopes"
+      />
+
+      <Checkbox
+        v-model:value="form.enabled"
+        class="mt-20"
+        :mode="mode"
+        label-key="accountAndKeys.apiKeys.add.enabled"
       />
 
       <h5 class="pt-20">

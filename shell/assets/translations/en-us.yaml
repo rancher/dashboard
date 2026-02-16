@@ -438,6 +438,7 @@ accountAndKeys:
     notAllowed: You do not have permission to manage API Keys
     apiEndpoint: "API Endpoint:"
     copyApiEnpoint: Copy API Endpoint to clipboard
+    normanTokenDeprecation: The API Keys feature is being migrated to a new API. Any existing API Keys will continue to work, but new API Keys must be created using the new API. If you have existing API Keys, please create new ones and update any applications using them before the old API is removed in a future release.
     add:
       description:
         label: Description
@@ -463,7 +464,9 @@ accountAndKeys:
           month: Months
           year: Years
       scope: Scope
+      userPrincipal: User Principal
       noScope: No Scope
+      enabled: Token enabled
     info:
       accessKey: Access Key
       secretKey: Secret Key
@@ -6765,6 +6768,7 @@ storageClass:
       tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
+  isDeprecated: Deprecated
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
   accessKey: Access Key
