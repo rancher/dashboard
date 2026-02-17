@@ -647,7 +647,14 @@ export default defineComponent({
         } else if (this.templateValue(rancherKey)) {
           this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
         } else {
-          this.$emit(`update:${ rancherKey }`, DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG]);
+          let defaultVal = DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG];
+
+          // If requesting spot instances, we want to ensure instanceType is NOT set to the default (t3.medium)
+          if (rancherKey === 'instanceType' && this.requestSpotInstances) {
+            defaultVal = null;
+          }
+
+          this.$emit(`update:${ rancherKey }`, defaultVal);
         }
       });
 

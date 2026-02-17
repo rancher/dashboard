@@ -705,4 +705,48 @@ describe('eks node groups: architecture', () => {
 
     expect(wrapper.vm.architecture).toBe('arm64');
   });
+
+  it('should emit update:arm when architecture changes', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions
+      },
+      ...setup
+    });
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:arm')?.[0]?.[0]).toBe(true);
+
+    wrapper.setData({ architecture: 'x86_64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:arm')?.[1]?.[0]).toBe(false);
+  });
+
+  it('should clear instanceType when spot instances are selected', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions,
+        instanceType:           't3.medium'
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ requestSpotInstances: true });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:instanceType')?.[0]?.[0]).toBeNull();
+  });
 });
