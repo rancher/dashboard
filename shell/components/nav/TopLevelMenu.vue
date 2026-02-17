@@ -270,6 +270,12 @@ export default {
       const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
 
       return value === 'true';
+    },
+
+    clusterCountsFromCounts() {
+      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
+
+      return counts[CAPI.RANCHER_CLUSTER]?.summary.count;
     }
   },
 
@@ -331,7 +337,15 @@ export default {
 
     hideLocalCluster() {
       this.updateClusters(this.pinnedIds, 'slow');
+    },
+
+    clusterCountsFromCounts: {
+      async handler(neu, old) {
+        await this.helper.updateCount(neu);
+      },
+      immediate: true,
     }
+
   },
 
   mounted() {
