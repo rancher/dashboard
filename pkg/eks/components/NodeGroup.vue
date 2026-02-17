@@ -522,16 +522,9 @@ export default defineComponent({
         return;
       }
 
-      let instanceTypeValue = this.instanceType;
-      let optionsToCheck = this.instanceTypeOptions;
-
-      if (this.requestSpotInstances) {
-        if (!this.spotInstanceTypes || this.spotInstanceTypes.length === 0) {
-          return;
-        }
-        instanceTypeValue = this.spotInstanceTypes[0];
-        optionsToCheck = this.spotInstanceTypeOptions;
-      }
+      const isSpot = this.requestSpotInstances;
+      const instanceTypeValue = isSpot ? (this.spotInstanceTypes || [])[0] : this.instanceType;
+      const optionsToCheck = isSpot ? this.spotInstanceTypeOptions : this.instanceTypeOptions;
 
       if (!instanceTypeValue) {
         return;
@@ -539,7 +532,7 @@ export default defineComponent({
 
       const option = optionsToCheck.find((o: any) => o.value === instanceTypeValue);
 
-      if (option && option.supportedArchitectures) {
+      if (option?.supportedArchitectures) {
         const archs = option.supportedArchitectures;
         const detectedArch = archs.includes('x86_64') ? 'x86_64' : (archs.includes('arm64') ? 'arm64' : null);
 
@@ -883,8 +876,7 @@ export default defineComponent({
           :mode="mode"
           name="architecture"
           :options="architectureOptions"
-          :labels="architectureOptions.map(o => o.label)"
-          :disabled="!!templateValue('instanceType')"
+          :disabled="!!templateValue('instanceType') || loadingInstanceTypes"
         />
       </div>
     </div>
