@@ -10,6 +10,7 @@ import { isEmpty } from '@shell/utils/object';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
@@ -53,7 +54,8 @@ export default defineComponent({
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector
+    FileSelector,
+    RadioGroup
   },
 
   props: {
@@ -243,7 +245,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      architecture:          'all',
+      architecture:          'x86_64',
       originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
@@ -298,15 +300,36 @@ export default defineComponent({
     },
 
     'architecture'(neu) {
-      if (neu === 'all' || this.templateValue('instanceType')) {
+      if (this.templateValue('instanceType')) {
         return;
       }
 
+      // If the architecture changes, we need to make sure the selected instance type is still compatible
       if (this.requestSpotInstances) {
-        this.$emit('update:spotInstanceTypes', []);
+        const currentSpots = this.spotInstanceTypes || [];
+        const allCompatible = currentSpots.length > 0 && currentSpots.every((val: any) => {
+          const opt = this.instanceTypeOptions.find((o: any) => o.value === val);
+
+          return opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+        });
+
+        if (!allCompatible) {
+          this.$emit('update:spotInstanceTypes', []);
+        }
       } else {
-        this.$emit('update:instanceType', this.defaultInstanceType);
+        const current = this.instanceType;
+        const opt = this.instanceTypeOptions.find((o: any) => o.value === current);
+        const isCompatible = opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+
+        if (!isCompatible) {
+          this.$emit('update:instanceType', this.defaultInstanceType);
+        }
       }
+    },
+
+    instanceTypeOptions: {
+      handler:   'updateArchitecture',
+      immediate: true
     },
 
     sshKeyPairs: {
@@ -328,7 +351,6 @@ export default defineComponent({
 
     architectureOptions() {
       return [
-        { label: this.t('eks.nodeGroups.architecture.all.label'), value: 'all' },
         { label: this.t('eks.nodeGroups.architecture.x86_64.label'), value: 'x86_64' },
         { label: this.t('eks.nodeGroups.architecture.arm64.label'), value: 'arm64' }
       ];
@@ -493,6 +515,40 @@ export default defineComponent({
   },
 
   methods: {
+    // We need to update the architecture based on the selected instance type
+    // This is especially important in Edit/View modes where the architecture is not stored in the config
+    updateArchitecture() {
+      if (this.templateValue('instanceType')) {
+        return;
+      }
+
+      let instanceTypeValue = this.instanceType;
+      let optionsToCheck = this.instanceTypeOptions;
+
+      if (this.requestSpotInstances) {
+        if (!this.spotInstanceTypes || this.spotInstanceTypes.length === 0) {
+          return;
+        }
+        instanceTypeValue = this.spotInstanceTypes[0];
+        optionsToCheck = this.spotInstanceTypeOptions;
+      }
+
+      if (!instanceTypeValue) {
+        return;
+      }
+
+      const option = optionsToCheck.find((o: any) => o.value === instanceTypeValue);
+
+      if (option && option.supportedArchitectures) {
+        const archs = option.supportedArchitectures;
+        const detectedArch = archs.includes('x86_64') ? 'x86_64' : (archs.includes('arm64') ? 'arm64' : null);
+
+        if (detectedArch && detectedArch !== this.architecture) {
+          this.architecture = detectedArch;
+        }
+      }
+    },
+
     filterByArchitecture(options) {
       const { architecture } = this;
 
@@ -821,16 +877,18 @@ export default defineComponent({
     />
     <div class="row mb-10">
       <div class="col span-2">
-        <LabeledSelect
+        <h4>{{ t('eks.nodeGroups.architecture.label') }}</h4>
+        <RadioGroup
           v-model:value="architecture"
           :mode="mode"
-          label-key="eks.nodeGroups.architecture.label"
+          name="architecture"
           :options="architectureOptions"
-          option-key="value"
-          option-label="label"
+          :labels="architectureOptions.map(o => o.label)"
           :disabled="!!templateValue('instanceType')"
         />
       </div>
+    </div>
+    <div class="row mb-10">
       <div class="col span-6">
         <template v-if="!templateValue('instanceType')">
           <LabeledSelect
