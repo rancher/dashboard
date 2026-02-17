@@ -182,8 +182,11 @@ export default defineComponent({
         this.config['nodeGroups'] = this.nodeGroups;
       }
     }
+    
+    // We need to fetch instance types in all modes to determine the architecture (x86 vs arm) of the selected instance type
+    this.fetchInstanceTypes();
+
     if (this.mode !== _VIEW) {
-      this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
       this.fetchSshKeys();
