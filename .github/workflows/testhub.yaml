@@ -13,7 +13,7 @@ on:
       - completed
 
   # Trigger on PR events to sync PR info (don't need all events)
-  pull_request:
+  pull_request_target:
     types:
       - edited
       - closed
@@ -23,6 +23,9 @@ on:
       - demilestoned
       - ready_for_review
       - converted_to_draft
+    branches:
+      - 'master'
+      - 'release-*'
 
 jobs:
   # Job to register completed test runs with TestHub
