@@ -589,7 +589,7 @@ describe('eks node groups: architecture', () => {
 
     let instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
 
-    expect(instanceTypeDropdown.props().options).toHaveLength(3);
+    expect(instanceTypeDropdown.props().options).toHaveLength(2);
 
     wrapper.setData({ architecture: 'arm64' });
     await wrapper.vm.$nextTick();
@@ -666,7 +666,7 @@ describe('eks node groups: architecture', () => {
     expect(wrapper.emitted('update:instanceType')).toHaveLength(1);
   });
 
-  it('should not update instance type when architecture changes to "all"', async() => {
+  it('should detect architecture from instance type on load', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
@@ -675,28 +675,17 @@ describe('eks node groups: architecture', () => {
         region:                 'foo',
         amazonCredentialSecret: 'bar',
         instanceTypeOptions,
-        instanceType:           't3.medium'
+        instanceType:           't4g.medium'
       },
       ...setup
     });
 
-    wrapper.setData({ architecture: 'arm64' });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:instanceType')?.[0]?.[0]).toBe('t4g.medium');
-
-    wrapper.setProps({ instanceType: 't4g.medium' });
-    await wrapper.vm.$nextTick();
-
-    wrapper.setData({ architecture: 'all' });
-    await wrapper.vm.$nextTick();
-
-    const instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
-
-    expect(instanceTypeDropdown.props().value).toBe('t4g.medium');
+    expect(wrapper.vm.architecture).toBe('arm64');
   });
 
-  it('should not clear selected spot instances when architecture changes to "all"', async() => {
+  it('should detect architecture from spot instance types on load', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
@@ -705,25 +694,15 @@ describe('eks node groups: architecture', () => {
         region:                 'foo',
         amazonCredentialSecret: 'bar',
         instanceTypeOptions,
+        spotInstanceTypeOptions: instanceTypeOptions,
         requestSpotInstances:   true,
-        spotInstanceTypes:      ['t3.medium']
+        spotInstanceTypes:      ['t4g.medium']
       },
       ...setup
     });
 
-    wrapper.setData({ architecture: 'arm64' });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:spotInstanceTypes')?.[0]?.[0]).toStrictEqual([]);
-
-    wrapper.setProps({ spotInstanceTypes: ['t4g.medium'] });
-    await wrapper.vm.$nextTick();
-
-    wrapper.setData({ architecture: 'all' });
-    await wrapper.vm.$nextTick();
-
-    const spotInstanceTypeDropdown = wrapper.findComponent('[data-testid="eks-spot-instance-type-dropdown"]');
-
-    expect(spotInstanceTypeDropdown.props().value).toStrictEqual(['t4g.medium']);
+    expect(wrapper.vm.architecture).toBe('arm64');
   });
 });
