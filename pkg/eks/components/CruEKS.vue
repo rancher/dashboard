@@ -82,6 +82,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   type:                 'nodeGroup',
   userData:             '',
   _isNew:               true,
+  arm:                  false,
 };
 
 export const DEFAULT_EKS_CONFIG = {
@@ -729,6 +730,7 @@ export default defineComponent({
               v-model:labels="node.labels"
               v-model:version="node.version"
               v-model:pool-is-upgrading="node._isUpgrading"
+              v-model:arm="node.arm"
               :rules="{
                 nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
                 maxSize: fvGetAndReportPathRules('maxSize'),

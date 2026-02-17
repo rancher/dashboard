@@ -45,7 +45,7 @@ echo "Running custom user data script"
 export default defineComponent({
   name: 'EKSNodePool',
 
-  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:ec2SshKey'],
+  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:ec2SshKey', 'update:arm'],
 
   components: {
     LabeledInput,
@@ -59,6 +59,10 @@ export default defineComponent({
   },
 
   props: {
+    arm: {
+      type:    Boolean,
+      default: false
+    },
     nodeRole: {
       type:    String,
       default: ''
@@ -245,7 +249,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      architecture:          'x86_64',
+      architecture:          this.arm ? 'arm64' : 'x86_64',
       originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
@@ -300,6 +304,8 @@ export default defineComponent({
     },
 
     'architecture'(neu) {
+      this.$emit('update:arm', neu === 'arm64');
+
       if (this.templateValue('instanceType')) {
         return;
       }
@@ -325,6 +331,16 @@ export default defineComponent({
           this.$emit('update:instanceType', this.defaultInstanceType);
         }
       }
+    },
+
+    instanceType: {
+      handler:   'updateArchitecture',
+      immediate: true
+    },
+
+    spotInstanceTypes: {
+      handler:   'updateArchitecture',
+      immediate: true
     },
 
     instanceTypeOptions: {
@@ -518,10 +534,6 @@ export default defineComponent({
     // We need to update the architecture based on the selected instance type
     // This is especially important in Edit/View modes where the architecture is not stored in the config
     updateArchitecture() {
-      if (this.templateValue('instanceType')) {
-        return;
-      }
-
       const isSpot = this.requestSpotInstances;
       const instanceTypeValue = isSpot ? (this.spotInstanceTypes || [])[0] : this.instanceType;
       const optionsToCheck = isSpot ? this.spotInstanceTypeOptions : this.instanceTypeOptions;
