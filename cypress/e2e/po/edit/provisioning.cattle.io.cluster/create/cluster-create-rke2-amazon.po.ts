@@ -3,8 +3,6 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import MachinePoolRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/machine-pools-tab-rke2.po';
 import BasicsRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/basics-tab-rke2.po';
 import AmazonCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials-amazon.po';
-import DialogPo from '~/cypress/e2e/po/components/dialog.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
 
 /**
  * Create page for an RKE2 Amazon EC2 cluster
@@ -34,11 +32,11 @@ export default class ClusterManagerCreateRke2AmazonPagePo extends ClusterManager
     return new BasicsRke2();
   }
 
-  ipv6ConfirmationDialog(): Cypress.Chainable<JQuery<HTMLElement>> {
+  ipv6ConfirmationDialog() {
     return cy.get('body').find('[data-testid="ipv6-dialog"]');
   }
 
-  ipv6Recommentations(): Cypress.Chainable<JQuery<HTMLElement>> {
+  ipv6Recommentations() {
     return cy.get('body').find('[data-testid="ipv6-dialog-reasons"] li');
   }
 }
