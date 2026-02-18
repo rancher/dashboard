@@ -25,14 +25,14 @@ export default {
     this.canChangePassword = await this.calcCanChangePassword();
 
     this.normanTokenSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
-    this.newTokenSchema = this.$store.getters[`management/schemaFor`](EXT.TOKEN);
+    this.steveTokenSchema = this.$store.getters[`management/schemaFor`](EXT.TOKEN);
 
     if (this.normanTokenSchema) {
       this.normanTokens = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
     }
 
-    if (this.newTokenSchema) {
-      this.newTokens = await this.$store.dispatch('management/findAll', { type: EXT.TOKEN });
+    if (this.steveTokenSchema) {
+      this.steveTokens = await this.$store.dispatch('management/findAll', { type: EXT.TOKEN });
     }
 
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
@@ -58,14 +58,14 @@ export default {
   data() {
     return {
       normanTokenSchema: undefined,
-      newTokenSchema:    undefined,
+      steveTokenSchema:  undefined,
       apiHostSetting:    null,
       serverUrlSetting:  null,
       rows:              null,
       canChangePassword: false,
       user:              null,
       normanTokens:      null,
-      newTokens:         null
+      steveTokens:       null,
     };
   },
   computed: {
@@ -118,7 +118,7 @@ export default {
         return ( !expired || !labels || !labels['ui-session'] ) && !current;
       };
 
-      return !this.newTokens ? [] : this.newTokens.filter(isApiKey);
+      return !this.steveTokens ? [] : this.steveTokens.filter(isApiKey);
     },
 
     apiKeys() {
@@ -195,7 +195,7 @@ export default {
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
       </div>
       <button
-        v-if="newTokenSchema"
+        v-if="steveTokenSchema"
         role="button"
         :aria-label="t('accountAndKeys.apiKeys.add.label')"
         class="btn role-primary add mb-20"
@@ -206,7 +206,7 @@ export default {
       </button>
     </div>
     <div
-      v-if="newTokenSchema"
+      v-if="steveTokenSchema"
       class="keys"
     >
       <Banner
@@ -216,7 +216,7 @@ export default {
         :label="t('accountAndKeys.apiKeys.normanTokenDeprecation')"
       />
       <ResourceTable
-        :schema="newTokenSchema"
+        :schema="steveTokenSchema"
         :rows="apiKeys"
         :headers="apiKeyheaders"
         key-field="id"
