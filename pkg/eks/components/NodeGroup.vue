@@ -17,7 +17,7 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
-import { AWS } from '../types';
+import * as AWS from '@shell/types/aws-sdk';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
 
 // map between fields in rancher eksConfig and amazon launch templates

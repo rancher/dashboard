@@ -71,7 +71,7 @@ export interface LaunchTemplateDetail {
 // ec2 describeVpcs
 export interface VPC {
   VpcId: string,
-  Tags: {
+  Tags?: {
     Key: string,
     Value: string
   }[],
@@ -85,7 +85,7 @@ export interface VPC {
 export interface Subnet {
   VpcId: string,
   SubnetId: string,
-  Tags: {
+  Tags?: {
     Key: string,
     Value: string
   }[],

@@ -2101,19 +2101,19 @@ cluster:
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
       enableIpv6:
-        label: Enable IPv6
-        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+        label: Enable Dual-Stack
+        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, check \"Enable Ipv6\" and update the stack preference to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
         error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
       enablePrimaryIpv6:
         label: Enable Static Primary Ipv6
-        description: This allows IPv6 communication for components and workloads.
+        description: This designates the first assigned IPv6 address as the primary address, ensuring a consistent, non-changing IPv6 address for the instance. This option does not control whether IPv6 addresses are assigned.
       ipv6AddressOnly:
-        label: Use IPv6 Only
+        label: Enable IPv6
       httpProtocolIpv6: 
-        label: Use IPv6 for instance metadata service
+        label: Enable IPv6 endpoint for instance metadata service
       ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:
@@ -2454,6 +2454,15 @@ cluster:
       editYamlMachinePool:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
+      ipv6Warning:
+        title: Verify IPv6 Settings
+        body: This cluster's machine pools are configured to use ipv6 networks, but the cluster's networking settings may not support it. 
+        stackPrefInvalid: The <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "Ipv6" to use dual-stack or ipv6-only networking, respectively. 
+        flannelMasqInvalid: K3s uses the Flannel cni plugin by default. Enabling Flannel Masq is generally advised when using ipv6 networking.
+        cidrInvalidRke2: To enable dual-stack networking in RKE2 clusters, you must define valid dual-stack cluster and service CIDR ranges.
+        cidrInvalidK3s: To enable dual-stack or ipv6-only networking in K3s clusters, you must define valid dual-stack or ipv6 cluster and service CIDR ranges.
+        readMoreK3s: <a href="https://docs.k3s.io/networking/basic-network-options#dual-stack-ipv4--ipv6-networking" target="_blank" rel="noopener noreferrer nofollow" aria-label="k3s dual-stack networking documentation">Learn more about K3s networking</a>
+        readMoreRke2: <a href="https://docs.rke2.io/networking/basic_network_options#ipv6-setup" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 ipv6 networking documentation">Learn more about RKE2 networking</a>
     snapshots:
       suffix: Snapshots per node
       s3Suffix: Snapshots
@@ -2580,12 +2589,11 @@ cluster:
           label: Endpoint CA Cert
     stackPreference:
       label: Stack Preference
-      description: "Stack preference determines the networking stack used by the cluster. The selected value configures the address used for health and readiness probes of calico, etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and kubelet. It also defines the server URL in the <code>authentication-token-webhook-config-file</code> for the Authorized Cluster Endpoint and the advertise-client-urls for etcd during snapshot restore. When set to <code>dual</code>, the cluster uses <code>localhost</code>; when set to <code>ipv6</code>, it uses <code>[::1]</code>; and when set to <code>ipv4</code>, it uses <code>127.0.0.1</code>."
+      description: Stack preference determines the networking stack used by the cluster. IPv4 uses <code>127.0.0.1</code>, Dual-Stack uses <code>localhost</code> and IPv6 uses <code>[::1]</code>. Read more about <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference"  "target="_blank" rel="noopener noreferrer nofollow" >RKE2</a> and <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/k3s-cluster-configuration#stack-preference"  "target="_blank" rel="noopener noreferrer nofollow" >K3s</a> networking in the Rancher documentation.
       options:
         ipv4: IPv4
         ipv6: IPv6
-        dual: Dual-Stack
-      errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
+        dual: Dual
   k3s:
     flannelMasq:
       title: IPv6 NAT
