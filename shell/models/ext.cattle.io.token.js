@@ -6,6 +6,14 @@ export default class SteveToken extends SteveModel {
     return super._availableActions.filter((a) => ['viewInApi', 'promptRemove'].includes(a.action));
   }
 
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    delete val.type;
+
+    return val;
+  }
+
   get isDeprecated() {
     return '---';
   }

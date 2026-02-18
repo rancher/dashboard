@@ -11,10 +11,13 @@ import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import TabTitle from '@shell/components/TabTitle';
 
+import { allHash } from '@shell/utils/promise';
+
 import {
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE,
   LAST_USED, AGE_NORMAN, SCOPE_NORMAN, NORMAN_KEY_DEPRECATION
 } from '@shell/config/table-headers';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   components: {
@@ -22,21 +25,52 @@ export default {
   },
   mixins: [BackRoute],
   async fetch() {
+    const hashedRequests = {};
+
     this.canChangePassword = await this.calcCanChangePassword();
 
     this.normanTokenSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
     this.steveTokenSchema = this.$store.getters[`management/schemaFor`](EXT.TOKEN);
 
+    const selfUser = await this.$store.dispatch('auth/getSelfUser');
+
     if (this.normanTokenSchema) {
-      this.normanTokens = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
+      hashedRequests.normanTokens = this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
     }
 
     if (this.steveTokenSchema) {
-      this.steveTokens = await this.$store.dispatch('management/findAll', { type: EXT.TOKEN });
+      this.filterByUserTokens = this.$store.getters[`management/paginationEnabled`](EXT.TOKEN);
+
+      if (this.filterByUserTokens && selfUser.status?.userID) {
+        // Only get associated with the current user
+        const opt = { // Of type ActionFindPageArgs
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createSingleField({
+              field: 'spec.userID',
+              value: selfUser.status?.userID,
+            })
+          })
+        };
+
+        hashedRequests.steveTokens = this.$store.dispatch(`management/findPage`, { type: EXT.TOKEN, opt });
+      } else {
+        hashedRequests.steveTokens = this.$store.dispatch('management/findAll', { type: EXT.TOKEN });
+      }
     }
 
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
-    const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    hashedRequests.allSettings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+
+    const { normanTokens, steveTokens, allSettings } = await allHash(hashedRequests);
+
+    if (normanTokens) {
+      this.normanTokens = normanTokens;
+    }
+
+    if (steveTokens) {
+      this.steveTokens = steveTokens;
+    }
+
     const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
     const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);
 
