@@ -135,17 +135,13 @@ export const actions = {
       return Promise.resolve(getters.selfUser);
     }
 
-    try {
-      const selfUser = await dispatch('management/request', {
-        url:    `/v1/${ EXT.SELFUSER }`,
-        method: 'POST',
-        data:   {},
-      }, { root: true });
+    const selfUser = await dispatch('management/request', {
+      url:    `/v1/${ EXT.SELFUSER }`,
+      method: 'POST',
+      data:   {},
+    }, { root: true });
 
-      await dispatch('updateSelfUser', selfUser);
-    } catch (err) {
-      throw new Error(err);
-    }
+    await dispatch('updateSelfUser', selfUser);
   },
 
   async getUser({ dispatch, commit, getters }) {

@@ -21,37 +21,22 @@ export default {
       type:    String,
       default: null
     },
+    user: {
+      type:     Object,
+      default:  null,
+      required: true
+    },
     mustChangePassword: {
       type:    Boolean,
       default: false
     }
   },
   async fetch() {
-    this.selfUser = await this.$store.dispatch('auth/getSelfUser');
     this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
-
-    if (this.selfUser?.canGetUser && this.selfUser.status?.userID) {
-      // Fetch the username for hidden input fields. The former "setpassword" action did not require userID, but the new
-      // PasswordChangeRequest does.
-      const user = await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.USER,
-        id:   this.selfUser.status?.userID
-      });
-
-      this.userId = user?.id;
-      this.username = user?.username;
-
-      this.userChangeOnLogin = this.mustChangePassword;
-    } else {
-      this.errorMessages = [this.t('changePassword.errors.cannotFetchSelf')];
-      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
-    }
   },
   data() {
     return {
       passwordChangeRequest:      undefined,
-      userId:                     '',
-      username:                   '',
       errorMessages:              [],
       pCanShowMismatchedPassword: false,
       pIsRandomGenerated:         false,
@@ -67,6 +52,14 @@ export default {
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    userId() {
+      return this.user?.id;
+    },
+
+    username() {
+      return this.user?.username;
+    },
 
     canChangePassword() {
       return !!this.passwordChangeRequest?.canChangePassword;

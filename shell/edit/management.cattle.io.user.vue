@@ -129,36 +129,30 @@ export default {
     },
 
     async createUser() {
-      let userSaved;
+      // never use "password" as it's deprecated!
+      const user = await this.$store.dispatch('management/create', {
+        type:               MANAGEMENT.USER,
+        description:        this.form.description,
+        enabled:            true,
+        mustChangePassword: this.form.password.userChangeOnLogin,
+        displayName:        this.form.displayName,
+        username:           this.form.username
+      });
 
-      try {
-        // never use "password" as it's deprecated!
-        const user = await this.$store.dispatch('management/create', {
-          type:               MANAGEMENT.USER,
-          description:        this.form.description,
-          enabled:            true,
-          mustChangePassword: this.form.password.userChangeOnLogin,
-          displayName:        this.form.displayName,
-          username:           this.form.username
+      const userSaved = await user.save();
+
+      if (this.form.password.password) {
+        // create secret to hold user password
+        const secret = await this.$store.dispatch('management/create', {
+          type:     SECRET,
+          metadata: {
+            namespace: 'cattle-local-user-passwords',
+            name:      userSaved.id
+          },
+          data: { password: base64Encode(this.form.password.password) }
         });
 
-        userSaved = await user.save();
-
-        if (this.form.password.password) {
-          // create secret to hold user password
-          const secret = await this.$store.dispatch('management/create', {
-            type:     SECRET,
-            metadata: {
-              namespace: 'cattle-local-user-passwords',
-              name:      userSaved.id
-            },
-            data: { password: base64Encode(this.form.password.password) }
-          });
-
-          await secret.save();
-        }
-      } catch (error) {
-        throw new Error(error.message);
+        await secret.save();
       }
 
       return userSaved;
@@ -184,11 +178,7 @@ export default {
         await wait(5000);
       }
 
-      try {
-        this.value.save();
-      } catch (error) {
-        throw new Error(error);
-      }
+      this.value.save();
     },
 
     async updateRoles(userId) {
@@ -271,6 +261,7 @@ export default {
         v-model:value="form.password"
         :mode="mode"
         :must-change-password="value.mustChangePassword"
+        :user="value"
         @valid="validation.password = $event"
       />
     </div>

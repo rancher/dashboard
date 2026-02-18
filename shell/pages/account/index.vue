@@ -33,13 +33,26 @@ export default {
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;
+
+    const selfUser = await this.$store.dispatch('auth/getSelfUser');
+
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
+      this.user = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      });
+    } else {
+      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
+    }
   },
   data() {
     return {
       apiHostSetting:    null,
       serverUrlSetting:  null,
       rows:              null,
-      canChangePassword: false
+      canChangePassword: false,
+      user:              null
     };
   },
   computed: {
@@ -130,11 +143,12 @@ export default {
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {
-        component:   'ChangePasswordDialog',
-        testId:      'change-password__modal',
-        customClass: 'change-password-modal',
-        modalWidth:  '500',
-        height:      '465'
+        component:      'ChangePasswordDialog',
+        componentProps: { user: this.user },
+        testId:         'change-password__modal',
+        customClass:    'change-password-modal',
+        modalWidth:     '500',
+        height:         '465'
       });
     }
   }
