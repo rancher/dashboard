@@ -555,9 +555,7 @@ export default defineComponent({
     },
 
     filterByArchitecture(options) {
-      const { architecture } = this;
-
-      if (!architecture || architecture === 'all') {
+      if (!this.architecture) {
         return options;
       }
 
@@ -581,7 +579,7 @@ export default defineComponent({
       const out = [];
 
       for (const group of grouped) {
-        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(architecture)
+        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(this.architecture)
         );
 
         // If a group has at least one matching item, add the group header and the matching items to the output.
