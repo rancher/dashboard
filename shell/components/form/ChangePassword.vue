@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { NORMAN, EXT, MANAGEMENT } from '@shell/config/types';
+import { NORMAN, EXT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 // Component handles three use cases

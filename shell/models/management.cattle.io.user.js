@@ -201,6 +201,16 @@ export default class User extends SteveModel {
     await membershipRefreshRequests.save();
   }
 
+  get canRefreshMemberships() {
+    const schema = this.$getters[`schemaFor`](EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS);
+
+    if (!schema) {
+      return false;
+    }
+
+    return schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
+  }
+
   canActivate(state) {
     const stateOk = state ? this.state === 'inactive' : this.state === 'active';
     const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
@@ -232,7 +242,7 @@ export default class User extends SteveModel {
         action:  'refreshGroupMembership',
         label:   this.t('authGroups.actions.refresh'),
         icon:    'icon icon-refresh',
-        enabled: this.canRefreshAccess
+        enabled: this.canRefreshMemberships
       },
       { divider: true },
       ...super._availableActions,
