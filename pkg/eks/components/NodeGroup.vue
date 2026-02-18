@@ -304,7 +304,9 @@ export default defineComponent({
     },
 
     'architecture'(neu) {
-      this.$emit('update:arm', neu === 'arm64');
+      if (!this.isView) {
+        this.$emit('update:arm', neu === 'arm64');
+      }
 
       if (this.templateValue('instanceType')) {
         return;
