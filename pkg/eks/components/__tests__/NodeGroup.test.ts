@@ -690,13 +690,13 @@ describe('eks node groups: architecture', () => {
 
     const wrapper = shallowMount(NodeGroup, {
       propsData: {
-        launchTemplate:         {},
-        region:                 'foo',
-        amazonCredentialSecret: 'bar',
+        launchTemplate:          {},
+        region:                  'foo',
+        amazonCredentialSecret:  'bar',
         instanceTypeOptions,
         spotInstanceTypeOptions: instanceTypeOptions,
-        requestSpotInstances:   true,
-        spotInstanceTypes:      ['t4g.medium']
+        requestSpotInstances:    true,
+        spotInstanceTypes:       ['t4g.medium']
       },
       ...setup
     });
