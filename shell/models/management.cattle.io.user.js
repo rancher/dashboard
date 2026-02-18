@@ -283,6 +283,14 @@ export default class User extends SteveModel {
     return true;
   }
 
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    delete val.type;
+
+    return val;
+  }
+
   get norman() {
     console.warn('Norman "user" is deprecated. Use Steve "management.cattle.io.user" user instead.'); // eslint-disable-line no-console
 

@@ -4,4 +4,12 @@ export default class PasswordChangeRequest extends SteveModel {
   get canChangePassword() {
     return this.schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
   }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    delete val.type;
+
+    return val;
+  }
 }

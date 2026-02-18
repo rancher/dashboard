@@ -1284,9 +1284,15 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', {
-          data: res, existing: (forNew ? this : undefined ), invalidatePageCache
-        });
+        const keyField = this.$getters.keyFieldForType(this.type);
+        const id = res[keyField];
+
+        // only items with ID will be added to the store, this prevents "new" resources that return an empty body OR no ID from being added to the store with an ID of "undefined"
+        if (id) {
+          await this.$dispatch('load', {
+            data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+          });
+        }
       }
     } catch (e) {
       if ( this.type && this.id && e?._status === 409) {
