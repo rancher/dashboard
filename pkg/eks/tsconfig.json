@@ -47,7 +47,8 @@
     "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../shell/types/vue-shim.d.ts"
+    "../../shell/types/vue-shim.d.ts",
+    "../../shell/types/aws-sdk.d.ts" 
   ],
   "exclude": [
     "../../node_modules"

@@ -24,7 +24,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  emits: ['validationChanged', 'update:hasIpv6'],
+  emits: ['validationChanged', 'update:isIpv6', 'update:isDualStack'],
 
   props: {
     uuid: {
@@ -47,7 +47,12 @@ export default {
       default: false
     },
 
-    hasIpv6: {
+    isIpv6: {
+      type:    Boolean,
+      default: false
+    },
+
+    isDualStack: {
       type:    Boolean,
       default: false
     },
@@ -386,10 +391,12 @@ export default {
           :zone="value.zone"
           :region="value.region"
           :machine-pools="machinePools"
-          :has-ipv6="hasIpv6"
+          :is-ipv6="isIpv6"
+          :is-dual-stack="isDualStack"
           :disabled="disabled"
           :is-new="poolCreateMode"
-          @update:has-ipv6="e=>$emit('update:hasIpv6', e)"
+          @update:is-ipv6="e=>$emit('update:isIpv6', e)"
+          @update:is-dual-stack="e=>$emit('update:isDualStack', e)"
           @validation-changed="e=>$emit('validationChanged',e)"
         />
 

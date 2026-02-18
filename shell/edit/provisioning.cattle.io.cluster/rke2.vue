@@ -68,6 +68,7 @@ import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/defaults';
 import { mapGetters } from 'vuex';
+
 const HARVESTER = 'harvester';
 const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -273,7 +274,7 @@ export default {
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasSomeIpv6Pools
+      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
       clusterAgentDeploymentCustomization:      null,
@@ -849,8 +850,12 @@ export default {
       }
     },
 
-    hasSomeIpv6Pools() {
-      return !!(this.machinePools || []).find((p) => p.hasIpv6);
+    hasOnlyIpv6Pools() {
+      return !(this.machinePools || []).find((p) => !p.isIpv6 || p.isDualStack);
+    },
+
+    hasDualStackPools() {
+      return !!(this.machinePools || []).find((p) => p.isDualStack);
     },
 
     validationPassed() {
@@ -988,23 +993,12 @@ export default {
         // ... which will eventually update `value.spec.rkeConfig.chartValues`
         this.agentConfig['cloud-provider-name'] = undefined;
       }
-    },
-
-    hasSomeIpv6Pools(neu) {
-      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
-        if (neu) {
-          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
-
-          return;
-        }
-
-        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
-      }
-    },
+    }
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
+    this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
@@ -1329,14 +1323,15 @@ export default {
       const name = `pool${ ++this.lastIdx }`;
 
       const pool = {
-        id:      name,
+        id:          name,
         config,
-        remove:  false,
-        create:  true,
-        update:  false,
-        uid:     name,
-        hasIpv6: false,
-        pool:    {
+        remove:      false,
+        create:      true,
+        update:      false,
+        uid:         name,
+        isIpv6:      false,
+        isDualStack: false,
+        pool:        {
           name,
           etcdRole:             numCurrentPools === 0,
           controlPlaneRole:     numCurrentPools === 0,
@@ -1524,6 +1519,59 @@ export default {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.value.mgmt.id);
       }
+    },
+
+    async showIpv6Warning(hookContext) {
+      if (this.mode !== _CREATE || hookContext === CONTEXT_HOOK_EDIT_YAML) {
+        return;
+      }
+      const stackPreference = this.value.spec.rkeConfig.networking.stackPreference;
+      const isK3s = (this.selectedVersion?.label || '').toLowerCase().includes('k3s');
+      const flannelMasqEnabled = this.serverConfig['flannel-ipv6-masq'];
+      const clusterCIDR = (this.serverConfig['cluster-cidr'] || '');
+      const serviceCIDR = (this.serverConfig['service-cidr'] || '');
+
+      const isDualStack = this.hasDualStackPools;
+      const isIpv6 = this.hasOnlyIpv6Pools;
+
+      const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
+
+      const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
+      const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');
+
+      if (!stackPrefInvalid && !flannelMasqInvalid && !clusterCIDRInvalid && !serviceCIDRInvalid) {
+        return;
+      }
+
+      const warnings = [];
+
+      if (stackPrefInvalid) {
+        warnings.push('cluster.rke2.modal.ipv6Warning.stackPrefInvalid');
+      }
+      if (flannelMasqInvalid) {
+        warnings.push('cluster.rke2.modal.ipv6Warning.flannelMasqInvalid');
+      }
+      if (clusterCIDRInvalid || serviceCIDRInvalid) {
+        warnings.push(isK3s ? 'cluster.rke2.modal.ipv6Warning.cidrInvalidK3s' : 'cluster.rke2.modal.ipv6Warning.cidrInvalidRke2');
+      }
+
+      await new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', {
+          component:      'Ipv6NetworkingDialog',
+          componentProps: {
+            warnings,
+            isK3s,
+            confirm: (confirmed) => {
+              if (confirmed) {
+                resolve();
+              } else {
+                reject(new Error('User Cancelled'));
+              }
+            }
+          },
+        });
+      });
     },
 
     /**
@@ -2222,9 +2270,9 @@ export default {
 
     handleFlannelMasqChanged(neu) {
       if (neu || neu === false) {
-        this.serverConfig['enable-flannel-masq'] = neu;
+        this.serverConfig['flannel-ipv6-masq'] = neu;
       } else {
-        delete this.serverConfig['enable-flannel-masq'];
+        delete this.serverConfig['flannel-ipv6-masq'];
       }
     },
 
@@ -2483,7 +2531,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
-              :has-some-ipv6-pools="hasSomeIpv6Pools"
+              :has-some-ipv6-pools="hasOnlyIpv6Pools"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
@@ -2539,8 +2587,8 @@ export default {
               :selected-version="selectedVersion"
               :truncate-limit="truncateLimit"
               :machine-pools="machinePools"
-              :has-some-ipv6-pools="hasSomeIpv6Pools"
-              :enable-flannel-masq="serverConfig['enable-flannel-masq']"
+              :has-some-ipv6-pools="hasOnlyIpv6Pools"
+              :flannel-ipv6-masq="serverConfig['flannel-ipv6-masq']"
               @truncate-hostname-changed="truncateHostname"
               @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
               @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
@@ -2553,7 +2601,7 @@ export default {
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
               @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
               @validationChanged="(val)=>stackPreferenceError = !val"
-              @enable-flannel-masq-changed="handleFlannelMasqChanged"
+              @flannel-ipv6-masq-changed="handleFlannelMasqChanged"
             />
           </Tab>
 

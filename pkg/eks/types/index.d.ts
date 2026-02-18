@@ -1,6 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 
-export * as AWS from './aws-sdk';
+export * as AWS from '../../../shell/types/aws-sdk';
 
 export interface EKSLaunchTemplate {
   id?: string,

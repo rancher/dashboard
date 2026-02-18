@@ -9,7 +9,7 @@ import Banner from '@components/Banner/Banner.vue';
 
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
-import { AWS } from '../types';
+import * as AWS from '@shell/types/aws-sdk';
 
 export default defineComponent({
   name: 'EKSNetworking',
@@ -132,6 +132,17 @@ export default defineComponent({
       const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
       subnets.forEach((s) => {
+        const isIpv6 = !!s.Ipv6CidrBlockAssociationSet && !isEmpty(s.Ipv6CidrBlockAssociationSet);
+        const hasIpv4 = !!s.CidrBlock;
+
+        if (this.ipFamily === 'ipv4' && !hasIpv4) {
+          return;
+        }
+
+        if (this.ipFamily === 'ipv6' && (!hasIpv4 || !isIpv6)) {
+          return;
+        }
+
         if (!mappedSubnets[s.VpcId]) {
           mappedSubnets[s.VpcId] = [s];
         } else {
