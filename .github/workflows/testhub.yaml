@@ -8,7 +8,7 @@ name: TestHub Integration
 on:
   # Trigger when a workflow run completes
   workflow_run:
-    workflows: [Tests]
+    workflows: [Tests, "Code Coverage"]
     types:
       - completed
 

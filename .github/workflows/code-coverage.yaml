@@ -35,26 +35,3 @@ jobs:
           if-no-files-found: error
           retention-days: 10
           compression-level: 9
-      - name: Register with TestHub
-        run: |
-          echo "Registering test coverage run with TestHub..."
-          echo "  Repository: ${{ github.repository }}"
-          echo "  Run ID: ${{ github.event.workflow_run.id }}"
-          echo "  Workflow: ${{ github.event.workflow_run.name }}"
-          echo "  Conclusion: ${{ github.event.workflow_run.conclusion }}"
-
-          if [ -z "${TESTHUB_URL}" ]; then
-            echo "TESTHUB_URL is not set. Skipping registration."
-            exit 1
-          fi
-
-          if [ -z "${TESTHUB_TOKEN}" ]; then
-            echo "TESTHUB_TOKEN is not set. Skipping registration."
-            exit 1
-          fi          
-
-          # Build the API URL
-          API_URL="${TESTHUB_URL}/api/${{ github.repository }}/register/${{ github.event.workflow_run.id }}"
-          
-          # Make the API call
-          curl -X POST -H "Authorization: Bearer ${TESTHUB_TOKEN}" "${API_URL}"
