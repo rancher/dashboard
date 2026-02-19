@@ -46,7 +46,7 @@ export default class ClusterManagerCreateRke2AmazonPagePo extends ClusterManager
     return cy.get('body').find('[data-testid="ipv6-dialog"]');
   }
 
-  ipv6Recommentations() {
+  ipv6Recommendations() {
     return cy.get('body').find('[data-testid="ipv6-dialog-reasons"] li');
   }
 }

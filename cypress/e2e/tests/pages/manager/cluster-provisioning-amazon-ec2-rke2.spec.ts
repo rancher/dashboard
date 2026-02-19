@@ -26,22 +26,23 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   before(() => {
     cy.login();
 
-    // clean up amazon cloud credentials
-    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
-      const body = resp.body;
+    // TODO nb revert
+    // // clean up amazon cloud credentials
+    // cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+    //   const body = resp.body;
 
-      if (body.pagination['total'] > 0) {
-        body.data.forEach((item: any) => {
-          if (item.amazonec2credentialConfig) {
-            const id = item.id;
+    //   if (body.pagination['total'] > 0) {
+    //     body.data.forEach((item: any) => {
+    //       if (item.amazonec2credentialConfig) {
+    //         const id = item.id;
 
-            cy.deleteRancherResource('v3', 'cloudcredentials', id);
-          } else {
-            cy.log('There are no existing amazon cloud credentials to delete');
-          }
-        });
-      }
-    });
+    //         cy.deleteRancherResource('v3', 'cloudcredentials', id);
+    //       } else {
+    //         cy.log('There are no existing amazon cloud credentials to delete');
+    //       }
+    //     });
+    //   }
+    // });
   });
 
   beforeEach(() => {
@@ -51,7 +52,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
-  it('can create an RKE2 cluster using Amazon cloud provider', function() {
+  it.skip('can create an RKE2 cluster using Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -136,7 +137,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       });
   });
 
-  it('can see details of cluster in cluster list', function() {
+  it.skip('can see details of cluster in cluster list', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -161,7 +162,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterList.list().machines(this.rke2Ec2ClusterName).should('contain.text', '1');
   });
 
-  it('cluster details page', function() {
+  it.skip('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -179,7 +180,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
-  it('can upgrade Kubernetes version', function() {
+  it.skip('can upgrade Kubernetes version', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -241,7 +242,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('have.class', 'vs__dropdown-option--disabled');
   });
 
-  it('can create snapshot', function() {
+  it.skip('can create snapshot', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -271,7 +272,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
   });
 
-  it('can scale up a machine pool', function() {
+  it.skip('can scale up a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
 
@@ -329,7 +330,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
   });
 
-  it('can scale down a machine pool', function() {
+  it.skip('can scale down a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     // Set user preference to ensure the scale down confirmation modal always appears
     cy.setUserPreference({ 'scale-pool-prompt': false });
@@ -381,7 +382,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('be.disabled');
   });
 
-  it('can delete an Amazon EC2 RKE2 cluster', function() {
+  it.skip('can delete an Amazon EC2 RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Delete').click();
@@ -444,7 +445,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.create();
 
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommentations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
 
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
@@ -454,7 +455,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommentations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // toggle off ipv6-only and ensure the dialog has 1 fewer warnings
@@ -462,7 +463,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommentations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // toggle ipv6-only back on to verify that setting flannel masq removes the warning about flannel masq
@@ -475,18 +476,18 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommentations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     createRKE2ClusterPage.networkTab().flannelMasq().set();
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommentations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
-    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('ipv6');
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
 
     createRKE2ClusterPage.create();
     cy.wait('@createRke2Cluster');

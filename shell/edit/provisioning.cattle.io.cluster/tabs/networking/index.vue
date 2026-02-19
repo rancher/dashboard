@@ -177,6 +177,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
+          data-testid="cluster-cidr"
           @update:value="$emit('cluster-cidr-changed', $event)"
         />
       </div>
@@ -189,6 +190,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
+          data-testid="service-cidr"
           @update:value="$emit('service-cidr-changed', $event)"
         />
       </div>

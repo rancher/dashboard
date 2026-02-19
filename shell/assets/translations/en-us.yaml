@@ -2457,7 +2457,7 @@ cluster:
       ipv6Warning:
         title: Verify IPv6 Settings
         body: The machine pools in this cluster are configured to use IPv6 networks, but the cluster's networking settings may not support it. 
-        stackPrefInvalid: The <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "IPv6" to use dual-stack or IPv6-only networking, respectively. 
+        stackPrefInvalid: The <a href="{docsBase}/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "IPv6" to use dual-stack or IPv6-only networking, respectively. 
         flannelMasqInvalid: K3s uses the Flannel cni plugin by default. Enabling Flannel Masq is generally advised when using IPv6 networking.
         cidrInvalidRke2: To enable dual-stack networking in RKE2 clusters, you must define valid dual-stack cluster and service CIDR ranges.
         cidrInvalidK3s: To enable dual-stack or IPv6-only networking in K3s clusters, you must define valid dual-stack or IPv6 cluster and service CIDR ranges.
@@ -2590,7 +2590,7 @@ cluster:
           label: Endpoint CA Cert
     stackPreference:
       label: Stack Preference
-      description: Stack preference determines the networking stack used by the cluster. IPv4 uses <code>127.0.0.1</code>, Dual-Stack uses <code>localhost</code> and IPv6 uses <code>[::1]</code>. Read more about <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference"  "target="_blank" rel="noopener noreferrer nofollow" >RKE2</a> and <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/k3s-cluster-configuration#stack-preference"  "target="_blank" rel="noopener noreferrer nofollow" >K3s</a> networking in the Rancher documentation.
+      description: Stack preference determines the networking stack used by the cluster. IPv4 uses <code>127.0.0.1</code>, Dual-Stack uses <code>localhost</code> and IPv6 uses <code>[::1]</code>. Read more about <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference"  target="_blank" rel="noopener noreferrer nofollow" >RKE2</a> and <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/k3s-cluster-configuration#stack-preference"  target="_blank" rel="noopener noreferrer nofollow" >K3s</a> networking in the Rancher documentation.
       options:
         ipv4: IPv4
         ipv6: IPv6
