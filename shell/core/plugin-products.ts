@@ -1,4 +1,4 @@
-import { IPlugin } from '@shell/core/types';
+import { IExtension } from '@shell/core/types';
 import {
   StandardProductName, ProductChild, ProductChildGroup,
   ProductMetadata, ProductChildPage, ProductSinglePage,
@@ -17,14 +17,12 @@ export class PluginProduct {
 
   public newProduct = false;
 
-  private singlePage = false;
-
   private addedResourceRoutes = false;
 
   private DSLMethods: any;
 
-  private newProductConstructor(plugin: IPlugin, product: string | ProductMetadata | ProductSinglePage, config: ProductChild[]) {
-    let prodName = (product as ProductMetadata).name;
+  private newProductConstructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage) {
+    let prodName = product.name;
 
     // the goal here is not to interfere with vue-router route names, which use dashes
     if (prodName.includes('-')) {
@@ -32,14 +30,14 @@ export class PluginProduct {
     }
 
     this.name = prodName;
-    this.product = product as ProductMetadata;
+    this.product = product;
     this.newProduct = true;
 
     plugin.registerTopLevelProduct();
 
     if (this.config?.length > 0) {
       // consider weights of children to determine default route
-      const reorderedChildren = pluginProductsHelpers.gatherChildrenOrdering((this.config as ProductChildGroup[]));
+      const reorderedChildren = pluginProductsHelpers.gatherChildrenOrdering(this.config);
 
       if (reorderedChildren.length === 0) {
         throw new Error('No children found for product with config');
@@ -56,8 +54,6 @@ export class PluginProduct {
     // If the product has a `component` field, then this is a single page product
     if ((product as any).component) {
       const singlePageProduct = product as ProductSinglePage;
-
-      this.singlePage = true;
 
       // Add the route to vue-router (here we go with the 'plain' layout for simple single page products)
       const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: singlePageProduct.component });
@@ -78,7 +74,7 @@ export class PluginProduct {
     }
   }
 
-  private extendExistingStandardProductConstructor(plugin: IPlugin, product: string, config: ProductChild[]) {
+  private extendExistingStandardProductConstructor(plugin: IExtension, product: string) {
     // Check if the string exists as a VALUE in the enum
     const isProductValid = Object.values(StandardProductName).includes(product as StandardProductName);
 
@@ -88,7 +84,7 @@ export class PluginProduct {
 
       if (this.config?.length > 0) {
         // consider weights of children to determine default route
-        const reorderedChildren = pluginProductsHelpers.gatherChildrenOrdering((this.config as ProductChildGroup[]));
+        const reorderedChildren = pluginProductsHelpers.gatherChildrenOrdering(this.config);
 
         if (reorderedChildren.length === 0) {
           throw new Error('No children found for product with config');
@@ -168,20 +164,20 @@ export class PluginProduct {
 
   // the constructor is where we add routes to vue-router for the product being added
   // hence why we deal with them in the constructor
-  constructor(plugin: IPlugin, product: string | ProductMetadata | ProductSinglePage, private config: ProductChild[]) {
+  constructor(plugin: IExtension, product: string | ProductMetadata | ProductSinglePage, private config: ProductChild[]) {
     if (typeof product === 'object' && product.name) {
       // this is a new product being added
-      this.newProductConstructor(plugin, product, config);
+      this.newProductConstructor(plugin, product);
     } else if (typeof product === 'string') {
       // this is extending an existing standard product
-      this.extendExistingStandardProductConstructor(plugin, product, config);
+      this.extendExistingStandardProductConstructor(plugin, product);
     } else {
       throw new Error('Invalid product');
     }
   }
 
   // This is where we register the product and its children via the DSL
-  apply(plugin: IPlugin, store: any, router: Router, pluginRoutes: any): void {
+  apply(plugin: IExtension, store: any, router: Router, pluginRoutes: any): void {
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -326,7 +322,7 @@ export class PluginProduct {
   }
 
   // Add routes in Vue-router for any items that need them
-  private addRoutes(plugin: IPlugin, parentName: string, item: ProductChild[]) {
+  private addRoutes(plugin: IExtension, parentName: string, item: ProductChild[]) {
     item.forEach((child: any) => {
       // if the child has children, then it's a group
       if ((child as any).children) {

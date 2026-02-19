@@ -61,7 +61,7 @@ export type ProductChildMetadata = {
 } & (
   /** Human-readable label for the child page
    * Either label or labelKey are required */
-  | { label: string; labelKey?: string }
+  { label: string; labelKey?: string }
   /** Translation key for the label of the child page
    * Either label or labelKey are required */
   | { labelKey: string; label?: string }
@@ -152,7 +152,7 @@ export type ConfigureTypeConfiguration = {
  * - For resource pages: use `type` with optional `config` and `headers`
  */
 export type ProductChildPage =
-  | (ProductChildMetadata & {
+  (ProductChildMetadata & {
       /** Component to render for this custom page */
       component: RouteComponent | Async<RouteComponent>;
       type?: never;
@@ -205,7 +205,7 @@ export type ProductChildGroup = ProductChildMetadata & {
  */
 export type ProductMetadata = {
   /**
-   * Product name (unique indentifier)
+   * Product name (unique identifier)
    */
   name: string;
   /**

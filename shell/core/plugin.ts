@@ -21,7 +21,6 @@ import {
   ServerSidePaginationExtensionConfig,
   ProductOptions,
   TableAction,
-  ResourceTypeConfig
 } from './types';
 import {
   ProductMetadata,
@@ -87,10 +86,6 @@ export class Plugin implements IPlugin {
     Object.values(ExtensionPoint).forEach((v) => {
       this.uiConfig[v] = {};
     });
-  }
-
-  configureResourceType(type: string, config: ResourceTypeConfig): void {
-    throw new Error('Method not implemented.');
   }
 
   get environment(): ExtensionEnvironment {
@@ -186,7 +181,6 @@ export class Plugin implements IPlugin {
   }
 
   addRoute(parentOrRoute: RouteRecordRaw | string, optionalRoute?: RouteRecordRaw): void {
-    // console.error('shell/core/plugin addRouter', parentOrRoute, optionalRoute);
     // Always add the pkg name to the route metadata
     const hasParent = typeof (parentOrRoute) === 'string';
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
