@@ -4,7 +4,7 @@ import MachinePoolRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluste
 import BasicsRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/basics-tab-rke2.po';
 import AmazonCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials-amazon.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import NetworkRke2 from '~/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/networking-tab-rke2.po';
+import NetworkRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/networking-tab-rke2.po';
 
 /**
  * Create page for an RKE2 Amazon EC2 cluster
