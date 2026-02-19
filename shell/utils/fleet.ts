@@ -90,8 +90,11 @@ class Application {
       return target;
     });
 
-    // Check if targets contains only harvester rule after name normalizing
-    if (!areHarvesterHostsVisible && isEqual(normalized, [this.excludeHarvesterRule])) {
+    // Check if targets contains only harvester rule or no rule at all after name normalizing
+    // That means the ALL option has been selected previously
+    // one case for feature harvester-baremetal-container-workload ON
+    // and another for feature harvester-baremetal-container-workload OFF
+    if (isEqual(normalized, [this.includeAllWorkgroupRule]) || isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 
