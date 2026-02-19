@@ -183,10 +183,6 @@ export default {
         });
     },
 
-    isHarvesterClustersEnabled() {
-      return this.$store.getters['features/get'](HARVESTER_CONTAINER);
-    },
-
     isLocal() {
       return this.namespace === 'fleet-local';
     },
