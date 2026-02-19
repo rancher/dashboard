@@ -58,10 +58,20 @@ export default {
       }
     }
 
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
+      hashedRequests.user = this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      });
+    }
+
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
     hashedRequests.allSettings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
 
-    const { normanTokens, steveTokens, allSettings } = await allHash(hashedRequests);
+    const {
+      normanTokens, steveTokens, allSettings, user
+    } = await allHash(hashedRequests);
 
     if (normanTokens) {
       this.normanTokens = normanTokens;
@@ -71,23 +81,15 @@ export default {
       this.steveTokens = steveTokens;
     }
 
+    if (user) {
+      this.user = user;
+    }
+
     const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
     const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;
-
-    const selfUser = await this.$store.dispatch('auth/getSelfUser');
-
-    if (selfUser?.canGetUser && selfUser.status?.userID) {
-      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
-      this.user = await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.USER,
-        id:   selfUser.status?.userID
-      });
-    } else {
-      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
-    }
   },
   data() {
     return {
