@@ -25,13 +25,11 @@ jobs:
         uses: ./.github/actions/setup
       - name: Run tests and collect coverage
         run: ./scripts/code-coverage
-      - name: Create tar file of coverage report files
-        run: tar -C coverage -cvzf coverage.tgz output
       - name: Upload code coverage folder
         uses: actions/upload-artifact@v6
         with:
           name: coverage
-          path: ./coverage.tgz
+          path: ./coverage/output
           if-no-files-found: error
           retention-days: 10
           compression-level: 9
