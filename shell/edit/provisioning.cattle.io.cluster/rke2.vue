@@ -1528,7 +1528,7 @@ export default {
     },
 
     async showIpv6Warning() {
-      if (this.mode !== _CREATE) {
+      if (this.mode !== _CREATE || !this.machinePools?.length) {
         return;
       }
       const stackPreference = this.value.spec.rkeConfig.networking.stackPreference;

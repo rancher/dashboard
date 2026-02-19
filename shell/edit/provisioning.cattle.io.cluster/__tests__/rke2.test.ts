@@ -188,7 +188,7 @@ describe('component: rke2', () => {
     wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
   });
 
-  it.skip('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {
+  it('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {
     const k8s = 'v1.25.0+k3s1';
 
     const HARVESTER = 'harvester';
