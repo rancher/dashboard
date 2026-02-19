@@ -678,13 +678,6 @@ export interface IExtension {
   extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void;
 
   /**
-   * Configure a resource type
-   * @param type Name of resource type to configure
-   * @param config Resource type configuration
-   */
-  configureResourceType(type: string, config: ResourceTypeConfig): void;
-
-  /**
    * Add a locale to the i18n store
    * @param locale Locale id (e.g. en-us)
    * @param label Label for the locale to be displayed in the i18n chooser
