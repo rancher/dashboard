@@ -76,6 +76,12 @@ export default {
           :k="isK3s ? 'cluster.rke2.modal.ipv6Warning.readMoreK3s' : 'cluster.rke2.modal.ipv6Warning.readMoreRke2'"
           raw
         />
+        <div class="list-pretext">
+          <t
+            k="cluster.rke2.modal.ipv6Warning.verifySettings"
+            raw
+          />
+        </div>
         <ul
           data-testid="ipv6-dialog-reasons"
           class="warning-list"
@@ -135,6 +141,10 @@ export default {
       width: 100%;
     }
   }
+
+.list-pretext {
+    margin-top: 16px;
+}
 
 .warning-list {
     padding-inline-start: 24px;

@@ -1592,7 +1592,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
-      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPV6 address."
+      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPv6 address."
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
@@ -2102,13 +2102,13 @@ cluster:
       tagTitle: EC2 Tags
       enableIpv6:
         label: Enable Dual-Stack
-        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, check \"Enable Ipv6\" and update the stack preference to <b>IPv6</b>."
+        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack. For an IPv6-only cluster, check \"Enable IPv6\" and update the stack preference to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
         error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
       enablePrimaryIpv6:
-        label: Enable Static Primary Ipv6
+        label: Enable Static Primary IPv6
         description: This designates the first assigned IPv6 address as the primary address, ensuring a consistent, non-changing IPv6 address for the instance. This option does not control whether IPv6 addresses are assigned.
       ipv6AddressOnly:
         label: Enable IPv6
@@ -2456,13 +2456,14 @@ cluster:
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
       ipv6Warning:
         title: Verify IPv6 Settings
-        body: This cluster's machine pools are configured to use ipv6 networks, but the cluster's networking settings may not support it. 
-        stackPrefInvalid: The <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "Ipv6" to use dual-stack or ipv6-only networking, respectively. 
-        flannelMasqInvalid: K3s uses the Flannel cni plugin by default. Enabling Flannel Masq is generally advised when using ipv6 networking.
+        body: The machine pools in this cluster are configured to use IPv6 networks, but the cluster's networking settings may not support it. 
+        stackPrefInvalid: The <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "IPv6" to use dual-stack or IPv6-only networking, respectively. 
+        flannelMasqInvalid: K3s uses the Flannel cni plugin by default. Enabling Flannel Masq is generally advised when using IPv6 networking.
         cidrInvalidRke2: To enable dual-stack networking in RKE2 clusters, you must define valid dual-stack cluster and service CIDR ranges.
-        cidrInvalidK3s: To enable dual-stack or ipv6-only networking in K3s clusters, you must define valid dual-stack or ipv6 cluster and service CIDR ranges.
+        cidrInvalidK3s: To enable dual-stack or IPv6-only networking in K3s clusters, you must define valid dual-stack or IPv6 cluster and service CIDR ranges.
         readMoreK3s: <a href="https://docs.k3s.io/networking/basic-network-options#dual-stack-ipv4--ipv6-networking" target="_blank" rel="noopener noreferrer nofollow" aria-label="k3s dual-stack networking documentation">Learn more about K3s networking</a>
         readMoreRke2: <a href="https://docs.rke2.io/networking/basic_network_options#ipv6-setup" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 ipv6 networking documentation">Learn more about RKE2 networking</a>
+        verifySettings: 'Before continuing, please verify the following settings:'
     snapshots:
       suffix: Snapshots per node
       s3Suffix: Snapshots

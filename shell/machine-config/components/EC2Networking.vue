@@ -404,9 +404,14 @@ export default {
         </template>
       </LabeledSelect>
     </div>
+  </div>
+  <div
+    v-if="enableIpv6"
+    class="row mb-10 ipv6-row"
+  >
     <div
       v-if="enableIpv6"
-      class="col span-3"
+      class="col span-2"
     >
       <Checkbox
         :disabled="!isNew || !dualStackSelected"
@@ -417,12 +422,7 @@ export default {
         @update:value="e=>$emit('update:ipv6AddressOnly', e)"
       />
     </div>
-  </div>
-  <div
-    v-if="enableIpv6"
-    class="row mb-10 ipv6-row"
-  >
-    <div class="col span-6">
+    <div class="col span-4">
       <Checkbox
         :value="httpProtocolIpv6==='enabled'"
         :disabled="!isNew"
@@ -437,7 +437,7 @@ export default {
     v-if="enableIpv6"
     class="row mb-10 ipv6-row"
   >
-    <div class="col span-3">
+    <div class="col span-6">
       <LabeledInput
         :disabled="!isNew"
         min="1"
@@ -449,7 +449,12 @@ export default {
         @update:value="e=>$emit('update:ipv6AddressCount', e)"
       />
     </div>
-    <div class="col span-9">
+  </div>
+  <div
+    v-if="enableIpv6"
+    class="row mb-10 ipv6-row"
+  >
+    <div class="col span-6">
       <Checkbox
         :disabled="!isNew"
         :value="enablePrimaryIpv6"
