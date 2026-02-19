@@ -146,15 +146,26 @@ describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.url().should('include', '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-charts');
   });
 
-  it('should show more versions when the button is clicked', () => {
-    chartPage.versions().should('have.length', 7);
-    chartPage.showMoreVersions().click();
-    chartPage.versions().should('have.length.greaterThan', 7);
-  });
-
   it('should navigate to the charts list with the correct filters when a keyword is clicked', () => {
     chartPage.keywords().first().click();
     chartsPage.waitForPage();
     cy.url().should('include', 'q=logging');
+  });
+
+  it('should show more versions when the button is clicked (when there are more than 7 versions)', () => {
+    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', 'rancher-charts?link=index').then((res: any) => {
+      const entries = res.body.entries;
+      const rancherLoggingVersions = entries['rancher-logging'];
+      const totalCount = rancherLoggingVersions.length;
+
+      if (totalCount > 7) {
+        chartPage.versions().should('have.length', 7);
+        chartPage.showMoreVersions().should('be.visible').click();
+        chartPage.versions().should('have.length', totalCount);
+      } else {
+        chartPage.versions().should('have.length', totalCount);
+        chartPage.showMoreVersions().should('not.exist');
+      }
+    });
   });
 });
