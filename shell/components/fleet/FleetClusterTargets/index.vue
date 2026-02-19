@@ -292,7 +292,6 @@ export default {
       case 'none': // No clusters
         return undefined;
       case 'all': // All clusters in workspace
-        // return this.isHarvesterClustersEnabled ? this.targets : [excludeHarvesterRule]; TODO: RC
         if (this.areHarvesterHostsVisible) {
           // set it to empty to clear any previous and hidden harvester omission
           return [includeAllWorkgroupRule];
