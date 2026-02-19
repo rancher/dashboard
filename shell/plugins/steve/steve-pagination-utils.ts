@@ -15,7 +15,8 @@ import {
   INGRESS,
   WORKLOAD_TYPES,
   HPA,
-  SECRET
+  SECRET,
+  EXT
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -765,7 +766,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
           { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET,
-          CAPI.MACHINE_SET
+          CAPI.MACHINE_SET,
+          EXT.TOKEN
         ],
         generic: false,
       }

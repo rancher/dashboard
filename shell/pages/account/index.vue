@@ -41,12 +41,12 @@ export default {
     if (this.steveTokenSchema) {
       this.filterByUserTokens = this.$store.getters[`management/paginationEnabled`](EXT.TOKEN);
 
-      if (this.filterByUserTokens && selfUser.status?.userID) {
+      if (this.filterByUserTokens && selfUser?.status?.userID) {
         // Only get associated with the current user
         const opt = { // Of type ActionFindPageArgs
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createSingleField({
-              field: 'spec.userID',
+              field: 'metadata.fields.1',
               value: selfUser.status?.userID,
             })
           })
