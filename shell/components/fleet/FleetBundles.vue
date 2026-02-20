@@ -61,7 +61,7 @@ export default {
     }
 
     // Only fetch all bundles if we're in list mode (no value prop)
-    if (!this.value && this.resource) {
+    if (this.isListMode) {
       await this.$fetchType(this.resource);
     }
 
