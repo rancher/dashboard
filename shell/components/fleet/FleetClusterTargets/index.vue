@@ -120,6 +120,10 @@ export default {
       this.update();
     } else {
       this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace, this.areHarvesterHostsVisible);
+      // We only want to update the information from the new target mode if it is EDIT, if CREATE, if VIEW we want to keep as it is
+      if (this.mode === _EDIT) {
+        this.update();
+      }
     }
   },
 
