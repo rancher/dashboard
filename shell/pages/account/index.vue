@@ -9,8 +9,8 @@ import { mapGetters } from 'vuex';
 
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
+import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import TabTitle from '@shell/components/TabTitle';
-
 import { allHash } from '@shell/utils/promise';
 
 import {
@@ -19,9 +19,11 @@ import {
 } from '@shell/config/table-headers';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
+const API_ENDPOINT = '/v1';
+
 export default {
   components: {
-    BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
+    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
   },
   mixins: [BackRoute],
   async fetch() {
@@ -110,6 +112,34 @@ export default {
         EXPIRES,
         AGE_NORMAN
       ];
+    },
+
+    apiUrlBase() {
+      let setting = this.apiHostSetting;
+
+      if (setting && setting.indexOf('http') !== 0) {
+        setting = `http://${ setting }`;
+      }
+
+      // Use Server Setting URL if the api host setting is not set
+      let url = setting || this.serverUrlSetting;
+
+      // If the URL is relative, add on the current base URL from the browser
+      if ( url.indexOf('http') !== 0 ) {
+        url = `${ window.location.origin }/${ url.replace(/^\/+/, '') }`;
+      }
+
+      // URL must end in a single slash
+      url = `${ url.replace(/\/+$/, '') }/`;
+
+      return url;
+    },
+
+    apiUrl() {
+      const base = this.apiUrlBase;
+      const path = API_ENDPOINT.replace(/^\/+/, '');
+
+      return `${ base }${ path }`;
     },
 
     principal() {
@@ -221,6 +251,13 @@ export default {
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
+        <div class="api-url">
+          <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
+          <CopyToClipboardText
+            :aria-label="t('accountAndKeys.apiKeys.copyApiEnpoint')"
+            :text="apiUrl"
+          />
+        </div>
       </div>
       <button
         v-if="steveTokenSchema"
