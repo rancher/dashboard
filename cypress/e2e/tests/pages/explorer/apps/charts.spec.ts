@@ -121,6 +121,11 @@ describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
   const chartName = 'Logging';
   let chartPage: ChartPage;
 
+  before(() => {
+    cy.login();
+    cy.setUserPreference({ 'show-pre-release': true }); // Show pre-release versions
+  });
+
   beforeEach(() => {
     cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
 
@@ -167,5 +172,9 @@ describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
         chartPage.showMoreVersions().should('not.exist');
       }
     });
+  });
+
+  after(() => { // Reset user preference
+    cy.setUserPreference({ 'show-pre-release': false });
   });
 });
