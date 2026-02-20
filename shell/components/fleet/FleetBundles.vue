@@ -50,28 +50,42 @@ export default {
   },
 
   async fetch() {
+    let hash;
+
     try {
-      await checkSchemasForFindAllHash({
+      const toFetch = {
         cluster: {
           inStoreType: 'management',
           type:        FLEET.CLUSTER
-        },
-      }, this.$store);
+        }
+      };
+
+      // Only fetch bundles if in list mode
+      if (this.isListMode) {
+        toFetch.bundle = {
+          inStoreType: 'management',
+          type:        this.resource
+        };
+      }
+
+      hash = await checkSchemasForFindAllHash(toFetch, this.$store);
     } catch (e) {
     }
 
-    // Only fetch all bundles if we're in list mode (no value prop)
-    if (this.isListMode) {
-      await this.$fetchType(this.resource);
+    // checkSchemasForFindAllHash already fetched the data, just get it from the store
+    if (this.isListMode && hash?.bundle) {
+      // Data is already in the store, no need to fetch again
+      this.rows = hash.bundle;
     }
 
-    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
-      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
-    }
+    this.allFleet = hash?.cluster || [];
   },
 
   data() {
-    return { allFleet: [] };
+    return {
+      allFleet: [],
+      rows:     []
+    };
   },
 
   mounted() {
