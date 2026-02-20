@@ -79,22 +79,10 @@ export default {
       const options = ['never', 'day', 'month', 'year', 'custom'];
       let opts = options.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
 
-      // updated decision table based on maxTTL value (for ext.cattle.io.token)
-      // max | ttl         | note                                        | result
-      // --- + ----------- + ------------------------------------------- + ----------------
-      // < 1 | < 0         | max, ttl = +inf, no clamp                   | ttl
-      // < 1 | = 0         | max = +inf = default, ttl default requested | -1 = +inf
-      // < 1 | > 0         | max = +inf, ttl is regular, less than max   | ttl
-      // --- + ----------- + ------------------------------------------- + ----------------
-      // > 0 | < 0         | ttl = +inf, clamp to max                    | max
-      // > 0 | = 0         | ttl default requested, this is max          | max
-      // > 0 | > 0, <= max | less than max                               | ttl
-      // > 0 | > max       | clamp to max                                | max
-
-      // When the TTL is anything other than 0, present only two options
+      // When the TTL is greater than 0, present only two options
       // (1) The maximum allowed
       // (2) Custom
-      if (this.maxTTL >= 0 ) {
+      if (this.maxTTL > 0 ) {
         const now = day();
         const expiry = now.add(this.maxTTL, 'minute');
         const max = diffFrom(expiry, now, this.t);
@@ -102,8 +90,9 @@ export default {
         opts = opts.filter((opt) => opt.value === 'custom');
         opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
       } else {
-        // maxTTL < 0 means there is no maximum, so we can show the 'never' option which results in an infinite TTL
-        opts = opts.filter((opt) => opt.value === 'never');
+        // maxTTL <= 0 means there is no maximum, so we can show the 'never' option which results in an infinite TTL
+        // OR if we set a positive TTL, then it assumes that value
+        opts = opts.filter((opt) => opt.value === 'never' || opt.value === 'custom');
       }
 
       return opts;
@@ -114,8 +103,8 @@ export default {
 
       return filtered.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
-    isExpiryOptionsOnlyNever() {
-      return this.expiryOptions.length === 1 && this.expiryOptions[0].value === 'never';
+    hasNeverOption() {
+      return this.expiryOptions?.filter((opt) => opt.value === 'never')?.length === 1;
     }
   },
 
@@ -231,12 +220,12 @@ export default {
       />
 
       <Banner
-        v-if="isExpiryOptionsOnlyNever"
+        v-if="hasNeverOption"
         color="warning"
         class="mt-20"
       >
         <div>
-          {{ t('accountAndKeys.apiKeys.info.expiryOptionsOnlyNever') }}
+          {{ t('accountAndKeys.apiKeys.info.expiryOptionsWithNever') }}
         </div>
       </Banner>
 
@@ -253,7 +242,6 @@ export default {
           name="expiryGroup"
         />
         <div
-          v-if="!isExpiryOptionsOnlyNever"
           class="ml-20 mt-10 expiry"
         >
           <input

@@ -1040,8 +1040,8 @@ export const SCOPE_NORMAN = {
 
 export const NORMAN_KEY_DEPRECATION = {
   name:        'isNormanKeyDeprecated',
-  labelKey:    'tableHeaders.isDeprecated',
-  value:       'isDeprecated',
+  labelKey:    'tableHeaders.isLegacy',
+  value:       (row) => row.isDeprecated ? 'True' : undefined,
   sort:        'isDeprecated',
   align:       'left',
   dashIfEmpty: true,
