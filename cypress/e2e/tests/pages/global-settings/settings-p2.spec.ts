@@ -55,11 +55,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
       settingsPage.waitForUrlPathWithoutContext();
       settingsPage.settingsValue('server-url').contains(value);
 
-      // Check Account and API Keys page
-      AccountPagePo.navTo();
-      accountPage.waitForUrlPathWithoutContext();
-      accountPage.isCurrentPage();
-      cy.contains(value).should('be.visible');
+      // TODO: we've removed the API endpoint from the accounts page
+      // so we can't check that the updated server-url is reflected there,
+      // but we should find a way to check that the updated server-url is being used in the app somewhere
+      // // Check Account and API Keys page
+      // AccountPagePo.navTo();
+      // accountPage.waitForUrlPathWithoutContext();
+      // accountPage.isCurrentPage();
+      // cy.contains(value).should('be.visible');
 
       // Check reset button disabled
       SettingsPagePo.navTo();
