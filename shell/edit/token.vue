@@ -79,16 +79,31 @@ export default {
       const options = ['never', 'day', 'month', 'year', 'custom'];
       let opts = options.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
 
+      // updated decision table based on maxTTL value (for ext.cattle.io.token)
+      // max | ttl         | note                                        | result
+      // --- + ----------- + ------------------------------------------- + ----------------
+      // < 1 | < 0         | max, ttl = +inf, no clamp                   | ttl
+      // < 1 | = 0         | max = +inf = default, ttl default requested | -1 = +inf
+      // < 1 | > 0         | max = +inf, ttl is regular, less than max   | ttl
+      // --- + ----------- + ------------------------------------------- + ----------------
+      // > 0 | < 0         | ttl = +inf, clamp to max                    | max
+      // > 0 | = 0         | ttl default requested, this is max          | max
+      // > 0 | > 0, <= max | less than max                               | ttl
+      // > 0 | > max       | clamp to max                                | max
+
       // When the TTL is anything other than 0, present only two options
       // (1) The maximum allowed
       // (2) Custom
-      if (this.maxTTL !== 0 ) {
+      if (this.maxTTL >= 0 ) {
         const now = day();
         const expiry = now.add(this.maxTTL, 'minute');
         const max = diffFrom(expiry, now, this.t);
 
-        opts = opts.filter((opt) => opt.value === 'custom' || opt.value === 'never');
+        opts = opts.filter((opt) => opt.value === 'custom');
         opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
+      } else {
+        // maxTTL < 0 means there is no maximum, so we can show the 'never' option which results in an infinite TTL
+        opts = opts.filter((opt) => opt.value === 'never');
       }
 
       return opts;
@@ -99,6 +114,9 @@ export default {
 
       return filtered.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
+    isExpiryOptionsOnlyNever() {
+      return this.expiryOptions.length === 1 && this.expiryOptions[0].value === 'never';
+    }
   },
 
   mounted() {
@@ -147,9 +165,9 @@ export default {
         this.ttlLimited = this.created?.spec?.ttl !== this.ttl;
         const token = this.created?.status?.bearerToken?.split(':');
 
-        this.accessKey = token[0]?.replace('ext/', '');
+        this.accessKey = token[0];
         this.secretKey = (token.length > 1) ? token[1] : '';
-        this.token = this.created?.status?.bearerToken?.replace('ext/', '');
+        this.token = this.created?.status?.bearerToken;
       }
     },
 
@@ -169,7 +187,6 @@ export default {
       const units = (v === 'custom') ? this.form.customExpiryUnits : v;
       let ttl = 0;
 
-      // TODO: never doesn't seem to be working as expected - needs further investigation
       if (v === 'never') {
         ttl = -1;
       } else if (units === 'max') {
@@ -208,12 +225,22 @@ export default {
 
       <Checkbox
         v-model:value="form.enabled"
-        class="mt-20"
+        class="mt-20 mb-20"
         :mode="mode"
         label-key="accountAndKeys.apiKeys.add.enabled"
       />
 
-      <h5 class="pt-20">
+      <Banner
+        v-if="isExpiryOptionsOnlyNever"
+        color="warning"
+        class="mt-20"
+      >
+        <div>
+          {{ t('accountAndKeys.apiKeys.info.expiryOptionsOnlyNever') }}
+        </div>
+      </Banner>
+
+      <h5 class="mb-20">
         {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
       </h5>
 
@@ -225,7 +252,10 @@ export default {
           class="mr-20"
           name="expiryGroup"
         />
-        <div class="ml-20 mt-10 expiry">
+        <div
+          v-if="!isExpiryOptionsOnlyNever"
+          class="ml-20 mt-10 expiry"
+        >
           <input
             v-model="form.customExpiry"
             :disabled="form.expiryType !== 'custom'"

@@ -1039,11 +1039,12 @@ export const SCOPE_NORMAN = {
 };
 
 export const NORMAN_KEY_DEPRECATION = {
-  name:     'isNormanKeyDeprecated',
-  labelKey: 'tableHeaders.isDeprecated',
-  value:    'isDeprecated',
-  sort:     'isDeprecated',
-  align:    'left',
+  name:        'isNormanKeyDeprecated',
+  labelKey:    'tableHeaders.isDeprecated',
+  value:       'isDeprecated',
+  sort:        'isDeprecated',
+  align:       'left',
+  dashIfEmpty: true,
 };
 
 export const EXPIRES = {

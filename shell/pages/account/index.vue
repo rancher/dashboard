@@ -73,17 +73,9 @@ export default {
       normanTokens, steveTokens, allSettings, user
     } = await allHash(hashedRequests);
 
-    if (normanTokens) {
-      this.normanTokens = normanTokens;
-    }
-
-    if (steveTokens) {
-      this.steveTokens = steveTokens;
-    }
-
-    if (user) {
-      this.user = user;
-    }
+    this.normanTokens = normanTokens;
+    this.steveTokens = steveTokens;
+    this.user = user;
 
     const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
     const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);

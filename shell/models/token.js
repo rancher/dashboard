@@ -18,6 +18,6 @@ export default class extends NormanModel {
   }
 
   get isDeprecated() {
-    return true;
+    return 'True';
   }
 }

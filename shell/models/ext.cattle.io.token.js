@@ -15,7 +15,7 @@ export default class SteveToken extends SteveModel {
   }
 
   get isDeprecated() {
-    return '---';
+    return undefined;
   }
 
   get state() {
