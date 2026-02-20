@@ -851,7 +851,7 @@ export default {
     },
 
     hasOnlyIpv6Pools() {
-      return !(this.machinePools || []).find((p) => !p.isIpv6);
+      return !(this.machinePools || []).find((p) => !p.isIpv6 || p.isDualStack);
     },
 
     hasDualStackPools() {
@@ -1527,8 +1527,8 @@ export default {
       }
     },
 
-    async showIpv6Warning() {
-      if (this.mode !== _CREATE || !this.machinePools?.length) {
+    async showIpv6Warning(hookContext) {
+      if (this.mode !== _CREATE) {
         return;
       }
       const stackPreference = this.value.spec.rkeConfig.networking.stackPreference;
@@ -1537,11 +1537,11 @@ export default {
       const clusterCIDR = (this.serverConfig['cluster-cidr'] || '');
       const serviceCIDR = (this.serverConfig['service-cidr'] || '');
 
-      const isIpv6 = this.hasOnlyIpv6Pools;
       const isDualStack = this.hasDualStackPools;
+      const isIpv6 = this.hasOnlyIpv6Pools;
 
       const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
-      const stackPrefInvalid = (isIpv6 && ![STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(stackPreference)) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
 
       const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
       const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');

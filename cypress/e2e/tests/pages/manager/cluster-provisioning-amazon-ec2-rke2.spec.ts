@@ -26,23 +26,22 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   before(() => {
     cy.login();
 
-    // TODO nb revert
     // // clean up amazon cloud credentials
-    // cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
-    //   const body = resp.body;
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
 
-    //   if (body.pagination['total'] > 0) {
-    //     body.data.forEach((item: any) => {
-    //       if (item.amazonec2credentialConfig) {
-    //         const id = item.id;
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
 
-    //         cy.deleteRancherResource('v3', 'cloudcredentials', id);
-    //       } else {
-    //         cy.log('There are no existing amazon cloud credentials to delete');
-    //       }
-    //     });
-    //   }
-    // });
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
+      }
+    });
   });
 
   beforeEach(() => {
@@ -52,7 +51,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
-  it.skip('can create an RKE2 cluster using Amazon cloud provider', function() {
+  it('can create an RKE2 cluster using Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -137,7 +136,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       });
   });
 
-  it.skip('can see details of cluster in cluster list', function() {
+  it('can see details of cluster in cluster list', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -162,7 +161,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterList.list().machines(this.rke2Ec2ClusterName).should('contain.text', '1');
   });
 
-  it.skip('cluster details page', function() {
+  it('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -180,7 +179,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
-  it.skip('can upgrade Kubernetes version', function() {
+  it('can upgrade Kubernetes version', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -242,7 +241,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('have.class', 'vs__dropdown-option--disabled');
   });
 
-  it.skip('can create snapshot', function() {
+  it('can create snapshot', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -272,7 +271,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
   });
 
-  it.skip('can scale up a machine pool', function() {
+  it('can scale up a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
 
@@ -330,7 +329,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
   });
 
-  it.skip('can scale down a machine pool', function() {
+  it('can scale down a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     // Set user preference to ensure the scale down confirmation modal always appears
     cy.setUserPreference({ 'scale-pool-prompt': false });
@@ -382,7 +381,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('be.disabled');
   });
 
-  it.skip('can delete an Amazon EC2 RKE2 cluster', function() {
+  it('can delete an Amazon EC2 RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Delete').click();
@@ -456,33 +455,42 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
-    // toggle off ipv6-only and ensure the dialog has 1 fewer warnings
+    // toggle off ipv6-only and ensure the dialog no longer has flannel masq warning
     createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Masq');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
-    // toggle ipv6-only back on to verify that setting flannel masq removes the warning about flannel masq
-    createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
-
-    // verify that setting stack pref to dual or ipv6 removes the stack preference warning
+    // verify that setting stack pref to dual removes the stack preference warning
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#networking');
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('Dual');
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'stack preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
+    // toggle ipv6-only back on
+    createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
+
+    // verify that a warning for stack preference is shown again
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack preference to 'IPv6' clears the warning
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'stack preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // set cluster/service CIDR and verify that the confirmation modal is updated
@@ -492,7 +500,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'cluster CIDR');
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'CIDR');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // set flannel masq and verify that the confirmation modal is no longer shown
@@ -566,7 +574,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
-    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'stack preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Stack Preference');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // verify that setting stack pref to ipv6 removes the stack preference warning
@@ -575,7 +583,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'stack preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // set cluster/service CIDR and verify that the confirmation modal is updated
@@ -585,7 +593,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'cluster CIDR');
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'CIDR');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // set flannel masq and verify that the confirmation modal is no longer shown

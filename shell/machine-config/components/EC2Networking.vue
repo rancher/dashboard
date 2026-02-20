@@ -161,6 +161,11 @@ export default {
 
     ipv6AddressOnly(neu) {
       this.$emit('update:isIpv6', neu);
+      if (neu) {
+        this.$emit('update:isDualStack', false);
+      } else if (this.enableIpv6) {
+        this.$emit('update:isDualStack', true);
+      }
     },
 
     allValid: {
