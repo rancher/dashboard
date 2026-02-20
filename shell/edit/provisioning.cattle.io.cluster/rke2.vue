@@ -1528,7 +1528,7 @@ export default {
     },
 
     async showIpv6Warning(hookContext) {
-      if (this.mode !== _CREATE) {
+      if (this.mode !== _CREATE || !this.machinePools?.length) {
         return;
       }
       const stackPreference = this.value.spec.rkeConfig.networking.stackPreference;
@@ -1541,7 +1541,7 @@ export default {
       const isIpv6 = this.hasOnlyIpv6Pools;
 
       const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
-      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && ![STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(stackPreference));
 
       const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
       const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');
