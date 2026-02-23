@@ -113,6 +113,9 @@ interface RcItemCardProps {
   /** Makes the card clickable and emits 'card-click' on click/enter/space */
   clickable?: boolean;
 
+  /** Highlights the card as selected */
+  selected?: boolean;
+
   role?: 'link' | 'button' | undefined;
 }
 
@@ -176,8 +179,8 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
     class="item-card"
     :data-testid="`item-card-${id}`"
     :class="{
-      'clickable':
-        clickable
+      'clickable': clickable,
+      'selected': selected
     }"
     @click="_handleCardClick"
   >
@@ -324,7 +327,8 @@ $image-medium-box-width: 48px;
   background: var(--body-bg);
   cursor: v-bind(cursorValue);
 
-  &.clickable:hover {
+  &.clickable:hover,
+  &.selected {
     border-color: var(--primary);
   }
 

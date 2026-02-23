@@ -4,7 +4,7 @@ import { _CREATE } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 import { get } from '@shell/utils/object';
 import { rke2TestTable } from './utils/rke2-test-data';
-import { NGINX_SUPPORTED, INGRESS_CONTROLLER, INGRESS_NGINX } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+import { RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 /**
  * DISCLAIMER ***************************************************************************************
@@ -654,7 +654,7 @@ describe('component: rke2', () => {
         rke2Versions: [{
           id:         k8sVersion,
           version:    k8sVersion,
-          serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
         }]
       });
 
@@ -682,7 +682,7 @@ describe('component: rke2', () => {
         rke2Versions: [{
           id:         k8sVersion,
           version:    k8sVersion,
-          serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
         }]
       });
 
@@ -698,11 +698,11 @@ describe('component: rke2', () => {
         rke2Versions: [{
           id:         k8sVersion,
           version:    k8sVersion,
-          serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
         }]
       });
 
-      (wrapper.vm as any).handleEnabledSystemServicesChanged([NGINX_SUPPORTED]);
+      (wrapper.vm as any).handleEnabledSystemServicesChanged([RKE2_INGRESS_NGINX]);
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
     });
@@ -730,7 +730,7 @@ describe('component: rke2', () => {
         rke2Versions: [{
           id:         k8sVersion,
           version:    k8sVersion,
-          serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
         }]
       });
       const disabledServices = ['other-service'];
@@ -749,12 +749,12 @@ describe('component: rke2', () => {
           {
             id:         k8sVersion,
             version:    k8sVersion,
-            serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
           },
           {
             id:         newVersion,
             version:    newVersion,
-            serverArgs: { disable: { options: [NGINX_SUPPORTED] } }
+            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } }
           }
         ]
       });
