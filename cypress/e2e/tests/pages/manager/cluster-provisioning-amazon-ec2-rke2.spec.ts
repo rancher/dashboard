@@ -9,6 +9,8 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import describeSubnetsResponse from '@/cypress/e2e/blueprints/manager/describe-subnets-response';
+import describeVpcsResponse from '@/cypress/e2e/blueprints/manager/describe-vpcs-response';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
@@ -152,11 +154,14 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     });
 
     // check provider
+
     clusterList.list().provider(this.rke2Ec2ClusterName).should('contain.text', 'Amazon EC2');
     clusterList.list().providerSubType(this.rke2Ec2ClusterName).should('contain.text', 'RKE2');
 
     // check machines
     clusterList.list().machines(this.rke2Ec2ClusterName).should('contain.text', '1');
+    // check that the machine progress bar is 1 color
+    clusterList.list().machines(this.rke2Ec2ClusterName).find('.piece').should('have.length', 1);
   });
 
   it('cluster details page', function() {
@@ -175,6 +180,144 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
     clusterDetails.waitForPage(null, 'events');
     clusterDetails.recentEventsList().checkTableIsEmpty();
+  });
+
+  it('can scale up a machine pool', function() {
+    // testing https://github.com/rancher/dashboard/issues/13285
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+
+    // Navigate to cluster details page > machine pools
+    clusterList.list().name(this.rke2Ec2ClusterName).click();
+    clusterDetails.waitForPage(null, 'machine-pools');
+    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
+
+    // Verify scaling buttons are present in the machine pools section
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
+    // Check for scale up button (it should be enabled)
+    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .should('be.visible')
+      .and('be.enabled');
+
+    // Hover scale up button - tooltip should read "Scale Pool Up"
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
+      .waitForTooltipWithText('Scale Pool Up');
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
+      .hideTooltip();
+
+    // Check for scale down button (it should be disabled initially)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .should('be.visible')
+      .and('be.disabled');
+
+    // Hover scale down button - tooltip should read "Scale Pool Down"
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
+      .waitForTooltipWithText('Scale Pool Down');
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
+      .hideTooltip();
+
+    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleUpMachineDeployment');
+
+    // table should say 1 or "0 of 1" if machine hasn't finished provisioning at this point
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /1$/, LONG_TIMEOUT_OPT);
+
+    // progress bar should either be all green (first machine done by this stage) or all red (first machine still provisioning)
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.piece').should('have.length', 1);
+
+    // Scale up the machine pool
+    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .click();
+
+    cy.wait('@scaleUpMachineDeployment').its('response.statusCode').should('eq', 200);
+
+    clusterDetails.poolsList('machine').machineUnavailableCount(`${ this.rke2Ec2ClusterName }-pool1`).then((c) => parseInt(c)).should('be.greaterThan', 0);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^[0-9] of 2$/);
+
+    // progress bar should contain red - possibly green/red if first machine is done but definitely at least red
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-error').should('exist');
+
+    // Verify the machine pool is scaled up to 2
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
+
+    // check that progress bar contains green and no red
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-error').should('not.exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-success').should('exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.piece').should('have.length', 1);
+
+    // Verify the scale down button is now enabled (since we have 2 nodes)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .should('be.enabled');
+
+    // Verify the cluster is active
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
+  });
+
+  it('can scale down a machine pool', function() {
+    // testing https://github.com/rancher/dashboard/issues/13285
+    // Set user preference to ensure the scale down confirmation modal always appears
+    cy.setUserPreference({ 'scale-pool-prompt': false });
+
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+
+    // Navigate to cluster details page > machine pools
+    clusterList.list().name(this.rke2Ec2ClusterName).click();
+    clusterDetails.waitForPage(null, 'machine-pools');
+    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
+
+    // Verify we have 2 nodes to start with (from the previous scale up test)
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, MEDIUM_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-error').should('not.exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-success').should('exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.piece').should('have.length', 1);
+
+    // Verify the scale down button is enabled
+    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .should('be.visible')
+      .and('be.enabled');
+
+    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleDownMachineDeployment');
+
+    // Scale down the machine pool
+    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .click();
+
+    // Handle the scale down confirmation dialog
+    promptModal().getBody().should('contain', 'You are attempting to delete the MachineDeployment');
+    promptModal().getBody().should('contain', `${ this.rke2Ec2ClusterName }-pool1`);
+    promptModal().clickActionButton('Confirm');
+
+    cy.wait('@scaleDownMachineDeployment').its('response.statusCode').should('eq', 200);
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-error').should('exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-success').should('exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.piece').should('have.length', 2);
+
+    // Verify the machine pool is scaled down to 1
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
+    // progress bar should contain green and no other color
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-error').should('not.exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.bg-success').should('exist');
+    clusterDetails.poolsList('machine').machineProgressBar(`${ this.rke2Ec2ClusterName }-pool1`).find('.piece').should('have.length', 1);
+
+    // Verify the cluster is updating -> active
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 1, VERY_LONG_TIMEOUT_OPT);
+
+    // Verify the scale down button is now disabled (can't scale below 1)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
+      .should('be.disabled');
   });
 
   it('can upgrade Kubernetes version', function() {
@@ -269,116 +412,6 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
   });
 
-  it('can scale up a machine pool', function() {
-    // testing https://github.com/rancher/dashboard/issues/13285
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
-
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-
-    // Navigate to cluster details page > machine pools
-    clusterList.list().name(this.rke2Ec2ClusterName).click();
-    clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
-
-    // Verify scaling buttons are present in the machine pools section
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
-
-    // Check for scale up button (it should be enabled)
-    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.enabled');
-
-    // Hover scale up button - tooltip should read "Scale Pool Up"
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
-      .waitForTooltipWithText('Scale Pool Up');
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
-      .hideTooltip();
-
-    // Check for scale down button (it should be disabled initially)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.disabled');
-
-    // Hover scale down button - tooltip should read "Scale Pool Down"
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
-      .waitForTooltipWithText('Scale Pool Down');
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
-      .hideTooltip();
-
-    cy.intercept('PUT', ` /v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleUpMachineDeployment');
-    // Scale up the machine pool
-    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .click();
-
-    cy.wait('@scaleUpMachineDeployment').its('response.statusCode').should('eq', 200);
-
-    // Verify the machine pool is scaled up to 2
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
-
-    // Verify the scale down button is now enabled (since we have 2 nodes)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.enabled');
-
-    // Verify the cluster is active
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
-  });
-
-  it('can scale down a machine pool', function() {
-    // testing https://github.com/rancher/dashboard/issues/13285
-    // Set user preference to ensure the scale down confirmation modal always appears
-    cy.setUserPreference({ 'scale-pool-prompt': false });
-
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
-
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-
-    // Navigate to cluster details page > machine pools
-    clusterList.list().name(this.rke2Ec2ClusterName).click();
-    clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
-
-    // Verify we have 2 nodes to start with (from the previous scale up test)
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
-
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, 2, MEDIUM_TIMEOUT_OPT);
-
-    // Verify the scale down button is enabled
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.enabled');
-
-    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleDownMachineDeployment');
-
-    // Scale down the machine pool
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .click();
-
-    // Handle the scale down confirmation dialog
-    promptModal().getBody().should('contain', 'You are attempting to delete the MachineDeployment');
-    promptModal().getBody().should('contain', `${ this.rke2Ec2ClusterName }-pool1`);
-    promptModal().clickActionButton('Confirm');
-
-    cy.wait('@scaleDownMachineDeployment').its('response.statusCode').should('eq', 200);
-
-    // Verify the machine pool is scaled down to 1
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
-
-    // Verify the cluster is updating -> active
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 1, VERY_LONG_TIMEOUT_OPT);
-
-    // Verify the scale down button is now disabled (can't scale below 1)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.disabled');
-  });
-
   it('can delete an Amazon EC2 RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -395,6 +428,218 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       clusterList.sortableTable().checkRowCount(false, rows.length - 1, MEDIUM_TIMEOUT_OPT);
       clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke2Ec2ClusterName);
     });
+  });
+
+  it('validates cluster networking configuration when machines are using dual-stack networking', function() {
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
+
+    // Intercept AWS API requests
+    cy.intercept('POST', 'meta/proxy/ec2*', (req) => {
+      const requestBody = req.body;
+
+      if (requestBody?.includes('DescribeSubnets')) {
+        req.reply(describeSubnetsResponse);
+      } else if (requestBody?.includes('DescribeVpcs')) {
+        req.reply(describeVpcsResponse);
+      } else {
+        req.continue();
+      }
+    });
+
+    // Intercept and prevent cluster creation POST request
+    cy.intercept('POST', 'v1/provisioning.cattle.io.clusters', (req) => {
+      req.reply(200);
+    }).as('createRke2Cluster');
+
+    // load cluster creation page
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.createCluster();
+    createRKE2ClusterPage.selectCreate(0);
+    loadingPo.checkNotExists();
+    createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
+    createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2', 'basic');
+
+    // set cluster name to enable save button
+    createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
+
+    createRKE2ClusterPage.machinePoolTab().enableDualStack().set();
+
+    createRKE2ClusterPage.machinePoolTab().networks().toggle();
+    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('(vpc-123)');
+    createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
+
+    // click create, verify confirmation modal appears with 2 warnings
+    createRKE2ClusterPage.create();
+
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // toggle to k3s and verify the confirmation modal appears with a third warning
+    createRKE2ClusterPage.basicsTab().kubernetesVersions().toggle();
+    createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel('k3s');
+
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // toggle off ipv6-only and ensure the dialog no longer has flannel masq warning
+    createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
+
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Masq');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack preference to 'IPv6' clears the warning
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#networking');
+    createRKE2ClusterPage.networkTab().stackPreference().toggle();
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack pref to dual does not reintroduce the warning
+    createRKE2ClusterPage.networkTab().stackPreference().toggle();
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('Dual');
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // toggle ipv6-only back on
+    createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
+
+    // verify that warnings for stack preference and flannel masq are shown again
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack preference to 'IPv6' removes the stack preference warning
+    createRKE2ClusterPage.networkTab().stackPreference().toggle();
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // set cluster/service CIDR and verify that the confirmation modal is updated
+    createRKE2ClusterPage.networkTab().clusterCIDR().set('fd00:10:244::/120');
+    createRKE2ClusterPage.networkTab().serviceCIDR().set('fd00:10:244::/120');
+
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'CIDR');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // set flannel masq and verify that the confirmation modal is no longer shown
+    createRKE2ClusterPage.networkTab().flannelMasq().set();
+    createRKE2ClusterPage.create();
+    cy.wait('@createRke2Cluster');
+  });
+
+  it('validates cluster networking configuration when machines are using ipv6-only networking', function() {
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
+
+    // Intercept AWS API requests
+    cy.intercept('POST', 'meta/proxy/ec2*', (req) => {
+      const requestBody = req.body;
+
+      if (requestBody?.includes('DescribeSubnets')) {
+        req.reply(describeSubnetsResponse);
+      } else if (requestBody?.includes('DescribeVpcs')) {
+        req.reply(describeVpcsResponse);
+      } else {
+        req.continue();
+      }
+    });
+
+    // Intercept and prevent cluster creation POST request
+    cy.intercept('POST', 'v1/provisioning.cattle.io.clusters', (req) => {
+      req.reply(200);
+    }).as('createRke2Cluster');
+
+    // load cluster creation page
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.createCluster();
+    createRKE2ClusterPage.selectCreate(0);
+    loadingPo.checkNotExists();
+    createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
+    createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2', 'basic');
+
+    // set cluster name to enable save button
+    createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
+
+    createRKE2ClusterPage.machinePoolTab().enableDualStack().set();
+
+    createRKE2ClusterPage.machinePoolTab().networks().toggle();
+    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('ipv6only');
+
+    // verify that the enable ipv6 checkbox is automatically set
+    createRKE2ClusterPage.machinePoolTab().enableIpv6().isChecked();
+
+    // click create, verify confirmation modal appears with 2 warnings
+    createRKE2ClusterPage.create();
+
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // toggle to k3s and verify the confirmation modal appears with a third warning
+    createRKE2ClusterPage.basicsTab().kubernetesVersions().toggle();
+    createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel('k3s');
+
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack pref to dual does not remove the stack preference warning
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#networking');
+    createRKE2ClusterPage.networkTab().stackPreference().toggle();
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('Dual');
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // verify that setting stack pref to ipv6 removes the stack preference warning
+    createRKE2ClusterPage.networkTab().stackPreference().toggle();
+    createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // set cluster/service CIDR and verify that the confirmation modal is updated
+    createRKE2ClusterPage.networkTab().clusterCIDR().set('fd00:10:244::/120');
+    createRKE2ClusterPage.networkTab().serviceCIDR().set('fd00:10:244::/120');
+
+    createRKE2ClusterPage.create();
+    createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
+    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'CIDR');
+    createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
+
+    // set flannel masq and verify that the confirmation modal is no longer shown
+    createRKE2ClusterPage.networkTab().flannelMasq().set();
+    createRKE2ClusterPage.create();
+    cy.wait('@createRke2Cluster');
   });
 
   after('clean up', () => {

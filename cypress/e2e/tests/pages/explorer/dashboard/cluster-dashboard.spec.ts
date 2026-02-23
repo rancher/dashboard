@@ -225,8 +225,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Create a pod to trigger events
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -328,8 +328,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // log in as admin
       cy.login();
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        const adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.status.userID;
 
         // create project
         return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
@@ -386,7 +386,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
-        cy.deleteRancherResource('v3', 'users', userId);
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', userId);
       });
     });
   });

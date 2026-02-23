@@ -491,7 +491,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
         const resourceVersion = resp.body.metadata.resourceVersion;
 
         cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', {
-          value:    `${ settings.privateLabel.original }`,
+          value:    `${ settings.privateLabel.original }`.toLowerCase(),
           metadata: { name: 'ui-pl', resourceVersion }
         });
       });

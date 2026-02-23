@@ -44,6 +44,10 @@ export default {
       type:    Boolean,
       default: false
     },
+    errorIconTooltip: {
+      type:    String,
+      default: ''
+    },
     badge: {
       default:  0,
       required: false,

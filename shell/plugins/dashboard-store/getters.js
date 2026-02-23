@@ -351,10 +351,22 @@ export default {
     return out;
   },
 
+  /**
+   * Can the user GET a resource of the given type
+   */
+  canGet: (state, getters) => (type) => {
+    const schema = getters.schemaFor(type);
+
+    return schema?.canGet;
+  },
+
+  /**
+   * Can the user LIST a resource of the given type
+   */
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    return schema && schema.hasLink('collection');
+    return schema?.canList;
   },
 
   typeRegistered: (state, getters) => (type) => {
@@ -559,4 +571,14 @@ export default {
    * Can be used to change behaviour given steve cache api functionality
    */
   isSteveCacheUrl: (state) => () => false,
+
+  /**
+   * Get the saved count for the given name
+   *
+   * @param {string} name Name of the saved count
+   * @returns {number|undefined} The saved count or undefined if not found
+   */
+  getSavedCount: (state) => (name) => {
+    return state.savedCounts[name];
+  }
 };

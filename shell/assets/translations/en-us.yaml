@@ -310,6 +310,7 @@ nav:
     clusterNotFound: Cluster { clusterId } not found
     productNotFound: Product { productNotFound } not found
     resourceNotFound: Resource type { resource } not found
+    resourceListNotListable: Resource type { resource } cannot be listed
     resourceListNotFound: Resource type { resource } not found, unable to display list
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
@@ -437,6 +438,7 @@ accountAndKeys:
     notAllowed: You do not have permission to manage API Keys
     apiEndpoint: "API Endpoint:"
     copyApiEnpoint: Copy API Endpoint to clipboard
+    normanTokenDeprecation: The API Keys feature is being migrated to a new API. Any existing API Keys from the legacy API will continue to work, but new API Keys will be created using the new API.
     add:
       description:
         label: Description
@@ -462,7 +464,9 @@ accountAndKeys:
           month: Months
           year: Years
       scope: Scope
+      userPrincipal: User Principal
       noScope: No Scope
+      enabled: Token enabled
     info:
       accessKey: Access Key
       secretKey: Secret Key
@@ -471,7 +475,7 @@ accountAndKeys:
       keyCreated: A new API Key has been created
       bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
       ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
-
+      expiryOptionsWithNever: Since "auth-token-max-ttl-minutes" is set to <= 0, the API Key will not expire unless the "Automatically expire" option is set to "Custom" and a custom expiry time is set.
 addClusterMemberDialog:
   title: Add Cluster Member
 
@@ -1450,6 +1454,8 @@ changePassword:
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
+    cannotChange: This user does not have permissions to change their password
+    cannotFetchSelf: This user does not have permissions to get their user information
 
 chartHeading:
   overview: Overview
@@ -1589,7 +1595,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
-      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPV6 address."
+      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPv6 address."
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
@@ -1862,7 +1868,7 @@ cluster:
       acceleratedNetworking:
         label: Accelerated Networking
       availabilitySet:
-        label: Availability Set (unmanaged)
+        label: Availability Set
         description: Availability sets are used to protect applications from hardware failures within an Azure data center.
       availabilityZone:
         label: Availability Zone
@@ -1887,6 +1893,7 @@ cluster:
         label: Location
       managedDisks:
         label: Use Managed Disks
+        deprecationWarning: 'Azure is retiring unmanaged disk support on March 31, 2026. After this date, VMs using unmanaged disks will be stopped and deallocated. Enable "Use Managed Disks" to avoid service disruption.'
       managedDisksSize:
         label: Managed Disk Size
       nsg:
@@ -2097,19 +2104,19 @@ cluster:
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
       enableIpv6:
-        label: Enable IPv6
-        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+        label: Enable Dual-Stack
+        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack. For an IPv6-only cluster, check \"Enable IPv6\" and update the stack preference to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
         error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
       enablePrimaryIpv6:
-        label: Enable Static Primary Ipv6
-        description: This allows IPv6 communication for components and workloads.
+        label: Enable Static Primary IPv6
+        description: This designates the first assigned IPv6 address as the primary address, ensuring a consistent, non-changing IPv6 address for the instance. This option does not control whether IPv6 addresses are assigned.
       ipv6AddressOnly:
-        label: Use IPv6 Only
+        label: Enable IPv6
       httpProtocolIpv6: 
-        label: Use IPv6 for instance metadata service
+        label: Enable IPv6 endpoint for instance metadata service
       ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:
@@ -2199,6 +2206,7 @@ cluster:
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   agentConfig:
     tabs:
+      agentsScheduling: Agents Scheduling
       cluster: Cluster Agent
       fleet: Fleet Agent
     groups:
@@ -2208,13 +2216,19 @@ cluster:
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
       schedulingCustomization: Scheduling Customization
+      agentsScheduling:
+        text: Ensure that cluster- and/or fleet-agent pods are not evicted due to node pressure, resource constraints or scheduler policies When enabled, these settings may be configured in the 
+        textLink: Global Settings
+        label: 'Prevent agent pod eviction for:'
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
-      schedulingCustomization:
-        label: Prevent Rancher cluster agent pod eviction
-        description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
-        banner: This feature has been enabled with settings that are different from the global default settings.
+      agentsScheduling:
+        cluster: Cluster Agent
+        fleet: Fleet Agent
+        label: Prevent Rancher {agent} pod eviction
+        description: This ensures that the {agent} pod is not evicted due to node pressure, resource constraints or scheduler policies.
+        banner: This feature is currently configured with settings which differ to the default Global Settings. Enable the checkbox below to overwrite the current settings with the default Global Settings.
         innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
@@ -2450,6 +2464,16 @@ cluster:
       editYamlMachinePool:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
+      ipv6Warning:
+        title: Verify IPv6 Settings
+        body: The machine pools in this cluster are configured to use IPv6 networks, but the cluster's networking settings may not support it. 
+        stackPrefInvalid: The <a href="{docsBase}/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 documentation for the stack preference setting">Stack Preference</a> should be set to "Dual" or "IPv6" to use dual-stack or IPv6-only networking, respectively. 
+        flannelMasqInvalid: K3s uses the Flannel cni plugin by default. Enabling Flannel Masq is generally advised when using IPv6 networking.
+        cidrInvalidRke2: To enable dual-stack networking in RKE2 clusters, you must define valid dual-stack cluster and service CIDR ranges.
+        cidrInvalidK3s: To enable dual-stack or IPv6-only networking in K3s clusters, you must define valid dual-stack or IPv6 cluster and service CIDR ranges.
+        readMoreK3s: <a href="https://docs.k3s.io/networking/basic-network-options#dual-stack-ipv4--ipv6-networking" target="_blank" rel="noopener noreferrer nofollow" aria-label="k3s dual-stack networking documentation">Learn more about K3s networking</a>
+        readMoreRke2: <a href="https://docs.rke2.io/networking/basic_network_options#ipv6-setup" target="_blank" rel="noopener noreferrer nofollow" aria-label="rke2 ipv6 networking documentation">Learn more about RKE2 networking</a>
+        verifySettings: 'Before continuing, please verify the following settings:'
     snapshots:
       suffix: Snapshots per node
       s3Suffix: Snapshots
@@ -2576,12 +2600,11 @@ cluster:
           label: Endpoint CA Cert
     stackPreference:
       label: Stack Preference
-      description: "Stack preference determines the networking stack used by the cluster. The selected value configures the address used for health and readiness probes of calico, etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and kubelet. It also defines the server URL in the <code>authentication-token-webhook-config-file</code> for the Authorized Cluster Endpoint and the advertise-client-urls for etcd during snapshot restore. When set to <code>dual</code>, the cluster uses <code>localhost</code>; when set to <code>ipv6</code>, it uses <code>[::1]</code>; and when set to <code>ipv4</code>, it uses <code>127.0.0.1</code>."
+      description: Stack preference determines the networking stack used by the cluster. IPv4 uses <code>127.0.0.1</code>, Dual-Stack uses <code>localhost</code> and IPv6 uses <code>[::1]</code>. Read more about <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#stack-preference"  target="_blank" rel="noopener noreferrer nofollow" >RKE2</a> and <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/k3s-cluster-configuration#stack-preference"  target="_blank" rel="noopener noreferrer nofollow" >K3s</a> networking in the Rancher documentation.
       options:
         ipv4: IPv4
         ipv6: IPv6
-        dual: Dual-Stack
-      errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
+        dual: Dual
   k3s:
     flannelMasq:
       title: IPv6 NAT
@@ -6005,6 +6028,9 @@ rbac:
         label: Login Access
       clustertemplaterevisions-create:
         label: Create RKE Template Revisions
+      proxy-endpoints-manage:
+        label: Manage Rancher Proxy
+        description: Allows the user to manage settings for proxying HTTP requests via Rancher
   errors:
     escalation: You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.
 
@@ -6758,6 +6784,7 @@ storageClass:
       tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
+  isLegacy: Legacy
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
   accessKey: Access Key
@@ -8698,6 +8725,10 @@ advancedSettings:
     moreActions: More actions for setting - { setting }
     label: Edit Setting
     changeSetting: "Change Setting:"
+    agentConfigBanner: 
+      text: Editing this value will not change the value set in running clusters! In order to update a running cluster to use the new values, edit the cluster and click on “Apply global settings for Priority Class and Pod Disruption Budget” in the {agent} Agent configuration tab.
+      cluster: Cluster
+      fleet: Fleet
     trueOption: "True"
     falseOption: "False"
     value: Value
@@ -9263,7 +9294,7 @@ component:
             events: Events
         extrasCard:
           title: Extras
-          message: 'Consider installing additional <a class="secondary text-deemphasized" href="{extensionsUrl}">extensions</a> and / or <a class="secondary-text-link" href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
+          message: 'Consider installing additional <extensionsLink>extensions</extensionsLink> and / or <clusterToolsLink>cluster tools</clusterToolsLink> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}

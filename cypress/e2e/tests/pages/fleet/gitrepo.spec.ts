@@ -6,6 +6,7 @@ import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -43,8 +44,8 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
     beforeEach(() => {
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        adminUserId = resp.body.status.userID;
       });
 
       cy.createE2EResourceName('git-repo').as('gitRepo');
@@ -410,5 +411,24 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
   after(() => {
     reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+  });
+  it('should display continuous delivery page git repo', () => {
+    const gitRepoList = new FleetGitRepoListPagePo();
+
+    gitRepoList.goTo();
+    gitRepoList.checkIsCurrentPage();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('Continuous Delivery Page - git repos');
   });
 });

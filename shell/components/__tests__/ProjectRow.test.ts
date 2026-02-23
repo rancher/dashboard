@@ -143,4 +143,64 @@ describe('component: ProjectRow.vue', () => {
     expect(wrapper.vm.isCustom).toBe(true);
     expect(wrapper.vm.customType).toBe('requests.nvidia.com/gpu');
   });
+
+  it('should emit update:resource-identifier when updateCustomType is called', () => {
+    const wrapper: any = shallowMount(ProjectRow, {
+      props: {
+        ...defaultMountOptions.props,
+        type: TYPES.EXTENDED,
+      }
+    });
+
+    wrapper.vm.updateCustomType('my-custom-resource');
+
+    expect(wrapper.emitted('update:resource-identifier')).toBeTruthy();
+    expect(wrapper.emitted('update:resource-identifier')[0]).toStrictEqual([{
+      type:       TYPES.EXTENDED,
+      customType: 'my-custom-resource',
+      index:      0
+    }]);
+  });
+
+  it('should not delete resource limits if there are duplicate keys in localTypeValues', () => {
+    const value = {
+      spec: {
+        resourceQuota:                 { limit: { extended: { 'my-resource': '10' } } },
+        namespaceDefaultResourceQuota: { limit: { extended: { 'my-resource': '5' } } }
+      }
+    };
+    const wrapper: any = shallowMount(ProjectRow, {
+      props: {
+        ...defaultMountOptions.props,
+        value,
+        typeValues: ['extended.my-resource', 'extended.my-resource']
+      }
+    });
+
+    wrapper.vm.deleteResourceLimits('my-resource', true);
+
+    expect(value.spec.resourceQuota.limit.extended['my-resource']).toStrictEqual('10');
+    expect(value.spec.namespaceDefaultResourceQuota.limit.extended['my-resource']).toStrictEqual('5');
+  });
+
+  it('should delete resource limits if there is only one key in localTypeValues', () => {
+    const value = {
+      spec: {
+        resourceQuota:                 { limit: { extended: { 'my-resource': '10' } } },
+        namespaceDefaultResourceQuota: { limit: { extended: { 'my-resource': '5' } } }
+      }
+    };
+    const wrapper: any = shallowMount(ProjectRow, {
+      props: {
+        ...defaultMountOptions.props,
+        value,
+        typeValues: ['extended.my-resource']
+      }
+    });
+
+    wrapper.vm.deleteResourceLimits('my-resource', true);
+
+    expect(value.spec.resourceQuota.limit.extended['my-resource']).toBeUndefined();
+    expect(value.spec.namespaceDefaultResourceQuota.limit.extended['my-resource']).toBeUndefined();
+  });
 });

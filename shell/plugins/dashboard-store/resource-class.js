@@ -1284,9 +1284,15 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', {
-          data: res, existing: (forNew ? this : undefined ), invalidatePageCache
-        });
+        const keyField = this.$getters.keyFieldForType(this.type);
+        const id = res[keyField];
+
+        // only items with ID will be added to the store, this prevents "new" resources that return an empty body OR no ID from being added to the store with an ID of "undefined"
+        if (id) {
+          await this.$dispatch('load', {
+            data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+          });
+        }
       }
     } catch (e) {
       if ( this.type && this.id && e?._status === 409) {
@@ -2164,7 +2170,7 @@ export default class Resource {
   get insightCardProps() {
     const rows = [
       useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.conditions'), this.resourceConditions, undefined, 'condition', '#conditions'),
-      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, undefined, undefined, '#events'),
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, 'insightsColor', 'eventType', '#events'),
     ];
 
     return {
@@ -2181,7 +2187,8 @@ export default class Resource {
   }
 
   get _cards() {
-    return [this.insightCard];
+    // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
+    return [];
   }
 
   get cards() {

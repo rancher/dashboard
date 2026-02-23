@@ -1,8 +1,9 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
+describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
   const cloudCredentialsPage = new CloudCredentialsPagePo();
   let cloudcredentialId = '';
 
@@ -19,11 +20,13 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   beforeEach(() => {
+    cy.login();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
     cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   it('can see error when authentication fails', function() {
-    CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
@@ -39,7 +42,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   it('can create aws cloud credentials', function() {
-    CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
@@ -71,7 +75,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   it('can edit cloud credentials', function() {
-    CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.list().actionMenu(this.cloudCredentialName).getMenuItem('Edit Config').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=edit');
     // Testing issue https://github.com/rancher/dashboard/issues/10424
@@ -89,7 +94,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   it('can clone cloud credentials', function() {
-    CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.list().actionMenu(`${ this.cloudCredentialName }-description-edit`).getMenuItem('Clone').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=clone');
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(`${ this.cloudCredentialName }-clone`);
@@ -105,8 +111,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   it('can delete cloud credentials', function() {
-    CloudCredentialsPagePo.navTo();
-
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
     // delete clone cloud credential
     cloudCredentialsPage.list().actionMenu(`${ this.cloudCredentialName }-clone`).getMenuItem('Delete').click();
     const promptRemove = new PromptRemove();
@@ -122,8 +128,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   it('can delete cloud credentials via bulk actions', function() {
-    CloudCredentialsPagePo.navTo();
-
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
     // delete original cloud credential
     cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.cloudCredentialName }-name-edit`)
       .set();

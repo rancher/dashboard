@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, EXT } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
@@ -14,6 +14,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 import { SETTING } from '@shell/config/settings';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 export default {
   components: {
@@ -24,6 +25,7 @@ export default {
     LabeledSelect,
     RadioGroup,
     Select,
+    Checkbox,
   },
 
   mixins: [CreateEditView],
@@ -41,7 +43,11 @@ export default {
 
     return {
       errors: null,
+      user:   null,
       form:   {
+        enabled:           true,
+        description:       '',
+        clusterName:       '',
         expiryType:        'never',
         customExpiry:      0,
         customExpiryUnits: 'minute',
@@ -51,11 +57,13 @@ export default {
       accessKey:  '',
       secretKey:  '',
       maxTTL,
+      ttl:        ''
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
@@ -71,16 +79,20 @@ export default {
       const options = ['never', 'day', 'month', 'year', 'custom'];
       let opts = options.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
 
-      // When the TTL is anything other than 0, present only two options
+      // When the TTL is greater than 0, present only two options
       // (1) The maximum allowed
       // (2) Custom
-      if (this.maxTTL !== 0 ) {
+      if (this.maxTTL > 0 ) {
         const now = day();
         const expiry = now.add(this.maxTTL, 'minute');
         const max = diffFrom(expiry, now, this.t);
 
         opts = opts.filter((opt) => opt.value === 'custom');
         opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
+      } else {
+        // maxTTL <= 0 means there is no maximum, so we can show the 'never' option which results in an infinite TTL
+        // OR if we set a positive TTL, then it assumes that value
+        opts = opts.filter((opt) => opt.value === 'never' || opt.value === 'custom');
       }
 
       return opts;
@@ -91,6 +103,9 @@ export default {
 
       return filtered.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
+    hasNeverOption() {
+      return this.expiryOptions?.filter((opt) => opt.value === 'never')?.length === 1;
+    }
   },
 
   mounted() {
@@ -115,31 +130,33 @@ export default {
       });
     },
 
-    async actuallySave(url) {
+    async actuallySave() {
+      // update expiration value before save
       this.updateExpiry();
-      if ( this.isCreate ) {
-        // Description is a bit weird, so need to clone and set this
-        // rather than use this.value - need to find a way to set this if we ever
-        // want to allow edit (which I don't think we do)
-        const res = await this.value.save();
 
-        this.created = res;
-        this.ttlLimited = res.ttl !== this.value.ttl;
-        const token = this.created.token.split(':');
+      if ( this.isCreate ) {
+        const steveToken = await this.$store.dispatch('management/create', {
+          type: EXT.TOKEN,
+          spec: {
+            description:   this.form.description,
+            kind:          '',
+            userPrincipal: null, // will be set by the backend to the current user
+            clusterName:   this.form.clusterName,
+            enabled:       this.form.enabled,
+            ttl:           this.ttl
+            // userID: not needed as it will be set by the backend to the current user
+          }
+        });
+
+        const steveTokenSaved = await steveToken.save();
+
+        this.created = steveTokenSaved;
+        this.ttlLimited = this.created?.spec?.ttl !== this.ttl;
+        const token = this.created?.status?.bearerToken?.split(':');
 
         this.accessKey = token[0];
         this.secretKey = (token.length > 1) ? token[1] : '';
-        this.token = this.created.token;
-
-        // Force a refresh of the token so we get the expiry date correctly
-        await this.$store.dispatch('rancher/find', {
-          type: NORMAN.TOKEN,
-          id:   res.id,
-          opt:  { force: true }
-        }, { root: true });
-      } else {
-        // Note: update of existing key not supported currently
-        await this.value.save();
+        this.token = this.created?.status?.bearerToken;
       }
     },
 
@@ -159,7 +176,9 @@ export default {
       const units = (v === 'custom') ? this.form.customExpiryUnits : v;
       let ttl = 0;
 
-      if (units === 'max') {
+      if (v === 'never') {
+        ttl = -1;
+      } else if (units === 'max') {
         ttl = this.maxTTL * 60 * 1000;
       } else if ( units !== 'never' ) {
         const now = day();
@@ -167,7 +186,8 @@ export default {
 
         ttl = expiry.diff(now);
       }
-      this.value.ttl = ttl;
+
+      this.ttl = ttl;
     }
   }
 };
@@ -178,7 +198,7 @@ export default {
     <div class="pl-10 pr-10">
       <LabeledInput
         key="description"
-        v-model:value="value.description"
+        v-model:value="form.description"
         :placeholder="t('accountAndKeys.apiKeys.add.description.placeholder')"
         label-key="accountAndKeys.apiKeys.add.description.label"
         mode="edit"
@@ -186,13 +206,30 @@ export default {
       />
 
       <LabeledSelect
-        v-model:value="value.clusterId"
+        v-model:value="form.clusterName"
         class="mt-20 scope-select"
         label-key="accountAndKeys.apiKeys.add.scope"
         :options="scopes"
       />
 
-      <h5 class="pt-20">
+      <Checkbox
+        v-model:value="form.enabled"
+        class="mt-20 mb-20"
+        :mode="mode"
+        label-key="accountAndKeys.apiKeys.add.enabled"
+      />
+
+      <Banner
+        v-if="hasNeverOption"
+        color="warning"
+        class="mt-20"
+      >
+        <div>
+          {{ t('accountAndKeys.apiKeys.info.expiryOptionsWithNever') }}
+        </div>
+      </Banner>
+
+      <h5 class="mb-20">
         {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
       </h5>
 
@@ -204,7 +241,9 @@ export default {
           class="mr-20"
           name="expiryGroup"
         />
-        <div class="ml-20 mt-10 expiry">
+        <div
+          class="ml-20 mt-10 expiry"
+        >
           <input
             v-model="form.customExpiry"
             :disabled="form.expiryType !== 'custom'"

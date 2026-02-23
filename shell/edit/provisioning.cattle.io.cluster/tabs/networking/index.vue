@@ -2,7 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -20,7 +20,7 @@ export default {
     'update:value', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
     'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
     'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
-    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed', 'validationChanged', 'enable-flannel-masq-changed'
+    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed', 'validationChanged', 'flannel-ipv6-masq-changed'
   ],
 
   components: {
@@ -59,27 +59,10 @@ export default {
       default: false
     },
 
-    enableFlannelMasq: {
+    flannelIpv6Masq: {
       type:    Boolean,
       default: false
     }
-  },
-
-  watch: {
-    isProbablyIPv6(neu) {
-      if (this.mode === _CREATE && this.showFlannelMasq) {
-        this.$emit('enable-flannel-masq-changed', neu);
-      }
-    },
-
-    isK3s(neu) {
-      if (!neu) {
-        this.$emit('enable-flannel-masq-changed', null);
-      } else if (this.isProbablyIPv6) {
-        this.$emit('enable-flannel-masq-changed', true);
-      }
-    },
-
   },
 
   data() {
@@ -157,11 +140,11 @@ export default {
       return this.isK3s && flannelEnabled;
     },
 
-    hasIpv6StackPref() {
+    isIpv6StackPref() {
       return [STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(this.value?.spec?.rkeConfig?.networking?.stackPreference);
     },
 
-    hasIpv6ServerConfig() {
+    isIpv6ServerConfig() {
       const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
       const serviceCIDR = this.serverConfig['service-cidr'] || '';
 
@@ -169,25 +152,7 @@ export default {
     },
 
     isProbablyIPv6() {
-      return this.hasSomeIpv6Pools || this.hasIpv6StackPref || this.hasIpv6ServerConfig;
-    },
-  },
-
-  methods: {
-    // if ipv6 pools are detected, we enforce dual-stack or ipv6 stack prefs.
-    // If ipv6 pools are not detected we don't know for sure they aren't there so we don't validate the input
-    // also not validating the input when editing existing clusters to ensure we don't prevent editing clusters using dual-stack VPCs provisioned before the ipv6 feature was added
-    stackPreferenceValidator(val) {
-      const value = val?.value || val;
-      let isValid;
-
-      if (this.hasSomeIpv6Pools && this.mode === _CREATE) {
-        isValid = value !== STACK_PREFS.IPV4;
-
-        return isValid ? null : this.t('cluster.rke2.stackPreference.errorNeedsIpv6');
-      } else {
-        return null;
-      }
+      return this.hasSomeIpv6Pools || this.isIpv6StackPref || this.isIpv6ServerConfig;
     },
   }
 };
@@ -212,6 +177,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
+          data-testid="cluster-cidr"
           @update:value="$emit('cluster-cidr-changed', $event)"
         />
       </div>
@@ -224,6 +190,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
+          data-testid="service-cidr"
           @update:value="$emit('service-cidr-changed', $event)"
         />
       </div>
@@ -331,7 +298,6 @@ export default {
           :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"
           :mode="mode"
           :options="stackPreferenceOptions"
-          :rules="[stackPreferenceValidator]"
           data-testid="network-tab-stackpreferences"
           :require-dirty="false"
           @selecting="e=>$emit('stack-preference-changed', e)"
@@ -357,11 +323,11 @@ export default {
           class="col"
         >
           <Checkbox
-            :value="enableFlannelMasq"
+            :value="flannelIpv6Masq"
             data-testid="cluster-rke2-flannel-masq-checkbox"
             :mode="mode"
             :label="t('cluster.k3s.flannelMasq.label')"
-            @update:value="e=>$emit('enable-flannel-masq-changed', e)"
+            @update:value="e=>$emit('flannel-ipv6-masq-changed', e)"
           />
         </div>
       </div>

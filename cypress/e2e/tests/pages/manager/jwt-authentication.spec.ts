@@ -187,3 +187,85 @@ describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@
     sideNav.checkSideMenuEntryByLabel('JWT Authentication', 'not.exist');
   });
 });
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+  });
+
+  it('should display JWT Authentication empty list page', () => {
+    const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+
+    JWTAuthenticationPagePo.goTo('_');
+    jwtAuthenticationPage.checkIsCurrentPage();
+
+    jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
+    jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+
+    // takes percy snapshot.
+    cy.percySnapshot('JWT Authentication list page');
+  });
+
+  describe('Populated list', { tags: ['@jenkins'] }, () => {
+    let instance0 = '';
+    let removeCluster0 = false;
+    const region = 'us-west-1';
+    const namespace = 'fleet-default';
+
+    before(() => {
+      cy.createE2EResourceName('rke2cluster0').as('rke2Ec2ClusterName0');
+
+      cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
+        instance0 = name;
+        // create real cluster
+        cy.createAmazonRke2ClusterWithoutMachineConfig({
+          cloudCredentialsAmazon: {
+            workspace: namespace,
+            name,
+            region,
+            accessKey: Cypress.env('awsAccessKey'),
+            secretKey: Cypress.env('awsSecretKey')
+          },
+          rke2ClusterAmazon: {
+            clusterName: name,
+            namespace,
+          }
+        }).then(() => {
+          removeCluster0 = true;
+        });
+      });
+    });
+
+    it('should display JWT Authentication populated list page', () => {
+      const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+
+      JWTAuthenticationPagePo.goTo('_');
+      jwtAuthenticationPage.checkIsCurrentPage();
+
+      jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
+      jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      // ensure rows are there
+      jwtAuthenticationPage.list().resourceTable().sortableTable().rowElements()
+        .should('have.length.at.least', 1);
+
+      // hide elements before taking percy snapshot
+      cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]', '[data-testid="sortable-table-activate"]');
+
+      // takes percy snapshot.
+      cy.percySnapshot('JWT Authentication populated list page');
+    });
+
+    after('clean up', () => {
+      if (removeCluster0) {
+        //  delete cluster
+        cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance0);
+      }
+    });
+  });
+});

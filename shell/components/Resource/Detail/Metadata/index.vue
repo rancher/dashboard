@@ -31,7 +31,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 
 <template>
   <SpacedRow
-    class="metadata ppb-3"
+    class="metadata"
     v-bind="$attrs"
   >
     <div

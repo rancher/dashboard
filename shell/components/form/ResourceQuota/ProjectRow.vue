@@ -5,7 +5,10 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { ROW_COMPUTED, TYPES } from './shared';
 
 export default {
-  emits: ['type-change'],
+  emits: [
+    'type-change',
+    'update:resource-identifier',
+  ],
 
   components: {
     Select,
@@ -26,6 +29,10 @@ export default {
       type:    String,
       default: ''
     },
+    typeValues: {
+      type:    Array,
+      default: () => [],
+    },
     value: {
       type:    Object,
       default: () => {
@@ -39,7 +46,10 @@ export default {
   },
 
   data() {
-    return { customType: '' };
+    return {
+      customType:         '',
+      previousTypeValues: [],
+    };
   },
 
   created() {
@@ -48,6 +58,7 @@ export default {
     } else {
       this.customType = this.type;
     }
+    this.previousTypeValues = [...this.typeValues];
   },
 
   computed: {
@@ -99,6 +110,22 @@ export default {
     }
   },
 
+  watch: {
+    typeValues: {
+      /**
+       * Intentionally uses `oldValues` (not `_newValues`) so that
+       * `previousTypeValues` always reflects the committed state before the
+       * current change. `deleteResourceLimits` relies on this snapshot to
+       * detect duplicate keys: if a key still appears twice in the old list
+       * we know another row owns it and must not delete the shared limit.
+       */
+      handler(_newValues, oldValues) {
+        this.previousTypeValues = [...oldValues];
+      },
+      deep: true
+    }
+  },
+
   methods: {
     updateType(type) {
       const oldResourceKey = this.isCustom ? this.customType : this.localType;
@@ -117,9 +144,17 @@ export default {
     updateCustomType(type) {
       const oldType = this.customType;
 
-      this.deleteResourceLimits(oldType);
+      if (oldType) {
+        this.deleteResourceLimits(oldType, true);
+      }
 
       this.customType = type;
+
+      this.$emit('update:resource-identifier', {
+        type:       this.type,
+        customType: this.customType,
+        index:      this.index,
+      });
     },
 
     updateQuotaLimit(prop, type, val) {
@@ -140,7 +175,38 @@ export default {
       this.value.spec[prop].limit[type] = val;
     },
 
-    deleteResourceLimits(resourceKey) {
+    deleteResourceLimits(resourceKey, isExtended = false) {
+      const limit = this.value?.spec.resourceQuota?.limit;
+      const usedLimit = this.value?.spec.namespaceDefaultResourceQuota?.limit;
+
+      if (isExtended) {
+        // `previousTypeValues` holds the previous snapshot of typeValues.
+        // Counting matches against the old list lets us detect whether another
+        // row already owns this key before we delete the shared limit entry.
+        const matchesForKey = this.previousTypeValues.filter((typeValue) => {
+          const [, typeKey] = typeValue.split('.');
+
+          return resourceKey === typeKey;
+        });
+
+        /**
+         * Prevent inadvertently deleting values for an existing custom resource
+         * if a duplicate key is entered.
+         */
+        if (matchesForKey.length >= 2) {
+          return;
+        }
+
+        if (limit?.extended && typeof this.value.spec.resourceQuota?.limit?.extended[resourceKey] !== 'undefined') {
+          delete this.value.spec.resourceQuota.limit.extended[resourceKey];
+        }
+        if (usedLimit?.extended && typeof this.value.spec.namespaceDefaultResourceQuota?.limit?.extended[resourceKey] !== 'undefined') {
+          delete this.value.spec.namespaceDefaultResourceQuota.limit.extended[resourceKey];
+        }
+
+        return;
+      }
+
       if (typeof this.value.spec.resourceQuota?.limit[resourceKey] !== 'undefined') {
         delete this.value.spec.resourceQuota.limit[resourceKey];
       }
@@ -171,6 +237,7 @@ export default {
       :mode="mode"
       :placeholder="t('resourceQuota.resourceIdentifier.placeholder')"
       :rules="customTypeRules"
+      :require-dirty="false"
       class="mr-10"
       data-testid="projectrow-custom-type-input"
       @update:value="updateCustomType($event)"

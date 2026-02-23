@@ -359,7 +359,7 @@ export default {
           >{{ tab.badge }}</span>
           <i
             v-if="hasErrorIcon(tab)"
-            v-clean-tooltip="t('validation.tab')"
+            v-clean-tooltip="tab.errorIconTooltip || t('validation.tab')"
             class="conditions-alert-icon icon-error"
           />
         </a>
@@ -417,11 +417,13 @@ export default {
         :name="tab.name"
         :label="tab.label"
         :label-key="tab.labelKey"
+        :label-icon="tab.labelIcon"
         :weight="tab.weight"
         :tooltip="tab.tooltip"
         :show-header="tab.showHeader"
         :display-alert-icon="tab.displayAlertIcon"
         :error="tab.error"
+        :error-icon-tooltip="tab.errorIconTooltip"
         :badge="tab.badge"
       >
         <component
@@ -504,6 +506,7 @@ export default {
     .conditions-alert-icon {
       color: var(--error);
       padding-left: 4px;
+      margin-left: auto;
     }
 
     &:last-child {

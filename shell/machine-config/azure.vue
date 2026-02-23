@@ -209,6 +209,10 @@ export default {
     }
   },
 
+  setup() {
+    return { _EDIT };
+  },
+
   data() {
     return {
       azureEnvironments,
@@ -518,6 +522,11 @@ export default {
     </div>
   </div>
   <div v-else>
+    <Banner
+      v-if="mode === _EDIT && !value.managedDisks"
+      color="warning"
+      :label="t('cluster.machineConfig.azure.managedDisks.deprecationWarning', {}, true)"
+    />
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
@@ -842,6 +851,11 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
+          />
+          <Banner
+            v-if="!value.managedDisks"
+            color="warning"
+            :label="t('cluster.machineConfig.azure.managedDisks.deprecationWarning', {}, true)"
           />
           <Banner
             v-if="value.availabilityZone && !value.managedDisks"

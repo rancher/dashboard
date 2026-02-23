@@ -50,6 +50,7 @@ export default {
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
       resourceQuotaKey:   0,
+      isQuotasValid:      true,
     };
   },
   computed: {
@@ -110,6 +111,9 @@ export default {
     }
   },
   methods: {
+    validateQuotas(isValid) {
+      this.isQuotasValid = isValid;
+    },
     async save(saveCb) {
       try {
         this.errors = [];
@@ -158,7 +162,7 @@ export default {
     },
 
     removeQuota(key) {
-      const isExtended = key.startsWith(`${ TYPES.EXTENDED }.`);
+      const isExtended = key.startsWith(`${ TYPES.EXTENDED }`);
       let resourceKey = key;
 
       if (isExtended) {
@@ -176,6 +180,7 @@ export default {
               delete limit.extended;
             }
           }
+
           if (usedLimit?.extended && typeof usedLimit.extended[resourceKey] !== 'undefined') {
             delete usedLimit.extended[resourceKey];
             if (Object.keys(usedLimit.extended).length === 0) {
@@ -207,7 +212,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && isQuotasValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -258,6 +263,7 @@ export default {
           :mode="canEditTabElements"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
           @remove="removeQuota"
+          @validationChanged="validateQuotas"
         />
       </Tab>
       <Tab

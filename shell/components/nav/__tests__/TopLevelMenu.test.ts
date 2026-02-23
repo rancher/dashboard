@@ -595,7 +595,7 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: []
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -624,7 +624,7 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: []
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
@@ -653,7 +653,7 @@ describe('topLevelMenu', () => {
       jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
       const updateSpy = jest.fn();
       const mockHelper = {
-        update: updateSpy, clustersPinned: [], clustersOthers: []
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
       };
 
       jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);

@@ -138,7 +138,7 @@ export default class CapiMachine extends SteveModel {
 
   async machineRef() {
     const ref = this.spec.infrastructureRef;
-    const id = `${ ref.namespace }/${ ref.name }`;
+    const id = `${ this.metadata.namespace }/${ ref.name }`;
     const kind = `rke-machine.cattle.io.${ ref.kind.toLowerCase() }`;
 
     return await this.$dispatch('find', { type: kind, id });

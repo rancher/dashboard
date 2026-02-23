@@ -139,7 +139,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Rancher Prime', () => {
+  describe('Rancher Prime', { tags: '@prime' }, () => {
     function interceptVersionAndSetToPrime() {
       return cy.intercept('GET', '/rancherversion', {
         statusCode: 200,

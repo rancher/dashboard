@@ -101,6 +101,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();
@@ -117,6 +118,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();
@@ -142,6 +144,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();

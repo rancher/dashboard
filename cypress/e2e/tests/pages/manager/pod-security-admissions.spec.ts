@@ -166,3 +166,28 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
       });
   });
 });
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+  });
+
+  it('should display Pod Security Admissions list page', () => {
+    const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
+
+    PodSecurityAdmissionsPagePo.goTo('_');
+    podSecurityAdmissionsPage.checkIsCurrentPage();
+
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkVisible();
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+
+    // takes percy snapshot.
+    cy.percySnapshot('Pod Security Admissions list page');
+  });
+});
