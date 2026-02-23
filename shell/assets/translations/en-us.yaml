@@ -2104,8 +2104,8 @@ cluster:
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
       enableIpv6:
-        label: Enable Dual-Stack
-        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack. For an IPv6-only cluster, check \"Enable IPv6\" and update the stack preference to <b>IPv6</b>."
+        label: Enable IPv6
+        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>INGRESS_DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
@@ -2277,6 +2277,7 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
+    nginxDeprecated: The NGINX controller is deprecated and will be removed in upcoming versions
   rke1Unsupported: RKE1 Clusters are no longer supported
 
   architecture:
@@ -2633,6 +2634,52 @@ cluster:
     rke1:
       local: local
       s3: s3
+  ingress:
+    title: Ingress
+    enableIngress: Install Ingress controller to enable external routing
+    nginx: 
+      header: Ingress-NGINX
+      content: Choose this only if your workloads are not yet ready for Traefik.
+    dual: 
+      header: Dual Mode
+      content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
+    traefik: 
+      header: Traefik
+      content: The new default provider for high-performance routing and modern feature support.
+    recommended: Recommended
+    legacy: Legacy
+    migration: Migration
+    learnMore: Learn more...
+    showAdvanced: Show advanced configuration
+    hideAdvanced: Hide advanced configuration
+    configurationOptions:
+      title: Configuration Options
+      compatibilityMode: Enable Traefik Ingress NGINX compatibility mode for annotations 
+      traefik:
+        http: Traefik HTTP
+        https: Traefik HTTPS
+      nginx:
+        http: Ingress-NGINX HTTP
+        https: Ingress-NGINX HTTPS
+    banners:
+      transitioning: 
+        label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support. 
+        description: tbd
+      disabled:
+        label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
+        description: tbd
+      selected:
+        ingress-nginx:
+          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a>.
+          description: tbd
+        traefik:
+          label: Before switching to Traefik, please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
+          description: tbd
+        dual:
+          label: Please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a> to ensure your current workloads and annotations are compatible. Taking this step now helps prevent unexpected routing issues during the transition.
+          description: tbd
+    validation:
+      portsMatch: Traefik and Ingress-NGINX ports cannot match
   tabs:
     ace: Authorized Endpoint
     addOnAdditionalManifest: Additional Manifest

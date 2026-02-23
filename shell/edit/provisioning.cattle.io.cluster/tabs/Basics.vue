@@ -10,17 +10,18 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-
-const HARVESTER = 'harvester';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
+import { HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
-  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'compliance-changed', 'psa-default-changed'],
+  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'compliance-changed', 'psa-default-changed', 'update-values', 'error', 'yaml-validation-changed', 'config-validation-changed'],
 
   components: {
     Banner,
     Checkbox,
     LabeledSelect,
     YamlEditor,
+    Ingress
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -47,10 +48,6 @@ export default {
       required: false
     },
 
-    userChartValues: {
-      type:     Object,
-      required: true
-    },
     complianceOverride: {
       type:     Boolean,
       required: true
@@ -116,6 +113,7 @@ export default {
       required: true
     }
   },
+  inject: ['userChartValues'],
 
   data() {
     return {
@@ -164,6 +162,16 @@ export default {
       });
 
       return out;
+    },
+    ingressController: {
+      get() {
+        return this.serverConfig[INGRESS_CONTROLLER];
+      },
+
+      set(neu) {
+        this.serverConfig[INGRESS_CONTROLLER] = neu;
+        // TODO DO THE DISABLING TOO
+      },
     },
 
     /**
@@ -229,12 +237,20 @@ export default {
     },
 
     disableOptions() {
-      return (this.serverArgs.disable.options || []).map((value) => {
+      // For RKE2 clusters Ingress is configured separately, so we should not allow disabling it here
+      return (this.serverArgs.disable.options || []).filter((value) => value !== RKE2_INGRESS_NGINX && value !== RKE2_TRAEFIK).map((value) => {
         return {
           label: this.$store.getters['i18n/withFallback'](`cluster.${ this.value.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
+    },
+    nginxSupported() {
+      if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
+        return true;
+      }
+
+      return false;
     },
 
     serverArgs() {
@@ -336,6 +352,13 @@ export default {
       }
     },
 
+    nginxChart() {
+      return this.chartVersionKey(RKE2_INGRESS_NGINX);
+    },
+    traefikChart() {
+      return this.chartVersionKey(RKE2_TRAEFIK);
+    },
+
     canNotEditCloudProvider() {
       if (!this.isEdit) {
         return false;
@@ -382,7 +405,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="!haveArgInfo"
+      v-if="!haveArgInfo ||nginxChart"
       color="warning"
       :label="t('cluster.banner.haveArgInfo')"
     />
@@ -623,7 +646,7 @@ export default {
 
     <div
       v-if="serverArgs.disable"
-      class="row"
+      class="row mb-30"
     >
       <div class="col span-12">
         <div>
@@ -641,6 +664,19 @@ export default {
         />
       </div>
     </div>
+    <!-- Ingress -->
+    <Ingress
+      v-if="!value?.isK3s"
+      v-model:value="ingressController"
+      :mode="mode"
+      :nginx-supported="nginxSupported"
+      :nginx-chart="nginxChart"
+      :traefik-chart="traefikChart"
+      @update-values="(name, val) => $emit('update-values', name, val)"
+      @error="$emit('error', $event)"
+      @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"
+      @config-validation-changed="e => $emit('config-validation-changed', e)"
+    />
   </div>
 </template>
 
