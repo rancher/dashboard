@@ -24,26 +24,34 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
     clusterTools.featureChartCards().should('have.length.gte', 10);
   });
 
-  it('can deploy chart successfully', () => {
-    clusterTools.goTo();
-    clusterTools.waitForPage();
-    clusterTools.getChartVersion('Alerting Drivers').invoke('text').then((el) => {
-      const chartVersion = el.trim();
+  describe('deploy chart', () => {
+    // Clean up any previously installed chart before each attempt, so retries start with a clean state
+    beforeEach(() => {
+      cy.createRancherResource('v1', 'catalog.cattle.io.apps/default/rancher-alerting-drivers?action=uninstall', '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'default/rancher-alerting-drivers', (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+    });
 
-      const chartType = 'rancher-alerting-drivers';
-      const installAlertingDriversPage = `repo-type=cluster&repo=rancher-charts&chart=${ chartType }&version=${ chartVersion }&tools`;
-      const installCharts = new InstallChartPage();
-
-      clusterTools.goToInstall('Alerting Drivers');
-      installCharts.waitForPage(installAlertingDriversPage);
-      installCharts.nextPage();
-
-      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-      installCharts.installChart();
-      cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+    it('can deploy chart successfully', () => {
+      clusterTools.goTo();
       clusterTools.waitForPage();
-      kubectl.waitForTerminalStatus('Connected');
-      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+      clusterTools.getChartVersion('Alerting Drivers').invoke('text').then((el) => {
+        const chartVersion = el.trim();
+
+        const chartType = 'rancher-alerting-drivers';
+        const installAlertingDriversPage = `repo-type=cluster&repo=rancher-charts&chart=${ chartType }&version=${ chartVersion }&tools`;
+        const installCharts = new InstallChartPage();
+
+        clusterTools.goToInstall('Alerting Drivers');
+        installCharts.waitForPage(installAlertingDriversPage);
+        installCharts.nextPage();
+
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+        installCharts.installChart();
+        cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+        clusterTools.waitForPage();
+        kubectl.waitForTerminalStatus('Connected');
+        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+      });
     });
   });
 
