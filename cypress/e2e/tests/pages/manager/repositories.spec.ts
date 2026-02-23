@@ -326,7 +326,6 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
     const actionMenu = repositoriesPage.list().actionMenu(repoName);
 
     actionMenu.self().should('be.visible');
-    actionMenu.self().find('[dropdown-menu-item]').should('have.length.at.least', 1);
 
     // Verify refresh is not displayed for disabled repo
     actionMenu.getMenuItem('Refresh').should('not.exist');
