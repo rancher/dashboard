@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class ActionMenuPo extends ComponentPo {
   constructor(arg?:any) {
-    super(arg || cy.get('[dropdown-menu-collection]'));
+    super(arg || cy.get('[dropdown-menu-collection]:visible'));
   }
 
   clickMenuItem(index: number) {
@@ -10,7 +10,7 @@ export default class ActionMenuPo extends ComponentPo {
   }
 
   getMenuItem(name: string) {
-    return this.self().get('[dropdown-menu-item]').contains(name);
+    return this.self().find('[dropdown-menu-item]').contains(name);
   }
 
   menuItemNames() {
