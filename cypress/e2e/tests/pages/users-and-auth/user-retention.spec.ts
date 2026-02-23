@@ -1,7 +1,7 @@
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 function updateUserRetentionSetting(settingId, newValue) {
   cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
@@ -54,6 +54,10 @@ describe('User Retention', { testIsolation: 'off' }, () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
       cy.wait('@pageLoad');
+
+      // Uncheck the data to make sure it is unchecked before the test starts.
+      userRetentionPo.disableAfterPeriodCheckbox().uncheck();
+      userRetentionPo.deleteAfterPeriodCheckbox().uncheck();
 
       userRetentionPo.disableAfterPeriodInput().expectToBeDisabled();
       userRetentionPo.disableAfterPeriodCheckbox().set();

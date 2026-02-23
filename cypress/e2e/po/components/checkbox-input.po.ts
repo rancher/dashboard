@@ -35,6 +35,17 @@ export default class CheckboxInputPo extends ComponentPo {
     return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
   }
 
+  /**
+   * Uncheck the checkbox only if it is currently checked
+   */
+  uncheck(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').then(($el) => {
+      if ($el.attr('aria-checked') === 'true') {
+        return this.set();
+      }
+    });
+  }
+
   isNotChecked(): Cypress.Chainable {
     return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'false');
   }
