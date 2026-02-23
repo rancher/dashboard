@@ -7,12 +7,12 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { Banner } from '@components/Banner';
 import IngressCards from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue';
 import {
-  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE
+  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE, INGRESS_MIGRATION_KB_LINK
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import IngressConfiguration from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { set, get, mergeWithReplace } from '@shell/utils/object';
-import { isRancherPrime } from '@shell/config/version';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 
 interface Props {
   mode?: string;
@@ -173,14 +173,12 @@ function selectIngress(id: string) {
     <Banner
       color="warning"
       label-key="cluster.ingress.banners.disabled.label"
-      description-key="cluster.ingress.banners.disabled.description"
     />
   </div>
   <div v-else>
     <Banner
       color="info"
       label-key="cluster.ingress.banners.transitioning.label"
-      description-key="cluster.ingress.banners.transitioning.description"
     />
     <IngressCards
       :options="ingressOptions"
@@ -191,7 +189,20 @@ function selectIngress(id: string) {
       v-if="isEdit"
       color="warning"
     >
-      <span v-clean-html="t(`cluster.ingress.banners.selected.${ingressSelection}.label`, {}, true)" />
+      <RichTranslation :k="`cluster.ingress.banners.selected.${ingressSelection}.label`">
+        <template #docsUrl="{ content }">
+          <a
+            :href="`${INGRESS_MIGRATION_KB_LINK}`"
+
+            tabindex="0"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+            {{ content }} <i class="icon icon-external-link" />
+          </a>
+        </template>
+      </RichTranslation>
     </Banner>
     <div class="mt-20">
       <IngressConfiguration

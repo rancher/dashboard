@@ -31,3 +31,5 @@ export const INGRESS_OPTIONS = [
     content:   { key: 'cluster.ingress.dual.content' }
   }
 ];
+
+export const INGRESS_MIGRATION_KB_LINK = 'https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster';

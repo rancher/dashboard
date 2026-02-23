@@ -2649,7 +2649,9 @@ cluster:
     recommended: Recommended
     legacy: Legacy
     migration: Migration
-    learnMore: Learn more...
+    learnMore: 
+      label: Learn more...
+      ariaLabel: Link to documentation
     showAdvanced: Show advanced configuration
     hideAdvanced: Hide advanced configuration
     configurationOptions:
@@ -2664,20 +2666,15 @@ cluster:
     banners:
       transitioning: 
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support. 
-        description: tbd
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
-        description: tbd
       selected:
         ingress-nginx:
-          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a>.
-          description: tbd
+          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
         traefik:
-          label: Before switching to Traefik, please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
-          description: tbd
+          label: Before switching to Traefik, please review our <docsUrl>migration documentation</docsUrl> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
         dual:
-          label: Please review our <a href="https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster?language=en_US" target="_blank" rel="noopener noreferrer nofollow">migration documentation</a> to ensure your current workloads and annotations are compatible. Taking this step now helps prevent unexpected routing issues during the transition.
-          description: tbd
+          label: Please review our <docsUrl>migration documentation</docsUrl> to ensure your current workloads and annotations are compatible. Taking this step now helps prevent unexpected routing issues during the transition.
     validation:
       portsMatch: Traefik and Ingress-NGINX ports cannot match
   tabs:

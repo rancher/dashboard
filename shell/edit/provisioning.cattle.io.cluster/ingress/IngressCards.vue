@@ -4,7 +4,6 @@ import { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcItemCard, RcItemCardAction } from '@components/RcItemCard';
-import { RcButton } from '@components/RcButton';
 
 interface IngressCard {
   id: string;
@@ -28,12 +27,6 @@ const emit = defineEmits(['select', 'load-more']);
 
 const store = useStore();
 const { t } = useI18n(store);
-
-function onLearnMore(doc: any) {
-  if (doc?.url) {
-    window.open(doc.url, '_blank');
-  }
-}
 
 </script>
 
@@ -67,14 +60,16 @@ function onLearnMore(doc: any) {
         #item-card-footer
       >
         <rc-item-card-action>
-          <rc-button
-            variant="ghost"
-            class="ingress-card-footer-button secondary-text-link"
+          <a
+            :href="card.doc.url"
             :aria-label="t('cluster.ingress.learnMore.ariaLabel')"
-            @click="onLearnMore(card.doc)"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+            class="ingress-card-footer-button secondary-text-link"
           >
-            {{ t('cluster.ingress.learnMore') }}
-          </rc-button>
+            {{ t('cluster.ingress.learnMore.label') }} <i class="icon icon-external-link" />
+          </a>
+          <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
         </rc-item-card-action>
       </template>
     </rc-item-card>
