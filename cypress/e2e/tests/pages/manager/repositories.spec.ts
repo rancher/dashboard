@@ -322,17 +322,14 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
     repositoriesPage.waitForPage();
     repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
 
-    // Open the action menu first
-    repositoriesPage.list().actionMenu(repoName);
+    // Open the action menu and verify refresh is not displayed for disabled repo
+    const actionMenu = repositoriesPage.list().actionMenu(repoName);
 
-    // Wait for action menu to be visible and populated
-    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
-    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
+    actionMenu.self().should('be.visible');
+    actionMenu.self().find('[dropdown-menu-item]').should('have.length.at.least', 1);
 
-    // Verify refresh is not displayed for disabled repo - check directly in dropdown
-    cy.get('[dropdown-menu-collection]:visible').within(() => {
-      cy.get('[dropdown-menu-item]').contains('Refresh').should('not.exist');
-    });
+    // Verify refresh is not displayed for disabled repo
+    actionMenu.getMenuItem('Refresh').should('not.exist');
 
     // Close action menu
     repositoriesPage.list().actionMenuClose(repoName);

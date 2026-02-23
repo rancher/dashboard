@@ -278,7 +278,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    // Use try-catch pattern to handle potential race conditions in namespace filter cleanup
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
 
     if (removeProjectAndNs) {

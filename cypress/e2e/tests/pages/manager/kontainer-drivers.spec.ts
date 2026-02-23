@@ -27,22 +27,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.login();
   });
 
-  beforeEach(() => {
-    // Aggressively clean up any modal overlays before each test
-    cy.get('body').then(($body) => {
-      // Close any existing modals by clicking overlay or escape
-      if ($body.find('.modal-overlay').length > 0) {
-        cy.get('.modal-overlay').click({ force: true, multiple: true });
-        // Wait for modal to be closed instead of arbitrary time
-        cy.get('.modal-overlay').should('not.exist');
-      }
-      // Also try pressing escape key to close modals
-      cy.get('body').type('{esc}', { force: true });
-      // Ensure no modal overlays remain
-      cy.get('.modal-overlay').should('not.exist');
-    });
-  });
-
   it('should show the cluster drivers list page', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
@@ -323,13 +307,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('can delete a driver', () => {
-    // Ensure any modals are closed before starting
-    cy.get('body').then(($body) => {
-      if ($body.find('.modal-overlay').length > 0) {
-        cy.get('.modal-overlay').click({ force: true });
-      }
-    });
-
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 

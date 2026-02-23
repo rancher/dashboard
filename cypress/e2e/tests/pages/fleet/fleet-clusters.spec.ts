@@ -2,7 +2,7 @@ import { FleetClusterListPagePo, FleetClusterDetailsPo } from '@/cypress/e2e/po/
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -428,10 +428,6 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
       .rowActionMenuOpen('local');
 
-    // Wait for action menu dropdown to be fully rendered and populated
-    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
-    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
-
     const allowedActions: MenuActions[] = [
       MenuActions.Pause,
       MenuActions.ForceUpdate,
@@ -448,9 +444,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
 
     // For disabled actions, check that they don't exist in the dropdown
     disabledActions.forEach((action) => {
-      cy.get('[dropdown-menu-collection]:visible').within(() => {
-        cy.get('[dropdown-menu-item]').contains(action).should('not.exist');
-      });
+      constActionMenu.getMenuItem(action).should('not.exist');
     });
   });
 
