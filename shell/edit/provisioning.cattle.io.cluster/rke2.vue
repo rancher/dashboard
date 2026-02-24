@@ -2259,7 +2259,10 @@ export default {
 
       const name = this.chartVersionKey('rke2-cilium');
 
-      this.set(this.userChartValues, name, { ...neu });
+      this.userChartValues = {
+        ...this.userChartValues,
+        [name]: { ...neu }
+      };
     },
 
     handleComplianceChanged() {
