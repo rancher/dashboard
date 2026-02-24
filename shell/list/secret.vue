@@ -60,6 +60,7 @@ export default {
     const headersSSP = this.namespacedHeadersSsp.slice(0, -1);
 
     if (this.canViewProjects) {
+      // if the user can see projects, add a column to let them know if it's a secret from a project scoped secret
       headers.push(SECRET_ORIGIN);
       headersSSP.push(STEVE_SECRET_ORIGIN);
     }
