@@ -26,7 +26,7 @@ export class EditImportedGenericCluster implements IClusterProvisioner {
   }
 
   get detailTabs(): any {
-    return {};
+    return { logs: false };
   }
 
   // Since it is only used for edit, we want to hide it from both create and import wizards
@@ -100,7 +100,7 @@ export class EditLocalCluster implements IClusterProvisioner {
     }
 
     get detailTabs(): any {
-      return {};
+      return { logs: false };
     }
 
     // Since it is only used for edit, we want to hide it from both create and import wizards

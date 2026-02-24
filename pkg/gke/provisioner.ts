@@ -46,8 +46,8 @@ export class GKEProvisioner implements IClusterProvisioner {
       registration: false,
       snapshots:    false,
       related:      true,
-      events:       false,
-      conditions:   false,
+      events:       true,
+      conditions:   true,
     };
   }
 

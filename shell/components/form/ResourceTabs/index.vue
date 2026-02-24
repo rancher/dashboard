@@ -244,6 +244,7 @@ export default {
     :default-tab="defaultTab"
     :resource="value"
     :use-hash="useHash"
+    :extension-params="extensionParams"
   >
     <slot />
     <Tab
