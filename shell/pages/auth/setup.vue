@@ -5,7 +5,6 @@ import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT, EXT } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
@@ -67,7 +66,6 @@ export default {
       serverUrl:          null,
       mcmEnabled:         null,
       eula:               false,
-      principals:         null,
       errors:             []
     };
   },
@@ -121,11 +119,7 @@ export default {
 
     const productName = plSetting.default;
 
-    const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
-    const me = findBy(principals, 'me', true);
-
     const current = this.$route.query[SETUP] || this.$store.getters['auth/initialPass'];
-    const user = this.$store.getters['auth/user'] ?? {};
 
     const mcmFeature = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
@@ -144,16 +138,19 @@ export default {
     const isFirstLogin = await calcIsFirstLogin(this.$store);
     const mustChangePassword = await calcMustChangePassword(this.$store);
 
+    // user getter must be after "calcMustChangePassword" where all the user info is loaded
+    // via the "auth/getUser" action
+    const user = this.$store.getters['auth/user'] ?? {};
+
     this['productName'] = productName;
     this['haveCurrent'] = !!current;
-    this['username'] = me?.loginName || 'admin';
+    this['username'] = user?.username || 'admin';
     this['isFirstLogin'] = isFirstLogin;
     this['mustChangePassword'] = mustChangePassword;
     this['current'] = current;
     this['user'] = user;
     this['serverUrl'] = serverUrl;
     this['mcmEnabled'] = mcmEnabled;
-    this['principals'] = principals;
   },
 
   computed: {
@@ -179,12 +176,6 @@ export default {
       }
 
       return true;
-    },
-
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
     },
 
     showLocalhostWarning() {
