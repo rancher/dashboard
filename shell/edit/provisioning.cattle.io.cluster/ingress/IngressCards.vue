@@ -67,9 +67,10 @@ const { t } = useI18n(store);
             target="_blank"
             class="ingress-card-footer-button secondary-text-link"
           >
-            {{ t('cluster.ingress.learnMore.label') }} <i class="icon icon-external-link" />
+            {{ t('cluster.ingress.learnMore.label') }}
+            <i class="icon icon-external-link" />
+            <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
           </a>
-          <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
         </rc-item-card-action>
       </template>
     </rc-item-card>
@@ -79,7 +80,7 @@ const { t } = useI18n(store);
 <style scoped lang="scss">
 .ingress-cards{
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   grid-gap: var(--gap-md);
   width: 100%;
   height: max-content;

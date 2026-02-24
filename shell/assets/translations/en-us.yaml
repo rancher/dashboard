@@ -2651,7 +2651,6 @@ cluster:
     migration: Migration
     learnMore:
       label: Learn more
-      ariaLabel: Link to documentation
     showAdvanced: Show advanced configuration
     hideAdvanced: Hide advanced configuration
     configurationOptions:

@@ -102,12 +102,8 @@ function preconfigureTraefik() {
   emit('update-values', traefikChart, traefikMerged.value);
 }
 
-const traefikMerged = computed(() => {
-  return initYamlEditor(traefikChart);
-});
-const nginxMerged = computed(() => {
-  return initYamlEditor(nginxChart);
-});
+const traefikMerged = ref(initYamlEditor(traefikChart));
+const nginxMerged = ref(initYamlEditor(nginxChart));
 
 const nginxHttp = computed({
   get() {
@@ -217,8 +213,8 @@ function updateYaml(component: any, value: any) {
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
-            <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
             {{ content }} <i class="icon icon-external-link" />
+            <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
           </a>
         </template>
       </RichTranslation>
