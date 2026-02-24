@@ -3,8 +3,7 @@ import {
   ProductMetadata, ProductSinglePage, ProductChildPage,
   ProductChildGroup, StandardProductName
 } from '@shell/core/plugin-types';
-import { IPlugin } from '@shell/core/types';
-import { Router } from 'vue-router';
+import { IExtension } from '@shell/core/types';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -62,11 +61,11 @@ jest.mock('@shell/core/productDebugger', () => ({
 }));
 
 // Create mock factories
-function createMockPlugin(): IPlugin {
+function createMockPlugin(): IExtension {
   return {
-    registerTopLevelProduct: jest.fn(),
-    addRoute:                jest.fn(),
-    DSL:                     jest.fn((store, productName) => ({
+    _registerTopLevelProduct: jest.fn(),
+    addRoute:                 jest.fn(),
+    DSL:                      jest.fn((store, productName) => ({
       basicType:           jest.fn(),
       labelGroup:          jest.fn(),
       setGroupDefaultType: jest.fn(),
@@ -78,10 +77,6 @@ function createMockPlugin(): IPlugin {
       headers:             jest.fn(),
     })),
   } as any;
-}
-
-function createMockRouter(): Router {
-  return { addRoute: jest.fn() } as any;
 }
 
 function createMockStore(): any {
@@ -113,7 +108,7 @@ describe('pluginProduct', () => {
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
       expect(pluginProduct.newProduct).toBe(true);
-      expect(mockPlugin.registerTopLevelProduct).toHaveBeenCalledTimes(1);
+      expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledTimes(1);
       expect(mockPlugin.addRoute).toHaveBeenCalledTimes(2);
     });
 
@@ -128,7 +123,7 @@ describe('pluginProduct', () => {
       const pluginProduct = new PluginProduct(mockPlugin, productSinglePage, []);
 
       expect(pluginProduct.newProduct).toBe(true);
-      expect(mockPlugin.registerTopLevelProduct).toHaveBeenCalledTimes(1);
+      expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledTimes(1);
       expect(mockPlugin.addRoute).toHaveBeenCalledTimes(1);
     });
 
@@ -141,7 +136,7 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, productMetadata, []);
 
-      expect(mockPlugin.registerTopLevelProduct).toHaveBeenCalledTimes(1);
+      expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledTimes(1);
     });
 
     it('should create default empty page config when no config provided', () => {
@@ -198,7 +193,7 @@ describe('pluginProduct', () => {
       const invalidStandardProduct = 'invalid-product';
 
       expect(() => {
-        new PluginProduct(mockPlugin, invalidStandardProduct, []);
+        new PluginProduct(mockPlugin, invalidStandardProduct as StandardProductName, []);
       }).toThrow('Invalid product name');
     });
 
@@ -208,7 +203,7 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, validStandardProduct, []);
 
-      expect(mockPlugin.registerTopLevelProduct).not.toHaveBeenCalled();
+      expect(mockPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
     });
   });
 
@@ -216,7 +211,6 @@ describe('pluginProduct', () => {
     it('should register new product via DSL during apply', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -244,7 +238,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.product).toHaveBeenCalledTimes(1);
       expect(mockDSL.product).toHaveBeenCalledWith(
@@ -261,7 +255,6 @@ describe('pluginProduct', () => {
     it('should not register product when extending standard product during apply', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -279,7 +272,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.product).not.toHaveBeenCalled();
     });
@@ -287,7 +280,6 @@ describe('pluginProduct', () => {
     it('should configure virtualType items during apply', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -316,7 +308,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.virtualType).toHaveBeenCalledTimes(1);
       expect(mockDSL.virtualType).toHaveBeenCalledWith(
@@ -331,7 +323,6 @@ describe('pluginProduct', () => {
     it('should configure configureType (resource) items during apply', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -358,7 +349,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.configureType).toHaveBeenCalledWith(
         'custom.resource',
@@ -377,7 +368,6 @@ describe('pluginProduct', () => {
     it('should handle product with grouped items', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -416,7 +406,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, groupedConfig);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.basicType).toHaveBeenCalledTimes(2);
       expect(mockDSL.labelGroup).toHaveBeenCalledWith(
@@ -430,7 +420,6 @@ describe('pluginProduct', () => {
     it('should set group default type when group has no component', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -464,7 +453,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.setGroupDefaultType).toHaveBeenCalledWith(
         expect.stringContaining('group'),
@@ -475,7 +464,6 @@ describe('pluginProduct', () => {
     it('should not set group default type when group has component', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -510,7 +498,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.setGroupDefaultType).not.toHaveBeenCalled();
     });
@@ -518,7 +506,6 @@ describe('pluginProduct', () => {
     it('should apply group weight when specified', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -553,7 +540,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.weightGroup).toHaveBeenCalledWith(
         expect.stringContaining('group'),
@@ -567,7 +554,6 @@ describe('pluginProduct', () => {
     it('should use first config item as default route for new product', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -600,7 +586,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.product).toHaveBeenCalledWith(
         expect.objectContaining({ to: expect.objectContaining({ name: expect.stringContaining('first') }) })
@@ -610,7 +596,6 @@ describe('pluginProduct', () => {
     it('should use first group child as default route when first item is group', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -644,7 +629,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.product).toHaveBeenCalledWith(
         expect.objectContaining({ to: expect.objectContaining({ name: expect.stringContaining('general') }) })
@@ -654,7 +639,6 @@ describe('pluginProduct', () => {
     it('should use first group child with resource type as default route when first item is group', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -684,7 +668,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.product).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -705,7 +689,6 @@ describe('pluginProduct', () => {
     it('should handle product with mixed virtualType and configureType items', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
-      const mockRouter = createMockRouter();
       const mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -734,7 +717,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, mixedConfig);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.virtualType).toHaveBeenCalledTimes(1);
       expect(mockDSL.configureType).toHaveBeenCalledWith('resources.io', expect.any(Object));
@@ -845,7 +828,6 @@ describe('pluginProduct', () => {
       it('should create product with multiple simple virtualType children', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
-        const mockRouter = createMockRouter();
         const mockDSL = {
           product:             jest.fn(),
           basicType:           jest.fn(),
@@ -879,7 +861,7 @@ describe('pluginProduct', () => {
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-        pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+        pluginProduct.apply(mockPlugin, mockStore);
 
         expect(mockDSL.virtualType).toHaveBeenCalledTimes(2);
         expect(mockDSL.product).toHaveBeenCalledTimes(1);
@@ -890,7 +872,6 @@ describe('pluginProduct', () => {
       it('should handle mix of virtualType pages and resource types', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
-        const mockRouter = createMockRouter();
         const mockDSL = {
           product:             jest.fn(),
           basicType:           jest.fn(),
@@ -925,7 +906,7 @@ describe('pluginProduct', () => {
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-        pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+        pluginProduct.apply(mockPlugin, mockStore);
 
         expect(mockDSL.virtualType).toHaveBeenCalledTimes(2);
         expect(mockDSL.configureType).toHaveBeenCalledWith('upgrade.cattle.io.plan', expect.any(Object));
@@ -936,7 +917,6 @@ describe('pluginProduct', () => {
       it('should handle resource type first, then virtualType pages with nested children', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
-        const mockRouter = createMockRouter();
         const mockDSL = {
           product:             jest.fn(),
           basicType:           jest.fn(),
@@ -996,7 +976,7 @@ describe('pluginProduct', () => {
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-        pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+        pluginProduct.apply(mockPlugin, mockStore);
 
         expect(mockDSL.configureType).toHaveBeenCalledWith('fleet.cattle.io.clustergroup', expect.any(Object));
         expect(mockDSL.virtualType).toHaveBeenCalledTimes(6);
@@ -1013,7 +993,7 @@ describe('pluginProduct', () => {
         const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
         expect(pluginProduct.newProduct).toBe(false);
-        expect(mockPlugin.registerTopLevelProduct).not.toHaveBeenCalled();
+        expect(mockPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
         expect(mockPlugin.addRoute).toHaveBeenCalledTimes(1);
       });
     });
@@ -1022,7 +1002,6 @@ describe('pluginProduct', () => {
       it('should extend standard product adding simple virtualType page', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
-        const mockRouter = createMockRouter();
         const mockDSL = {
           product:             jest.fn(),
           basicType:           jest.fn(),
@@ -1048,7 +1027,7 @@ describe('pluginProduct', () => {
 
         const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, config);
 
-        pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+        pluginProduct.apply(mockPlugin, mockStore);
 
         expect(mockDSL.virtualType).toHaveBeenCalledTimes(1);
         expect(mockDSL.product).not.toHaveBeenCalled();
@@ -1059,7 +1038,6 @@ describe('pluginProduct', () => {
       it('should extend standard product adding mixed virtualTypes and resource types with nested groups', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
-        const mockRouter = createMockRouter();
         const mockDSL = {
           product:             jest.fn(),
           basicType:           jest.fn(),
@@ -1113,7 +1091,7 @@ describe('pluginProduct', () => {
 
         const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, config);
 
-        pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+        pluginProduct.apply(mockPlugin, mockStore);
 
         expect(mockDSL.virtualType).toHaveBeenCalledTimes(5);
         expect(mockDSL.configureType).toHaveBeenCalledWith('upgrade.cattle.io.plan', expect.any(Object));
@@ -1124,9 +1102,8 @@ describe('pluginProduct', () => {
   });
 
   describe('headers configuration', () => {
-    let mockPlugin: IPlugin;
+    let mockPlugin: IExtension;
     let mockStore: any;
-    let mockRouter: Router;
     let mockDSL: any;
 
     beforeEach(() => {
@@ -1134,7 +1111,6 @@ describe('pluginProduct', () => {
 
       mockPlugin = createMockPlugin();
       mockStore = createMockStore();
-      mockRouter = createMockRouter();
       mockDSL = {
         product:             jest.fn(),
         basicType:           jest.fn(),
@@ -1169,7 +1145,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(processHeadersConfig).toHaveBeenCalledWith({
         preset:     'namespaced',
@@ -1201,7 +1177,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(processHeadersConfig).toHaveBeenCalledWith({
         columns:    ['state', 'name', 'namespace', 'specType', 'age'],
@@ -1225,7 +1201,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.headers).not.toHaveBeenCalledWith();
     });
@@ -1251,7 +1227,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error processing headers for type "apps.deployment":',
@@ -1295,7 +1271,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(processHeadersConfig).toHaveBeenCalledTimes(3);
       expect(mockDSL.headers).toHaveBeenCalledTimes(3);
@@ -1331,7 +1307,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, StandardProductName.EXPLORER, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(processHeadersConfig).toHaveBeenCalledWith(expect.any(Object));
       expect(mockDSL.headers).toHaveBeenCalledWith(
@@ -1369,7 +1345,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(processHeadersConfig).toHaveBeenCalledTimes(1);
       expect(mockDSL.headers).toHaveBeenCalledTimes(1);
@@ -1398,7 +1374,7 @@ describe('pluginProduct', () => {
 
       const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
 
-      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+      pluginProduct.apply(mockPlugin, mockStore);
 
       expect(mockDSL.weightType).toHaveBeenCalledWith('apps.deployment', 100, true);
       expect(mockDSL.headers).toHaveBeenCalledWith(

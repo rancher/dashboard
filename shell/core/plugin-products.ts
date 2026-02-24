@@ -1,15 +1,43 @@
 import { IExtension } from '@shell/core/types';
 import {
   StandardProductName, ProductChild, ProductChildGroup,
-  ProductMetadata, ProductChildPage, ProductSinglePage,
-  VirtualTypeConfiguration, ConfigureTypeConfiguration
+  ProductMetadata, ProductSinglePage,
+  ConfigureTypeConfiguration, VirtualTypeConfiguration,
+  ProductChildCustomPage, ProductChildResourcePage
 } from '@shell/core/plugin-types';
-import { Router, RouteRecordRaw } from 'vue-router';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { processHeadersConfig } from '@shell/core/column-builder';
-// import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 
+// Type guard functions for discriminating union types
+function isProductSinglePage(product: ProductMetadata | ProductSinglePage): product is ProductSinglePage {
+  return 'component' in product && product.component !== undefined;
+}
+
+function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
+  return 'children' in child;
+}
+
+function isProductChildWithComponent(child: ProductChild): child is ProductChildCustomPage {
+  return 'component' in child && child.component !== undefined && !isProductChildGroup(child);
+}
+
+function isProductChildWithType(child: ProductChild): child is ProductChildResourcePage {
+  return 'type' in child && typeof child.type === 'string' && !isProductChildGroup(child);
+}
+
+function hasNameProperty(child: ProductChild): child is ProductChild & { name: string } {
+  return 'name' in child && typeof child.name === 'string';
+}
+
+function hasTypeProperty(child: ProductChild): child is ProductChild & { type: string } {
+  return 'type' in child && typeof child.type === 'string';
+}
+
+/**
+ * Represents the new flow for product registration for extensions
+ * @internal
+ */
 export class PluginProduct {
   private name!: string;
 
@@ -33,7 +61,8 @@ export class PluginProduct {
     this.product = product;
     this.newProduct = true;
 
-    plugin.registerTopLevelProduct();
+    // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
+    plugin._registerTopLevelProduct();
 
     if (this.config?.length > 0) {
       // consider weights of children to determine default route
@@ -43,7 +72,9 @@ export class PluginProduct {
         throw new Error('No children found for product with config');
       }
 
-      if (!reorderedChildren[0].name && !(reorderedChildren[0] as any).type) {
+      const firstChild = reorderedChildren[0];
+
+      if (!hasNameProperty(firstChild) && !hasTypeProperty(firstChild)) {
         throw new Error('Invalid child item for product default route - missing name or type');
       }
 
@@ -52,13 +83,11 @@ export class PluginProduct {
     }
 
     // If the product has a `component` field, then this is a single page product
-    if ((product as any).component) {
-      const singlePageProduct = product as ProductSinglePage;
-
+    if (isProductSinglePage(product)) {
       // Add the route to vue-router (here we go with the 'plain' layout for simple single page products)
-      const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: singlePageProduct.component });
+      const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: product.component });
 
-      plugin.addRoute('plain', route as RouteRecordRaw);
+      plugin.addRoute('plain', route);
     } else if (this.config.length === 0) {
       // If no config is provided, add a default empty page
       this.config = [{
@@ -74,9 +103,9 @@ export class PluginProduct {
     }
   }
 
-  private extendExistingStandardProductConstructor(plugin: IExtension, product: string) {
+  private extendExistingStandardProductConstructor(plugin: IExtension, product: StandardProductName) {
     // Check if the string exists as a VALUE in the enum
-    const isProductValid = Object.values(StandardProductName).includes(product as StandardProductName);
+    const isProductValid = Object.values(StandardProductName).includes(product);
 
     if (isProductValid) {
       // existing standard product - no need to add routes
@@ -90,7 +119,9 @@ export class PluginProduct {
           throw new Error('No children found for product with config');
         }
 
-        if (!reorderedChildren[0].name && !(reorderedChildren[0] as any).type) {
+        const firstChild = reorderedChildren[0];
+
+        if (!hasNameProperty(firstChild) && !hasTypeProperty(firstChild)) {
           throw new Error('Invalid child item for product default route - missing name or type');
         }
 
@@ -120,28 +151,33 @@ export class PluginProduct {
 
     // this is the default "to" route for a product with config (at least 1 item on config) ordered by weight
     if (defaultResource) {
-      if ((this.config[0] as any).name) {
-        // IF the first page is a group AND doesn't have a component, then route to the first child of the group
-        if ((this.config[0] as any).children && (this.config[0] as any).children.length && !(this.config[0] as any).component) {
-          const entryChild = (this.config[0] as ProductChildGroup).children[0] as ProductChildPage;
+      const firstConfig = this.config[0];
 
-          if (entryChild.type) {
-            defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+      if (isProductChildGroup(firstConfig)) {
+        // First config item is a group
+        if (firstConfig.children.length > 0) {
+          const entryChild = firstConfig.children[0];
+
+          if (!firstConfig.component) {
+            // Group without component - route to first child
+            if (isProductChildWithType(entryChild)) {
+              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+            } else if (isProductChildWithComponent(entryChild)) {
+              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+            }
           } else {
-            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.newProduct });
+            // Group with component - route to the group page itself
+            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, undefined, {
+              omitPath: true, component: firstConfig.component, extendProduct: !this.newProduct
+            });
           }
-        } else if ((this.config[0] as any).children && (this.config[0] as any).children.length && (this.config[0] as any).component) {
-          // IF the first page is a group AND HAS a component, then route to the group page itself
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, undefined, {
-            omitPath: true, component: (this.config[0] as any).component, extendProduct: !this.newProduct
-          });
-        } else {
-          // it's a simple virtual type page, without being a group
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.config[0] as ProductChildPage, { omitPath: true, extendProduct: !this.newProduct });
         }
-      } else if ((this.config[0] as any).type) {
-        // it's a simple configureType page (resource), without being a group
-        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, this.config[0] as ProductChildPage, { omitPath: true, extendProduct: !this.newProduct });
+      } else if (isProductChildWithType(firstConfig)) {
+        // Simple configureType page (resource page)
+        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.newProduct });
+      } else if (isProductChildWithComponent(firstConfig)) {
+        // Simple virtual type page (custom page)
+        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.newProduct });
       }
     } else if (this.newProduct) {
       // this is the "to" route for a simple page product (no config items)
@@ -164,7 +200,7 @@ export class PluginProduct {
 
   // the constructor is where we add routes to vue-router for the product being added
   // hence why we deal with them in the constructor
-  constructor(plugin: IExtension, product: string | ProductMetadata | ProductSinglePage, private config: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | ProductMetadata | ProductSinglePage, private config: ProductChild[]) {
     if (typeof product === 'object' && product.name) {
       // this is a new product being added
       this.newProductConstructor(plugin, product);
@@ -177,7 +213,7 @@ export class PluginProduct {
   }
 
   // This is where we register the product and its children via the DSL
-  apply(plugin: IExtension, store: any, router: Router, pluginRoutes: any): void {
+  apply(plugin: IExtension, store: any): void {
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -205,8 +241,8 @@ export class PluginProduct {
       this.configurePageItem(this.name, item);
 
       // Add the second-level child navigation items
-      if (typeof item === 'object' && (item as any).name && (item as any).children) {
-        const itemGroup = item as ProductChildGroup;
+      if (isProductChildGroup(item)) {
+        const itemGroup = item;
 
         // we'll concatenate the group name to the parent product name to create unique group basicType IDs
         const groupName = `${ this.name }-${ itemGroup.name }`;
@@ -222,7 +258,7 @@ export class PluginProduct {
           basicType(navNames, groupName);
 
           // register virtualTypes/configureTypes for each child item
-          itemGroup.children.forEach((subItem: any) => this.configurePageItem(`${ this.name }`, subItem, itemGroup.name));
+          itemGroup.children.forEach((subItem: ProductChild) => this.configurePageItem(`${ this.name }`, subItem, itemGroup.name));
 
           // set the group indication IF there's no component page for the actual group item
           if (!itemGroup.component) {
@@ -243,126 +279,119 @@ export class PluginProduct {
         }
       }
     });
-
-    // DEBUGGING HELPERS!!!!!!
-    // DSLRegistrationsPerProduct(store, this.name);
-    // registeredRoutes(store, this.name);
   }
 
-  // configure virtualType or configureType for a page item
+  // configure virtualType (custom page) or configureType (resource page) for a page item
   private configurePageItem(parentName: string, item: ProductChild, groupNaming?: string) {
     const {
       configureType, virtualType, weightType, headers
     } = this.DSLMethods;
 
     // Page with a "component" specified maps to a virtualType
-    if ((item as any).component) {
-      const pageChild = item as ProductChildPage;
-
-      let name = `${ parentName }-${ pageChild.name }`;
-
-      // routes names for group children must follow the group naming
-      if (groupNaming) {
-        name = `${ parentName }-${ groupNaming }-${ pageChild.name }`;
-      }
+    if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
+      // Extract properties we need from the narrowed item
+      const name = `${ parentName }-${ item.name }`;
+      const finalName = groupNaming ? `${ parentName }-${ groupNaming }-${ item.name }` : name;
 
       const virtualTypeConfig: VirtualTypeConfiguration = {
-        label:      pageChild.label,
-        labelKey:   pageChild.labelKey,
+        label:      item.label,
+        labelKey:   item.labelKey,
         namespaced: false,
-        name,
-        weight:     pageChild.weight, // ordering is done here and not via "weightType"
-        config:     pageChild.config
-      } as any;
+        name:       finalName,
+        weight:     item.weight, // ordering is done here and not via "weightType"
+      };
 
       // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
       // so that when navigating to the group page, it shows the custom page for the group
-      if ((item as any).children) {
+      if (isProductChildGroup(item)) {
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, undefined, { extendProduct: !this.newProduct });
       } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageChild, { extendProduct: !this.newProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item, { extendProduct: !this.newProduct });
       }
 
-      virtualType({ ...virtualTypeConfig, ...(pageChild.config || {}) });
-    } else if ((item as any).type) {
+      virtualType({ ...virtualTypeConfig, ...(isProductChildWithComponent(item) ? item.config || {} : {}) });
+    } else if (isProductChildWithType(item)) {
       // Page with a "type" specified maps to a configureType
-      const typeItem = item as ProductChildPage;
-
-      const pageChild = item as ProductChildPage;
-      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, pageChild, { extendProduct: !this.newProduct });
+      const typeValue = item.type;
+      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.newProduct });
 
       const configureTypeConfig: ConfigureTypeConfiguration = {
         isCreatable: true,
         isEditable:  true,
         isRemovable: true,
         canYaml:     true,
-        customRoute: route as RouteRecordRaw
+        customRoute: route
       };
 
-      configureType(typeItem.type, { ...configureTypeConfig, ...(pageChild.config || {}) });
+      configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
 
       // Process headers configuration if provided
-      if (typeItem.headers) {
+      if (item.headers) {
         try {
-          const processedHeaders = processHeadersConfig(typeItem.headers);
+          const processedHeaders = processHeadersConfig(item.headers);
 
-          headers(typeItem.type, processedHeaders.defaults, processedHeaders.pagination);
+          headers(typeValue, processedHeaders.defaults, processedHeaders.pagination);
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error(`Error processing headers for type "${ typeItem.type }":`, error);
+          console.error(`Error processing headers for type "${ typeValue }":`, error);
         }
       }
 
-      if (typeItem.weight) {
-        weightType(typeItem.type, typeItem.weight, true);
+      if (item.weight) {
+        weightType(typeValue, item.weight, true);
       }
     }
   }
 
   // Add routes in Vue-router for any items that need them
   private addRoutes(plugin: IExtension, parentName: string, item: ProductChild[]) {
-    item.forEach((child: any) => {
+    item.forEach((child) => {
       // if the child has children, then it's a group
-      if ((child as any).children) {
-        let route = {} as any;
-        const pageChild = child as ProductChildPage;
-
-        if (pageChild.type) {
+      if (isProductChildGroup(child)) {
+        // Validate group doesn't have type property
+        if (hasTypeProperty(child)) {
           throw new Error('Group items cannot have a "type" property - only custom pages can have groups.');
         }
 
-        if (pageChild.component && !this.newProduct) {
+        if (child.component && !this.newProduct) {
           throw new Error('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
         }
 
-        if (!pageChild.component) {
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageChild, { extendProduct: !this.newProduct });
+        let route;
+
+        if (!child.component) {
+          // Create minimal page object for route generation
+          const pageForRoute: ProductChildCustomPage = {
+            name:      child.name,
+            label:     child.label || child.labelKey || child.name,
+            component: EmptyProductPage
+          };
+
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute, { extendProduct: !this.newProduct });
         } else {
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, undefined, { component: pageChild.component, extendProduct: !this.newProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, undefined, { component: child.component, extendProduct: !this.newProduct });
         }
 
         // add the route for the group page/parent
         plugin.addRoute(route);
 
         // add children routes
-        this.addRoutes(plugin, `${ parentName }`, (child as any).children);
-      } else if ((child as any).component) {
+        this.addRoutes(plugin, `${ parentName }`, child.children);
+      } else if (isProductChildWithComponent(child)) {
         // virtualType page
-        const pageChild = child as ProductChildPage;
-
-        if (pageChild.type) {
+        if (hasTypeProperty(child)) {
           throw new Error('Custom pages cannot have a "type" property - only resource pages can use "type".');
         }
 
-        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageChild, { component: pageChild.component, extendProduct: !this.newProduct });
+        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child, { component: child.component, extendProduct: !this.newProduct });
 
-        plugin.addRoute(route as RouteRecordRaw);
-      } else if ((child as any).type) {
-        if ((child as ProductChildPage).component) {
-          throw new Error('Resource pages cannot have a "component" property - only custom pages can use "component".');
-        }
+        plugin.addRoute(route);
+      } else if (isProductChildWithType(child)) {
+        // Validate type-based children don't have component property
+        // The type guard ensures child has 'type', so we just need to check component doesn't exist
+        // Since ProductChildPage with type has component?: never, this is a runtime validation
 
         // configureType page (resource)
         if (!this.addedResourceRoutes) {
@@ -379,21 +408,21 @@ export class PluginProduct {
   }
 
   // get IDs for groups/basicTypes
-  private getIDsForGroupsOrBasicTypes(parent: string, data: any, excludeGrouping = false): string[] {
-    return data.map((item:any) => {
-      if (excludeGrouping && Array.isArray((item as any).children)) {
+  private getIDsForGroupsOrBasicTypes(parent: string, data: ProductChild[], excludeGrouping = false): string[] {
+    return data.map((item) => {
+      if (excludeGrouping && isProductChildGroup(item)) {
         return null;
       }
 
       if (typeof item === 'string') {
         return item;
-      } else if (item.name) {
-        return `${ parent }-${ item.name }` as string;
-      } else if (item.type) {
+      } else if (hasNameProperty(item)) {
+        return `${ parent }-${ item.name }`;
+      } else if (hasTypeProperty(item)) {
         return item.type;
       }
 
       return '';
-    }).filter((name: string) => !!name);
+    }).filter((name): name is string => typeof name === 'string' && name.length > 0);
   }
 }

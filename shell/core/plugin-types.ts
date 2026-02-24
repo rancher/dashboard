@@ -8,14 +8,15 @@ import { NAME as AUTH_PROD_NAME } from '@shell/config/product/auth.js';
 
 type Async<T> = () => Promise<T>;
 
-/**
- * Represents a navigation/route for defined as entry point for a custom page in a product
- */
-export type RouteRecordRawWithParams = Omit<RouteRecordRaw, 'path'> & {
+export type RouteRecordRawWithParams = Omit<RouteRecordRaw, 'redirect' | 'children' | 'path'> & {
   /** Path for route - can include dynamic segments like ':id'. Based on vue-router routes */
   path?: string;
   /** Params for route - key-value pairs representing route parameters */
   params?: Record<string, any>;
+  /** Child routes */
+  children?: RouteRecordRawWithParams[];
+  /** Optional redirect */
+  redirect?: RouteRecordRaw['redirect'];
 };
 
 /**
@@ -79,12 +80,14 @@ export type VirtualTypeConfiguration = {
   ifHaveType?: string;
   /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
   ifHaveVerb?: string;
+  /** Display label for the custom page */
+  label?: string;
   /** Translation key for the label */
   labelKey?: string;
   /** Name of the page (unique identifier) */
   name?: string;
   /** Entry route definition for this custom page */
-  route?: RouteRecordRaw | PluginRouteRecordRaw | Object;
+  route?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
   /** Icon for the custom page (relates to icons in https://github.com/rancher/icons) */
   icon?: 'compass';
   /** Whether this custom page is namespaced or not */
@@ -126,7 +129,7 @@ export type ConfigureTypeConfiguration = {
   /** Show the Masthead in the edit resource component */
   resourceEditMasthead?: boolean;
   /** Entry route definition for this resource page */
-  customRoute?: RouteRecordRaw;
+  customRoute?: RouteRecordRawWithParams;
   /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
   localOnly?: boolean;
   // resource: undefined; // Use this resource in ResourceDetails instead
@@ -147,42 +150,42 @@ export type ConfigureTypeConfiguration = {
 }
 
 /**
+ * Represents a custom page with a component
+ */
+export type ProductChildCustomPage = ProductChildMetadata & {
+  /** Component to render for this custom page */
+  component: RouteComponent | Async<RouteComponent>;
+  /** Optional configuration for the page */
+  config?: VirtualTypeConfiguration;
+};
+
+/**
+ * Represents a resource page with a type (K8s resource)
+ */
+export type ProductChildResourcePage = {
+  /** K8s resource type name for a resource page */
+  type: string;
+  /** Optional configuration for the resource page */
+  config?: ConfigureTypeConfiguration;
+  /** Ordering weight for this page among its siblings */
+  weight?: number;
+  /**
+   * Table column configuration for this resource type.
+   * Use standard column keys, builder pattern, or custom config.
+   * @example
+   * headers: { preset: 'namespaced', pagination: 'auto' }
+   * @example
+   * headers: { columns: ['state', 'name', column('targetPort').noSort(), 'age'] }
+   */
+  headers?: HeadersConfig;
+};
+
+/**
  * Represents a page item (custom page or resource page) in a product's config
  * - For custom pages: use `component` with `name` and `label`/`labelKey`
  * - For resource pages: use `type` with optional `config` and `headers`
  */
-export type ProductChildPage =
-  (ProductChildMetadata & {
-      /** Component to render for this custom page */
-      component: RouteComponent | Async<RouteComponent>;
-      type?: never;
-      headers?: never;
-      /** Optional configuration for the page */
-      config?: VirtualTypeConfiguration;
-      /** Ordering weight for this page among its siblings */
-      weight?: number;
-    })
-  | ({
-      label?: never;
-      labelKey?: never;
-      name?: never;
-      /** K8s resource type name for a resource page */
-      type: string;
-      component?: never;
-      /** Optional configuration for the resource page */
-      config?: ConfigureTypeConfiguration;
-      /** Ordering weight for this page among its siblings */
-      weight?: number;
-      /**
-       * Table column configuration for this resource type.
-       * Use standard column keys, builder pattern, or custom config.
-       * @example
-       * headers: { preset: 'namespaced', pagination: 'auto' }
-       * @example
-       * headers: { columns: ['state', 'name', column('targetPort').noSort(), 'age'] }
-       */
-      headers?: HeadersConfig;
-    });
+export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
 
 /**
  * Represents a product child in the navigation
