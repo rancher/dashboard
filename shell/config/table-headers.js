@@ -385,27 +385,19 @@ export const SECRET_DATA = {
   formatter: 'SecretData'
 };
 
-export const SECRET_CLONE = {
-  name:      'secret-clone',
-  labelKey:  'tableHeaders.secret.project-clone',
-  tooltip:   'tableHeaders.secret.project-clone-tooltip',
-  value:     'isProjectSecretCopy',
-  sort:      `metadata.annotations."${ UI_PROJECT_SECRET_COPY }"`,
-  search:    false,
-  formatter: 'Checked',
-};
-
-export const SECRET_PROJECT_SCOPED = {
-  name:     'secret-project-scoped',
-  labelKey: 'tableHeaders.secret.project-scoped',
-  tooltip:  'tableHeaders.secret.project-scoped-tooltip',
-  value:    'clusterAndProjectLabel',
+export const SECRET_ORIGIN = {
+  name:      'secret-origin',
+  labelKey:  'tableHeaders.secret.origin',
+  tooltip:   'tableHeaders.secret.originTooltip',
+  formatter: 'SecretOrigin',
   // Cannot _sort_ upstream secrets by if they are cluster scoped
   // https://github.com/rancher/rancher/issues/51001
   // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
   // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
   // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
-  search:   false,
+  // But we can sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
+  sort:      `metadata.annotations."${ UI_PROJECT_SECRET_COPY }"`,
+  search:    false,
 };
 
 export const TARGET_KIND = {

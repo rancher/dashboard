@@ -7,6 +7,8 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
+import { SECRET_ORIGIN } from '@shell/config/table-headers';
+import { STEVE_SECRET_ORIGIN } from '@shell/config/pagination-table-headers';
 
 export default {
   name: 'ListSecret',
@@ -54,6 +56,17 @@ export default {
     this.managementSchema = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET);
     this.namespacedHeaders = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
     this.namespacedHeadersSsp = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
+
+    if (this.canViewProjects) {
+      const headers = [...this.namespacedHeaders];
+      const headersSSP = [...this.namespacedHeadersSsp];
+
+      headers.splice(headers.length - 1, 0, SECRET_ORIGIN);
+      headersSSP.splice(headersSSP.length - 1, 0, STEVE_SECRET_ORIGIN);
+
+      this.namespacedHeaders = headers;
+      this.namespacedHeadersSsp = headersSSP;
+    }
   },
 
   computed: {

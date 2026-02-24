@@ -1,16 +1,10 @@
 <script>
-import LinkDetail from '@shell/components/formatter/LinkDetail';
 import { MANAGEMENT } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import { mapGetters } from 'vuex';
 
 export default {
-  components: { LinkDetail },
-  props:      {
-    value: {
-      type:    String,
-      default: ''
-    },
+  props: {
     row: {
       type:     Object,
       required: true
@@ -31,6 +25,15 @@ export default {
   },
   computed: {
     ...mapGetters(['currentCluster']),
+    originText() {
+      if (this.row.isProjectScoped) {
+        return this.t('secret.projectScoped.origin.source');
+      } else if (this.row.isProjectSecretCopy) {
+        return this.t('secret.projectScoped.origin.copy');
+      }
+
+      return '';
+    },
     tooltip() {
       if (this.row.isProjectScoped) {
         const projectName = this.row.project?.nameDisplay || this.row.projectScopedProjectId;
@@ -57,27 +60,20 @@ export default {
 </script>
 
 <template>
-  <div class="secret-name">
-    <LinkDetail
-      :value="value"
-      :row="row"
-    />
-    <i
-      v-if="tooltip"
-      v-clean-tooltip="tooltip"
-      class="icon"
-      :class="{'icon-info': row.isProjectScoped, 'icon-dot': row.isProjectSecretCopy}"
-    />
+  <div
+    v-if="originText"
+    v-clean-tooltip="tooltip"
+    class="secret-origin"
+  >
+    {{ originText }}
+  </div>
+  <div v-else>
+    —
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .secret-name {
-    display: flex;
-    align-items: center;
-
-    .icon {
-      margin-left: 8px;
-    }
-  }
+.secret-origin {
+  white-space: nowrap;
+}
 </style>
