@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { _CREATE, _VIEW, _EDIT } from '@shell/config/query-params';
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
