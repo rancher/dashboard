@@ -444,6 +444,7 @@ export default {
 
     startFollowing() {
       this.isFollowing = true;
+      this.follow();
     },
 
     parseRange(range) {
