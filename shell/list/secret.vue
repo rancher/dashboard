@@ -52,21 +52,23 @@ export default {
 
   async created() {
     this.canViewProjects = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](MANAGEMENT.PROJECT);
-
     this.managementSchema = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET);
     this.namespacedHeaders = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
     this.namespacedHeadersSsp = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
 
+    const headers = this.namespacedHeaders.slice(0, -1);
+    const headersSSP = this.namespacedHeadersSsp.slice(0, -1);
+
     if (this.canViewProjects) {
-      const headers = [...this.namespacedHeaders];
-      const headersSSP = [...this.namespacedHeadersSsp];
-
-      headers.splice(headers.length - 1, 0, SECRET_ORIGIN);
-      headersSSP.splice(headersSSP.length - 1, 0, STEVE_SECRET_ORIGIN);
-
-      this.namespacedHeaders = headers;
-      this.namespacedHeadersSsp = headersSSP;
+      headers.push(SECRET_ORIGIN);
+      headersSSP.push(STEVE_SECRET_ORIGIN);
     }
+
+    headers.push(this.namespacedHeaders[this.namespacedHeaders.length - 1]);
+    headersSSP.push(this.namespacedHeadersSsp[this.namespacedHeadersSsp.length - 1]);
+
+    this.namespacedHeaders = headers;
+    this.namespacedHeadersSsp = headersSSP;
   },
 
   computed: {
