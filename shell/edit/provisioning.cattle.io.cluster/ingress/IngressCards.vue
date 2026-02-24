@@ -23,7 +23,7 @@ defineProps({
   }
 });
 
-const emit = defineEmits(['select', 'load-more']);
+const emit = defineEmits(['select']);
 
 const store = useStore();
 const { t } = useI18n(store);

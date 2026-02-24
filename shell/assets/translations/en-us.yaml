@@ -2104,8 +2104,8 @@ cluster:
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
       enableIpv6:
-        label: Enable IPv6
-        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>INGRESS_DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+        label: Enable Dual-Stack
+        description: "To use dual-stack networking, you will need to update the <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack. For an IPv6-only cluster, check \"Enable IPv6\" and update the stack preference to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface

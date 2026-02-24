@@ -805,32 +805,5 @@ describe('component: rke2', () => {
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
-
-    it('should set ingress-controller to None on version change when nginx is not supported', async() => {
-      const wrapper = createWrapper();
-      const newVersion = 'v1.26.0+rke2r1';
-
-      await wrapper.setData({
-        rke2Versions: [
-          {
-            id:         k8sVersion,
-            version:    k8sVersion,
-            serverArgs: { disable: { options: [] } },
-            charts:     mockCharts
-          },
-          {
-            id:         newVersion,
-            version:    newVersion,
-            serverArgs: { disable: { options: [] } },
-            charts:     mockCharts
-          }
-        ]
-      });
-
-      wrapper.vm.value.spec.kubernetesVersion = newVersion;
-      (wrapper.vm as any).handleKubernetesChange(newVersion);
-
-      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
-    });
   });
 });

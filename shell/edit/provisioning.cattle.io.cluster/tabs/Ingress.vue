@@ -7,7 +7,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { Banner } from '@components/Banner';
 import IngressCards from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue';
 import {
-  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE, INGRESS_MIGRATION_KB_LINK
+  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE, INGRESS_MIGRATION_KB_LINK, INGRESS_CLASS_DEFAULT, INGRESS_CONTROLLER_CLASS_DEFAULT, INGRESS_CLASS_MIGRATION, INGRESS_CONTROLLER_CLASS_MIGRATION
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import IngressConfiguration from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -30,8 +30,8 @@ const {
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
-const userChartValues = inject('userChartValues', {});
-const versionInfo = inject('versionInfo', {});
+const userChartValues = inject('userChartValues', {}) as any;
+const versionInfo = inject('versionInfo', {}) as any;
 const store = useStore();
 const { t } = useI18n(store);
 
@@ -81,11 +81,11 @@ function initYamlEditor(chart: string) {
 function setCompatibilityModeValues(val: boolean) {
   set(traefikMerged.value, 'providers.kubernetesIngressNginx.enabled', val);
   if (!val) {
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', 'nginx');
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', 'k8s.io/ingress-nginx');
+    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', INGRESS_CLASS_DEFAULT);
+    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', INGRESS_CONTROLLER_CLASS_DEFAULT);
   } else {
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', 'rke2-ingress-nginx-migration');
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', 'rke2.cattle.io/ingress-nginx-migration');
+    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', INGRESS_CLASS_MIGRATION);
+    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', INGRESS_CONTROLLER_CLASS_MIGRATION);
   }
 }
 
@@ -193,7 +193,6 @@ function selectIngress(id: string) {
         <template #docsUrl="{ content }">
           <a
             :href="`${INGRESS_MIGRATION_KB_LINK}`"
-
             tabindex="0"
             target="_blank"
             rel="noopener noreferrer nofollow"

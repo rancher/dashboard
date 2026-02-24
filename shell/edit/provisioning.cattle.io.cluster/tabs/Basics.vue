@@ -170,7 +170,6 @@ export default {
 
       set(neu) {
         this.serverConfig[INGRESS_CONTROLLER] = neu;
-        // TODO DO THE DISABLING TOO
       },
     },
 

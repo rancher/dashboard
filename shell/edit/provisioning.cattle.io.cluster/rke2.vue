@@ -1010,18 +1010,6 @@ export default {
         this.agentConfig['cloud-provider-name'] = undefined;
       }
     },
-
-    hasSomeIpv6Pools(neu) {
-      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
-        if (neu) {
-          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.INGRESS_DUAL;
-
-          return;
-        }
-
-        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
-      }
-    }
   },
 
   created() {
@@ -1881,7 +1869,6 @@ export default {
         if (!this.userChartValues[key]) {
           this.set(this.userChartValues, key, {});
         }
-      //  console.log(chartName, key, this.userChartValues, this.versionInfo);
       } catch (e) {
         console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
       }
@@ -2255,7 +2242,6 @@ export default {
             this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
           }
         }
-        console.log(this.serverConfig[INGRESS_CONTROLLER]);
       }
     },
 
@@ -2618,6 +2604,7 @@ export default {
               @update-values="updateValues"
               @yaml-validation-changed="e => addonConfigValidationChanged(e.name, e.val)"
               @config-validation-changed="(val)=>basicsValid = val"
+              @error="e=>errors.push(e)"
             />
           </Tab>
 
