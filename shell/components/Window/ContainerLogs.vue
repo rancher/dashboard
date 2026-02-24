@@ -13,7 +13,6 @@ import LogItem from '@shell/components/LogItem';
 import ContainerLogsActions from '@shell/components/Window/ContainerLogsActions.vue';
 import { shallowRef } from 'vue';
 import { useStore } from 'vuex';
-import { debounce } from 'lodash';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 import { escapeRegex } from '@shell/utils/string';
@@ -110,12 +109,6 @@ export default {
       required: true,
     },
 
-    // The height of the window
-    height: {
-      type:     Number,
-      required: true,
-    },
-
     // The pod to connect to
     pod: {
       type:     Object,
@@ -147,7 +140,6 @@ export default {
       socket:              null,
       isOpen:              false,
       isFollowing:         true,
-      scrollThreshold:     80,
       timestamps:          this.$store.getters['prefs/get'](LOGS_TIME),
       wrap:                this.$store.getters['prefs/get'](LOGS_WRAP),
       previous:            false,
@@ -290,18 +282,6 @@ export default {
     container() {
       this.connect();
     },
-
-    lines: {
-      handler() {
-        if (this.isFollowing) {
-          this.$nextTick(() => {
-            this.follow();
-          });
-        }
-      },
-      deep: true
-    }
-
   },
 
   beforeUnmount() {
@@ -451,22 +431,20 @@ export default {
         if (maxLines && this.lines.length > maxLines) {
           this.lines = this.lines.slice(-maxLines);
         }
+
+        this.$nextTick(() => {
+          this.follow();
+        });
       }
     },
 
-    updateFollowing: debounce(function() {
-      const virtualList = this.$refs.virtualList;
+    stopFollowing() {
+      this.isFollowing = false;
+    },
 
-      if (virtualList) {
-        const scrollSize = virtualList.getScrollSize();
-        const clientSize = virtualList.getClientSize();
-        const offset = virtualList.getOffset();
-
-        const distanceFromBottom = scrollSize - clientSize - offset;
-
-        this.isFollowing = distanceFromBottom <= this.scrollThreshold;
-      }
-    }, 100),
+    startFollowing() {
+      this.isFollowing = true;
+    },
 
     parseRange(range) {
       range = `${ range }`.trim().toLowerCase();
@@ -537,9 +515,8 @@ export default {
     follow() {
       const virtualList = this.$refs.virtualList;
 
-      if (virtualList) {
-        virtualList.scrollToBottom();
-        this.isFollowing = true;
+      if (virtualList && this.isFollowing) {
+        virtualList.scrollToOffset(virtualList.getScrollSize());
       }
     },
 
@@ -607,7 +584,7 @@ export default {
             :aria-label="t('wm.containerLogs.follow')"
             :aria-disabled="isFollowing"
             :disabled="isFollowing"
-            @click="follow"
+            @click="startFollowing"
           >
             <t
               class="wm-btn-large"
@@ -752,6 +729,8 @@ export default {
       <div
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
+        @wheel.passive="stopFollowing"
+        @mousedown="stopFollowing"
       >
         <VirtualList
           v-show="filtered.length"
@@ -762,7 +741,6 @@ export default {
           :data-component="logItem"
           direction="vertical"
           :keeps="200"
-          @scroll="updateFollowing"
         />
         <template v-if="!filtered.length">
           <div v-if="search">
