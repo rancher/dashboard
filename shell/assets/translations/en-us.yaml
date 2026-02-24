@@ -2637,26 +2637,26 @@ cluster:
   ingress:
     title: Ingress
     enableIngress: Install Ingress controller to enable external routing
-    nginx: 
+    nginx:
       header: Ingress-NGINX
       content: Choose this only if your workloads are not yet ready for Traefik.
-    dual: 
+    dual:
       header: Dual Mode
       content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
-    traefik: 
+    traefik:
       header: Traefik
       content: The new default provider for high-performance routing and modern feature support.
     recommended: Recommended
     legacy: Legacy
     migration: Migration
-    learnMore: 
+    learnMore:
       label: Learn more...
       ariaLabel: Link to documentation
     showAdvanced: Show advanced configuration
     hideAdvanced: Hide advanced configuration
     configurationOptions:
       title: Configuration Options
-      compatibilityMode: Enable Traefik Ingress NGINX compatibility mode for annotations 
+      compatibilityMode: Enable Traefik Ingress NGINX compatibility mode for annotations
       traefik:
         http: Traefik HTTP
         https: Traefik HTTPS
@@ -2664,8 +2664,8 @@ cluster:
         http: Ingress-NGINX HTTP
         https: Ingress-NGINX HTTPS
     banners:
-      transitioning: 
-        label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support. 
+      transitioning:
+        label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:

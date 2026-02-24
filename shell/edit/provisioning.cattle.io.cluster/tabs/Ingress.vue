@@ -20,18 +20,20 @@ interface Props {
   nginxSupported: boolean;
   nginxChart: string;
   traefikChart: string;
+  userChartValues: any;
+  versionInfo: any;
 }
 const {
   mode = _CREATE,
   value,
   nginxChart,
   traefikChart,
-  nginxSupported
+  nginxSupported,
+  userChartValues,
+  versionInfo
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
-const userChartValues = inject('userChartValues', {}) as any;
-const versionInfo = inject('versionInfo', {}) as any;
 const store = useStore();
 const { t } = useI18n(store);
 
@@ -42,7 +44,7 @@ const isEdit = computed(() => mode === _EDIT);
 const ingressSelection = computed(() => {
   if (Array.isArray(value) ) {
     return INGRESS_DUAL;
-  } else if (value?.length === 0) {
+  } else if (!value || value.length === 0) {
     return INGRESS_NONE;
   } else {
     return value;
@@ -108,7 +110,7 @@ const nginxHttp = computed({
     return get(nginxMerged.value, 'controller.hostPort.ports.http');
   },
   set(val: string) {
-    set(nginxMerged.value, 'controller.controller.hostPort.ports.http', Number(val));
+    set(nginxMerged.value, 'controller.hostPort.ports.http', Number(val));
     emit('update-values', nginxChart, nginxMerged.value);
   }
 });
@@ -117,7 +119,7 @@ const nginxHttps = computed({
     return get(nginxMerged.value, 'controller.hostPort.ports.https');
   },
   set(val: string) {
-    set(nginxMerged.value, 'controller.controller.hostPort.ports.https', Number(val));
+    set(nginxMerged.value, 'controller.hostPort.ports.https', Number(val));
     emit('update-values', nginxChart, nginxMerged.value);
   }
 });

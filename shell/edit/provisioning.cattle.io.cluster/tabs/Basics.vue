@@ -11,7 +11,9 @@ import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
-import { HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+import {
+  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX
+} from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
   emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'compliance-changed', 'psa-default-changed', 'update-values', 'error', 'yaml-validation-changed', 'config-validation-changed'],
@@ -47,7 +49,14 @@ export default {
       default:  null,
       required: false
     },
-
+    userChartValues: {
+      type:     Object,
+      required: true
+    },
+    versionInfo: {
+      type:     Object,
+      required: true
+    },
     complianceOverride: {
       type:     Boolean,
       required: true
@@ -113,7 +122,6 @@ export default {
       required: true
     }
   },
-  inject: ['userChartValues'],
 
   data() {
     return {
@@ -165,7 +173,7 @@ export default {
     },
     ingressController: {
       get() {
-        return this.serverConfig[INGRESS_CONTROLLER];
+        return this.serverConfig && this.serverConfig[INGRESS_CONTROLLER] ? this.serverConfig[INGRESS_CONTROLLER] : INGRESS_NGINX ;
       },
 
       set(neu) {
@@ -385,6 +393,9 @@ export default {
      */
     showCloudProviderMigrateAzureWarning() {
       return this.showCloudProvider && this.isEdit && this.canAzureMigrateOnEdit;
+    },
+    showIngress() {
+      return !this.value?.isK3s;
     }
   },
 
@@ -404,7 +415,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="!haveArgInfo ||nginxChart"
+      v-if="!haveArgInfo || ((!nginxChart || !traefikChart) && showIngress)"
       color="warning"
       :label="t('cluster.banner.haveArgInfo')"
     />
@@ -665,12 +676,14 @@ export default {
     </div>
     <!-- Ingress -->
     <Ingress
-      v-if="!value?.isK3s"
+      v-if="showIngress"
       v-model:value="ingressController"
       :mode="mode"
       :nginx-supported="nginxSupported"
       :nginx-chart="nginxChart"
       :traefik-chart="traefikChart"
+      :user-chart-values="userChartValues"
+      :version-info="versionInfo"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

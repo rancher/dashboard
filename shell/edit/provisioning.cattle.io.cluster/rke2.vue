@@ -1855,22 +1855,24 @@ export default {
     async getChartValue(chartName) {
       const entry = this.chartVersions[chartName];
 
-      try {
-        const res = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:    'cluster',
-          repoName:    entry.repo,
-          chartName,
-          versionName: entry.version,
-        });
+      if (entry) {
+        try {
+          const res = await this.$store.dispatch('catalog/getVersionInfo', {
+            repoType:    'cluster',
+            repoName:    entry.repo,
+            chartName,
+            versionName: entry.version,
+          });
 
-        this.set(this.versionInfo, chartName, res);
-        const key = this.chartVersionKey(chartName);
+          this.set(this.versionInfo, chartName, res);
+          const key = this.chartVersionKey(chartName);
 
-        if (!this.userChartValues[key]) {
-          this.set(this.userChartValues, key, {});
+          if (!this.userChartValues[key]) {
+            this.set(this.userChartValues, key, {});
+          }
+        } catch (e) {
+          console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
         }
-      } catch (e) {
-        console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
       }
     },
 
@@ -2372,15 +2374,7 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
-
-  },
-  provide() {
-    return {
-      userChartValues: this.userChartValues,
-      versionInfo:     this.versionInfo
-    };
   }
-
 };
 </script>
 
@@ -2577,6 +2571,8 @@ export default {
               v-model:value="localValue"
               :mode="mode"
               :provider="provider"
+              :user-chart-values="userChartValues"
+              :version-info="versionInfo"
               :credential="credential"
               :compliance-override="complianceOverride"
               :all-psas="allPSAs"

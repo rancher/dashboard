@@ -2,17 +2,20 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 const defaultStubs = {
-  Banner:        true,
-  LabeledSelect: true,
-  YamlEditor:    true,
-  Checkbox:      true
+  Banner:          true,
+  LabeledSelect:   true,
+  YamlEditor:      true,
+  Checkbox:        true,
+  RichTranslation: true
 };
 
 const defaultCiliumStubs = {
-  LabeledSelect: true,
-  YamlEditor:    true,
+  LabeledSelect:   true,
+  YamlEditor:      true,
+  RichTranslation: true
 };
 
 // const defaultComputed = {
@@ -25,46 +28,65 @@ const defaultCiliumStubs = {
 // };
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
-const mockServerArgs = { disable: {}, cni: { options: [] } };
+const mockServerArgs = { disable: { options: [] }, cni: { options: [] } };
 
+jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
+  RETENTION_DEFAULT:         5,
+  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
+  RKE2_TRAEFIK:              'rke2-traefik',
+  INGRESS_NGINX:             'ingress-nginx',
+  INGRESS_CONTROLLER:        'ingress-controller',
+  TRAEFIK:                   'traefik',
+  HARVESTER:                 'harvester',
+  INGRESS_DUAL:              'dual',
+  INGRESS_NONE:              'none',
+  INGRESS_OPTIONS:           [],
+  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+}));
+const mockRke2Charts = {
+  [RKE2_INGRESS_NGINX]: {},
+  [RKE2_TRAEFIK]:       {},
+  'rke2-cilium':        {}
+};
+const mockK3sCharts = { 'rke2-cilium': {} };
 const rke2Versions = [
   {
-    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   }
 ];
 const k3sVersions = [
   {
-    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.23.0+k3s1', value: 'v1.23.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.23.0+k3s1', value: 'v1.23.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   }
 ];
 const mockVersionOptions = [...rke2Versions, ...k3sVersions];
@@ -83,7 +105,7 @@ const defaultMocks = {
   $route: {
     name:  'anything',
     query: { AS: 'yaml' },
-  },
+  }
 };
 
 const defaultSpec = {
@@ -103,6 +125,9 @@ const bmOffValue = { bandwidthManager: { enabled: false } };
 function createBasicsTab(version : string, userChartValues: any, options = {}) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
+  const providedUserChartValues = userChartValues || {};
+  const providedVersionInfo = k8s.charts || {};
+
   const wrapper = mount(Basics, {
     props: {
       mode:  'create',
@@ -116,7 +141,8 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
       },
       addonVersions:               [],
       provider:                    'custom',
-      userChartValues:             userChartValues || {},
+      userChartValues:             providedUserChartValues,
+      versionInfo:                 providedVersionInfo,
       cisOverride:                 false,
       cisPsaChangeBanner:          true,
       allPsas:                     [],
@@ -142,7 +168,6 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
         ...defaultMocks,
         $store: { getters: defaultGetters },
       },
-
       stubs: defaultCiliumStubs,
     },
   });
@@ -176,6 +201,8 @@ describe('component: Basics', () => {
         },
         provider:                    'whatever',
         userChartValues:             {},
+        addonVersions:               [],
+        versionInfo:                 {},
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
@@ -228,6 +255,8 @@ describe('component: Basics', () => {
         },
         provider:                    'whatever',
         userChartValues:             {},
+        addonVersions:               [],
+        versionInfo:                 {},
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
@@ -277,6 +306,8 @@ describe('component: Basics', () => {
         },
         provider:           'custom',
         userChartValues:    {},
+        addonVersions:      [],
+        versionInfo:        {},
         cisPsaChangeBanner: true,
         allPsas:            [],
         cisOverride:        override,
@@ -284,7 +315,7 @@ describe('component: Basics', () => {
         versionOptions:     [{
           value:     k8s,
           agentArgs: { profile: { options: [cis] } },
-          charts:    {},
+          charts:    mockRke2Charts,
           profile:   { options: [cis] }
         }],
         isHarvesterDriver:           false,

@@ -103,7 +103,7 @@ watch(isValid, (val) => emit('validation-changed', val), { immediate: true });
   />
   <div
     v-if="ingressSelection === TRAEFIK || ingressSelection === INGRESS_DUAL"
-    class="row "
+    class="row"
     :class="ingressSelection === INGRESS_DUAL ? 'mb-10' : ''"
   >
     <div class="span-2 mr-20">
@@ -127,7 +127,7 @@ watch(isValid, (val) => emit('validation-changed', val), { immediate: true });
     v-if="ingressSelection === INGRESS_NGINX || ingressSelection === INGRESS_DUAL"
     class="row"
   >
-    <div class="span-2  mr-20">
+    <div class="span-2 mr-20">
       <LabeledInput
         v-model:value="nginxHttp"
         label-key="cluster.ingress.configurationOptions.nginx.http"
