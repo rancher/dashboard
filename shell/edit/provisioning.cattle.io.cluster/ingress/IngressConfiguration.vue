@@ -27,52 +27,63 @@ const nginxHttps = defineModel<number>('nginxHttps');
 const traefikHttp = defineModel<number>('traefikHttp');
 const traefikHttps = defineModel<number>('traefikHttps');
 
-const { portNumber } = formRulesGenerator(t, { key: 'Port' });
-const portRules = [portNumber];
+const nginxHttpRules = computed(() => {
+  const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.nginx.http') });
+  const portRules = [isInteger, portNumber];
 
-const nginxHttpRules = computed(() => [
-  ...portRules,
-  (val: any) => {
-    if (ingressSelection === INGRESS_DUAL && String(val) === String(traefikHttp.value)) {
-      return t('cluster.ingress.validation.portsMatch');
+  return [...portRules,
+    (val: any) => {
+      if (ingressSelection === INGRESS_DUAL && String(val) === String(traefikHttp.value)) {
+        return t('cluster.ingress.validation.portsMatch');
+      }
+
+      return undefined;
     }
+  ];
+});
 
-    return undefined;
-  }
-]);
+const nginxHttpsRules = computed(() => {
+  const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.nginx.https') });
+  const portRules = [isInteger, portNumber];
 
-const nginxHttpsRules = computed(() => [
-  ...portRules,
-  (val: any) => {
-    if (ingressSelection === INGRESS_DUAL && String(val) === String(traefikHttps.value)) {
-      return t('cluster.ingress.validation.portsMatch');
+  return [...portRules,
+    (val: any) => {
+      if (ingressSelection === INGRESS_DUAL && String(val) === String(traefikHttps.value)) {
+        return t('cluster.ingress.validation.portsMatch');
+      }
+
+      return undefined;
     }
+  ];
+});
 
-    return undefined;
-  }
-]);
+const traefikHttpRules = computed(() => {
+  const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.traefik.http') });
+  const portRules = [isInteger, portNumber];
 
-const traefikHttpRules = computed(() => [
-  ...portRules,
-  (val: any) => {
+  return [...portRules, (val: any) => {
     if (ingressSelection === INGRESS_DUAL && String(val) === String(nginxHttp.value)) {
       return t('cluster.ingress.validation.portsMatch');
     }
 
     return undefined;
   }
-]);
+  ];
+});
 
-const traefikHttpsRules = computed(() => [
-  ...portRules,
-  (val: any) => {
+const traefikHttpsRules = computed(() => {
+  const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.traefik.https') });
+  const portRules = [isInteger, portNumber];
+
+  return [...portRules, (val: any) => {
     if (ingressSelection === INGRESS_DUAL && String(val) === String(nginxHttps.value)) {
       return t('cluster.ingress.validation.portsMatch');
     }
 
     return undefined;
   }
-]);
+  ];
+});
 
 const isValid = computed(() => {
   const check = (val: any, rules: any[]) => rules.every((rule) => rule(val) === undefined);

@@ -155,13 +155,6 @@ export default {
   },
 
   watch: {
-    value(neu) {
-      if ( this.asObject ) {
-        this.updateValue(saferDump(neu));
-      } else {
-        this.updateValue(neu);
-      }
-    },
     showUploadPrompt(neu) {
       if (neu) {
         this.$refs.yamluploader.click();

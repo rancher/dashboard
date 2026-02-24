@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { _CREATE, _VIEW, _EDIT } from '@shell/config/query-params';
-import { ref, computed } from 'vue';
+import { ref, computed, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -12,6 +12,7 @@ import {
 import IngressConfiguration from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { set, get, mergeWithReplace } from '@shell/utils/object';
+import { saferDump } from '@shell/utils/create-yaml';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 
 interface Props {
@@ -36,10 +37,13 @@ const {
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
 const store = useStore();
 const { t } = useI18n(store);
+const nginxYaml = useTemplateRef('nginx-yaml');
+const traefikYaml = useTemplateRef('traefik-yaml');
 
 const showAdvanced = ref<Boolean>(false);
 const isView = computed(() => mode === _VIEW);
 const isEdit = computed(() => mode === _EDIT);
+const showTraefikBanner = ref<Boolean>(false);
 
 const ingressSelection = computed(() => {
   if (Array.isArray(value) ) {
@@ -112,6 +116,7 @@ const nginxHttp = computed({
   set(val: string) {
     set(nginxMerged.value, 'controller.hostPort.ports.http', Number(val));
     emit('update-values', nginxChart, nginxMerged.value);
+    updateYaml(nginxYaml.value, nginxMerged.value);
   }
 });
 const nginxHttps = computed({
@@ -121,6 +126,7 @@ const nginxHttps = computed({
   set(val: string) {
     set(nginxMerged.value, 'controller.hostPort.ports.https', Number(val));
     emit('update-values', nginxChart, nginxMerged.value);
+    updateYaml(nginxYaml.value, nginxMerged.value);
   }
 });
 const traefikHttp = computed({
@@ -130,6 +136,7 @@ const traefikHttp = computed({
   set(val: string) {
     set(traefikMerged.value, 'ports.web.hostPort', Number(val));
     emit('update-values', traefikChart, traefikMerged.value);
+    updateYaml(traefikYaml.value, traefikMerged.value);
   }
 });
 const traefikHttps = computed({
@@ -139,6 +146,7 @@ const traefikHttps = computed({
   set(val: string) {
     set(traefikMerged.value, 'ports.websecure.hostPort', Number(val));
     emit('update-values', traefikChart, traefikMerged.value);
+    updateYaml(traefikYaml.value, traefikMerged.value);
   }
 });
 
@@ -149,6 +157,7 @@ const compatibilityMode = computed({
   set(val: boolean) {
     setCompatibilityModeValues(val);
     emit('update-values', traefikChart, traefikMerged.value);
+    updateYaml(traefikYaml.value, traefikMerged.value);
   }
 });
 
@@ -158,6 +167,15 @@ function selectIngress(id: string) {
     preconfigureTraefik();
   } else {
     emit('update:value', id);
+    if (id === TRAEFIK && isEdit) {
+      showTraefikBanner.value = true;
+    }
+  }
+}
+
+function updateYaml(component: any, value: any) {
+  if (component) {
+    component.updateValue(saferDump(value));
   }
 }
 
@@ -188,7 +206,7 @@ function selectIngress(id: string) {
       @select="selectIngress"
     />
     <Banner
-      v-if="isEdit"
+      v-if="(isEdit && ingressSelection !== TRAEFIK) || showTraefikBanner"
       color="warning"
     >
       <RichTranslation :k="`cluster.ingress.banners.selected.${ingressSelection}.label`">
@@ -239,6 +257,8 @@ function selectIngress(id: string) {
             {{ t('cluster.ingress.traefik.header') }}
           </p>
           <YamlEditor
+            ref="traefik-yaml"
+            class="ingress-yaml-editor"
             data-testid="traefik-yaml-editor"
             :value="traefikMerged"
             :mode="mode"
@@ -261,6 +281,8 @@ function selectIngress(id: string) {
             {{ t('cluster.ingress.nginx.header') }}
           </p>
           <YamlEditor
+            ref="nginx-yaml"
+            class="ingress-yaml-editor"
             data-testid="ingress-nginx-yaml-editor"
             :value="nginxMerged"
             :mode="mode"
@@ -287,6 +309,15 @@ function selectIngress(id: string) {
     border-color: var(--primary);
     @include focus-outline;
     outline-offset: -2px;
+  }
+}
+
+.ingress-yaml-editor {
+  ::v-deep .CodeMirror {
+    height: auto !important;
+  }
+  ::v-deep .CodeMirror-scroll {
+    max-height: 600px;
   }
 }
 </style>
