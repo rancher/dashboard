@@ -33,6 +33,7 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annota
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { randomStr } from '@shell/utils/string';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -265,6 +266,8 @@ export default defineComponent({
   },
 
   methods: {
+    // TODO nb remove
+    randomStr,
 
     onMembershipUpdate(update) {
       this.membershipUpdate = update;
@@ -568,7 +571,7 @@ export default defineComponent({
         v-for="(acc, i) in testAccs"
         :key="i"
         class="mb-20 accordion"
-        :title="i.toString()"
+        :title="i.toString() + randomStr()"
       >
         {{ i }}
       </Accordion>

@@ -799,9 +799,6 @@ export default {
           :class="{'show-toc':canShowToc}"
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <slot name="single">
-            <slot />
-          </slot>
           <!-- <div
             class="resource-container cru__content"
             :style="[minHeight ? { 'min-height': minHeight } : {}]"
@@ -809,7 +806,9 @@ export default {
           <div
             class="cru__content"
           >
-            <slot />
+            <slot name="single">
+              <slot />
+            </slot>
           </div>
           <TableOfContents
             v-if="canShowToc"
@@ -1047,6 +1046,8 @@ form.create-resource-container .cru {
     margin-left: var(--gap-lg);
     min-width: 250px;
     max-width: 250px;
+    margin-top: 20px
+
   }
 
   &__content {
