@@ -2650,7 +2650,7 @@ cluster:
     legacy: Legacy
     migration: Migration
     learnMore:
-      label: Learn more...
+      label: Learn more
       ariaLabel: Link to documentation
     showAdvanced: Show advanced configuration
     hideAdvanced: Hide advanced configuration
