@@ -3,10 +3,12 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
 import { Card } from '@components/Card';
+
+import { uniq } from 'lodash';
 
 // i18n-uses rbac.globalRoles.types.*.label
 // i18n-uses rbac.globalRoles.types.*.description
@@ -146,7 +148,22 @@ export default {
         return;
       }
       this.update();
-    }
+    },
+    /**
+     * The mode will change from CREATE to EDIT if user creation fails to assign
+     * roles. We need to rebind the roles in order to allow for previously
+     * active roles to be deselected.
+     */
+    mode: {
+      async handler(newMode) {
+        if (newMode !== _EDIT) {
+          return;
+        }
+
+        this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
+        this.bindRoles();
+      }
+    },
   },
   methods: {
     getRoleType(role) {
@@ -178,39 +195,45 @@ export default {
         // Start with the new user default for each role
         this.selectDefaults();
       } else {
-        // Start with the principal/user's roles
-        if (!this.groupPrincipalId && !this.userId) {
-          return;
-        }
-
-        const boundRoles = this.globalRoleBindings.filter((grb) => {
-          return this.groupPrincipalId ? grb.groupPrincipalName === this.groupPrincipalId : grb.userName === this.userId;
-        });
-
-        Object.values(this.sortedRoles).forEach((roles) => {
-          roles.forEach((mappedRole) => {
-            const boundRole = boundRoles.find((boundRole) => boundRole.globalRoleName === mappedRole.id);
-
-            if (!!boundRole) {
-              this.selectedRoles.push(mappedRole.id);
-              this.startingSelectedRoles.push({
-                roleId:    mappedRole.id,
-                bindingId: boundRole.id
-              });
-              // Checkboxes should be disabled, besides normal 'mode' ways, if we're only assigning and not removing existing roles
-              this.assignOnlyRoles[mappedRole.id] = this.assignOnly;
-            }
-          });
-        });
-
-        if (this.assignOnly && !this.selectedRoles.length) {
-          // If we're assigning roles to a group that has no existing roles start with the default roles selected
-          this.selectDefaults();
-        }
+        this.bindRoles();
       }
 
       // Force an update to pump out the initial state
       this.checkboxChanged();
+    },
+    bindRoles() {
+      // Start with the principal/user's roles
+      if (!this.groupPrincipalId && !this.userId) {
+        return;
+      }
+
+      const boundRoles = this.globalRoleBindings.filter((grb) => {
+        return this.groupPrincipalId ? grb.groupPrincipalName === this.groupPrincipalId : grb.userName === this.userId;
+      });
+
+      Object.values(this.sortedRoles).forEach((roles) => {
+        roles.forEach((mappedRole) => {
+          const boundRole = boundRoles.find((boundRole) => boundRole.globalRoleName === mappedRole.id);
+
+          if (!!boundRole) {
+            this.selectedRoles.push(mappedRole.id);
+            this.startingSelectedRoles.push({
+              roleId:    mappedRole.id,
+              bindingId: boundRole.id
+            });
+            // Checkboxes should be disabled, besides normal 'mode' ways, if we're only assigning and not removing existing roles
+            this.assignOnlyRoles[mappedRole.id] = this.assignOnly;
+          }
+        });
+      });
+
+      // selected roles can contain duplicates after pushing mapped roles above
+      this.selectedRoles = uniq(this.selectedRoles);
+
+      if (this.assignOnly && !this.selectedRoles.length) {
+        // If we're assigning roles to a group that has no existing roles start with the default roles selected
+        this.selectDefaults();
+      }
     },
     checkboxChanged() {
       const addRoles = this.selectedRoles
