@@ -62,7 +62,6 @@ const { t } = useI18n(store);
         <rc-item-card-action>
           <a
             :href="card.doc.url"
-            :aria-label="t('cluster.ingress.learnMore.ariaLabel')"
             rel="nofollow noopener noreferrer"
             target="_blank"
             class="ingress-card-footer-button secondary-text-link"
