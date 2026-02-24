@@ -8,12 +8,17 @@ export interface SchemaAttributeColumn {
   type: string,
 }
 
+export type SchemaAttributeVerbs = 'get' | 'patch' | 'list' | 'update'
+
 export interface SchemaAttribute {
   columns: SchemaAttributeColumn[],
   namespaced: boolean
+  verbs: SchemaAttributeVerbs[]
 }
 
 /**
+ * Interface for a steve schema, represents raw json
+ *
  * At some point this will be properly typed, until then...
  */
 export interface Schema {

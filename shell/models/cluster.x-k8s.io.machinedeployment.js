@@ -41,12 +41,12 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get templateType() {
-    return this.spec.template.spec.infrastructureRef.kind ? `rke-machine.cattle.io.${ this.spec.template.spec.infrastructureRef.kind.toLowerCase() }` : null;
+    return this.infrastructureRefKind ? `rke-machine.cattle.io.${ this.infrastructureRefKind.toLowerCase() }` : null;
   }
 
   get template() {
     const ref = this.spec.template.spec.infrastructureRef;
-    const id = `${ ref.namespace }/${ ref.name }`;
+    const id = `${ this.metadata.namespace }/${ ref.name }`;
     const template = this.$rootGetters['management/byId'](this.templateType, id);
 
     return template;
@@ -92,15 +92,15 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get outdated() {
-    return Math.max(0, (this.status?.replicas || 0) - (this.status?.updatedReplicas || 0));
+    return Math.max(0, (this.status?.replicas || 0) - (this.status?.upToDateReplicas || 0));
   }
 
   get ready() {
-    return Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
+    return this.status?.availableReplicas || 0;
   }
 
   get unavailable() {
-    return this.status?.unavailableReplicas || 0;
+    return Math.max(0, (this.status?.replicas || 0) - (this.status?.availableReplicas || 0));
   }
 
   get isControlPlane() {

@@ -312,9 +312,12 @@ export async function initSchedulingCustomization(value, features, store, mode) 
   const schedulingCustomizationFeatureEnabled = features(SCHEDULING_CUSTOMIZATION);
   let clusterAgentDefaultPC = null;
   let clusterAgentDefaultPDB = null;
+  let fleetAgentDefaultPC = null;
+  let fleetAgentDefaultPDB = null;
   let schedulingCustomizationOriginallyEnabled = false;
   const errors = [];
 
+  // Cluster Agent Config
   try {
     clusterAgentDefaultPC = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
   } catch (e) {
@@ -330,12 +333,29 @@ export async function initSchedulingCustomization(value, features, store, mode) 
     set(value, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: clusterAgentDefaultPC, podDisruptionBudget: clusterAgentDefaultPDB });
   }
 
-  if (mode === _EDIT && !!value?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
+  // Fleet Agent Config
+  try {
+    fleetAgentDefaultPC = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+  } catch (e) {
+    errors.push(e);
+  }
+  try {
+    fleetAgentDefaultPDB = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+  } catch (e) {
+    errors.push(e);
+  }
+
+  if (schedulingCustomizationFeatureEnabled && mode === _CREATE && isEmptyLodash(value?.fleetAgentDeploymentCustomization?.schedulingCustomization)) {
+    set(value, 'fleetAgentDeploymentCustomization.schedulingCustomization', { priorityClass: fleetAgentDefaultPC, podDisruptionBudget: fleetAgentDefaultPDB });
+  }
+
+  // Validates if any, FleetAgent or ClusterAgent have been added before
+  if (mode === _EDIT && (!!value?.clusterAgentDeploymentCustomization?.schedulingCustomization || !!value?.fleetAgentDeploymentCustomization?.schedulingCustomization)) {
     schedulingCustomizationOriginallyEnabled = true;
   }
 
   return {
-    clusterAgentDefaultPC, clusterAgentDefaultPDB, schedulingCustomizationFeatureEnabled, schedulingCustomizationOriginallyEnabled, errors
+    fleetAgentDefaultPC, fleetAgentDefaultPDB, clusterAgentDefaultPC, clusterAgentDefaultPDB, schedulingCustomizationFeatureEnabled, schedulingCustomizationOriginallyEnabled, errors
   };
 }
 

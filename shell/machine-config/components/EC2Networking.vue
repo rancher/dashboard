@@ -9,6 +9,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { scrollToBottom } from '@shell/utils/scroll';
 import { _CREATE } from '@shell/config/query-params';
+import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
 
 export default {
   name: 'Ec2MachinePoolNetworking',
@@ -17,7 +18,7 @@ export default {
     Checkbox, LabeledSelect, LabeledInput, Banner
   },
 
-  emits: ['update:enablePrimaryIpv6', 'update:ipv6AddressCount', 'update:ipv6AddressOnly', 'update:httpProtocolIpv6', 'update:vpcId', 'update:subnetId', 'update:hasIpv6', 'validationChanged'],
+  emits: ['update:enablePrimaryIpv6', 'update:ipv6AddressCount', 'update:ipv6AddressOnly', 'update:httpProtocolIpv6', 'update:vpcId', 'update:subnetId', 'update:isIpv6', 'update:isDualStack', 'validationChanged'],
 
   props: {
     mode: {
@@ -84,7 +85,12 @@ export default {
       default: ''
     },
 
-    hasIpv6: {
+    isIpv6: {
+      type:    Boolean,
+      default: false
+    },
+
+    isDualStack: {
       type:    Boolean,
       default: false
     },
@@ -113,7 +119,7 @@ export default {
       this.enableIpv6 = !!vpcs.find((vpc) => vpc.VpcId === this.vpcId && vpc.Ipv6CidrBlockAssociationSet && !isEmpty(vpc.Ipv6CidrBlockAssociationSet));
     }
 
-    if (this.isNew && this.somePoolHasIpv6OrDual) {
+    if (this.isNew && this.somePoolisIpv6OrDual) {
       this.enableIpv6 = true;
     }
   },
@@ -133,7 +139,7 @@ export default {
       if (this.isNew) {
         this.updateNetwork();
       }
-      this.$emit('update:hasIpv6', neu);
+      this.$emit('update:isDualStack', neu);
 
       if (neu) {
         this.$emit('update:ipv6AddressCount', '1');
@@ -154,7 +160,12 @@ export default {
     },
 
     ipv6AddressOnly(neu) {
-      this.$emit('update:hasIpv6', neu);
+      this.$emit('update:isIpv6', neu);
+      if (neu) {
+        this.$emit('update:isDualStack', false);
+      } else if (this.enableIpv6) {
+        this.$emit('update:isDualStack', true);
+      }
     },
 
     allValid: {
@@ -174,13 +185,13 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
-        const hasIpv6 = !!obj.Ipv6CidrBlockAssociationSet && !isEmpty(obj.Ipv6CidrBlockAssociationSet);
-        const hasIpv4 = !!obj.CidrBlock;
+        const name = getVpcDisplayName(obj);
+        const hasIpv6 = isIpv6Network(obj);
+        const hasIpv4 = isIpv4Network(obj);
 
         vpcs.push({
-          label:     name || obj.VpcId,
-          subLabel:  name ? obj.VpcId : obj.CidrBlock,
+          label:     name,
+          subLabel:  obj.CidrBlock,
           isDefault: obj.IsDefault || false,
           kind:      'vpc',
           value:     obj.VpcId,
@@ -197,8 +208,8 @@ export default {
           continue;
         }
 
-        const hasIpv6 = !!obj.Ipv6CidrBlockAssociationSet && !isEmpty(obj.Ipv6CidrBlockAssociationSet);
-        const hasIpv4 = !!obj.CidrBlock;
+        const hasIpv6 = isIpv6Network(obj);
+        const hasIpv4 = isIpv4Network(obj);
 
         if (this.enableIpv6 !== hasIpv6) {
           continue;
@@ -211,11 +222,11 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
+        const name = getSubnetDisplayName(obj);
 
         entry.push({
-          label:     name || obj.SubnetId,
-          subLabel:  name ? obj.SubnetId : obj.CidrBlock,
+          label:     name,
+          subLabel:  obj.CidrBlock,
           kind:      'subnet',
           isDefault: obj.DefaultForAz || false,
           value:     obj.SubnetId,
@@ -278,18 +289,18 @@ export default {
       return opt && opt.hasIpv6 && !opt.hasIpv4;
     },
 
-    somePoolHasIpv6OrDual() {
-      return !!this.machinePools.find((p) => p.hasIpv6);
+    somePoolisIpv6OrDual() {
+      return !!this.machinePools.find((p) => p.isIpv6 || p.isDualStack);
     },
 
     showIpv6Options() {
-      return this.mode === _CREATE || (this.isNew && this.somePoolHasIpv6OrDual) || this.enableIpv6;
+      return this.mode === _CREATE || (this.isNew && this.somePoolisIpv6OrDual) || this.enableIpv6;
     },
 
     poolsInvalid() {
-      const somePoolHasIpv4 = !!this.machinePools.find((p) => !p.hasIpv6);
+      const somePoolHasIpv4 = !!this.machinePools.find((p) => !p.isIpv6 && !p.isDualStack);
 
-      return this.somePoolHasIpv6OrDual && somePoolHasIpv4;
+      return this.somePoolisIpv6OrDual && somePoolHasIpv4;
     },
 
     addressCountInvalid() {
@@ -398,9 +409,14 @@ export default {
         </template>
       </LabeledSelect>
     </div>
+  </div>
+  <div
+    v-if="enableIpv6"
+    class="row mb-10 ipv6-row"
+  >
     <div
       v-if="enableIpv6"
-      class="col span-3"
+      class="col span-2"
     >
       <Checkbox
         :disabled="!isNew || !dualStackSelected"
@@ -411,17 +427,12 @@ export default {
         @update:value="e=>$emit('update:ipv6AddressOnly', e)"
       />
     </div>
-  </div>
-  <div
-    v-if="enableIpv6"
-    class="row mb-10 ipv6-row"
-  >
-    <div class="col span-6">
+    <div class="col span-4">
       <Checkbox
         :value="httpProtocolIpv6==='enabled'"
         :disabled="!isNew"
         :label="t('cluster.machineConfig.amazonEc2.httpProtocolIpv6.label')"
-        data-testid="amazonEc2__enableIpv6"
+        data-testid="amazonEc2__httpProtocolIpv6"
         :mode="mode"
         @update:value="e=>$emit('update:httpProtocolIpv6', e ? 'enabled' : 'disabled')"
       />
@@ -431,7 +442,7 @@ export default {
     v-if="enableIpv6"
     class="row mb-10 ipv6-row"
   >
-    <div class="col span-3">
+    <div class="col span-6">
       <LabeledInput
         :disabled="!isNew"
         min="1"
@@ -443,7 +454,12 @@ export default {
         @update:value="e=>$emit('update:ipv6AddressCount', e)"
       />
     </div>
-    <div class="col span-9">
+  </div>
+  <div
+    v-if="enableIpv6"
+    class="row mb-10 ipv6-row"
+  >
+    <div class="col span-6">
       <Checkbox
         :disabled="!isNew"
         :value="enablePrimaryIpv6"

@@ -189,7 +189,7 @@ export const TYPE_MODES = {
    */
   FAVORITE: 'favorite',
   /**
-   * Represents no virtual or spoofed types that have a count.
+   * Represents types that have a count and are not virtual or spoofed.
    *
    * For example the `More Resource` in the cluster explorer
    *
@@ -1585,6 +1585,17 @@ export const mutations = {
       schema.links = {
         collection: `/${ SPOOFED_PREFIX }/${ schema.id }`,
         ...(schema.links || {})
+      };
+
+      const verbs = schema.attributes?.verbs || [];
+
+      if ( !verbs.includes('list') ) {
+        verbs.push('list');
+      }
+
+      schema.attributes = {
+        ...schema?.attributes,
+        verbs
       };
     });
 

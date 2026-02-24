@@ -1,5 +1,6 @@
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
+import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
@@ -100,6 +101,8 @@ export interface TopLevelMenuHelper {
    * Cleanup on destroy of TopLevelMenu
    */
   destroy: () => Promise<void>;
+
+  updateCount: (count: number) => Promise<void>;
 }
 
 export abstract class BaseTopLevelMenuHelper {
@@ -172,6 +175,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private clustersOthersWrapper: PaginationWrapper<any>;
   private provClusterWrapper: PaginationWrapper<any>;
 
+  private clusterCount = 0;
+
   constructor({ $store }: {
       $store: VuexStore,
   }) {
@@ -216,7 +221,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           context: 'side-bar',
         }
       },
-      formatResponse: { classify: true }
+      formatResponse: { classify: true },
     });
     // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
@@ -398,6 +403,47 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       revision: args.mgmtClusterRevision
     })
       .then((r) => r.data);
+  }
+
+  /**
+   * Update the cluster count used when showing lists of home page + resource menu cluster count
+   *
+   * This is a convenient place to make the request
+   */
+  public async updateCount(count: number) {
+    if (count === this.clusterCount) {
+      return;
+    }
+
+    this.clusterCount = count;
+
+    try {
+      const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
+
+      if (commonClusterFilters.length === 0) {
+        // We're not filtering out harvester clusters or local cluster, so no need to tweak the saved count for clusters
+        return;
+      }
+
+      const args:ActionFindPageArgs = {
+        pagination: {
+          filters:              commonClusterFilters,
+          page:                 1,
+          pageSize:             1,
+          sort:                 [],
+          projectsOrNamespaces: [],
+        },
+        transient:   true,
+        saveCountAs: SAVED_COUNTS.K8S_CLUSTERS
+      };
+
+      await this.$store.dispatch('management/findPage', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  args
+      });
+    } catch (err) {
+      console.warn('Unable to set saved count for clusters', err); // eslint-disable-line no-console
+    }
   }
 
   /**
@@ -595,6 +641,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
     return sorted;
   }
+
+  public async updateCount(count: number) {}
 }
 
 /**

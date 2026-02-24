@@ -15,12 +15,20 @@ export default {
     reference: {
       type:    String,
       default: null,
+    },
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
     }
   },
   computed: {
     to() {
       if ( this.row && this.reference ) {
         return get(this.row, this.reference);
+      }
+
+      if (this.getCustomDetailLink) {
+        return this.getCustomDetailLink(this.row);
       }
 
       return this.row?.detailLocation;

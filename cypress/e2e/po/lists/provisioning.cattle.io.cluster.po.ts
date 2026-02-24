@@ -42,7 +42,8 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   machines(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .get('.col-machine-summary-graph');
   }
 
   explore(clusterName: string) {

@@ -3,6 +3,23 @@ import { mount } from '@vue/test-utils';
 import PodAffinity from '@shell/components/form/PodAffinity.vue';
 import { _CREATE } from '@shell/config/query-params';
 
+const requiredSetup = () => {
+  return {
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:        () => 'cluster',
+            'i18n/t':            (text: string) => text,
+            'cluster/schemaFor': jest.fn(),
+            'cluster/canList':   jest.fn(),
+          }
+        }
+      }
+    }
+  };
+};
+
 describe('component: PodAffinity', () => {
   it('should display the weight input when the priority is preferred', () => {
     const podAffinity = {
@@ -15,7 +32,8 @@ describe('component: PodAffinity', () => {
     const wrapper = mount(PodAffinity, {
       props: {
         mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
-      }
+      },
+      ...requiredSetup()
     });
 
     expect(wrapper.find('[data-testid="pod-affinity-weight-index0"]').exists()).toBeTruthy();
@@ -33,7 +51,8 @@ describe('component: PodAffinity', () => {
     const wrapper = mount(PodAffinity, {
       props: {
         mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
-      }
+      },
+      ...requiredSetup()
     });
 
     const weightInput = wrapper.find('[data-testid="pod-affinity-weight-index0"]');

@@ -43,8 +43,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
           .name()
           .set(projectName);
         createProjectPage.resourceDetail().createEditView()
-          .create()
-          .click();
+          .create();
 
         cy.wait('@createProjectRequest').then(({ request }) => {
           expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
@@ -102,6 +101,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();
@@ -118,6 +118,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();
@@ -143,6 +144,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceType(1);
       createProjectPage.inputProjectLimit().set('50');
       createProjectPage.resourceDetail().createEditView()
         .create();

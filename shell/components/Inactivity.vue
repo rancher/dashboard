@@ -120,10 +120,10 @@ export default {
 
   methods: {
     async initializeInactivityData() {
-      const canListUserAct = this.$store.getters[`management/canList`](EXT.USER_ACTIVITY);
+      const canGetUserAct = this.$store.getters[`management/canGet`](EXT.USER_ACTIVITY);
       const canListTokens = this.$store.getters[`rancher/canList`](NORMAN.TOKEN);
 
-      if (canListUserAct && canListTokens) {
+      if (canGetUserAct && canListTokens) {
         const tokens = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN, opt: { watch: false } });
 
         this.tokens = tokens;

@@ -1,5 +1,6 @@
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import SelectPo from '@/cypress/e2e/po/components/select.po';
 import GenericPrompt from '@/cypress/e2e/po/prompts/genericPrompt.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
@@ -77,6 +78,14 @@ export class ProjectCreateEditPagePo extends BaseDetailPagePo {
 
   inputMemoryLimit() {
     return new LabeledInputPo(cy.get('[data-testid="memory-limit"]'));
+  }
+
+  selectResourceType(optionIndex: number) {
+    const selectPo = new SelectPo(cy.get('[data-testid="projectrow-type-input"]'));
+
+    selectPo.toggle();
+
+    return selectPo.clickOption(optionIndex + 1);
   }
 
   bannerError(n: number) {

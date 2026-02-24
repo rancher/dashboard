@@ -149,6 +149,11 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    isGithubDotComRepository: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   async fetch() {
@@ -662,7 +667,7 @@ export default {
             data-testid="auth-secret-basic-password"
             :mode="mode"
             type="password"
-            label-key="selectOrCreateAuthSecret.basic.password"
+            :label-key="isGithubDotComRepository ? 'selectOrCreateAuthSecret.basic.passwordPersonalAccessToken' : 'selectOrCreateAuthSecret.basic.password'"
           />
         </div>
       </template>

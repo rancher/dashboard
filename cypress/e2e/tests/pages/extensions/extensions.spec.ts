@@ -110,7 +110,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     });
   });
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@noPrime' }, () => {
+  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
@@ -141,8 +141,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // in this case, vendor is Rancher because title depends on many different variables such as brand and settings
-    cy.title().should('eq', 'Rancher - Extensions');
+    // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
+
+      cy.title().should('eq', expectedTitle);
+    });
 
     extensionsPo.repoBanner().checkVisible();
   });

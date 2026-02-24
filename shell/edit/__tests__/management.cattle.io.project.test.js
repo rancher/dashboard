@@ -1,4 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
+import CruResource from '@shell/components/CruResource';
 import ManagementCattleIoProject from '@shell/edit/management.cattle.io.project.vue';
 import { _EDIT } from '@shell/config/query-params';
 
@@ -15,7 +16,13 @@ const mockStore = {
 };
 
 const defaultMountOptions = {
-  props:  { mode: _EDIT },
+  props: {
+    mode:  _EDIT,
+    value: {
+      spec:     { containerDefaultResourceLimit: {} },
+      metadata: { namespace: 'test-ns', annotations: {} },
+    }
+  },
   global: { mocks: { $store: mockStore } }
 };
 
@@ -133,5 +140,53 @@ describe('component: ManagementCattleIoProject', () => {
     expect(wrapper.vm.value.spec.resourceQuota.limit.extended.test2).toBe('2');
     expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended.test1).toBeUndefined();
     expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended.test2).toBe('4');
+  });
+
+  it('should update isQuotasValid when validateQuotas is called', () => {
+    const wrapper = shallowMount(ManagementCattleIoProject, defaultMountOptions);
+
+    wrapper.vm.validateQuotas(false);
+    expect(wrapper.vm.isQuotasValid).toStrictEqual(false);
+
+    wrapper.vm.validateQuotas(true);
+    expect(wrapper.vm.isQuotasValid).toStrictEqual(true);
+  });
+
+  it('cruResource validation-passed should be false if isQuotasValid is false', async() => {
+    const wrapper = shallowMount(ManagementCattleIoProject, defaultMountOptions);
+
+    await wrapper.setData({ isQuotasValid: false });
+
+    const cruResource = wrapper.findComponent(CruResource);
+
+    expect(cruResource.props('validationPassed')).toStrictEqual(false);
+  });
+
+  it('should remove an extended resource quota correctly with fixed startsWith', async() => {
+    const value = {
+      spec: {
+        resourceQuota:                 { limit: { extended: { test2: '1' } } },
+        namespaceDefaultResourceQuota: { limit: { extended: { test2: '2' } } }
+      },
+      metadata:     { namespace: 'test-ns', annotations: {} },
+      save:         jest.fn(),
+      listLocation: { name: 'list' }
+    };
+
+    const wrapper = shallowMount(
+      ManagementCattleIoProject,
+      {
+        ...defaultMountOptions,
+        props: {
+          ...defaultMountOptions.props,
+          value,
+        },
+      }
+    );
+
+    wrapper.vm.removeQuota('extended.test2');
+
+    expect(wrapper.vm.value.spec.resourceQuota.limit.extended).toBeUndefined();
+    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended).toBeUndefined();
   });
 });

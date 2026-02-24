@@ -471,7 +471,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort?.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -512,6 +512,13 @@ export default {
         data:     out.data,
         pagination,
         revision: out.revision,
+      });
+    }
+
+    if (opt.saveCountAs) {
+      commit('setSavedCount', {
+        name:  opt.saveCountAs,
+        count: out.count,
       });
     }
 
@@ -574,7 +581,7 @@ export default {
           ...opt,
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
-          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods ar eusually be cached AND watched
+          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods are usually cached AND watched
         }
       });
     }

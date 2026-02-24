@@ -253,6 +253,8 @@ describe('class: Workload', () => {
   });
 
   describe('getter: podsCard', () => {
+    const mockPod = { metadata: { name: 'pod-1', namespace: 'default' } };
+
     it('should return card for Deployment type', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -264,7 +266,7 @@ describe('class: Workload', () => {
         rootGetters: { 'i18n/t': (key: string) => key },
       });
 
-      Object.defineProperty(workload, 'pods', { get: () => [] });
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
       Object.defineProperty(workload, 'canUpdate', { get: () => true });
 
       const card = workload.podsCard;
@@ -285,7 +287,7 @@ describe('class: Workload', () => {
         rootGetters: { 'i18n/t': (key: string) => key },
       });
 
-      Object.defineProperty(workload, 'pods', { get: () => [] });
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
       Object.defineProperty(workload, 'canUpdate', { get: () => true });
 
       const card = workload.podsCard;
@@ -310,7 +312,7 @@ describe('class: Workload', () => {
       expect(card).toBeNull();
     });
 
-    it('should hide scaling when canUpdate is false', () => {
+    it('should return null when pods array is empty', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
@@ -322,6 +324,24 @@ describe('class: Workload', () => {
       });
 
       Object.defineProperty(workload, 'pods', { get: () => [] });
+
+      const card = workload.podsCard;
+
+      expect(card).toBeNull();
+    });
+
+    it('should hide scaling when canUpdate is false', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
       Object.defineProperty(workload, 'canUpdate', { get: () => false });
 
       const card = workload.podsCard;
@@ -331,6 +351,8 @@ describe('class: Workload', () => {
   });
 
   describe('getter: jobsCard', () => {
+    const mockJob = { metadata: { name: 'job-1', namespace: 'default' } };
+
     it('should return card for CronJob type', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.CRON_JOB,
@@ -342,7 +364,7 @@ describe('class: Workload', () => {
         rootGetters: { 'i18n/t': (key: string) => key },
       });
 
-      Object.defineProperty(workload, 'jobs', { get: () => [] });
+      Object.defineProperty(workload, 'jobs', { get: () => [mockJob] });
 
       const card = workload.jobsCard;
 
@@ -366,9 +388,30 @@ describe('class: Workload', () => {
 
       expect(card).toBeNull();
     });
+
+    it('should return null when jobs array is empty', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.CRON_JOB,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'jobs', { get: () => [] });
+
+      const card = workload.jobsCard;
+
+      expect(card).toBeNull();
+    });
   });
 
   describe('getter: cards', () => {
+    const mockPod = { metadata: { name: 'pod-1', namespace: 'default' } };
+    const mockJob = { metadata: { name: 'job-1', namespace: 'default' } };
+
     it('should include podsCard for Deployment', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -384,7 +427,7 @@ describe('class: Workload', () => {
         },
       });
 
-      Object.defineProperty(workload, 'pods', { get: () => [] });
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
       Object.defineProperty(workload, 'canUpdate', { get: () => true });
 
       const cards = workload.cards;
@@ -411,7 +454,7 @@ describe('class: Workload', () => {
         },
       });
 
-      Object.defineProperty(workload, 'jobs', { get: () => [] });
+      Object.defineProperty(workload, 'jobs', { get: () => [mockJob] });
 
       const cards = workload.cards;
       const nonNullCards = cards.filter((c: any) => c !== null);

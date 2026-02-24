@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { NORMAN } from '@shell/config/types';
+import { EXT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
@@ -38,14 +38,10 @@ export default {
     }
   },
   async fetch() {
-    const store = this.$store;
-
-    await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
-
     await this.$fetchType(this.resource);
 
-    this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then((res) => !!res?.actions?.refreshauthprovideraccess);
+    this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
   },
 
   data() {
@@ -55,7 +51,8 @@ export default {
 
     return {
       schema,
-      canRefreshAccess: false,
+      membershipRefreshRequests: undefined,
+      canRefreshMemberships:     false
     };
   },
 
@@ -82,28 +79,21 @@ export default {
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
       const params = { ...this.$route.params };
-      const requiredUsers = params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
 
-      requiredUsers.forEach((r) => {
-        r.canRefreshAccess = this.canRefreshAccess;
-      });
-
-      return requiredUsers;
+      return params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
     },
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
-    },
+    }
   },
 
   methods: {
     async refreshGroupMemberships(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/collectionAction', {
-          type:       NORMAN.USER,
-          actionName: 'refreshauthprovideraccess',
-        });
-
+        // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+        this.membershipRefreshRequests.spec = { userId: '*' };
+        await this.membershipRefreshRequests.save();
         buttonDone(true);
       } catch (err) {
         this.$store.dispatch('growl/fromError', { title: this.t('user.list.errorRefreshingGroupMemberships'), err }, { root: true });
@@ -125,7 +115,7 @@ export default {
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshAccess"
+          v-if="canRefreshMemberships"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"

@@ -1,0 +1,35 @@
+# This workflow runs the e2e and unit tests with code coverage
+# It then generates a combined report of coverage
+
+# Runs weekly and can be run manually if required
+
+# Coverage files are uploaded to the action as an artifact
+name: Code Coverage
+on:
+  schedule:
+    - cron: '0 1 * * 6' # 1am on Saturdays
+
+  workflow_dispatch:
+
+jobs:
+  code-coverage:
+    runs-on: ubuntu-latest
+    env:
+      TESTHUB_URL: ${{ secrets.TESTHUB_URL }}
+      TESTHUB_TOKEN: ${{ secrets.TESTHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Run tests and collect coverage
+        run: ./scripts/code-coverage
+      - name: Upload code coverage folder
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage
+          path: ./coverage/output
+          if-no-files-found: error
+          retention-days: 10
+          compression-level: 9

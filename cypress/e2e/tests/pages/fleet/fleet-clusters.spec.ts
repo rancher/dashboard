@@ -501,3 +501,22 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     }
   });
 });
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  it('should display fleet clusters list page', () => {
+    fleetClusterListPage.goTo();
+
+    fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
+    fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('fleet clusters list page');
+  });
+});

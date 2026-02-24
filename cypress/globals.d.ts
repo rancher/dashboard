@@ -85,6 +85,7 @@ declare global {
       createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
 
       createUser(params: CreateUserParams, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
+      createUserPasswordAsSecret(userId: string, password: string): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
       setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
       setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
@@ -120,7 +121,7 @@ declare global {
          */
         wait?: number,
       }): Chainable;
-
+      applyDefaultTestTheme(): Chainable<any>;
       getRancherVersion(): Chainable<any>;
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;

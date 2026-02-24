@@ -1,17 +1,22 @@
-<script>
+<script lang="ts">
 import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import NodeAffinity from '@shell/components/form/NodeAffinity';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
+import NodeAffinity from '@shell/components/form/NodeAffinity.vue';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
+import { ResourceLabeledSelectPaginateSettings, ResourceLabeledSelectSettings } from '@shell/types/components/resourceLabeledSelect';
+import { NODE } from '@shell/config/types';
+import { LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
+import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { KubeNode, KubeNodeTaint } from '@shell/types/resources/node';
 
 export default {
   components: {
     RadioGroup,
-    LabeledSelect,
+    ResourceLabeledSelect,
     NodeAffinity,
   },
 
@@ -23,6 +28,9 @@ export default {
       }
     },
 
+    /**
+     * HARVESTER ONLY PROPERTY
+     */
     nodes: {
       type:    Array,
       default: () => []
@@ -39,12 +47,66 @@ export default {
     },
   },
 
-  data() {
+  data(): {
+    selectNode: string | null;
+    nodeName: string;
+    nodeAffinity: any;
+    nodeSelector: any;
+    nodeSchedulingAllSettings: ResourceLabeledSelectSettings;
+    nodeSchedulingPaginationSettings: ResourceLabeledSelectPaginateSettings;
+    NODE: string;
+    } {
+    const keys = [
+      `node-role.kubernetes.io/control-plane`,
+      `node-role.kubernetes.io/etcd`
+    ];
+
+    // Settings used by ResourceLabeledSelect when node pagination disabled
+    const nodeSchedulingAllSettings: ResourceLabeledSelectSettings = {
+      updateResources(nodes: KubeNode[]) {
+        return nodes
+          .filter((node) => {
+            const taints = node.spec?.taints || [];
+
+            return taints.every((taint: KubeNodeTaint) => !keys.includes(taint.key));
+          })
+          .map((node) => node.id);
+      },
+    };
+
+    // Settings used by ResourceLabeledSelect when node pagination enabled
+    const nodeSchedulingPaginationSettings: ResourceLabeledSelectPaginateSettings = {
+      updateResources(nodes) {
+        return nodes.map((node) => node.id);
+      },
+      requestSettings: (opts: LabelSelectPaginationFunctionOptions) => {
+        const { filter } = opts.opts;
+        const filters = !!filter ? [
+          PaginationParamFilter.createSingleField({
+            field: 'metadata.name', value: filter, exact: false
+          })
+        ] : [];
+
+        filters.push(...keys.map((k) => PaginationParamFilter.createSingleField( ({
+          field: 'spec.taints.key', value: k, equality: PaginationFilterEquality.NOT_CONTAINS
+        }))));
+
+        opts.filters = filters;
+        opts.groupByNamespace = false;
+        opts.sort = [{ asc: true, field: 'metadata.name' }];
+
+        return opts;
+      }
+    };
+
     return {
       selectNode:   null,
       nodeName:     '',
       nodeAffinity: {},
       nodeSelector: {},
+      nodeSchedulingAllSettings,
+      nodeSchedulingPaginationSettings,
+      NODE
     };
   },
 
@@ -147,6 +209,9 @@ export default {
   watch: {
     'value.nodeSelector': {
       handler(nodeSelector) {
+        // Harvester specific code should not live in rancher/dashboard components
+        // This was brought into harvester/dashboard via https://github.com/harvester/dashboard/pull/342
+        // rancher/dashboard via https://github.com/rancher/dashboard/pull/6310
         if (this.isHarvester && nodeSelector?.[HOSTNAME]) {
           this.selectNode = 'nodeSelector';
           const nodeName = nodeSelector[HOSTNAME];
@@ -187,14 +252,16 @@ export default {
     <template v-if="selectNode === 'nodeSelector'">
       <div class="row">
         <div class="col span-6">
-          <LabeledSelect
+          <ResourceLabeledSelect
             v-model:value="nodeName"
             :label="t('workload.scheduling.affinity.nodeName')"
-            :options="nodes || []"
+            :resource-type="NODE"
             :mode="mode"
             :multiple="false"
             :loading="loading"
             :data-testid="'node-scheduling-nodeSelector'"
+            :allResourcesSettings="nodeSchedulingAllSettings"
+            :paginatedResourceSettings="nodeSchedulingPaginationSettings"
             @update:value="update"
           />
         </div>

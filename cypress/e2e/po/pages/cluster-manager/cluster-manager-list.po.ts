@@ -63,4 +63,12 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
   editCluster(name: string) {
     this.sortableTable().rowActionMenuOpen(name).getMenuItem('Edit Config').click();
   }
+
+  /**
+   * Returns the state-description row that follows this row
+   * @returns
+   */
+  capiWarningSubRow(clusterName: string) {
+    return this.list().self().find(`[data-testid="capi-unsupported-warning-${ clusterName }"]`);
+  }
 }

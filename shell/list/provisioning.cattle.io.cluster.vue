@@ -167,6 +167,12 @@ export default {
 
   },
 
+  methods: {
+    getCustomDetailLink(cluster) {
+      return cluster.isCapiHybrid ? null : cluster.detailLocation;
+    }
+  },
+
   $loadingResources() {
     // results are filtered so we wouldn't get the correct count on indicator...
     return { loadIndeterminate: true };
@@ -211,7 +217,6 @@ export default {
         </router-link>
       </template>
     </Masthead>
-
     <ResourceTable
       :headers="headers"
       :table-actions="true"
@@ -221,6 +226,8 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :get-custom-detail-link="getCustomDetailLink"
+      :sub-rows="true"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
@@ -266,6 +273,48 @@ export default {
           {{ t('cluster.explore') }}
         </button>
       </template>
+      <template #additional-sub-row="{row, fullColspan, tableActions}">
+        <tr
+          class="capi-unsupported"
+          :class="{'has-description': !!row.stateDescription}"
+        >
+          <td
+            v-if="row.isCapiHybrid"
+            class="row-check"
+          />
+          <td
+            v-if="row.isCapiHybrid"
+            :data-testid="`capi-unsupported-warning-${row?.metadata?.name}`"
+            :colspan="fullColspan - (tableActions ? 1: 0)"
+          >
+            <div
+              class="text-error"
+              :class="{'mt-5': !!row.stateDescription.trim()}"
+            >
+              <i class="icon icon-warning" />{{ t('cluster.capi.notSupported') }}
+            </div>
+          </td>
+        </tr>
+      </template>
     </ResourceTable>
   </div>
 </template>
+
+<stye scoped lang="scss">
+  .capi-unsupported {
+    &.has-description {
+      border-bottom: none;
+      padding: 0px;
+      td {
+        padding-top: 0px;
+      }
+    }
+
+    & div {
+      & i {
+        margin-right: 0.1em;
+      }
+      display: flex;
+    }
+  }
+</stye>

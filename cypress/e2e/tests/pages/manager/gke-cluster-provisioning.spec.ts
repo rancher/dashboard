@@ -9,7 +9,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 

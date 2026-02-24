@@ -137,13 +137,17 @@ export default defineComponent({
       const filters = !!filter ? [PaginationParamFilter.createSingleField({
         field: 'metadata.name', value: filter, exact: false
       })] : [];
+      const schema = this.$store.getters[`${ this.validInStore }/schema`](this.resourceType);
+      const namespaced = typeof schema?.attributes?.namespaced !== 'undefined' ? schema.attributes.namespaced : false;
+
       const defaultOptions: LabelSelectPaginationFunctionOptions = {
         opts,
         filters,
-        type:  this.resourceType,
-        ctx:   { getters: this.$store.getters, dispatch: this.$store.dispatch },
-        sort:  [{ asc: true, field: 'metadata.name' }],
-        store: this.validInStore
+        type:             this.resourceType,
+        ctx:              { getters: this.$store.getters, dispatch: this.$store.dispatch },
+        sort:             [{ asc: true, field: 'metadata.name' }],
+        store:            this.validInStore,
+        groupByNamespace: namespaced,
       };
       const options = this.paginatedResourceSettings?.requestSettings ? this.paginatedResourceSettings.requestSettings(defaultOptions) : defaultOptions;
       const res = await labelSelectPaginationFunction(options);

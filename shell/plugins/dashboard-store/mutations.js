@@ -440,7 +440,10 @@ export default {
       cache.map.set(proxies[i][keyField], proxies[i]);
     }
 
-    cache.haveSelector[selector] = true;
+    cache.havePage = undefined;
+    cache.haveNamespace = undefined;
+    cache.haveSelector = { [selector]: true };
+    cache.haveAll = undefined;
     cache.revision = revision || 0;
   },
 
@@ -586,6 +589,10 @@ export default {
     const cache = registerType(state, type);
 
     cache.haveNamespace = namespace;
+  },
+
+  setSavedCount(state, { name, count }) {
+    state.savedCounts[name] = count;
   },
 
   loadedAll(state, { type }) {

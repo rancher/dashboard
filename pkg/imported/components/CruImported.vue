@@ -22,15 +22,16 @@ import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { SETTING } from '@shell/config/settings';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { initSchedulingCustomization } from '@shell/utils/cluster';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -97,6 +98,8 @@ export default defineComponent({
 
       this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
       this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+      this.fleetAgentDefaultPC = sc.fleetAgentDefaultPC;
+      this.fleetAgentDefaultPDB = sc.fleetAgentDefaultPDB;
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
@@ -118,8 +121,11 @@ export default defineComponent({
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
+      fleetAgentDefaultPC:                      null,
+      fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
+      clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -134,6 +140,7 @@ export default defineComponent({
         rules: ['registryUrl']
       }
       ],
+      AGENT_CONFIGURATION_TYPES,
     };
   },
 
@@ -245,6 +252,9 @@ export default defineComponent({
     },
     clusterAgentDeploymentCustomization() {
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
+    },
+    fleetAgentDeploymentCustomization() {
+      return this.normanCluster.fleetAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
       return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
@@ -372,13 +382,29 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
-    setSchedulingCustomization(val) {
-      if (val) {
-        this.needsReplace = false;
-        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+    setSchedulingCustomization({ event, agentType }) {
+      if (event) {
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = false;
+          set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+          break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = false;
+          set(this.normanCluster, 'fleetAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.fleetAgentDefaultPC, podDisruptionBudget: this.fleetAgentDefaultPDB });
+          break;
+        default:
+        }
       } else {
-        this.needsReplace = true;
-        delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = true;
+          delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization; break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = true;
+          delete this.normanCluster.fleetAgentDeploymentCustomization.schedulingCustomization; break;
+        default:
+        }
       }
     },
   },
@@ -492,18 +518,44 @@ export default defineComponent({
       <Accordion
         v-if="schedulingCustomizationVisible"
         class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.cluster"
+        title-key="cluster.agentConfig.tabs.agentsScheduling"
         :open-initially="false"
       >
-        <h3>
-          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
-        </h3>
+        {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
+
+        <!-- Hardcoding the HASH because it is the first of the parameters inline -->
+        <router-link
+          :to="{ name: 'c-cluster-settings', hash: `#${clusterAgentDefaultPriorityClassHash}` }"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ t('cluster.agentConfig.groups.agentsScheduling.textLink') }}
+          <i
+            class="icon icon-external-link"
+            :alt="t('kubectl-explain.externalLink')"
+          />
+        </router-link>
+        .
+        <div class="spacer-small" />
+        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
           :feature="schedulingCustomizationFeatureEnabled"
           :default-p-c="clusterAgentDefaultPC"
           :default-p-d-b="clusterAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
+          @scheduling-customization-changed="setSchedulingCustomization"
+        />
+        <SchedulingCustomization
+          :value="fleetAgentDeploymentCustomization.schedulingCustomization"
+          :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.FLEET"
+          :feature="schedulingCustomizationFeatureEnabled"
+          :default-p-c="fleetAgentDefaultPC"
+          :default-p-d-b="fleetAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>

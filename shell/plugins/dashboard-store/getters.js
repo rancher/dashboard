@@ -144,8 +144,7 @@ export default {
       page?.namespace === namespace &&
       page?.pagination?.filters?.length === 0 &&
       page?.pagination.labelSelector &&
-      selector === labelSelectorToSelector(page?.pagination.labelSelector
-      )
+      selector === labelSelectorToSelector(page?.pagination.labelSelector)
     ) {
       return getters.all(type);
     }
@@ -155,11 +154,14 @@ export default {
       return getters.all(type);
     }
 
+    // Does the store contain a page, assume it's a subset of all resources still covering applicable resources, and
+    // apply labelSelector to get actual result
     if (getters['havePage'](type)) {
-      return getters.all(type);
+      return getters.matching( type, selector, namespace );
     }
 
-    // Does the store have all and we can pretend like it contains a result of a labelSelector?
+    // Does the store contain all resources, if so
+    // apply labelSelector to get actual result
     if (getters['haveAll'](type)) {
       return getters.matching( type, selector, namespace );
     }
@@ -177,7 +179,7 @@ export default {
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace && typeof namespace === 'string') {
-      matching = type === POD ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
+      matching = type === POD && !selector ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
@@ -351,10 +353,22 @@ export default {
     return out;
   },
 
+  /**
+   * Can the user GET a resource of the given type
+   */
+  canGet: (state, getters) => (type) => {
+    const schema = getters.schemaFor(type);
+
+    return schema?.canGet;
+  },
+
+  /**
+   * Can the user LIST a resource of the given type
+   */
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    return schema && schema.hasLink('collection');
+    return schema?.canList;
   },
 
   typeRegistered: (state, getters) => (type) => {
@@ -559,4 +573,14 @@ export default {
    * Can be used to change behaviour given steve cache api functionality
    */
   isSteveCacheUrl: (state) => () => false,
+
+  /**
+   * Get the saved count for the given name
+   *
+   * @param {string} name Name of the saved count
+   * @returns {number|undefined} The saved count or undefined if not found
+   */
+  getSavedCount: (state) => (name) => {
+    return state.savedCounts[name];
+  }
 };

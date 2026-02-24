@@ -71,6 +71,7 @@ typings/
 
 # Build output
 dist
+dist_ember
 
 # vuepress build output
 .vuepress/dist

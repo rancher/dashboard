@@ -776,7 +776,9 @@ export default {
           class="resource-container cru__content"
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <slot />
+          <slot name="single">
+            <slot />
+          </slot>
         </div>
         <slot name="form-footer">
           <CruResourceFooter

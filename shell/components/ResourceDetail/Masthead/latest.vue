@@ -64,11 +64,11 @@ const store = useStore();
     />
     <Metadata
       v-bind="metadataProps"
-      class="mmt-4"
+      class="metadata-section"
     />
     <Cards
       v-if="props.isCustomDetailOrEdit"
-      class="mb-20"
+      class="cards-section"
       :resource="props.value"
     />
   </div>
@@ -78,5 +78,15 @@ const store = useStore();
 .new.state-banner {
   margin: 0;
   margin-top: 16px;
+}
+
+:deep() .metadata-section {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.cards-section {
+  margin: 0;
+  margin-bottom: 24px;
 }
 </style>

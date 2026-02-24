@@ -50,7 +50,7 @@ describe('Support Page', () => {
       });
     });
 
-    it('can click on Suse Customer Center link', { tags: ['@jenkins', '@prime'] }, () => {
+    it('can click on Suse Customer Center link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://scc.suse.com/');
 
       supportPage.clickSccLink();
@@ -112,7 +112,7 @@ describe('Support Page', () => {
       cy.url().should('include', 'getting-started/overview');
     });
 
-    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime'] }, () => {
+    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
 
       // click SUSE Application Collection link

@@ -48,7 +48,7 @@ export default class MgmtUserEditPo extends BaseDetailPagePo {
       return null;
     }
 
-    cy.intercept('POST', 'v3/users').as('userCreation');
+    cy.intercept('POST', 'v1/management.cattle.io.users').as('userCreation');
     cy.intercept('POST', 'v3/globalrolebindings').as('globalRoleBindingsCreation');
 
     this.resourceDetail().cruResource().saveOrCreate()
@@ -68,7 +68,7 @@ export default class MgmtUserEditPo extends BaseDetailPagePo {
       // also covers globalrolebindings fail upon user creation
       cy.wait('@globalRoleBindingsCreation').then(({ response }) => {
         if (response?.statusCode !== 201) {
-          cy.deleteRancherResource('v3', 'users', userId); // we need to delete the user previously created
+          cy.deleteRancherResource('v1', 'management.cattle.io.users', userId); // we need to delete the user previously created
           cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return this.saveCreateWithErrorRetry(++attempt);

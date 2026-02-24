@@ -67,13 +67,13 @@ node {
                   sh 'cypress/jenkins/init.sh'
                 } catch (err) {
                   echo "Error: " + err
-                  currentBuild.result = 'FAILURE'
+                  currentBuild.result = 'UNSTABLE'
                   throw err
                 }
               }
             } catch (err) {
               echo "Pipeline aborted early: ${err}"
-              currentBuild.result = 'FAILURE'
+              currentBuild.result = 'UNSTABLE'
             } finally {
               stage('Grab Results') {
                 // Safe to run even if init.sh failed (scp fails gracefully)
@@ -93,7 +93,7 @@ node {
                         
                         def resultsContent = readFile('results.xml').trim()
                         if (resultsContent.contains('<failure')) {
-                            testExecutionResult = 'UNSTABLE'
+                            testExecutionResult = 'FAILURE'
                         } else if (resultsContent.contains('<testcase')) {
                             testExecutionResult = 'SUCCESS'
                         } else {
@@ -121,13 +121,13 @@ node {
                     if (resultsContent.contains('<testcase')) {
                         // Tests ran - check if they failed or passed
                         if (resultsContent.contains('<failure')) {
-                            testExecutionResult = 'UNSTABLE'
+                            testExecutionResult = 'FAILURE'
                         } else {
                             testExecutionResult = 'SUCCESS'
                         }
                     }
                 }
-                currentBuild.result = 'FAILURE'
+                currentBuild.result = 'UNSTABLE'
               }
               if ("${env.QASE_REPORT}".toLowerCase() == "true") {
                   try {
@@ -140,13 +140,17 @@ node {
                     }
                   } catch(err) {
                       echo "Error: " + err
-                      currentBuild.result = 'FAILURE'
+                      currentBuild.result = 'UNSTABLE'
                   }
               }
               
-              if (testExecutionResult == 'FAILURE' || testExecutionResult == 'UNSTABLE') {
+              // test failure -> FAILURE (Slack: FAILED)
+              // pipeline/env failure -> UNSTABLE
+              if (currentBuild.result == 'UNSTABLE' || testExecutionResult == 'FAILURE') {
                   if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
-                      sh "cypress/jenkins/slack-notification.sh ${testExecutionResult}"
+                      withEnv(["SLACK_BUILD_STATUS=${testExecutionResult == 'FAILURE' ? 'FAILURE' : 'UNSTABLE'}"]) {
+                          sh 'cypress/jenkins/slack-notification.sh $SLACK_BUILD_STATUS'
+                      }
                   }
               }
             }

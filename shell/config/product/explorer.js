@@ -19,7 +19,7 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, USER_LAST_LOGIN, USER_DISABLED_IN, USER_DELETED_IN, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
+  DESCRIPTION, SUB_TYPE, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
   EVENT_FIRST_SEEN_TIME,
@@ -184,7 +184,6 @@ export function init(store) {
 
   const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
   const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true });
-  const dePaginateNormanUsers = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true });
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
@@ -193,7 +192,6 @@ export function init(store) {
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
   configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
-  configureType(NORMAN.USER, { depaginate: dePaginateNormanUsers });
   configureType(SNAPSHOT, { depaginate: true });
 
   configureType(SECRET, { showListMasthead: false });
@@ -546,16 +544,6 @@ export function init(store) {
     USER_DISABLED_IN,
     USER_DELETED_IN,
     AGE
-  ]);
-
-  headers(NORMAN.TOKEN, [
-    EXPIRY_STATE,
-    ACCESS_KEY,
-    DESCRIPTION,
-    SCOPE_NORMAN,
-    LAST_USED,
-    EXPIRES,
-    AGE_NORMAN
   ]);
 
   virtualType({
