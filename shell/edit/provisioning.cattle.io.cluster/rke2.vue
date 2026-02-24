@@ -303,6 +303,9 @@ export default {
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+    isK3s() {
+      return this.value?.isK3s;
+    },
 
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
@@ -1893,7 +1896,7 @@ export default {
      */
     async initAddons() {
       this.addonConfigValidation = {};
-      const ingressCharts = !this.value?.isK3s ? ['rke2-ingress-nginx', 'rke2-traefik'] : [];
+      const ingressCharts = !this.isK3s ? ['rke2-ingress-nginx', 'rke2-traefik'] : [];
 
       for (const chartName of [...this.addonNames, ...ingressCharts]) {
         // prevent fetching of addon config for 'none' CNI option
@@ -2239,7 +2242,7 @@ export default {
 
     updateNginxConfiguration(disabledServerConfig) {
       // We only need to explicitly set INGRESS_CONTROLLER for RKE2, we continue to rely on disable list for K3s
-      if (!this.value?.isK3s) {
+      if (!this.isK3s) {
         // For new instances, we want Traefik to be default
         if (this.isCreate) {
           this.serverConfig[INGRESS_CONTROLLER] = TRAEFIK;
@@ -2252,6 +2255,7 @@ export default {
             this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
           }
         }
+        console.log(this.serverConfig[INGRESS_CONTROLLER]);
       }
     },
 
