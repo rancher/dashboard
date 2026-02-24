@@ -3,9 +3,9 @@ import { computed, watch } from 'vue';
 import { _CREATE } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import LabeledInput from '~/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX } from '@shell/edit/provisioning.cattle.io.cluster/shared';
-import Checkbox from '~/pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
 interface Props {
