@@ -2,7 +2,9 @@ import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
-import type { ProductMetadata, ProductChild, ProductSinglePage, StandardProductName } from './plugin-types';
+import type {
+  ProductMetadata, ProductChild, ProductSinglePage, StandardProductName, RouteRecordRawWithParams
+} from './plugin-types';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -513,9 +515,9 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   name: string;
 
   /**
-   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
+   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw} {@link RouteRecordRawWithParams}
    */
-  route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+  route: PluginRouteRecordRaw | RouteRecordRaw | RouteRecordRawWithParams | Object;
 
   weight?: number;
 }
@@ -645,8 +647,9 @@ export type ModelExtensionConstructor = (context: ModelExtensionContext) => Obje
 export interface IExtension {
   /**
    * Register a top-level product as a flag on the plugin
+   * @internal - DO NOT USE - Internal API only
    */
-  registerTopLevelProduct(): void;
+  _registerTopLevelProduct(): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
@@ -675,7 +678,7 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
-  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void;
+  extendProduct(product: StandardProductName, config: ProductChild[] | ProductChild): void;
 
   /**
    * Add a locale to the i18n store
@@ -702,8 +705,8 @@ export interface IExtension {
   /**
    * Add a route to the Vue Router
    */
-  addRoute(route: RouteRecordRaw): void;
-  addRoute(parent: string, route: RouteRecordRaw): void;
+  addRoute(route: RouteRecordRawWithParams | RouteRecordRaw): void;
+  addRoute(parent: string, route: RouteRecordRawWithParams | RouteRecordRaw): void;
 
   /**
    * Adds an action/button to the UI
@@ -756,7 +759,7 @@ export interface IExtension {
   /**
    * Add routes to the Vue Router
    */
-  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]): void;
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRawWithParams[] | RouteRecordRaw[]): void;
 
    /**
     * Add a hook to be called when the plugin is uninstalled

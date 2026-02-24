@@ -1849,24 +1849,6 @@ function _sortGroup(tree, mode) {
   for (const entry of tree.children ) {
     if ( entry.children ) {
       _sortGroup(entry, mode);
-      // if there's an overview item, move it to the top so that it can be perceived as a link, if needed
-      // being "overview" is what defines a sideMenu entry as a group AND a link target
-      // this allows for the prod registration abstraction to work properly for groups that are also links (which have a component)
-      let foundParent = -1;
-
-      entry.children.filter((c, index) => {
-        if (c.overview) {
-          foundParent = index;
-
-          return true;
-        }
-      });
-
-      if (foundParent >= 0) {
-        const arrItem = entry.children.splice(foundParent, 1)[0];
-
-        entry.children.unshift(arrItem);
-      }
     }
   }
 }
