@@ -62,11 +62,12 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
             metadata:   { name: scaleTestNamespace }
           }));
 
-          const scaleDeployment = createTesDeployment(scaleTestDeploymentId);
+          const scaleDeployment: any = createTesDeployment(scaleTestDeploymentId);
 
           // Use the dynamic namespace
           scaleDeployment.metadata.namespace = scaleTestNamespace;
           scaleDeployment.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
+          scaleDeployment.spec.template.spec.terminationGracePeriodSeconds = 0;
 
           scaleTestDeploymentName = scaleDeployment.metadata.name;
 
@@ -97,27 +98,54 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
     });
 
     it('Should be able to scale the number of pods', () => {
-      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment', scaleTestNamespace);
+      cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
+      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
+
+      // Intercept scaling calls and alias them based on the desired replica count in the request body
+      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`, (req) => {
+        if (req.body.spec?.replicas === 2) {
+          req.alias = 'scaleUp';
+        } else if (req.body.spec?.replicas === 1) {
+          req.alias = 'scaleDown';
+        }
+      });
 
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
+      // Reset replicas to 1 to handle test retries with testIsolation off
+      workloadDetailsPage.replicaCount().invoke('text').then((text) => {
+        const count = parseInt(text.trim());
+
+        if (count > 1) {
+          workloadDetailsPage.podScaleDown().should('be.visible').click({ force: true });
+          workloadDetailsPage.mastheadTitle().click();
+          cy.wait('@scaleDown');
+        }
+      });
+
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
 
-      workloadDetailsPage.podScaleUp().click();
-
-      workloadDetailsPage.waitForScaleButtonsEnabled();
-      workloadDetailsPage.waitForPendingOperationsToComplete();
+      // Scale Up
+      workloadDetailsPage.podScaleUp().should('be.visible').click({ force: true });
+      workloadDetailsPage.mastheadTitle().click();
+      cy.wait('@scaleUp').its('response.statusCode').should('eq', 200);
 
       workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
 
-      // Verify pod status shows healthy scaling state
-      workloadDetailsPage.gaugesPods().should('be.visible', MEDIUM_TIMEOUT_OPT)
+      // Verify pod status shows healthy scaling state using PO methods
+      workloadDetailsPage.podsStatus()
+        .should('be.visible')
         .should('contain.text', 'Running');
 
-      workloadDetailsPage.podScaleDown().click();
-      workloadDetailsPage.waitForScaleButtonsEnabled();
-      workloadDetailsPage.waitForPendingOperationsToComplete();
+      workloadDetailsPage.podsStatusCount()
+        .should('be.visible')
+        .should('contain', '2');
+
+      // Scale Down
+      workloadDetailsPage.podScaleDown().should('be.visible').click({ force: true });
+      workloadDetailsPage.mastheadTitle().click();
+      cy.wait('@scaleDown').its('response.statusCode').should('eq', 200);
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
     });
