@@ -315,23 +315,31 @@ describe('class ProvCluster', () => {
       },
       {
         description: 'should return false if cni is not calico or flannel',
-        clusterData: { isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'cilium' } } } },
-        expected:    false
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'cilium' } } }
+        },
+        expected: false
       },
       {
         description: 'should return true if cni is calico',
-        clusterData: { isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' } } } },
-        expected:    true
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' } } }
+        },
+        expected: true
       },
       {
         description: 'should return true if cni is flannel',
-        clusterData: { isRke2: true, kubernetesVersion: 'v1.35.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } } },
-        expected:    true
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.35.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+        },
+        expected: true
       },
       {
         description: 'should return true if cni is empty/undefined',
-        clusterData: { isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: {} } } },
-        expected:    true
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: {} } }
+        },
+        expected: true
       },
     ];
 
