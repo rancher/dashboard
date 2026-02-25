@@ -22,11 +22,18 @@ export default defineComponent({
       offsetHours:   0,
       offsetMinutes: 0,
       offsetSeconds: 0,
-      timer:         null
+      timer:         null,
+
+      // Tab 3
+      jsonText:   '',
+      jsonObj:    null as Record<string, unknown> | null,
+      swappedObj: null as Record<string, string> | null,
+      jsonError:  '',
     };
   },
 
   computed: {
+    // Tab 2
     updated(): Date {
       const newDate = new Date(this.current);
 
@@ -65,6 +72,20 @@ export default defineComponent({
         hour:   '2-digit',
         minute: '2-digit'
       });
+    },
+
+    // Tab 3
+    originalJsonPretty(): string {
+      if (this.jsonObj) return JSON.stringify(this.jsonObj, null, 2);
+      if (this.jsonText) return this.jsonText;
+
+      return '—';
+    },
+
+    swappedJsonPretty(): string {
+      if (this.swappedObj) return JSON.stringify(this.swappedObj, null, 2);
+
+      return '—';
     }
   },
 
@@ -79,12 +100,63 @@ export default defineComponent({
   },
 
   methods: {
+    // Tab 1
     decrement() {
       if (this.counter > 0) {
         this.counter -= 1;
       }
-    }
+    },
 
+    // Tab 3
+    onJsonFileChange(e) {
+      const file = e.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || '');
+
+          this.jsonText = text;
+          this.jsonObj = JSON.parse(text);
+          this.jsonError = '';
+          this.swappedObj = null;
+        } catch {
+          this.jsonError = 'Invalid JSON';
+          this.jsonObj = null;
+        }
+      };
+
+      reader.readAsText(file);
+    },
+
+    swapJson() {
+      if (!this.jsonObj) return;
+
+      const result = {};
+
+      for (const key in this.jsonObj) {
+        const value = this.jsonObj[key];
+
+        // primitive → swap
+        if (
+          value === null ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+        ) {
+          result[String(value)] = key;
+
+          // object or array - keep same
+        } else {
+          result[key] = value;
+        }
+      }
+
+      this.swappedObj = result;
+    },
   },
 });
 </script>
@@ -137,6 +209,48 @@ export default defineComponent({
               type="number"
             >
           </div>
+        </div>
+      </Tab>
+      <Tab
+        name="third"
+        label="Tab 3"
+      >
+        <div>
+          <p class="mb-10">
+            Upload JSON file:
+          </p>
+
+          <input
+            type="file"
+            accept=".json"
+            @change="onJsonFileChange"
+          >
+
+          <br><br>
+
+          <button
+            type="button"
+            class="btn role-primary"
+            :disabled="!jsonObj"
+            @click="swapJson"
+          >
+            Swap
+          </button>
+
+          <p
+            v-if="jsonError"
+            style="color:red;"
+          >
+            {{ jsonError }}
+          </p>
+
+          <h4 class="mt-10">
+            Original:
+          </h4>
+          <pre>{{ originalJsonPretty }}</pre>
+
+          <h4>Swapped:</h4>
+          <pre>{{ swappedJsonPretty }}</pre>
         </div>
       </Tab>
     </Tabbed>
