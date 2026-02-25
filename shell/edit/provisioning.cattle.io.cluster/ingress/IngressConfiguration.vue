@@ -29,7 +29,7 @@ const traefikHttps = defineModel<number>('traefikHttps');
 
 const nginxHttpRules = computed(() => {
   const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.nginx.http') });
-  const portRules = [isInteger, portNumber];
+  const portRules = [(val: any) => !val ? undefined : isInteger(val), portNumber];
 
   return [...portRules,
     (val: any) => {
@@ -44,7 +44,7 @@ const nginxHttpRules = computed(() => {
 
 const nginxHttpsRules = computed(() => {
   const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.nginx.https') });
-  const portRules = [isInteger, portNumber];
+  const portRules = [(val: any) => !val ? undefined : isInteger(val), portNumber];
 
   return [...portRules,
     (val: any) => {
@@ -59,7 +59,7 @@ const nginxHttpsRules = computed(() => {
 
 const traefikHttpRules = computed(() => {
   const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.traefik.http') });
-  const portRules = [isInteger, portNumber];
+  const portRules = [(val: any) => !val ? undefined : isInteger(val), portNumber];
 
   return [...portRules, (val: any) => {
     if (ingressSelection === INGRESS_DUAL && String(val) === String(nginxHttp.value)) {
@@ -73,7 +73,7 @@ const traefikHttpRules = computed(() => {
 
 const traefikHttpsRules = computed(() => {
   const { portNumber, isInteger } = formRulesGenerator(t, { key: t('cluster.ingress.configurationOptions.traefik.https') });
-  const portRules = [isInteger, portNumber];
+  const portRules = [(val: any) => !val ? undefined : isInteger(val), portNumber];
 
   return [...portRules, (val: any) => {
     if (ingressSelection === INGRESS_DUAL && String(val) === String(nginxHttps.value)) {
