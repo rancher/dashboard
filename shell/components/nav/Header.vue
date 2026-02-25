@@ -203,12 +203,6 @@ export default {
       return !!this.currentCluster?.actions?.apply;
     },
 
-    prod() {
-      const name = this.rootProduct.name;
-
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
-    },
-
     showSearch() {
       return this.rootProduct?.inStore === 'cluster';
     },
@@ -241,28 +235,27 @@ export default {
     },
 
     productLabel() {
-      // Old-style product will just show the branding logo
-      // version 2 products will show the product label if set
-      if (!this.currentProduct?.version === 2) {
-        return false;
-      }
-      if (this.currentProduct?.label) {
-        return this.currentProduct.label;
-      }
-      if (this.currentProduct?.labelKey) {
-        return this.$store.getters['i18n/t'](this.currentProduct.labelKey);
-      }
       const name = this.currentProduct.name;
 
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      // single products do their own thing, which is the previous default behavior as per next line
+      if (this.isSingleProduct) {
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      } else {
+        if (this.currentProduct?.label) {
+          return this.currentProduct.label;
+        }
+        if (this.currentProduct?.labelKey) {
+          return this.$store.getters['i18n/t'](this.currentProduct.labelKey);
+        }
+
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      }
     },
 
     // Determine if we are on a route that shows the logo instead of the product label
     // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
     isLogoRoute() {
-      const routesWithLogo = ['home', 'about', 'diagnostic', 'prefs', 'account', 'account-create-key'];
-
-      return routesWithLogo.includes(this.$route.name);
+      return !this.$route.name.includes('c-cluster');
     }
   },
 
@@ -543,7 +536,7 @@ export default {
           :alt="t('branding.logos.label')"
         >
         <div class="product-name">
-          {{ productLabel || prod }}
+          {{ productLabel }}
         </div>
       </div>
     </div>
