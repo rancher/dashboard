@@ -897,7 +897,7 @@ export default class ProvCluster extends SteveModel {
 
     const cni = this.spec?.rkeConfig?.machineGlobalConfig?.cni;
 
-    if ( cni && cni !== 'calico' ) {
+    if ( cni && cni !== 'calico' && cni !== 'flannel' ) {
       return false;
     }
 
