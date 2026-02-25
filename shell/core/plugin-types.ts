@@ -1,5 +1,4 @@
 import type { RouteComponent, RouteRecordRaw } from 'vue-router';
-import type { HeadersConfig } from './column-builder';
 import type { PluginRouteRecordRaw } from './types';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
@@ -169,15 +168,6 @@ export type ProductChildResourcePage = {
   config?: ConfigureTypeConfiguration;
   /** Ordering weight for this page among its siblings */
   weight?: number;
-  /**
-   * Table column configuration for this resource type.
-   * Use standard column keys, builder pattern, or custom config.
-   * @example
-   * headers: { preset: 'namespaced', pagination: 'auto' }
-   * @example
-   * headers: { columns: ['state', 'name', column('targetPort').noSort(), 'age'] }
-   */
-  headers?: HeadersConfig;
 };
 
 /**

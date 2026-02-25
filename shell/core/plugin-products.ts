@@ -6,7 +6,6 @@ import {
   ProductChildCustomPage, ProductChildResourcePage
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
-import { processHeadersConfig } from '@shell/core/column-builder';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 
 // Type guard functions for discriminating union types
@@ -326,18 +325,6 @@ export class PluginProduct {
       };
 
       configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
-
-      // Process headers configuration if provided
-      if (item.headers) {
-        try {
-          const processedHeaders = processHeadersConfig(item.headers);
-
-          headers(typeValue, processedHeaders.defaults, processedHeaders.pagination);
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error(`Error processing headers for type "${ typeValue }":`, error);
-        }
-      }
 
       if (item.weight) {
         weightType(typeValue, item.weight, true);
