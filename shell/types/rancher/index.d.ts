@@ -17,10 +17,3 @@ declare module '@shell/config/version' {
   export const CURRENT_RANCHER_VERSION: string;
   export function getVersionData(): any;
 }
-
-declare module '@shell/store/store-types' {
-  export const STORE: any;
-  export const BLANK_CLUSTER: string;
-}
-
-declare module '@shell/config/pagination-table-headers';
