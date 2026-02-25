@@ -188,14 +188,14 @@ export default {
 
         let label;
 
-        // Allow product to specify its label if it is a version 2 product, rather than use convention and a fallback
-        if (p.version === 2) {
-          if (p.labelKey) {
-            label = this.$store.getters['i18n/t'](p.labelKey);
-          } else if (p.label) {
-            label = p.label;
-          }
+        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
+        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
+        if (p.labelKey) {
+          label = this.$store.getters['i18n/t'](p.labelKey);
+        } else if (p.label) {
+          label = p.label;
         }
+
         if (!label) {
           label = this.$store.getters['i18n/withFallback'](`product.${ p.name }`, null, ucFirst(p.name));
         }

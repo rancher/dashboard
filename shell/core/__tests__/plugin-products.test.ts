@@ -1,7 +1,7 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import {
   ProductMetadata, ProductSinglePage, ProductChildPage,
-  ProductChildGroup, StandardProductName
+  ProductChildGroup, StandardProductName, StandardProductNames
 } from '@shell/core/plugin-types';
 import { IExtension } from '@shell/core/types';
 
@@ -172,7 +172,7 @@ describe('pluginProduct', () => {
         },
       ];
 
-      const validStandardProduct = StandardProductName.EXPLORER;
+      const validStandardProduct = StandardProductNames.EXPLORER;
 
       const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, config);
 
@@ -191,7 +191,7 @@ describe('pluginProduct', () => {
 
     it('should not register new product when extending standard product', () => {
       const mockPlugin = createMockPlugin();
-      const validStandardProduct = StandardProductName.EXPLORER;
+      const validStandardProduct = StandardProductNames.EXPLORER;
 
       new PluginProduct(mockPlugin, validStandardProduct, []);
 
@@ -260,7 +260,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const validStandardProduct = StandardProductName.EXPLORER;
+      const validStandardProduct = StandardProductNames.EXPLORER;
 
       const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
@@ -754,7 +754,7 @@ describe('pluginProduct', () => {
       ];
 
       expect(() => {
-        new PluginProduct(mockPlugin, StandardProductName.EXPLORER, config);
+        new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
       }).toThrow('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
     });
   });
@@ -774,7 +774,7 @@ describe('pluginProduct', () => {
 
     it('should not set newProduct flag for standard product extensions', () => {
       const mockPlugin = createMockPlugin();
-      const validStandardProduct = StandardProductName.EXPLORER;
+      const validStandardProduct = StandardProductNames.EXPLORER;
 
       const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
@@ -980,7 +980,7 @@ describe('pluginProduct', () => {
     describe('scenario 6: extend standard product without configuring children', () => {
       it('should extend existing standard product with empty config', () => {
         const mockPlugin = createMockPlugin();
-        const validStandardProduct = StandardProductName.EXPLORER;
+        const validStandardProduct = StandardProductNames.EXPLORER;
 
         const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
@@ -1007,7 +1007,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const validStandardProduct = StandardProductName.EXPLORER;
+        const validStandardProduct = StandardProductNames.EXPLORER;
         const config: ProductChildPage[] = [
           {
             name:      'mysettings',
@@ -1043,7 +1043,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const validStandardProduct = StandardProductName.EXPLORER;
+        const validStandardProduct = StandardProductNames.EXPLORER;
         const config: (ProductChildGroup | ProductChildPage)[] = [
           {
             name:     'page1',

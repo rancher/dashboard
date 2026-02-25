@@ -1,6 +1,6 @@
 import { IExtension } from '@shell/core/types';
 import {
-  StandardProductName, ProductChild, ProductChildGroup,
+  StandardProductName, StandardProductNames, ProductChild, ProductChildGroup,
   ProductMetadata, ProductSinglePage,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
   ProductChildCustomPage, ProductChildResourcePage
@@ -106,12 +106,12 @@ export class PluginProduct {
   }
 
   private extendExistingStandardProductConstructor(plugin: IExtension, product: StandardProductName) {
-    // Check if the string exists as a VALUE in the enum
-    const isProductValid = Object.values(StandardProductName).includes(product);
+    // Check if the string exists as a VALUE in the standard products
+    const isProductValid = Object.values(StandardProductNames).includes(product);
 
     if (isProductValid) {
       // existing standard product - no need to add routes
-      this.name = product as string;
+      this.name = product;
 
       if (this.config?.length > 0) {
         // consider weights of children to determine default route
