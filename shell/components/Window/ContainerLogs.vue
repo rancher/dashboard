@@ -306,6 +306,24 @@ export default {
       }
     },
 
+    onMouseDown() {
+      this.stopFollowing();
+    },
+
+    onMouseUp() {
+      const virtualList = this.$refs.virtualList;
+
+      if (!virtualList) {
+        return;
+      }
+
+      const isVirtualListScrolledToBottom = virtualList.getOffset() + virtualList.getClientSize() >= virtualList.getScrollSize();
+
+      if (isVirtualListScrolledToBottom) {
+        this.startFollowing();
+      }
+    },
+
     openContainerMenu() {
       this.isContainerMenuOpen = true;
     },
@@ -741,7 +759,6 @@ export default {
       <div
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
-        @wheel.passive="onMouseWheel"
       >
         <VirtualList
           v-show="filtered.length"
@@ -754,6 +771,9 @@ export default {
           :keeps="200"
           :bottom-threshold="200"
           @tobottom="onScrollToBottom"
+          @wheel.passive="onMouseWheel"
+          @mousedown="onMouseDown"
+          @mouseup="onMouseUp"
         />
         <template v-if="!filtered.length">
           <div v-if="search">
