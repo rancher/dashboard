@@ -897,6 +897,10 @@ export default class ProvCluster extends SteveModel {
 
     const cni = this.spec?.rkeConfig?.machineGlobalConfig?.cni;
 
+    if ( cni === 'flannel' && compare(this.kubernetesVersion, 'v1.29.2') < 0 ) {
+      return false;
+    }
+
     if ( cni && cni !== 'calico' && cni !== 'flannel' ) {
       return false;
     }
