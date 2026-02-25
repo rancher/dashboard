@@ -36,4 +36,7 @@ export const regionsWithAvailabilityZones = {
   westeurope:         true,
   westus2:            true,
   westus3:            true,
+  chinaeast2:         true,
+  chinanorth2:        true,
+  chinanorth3:        true,
 } as any;
