@@ -295,6 +295,17 @@ export default {
   },
 
   methods: {
+    onScrollToBottom() {
+      this.startFollowing();
+    },
+
+    onMouseWheel(ev) {
+      // On scroll up stop following
+      if (ev.deltaY < 0) {
+        this.stopFollowing();
+      }
+    },
+
     openContainerMenu() {
       this.isContainerMenuOpen = true;
     },
@@ -730,8 +741,7 @@ export default {
       <div
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
-        @wheel.passive="stopFollowing"
-        @mousedown="stopFollowing"
+        @wheel.passive="onMouseWheel"
       >
         <VirtualList
           v-show="filtered.length"
@@ -742,6 +752,8 @@ export default {
           :data-component="logItem"
           direction="vertical"
           :keeps="200"
+          :bottom-threshold="200"
+          @tobottom="onScrollToBottom"
         />
         <template v-if="!filtered.length">
           <div v-if="search">
