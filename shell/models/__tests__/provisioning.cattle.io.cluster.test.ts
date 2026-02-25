@@ -328,14 +328,21 @@ describe('class ProvCluster', () => {
         expected: true
       },
       {
-        description: 'should return false if cni is flannel and kubernetesVersion is less than v1.29.2',
+        description: 'should return false if cni is flannel and kubernetesVersion is less than v1.29.2 (e.g. v1.29.1)',
         clusterData: {
-          isRke2: true, kubernetesVersion: 'v1.28.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+          isRke2: true, kubernetesVersion: 'v1.29.1', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
         },
         expected: false
       },
       {
-        description: 'should return true if cni is flannel and kubernetesVersion is >= v1.29.2',
+        description: 'should return true if cni is flannel and kubernetesVersion is exactly v1.29.2',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.29.2', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+        },
+        expected: true
+      },
+      {
+        description: 'should return true if cni is flannel and kubernetesVersion is >= v1.29.2 (e.g. v1.35.0)',
         clusterData: {
           isRke2: true, kubernetesVersion: 'v1.35.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
         },
