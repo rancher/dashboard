@@ -29,6 +29,10 @@ export default defineComponent({
       jsonObj:    null as Record<string, unknown> | null,
       swappedObj: null as Record<string, string> | null,
       jsonError:  '',
+
+      // Tab 5
+      bracketInput:  '',
+      bracketResult: null as boolean | null,
     };
   },
 
@@ -157,6 +161,35 @@ export default defineComponent({
 
       this.swappedObj = result;
     },
+
+    // Tab 5
+    checkBrackets() {
+      const str = this.bracketInput;
+      const stack: string[] = [];
+
+      const pairs: Record<string, string> = {
+        ')': '(',
+        ']': '[',
+        '}': '{'
+      };
+
+      for (const char of str) {
+        if (char === '(' || char === '[' || char === '{') {
+          stack.push(char); // push opening bracket
+        } else if (char === ')' || char === ']' || char === '}') {
+          const last = stack.pop(); // closing bracket
+
+          if (last !== pairs[char]) {
+            this.bracketResult = false;
+
+            return;
+          }
+        }
+      }
+
+      // valid only if nothing left open
+      this.bracketResult = stack.length === 0;
+    },
   },
 });
 </script>
@@ -251,6 +284,52 @@ export default defineComponent({
 
           <h4>Swapped:</h4>
           <pre>{{ swappedJsonPretty }}</pre>
+        </div>
+      </Tab>
+      <Tab
+        name="fourth"
+        label="Tab 4"
+      >
+        <div>
+          <p>
+            Tab 4 (Coin Change) not implemented within the time limit of 6h.
+          </p>
+        </div>
+      </Tab>
+      <Tab
+        name="fifth"
+        label="Tab 5"
+      >
+        <div>
+          <p class="mb-10">
+            Enter brackets string:
+          </p>
+
+          <input
+            v-model="bracketInput"
+            placeholder="e.g. [()]{}"
+            style="width:300px"
+          >
+
+          <br><br>
+
+          <button
+            type="button"
+            class="btn role-primary"
+            @click="checkBrackets"
+          >
+            Check
+          </button>
+
+          <p
+            v-if="bracketResult !== null"
+            class="mt-10"
+          >
+            Result:
+            <strong>
+              {{ bracketResult }}
+            </strong>
+          </p>
         </div>
       </Tab>
     </Tabbed>
