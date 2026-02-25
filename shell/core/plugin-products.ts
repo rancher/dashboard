@@ -111,7 +111,7 @@ export class PluginProduct {
 
     if (isProductValid) {
       // existing standard product - no need to add routes
-      this.name = product;
+      this.name = product as string;
 
       if (this.config?.length > 0) {
         // consider weights of children to determine default route

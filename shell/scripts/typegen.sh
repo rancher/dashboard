@@ -95,6 +95,16 @@ function processDir() {
         echo "declare module '${module}' {" >> ${INDEX}
         cat $entry >> ${INDEX}
         echo -e "}" >> ${INDEX}
+
+        # Also generate a module declaration with .js extension for JS source files
+        # TypeScript imports use .js extensions for JS files
+        if [ "${name}" != "index" ]; then
+          local moduleWithJs=${basePkg}/${name}.js
+          echo -e "\n// ${moduleWithJs}\n" >> ${INDEX}
+          echo "declare module '${moduleWithJs}' {" >> ${INDEX}
+          cat $entry >> ${INDEX}
+          echo -e "}" >> ${INDEX}
+        fi
       fi
     fi
   done
