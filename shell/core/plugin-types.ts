@@ -39,16 +39,17 @@ export type ProductRegistrationRouteGenerationOptions = {
 /**
  * Represents the allowed extensible products in Rancher Dashboard
  */
-export enum StandardProductName {
-  // eslint-disable-next-line no-unused-vars
-  EXPLORER = EXPLORER_PROD_NAME,
-  // eslint-disable-next-line no-unused-vars
-  MANAGER = CLUSTER_MAN_PROD_NAME,
-  // eslint-disable-next-line no-unused-vars
-  SETTINGS = SETTINGS_PROD_NAME,
-  // eslint-disable-next-line no-unused-vars
-  AUTH = AUTH_PROD_NAME,
-}
+export const StandardProductNames = {
+  EXPLORER: EXPLORER_PROD_NAME,
+  MANAGER:  CLUSTER_MAN_PROD_NAME,
+  SETTINGS: SETTINGS_PROD_NAME,
+  AUTH:     AUTH_PROD_NAME,
+} as const;
+
+/**
+ * Type representing a standard product name value
+ */
+export type StandardProductName = (typeof StandardProductNames)[keyof typeof StandardProductNames];
 
 /**
  * Represents allowed configuration for a child page
