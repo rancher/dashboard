@@ -5806,6 +5806,7 @@ promptForceRemove:
 
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
+  attemptingToScaleDown: "You are attempting to scale down {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
   scaling: |-
