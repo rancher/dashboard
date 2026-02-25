@@ -282,9 +282,7 @@ export class PluginProduct {
 
   // configure virtualType (custom page) or configureType (resource page) for a page item
   private configurePageItem(parentName: string, item: ProductChild, groupNaming?: string) {
-    const {
-      configureType, virtualType, weightType, headers
-    } = this.DSLMethods;
+    const { configureType, virtualType, weightType } = this.DSLMethods;
 
     // Page with a "component" specified maps to a virtualType
     if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
