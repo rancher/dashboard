@@ -22,7 +22,7 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/table-headers.js --declara
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/version.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/product/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/crypto > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/product/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config/product > /dev/null
 
 # # store
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
