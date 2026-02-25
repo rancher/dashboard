@@ -272,6 +272,7 @@ export default defineComponent({
 
           <p
             v-if="jsonError"
+            role="alert"
             style="color:red;"
           >
             {{ jsonError }}
