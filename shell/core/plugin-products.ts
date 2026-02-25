@@ -38,7 +38,7 @@ function hasTypeProperty(child: ProductChild): child is ProductChild & { type: s
  * @internal
  */
 export class PluginProduct {
-  private name!: string | StandardProductName;
+  private name!: string;
 
   private product?: ProductMetadata;
 
@@ -56,7 +56,10 @@ export class PluginProduct {
       prodName = prodName.replaceAll('-', '');
     }
 
-    this.name = prodName;
+    // convert this to "string" to match all types moving forward
+    // doesn't impact anything, fixes build problems of extensions
+    // and allows extensions to use either string literal or enum value for product name
+    this.name = prodName as string;
     this.product = product;
     this.newProduct = true;
 
