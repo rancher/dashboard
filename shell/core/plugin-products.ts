@@ -38,7 +38,7 @@ function hasTypeProperty(child: ProductChild): child is ProductChild & { type: s
  * @internal
  */
 export class PluginProduct {
-  private name!: string;
+  private name!: string | StandardProductName;
 
   private product?: ProductMetadata;
 
