@@ -10,6 +10,7 @@ import { isEmpty } from '@shell/utils/object';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
@@ -44,7 +45,7 @@ echo "Running custom user data script"
 export default defineComponent({
   name: 'EKSNodePool',
 
-  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:ec2SshKey'],
+  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:arm'],
 
   components: {
     LabeledInput,
@@ -53,10 +54,15 @@ export default defineComponent({
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector
+    FileSelector,
+    RadioGroup
   },
 
   props: {
+    arm: {
+      type:    Boolean,
+      default: false
+    },
     nodeRole: {
       type:    String,
       default: ''
@@ -243,7 +249,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      architecture:          'all',
+      architecture:          this.arm ? 'arm64' : 'x86_64',
       originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
@@ -298,15 +304,50 @@ export default defineComponent({
     },
 
     'architecture'(neu) {
-      if (neu === 'all' || this.templateValue('instanceType')) {
+      if (!this.isView) {
+        this.$emit('update:arm', neu === 'arm64');
+      }
+
+      if (this.templateValue('instanceType')) {
         return;
       }
 
+      // If the architecture changes, we need to make sure the selected instance type is still compatible
       if (this.requestSpotInstances) {
-        this.$emit('update:spotInstanceTypes', []);
+        const currentSpots = this.spotInstanceTypes || [];
+        const allCompatible = currentSpots.length > 0 && currentSpots.every((val: any) => {
+          const opt = this.instanceTypeOptions.find((o: any) => o.value === val);
+
+          return opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+        });
+
+        if (!allCompatible) {
+          this.$emit('update:spotInstanceTypes', []);
+        }
       } else {
-        this.$emit('update:instanceType', this.defaultInstanceType);
+        const current = this.instanceType;
+        const opt = this.instanceTypeOptions.find((o: any) => o.value === current);
+        const isCompatible = opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+
+        if (!isCompatible) {
+          this.$emit('update:instanceType', this.defaultInstanceType);
+        }
       }
+    },
+
+    instanceType: {
+      handler:   'updateArchitecture',
+      immediate: true
+    },
+
+    spotInstanceTypes: {
+      handler:   'updateArchitecture',
+      immediate: true
+    },
+
+    instanceTypeOptions: {
+      handler:   'updateArchitecture',
+      immediate: true
     },
 
     sshKeyPairs: {
@@ -328,7 +369,6 @@ export default defineComponent({
 
     architectureOptions() {
       return [
-        { label: this.t('eks.nodeGroups.architecture.all.label'), value: 'all' },
         { label: this.t('eks.nodeGroups.architecture.x86_64.label'), value: 'x86_64' },
         { label: this.t('eks.nodeGroups.architecture.arm64.label'), value: 'arm64' }
       ];
@@ -493,10 +533,31 @@ export default defineComponent({
   },
 
   methods: {
-    filterByArchitecture(options) {
-      const { architecture } = this;
+    // We need to update the architecture based on the selected instance type
+    // This is especially important in Edit/View modes where the architecture is not stored in the config
+    updateArchitecture() {
+      const isSpot = this.requestSpotInstances;
+      const instanceTypeValue = isSpot ? (this.spotInstanceTypes || [])[0] : this.instanceType;
+      const optionsToCheck = isSpot ? this.spotInstanceTypeOptions : this.instanceTypeOptions;
 
-      if (!architecture || architecture === 'all') {
+      if (!instanceTypeValue) {
+        return;
+      }
+
+      const option = optionsToCheck.find((o: any) => o.value === instanceTypeValue);
+
+      if (option?.supportedArchitectures) {
+        const archs = option.supportedArchitectures;
+        const detectedArch = archs.includes('x86_64') ? 'x86_64' : (archs.includes('arm64') ? 'arm64' : null);
+
+        if (detectedArch && detectedArch !== this.architecture) {
+          this.architecture = detectedArch;
+        }
+      }
+    },
+
+    filterByArchitecture(options) {
+      if (!this.architecture) {
         return options;
       }
 
@@ -520,7 +581,7 @@ export default defineComponent({
       const out = [];
 
       for (const group of grouped) {
-        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(architecture)
+        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(this.architecture)
         );
 
         // If a group has at least one matching item, add the group header and the matching items to the output.
@@ -586,7 +647,14 @@ export default defineComponent({
         } else if (this.templateValue(rancherKey)) {
           this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
         } else {
-          this.$emit(`update:${ rancherKey }`, DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG]);
+          let defaultVal = DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG];
+
+          // If requesting spot instances, we want to ensure instanceType is NOT set to the default (t3.medium)
+          if (rancherKey === 'instanceType' && this.requestSpotInstances) {
+            defaultVal = null;
+          }
+
+          this.$emit(`update:${ rancherKey }`, defaultVal);
         }
       });
 
@@ -821,16 +889,17 @@ export default defineComponent({
     />
     <div class="row mb-10">
       <div class="col span-2">
-        <LabeledSelect
+        <h4>{{ t('eks.nodeGroups.architecture.label') }}</h4>
+        <RadioGroup
           v-model:value="architecture"
           :mode="mode"
-          label-key="eks.nodeGroups.architecture.label"
+          name="architecture"
           :options="architectureOptions"
-          option-key="value"
-          option-label="label"
-          :disabled="!!templateValue('instanceType')"
+          :disabled="!!templateValue('instanceType') || loadingInstanceTypes"
         />
       </div>
+    </div>
+    <div class="row mb-10">
       <div class="col span-6">
         <template v-if="!templateValue('instanceType')">
           <LabeledSelect

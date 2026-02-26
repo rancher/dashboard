@@ -82,6 +82,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   type:                 'nodeGroup',
   userData:             '',
   _isNew:               true,
+  arm:                  false,
 };
 
 export const DEFAULT_EKS_CONFIG = {
@@ -180,8 +181,11 @@ export default defineComponent({
         this.config['nodeGroups'] = this.nodeGroups;
       }
     }
+
+    // We need to fetch instance types in all modes to determine the architecture (x86 vs arm) of the selected instance type
+    this.fetchInstanceTypes();
+
     if (this.mode !== _VIEW) {
-      this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
       this.fetchSshKeys();
@@ -726,6 +730,7 @@ export default defineComponent({
               v-model:labels="node.labels"
               v-model:version="node.version"
               v-model:pool-is-upgrading="node._isUpgrading"
+              v-model:arm="node.arm"
               :rules="{
                 nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
                 maxSize: fvGetAndReportPathRules('maxSize'),
