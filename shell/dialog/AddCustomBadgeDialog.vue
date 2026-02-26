@@ -11,7 +11,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';
-import { NORMAN } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import ClusterIconMenu from '@shell/components/ClusterIconMenu';
@@ -67,10 +67,10 @@ export default {
     if (this.isCreate || this.clusterExplorer) {
       return;
     }
-    // INFO: Fetch the cluster object if it's an edit
-    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster?.id });
+    // INFO: currentCluster is already a MANAGEMENT.CLUSTER with badge annotations, no need to fetch NORMAN.CLUSTER
+    // This also handles the case when MCM is disabled and NORMAN.CLUSTER schema doesn't exist
 
-    if (this.currentCluster.metadata?.annotations) {
+    if (this.currentCluster?.metadata?.annotations) {
       this.badgeComment = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
       this.useCustomComment = this.badgeComment?.length > 0;
       this.badgeBgColor = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.COLOR] || 'transparent';
@@ -179,17 +179,23 @@ export default {
       try {
         // INFO: If we're editing a cluster, update the cluster object
         if (!this.isCreate && !this.clusterExplorer) {
-          const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster?.id });
+          // Use MANAGEMENT.CLUSTER (currentCluster) instead of NORMAN.CLUSTER
+          // This works with MCM disabled where NORMAN.CLUSTER schema doesn't exist
+          const cluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: this.currentCluster?.id });
 
-          delete norman.annotations[CLUSTER_BADGE.COLOR];
-          delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
-          delete norman.annotations[CLUSTER_BADGE.TEXT];
+          if (!cluster.metadata.annotations) {
+            cluster.metadata.annotations = {};
+          }
 
-          norman.annotations[CLUSTER_BADGE.COLOR] = this.badgeColorPicker ? this.badgeBgColor : 'transparent';
-          norman.annotations[CLUSTER_BADGE.ICON_TEXT] = this.letter.toUpperCase();
-          norman.annotations[CLUSTER_BADGE.TEXT] = this.badgeComment;
+          delete cluster.metadata.annotations[CLUSTER_BADGE.COLOR];
+          delete cluster.metadata.annotations[CLUSTER_BADGE.ICON_TEXT];
+          delete cluster.metadata.annotations[CLUSTER_BADGE.TEXT];
 
-          await norman.save();
+          cluster.metadata.annotations[CLUSTER_BADGE.COLOR] = this.badgeColorPicker ? this.badgeBgColor : 'transparent';
+          cluster.metadata.annotations[CLUSTER_BADGE.ICON_TEXT] = this.letter.toUpperCase();
+          cluster.metadata.annotations[CLUSTER_BADGE.TEXT] = this.badgeComment;
+
+          await cluster.save();
 
           buttonDone(true);
           this.close();
