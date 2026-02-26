@@ -878,6 +878,16 @@ export default class ProvCluster extends SteveModel {
     return this.metadata?.state;
   }
 
+  get stateDescription() {
+    let out = super.stateDescription;
+
+    if (this.isCapiHybrid) {
+      out += ' ' ;
+    }
+
+    return out;
+  }
+
   get supportsWindows() {
     if (this.isK3s || this.isImportedK3s) {
       return false;
