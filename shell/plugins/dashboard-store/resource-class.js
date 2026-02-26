@@ -1956,12 +1956,12 @@ export default class Resource {
       {
         name:          'namespace',
         label:         this.t('component.resource.detail.glance.namespace'),
-        formatter:     'Link',
+        formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
         formatterOpts: {
           to: {
             name:     `c-cluster-product-resource-id`,
-            product:  this.$rootGetters['currentProduct'].id,
-            cluster:  this.$rootGetters['currentCluster'].id,
+            product:  this.$rootGetters['currentProduct']?.id,
+            cluster:  this.$rootGetters['currentCluster']?.id,
             resource: this.type
           },
           row:     {},
