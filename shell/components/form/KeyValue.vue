@@ -301,6 +301,33 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
+    },
+    /**
+     * Merges external keyErrors prop with internally detected duplicate keys.
+     * Returns a map of key names to error messages.
+     */
+    allKeyErrors() {
+      const errors = { ...this.keyErrors };
+
+      // Detect duplicate keys
+      const keyCounts = {};
+
+      this.rows.forEach((row) => {
+        const key = row[this.keyName];
+
+        if (key && key.trim()) {
+          keyCounts[key] = (keyCounts[key] || 0) + 1;
+        }
+      });
+
+      // Add duplicate key errors
+      Object.keys(keyCounts).forEach((key) => {
+        if (keyCounts[key] > 1) {
+          errors[key] = this.t('keyValue.duplicateKey');
+        }
+      });
+
+      return errors;
     }
   },
   created() {
@@ -692,8 +719,8 @@ export default {
               :aria-rowindex="i+1"
               :aria-colindex="1"
               :class="{
-                'labeled-input-key': keyErrors[row.key],
-                'has-clean-tooltip': keyErrors[row.key],
+                'labeled-input-key': allKeyErrors[row.key],
+                'has-clean-tooltip': allKeyErrors[row.key],
               }"
             >
               <slot
@@ -730,8 +757,8 @@ export default {
                   @paste="onPaste(i, $event)"
                 >
                 <LabeledTooltip
-                  v-if="keyErrors[row.key]"
-                  :value="keyErrors[row.key]"
+                  v-if="allKeyErrors[row.key]"
+                  :value="allKeyErrors[row.key]"
                   :hover="true"
                 />
               </slot>
