@@ -59,12 +59,12 @@ Cypress.Commands.add('logout', () => {
  */
 Cypress.Commands.add('clearAllSessions', () => {
   Cypress.session.clearAllSavedSessions();
-  cy.logout();
   cy.clearCookies();
   cy.clearLocalStorage();
   cy.window().then((win) => {
     win.sessionStorage.clear();
   });
+  cy.logout();
 });
 
 Cypress.Commands.add('iFrame', () => {
