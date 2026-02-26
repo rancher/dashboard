@@ -167,12 +167,6 @@ export default {
 
   },
 
-  methods: {
-    getCustomDetailLink(cluster) {
-      return cluster.isCapiHybrid ? null : cluster.detailLocation;
-    }
-  },
-
   $loadingResources() {
     // results are filtered so we wouldn't get the correct count on indicator...
     return { loadIndeterminate: true };
@@ -217,6 +211,7 @@ export default {
         </router-link>
       </template>
     </Masthead>
+
     <ResourceTable
       :headers="headers"
       :table-actions="true"
@@ -226,7 +221,6 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-      :get-custom-detail-link="getCustomDetailLink"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->

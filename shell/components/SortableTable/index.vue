@@ -1616,10 +1616,11 @@ export default {
                 align="middle"
               />
               <td
-                v-clean-html="row.row.stateDescription"
                 :colspan="fullColspan - (tableActions ? 1: 0)"
                 :class="{ 'text-error' : row.row.stateObj.error }"
-              />
+              >
+                {{ row.row.stateDescription }}
+              </td>
             </tr>
           </slot>
         </template>
