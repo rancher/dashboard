@@ -1,12 +1,12 @@
 <script lang="ts">
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { isEmpty } from '@shell/utils/object';
 import { PropType, defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
 
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
@@ -147,14 +147,14 @@ export default defineComponent({
       const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
       subnets.forEach((s) => {
-        const isIpv6 = !!s.Ipv6CidrBlockAssociationSet && !isEmpty(s.Ipv6CidrBlockAssociationSet);
-        const hasIpv4 = !!s.CidrBlock;
+        const hasIpv4 = isIpv4Network(s);
+        const hasIpv6 = isIpv6Network(s);
 
         if (this.ipFamily === 'ipv4' && !hasIpv4) {
           return;
         }
 
-        if (this.ipFamily === 'ipv6' && (!hasIpv4 || !isIpv6)) {
+        if (this.ipFamily === 'ipv6' && (!hasIpv4 || !hasIpv6)) {
           return;
         }
 
@@ -165,26 +165,20 @@ export default defineComponent({
         }
       });
       vpcs.forEach((v) => {
-        const { VpcId = '', Tags = [] } = v;
-        const nameTag = Tags.find((t) => {
-          return t.Key === 'Name';
-        })?.Value;
+        const { VpcId = '' } = v;
 
         const formOption = {
-          key: VpcId, label: `${ nameTag } (${ VpcId })`, kind: 'group'
+          key: VpcId, label: getVpcDisplayName(v), kind: 'group'
         };
 
         out.push(formOption);
         if (mappedSubnets[VpcId]) {
           mappedSubnets[VpcId].forEach((s) => {
-            const { SubnetId, Tags = [] } = s;
-            const nameTag = Tags.find((t) => {
-              return t.Key === 'Name';
-            })?.Value;
+            const { SubnetId } = s;
 
             const subnetFormOption = {
               key:       SubnetId,
-              label:     `${ nameTag } (${ SubnetId })`,
+              label:     getSubnetDisplayName(s),
               _isSubnet: true,
               disabled:  !!this.selectedVpc && VpcId !== this.selectedVpc
             };
@@ -358,6 +352,7 @@ export default defineComponent({
           :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
           label-key="eks.subnets.title"
           :disabled="!isNew"
+          data-testid="eks-subnets-choose-subnet-radio"
         />
       </div>
     </div>

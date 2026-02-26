@@ -275,4 +275,100 @@ describe('class ProvCluster', () => {
     }
     );
   });
+
+  describe('supportsWindows', () => {
+    const testCases = [
+      {
+        description: 'should return false for k3s',
+        clusterData: { isK3s: true },
+        expected:    false
+      },
+      {
+        description: 'should return false for imported k3s',
+        clusterData: { isImportedK3s: true },
+        expected:    false
+      },
+      {
+        description: 'should return windowsPreferedCluster for rke1',
+        clusterData: { isRke1: true, mgmt: { spec: { windowsPreferedCluster: true } } },
+        expected:    true
+      },
+      {
+        description: 'should return false for rke1 if windowsPreferedCluster is false/missing',
+        clusterData: { isRke1: true, mgmt: { spec: { windowsPreferedCluster: false } } },
+        expected:    false
+      },
+      {
+        description: 'should return false if not rke2 (and not rke1 or k3s)',
+        clusterData: { isRke2: false },
+        expected:    false
+      },
+      {
+        description: 'should return false if kubernetesVersion is missing',
+        clusterData: { isRke2: true, kubernetesVersion: undefined },
+        expected:    false
+      },
+      {
+        description: 'should return false if kubernetesVersion is less than v1.21.0',
+        clusterData: { isRke2: true, kubernetesVersion: 'v1.20.9' },
+        expected:    false
+      },
+      {
+        description: 'should return false if cni is not calico or flannel',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'cilium' } } }
+        },
+        expected: false
+      },
+      {
+        description: 'should return true if cni is calico',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' } } }
+        },
+        expected: true
+      },
+      {
+        description: 'should return false if cni is flannel and kubernetesVersion is less than v1.29.2 (e.g. v1.29.1)',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.29.1', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+        },
+        expected: false
+      },
+      {
+        description: 'should return true if cni is flannel and kubernetesVersion is exactly v1.29.2',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.29.2', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+        },
+        expected: true
+      },
+      {
+        description: 'should return true if cni is flannel and kubernetesVersion is >= v1.29.2 (e.g. v1.35.0)',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.35.0', spec: { rkeConfig: { machineGlobalConfig: { cni: 'flannel' } } }
+        },
+        expected: true
+      },
+      {
+        description: 'should return true if cni is empty/undefined',
+        clusterData: {
+          isRke2: true, kubernetesVersion: 'v1.34.0', spec: { rkeConfig: { machineGlobalConfig: {} } }
+        },
+        expected: true
+      },
+    ];
+
+    it.each(testCases)('$description', ({ clusterData, expected }) => {
+      const cluster = new ProvCluster({ spec: clusterData.spec });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(clusterData.mgmt);
+      jest.spyOn(cluster, 'isK3s', 'get').mockReturnValue(clusterData.isK3s || false);
+      jest.spyOn(cluster, 'isImportedK3s', 'get').mockReturnValue(clusterData.isImportedK3s || false);
+      jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(clusterData.isRke1 || false);
+      jest.spyOn(cluster, 'isRke2', 'get').mockReturnValue(clusterData.isRke2 || false);
+      jest.spyOn(cluster, 'kubernetesVersion', 'get').mockReturnValue(clusterData.kubernetesVersion);
+
+      expect(cluster.supportsWindows).toBe(expected);
+      jest.clearAllMocks();
+    });
+  });
 });
