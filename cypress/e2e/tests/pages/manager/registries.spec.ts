@@ -40,8 +40,12 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
 
     // navigate to Registries tab
     createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
-    // enable registry
-    createCustomClusterPage.registries().enableRegistryCheckbox().set();
+    // enable registry (checkbox is on by default in Prime; only set when not Prime)
+    cy.getRancherVersion().then((version) => {
+      if (version.RancherPrime !== 'true') {
+        createCustomClusterPage.registries().enableRegistryCheckbox().set();
+      }
+    });
     createCustomClusterPage.registries().enableRegistryCheckbox().isChecked();
     createCustomClusterPage.registries().showAdvanced().should('be.visible');
     // disable registry
@@ -71,8 +75,13 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     createCustomClusterPage.nameNsDescription().name().set(this.clusterName);
     // navigate to Registries tab
     createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
-    // enable registry
-    createCustomClusterPage.registries().enableRegistryCheckbox().set();
+    // enable registry (checkbox is on by default in Prime; only set when not Prime)
+    cy.getRancherVersion().then((version) => {
+      if (version.RancherPrime !== 'true') {
+        createCustomClusterPage.registries().enableRegistryCheckbox().set();
+      }
+    });
+    createCustomClusterPage.registries().enableRegistryCheckbox().isChecked();
     // add host
     createCustomClusterPage.registries().addRegistryHost(registryHost);
     // click show advanced
@@ -136,8 +145,13 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     createCustomClusterPage.nameNsDescription().name().set(this.clusterName2);
     // navigate to Registries tab
     createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
-    // enable registry
-    createCustomClusterPage.registries().enableRegistryCheckbox().set();
+    // enable registry (checkbox is on by default in Prime; only set when not Prime)
+    cy.getRancherVersion().then((version) => {
+      if (version.RancherPrime !== 'true') {
+        createCustomClusterPage.registries().enableRegistryCheckbox().set();
+      }
+    });
+    createCustomClusterPage.registries().enableRegistryCheckbox().isChecked();
     // add host
     createCustomClusterPage.registries().addRegistryHost(registryHost);
 
