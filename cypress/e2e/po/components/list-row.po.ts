@@ -17,16 +17,4 @@ export default class ListRowPo extends ComponentPo {
   get(selector: string, options?: any) {
     return this.self().get(selector, options);
   }
-
-  /**
-   * Returns the state-description row that follows this row
-   * @returns
-   */
-  description() {
-    return this.self().then(($row) => {
-      const testId = $row.attr('data-testid');
-
-      return cy.get('body').find(`[data-testid="${ testId }-description"]`);
-    });
-  }
 }

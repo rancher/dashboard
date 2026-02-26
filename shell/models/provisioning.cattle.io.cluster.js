@@ -867,9 +867,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get stateObj() {
-    const out = this._stateObj;
-
-    return out;
+    return this._stateObj;
   }
 
   get _stateObj() {
@@ -885,7 +883,7 @@ export default class ProvCluster extends SteveModel {
 
     if (this.isCapiHybrid) {
       if (out) {
-        out = `${ out }<br>`;
+        out += '<br>';
       }
       out += `${ this.t('cluster.capi.notSupported', null, true) }`;
     }
