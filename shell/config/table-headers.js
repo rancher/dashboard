@@ -55,6 +55,17 @@ export const NAME = {
   canBeVariable: true,
 };
 
+export const PROJECT_NAMESPACES_NAME = {
+  name:          'name',
+  labelKey:      'tableHeaders.name',
+  value:         'nameDisplay',
+  getValue:      (row) => row.nameDisplay,
+  search:        ['nameDisplay', 'projectNameDisplay'],
+  sort:          ['nameSort'],
+  formatter:     'LinkDetail',
+  canBeVariable: true,
+};
+
 export const LOGGING_OUTPUT_PROVIDERS = {
   name:      'logging-output-providers',
   labelKey:  'tableHeaders.loggingOutputProviders',
