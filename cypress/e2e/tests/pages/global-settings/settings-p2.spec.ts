@@ -258,7 +258,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     resetSettings.push('ui-offline-preferred');
   });
 
-  it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
     // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
     const rancherLogoWidth = 167;
     const suseRancherLogoWidth = 200;
