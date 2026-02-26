@@ -323,7 +323,7 @@ export default defineComponent({
       </div>
     </div>
     <div class="row">
-      <div class="col span-2">
+      <div class="col span-12">
         <RadioGroup
           :value="ipFamily"
           name="ip-family"
@@ -332,18 +332,19 @@ export default defineComponent({
           label-key="eks.ipFamily.label"
           :disabled="!isNewOrUnprovisioned"
           data-testid="eks-ip-family-radio"
+          :row="true"
           @update:value="$emit('update:ipFamily', $event)"
-        />
+        >
+          <template #label>
+            <h3>{{ t('eks.ipFamily.label') }}</h3>
+            <Banner
+              v-if="isNewOrUnprovisioned"
+              color="info"
+              :label="t('eks.ipFamily.banner')"
+            />
+          </template>
+        </RadioGroup>
       </div>
-    </div>
-    <div
-      v-if="isNewOrUnprovisioned"
-      class="row mb-10"
-    >
-      <Banner
-        color="info"
-        :label="t('eks.ipFamily.banner')"
-      />
     </div>
     <div class="row mb-10 mt-20">
       <div

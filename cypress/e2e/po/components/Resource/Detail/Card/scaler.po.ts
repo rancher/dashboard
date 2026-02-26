@@ -8,14 +8,14 @@ export default class ScalerPo extends ComponentPo {
   }
 
   getValue(): CypressChainable {
-    return this.self().get('[data-testid="scaler-value"]', LONG_TIMEOUT_OPT);
+    return cy.get(`${ this.selector } [data-testid="scaler-value"]`, LONG_TIMEOUT_OPT);
   }
 
   decreaseButton(): CypressChainable {
-    return this.self().get('[data-testid="scaler-decrease"]', LONG_TIMEOUT_OPT);
+    return cy.get(`${ this.selector } [data-testid="scaler-decrease"]`, LONG_TIMEOUT_OPT);
   }
 
   increaseButton(): CypressChainable {
-    return this.self().get('[data-testid="scaler-increase"]', LONG_TIMEOUT_OPT);
+    return cy.get(`${ this.selector } [data-testid="scaler-increase"]`, LONG_TIMEOUT_OPT);
   }
 }

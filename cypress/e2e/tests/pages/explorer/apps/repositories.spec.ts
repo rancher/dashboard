@@ -92,14 +92,14 @@ describe('Apps', () => {
         // make sure the value is set
         appRepoCreate.helmIndexUrl().should('eq', helmIndexUrl);
         // select git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // switch back to helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // test helm index value is empty
         appRepoCreate.helmIndexUrl().should('be.empty');
 
         // select Git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // fill the git repo form
         appRepoCreate.enterGitRepoName(gitRepoName);
         appRepoCreate.enterGitBranchName(gitRepoBranchName);
@@ -107,16 +107,16 @@ describe('Apps', () => {
         appRepoCreate.gitRepoName().should('eq', gitRepoName);
         appRepoCreate.gitRepoBranchName().should('eq', gitRepoBranchName);
         // select helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // switch back to git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // test git repo value is empty
         appRepoCreate.gitRepoName().should('be.empty');
         // test git repo branch value is empty
         appRepoCreate.gitRepoBranchName().should('be.empty');
 
         // select oci option
-        appRepoCreate.selectRadioOptionGitRepo(2);
+        appRepoCreate.selectRcItemCard('oci-url');
         // fill the oci form
         appRepoCreate.enterOciURL(ociValues.url);
         appRepoCreate.enterOciCaBundle(ociValues.caBundle);
@@ -134,9 +134,9 @@ describe('Apps', () => {
         appRepoCreate.ociMaxWait().should('eq', ociValues.maxWait);
         appRepoCreate.ociMaxRetries().should('eq', ociValues.maxRetries);
         // select helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // switch back to oci option
-        appRepoCreate.selectRadioOptionGitRepo(2);
+        appRepoCreate.selectRcItemCard('oci-url');
         // test oci values to be empty
         appRepoCreate.ociUrl().should('be.empty');
         appRepoCreate.ociCaBundle().should('be.empty');

@@ -7,7 +7,7 @@ export default class CardPo extends ComponentPo {
   }
 
   private scaler() {
-    return new ScalerPo();
+    return new ScalerPo(`${ this.selector } [data-testid="scaler"]`);
   }
 
   scaleUp(): Cypress.Chainable {
@@ -19,7 +19,7 @@ export default class CardPo extends ComponentPo {
   }
 
   podsRunningTotal(): Cypress.Chainable {
-    return this.self().get('[data-testid="rc-counter-badge"]');
+    return cy.get(`${ this.selector } [data-testid="rc-counter-badge"]`);
   }
 
   replicaCount(): Cypress.Chainable {
@@ -27,10 +27,10 @@ export default class CardPo extends ComponentPo {
   }
 
   podsStatus(): Cypress.Chainable {
-    return this.self().find('.status-row .label');
+    return cy.get(`${ this.selector } .status-row .label`);
   }
 
   podsStatusCount(): Cypress.Chainable {
-    return this.self().find('[data-testid="rc-counter-badge"]');
+    return cy.get(`${ this.selector } [data-testid="rc-counter-badge"]`);
   }
 }

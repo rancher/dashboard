@@ -71,6 +71,11 @@ export default {
       default: 'auth-',
     },
 
+    clientGeneratedName: {
+      type:    String,
+      default: null,
+    },
+
     allowNone: {
       type:    Boolean,
       default: true,
@@ -150,6 +155,42 @@ export default {
       default: false,
     },
 
+    /**
+     * Used specifically to fix the HTTP BASIC auth to generate specific authentication
+     * This is used to clear up the SELECT to make sure it only has HTTP BASIC with some special conditions
+     */
+    fixedHttpBasicAuth: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /** Used together with fixedHttpBasicAuth
+     * It will filter all the cases to use this specific label at the start.
+     */
+    filterBasicAuth: {
+      type:    String,
+      default: '',
+    },
+
+    /**
+     * This works similar to other allow* but this makes specific to create as ImagePullSecret since it is specific for one page that only uses it
+     * To avoid using it in other places.
+     */
+    fixedImagePullSecret: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * Whenever the fixedImagePullSecret is setup the dockerJsonUrlConfig needs to be passed that will be used to create the DockerJsonConfig file
+     */
+    imagePullSecretDockerJsonUrlConfig: {
+      type:    String,
+      default: '',
+    },
+
+    /**
+     * Specific property to change labels if it is Github.com repository
+     */
     isGithubDotComRepository: {
       type:    Boolean,
       default: false,
@@ -157,7 +198,7 @@ export default {
   },
 
   async fetch() {
-    if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
+    if ( (this.allowSsh || this.allowBasic || this.allowRke || this.fixedImagePullSecret) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
       if (this.$store.getters[`${ this.inStore }/paginationEnabled`](SECRET)) {
         // Filter results via api (because we shouldn't be fetching them all...)
         this.filteredSecrets = await this.filterSecretsByApi();
@@ -200,6 +241,8 @@ export default {
 
       selected: null,
 
+      previousValue: null,
+
       filterByNamespace: this.namespace && this.limitToNamespace,
 
       publicKey:     '',
@@ -207,16 +250,23 @@ export default {
       sshKnownHosts: '',
       uniqueId:      new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
 
-      SSH:   AUTH_TYPE._SSH,
-      BASIC: AUTH_TYPE._BASIC,
-      S3:    AUTH_TYPE._S3,
-      RKE:   AUTH_TYPE._RKE,
+      SSH:               AUTH_TYPE._SSH,
+      BASIC:             AUTH_TYPE._BASIC,
+      IMAGE_PULL_SECRET: AUTH_TYPE._IMAGE_PULL_SECRET,
+      S3:                AUTH_TYPE._S3,
+      RKE:               AUTH_TYPE._RKE,
     };
   },
 
   computed: {
     secretTypes() {
       const types = [];
+
+      if ( this.fixedImagePullSecret ) {
+        types.push(SECRET_TYPES.DOCKER_JSON);
+
+        return types;
+      }
 
       if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
@@ -325,7 +375,7 @@ export default {
         });
       }
 
-      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke) {
+      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke || this.fixedImagePullSecret) {
         out.unshift({
           label:    'divider',
           disabled: true,
@@ -366,6 +416,18 @@ export default {
         });
       }
 
+      if ( this.fixedImagePullSecret ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createImagePullSecret'),
+          value: AUTH_TYPE._IMAGE_PULL_SECRET,
+          kind:  'highlighted'
+        });
+      }
+
+      if (this.fixedHttpBasicAuth) {
+        out = out.filter((o) => o.label.search(this.filterBasicAuth) === 0 || ['title', 'divider'].includes(o.kind) || o.value === AUTH_TYPE._BASIC);
+      }
+
       return out;
     },
 
@@ -374,7 +436,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 ) {
+      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 || this.selected === AUTH_TYPE._IMAGE_PULL_SECRET ) {
         return 'col span-4';
       }
 
@@ -395,6 +457,7 @@ export default {
     publicKey:     'updateKeyVal',
     privateKey:    'updateKeyVal',
     sshKnownHosts: 'updateKeyVal',
+    preSelect:     'updateSelectedFromValue',
     value:         'updateSelectedFromValue',
 
     async namespace(ns) {
@@ -478,7 +541,7 @@ export default {
     },
 
     updateKeyVal() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
         this.sshKnownHosts = '';
@@ -498,9 +561,9 @@ export default {
     },
 
     update() {
-      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE].includes(this.selected))) {
+      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected))) {
         this.$emit('update:value', null);
-      } else if ( this.selected.includes(':') ) {
+      } else if ( this.selected.includes(':')) {
         // Cloud creds
         this.$emit('update:value', this.selected);
       } else {
@@ -522,7 +585,7 @@ export default {
     },
 
     async doCreate() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) || this.delegateCreateToParent ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
@@ -537,12 +600,17 @@ export default {
           },
         });
       } else {
+        const metadata = { namespace: this.namespace };
+
+        if (this.clientGeneratedName) {
+          metadata.name = this.clientGeneratedName;
+        } else {
+          metadata.generateName = this.generateName;
+        }
+
         secret = await this.$store.dispatch(`${ this.inStore }/create`, {
-          type:     SECRET,
-          metadata: {
-            namespace:    this.namespace,
-            generateName: this.generateName
-          },
+          type: SECRET,
+          metadata,
         });
 
         let type, publicField, privateField;
@@ -555,6 +623,11 @@ export default {
           break;
         case AUTH_TYPE._BASIC:
           type = SECRET_TYPES.BASIC;
+          publicField = 'username';
+          privateField = 'password';
+          break;
+        case AUTH_TYPE._IMAGE_PULL_SECRET:
+          type = SECRET_TYPES.DOCKER_JSON;
           publicField = 'username';
           privateField = 'password';
           break;
@@ -580,6 +653,22 @@ export default {
           // This ensures on edit of the secret, we allow the user to edit the known_hosts field
           if ((this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts) {
             secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
+          }
+
+          if (this.selected === AUTH_TYPE._IMAGE_PULL_SECRET && this.imagePullSecretDockerJsonUrlConfig) {
+            const registryHost = this.imagePullSecretDockerJsonUrlConfig ? new URL(this.imagePullSecretDockerJsonUrlConfig).host : '';
+
+            const config = {
+              auths: {
+                [registryHost]: {
+                  [publicField]:  this.publicKey,
+                  [privateField]: this.privateKey,
+                }
+              }
+            };
+            const json = JSON.stringify(config);
+
+            secret.setData('.dockerconfigjson', json);
           }
         }
       }
@@ -609,7 +698,7 @@ export default {
           v-model:value="selected"
           data-testid="auth-secret-select"
           :mode="mode"
-          :label-key="labelKey"
+          :label-key="fixedImagePullSecret ? 'selectOrCreateAuthSecret.imagePullSecret' : labelKey"
           :loading="$fetchState.pending"
           :options="options"
           :selectable="option => !option.disabled"
@@ -645,7 +734,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === BASIC || selected === RKE">
+      <template v-else-if="selected === BASIC || selected === RKE || selected === IMAGE_PULL_SECRET">
         <Banner
           v-if="selected === RKE"
           color="info"

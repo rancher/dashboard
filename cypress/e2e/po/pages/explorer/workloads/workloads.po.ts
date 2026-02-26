@@ -57,6 +57,10 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
     return new CardPo();
   }
 
+  title(): Cypress.Chainable {
+    return cy.get(`${ this.selector } h1`);
+  }
+
   deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
@@ -93,7 +97,7 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
    * Wait until there's exactly one pods status count element
    */
   waitForSinglePodsStatusCount(): Cypress.Chainable {
-    return cy.get('[data-testid="rc-counter-badge"]').should('have.length', 1);
+    return this.podsStatusCount().should('have.length', 1, MEDIUM_TIMEOUT_OPT);
   }
 
   /**
@@ -121,13 +125,13 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   /**
-   * Wait for both scale up and down buttons to be enabled
+   * Wait for both scale up and down buttons to be enabled and visible
    */
   waitForScaleButtonsEnabled() {
-    this.podScaleUp().should('not.be.disabled');
-    this.podScaleDown().should('not.be.disabled');
-    this.podScaleUp().should('not.have.attr', 'aria-disabled', 'true');
-    this.podScaleDown().should('not.have.attr', 'aria-disabled', 'true');
+    this.podScaleUp().scrollIntoView().should('be.visible').and('not.be.disabled')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    this.podScaleDown().scrollIntoView().should('be.visible').and('not.be.disabled')
+      .should('not.have.attr', 'aria-disabled', 'true');
 
     return this;
   }

@@ -110,7 +110,7 @@ export async function matching({
     return generateMatchingResponse([], inScopeCount || 0);
   }
 
-  if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
+  if ($store.getters[`${ inStore }/paginationEnabled`]?.()) {
     if (isLabelSelectorEmpty(labelSelector) && (!!namespace && !safeNamespaces?.length)) {
       // no namespaces - ALL resources are candidates
       // no labels - return all candidates
