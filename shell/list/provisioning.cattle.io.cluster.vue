@@ -288,6 +288,7 @@ export default {
             :colspan="fullColspan - (tableActions ? 1: 0)"
           >
             <div
+
               class="text-error"
               :class="{'mt-5': !!row.stateDescription.trim()}"
             >
