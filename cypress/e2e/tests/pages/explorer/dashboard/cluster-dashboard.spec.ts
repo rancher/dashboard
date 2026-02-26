@@ -33,6 +33,7 @@ const header = new HeaderPo();
 
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
+    cy.clearAllSessions();
     cy.login();
   });
 
@@ -327,6 +328,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       const password = Cypress.env('password');
 
       // log in as admin
+      cy.clearAllSessions();
       cy.login();
       cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
         const adminUserId = resp.body.status.userID;
@@ -353,6 +355,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
                 stdUsername = resp.body.username;
 
                 // log in as new standard user
+                cy.clearAllSessions();
                 cy.login(stdUsername, password, false);
 
                 // go to cluster dashboard
@@ -376,6 +379,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
+      cy.clearAllSessions();
       cy.login();
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
@@ -440,6 +444,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   after(function() {
     if (removePods) {
       // Ensure we're logged in as admin for cleanup operations
+      cy.clearAllSessions();
       cy.login();
 
       podNames.forEach((podName) => {
