@@ -68,7 +68,11 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
    * Returns the state-description row that follows this row
    * @returns
    */
-  capiWarningSubRow(clusterName: string) {
-    return this.list().self().find(`[data-testid="capi-unsupported-warning-${ clusterName }"]`);
+  capiWarningSubRow() {
+    return this.list().self().then(($row) => {
+      const testId = $row.attr('data-testid');
+
+      return cy.get('body').find(`[data-testid="${ testId }-description"]`);
+    });
   }
 }
