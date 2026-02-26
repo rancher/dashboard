@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
