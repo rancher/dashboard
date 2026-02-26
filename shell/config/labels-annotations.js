@@ -2,6 +2,7 @@ export const NORMAN_NAME = 'field.cattle.io/name';
 export const DESCRIPTION = 'field.cattle.io/description';
 export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
+export const RESTARTED_AT = 'kubectl.kubernetes.io/restartedAt';
 export const SYSTEM_NAMESPACE = 'management.cattle.io/system-namespace';
 export const PROJECT = 'field.cattle.io/projectId';
 export const DEFAULT_PROJECT = 'authz.management.cattle.io/default-project';
