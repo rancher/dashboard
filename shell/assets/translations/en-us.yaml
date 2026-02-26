@@ -6976,7 +6976,7 @@ tableHeaders:
   secrets: Secrets
   secret:
     origin: Origin
-    originTooltip: "Shows if a secret has been created or managed via another Project Scoped Secret. Read the documentation to learn more about this Rancher concept"
+    originTooltip: "Shows if a secret has been created or managed via another Project Scoped Secret. Read the Project Scoped Secret documentation to learn more about this Rancher concept"
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts

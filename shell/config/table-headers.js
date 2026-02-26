@@ -395,8 +395,6 @@ export const SECRET_ORIGIN = {
   // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
   // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
   // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
-  // But we can sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
-  sort:      `metadata.annotations."${ UI_PROJECT_SECRET_COPY }"`,
   search:    false,
 };
 

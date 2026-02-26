@@ -93,5 +93,5 @@ export const STEVE_SECRET_ORIGIN = {
   ...SECRET_ORIGIN,
   // We can't sort by the 'UI_PROJECT_SECRET' label (management.cattle.io/project-scoped-secret) due to backend limitations.
   // So we sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
-  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
+  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
 };
