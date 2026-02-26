@@ -31,3 +31,43 @@ jobs:
           echo "Retrying workflow run: $RUN_ID"
           sleep 30
           gh run rerun $RUN_ID --failed --repo $REPO
+
+  report-retry-result:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.run_attempt >= 2 }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report retry result
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          echo "Auto-Retry result for run $RUN_ID (attempt $RUN_ATTEMPT) on branch '$HEAD_BRANCH': $CONCLUSION"
+          if [[ "$CONCLUSION" == "success" ]]; then
+            echo "✅ Auto-Retry triggered a SUCCESS TEST"
+          else
+            echo "❌ Auto-Retry did NOT trigger a success (conclusion: $CONCLUSION)"
+          fi
+
+      - name: Generate job summary
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          {
+            echo "## Auto-Retry Result"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Run ID | [$RUN_ID](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID) |"
+            echo "| Branch | \`$HEAD_BRANCH\` |"
+            echo "| Attempt | $RUN_ATTEMPT |"
+            if [[ "$CONCLUSION" == "success" ]]; then
+              echo "| Result | ✅ SUCCESS TEST |"
+            else
+              echo "| Result | ❌ $CONCLUSION |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
