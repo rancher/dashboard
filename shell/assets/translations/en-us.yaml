@@ -2722,7 +2722,7 @@ cluster:
   validation:
     iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
   capi:
-    notSupported: Clusters created using upstream CAPI infrastructure providers cannot be modified through the UI.
+    notSupported: <div class="text-error mt-5">Clusters created using upstream CAPI infrastructure providers cannot be modified through the UI.</div>
 
 clusterIndexPage:
   hardwareResourceGauge:

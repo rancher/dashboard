@@ -129,7 +129,7 @@ export default class ProvCluster extends SteveModel {
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate && !this.isCapiHybrid;
 
-    const canSnapshot = ready && this.isRke2 && this.canUpdate && !this.isCapiHybrid;
+    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -400,7 +400,7 @@ export default class ProvCluster extends SteveModel {
 
     const machineReferences = (this.spec?.rkeConfig?.machinePools || []).map((pool) => pool.machineConfigRef);
 
-    const capiMachines = machineReferences.find((r) => r?.apiVersion?.includes('cluster.x-k8s.io'));
+    const capiMachines = machineReferences.find((r) => r.apiVersion && r.apiVersion.includes('cluster.x-k8s.io'));
 
     return !!capiMachines;
   }
@@ -867,7 +867,9 @@ export default class ProvCluster extends SteveModel {
   }
 
   get stateObj() {
-    return this._stateObj;
+    const out = this._stateObj;
+
+    return out;
   }
 
   get _stateObj() {
@@ -882,7 +884,10 @@ export default class ProvCluster extends SteveModel {
     let out = super.stateDescription;
 
     if (this.isCapiHybrid) {
-      out += ' ' ;
+      if (out) {
+        out = `${ out }<br>`;
+      }
+      out += `${ this.t('cluster.capi.notSupported', null, true) }`;
     }
 
     return out;

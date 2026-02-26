@@ -1615,18 +1615,11 @@ export default {
                 class="row-check"
                 align="middle"
               />
-              <slot
-                name="state-description-td"
-                :row="row"
-                :full-colspan="fullColspan"
-                :table-actions="tableActions"
-              >
-                <td
-                  v-clean-html="row.row.stateDescription"
-                  :colspan="fullColspan - (tableActions ? 1: 0)"
-                  :class="{ 'text-error' : row.row.stateObj.error }"
-                />
-              </slot>
+              <td
+                v-clean-html="row.row.stateDescription"
+                :colspan="fullColspan - (tableActions ? 1: 0)"
+                :class="{ 'text-error' : row.row.stateObj.error }"
+              />
             </tr>
           </slot>
         </template>

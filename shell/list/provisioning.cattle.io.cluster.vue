@@ -272,30 +272,6 @@ export default {
           {{ t('cluster.explore') }}
         </button>
       </template>
-      <template #state-description-td="{row, fullColspan, tableActions}">
-        <td
-          :colspan="fullColspan - (tableActions ? 1: 0)"
-          :class="{ 'text-error' : row.row.stateObj.error }"
-        >
-          <span v-clean-html="row.row.stateDescription" />
-          <div
-            v-if="row.row.isCapiHybrid"
-            class="text-error cluster-state-description"
-            :class="{'mt-5': !!row.row.stateDescription.trim()}"
-          >
-            <i class="icon icon-warning" />{{ t('cluster.capi.notSupported') }}
-          </div>
-        </td>
-      </template>
     </ResourceTable>
   </div>
 </template>
-
-<stye scoped lang="scss">
-  .cluster-state-description {
-    & i {
-      margin-right: 0.1em;
-    }
-    display: flex;
-  }
-</stye>
