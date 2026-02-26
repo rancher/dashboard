@@ -275,6 +275,7 @@ export default {
       </template>
       <template #additional-sub-row="{row, fullColspan, tableActions}">
         <tr
+
           class="capi-unsupported"
           :class="{'has-description': !!row.stateDescription}"
         >
@@ -284,7 +285,6 @@ export default {
           />
           <td
             v-if="row.isCapiHybrid"
-            :data-testid="`capi-unsupported-warning-${row?.metadata?.name}`"
             :colspan="fullColspan - (tableActions ? 1: 0)"
           >
             <div
