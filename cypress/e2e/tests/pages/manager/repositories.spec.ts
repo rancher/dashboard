@@ -11,6 +11,7 @@ const gitRepoUrl = 'https://github.com/rancher/charts';
 
 describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   before(() => {
+    cy.clearAllSessions();
     cy.login();
   });
   it('validating repositories page with percy', () => {
@@ -38,6 +39,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   const downloadsFolder = Cypress.config('downloadsFolder');
 
   before(() => {
+    cy.clearAllSessions();
     cy.login();
   });
 
@@ -279,6 +281,7 @@ describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager',
   let repoName: string;
 
   before(() => {
+    cy.clearAllSessions();
     cy.login();
     // The context menu can slightly clip at the top of the screen. This ensures it's visible.
     cy.viewport(1280, 720);
