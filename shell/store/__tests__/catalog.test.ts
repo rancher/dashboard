@@ -234,7 +234,7 @@ describe('catalog', () => {
       expect(charts[0].id).toBe(expectedChartKey);
     });
 
-    it('repoKeys provided, ignoring unrelated charts', async() => {
+    it('repoKeys provided, ignoring unrelated charts and versions', async() => {
       // We will manually inject an unrelated chart to prove it isn't wiped out
       const store = createStore(constructStore());
       const unrelatedChart = {
@@ -246,9 +246,17 @@ describe('catalog', () => {
         metadata: { name: 'unrelatedChart' }
       };
 
+      const targetedVersionKey = `namespace/testRepo/myChart/1.0.0`;
+      const unrelatedVersionKey = `namespace/unrelatedRepo/unrelatedChart/1.0.0`;
+
       store.state[catalogStoreName].charts = {
         ...initialRawCharts,
         [unrelatedChart.id]: unrelatedChart
+      };
+
+      store.state[catalogStoreName].versionInfos = {
+        [targetedVersionKey]:  { data: 'old-data' },
+        [unrelatedVersionKey]: { data: 'keep-me' }
       };
 
       // Make the request targeting specific repo
@@ -258,6 +266,7 @@ describe('catalog', () => {
       });
 
       const rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
+      const versionInfos = store.state[catalogStoreName].versionInfos;
 
       // The unrelated chart should NOT be wiped
       expect(rawCharts[unrelatedChart.id]).toBeDefined();
@@ -266,6 +275,12 @@ describe('catalog', () => {
       // The old initialRawChart (with repoKey: repo._key) SHOULD be wiped and replaced
       expect(rawCharts[initialRawChart.id]).not.toBeDefined();
       expect(rawCharts[expectedChartKey]).toBeDefined();
+
+      // The targeted version info SHOULD be wiped
+      expect(versionInfos[targetedVersionKey]).not.toBeDefined();
+      // The unrelated version info should NOT be wiped
+      expect(versionInfos[unrelatedVersionKey]).toBeDefined();
+      expect(versionInfos[unrelatedVersionKey].data).toBe('keep-me');
     });
   });
 

@@ -383,20 +383,13 @@ export const actions = {
     }
 
     const res = await allHashSettled(promises);
-    let charts = state.charts;
+    const charts = reset ? {} : { ...state.charts };
+    let versionInfos = null;
 
     if (reset) {
-      charts = {};
+      versionInfos = {};
     } else if (repoKeys.length) {
-      charts = { ...state.charts };
-
-      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
-      // we must remove the old charts for these specific repos before appending the newly fetched ones.
-      for (const chartKey in charts) {
-        if (repoKeys.includes(charts[chartKey].repoKey)) {
-          delete charts[chartKey];
-        }
-      }
+      versionInfos = { ...state.versionInfos };
     }
 
     const errors = [];
@@ -408,6 +401,28 @@ export const actions = {
       if ( obj.status === 'rejected' ) {
         errors.push(stringify(obj.reason));
         continue;
+      }
+
+      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
+      // we must remove the old charts for this specific repo before appending the newly fetched ones,
+      // but ONLY if the fetch was successful.
+      if (repoKeys.length && repoKeys.includes(key)) {
+        for (const chartKey in charts) {
+          if (charts[chartKey].repoKey === key) {
+            delete charts[chartKey];
+          }
+        }
+
+        // Also clear out cached version info for this repo so we don't display stale READMEs/values
+        const repoType = repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace';
+        const repoName = repo.metadata.name;
+        const versionPrefix = `${ repoType }/${ repoName }/`;
+
+        for (const versionKey in versionInfos) {
+          if (versionKey.startsWith(versionPrefix)) {
+            delete versionInfos[versionKey];
+          }
+        }
       }
 
       for ( const k in obj.value.entries ) {
@@ -425,8 +440,8 @@ export const actions = {
       loaded,
     });
 
-    if (reset) {
-      commit('setVersions', {});
+    if (versionInfos) {
+      commit('setVersions', versionInfos);
     }
   },
 
