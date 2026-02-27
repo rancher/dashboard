@@ -294,7 +294,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .click();
 
     // Handle the scale down confirmation dialog
-    promptModal().getBody().should('contain', 'You are attempting to delete the MachineDeployment');
+    promptModal().getBody().should('contain', 'You are attempting to scale down MachineDeployment');
     promptModal().getBody().should('contain', `${ this.rke2Ec2ClusterName }-pool1`);
     promptModal().clickActionButton('Confirm');
 
