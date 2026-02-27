@@ -33,6 +33,7 @@ export default {
   <AsyncButton
     icon="icon-copy"
     :show-label="showLabel"
+    persistent-icon
     action-label="Copy"
     waiting-label="Copying..."
     success-label="Copied!"
