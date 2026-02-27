@@ -269,6 +269,25 @@ describe('catalog', () => {
     });
   });
 
+  describe('refresh', () => {
+    it('calls refresh(false) on all repos and then dispatches a reset load', async() => {
+      const mockRepo1 = { refresh: jest.fn().mockResolvedValue(true) };
+      const mockRepo2 = { refresh: jest.fn().mockResolvedValue(true) };
+
+      const getters = { repos: [mockRepo1, mockRepo2] };
+      const dispatch = jest.fn().mockResolvedValue(true);
+      const commit = jest.fn();
+
+      await actions.refresh({
+        getters, commit, dispatch
+      });
+
+      expect(mockRepo1.refresh).toHaveBeenCalledWith(false);
+      expect(mockRepo2.refresh).toHaveBeenCalledWith(false);
+      expect(dispatch).toHaveBeenCalledWith('load', { force: true, reset: true });
+    });
+  });
+
   describe('filterAndArrangeCharts', () => {
     const mockCharts = [
       {

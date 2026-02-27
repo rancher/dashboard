@@ -40,18 +40,23 @@ export default class ClusterRepo extends SteveModel {
       });
 
       insertAt(out, 0, {
-        action:   'refresh',
-        label:    this.t('action.refresh'),
-        icon:     'icon icon-refresh',
-        enabled:  !!this.links.update,
-        bulkable: true,
+        action:     'refresh',
+        label:      this.t('action.refresh'),
+        icon:       'icon icon-refresh',
+        enabled:    !!this.links.update,
+        bulkable:   true,
+        bulkAction: 'refreshBulk',
       });
     }
 
     return out;
   }
 
-  async refresh() {
+  /**
+   * Refreshes the repository by updating its forceUpdate annotation and waiting for it to become active.
+   * @param {boolean} dispatchLoad - Whether to dispatch the catalog/load action after refreshing. Defaults to true.
+   */
+  async refresh(dispatchLoad = true) {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
     this.spec.forceUpdate = now;
@@ -59,7 +64,23 @@ export default class ClusterRepo extends SteveModel {
 
     await this.waitForState('active', 10000, 1000);
 
-    this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });
+    if (dispatchLoad) {
+      this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });
+    }
+  }
+
+  /**
+   * Performs a bulk refresh on multiple repositories concurrently, bypassing individual
+   * catalog loads, and dispatches a single catalog/load for all repositories once they are active.
+   * @param {ClusterRepo[]} items - Array of repository instances to refresh.
+   */
+  async refreshBulk(items) {
+    await Promise.allSettled(items.map((item) => item.refresh(false)));
+
+    this.$dispatch('catalog/load', {
+      force:    true,
+      repoKeys: items.map((item) => item._key)
+    }, { root: true });
   }
 
   async disableClusterRepo() {

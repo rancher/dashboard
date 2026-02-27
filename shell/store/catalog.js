@@ -430,8 +430,12 @@ export const actions = {
     }
   },
 
+  /**
+   * Globally refreshes all loaded repositories by triggering their refresh actions concurrently,
+   * bypassing individual catalog loads, and then performs a single, global catalog/load.
+   */
   async refresh({ getters, commit, dispatch }) {
-    const promises = getters.repos.map((x) => x.refresh());
+    const promises = getters.repos.map((x) => x.refresh(false));
 
     // @TODO wait for repo state to indicate they're done once the API has that
 
