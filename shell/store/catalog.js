@@ -325,8 +325,12 @@ export const actions = {
    * force: Always refresh catalog's helm repo by re-fetching index.yaml
    *
    * reset: clear existing charts and version cache
+   *
+   * repoKeys: Optional array of specific repo keys (IDs) to refresh. When provided, only these specific
+   * repos will be fetched, and only their existing charts will be cleared from the cache to avoid
+   * duplicate chart entries or wiping out unrelated chart data.
    */
-  async load(ctx, { force, reset } = {}) {
+  async load(ctx, { force, reset, repoKeys = [] } = {}) {
     const {
       state, getters, rootGetters, commit, dispatch
     } = ctx;
@@ -360,14 +364,41 @@ export const actions = {
     promises = {};
 
     for ( const repo of repos ) {
-      if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
+      let shouldLoad = false;
+
+      if (repoKeys.length) {
+        // If repoKeys are explicitly provided (e.g. refreshing a single repo from the UI),
+        // we ONLY want to load the repos in that array. We intentionally ignore `!getters.isLoaded(repo)`
+        // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
+        shouldLoad = repoKeys.includes(repo._key);
+      } else {
+        // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
+        shouldLoad = force === true || !getters.isLoaded(repo);
+      }
+
+      if ( shouldLoad && repo.canLoad ) {
         console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
         promises[repo._key] = repo.followLink('index');
       }
     }
 
     const res = await allHashSettled(promises);
-    const charts = reset ? {} : state.charts;
+    let charts = state.charts;
+
+    if (reset) {
+      charts = {};
+    } else if (repoKeys.length) {
+      charts = { ...state.charts };
+
+      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
+      // we must remove the old charts for these specific repos before appending the newly fetched ones.
+      for (const chartKey in charts) {
+        if (repoKeys.includes(charts[chartKey].repoKey)) {
+          delete charts[chartKey];
+        }
+      }
+    }
+
     const errors = [];
 
     for ( const key of Object.keys(res) ) {
