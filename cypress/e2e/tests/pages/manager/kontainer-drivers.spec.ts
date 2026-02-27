@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverD
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-// import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -35,14 +35,19 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
   });
 
-  // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/15782
-  // it('can refresh kubernetes metadata', () => {
-  //   KontainerDriversPagePo.navTo();
-  //   driversPage.waitForPage();
-  //   cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
-  //   driversPage.refreshKubMetadata().click({ force: true });
-  //   cy.wait('@refresh', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-  // });
+  it('can attempt to refresh kubernetes metadata', () => {
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
+    driversPage.refreshKubMetadata().click({ force: true });
+    cy.wait('@refresh', MEDIUM_TIMEOUT_OPT).then((interception) => {
+      // Request got cancelled because is exceeded the timeout
+      // We can remove it once https://github.com/rancher/rancher/issues/52557 is fixed
+      if (interception.response) {
+        expect(interception.response.statusCode).to.eq(200);
+      }
+    });
+  });
 
   it('can create new driver', () => {
     cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
