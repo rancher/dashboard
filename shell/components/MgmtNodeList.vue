@@ -32,7 +32,6 @@ export default {
       default: () => DEFAULT_HEADERS
     },
 
-    // TODO nb type this function
     // function to get node group for a given node, used for grouping nodes by pool in the table
     // result  should be an object with name and (optionally) description properties
     getNodeGroup: {
@@ -43,7 +42,6 @@ export default {
   },
 
   /**
-   * //TODO nb management nodes only because norman node actions are going to be deprecated + lets not built feats for Norman if we can avoid it
    * avoid fetching ALL nodes to find this cluster's nodes
    * mgmt nodes do not have labels that can be used with a labelSelector action
    * neither the prov cluster nor mgmt cluster list mgmt nodes in their metadata.relationships nor are the node names listed in either cluster's status
