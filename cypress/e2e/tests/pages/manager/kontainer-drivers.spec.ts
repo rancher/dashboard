@@ -41,10 +41,12 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
     driversPage.refreshKubMetadata().click({ force: true });
     cy.wait('@refresh', MEDIUM_TIMEOUT_OPT).then((interception) => {
-      // Request got cancelled because is exceeded the timeout
+      // Request got cancelled because it exceeded the timeout
       // We can remove it once https://github.com/rancher/rancher/issues/52557 is fixed
       if (interception.response) {
         expect(interception.response.statusCode).to.eq(200);
+      } else {
+        cy.get('.growl-text').contains('Error refreshing kontainer drivers').should('be.visible');
       }
     });
   });
