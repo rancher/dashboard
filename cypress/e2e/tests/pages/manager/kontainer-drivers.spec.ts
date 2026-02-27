@@ -46,7 +46,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       if (interception.response) {
         expect(interception.response.statusCode).to.eq(200);
       } else {
-        cy.get('.growl-text').contains('Error refreshing kontainer drivers').should('be.visible');
+        cy.get('.growl-text').contains('Error refreshing cluster drivers').should('be.visible');
       }
     });
   });

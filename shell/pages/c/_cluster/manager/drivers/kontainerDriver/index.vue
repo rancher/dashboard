@@ -45,7 +45,7 @@ export default {
 
         buttonDone(true);
       } catch (err) {
-        this.$store.dispatch('growl/fromError', { title: 'Error refreshing kontainer drivers', err }, { root: true });
+        this.$store.dispatch('growl/fromError', { title: this.t('drivers.kontainer.refreshError', { error: err }) }, { root: true });
         buttonDone(false);
       }
     }
