@@ -1,5 +1,20 @@
 interview:
   tabPage:
     title: 'Technical Interview - Tabs'
+    counter: 'Counter'
+    decrement: 'Decrement'
+    current: 'Current'
+    updated: 'Updated'
+    result: 'Result'
+    uploadJson: 'Upload JSON file'
+    swap: 'Swap'
+    original: 'Original'
+    swapped: 'Swapped'
+    enterBrackets: 'Enter brackets string'
+    check: 'Check'
+    hours: 'Hours'
+    minutes: 'Minutes'
+    seconds: 'Seconds'
+    invalidJson: 'Invalid JSON'
 product:
   interview: 'Technical Interview'

@@ -128,7 +128,7 @@ export default defineComponent({
           this.jsonError = '';
           this.swappedObj = null;
         } catch {
-          this.jsonError = 'Invalid JSON';
+          this.jsonError = 'interview.tabPage.invalidJson';
           this.jsonObj = null;
         }
       };
@@ -196,14 +196,14 @@ export default defineComponent({
 
 <template>
   <div>
-    <h1>{{ t("interview.tabPage.title") }}</h1>
+    <h1>{{ t('interview.tabPage.title') }}</h1>
     <Tabbed>
       <Tab
         name="first"
         label="Tab 1"
       >
         <p class="mb-20">
-          Counter: {{ counter }}
+          {{ t('interview.tabPage.counter') }}: {{ counter }}
         </p>
         <button
           type="button"
@@ -211,7 +211,7 @@ export default defineComponent({
           :disabled="counter === 0"
           @click="decrement"
         >
-          Decrement
+          {{ t('interview.tabPage.decrement') }}
         </button>
       </Tab>
       <Tab
@@ -219,24 +219,24 @@ export default defineComponent({
         label="Tab 2"
       >
         <div>
-          <p><strong>Current:</strong> {{ formattedCurrent }}</p>
-          <p><strong>Updated:</strong> {{ formattedUpdated }}</p>
-          <p><strong>Result:</strong> {{ timeComparison }}</p>
+          <p><strong>{{ t('interview.tabPage.current') }}:</strong> {{ formattedCurrent }}</p>
+          <p><strong>{{ t('interview.tabPage.updated') }}:</strong> {{ formattedUpdated }}</p>
+          <p><strong>{{ t('interview.tabPage.result') }}:</strong> {{ timeComparison }}</p>
 
           <div class="mt-20">
-            Hours:
+            {{ t('interview.tabPage.hours') }}:
             <input
               v-model="offsetHours"
               type="number"
             >
 
-            Minutes:
+            {{ t('interview.tabPage.minutes') }}:
             <input
               v-model="offsetMinutes"
               type="number"
             >
 
-            Seconds:
+            {{ t('interview.tabPage.seconds') }}:
             <input
               v-model="offsetSeconds"
               type="number"
@@ -250,7 +250,7 @@ export default defineComponent({
       >
         <div>
           <p class="mb-10">
-            Upload JSON file:
+            {{ t('interview.tabPage.uploadJson') }}:
           </p>
 
           <input
@@ -267,7 +267,7 @@ export default defineComponent({
             :disabled="!jsonObj"
             @click="swapJson"
           >
-            Swap
+            {{ t('interview.tabPage.swap') }}
           </button>
 
           <p
@@ -275,15 +275,15 @@ export default defineComponent({
             role="alert"
             style="color:red;"
           >
-            {{ jsonError }}
+            {{ t(jsonError) }}
           </p>
 
           <h4 class="mt-10">
-            Original:
+            {{ t('interview.tabPage.original') }}:
           </h4>
           <pre>{{ originalJsonPretty }}</pre>
 
-          <h4>Swapped:</h4>
+          <h4>{{ t('interview.tabPage.swapped') }}:</h4>
           <pre>{{ swappedJsonPretty }}</pre>
         </div>
       </Tab>
@@ -303,7 +303,7 @@ export default defineComponent({
       >
         <div>
           <p class="mb-10">
-            Enter brackets string:
+            {{ t('interview.tabPage.enterBrackets') }}:
           </p>
 
           <input
@@ -319,14 +319,14 @@ export default defineComponent({
             class="btn role-primary"
             @click="checkBrackets"
           >
-            Check
+            {{ t('interview.tabPage.check') }}
           </button>
 
           <p
             v-if="bracketResult !== null"
             class="mt-10"
           >
-            Result:
+            {{ t('interview.tabPage.result') }}:
             <strong>
               {{ bracketResult }}
             </strong>
