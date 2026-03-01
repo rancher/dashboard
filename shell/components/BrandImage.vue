@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export default {
   props: {
@@ -71,11 +72,13 @@ export default {
     defaultPathToBrandedImage() {
       const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
-      try {
-        return require(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
-      } catch {
-        return require(`~shell/assets/images/pl/${ this.fileName }`);
+      const themed = requireAsset(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
+
+      if (themed) {
+        return themed;
       }
+
+      return requireAsset(`~shell/assets/images/pl/${ this.fileName }`);
     },
 
     isDark() {
@@ -94,9 +97,11 @@ export default {
 
         // csp, rgs, and federal map to SUSE, but have their own custom logos
         if (this.brandBase !== this.brand) {
-          try {
-            return require(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
-          } catch { }
+          const brandBaseImg = requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
+
+          if (brandBaseImg) {
+            return brandBaseImg;
+          }
         }
       }
 
@@ -124,13 +129,17 @@ export default {
         return this.defaultPathToBrandedImage;
       } else {
         if (this.isDark || this.dark) {
-          try {
-            return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
-          } catch {}
+          const darkImg = requireAsset(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
+
+          if (darkImg) {
+            return darkImg;
+          }
         }
-        try {
-          return require(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
-        } catch {}
+        const brandImg = requireAsset(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
+
+        if (brandImg) {
+          return brandImg;
+        }
 
         return this.defaultPathToBrandedImage;
       }

@@ -1,5 +1,6 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { requireAsset } from '@shell/utils/require-asset';
 import {
   SECRET_SCOPE, SECRET_QUERY_PARAMS,
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
@@ -178,7 +179,10 @@ export default {
     },
 
     dataComponent() {
-      return require(`@shell/edit/secret/${ this.typeKey }`).default;
+      const modules = import.meta.glob('./*.vue', { eager: true });
+      const mod = modules[`./${ this.typeKey }.vue`];
+
+      return mod?.default || null;
     },
 
     driverName() {
@@ -208,12 +212,10 @@ export default {
         );
 
         for ( const id of machineTypes ) {
-          let bannerImage, bannerAbbrv;
+          const bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
+          let bannerAbbrv;
 
-          try {
-            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
-          } catch (e) {
-            bannerImage = null;
+          if (!bannerImage) {
             bannerAbbrv = this.initialDisplayFor(id);
           }
 

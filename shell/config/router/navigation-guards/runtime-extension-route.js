@@ -19,9 +19,9 @@ export async function runtimeExtensionRoute(to, from, next, { store }) {
     // If we have a new location, double check that it's actually valid
     const resolvedRoute = newLocation?.path ? store.app.router.resolve({ path: newLocation.path.replace(/^\/{0,1}dashboard/, '') }) : null;
 
-    if (resolvedRoute?.route.matched.length) {
+    if (resolvedRoute?.matched?.length) {
       // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
-      return next(resolvedRoute.resolved.path);
+      return next(resolvedRoute.path);
     }
   } catch (e) {
     console.error('Failed to load harvester', e); // eslint-disable-line no-console

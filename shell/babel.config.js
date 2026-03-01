@@ -22,6 +22,8 @@ module.exports = function(api) {
 
   if (process.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context');
+    plugins.push('@babel/plugin-syntax-import-meta');
+    plugins.push(require.resolve('./babel-plugin-import-meta-glob'));
     plugins.push([
       'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
     ]);

@@ -1,5 +1,6 @@
 import { insertAt } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export const configType = {
   activedirectory: 'ldap',
@@ -56,7 +57,7 @@ export default class AuthConfig extends SteveModel {
 
   get icon() {
     try {
-      return require(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`) || '';
     } catch (e) {
       return '';
     }

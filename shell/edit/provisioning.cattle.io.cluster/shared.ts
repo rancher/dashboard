@@ -1,3 +1,5 @@
+import { requireAsset } from '@shell/utils/require-asset';
+
 export const RETENTION_DEFAULT = 5;
 export const RKE2_INGRESS_NGINX = 'rke2-ingress-nginx';
 export const RKE2_TRAEFIK = 'rke2-traefik';
@@ -10,7 +12,7 @@ export const INGRESS_NONE = 'none';
 export const INGRESS_OPTIONS = [
   {
     id:        TRAEFIK,
-    image:     { src: require('@shell/assets/images/providers/traefik.png'), alt: 'Traefik' },
+    image:     { src: requireAsset('@shell/assets/images/providers/traefik.png'), alt: 'Traefik' },
     header:    { title: { key: 'cluster.ingress.traefik.header' } },
     subHeader: { label: { key: 'cluster.ingress.recommended' } },
     content:   { key: 'cluster.ingress.traefik.content' },
@@ -18,7 +20,7 @@ export const INGRESS_OPTIONS = [
   },
   {
     id:        INGRESS_NGINX,
-    image:     { src: require('@shell/assets/images/providers/kubernetes.svg'), alt: 'NGINX' },
+    image:     { src: requireAsset('@shell/assets/images/providers/kubernetes.svg'), alt: 'NGINX' },
     header:    { title: { key: 'cluster.ingress.nginx.header' } },
     subHeader: { label: { key: 'cluster.ingress.legacy' } },
     content:   { key: 'cluster.ingress.nginx.content' },

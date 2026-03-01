@@ -2,9 +2,9 @@ import type { StorybookConfig } from "@storybook/vue3-webpack5";
 import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
 import fs from "fs";
 import path, { join, dirname } from "path";
+import { pathToFileURL } from "url";
 import webpack from "webpack";
 import remarkGfm from 'remark-gfm';
-import { get } from "lodash";
 
 const baseFolder = path.resolve(__dirname, '..', '..');
 
@@ -21,21 +21,22 @@ const sassLoader = {
     options: {
       additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss';`,
       sassOptions: {
-        importer: (url, prev, done) => {
-          if (url.indexOf('~/') === 0) {
-            const file = path.resolve(baseFolder, url.substr(2));
-            return fs.exists(file, (ok) => {
-              if (ok) {
-                return done({ file });
+        importers: [{
+          findFileUrl(url: string) {
+            if (url.startsWith('~/') || url.startsWith('~shell')) {
+              const stripped = url.startsWith('~/') ? url.substring(2) : url.substring(1);
+              const file = path.resolve(baseFolder, stripped);
+              if (fs.existsSync(file)) {
+                return pathToFileURL(file);
               }
-              return done(null);
-            });
-          } else if (url.indexOf('@/node_modules') === 0) {
-            return done({ file: path.resolve(baseFolder, url.substr(2)) });
+              return null;
+            }
+            if (url.startsWith('@/node_modules')) {
+              return pathToFileURL(path.resolve(baseFolder, url.substring(2)));
+            }
+            return null;
           }
-
-          done(null);
-        }
+        }],
       }
     },
 };
@@ -106,7 +107,6 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-links"),
     getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@storybook/addon-interactions"),
-    getAbsolutePath('@storybook/addon-webpack5-compiler-babel'),
     getAbsolutePath('@storybook/addon-themes'),
     getAbsolutePath('storybook-addon-pseudo-states'),
     // Add support for table generation from markdown using MDX files

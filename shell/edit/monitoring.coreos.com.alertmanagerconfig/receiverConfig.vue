@@ -13,6 +13,11 @@ import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import FormValidation from '@shell/mixins/form-validation';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
+import slackLogo from '@shell/assets/images/vendor/slack.svg';
+import emailLogo from '@shell/assets/images/vendor/email.svg';
+import pagerdutyLogo from '@shell/assets/images/vendor/pagerduty.svg';
+import webhookLogo from '@shell/assets/images/vendor/webhook.svg';
+import customLogo from '@shell/assets/images/vendor/custom.svg';
 
 // i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
 // i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
@@ -23,14 +28,14 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.slack.title',
     info:  'monitoringReceiver.slack.info',
     key:   'slackConfigs',
-    logo:  require(`@shell/assets/images/vendor/slack.svg`)
+    logo:  slackLogo
   },
   {
     name:  'email',
     label: 'monitoringReceiver.email.label',
     title: 'monitoringReceiver.email.title',
     key:   'emailConfigs',
-    logo:  require(`@shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:  'pagerduty',
@@ -38,21 +43,21 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.pagerduty.title',
     info:  'monitoringReceiver.pagerduty.info',
     key:   'pagerdutyConfigs',
-    logo:  require(`@shell/assets/images/vendor/pagerduty.svg`)
+    logo:  pagerdutyLogo
   },
   {
     name:  'opsgenie',
     label: 'monitoringReceiver.opsgenie.label',
     title: 'monitoringReceiver.opsgenie.title',
     key:   'opsgenieConfigs',
-    logo:  require(`@shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:  'webhook',
     label: 'monitoringReceiver.webhook.label',
     title: 'monitoringReceiver.webhook.title',
     key:   'webhookConfigs',
-    logo:  require(`@shell/assets/images/vendor/webhook.svg`),
+    logo:  webhookLogo,
   },
   {
     name:  'custom',
@@ -60,7 +65,7 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.custom.title',
     info:  'monitoringReceiver.custom.info',
     key:   'webhookConfigs',
-    logo:  require(`@shell/assets/images/vendor/custom.svg`)
+    logo:  customLogo
   },
 ];
 
@@ -238,7 +243,10 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./types/${ name }`).default;
+      const modules = import.meta.glob('./types/*.vue', { eager: true });
+      const mod = modules[`./types/${ name }.vue`];
+
+      return mod?.default || null;
     },
 
     navigateTo(receiverType) {

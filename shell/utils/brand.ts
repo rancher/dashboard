@@ -1,3 +1,5 @@
+import { requireBrandMetadata } from '@shell/utils/require-asset';
+
 /**
  * Brand/Theme metadata
  */
@@ -20,9 +22,7 @@ export function getBrandMeta(brand: string): BrandMeta {
   let brandMeta: BrandMeta = {};
 
   if (brand) {
-    try {
-      brandMeta = require(`~shell/assets/brand/${ brand }/metadata.json`);
-    } catch {}
+    brandMeta = requireBrandMetadata(`~shell/assets/brand/${ brand }/metadata.json`) || {};
   }
 
   return brandMeta;

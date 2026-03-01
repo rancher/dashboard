@@ -1,15 +1,29 @@
+/**
+ * Minimal webpack resolve config for eslint-import-resolver-webpack.
+ *
+ * The actual build uses Vite (see shell/vite.config.js).
+ * This file only exists so that ESLint's import plugin can resolve
+ * aliased paths like @shell/, @components/, etc.
+ */
+const path = require('path');
 
-const config = require('./shell/vue.config');
+const dir = __dirname;
+const shellDir = path.join(dir, 'shell');
+const componentsDir = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
 
-// Excludes the following plugins if there's no .env file.
-let defaultExcludes = 'rancher-components, harvester';
-
-if (process.env.RANCHER_ENV === 'harvester') {
-  defaultExcludes = defaultExcludes.replace(', harvester', '');
-}
-const excludes = process.env.EXCLUDES_PKG || defaultExcludes;
-
-module.exports = config(__dirname, {
-  excludes: excludes.replace(/\s/g, '').split(','),
-  // excludes: ['fleet', 'example']
-});
+module.exports = {
+  configureWebpack: {
+    resolve: {
+      alias: {
+        '@shell':      shellDir,
+        '~shell':      shellDir,
+        '@components': componentsDir,
+        '@pkg':        path.join(dir, 'pkg'),
+        '~assets':     path.join(shellDir, 'assets'),
+        '~':           dir,
+        '@':           dir,
+      },
+      extensions: ['.tsx', '.ts', '.js', '.vue', '.scss', '.json'],
+    }
+  }
+};

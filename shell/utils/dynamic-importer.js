@@ -4,12 +4,64 @@
 
 import { defineAsyncComponent } from 'vue';
 
+// Module maps are generated at build time by the dynamic-importer-modules Vite plugin.
+// The plugin scans shell directories and excludes test files, keeping them out of the
+// production bundle.  In Jest the companion .jest.js file provides the same exports
+// via import.meta.glob (transformed by the babel plugin).
+import {
+  listModules,
+  chartModules,
+  editModules,
+  detailModules,
+  windowModules,
+  machineConfigModules,
+  cloudCredentialModules,
+  promptRemoveModules,
+  productModules,
+  loginModules,
+  dialogModules,
+  drawerModules,
+  translationModules,
+} from '@rancher/dynamic-importer-modules';
+
+function normalizePrefix(prefix) {
+  // The virtual module uses /shell/ prefix in keys
+  return prefix.replace(/^@shell\//, '/shell/');
+}
+
+function findInGlob(modules, prefix, key) {
+  const resolved = normalizePrefix(prefix);
+  // Try direct file extensions, then index files in subdirectories
+  // (mirrors Node.js module resolution: foo → foo.vue OR foo/index.vue)
+  const suffixes = ['', '.vue', '.js', '.ts', '/index.vue', '/index.js', '/index.ts'];
+
+  for (const suffix of suffixes) {
+    const candidate = `${ resolved }/${ key }${ suffix }`;
+
+    if (modules[candidate]) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function loadFromGlob(modules, prefix, name) {
+  const key = findInGlob(modules, prefix, name);
+
+  if (!key) {
+    throw new Error(`Could not find module "${ prefix }/${ name }"`);
+  }
+
+  return modules[key]();
+}
+
 export function importCloudCredential(name) {
   if (!name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(cloudCredentialModules, '@shell/cloud-credential', name));
 }
 
 export function importMachineConfig(name) {
@@ -17,7 +69,7 @@ export function importMachineConfig(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(machineConfigModules, '@shell/machine-config', name));
 }
 
 export function importLogin(name) {
@@ -25,7 +77,7 @@ export function importLogin(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(loginModules, '@shell/components/auth/login', name));
 }
 
 export function importChart(name) {
@@ -33,7 +85,7 @@ export function importChart(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "chart" */ `@shell/chart/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(chartModules, '@shell/chart', name));
 }
 
 export function importList(name) {
@@ -41,7 +93,7 @@ export function importList(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "list" */ `@shell/list/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(listModules, '@shell/list', name));
 }
 
 export function importDetail(name) {
@@ -49,7 +101,7 @@ export function importDetail(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "detail" */ `@shell/detail/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(detailModules, '@shell/detail', name));
 }
 
 export function importEdit(name) {
@@ -57,7 +109,7 @@ export function importEdit(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(editModules, '@shell/edit', name));
 }
 
 export function importDialog(name) {
@@ -65,7 +117,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(dialogModules, '@shell/dialog', name));
 }
 
 export function importDrawer(name) {
@@ -73,7 +125,7 @@ export function importDrawer(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(drawerModules, '@shell/components/Drawer', name));
 }
 
 export function importWindowComponent(name) {
@@ -81,7 +133,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Window/${name}`));
+  return defineAsyncComponent(() => loadFromGlob(windowModules, '@shell/components/Window', name));
 }
 
 export function loadProduct(name) {
@@ -89,15 +141,12 @@ export function loadProduct(name) {
     throw new Error('Name required');
   }
 
-  // Note: directly returns the import, not a function
-  return import(/* webpackChunkName: "product" */ `@shell/config/product/${name}`);
+  return loadFromGlob(productModules, '@shell/config/product', name);
 }
 
 export function listProducts() {
-  const ctx = require.context('@shell/config/product', true, /.*/);
-  const products = ctx.keys().filter(path => !path.endsWith('.js') && path.startsWith('./')).map(path => path.substr(2));
-
-  return products;
+  return Object.keys(productModules)
+    .map((p) => p.split('/').pop().replace(/\.(js|ts)$/, ''));
 }
 
 export function loadTranslation(name) {
@@ -105,38 +154,62 @@ export function loadTranslation(name) {
     throw new Error('Name required');
   }
 
-  // Note: directly returns the import, not a function
-  return import(/* webpackChunkName: "[request]" */ `@shell/assets/translations/${name}.yaml`);
+  const key = `/shell/assets/translations/${ name }.yaml`;
+
+  if (!translationModules[key]) {
+    throw new Error(`Could not find translation "${ name }"`);
+  }
+
+  return translationModules[key]();
 }
 
 export function importCustomPromptRemove(name) {
-  return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
+  return defineAsyncComponent(() => loadFromGlob(promptRemoveModules, '@shell/promptRemove', name));
+}
+
+function resolveOrThrow(modules, prefix, key) {
+  const result = findInGlob(modules, prefix, key);
+
+  if (!result) {
+    // hasCustom() in type-map.js relies on resolve* functions throwing
+    // to detect missing modules (matching the old require.resolve behaviour).
+    const err = new Error(`Could not resolve module: ${ prefix }/${ key }`);
+
+    err.code = 'MODULE_NOT_FOUND';
+    throw err;
+  }
+
+  return result;
+}
+
+export function resolvePromptRemove(key) {
+  return resolveOrThrow(promptRemoveModules, '@shell/promptRemove', key);
 }
 
 export function resolveList(key) {
-  return require.resolve(`@shell/list/${ key }`);
+  return resolveOrThrow(listModules, '@shell/list', key);
 }
 
 export function resolveChart(key) {
-  return require.resolve(`@shell/chart/${ key }`);
+  return resolveOrThrow(chartModules, '@shell/chart', key);
 }
 
 export function resolveEdit(key) {
-  return require.resolve(`@shell/edit/${ key }`);
+  return resolveOrThrow(editModules, '@shell/edit', key);
 }
 
 export function resolveDetail(key) {
-  return require.resolve(`@shell/detail/${ key }`);
+  return resolveOrThrow(detailModules, '@shell/detail', key);
 }
 
 export function resolveWindowComponent(key) {
-  return require.resolve(`@shell/components/Window/${ key }`);
+  return resolveOrThrow(windowModules, '@shell/components/Window', key);
 }
 
 export function resolveMachineConfigComponent(key) {
-  return require.resolve(`@shell/machine-config/${ key }`);
+  return resolveOrThrow(machineConfigModules, '@shell/machine-config', key);
 }
 
 export function resolveCloudCredentialComponent(key) {
-  return require.resolve(`@shell/cloud-credential/${ key }`);
+  return resolveOrThrow(cloudCredentialModules, '@shell/cloud-credential', key);
 }

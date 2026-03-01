@@ -141,7 +141,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential, resolvePromptRemove
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -374,14 +374,23 @@ export async function applyProducts(store, $extension) {
 
   called = true;
   for ( const product of listProducts() ) {
-    const impl = await loadProduct(product);
+    try {
+      const impl = await loadProduct(product);
 
-    if ( impl?.init ) {
-      impl.init(store);
+      if ( impl?.init ) {
+        impl.init(store);
+      }
+    } catch (e) {
+      console.error(`Error loading product: ${ product }`, e); // eslint-disable-line no-console
     }
   }
-  // Load the products from all plugins
-  $extension.loadProducts();
+  // Load the products from all plugins (fire-and-forget to match
+  // master's behaviour — navigation should not block on extension
+  // product loading; extensions that register later are picked up
+  // by the productsLoaded() check inside applyPlugin).
+  $extension.loadProducts().catch((e) => {
+    console.error('Error loading extension products', e); // eslint-disable-line no-console
+  });
 }
 
 export function productsLoaded() {
@@ -1198,7 +1207,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
+      return hasCustom(state, rootState, 'promptRemove', key, () => resolvePromptRemove(key));
     };
   },
 
