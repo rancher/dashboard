@@ -2,7 +2,7 @@
 import { mapGetters, useStore } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import {
-  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION
+  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION, PROJECT_NAMESPACES_NAME
 } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
@@ -122,13 +122,11 @@ export default {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
     headers() {
-      const headers = [
-        STATE,
-        NAME,
-        DESCRIPTION
-      ];
+      let headers;
 
       if (this.groupPreference === 'none') {
+        headers = [STATE, NAME, DESCRIPTION];
+
         const projectHeader = {
           name:  'project',
           label: this.t('tableHeaders.project'),
@@ -137,6 +135,8 @@ export default {
         };
 
         headers.push(projectHeader);
+      } else {
+        headers = [STATE, PROJECT_NAMESPACES_NAME, DESCRIPTION];
       }
 
       if (this.isHarvester && this.harvesterResourceQuotaSchema) {
@@ -178,12 +178,12 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupById:        `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
-          isFake:           true,
-          mainRowKey:       project.id,
-          nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
+          groupById:          `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
+          isFake:             true,
+          mainRowKey:         project.id,
+          projectNameDisplay: project.spec?.displayName, // Enable filtering by the project name
           project,
-          availableActions: []
+          availableActions:   []
         };
       });
 
