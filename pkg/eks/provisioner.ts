@@ -43,7 +43,7 @@ export class EKSProvisioner implements IClusterProvisioner {
       nodes:        true,
       machines:     false,
       logs:         false,
-      registration: false,
+      registration: true,
       snapshots:    false,
       related:      true,
       events:       true,
