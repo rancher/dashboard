@@ -105,6 +105,7 @@ export default {
     :headers="headers"
     :rows="nodes"
     group-ref="poolRef"
+    data-testid="mgmt-node-table"
     :hide-grouping-controls="true"
     :group-options="[noneGroupOption, poolGroupOption]"
   >
