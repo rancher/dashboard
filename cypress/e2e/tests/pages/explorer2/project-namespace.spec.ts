@@ -93,6 +93,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         .set('test-1234');
       createProjectPage.tabResourceQuotas().click();
       createProjectPage.btnAddResource().click();
+      createProjectPage.selectResourceTypeByLabel('Custom');
       createProjectPage.inputCustomType().expectToBeEnabled();
     });
 
