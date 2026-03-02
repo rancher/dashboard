@@ -22,7 +22,7 @@ export default {
   methods: {
     getNodeGroup(node) {
       // the annotation 'agentpool' refers to the pool name that users set. The default value of the first pool's name is also 'agentpool'
-      const poolName = node.status.nodeLabels['kubernetes.azure.com/agentpool'] || '';
+      const poolName = node?.status?.nodeLabels?.['kubernetes.azure.com/agentpool'] || '';
 
       const poolSpec = (this.resource?.mgmt.spec?.aksConfig?.nodePools || []).find((pool) => pool.name === poolName);
       const description = poolSpec ? `${ poolSpec?.mode } &ndash; ${ node?.status?.nodeLabels?.['topology.kubernetes.io/region'] } &ndash; ${ poolSpec?.vmSize }` : '';

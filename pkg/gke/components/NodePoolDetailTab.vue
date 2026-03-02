@@ -22,7 +22,7 @@ export default {
 
   methods: {
     getNodeGroup(node) {
-      const poolName = node.status.nodeLabels['cloud.google.com/gke-nodepool'] || '';
+      const poolName = node?.status?.nodeLabels?.['cloud.google.com/gke-nodepool'] || '';
 
       const poolSpec = (this.resource?.mgmt?.spec?.gkeConfig?.nodePools || []).find((pool) => pool.name === poolName);
       const description = poolSpec ? `${ node?.status?.nodeLabels?.['topology.kubernetes.io/region'] } &ndash; ${ poolSpec?.config?.machineType }` : '';
