@@ -145,6 +145,23 @@ describe('oidc.vue', () => {
 
         expect(saveButton.disabled).toBe(false);
       });
+
+      it('when addCustomClaims is enabled but claim fields are undefined', async() => {
+        wrapper.setData({
+          oidcUrls:        { url: validUrl, realm: validRealm },
+          oidcScope:       validScope.split(' '),
+          addCustomClaims: true,
+        });
+
+        wrapper.vm.model.nameClaim = undefined;
+        wrapper.vm.model.groupsClaim = undefined;
+        wrapper.vm.model.emailClaim = undefined;
+        await nextTick();
+
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(false);
+      });
     });
 
     it('updates issuer endpoint when oidcUrls.url and oidcUrls.realm changes', async() => {
