@@ -11,6 +11,8 @@ const severityIndicators = {
 // the screenshots for them to unique filenames
 const screenshotIndexes: {[key: string]: number} = {};
 
+const MARKER_DIV_ID = 'a11y_violation_marker_cypress';
+
 // Log violations to the terminal
 function terminalLog(violations) {
   const suiteTitle = Cypress.currentTest.titlePath.slice(0, -1).join(' > ');
@@ -47,16 +49,11 @@ function getAccessibilityViolationsCallback(description?: string) {
     terminalLog(violations); // Log to the console
 
     const title = Cypress.currentTest.titlePath.join(', ');
-    const index = screenshotIndexes[title] || 1;
+    let index = screenshotIndexes[title] || 1;
     const testPath = Cypress.currentTest.titlePath;
     const lastName = Cypress.currentTest.titlePath[Cypress.currentTest.titlePath.length - 1];
 
     testPath.push(description || `${ lastName } (#${ index })`);
-
-    cy.task('a11y', {
-      violations,
-      titlePath: testPath,
-    });
 
     // Log in Cypress
     violations.forEach((violation) => {
@@ -69,7 +66,9 @@ function getAccessibilityViolationsCallback(description?: string) {
         message:      `[${ violation.help }][${ violation.helpUrl }]`
       });
 
-      violation.nodes.forEach(({ target }) => {
+      violation.nodes.forEach((node) => {
+        const { target } = node;
+
         Cypress.log({
           name:         `🔨`,
           consoleProps: () => violation,
@@ -77,39 +76,57 @@ function getAccessibilityViolationsCallback(description?: string) {
           message:      target
         });
 
-        // Store the existing border and change it to clearly show the elements with violations
-        cy.get(target.join(', ')).invoke('css', 'border').then((border) => {
+        // Scroll the element with the violation into view - ensure there's some content above
+        cy.get(target.join(', ')).scrollIntoView({ offset: { top: -200, left: 0 } });
+
+        // Add a border - for most cases we can just add a border
+        // For v-select elements, we need to use a child element with a border
+        cy.document().then((doc) => {
           cy.get(target.join(', ')).then(($el) => {
-            const existingBorder = $el.data('border');
+            cy.get(target.join(', ')).invoke('attr', 'class').then((classes) => {
+              cy.get(target.join(', ')).invoke('css', 'border').then((border) => {
+                const useElement = (classes || '').includes('v-select');
+                const divDisplay = useElement ? 'flex' : 'none';
+                const borderWidth = useElement ? 0 : 2;
+                const elem = doc.createElement('div');
 
-            // If we have the original border, don't store again = covers a case an element has multiple violations
-            // and we would lose the original border
-            if (!existingBorder) {
-              $el.data('border', border);
-            }
+                elem.style.border = '2px solid red';
+                elem.style.width = '100%';
+                elem.style.height = '100%';
+                elem.style.position = 'absolute';
+                elem.style.display = divDisplay;
 
-            $el.css('border', '2px solid red');
+                elem.id = MARKER_DIV_ID;
+                $el[0].insertBefore(elem, $el[0].firstChild);
+
+                // Store the existing border and change it to clearly show the elements with violations
+                const existingBorder = $el.data('border');
+
+                // If we have the original border, don't store again = covers a case an element has multiple violations
+                // and we would lose the original border
+                if (!existingBorder) {
+                  $el.data('border', border);
+                }
+
+                $el.css('border', `${ borderWidth }px solid red`);
+              });
+            });
           });
         });
-      });
-    });
 
-    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
+        node.screenshot = `screenshots/a11y_${ Cypress.currentTest.title }_${ index }.png`;
 
-    // Record the screenshot against the test and move it into the a11y folder
-    cy.task('a11yScreenshot', {
-      titlePath: testPath,
-      test:      Cypress.currentTest,
-      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
-    });
+        cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`, { capture: 'viewport' });
+        index++;
 
-    screenshotIndexes[title] = index + 1;
+        // Remove the marker element
+        cy.get(`#${ MARKER_DIV_ID }`).then(($el) => {
+          $el[0].remove();
+        });
 
-    // Reset the borders that were added to mark the elements with violations
-    violations.forEach((violation) => {
-      violation.nodes.forEach(({ target }) => {
+        // Remove the border
         cy.get(target.join(', ')).then(($el) => {
-          const border = $el.data('border');
+          const border = $el.data('border') || '';
 
           if (!border.startsWith('0px none')) {
             $el.css('border', $el.data('border'));
@@ -123,6 +140,14 @@ function getAccessibilityViolationsCallback(description?: string) {
         });
       });
     });
+
+    // Register violations after we've got the bounding boxes
+    cy.task('a11y', {
+      violations,
+      titlePath: testPath,
+    });
+
+    screenshotIndexes[title] = index + 1;
   };
 }
 
