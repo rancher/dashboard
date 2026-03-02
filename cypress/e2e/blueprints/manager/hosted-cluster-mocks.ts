@@ -8,7 +8,6 @@ export const provisioningClusters = [
       patch: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-4sjtl', remove: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-4sjtl', self: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-4sjtl', update: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-4sjtl', view: 'https://mock-url/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/c-4sjtl'
     },
     apiVersion: 'provisioning.cattle.io/v1',
-    id:         'fleet-default/c-4sjtl',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -110,7 +109,6 @@ export const provisioningClusters = [
       patch: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-5hrg8', remove: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-5hrg8', self: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-5hrg8', update: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-5hrg8', view: 'https://mock-url/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/c-5hrg8'
     },
     apiVersion: 'provisioning.cattle.io/v1',
-    id:         'fleet-default/c-5hrg8',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -212,7 +210,6 @@ export const provisioningClusters = [
       patch: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-9zj2b', remove: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-9zj2b', self: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-9zj2b', update: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-9zj2b', view: 'https://mock-url/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/c-9zj2b'
     },
     apiVersion: 'provisioning.cattle.io/v1',
-    id:         'fleet-default/c-9zj2b',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -312,7 +309,6 @@ export const provisioningClusters = [
       patch: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-kkwv2', remove: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-kkwv2', self: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-kkwv2', update: 'https://mock-url/v1/provisioning.cattle.io.clusters/fleet-default/c-kkwv2', view: 'https://mock-url/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/c-kkwv2'
     },
     apiVersion: 'provisioning.cattle.io/v1',
-    id:         'fleet-default/c-kkwv2',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -421,7 +417,6 @@ export const managementClusters = [
       apply: 'https://mock-url/v1/management.cattle.io.clusters/c-9zj2b?action=apply', generateKubeconfig: 'https://mock-url/v3/clusters/c-9zj2b?action=generateKubeconfig', importYaml: 'https://mock-url/v3/clusters/c-9zj2b?action=importYaml'
     },
     apiVersion: 'management.cattle.io/v3',
-    id:         'c-9zj2b',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -687,7 +682,6 @@ export const managementClusters = [
       apply: 'https://mock-url/v1/management.cattle.io.clusters/c-4sjtl?action=apply', generateKubeconfig: 'https://mock-url/v3/clusters/c-4sjtl?action=generateKubeconfig', importYaml: 'https://mock-url/v3/clusters/c-4sjtl?action=importYaml'
     },
     apiVersion: 'management.cattle.io/v3',
-    id:         'c-4sjtl',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -916,7 +910,6 @@ export const managementClusters = [
       apply: 'https://mock-url/v1/management.cattle.io.clusters/c-5hrg8?action=apply', generateKubeconfig: 'https://mock-url/v3/clusters/c-5hrg8?action=generateKubeconfig', importYaml: 'https://mock-url/v3/clusters/c-5hrg8?action=importYaml'
     },
     apiVersion: 'management.cattle.io/v3',
-    id:         'c-5hrg8',
     kind:       'Cluster',
     metadata:   {
       annotations: {
@@ -1217,7 +1210,6 @@ export const managementClusters = [
       apply: 'https://mock-url/v1/management.cattle.io.clusters/c-kkwv2?action=apply', generateKubeconfig: 'https://mock-url/v3/clusters/c-kkwv2?action=generateKubeconfig', importYaml: 'https://mock-url/v3/clusters/c-kkwv2?action=importYaml'
     },
     apiVersion: 'management.cattle.io/v3',
-    id:         'c-kkwv2',
     kind:       'Cluster',
     metadata:   {
       annotations: {
