@@ -185,8 +185,8 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       cy.login();
 
       // Get current user and cluster info
-      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
-        const userId = resp.body.status.userID;
+      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+        const userId = resp.body.data[0].id.trim();
         const clusterId = 'local';
 
         // Create 3 projects with the same name using the API
