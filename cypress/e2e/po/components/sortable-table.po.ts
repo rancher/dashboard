@@ -197,6 +197,13 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * get the count of rows in a group
+   */
+  groupRowCount(groupName: string) {
+    return this.groupElementWithName(groupName).nextUntil('tr.group-row').then((el) => el.length);
+  }
+
+  /**
    * Check row element count on sortable table
    * @param isEmpty true if empty state expected (empty state message should display on row 1)
    * @param expected number of rows shown
