@@ -302,10 +302,8 @@ describe('oidc.vue', () => {
       expect(emailClaim.exists()).toBe(false);
     });
 
-    it.each([
-      ['cognito'],
-    ])('addCustomClaims and supportsGroupSearch fields do not exist for provider "%s"', async(providerId: string) => {
-      wrapper.setData({ model: { ...mockModel, id: providerId } });
+    it('addCustomClaims and supportsGroupSearch fields do not exist for provider cognito', async() => {
+      wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
       await nextTick();
 
       const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
