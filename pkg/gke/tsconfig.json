@@ -48,7 +48,7 @@
     "**/*.tsx",
     "**/*.vue",
     "../../shell/types/vue-shim.d.ts"
-, "../../shell/components/MgmtNodeList.vue"  ],
+  ],
   "exclude": [
     "../../node_modules"
   ]
