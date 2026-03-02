@@ -173,4 +173,122 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       createProjectPage.bannerError(1).should('have.length', 0);
     });
   });
+
+  // Test for issue https://github.com/rancher/dashboard/issues/15336
+  // Filter in Project/Namespace is not working correctly if there are projects with the same name
+  describe('Filtering projects with same name in groupBy list view', () => {
+    const projectName = 'samename';
+    const projectIds: string[] = [];
+    const namespaceNames: string[] = [];
+
+    before(() => {
+      cy.login();
+
+      // Get current user and cluster info
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        const userId = resp.body.status.userID;
+        const clusterId = 'local';
+
+        // Create 3 projects with the same name using the API
+        // The API allows duplicate project names, even though the UI might not
+        for (let i = 0; i < 3; i++) {
+          cy.createProject(projectName, clusterId, userId).then((projectResp: Cypress.Response<any>) => {
+            const projectId = projectResp.body.id.trim();
+
+            projectIds.push(projectId);
+
+            // Create namespace in first two projects only
+            if (i < 2) {
+              const nsName = `test${ i + 1 }`;
+
+              namespaceNames.push(nsName);
+              cy.createNamespaceInProject(nsName, projectId);
+            }
+          });
+        }
+      });
+    });
+
+    beforeEach(() => {
+      cy.login();
+
+      // Set up intercepts for the data requests
+      cy.intercept('GET', '/v1/namespaces?*').as('getNamespaces');
+      cy.intercept('GET', '/v1/management.cattle.io.projects?*').as('getProjects');
+
+      projectsNamespacesPage.goTo();
+      projectsNamespacesPage.waitForPage();
+
+      // Wait for the resources to load
+      cy.wait('@getNamespaces', { timeout: 20000 });
+      cy.wait('@getProjects', { timeout: 20000 });
+    });
+
+    it('should show all projects with same name when filtering in Group by Project view', () => {
+      // Switch to Group by Project view
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
+        .click();
+
+      // Filter by the project name
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .filter(projectName);
+
+      // All 3 projects should be visible
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .groupElementsWithName(projectName)
+        .should('have.length', 3);
+
+      // The two namespaces should also be visible
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .rowElementWithName(namespaceNames[0])
+        .should('exist');
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .rowElementWithName(namespaceNames[1])
+        .should('exist');
+    });
+
+    it('should show projects without namespaces when filtering in Group by Project view', () => {
+      // Switch to Group by Project view
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
+        .click();
+
+      // Filter by the project name
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .filter(projectName);
+
+      // All 3 project groups should be visible (including the one without namespaces)
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .groupElementsWithName(projectName)
+        .should('have.length', 3);
+    });
+
+    it('should show projects with namespaces when filtering in flat list view', () => {
+      // Switch to flat list view
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
+        .click();
+
+      // Filter by the project name
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .filter(projectName);
+
+      // The two namespaces should be visible
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .rowElementWithName(namespaceNames[0])
+        .should('exist');
+      projectsNamespacesPage.list().resourceTable().sortableTable()
+        .rowElementWithName(namespaceNames[1])
+        .should('exist');
+    });
+
+    after(() => {
+      // Clean up: delete namespaces first, then projects
+      namespaceNames.forEach((nsName) => {
+        cy.deleteRancherResource('v1', 'namespaces', nsName, false);
+      });
+
+      projectIds.forEach((projectId) => {
+        cy.deleteRancherResource('v3', 'projects', projectId, false);
+      });
+    });
+  });
 });

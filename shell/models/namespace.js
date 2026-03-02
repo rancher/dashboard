@@ -134,6 +134,10 @@ export default class Namespace extends SteveModel {
     return project;
   }
 
+  get projectNameDisplay() {
+    return this.project?.nameDisplay || '';
+  }
+
   get groupById() {
     const projectId = this.project?.id;
 
