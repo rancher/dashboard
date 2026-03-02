@@ -22,7 +22,7 @@ export default {
 
   methods: {
     getNodeGroup(node) {
-      const poolName = node.status.nodeLabels['eks.amazonaws.com/nodegroup'] || '';
+      const poolName = node?.status?.nodeLabels?.['eks.amazonaws.com/nodegroup'] || '';
 
       const poolSpec = (this.resource?.mgmt?.spec?.eksConfig?.nodeGroups || []).find((pool) => pool.nodegroupName === poolName);
       const description = poolSpec ? `${ node?.status?.nodeLabels?.['topology.kubernetes.io/region'] } &ndash; ${ poolSpec?.instanceType }` : '';

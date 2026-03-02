@@ -126,7 +126,7 @@ export default class MgmtNode extends HybridModel {
     if (!internal.length) {
       // For RKE1 clusters in EC2, node addresses are
       // under status.rkeNode.address and status.rkeNode.internalAddress
-      if (this.status.rkeNode) {
+      if (this.status?.rkeNode) {
         return this.status.rkeNode.internalAddress ? [this.status.rkeNode.internalAddress] : [];
       }
 
@@ -144,7 +144,7 @@ export default class MgmtNode extends HybridModel {
     if (!external.length) {
       // For RKE1 clusters in EC2, node addresses are
       // under status.rkeNode.address and status.rkeNode.internalAddress
-      if (this.status.rkeNode) {
+      if (this.status?.rkeNode) {
         return this.status.rkeNode.address ? [this.status.rkeNode.address] : [];
       }
 
@@ -167,7 +167,7 @@ export default class MgmtNode extends HybridModel {
 
     // For RKE1 clusters in EC2, node addresses are
     // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!internal && this.status.rkeNode) {
+    if (!internal && this.status?.rkeNode) {
       return this.status.rkeNode.internalAddress;
     }
 
@@ -183,7 +183,7 @@ export default class MgmtNode extends HybridModel {
 
     // For RKE1 clusters in EC2, node addresses are
     // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!statusAddress && this.status.rkeNode) {
+    if (!statusAddress && this.status?.rkeNode) {
       return this.status.rkeNode.address;
     }
 

@@ -87,7 +87,7 @@ export default {
   computed: {
     nodes() {
       return this.mgmtNodes.filter((x) => x.mgmtClusterId === this.resource.mgmtClusterId).map((node) => {
-        const poolRef = this.getNodeGroup(node);
+        const poolRef = typeof this.getNodeGroup === 'function' ? this.getNodeGroup(node) : null;
 
         node.poolRef = poolRef;
 
@@ -106,7 +106,6 @@ export default {
     :rows="nodes"
     group-ref="poolRef"
     data-testid="mgmt-node-table"
-    :hide-grouping-controls="true"
     :group-options="[noneGroupOption, poolGroupOption]"
   >
     <template #main-row:isFake="{fullColspan}">
@@ -129,7 +128,7 @@ export default {
           v-trim-whitespace
           class="group-tab"
         >
-          {{ group.ref?.name }}
+          {{ group.ref?.name || t('resourceTable.groupLabel.notInANodePool') }}
           <div
             v-if="group.ref"
             v-clean-html="group.ref.description"
