@@ -187,19 +187,19 @@ export default {
       fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
     }
 
-    // if (!this.showMachines) {
-    //   if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-    //     fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-    //   }
+    if (!this.showMachines) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+        fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
 
-    //   if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-    //     fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-    //   }
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+        fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
 
-    //   if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-    //     fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-    //   }
-    // }
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+        fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+    }
 
     const fetchTwoRes = await allHash(fetchTwo);
 
