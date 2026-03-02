@@ -19,7 +19,7 @@ function getAbsolutePath(value: string): any {
 const sassLoader = {
     loader: 'sass-loader',
     options: {
-      additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss';`,
+      additionalData: `@use "sass:math"; @import '~/shell/assets/styles/app.scss';`,
       sassOptions: {
         importer: (url, prev, done) => {
           if (url.indexOf('~/') === 0) {
