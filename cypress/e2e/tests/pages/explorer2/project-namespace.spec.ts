@@ -148,6 +148,61 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         });
       });
 
+      it('sends only the last-written quota values when duplicate custom resource identifiers are posted', () => {
+        cy.get('@projectName').then((projectName) => {
+          projectsNamespacesPage.baseResourceList().masthead().create();
+          createProjectPage.resourceDetail().createEditView().nameNsDescription()
+            .name()
+            .set(projectName);
+          createProjectPage.tabResourceQuotas().click();
+
+          // Add first Custom resource row
+          createProjectPage.btnAddResource().click();
+          createProjectPage.selectResourceTypeByLabel('Custom', 0);
+          createProjectPage.inputCustomType(0).set('example.io/custom-resource');
+          createProjectPage.inputProjectLimit(0).set('5');
+          createProjectPage.inputNamespaceDefaultLimit(0).set('2');
+
+          // Add second Custom resource row with the same identifier
+          createProjectPage.btnAddResource().click();
+          createProjectPage.selectResourceTypeByLabel('Custom', 1);
+          createProjectPage.inputCustomType(1).set('example.io/custom-resource');
+          createProjectPage.inputProjectLimit(1).set('10');
+          createProjectPage.inputNamespaceDefaultLimit(1).set('4');
+
+          createProjectPage.resourceDetail().createEditView().create();
+
+          cy.wait('@createProjectRequest').then(({ request }) => {
+            // The duplicate identifier resolves to a single key; the last-written values win
+            expect(request.body.resourceQuota.limit.extended['example.io/custom-resource']).to.equal('10');
+            expect(request.body.namespaceDefaultResourceQuota.limit.extended['example.io/custom-resource']).to.equal('4');
+          });
+        });
+      });
+
+      it('sends a POST request without extended quota values when identifier is set but quota values are left empty', () => {
+        cy.get('@projectName').then((projectName) => {
+          projectsNamespacesPage.baseResourceList().masthead().create();
+          createProjectPage.resourceDetail().createEditView().nameNsDescription()
+            .name()
+            .set(projectName);
+          createProjectPage.tabResourceQuotas().click();
+
+          // Add a Custom resource row with only the identifier filled in; leave both limit fields empty
+          createProjectPage.btnAddResource().click();
+          createProjectPage.selectResourceTypeByLabel('Custom', 0);
+          createProjectPage.inputCustomType(0).set('example.io/custom-resource');
+
+          createProjectPage.resourceDetail().createEditView().create();
+
+          cy.wait('@createProjectRequest').then(({ request }) => {
+            // No limit values were entered so the extended object is absent from the request body
+            expect(request.body.resourceQuota.limit?.extended).to.equal(undefined);
+            expect(request.body.namespaceDefaultResourceQuota.limit?.extended).to.equal(undefined);
+          });
+        });
+      });
+
       afterEach(() => {
         cy.get<string>('@projectName').then((projectName) => {
           cy.deleteRancherResource('v3', 'projects', projectName, false);
