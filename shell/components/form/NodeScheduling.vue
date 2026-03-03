@@ -13,6 +13,8 @@ import { LabelSelectPaginationFunctionOptions } from '@shell/components/form/lab
 import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { KubeNode, KubeNodeTaint } from '@shell/types/resources/node';
 
+const parseNode = (node: string | KubeNode) => typeof node === 'string' ? node : node.id;
+
 export default {
   components: {
     RadioGroup,
@@ -63,21 +65,26 @@ export default {
 
     // Settings used by ResourceLabeledSelect when node pagination disabled
     const nodeSchedulingAllSettings: ResourceLabeledSelectSettings = {
-      updateResources(nodes: KubeNode[]) {
+      updateResources(nodes: (string | KubeNode)[]) {
         return nodes
           .filter((node) => {
+            if (typeof node === 'string') {
+              // Already passed check
+              return true;
+            }
+
             const taints = node.spec?.taints || [];
 
             return taints.every((taint: KubeNodeTaint) => !keys.includes(taint.key));
           })
-          .map((node) => node.id);
+          .map(parseNode);
       },
     };
 
     // Settings used by ResourceLabeledSelect when node pagination enabled
     const nodeSchedulingPaginationSettings: ResourceLabeledSelectPaginateSettings = {
-      updateResources(nodes) {
-        return nodes.map((node) => node.id);
+      updateResources(nodes: (string | KubeNode)[]) {
+        return nodes.map(parseNode);
       },
       requestSettings: (opts: LabelSelectPaginationFunctionOptions) => {
         const { filter } = opts.opts;
