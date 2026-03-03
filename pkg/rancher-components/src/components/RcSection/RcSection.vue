@@ -64,24 +64,24 @@ function toggle() {
       @keydown.enter="toggle"
       @keydown.space.prevent="toggle"
     >
-      <div class="lhs-wrapper">
+      <div class="left-wrapper">
         <RcIcon
           v-if="props.expandable"
           class="toggle-icon"
           :type="props.expanded ? 'chevron-down' : 'chevron-right'"
           size="medium"
         />
-        <slot name="errors" />
         <div class="title">
           <slot name="title">
             {{ props.title }}
           </slot>
         </div>
         <slot name="counter" />
+        <slot name="errors" />
       </div>
       <div
         v-if="$slots.badges || $slots.actions"
-        class="rhs-wrapper"
+        class="right-wrapper"
       >
         <div
           v-if="$slots.badges"
@@ -147,19 +147,14 @@ function toggle() {
   }
 }
 
-.lhs-wrapper {
+.left-wrapper {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 12px;
-
-  .expandable & {
-    gap: 8px;
-  }
 }
 
 .title {
-  font-family: var(--body-font, 'Lato', arial, helvetica, sans-serif);
   font-size: 18px;
   line-height: 1.2;
   color: var(--body-text, inherit);
@@ -169,7 +164,7 @@ function toggle() {
   flex-shrink: 0;
 }
 
-.rhs-wrapper {
+.right-wrapper {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;

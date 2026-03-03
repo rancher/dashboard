@@ -1,6 +1,48 @@
+import type { Status } from '@components/utils/status';
+import type { RcIconType } from '@components/RcIcon/types';
+import type { ButtonVariant } from '@components/RcButton/types';
+
 export type SectionType = 'primary' | 'secondary';
 
 export type SectionMode = 'with-header' | 'no-header';
+
+// ---------------------------------------------------------------------------
+// Badge helpers
+// ---------------------------------------------------------------------------
+
+export interface BadgeConfig {
+  /** Display text inside the badge. */
+  label: string;
+  /** Status colour of the badge. */
+  status: Status;
+}
+
+export interface RcSectionBadgesProps {
+  badges: BadgeConfig[];
+}
+
+// ---------------------------------------------------------------------------
+// Action helpers
+// ---------------------------------------------------------------------------
+
+export interface ActionConfig {
+  /** Identifier emitted when the action is clicked. */
+  key: string;
+  /** Button label. When omitted the button renders as icon-only (ghost). */
+  label?: string;
+  /** Icon shown on the button (left position for labeled, sole content for icon-only). */
+  icon?: RcIconType;
+  /** Override the default variant (secondary for labeled, ghost for icon-only). */
+  variant?: ButtonVariant;
+}
+
+export interface RcSectionActionsProps {
+  actions: ActionConfig[];
+}
+
+// ---------------------------------------------------------------------------
+// Section
+// ---------------------------------------------------------------------------
 
 export interface RcSectionProps {
   /**

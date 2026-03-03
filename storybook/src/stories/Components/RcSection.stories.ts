@@ -1,8 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { RcSection } from '@components/RcSection';
+import { RcSection, RcSectionBadges, RcSectionActions } from '@components/RcSection';
 import { SectionType, SectionMode } from '@components/RcSection/types';
-import { RcButton } from '@components/RcButton';
-import RcStatusBadge from '@components/Pill/RcStatusBadge';
 import RcCounterBadge from '@components/Pill/RcCounterBadge';
 import { RcIcon } from '@components/RcIcon';
 import { ref } from 'vue';
@@ -56,22 +54,49 @@ type Story = StoryObj<typeof RcSection>;
 
 export const Default: Story = {
   render: (args: any) => ({
-    components: { RcSection },
+    components: {
+      RcSection,
+      RcSectionBadges,
+      RcSectionActions,
+      RcCounterBadge,
+      RcIcon,
+    },
     setup() {
-      return { args };
+      const expanded = ref(true);
+
+      return { args, expanded };
     },
     template: `
-      <RcSection v-bind="args">
-        ${contentGroup('Content Group 1', 'First group content goes here.', true)}
-        ${contentGroup('Content Group 2', 'Second group content goes here.')}
-        ${contentGroup('Content Group 3', 'Third group content goes here.')}
+      <RcSection v-bind="args" v-model:expanded="expanded">
+        <template #counter>
+          <RcCounterBadge :count="99" type="inactive" />
+        </template>
+        <template #errors>
+          <RcIcon type="error" size="large" status="error" />
+        </template>
+        <template #badges>
+          <RcSectionBadges :badges="[
+            { label: 'Status', status: 'success' },
+            { label: 'Status', status: 'warning' },
+            { label: 'Status', status: 'error' },
+          ]" />
+        </template>
+        <template #actions>
+          <RcSectionActions :actions="[
+            { key: 'action', label: 'Action', icon: 'chevron-left' },
+            { key: 'copy', icon: 'copy' },
+            { key: 'more', icon: 'more' },
+          ]" />
+        </template>
+        ${contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true)}
+        ${contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content')}
       </RcSection>
     `,
   }),
   args: {
-    type:       'primary',
+    type:       'secondary',
     mode:       'with-header',
-    expandable: false,
+    expandable: true,
     title:      'Section title',
   },
 };
@@ -80,8 +105,8 @@ export const PrimaryFixed: Story = {
   render: () => ({
     components: {
       RcSection,
-      RcButton,
-      RcStatusBadge,
+      RcSectionBadges,
+      RcSectionActions,
       RcCounterBadge,
     },
     template: `
@@ -90,10 +115,10 @@ export const PrimaryFixed: Story = {
           <RcCounterBadge :count="5" type="active" />
         </template>
         <template #badges>
-          <RcStatusBadge status="success">Active</RcStatusBadge>
+          <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
         </template>
         <template #actions>
-          <RcButton variant="secondary" size="small">Edit</RcButton>
+          <RcSectionActions :actions="[{ key: 'edit', label: 'Edit' }]" />
         </template>
         ${contentGroup('Content Group 1', 'First group content goes here.', true)}
         ${contentGroup('Content Group 2', 'Second group content goes here.')}
@@ -110,8 +135,8 @@ export const SecondaryFixed: Story = {
   render: () => ({
     components: {
       RcSection,
-      RcButton,
-      RcStatusBadge,
+      RcSectionBadges,
+      RcSectionActions,
       RcCounterBadge,
     },
     template: `
@@ -121,10 +146,10 @@ export const SecondaryFixed: Story = {
             <RcCounterBadge :count="3" type="active" />
           </template>
           <template #badges>
-            <RcStatusBadge status="info">Pending</RcStatusBadge>
+            <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
           </template>
           <template #actions>
-            <RcButton variant="secondary" size="small">Configure</RcButton>
+            <RcSectionActions :actions="[{ key: 'configure', label: 'Configure' }]" />
           </template>
           ${contentGroup('Content Group 1', 'First group content goes here.', true)}
           ${contentGroup('Content Group 2', 'Second group content goes here.')}
@@ -142,8 +167,8 @@ export const Expandable: Story = {
   render: () => ({
     components: {
       RcSection,
-      RcButton,
-      RcStatusBadge,
+      RcSectionBadges,
+      RcSectionActions,
     },
     setup() {
       const expanded = ref(true);
@@ -159,10 +184,10 @@ export const Expandable: Story = {
         v-model:expanded="expanded"
       >
         <template #badges>
-          <RcStatusBadge status="success">Active</RcStatusBadge>
+          <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
         </template>
         <template #actions>
-          <RcButton variant="secondary" size="small">Edit</RcButton>
+          <RcSectionActions :actions="[{ key: 'edit', label: 'Edit' }]" />
         </template>
         ${contentGroup('Content Group 1', 'This content is visible when expanded.', true)}
         ${contentGroup('Content Group 2', 'Another content group.')}
@@ -177,7 +202,7 @@ export const Expandable: Story = {
 
 export const CollapsedByDefault: Story = {
   render: () => ({
-    components: { RcSection, RcStatusBadge },
+    components: { RcSection, RcSectionBadges },
     setup() {
       const expanded = ref(false);
 
@@ -192,7 +217,7 @@ export const CollapsedByDefault: Story = {
         v-model:expanded="expanded"
       >
         <template #badges>
-          <RcStatusBadge status="warning">Pending</RcStatusBadge>
+          <RcSectionBadges :badges="[{ label: 'Pending', status: 'warning' }]" />
         </template>
         ${contentGroup('Content Group 1', 'This content is hidden until expanded.', true)}
       </RcSection>
@@ -238,12 +263,64 @@ export const WithErrorsSlot: Story = {
   },
 };
 
+export const FullHeader: Story = {
+  render: () => ({
+    components: {
+      RcSection,
+      RcSectionBadges,
+      RcSectionActions,
+      RcCounterBadge,
+      RcIcon,
+    },
+    setup() {
+      const expanded = ref(true);
+
+      return { expanded };
+    },
+    template: `
+      <RcSection
+        title="Section title"
+        type="primary"
+        mode="with-header"
+        expandable
+        v-model:expanded="expanded"
+      >
+        <template #counter>
+          <RcCounterBadge :count="99" type="active" />
+        </template>
+        <template #errors>
+          <RcIcon type="error" size="small" status="error" />
+        </template>
+        <template #badges>
+          <RcSectionBadges :badges="[
+            { label: 'Status', status: 'success' },
+            { label: 'Status', status: 'warning' },
+            { label: 'Status', status: 'error' },
+          ]" />
+        </template>
+        <template #actions>
+          <RcSectionActions :actions="[
+            { key: 'action', label: 'Action', icon: 'chevron-left' },
+            { key: 'copy', icon: 'copy' },
+            { key: 'more', icon: 'more' },
+          ]" />
+        </template>
+        ${contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true)}
+      </RcSection>
+    `,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     { canvas: { sourceState: 'shown' } },
+  },
+};
+
 export const AllTypes: Story = {
   render: () => ({
     components: {
       RcSection,
-      RcButton,
-      RcStatusBadge,
+      RcSectionBadges,
+      RcSectionActions,
       RcCounterBadge,
     },
     setup() {
@@ -258,7 +335,7 @@ export const AllTypes: Story = {
           <h3 style="margin-bottom: 12px; color: #6C6F76;">Primary — Fixed</h3>
           <RcSection title="Primary fixed section" type="primary" mode="with-header" :expandable="false">
             <template #badges>
-              <RcStatusBadge status="success">Active</RcStatusBadge>
+              <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
             </template>
             ${contentGroup('Content Group 1', 'Content goes here.', true)}
           </RcSection>
@@ -277,7 +354,7 @@ export const AllTypes: Story = {
               <RcCounterBadge :count="12" type="active" />
             </template>
             <template #actions>
-              <RcButton variant="secondary" size="small">Edit</RcButton>
+              <RcSectionActions :actions="[{ key: 'edit', label: 'Edit' }]" />
             </template>
             ${contentGroup('Content Group 1', 'Expandable content goes here.', true)}
           </RcSection>
@@ -287,7 +364,7 @@ export const AllTypes: Story = {
           <h3 style="margin-bottom: 12px; color: #6C6F76;">Secondary — Fixed</h3>
           <RcSection title="Secondary fixed section" type="secondary" mode="with-header" :expandable="false">
             <template #badges>
-              <RcStatusBadge status="info">Pending</RcStatusBadge>
+              <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
             </template>
             ${contentGroup('Content Group 1', 'Content goes here.', true)}
           </RcSection>
@@ -303,7 +380,7 @@ export const AllTypes: Story = {
             v-model:expanded="secondaryExpanded"
           >
             <template #actions>
-              <RcButton variant="secondary" size="small">Configure</RcButton>
+              <RcSectionActions :actions="[{ key: 'configure', label: 'Configure' }]" />
             </template>
             ${contentGroup('Content Group 1', 'Expandable content goes here.', true)}
           </RcSection>
