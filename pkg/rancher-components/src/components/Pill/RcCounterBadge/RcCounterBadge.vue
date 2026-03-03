@@ -11,27 +11,27 @@ const displayCount = computed(() => props.count < 1000 ? props.count : '999+');
     :class="{[props.type]: true, disabled: props.disabled}"
     data-testid="rc-counter-badge"
   >
-    {{ displayCount }}
+    <span class="count">{{ displayCount }}</span>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .rc-counter-badge {
+    box-sizing: border-box;
+    height: 21px;
+    
     display: inline-flex;
-    padding: 1px 8px;
+    padding: 2px 8px;
     align-items: center;
-    gap: 8px;
 
     border-radius: 30px;
     border: 1px solid var(--rc-active-border);
 
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-family: Lato;
-    font-size: 13px;
+    font-size: 12px;
     font-style: normal;
     font-weight: 400;
-    line-height: 22px;
+    line-height: 17px;
     color: var(--body-text);
 
     &.active {
