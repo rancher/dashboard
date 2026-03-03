@@ -701,17 +701,17 @@ BODY, .theme-light {
   --rc-success: #{$green001};
   --rc-success-secondary: #{$green002};
 
-  --rc-warning: #{$yellow001};
-  --rc-warning-secondary: #{$yellow002};
+  --rc-warning: #{$yellow002};
+  --rc-warning-secondary: #{$yellow001};
 
   --rc-error: #{$red001};
   --rc-error-secondary: #{$red002};
 
-  --rc-unknown: #{$gray001};
-  --rc-unknown-secondary: #{$gray004};
+  --rc-unknown: #{$gray004};
+  --rc-unknown-secondary: #{$gray001};
 
-  --rc-none: #{$gray002};
-  --rc-none-secondary: #{$gray004};
+  --rc-none: #{$gray004};
+  --rc-none-secondary: #{$gray002};
 
   --rc-primary-hover: #{$blue003};
 
