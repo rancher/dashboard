@@ -241,7 +241,14 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    repoList.resourceTable().sortableTable().rowActionMenu().getMenuItem('View in API')
+      .should('exist');
 
     prefPage.goTo();
     prefPage.viewInApiCheckbox().checkVisible();
@@ -256,7 +263,14 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    repoList.resourceTable().sortableTable().rowActionMenu().getMenuItem('View in API')
+      .should('not.exist');
   });
 
   it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {

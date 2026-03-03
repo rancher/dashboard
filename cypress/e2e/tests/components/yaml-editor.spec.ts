@@ -6,12 +6,14 @@ describe('Yaml Editor', () => {
   const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
   const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
 
-  const { name, namespace } = deploymentCreateRequest.metadata;
+  let { name, namespace } = deploymentCreateRequest.metadata;
+
   const containerImage = 'nginx';
 
   beforeEach(() => {
     cy.login();
     cy.viewport(1280, 720);
+    name = `${ name }-${ +new Date() }`; // ensure unique name for each test run to reduce flakiness on retries
 
     // Create a new deployment resource
     deploymentsCreatePage.goTo();

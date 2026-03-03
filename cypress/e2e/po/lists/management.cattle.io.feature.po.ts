@@ -25,4 +25,8 @@ export default class MgmtFeatureFlagListPo extends BaseResourceList {
   getRowActionMenuItem(name: string, itemLabel:string) {
     return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem(itemLabel);
   }
+
+  getRowNoActionMenu(name: string) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(name, true).getMenuItem('No actions available');
+  }
 }

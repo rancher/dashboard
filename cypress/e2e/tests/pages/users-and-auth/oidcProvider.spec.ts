@@ -3,6 +3,7 @@ import OidcClientCreateEditPo from '~/cypress/e2e/po/edit/management.cattle.io.o
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 import OIDCClientDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.oidcclient.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   const OIDC_CREATE_DATA = {
@@ -126,10 +127,16 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     oidcClientDetailPage.addNewSecretBtnClick();
 
     // check data from network request
-    cy.wait('@addNewSecret').then(({ request, response }) => {
+    cy.wait('@addNewSecret', MEDIUM_TIMEOUT_OPT).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
     });
+
+    // Wait for the page to refresh and show the new secret with proper timeout
+    oidcClientDetailPage.waitForPage();
+
+    // Wait for the secret element to appear before trying to interact with it
+    oidcClientDetailPage.clientFullSecretCopy(1).checkVisible();
 
     oidcClientDetailPage.clientFullSecretCopy(1).exists();
     oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();

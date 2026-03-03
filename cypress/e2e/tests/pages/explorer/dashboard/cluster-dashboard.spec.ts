@@ -376,7 +376,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
-      cy.login();
+      cy.login(); // bypass cy.session
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
       cy.get<string>('@standardUserProject').then((projectId) => {

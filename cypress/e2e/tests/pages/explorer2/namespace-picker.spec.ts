@@ -20,9 +20,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
     ClusterDashboardPagePo.navTo();
 
-    // reset namespace picker to default state
+    // reset namespace picker to default state with proper wait
     namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.closeDropdown();
   });
@@ -31,7 +31,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
-    // group workloads by namespace
+    // group workloads by namespace - updateNamespaceFilter handles its own waiting internally
     cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
@@ -46,12 +46,24 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
       .click();
 
+    // Wait for the namespace picker to be ready before interacting with it
+    namespacePicker.namespaceDropdown().should('be.visible');
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
+    // Wait for dropdown to open and options to be populated
+    namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
     namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close completely before proceeding
+    namespacePicker.self().should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
+
+    // Wait for API call to complete and table to update after namespace filter change
+    cy.wait('@getPods');
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable()
       .groupElementWithName('cattle-fleet-system')
       .scrollIntoView()
@@ -60,6 +72,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     // clear selection: from dropdown controller
     namespacePicker.toggle();
+    // Wait for dropdown options to be available before interacting
+    namespacePicker.getOptions().should('be.visible');
     namespacePicker.selectedValues().find('i').trigger('click');
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
@@ -68,6 +82,13 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clickOptionByLabel('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close completely
+    namespacePicker.self().should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
+
+    // Wait for API call to complete and table to update after project filter change
+    cy.wait('@getPods');
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('kube-system')
       .scrollIntoView()
       .should('be.visible');
@@ -82,27 +103,27 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.toggle();
 
     // Select 'All Namespaces'
-    namespacePicker.clickOptionByLabel('All Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('All Namespaces');
     namespacePicker.isChecked('All Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only User Namespaces'
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only System Namespaces'
-    namespacePicker.clickOptionByLabel('Only System Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only System Namespaces');
     namespacePicker.isChecked('Only System Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Namespaced Resources'
-    namespacePicker.clickOptionByLabel('Only Namespaced Resources');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Namespaced Resources');
     namespacePicker.isChecked('Only Namespaced Resources');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Cluster Resources'
-    namespacePicker.clickOptionByLabel('Only Cluster Resources');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Cluster Resources');
     namespacePicker.isChecked('Only Cluster Resources');
     namespacePicker.checkIcon().should('have.length', 1);
   });
@@ -113,7 +134,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.toggle();
 
     // Select 'Project: Default'
-    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: Default');
     namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
@@ -123,7 +144,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 2);
 
     // Select 'Project: System'
-    namespacePicker.clickOptionByLabel('Project: System');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.checkIcon().should('have.length', 3);
 
