@@ -123,7 +123,7 @@ const rows = computed(() => {
       />
     </div>
     <div
-      v-else
+      v-else-if="props.noResourcesMessage"
       class="text-deemphasized"
     >
       {{ props.noResourcesMessage }}

@@ -334,6 +334,25 @@ describe('class: Workload', () => {
       expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
     });
 
+    it('should return null for non-scalable type with empty pods', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DAEMON_SET,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      const card = workload.podsCard;
+
+      expect(card).toBeNull();
+    });
+
     it('should return null when pods is undefined', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
