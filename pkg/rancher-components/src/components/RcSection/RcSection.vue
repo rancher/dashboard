@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<{
   expanded?: boolean;
   background: 'primary' | 'secondary';
   title?: string;
-}>(), { expanded: true });
+}>(), { expanded: true, title: '' });
 
 const emit = defineEmits<{ 'update:expanded': [value: boolean] }>();
 
@@ -42,9 +42,9 @@ const sectionClass = computed(() => ({
 }));
 
 const contentClass = computed(() => ({
-  'section-content':      true,
-  'no-header':            !hasHeader.value,
-  'expandable-content':   props.expandable,
+  'section-content':    true,
+  'no-header':          !hasHeader.value,
+  'expandable-content': props.expandable,
 }));
 
 function toggle() {

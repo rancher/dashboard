@@ -16,8 +16,8 @@ const contentGroup = (title: string, body: string, required = false) => {
 
   return `
   <div style="display: flex; flex-direction: column; gap: 16px;">
-    <p style="margin: 0; font-weight: ${titleWeight}; font-size: 14px; line-height: 1.4; text-align: center; color: ${titleColor};">${title}</p>
-    <p style="margin: 0; font-weight: 400; font-size: 14px; line-height: 1.4; text-align: center; color: #BEC1D2;">${body}</p>
+    <p style="margin: 0; font-weight: ${ titleWeight }; font-size: 14px; line-height: 1.4; text-align: center; color: ${ titleColor };">${ title }</p>
+    <p style="margin: 0; font-weight: 400; font-size: 14px; line-height: 1.4; text-align: center; color: #BEC1D2;">${ body }</p>
   </div>`;
 };
 
@@ -99,8 +99,8 @@ export const Default: Story = {
             { icon: 'trash', label:'Delete', action: () => {} },
           ]" />
         </template>
-        ${contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true)}
-        ${contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content')}
+        ${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
+        ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }
       </RcSection>
     `,
   }),
@@ -132,8 +132,8 @@ export const PrimaryFixed: Story = {
         <template #actions>
           <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
         </template>
-        ${contentGroup('Content Group 1', 'First group content goes here.', true)}
-        ${contentGroup('Content Group 2', 'Second group content goes here.')}
+        ${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+        ${ contentGroup('Content Group 2', 'Second group content goes here.') }
       </RcSection>
     `,
   }),
@@ -163,8 +163,8 @@ export const SecondaryFixed: Story = {
           <template #actions>
             <RcSectionActions :actions="[{ label: 'Configure', action: () => {} }]" />
           </template>
-          ${contentGroup('Content Group 1', 'First group content goes here.', true)}
-          ${contentGroup('Content Group 2', 'Second group content goes here.')}
+          ${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+          ${ contentGroup('Content Group 2', 'Second group content goes here.') }
         </RcSection>
       </div>
     `,
@@ -202,8 +202,8 @@ export const Expandable: Story = {
         <template #actions>
           <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
         </template>
-        ${contentGroup('Content Group 1', 'This content is visible when expanded.', true)}
-        ${contentGroup('Content Group 2', 'Another content group.')}
+        ${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
+        ${ contentGroup('Content Group 2', 'Another content group.') }
       </RcSection>
     `,
   }),
@@ -233,7 +233,7 @@ export const CollapsedByDefault: Story = {
         <template #badges>
           <RcSectionBadges :badges="[{ label: 'Pending', status: 'warning' }]" />
         </template>
-        ${contentGroup('Content Group 1', 'This content is hidden until expanded.', true)}
+        ${ contentGroup('Content Group 1', 'This content is hidden until expanded.', true) }
       </RcSection>
     `,
   }),
@@ -248,8 +248,8 @@ export const NoHeader: Story = {
     components: { RcSection },
     template:   `
       <RcSection type="primary" mode="no-header" background="primary" :expandable="false">
-        ${contentGroup('Content Group 1', 'No header, just content.', true)}
-        ${contentGroup('Content Group 2', 'Second group content goes here.')}
+        ${ contentGroup('Content Group 1', 'No header, just content.', true) }
+        ${ contentGroup('Content Group 2', 'Second group content goes here.') }
       </RcSection>
     `,
   }),
@@ -267,7 +267,7 @@ export const WithErrorsSlot: Story = {
         <template #errors>
           <RcIcon type="error" size="large" status="error" />
         </template>
-        ${contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true)}
+        ${ contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true) }
       </RcSection>
     `,
   }),
@@ -320,7 +320,7 @@ export const FullHeader: Story = {
             { icon: 'more', action: () => {} },
           ]" />
         </template>
-        ${contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true)}
+        ${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
       </RcSection>
     `,
   }),
@@ -352,7 +352,7 @@ export const AllTypes: Story = {
             <template #badges>
               <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
             </template>
-            ${contentGroup('Content Group 1', 'Content goes here.', true)}
+            ${ contentGroup('Content Group 1', 'Content goes here.', true) }
           </RcSection>
         </div>
 
@@ -372,7 +372,7 @@ export const AllTypes: Story = {
             <template #actions>
               <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
             </template>
-            ${contentGroup('Content Group 1', 'Expandable content goes here.', true)}
+            ${ contentGroup('Content Group 1', 'Expandable content goes here.', true) }
           </RcSection>
         </div>
 
@@ -382,7 +382,7 @@ export const AllTypes: Story = {
             <template #badges>
               <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
             </template>
-            ${contentGroup('Content Group 1', 'Content goes here.', true)}
+            ${ contentGroup('Content Group 1', 'Content goes here.', true) }
           </RcSection>
         </div>
 
@@ -399,14 +399,14 @@ export const AllTypes: Story = {
             <template #actions>
               <RcSectionActions :actions="[{ label: 'Configure', action: () => {} }]" />
             </template>
-            ${contentGroup('Content Group 1', 'Expandable content goes here.', true)}
+            ${ contentGroup('Content Group 1', 'Expandable content goes here.', true) }
           </RcSection>
         </div>
 
         <div>
           <h3 style="margin-bottom: 12px; color: #6C6F76;">No header</h3>
           <RcSection type="primary" mode="no-header" background="primary" :expandable="false">
-            ${contentGroup('Content Group 1', 'Content without a header.', true)}
+            ${ contentGroup('Content Group 1', 'Content without a header.', true) }
           </RcSection>
         </div>
       </div>

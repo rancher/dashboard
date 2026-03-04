@@ -12,13 +12,9 @@ const props = defineProps<{
   actions: ActionConfig[];
 }>();
 
-const primaryActions = computed(() =>
-  props.actions.length < 3 ? props.actions : props.actions.slice(0, 2)
-);
+const primaryActions = computed(() => (props.actions.length < 3 ? props.actions : props.actions.slice(0, 2)));
 
-const overflowActions = computed(() =>
-  props.actions.length < 3 ? [] : props.actions.slice(2)
-);
+const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.actions.slice(2)));
 
 function resolveVariant(action: typeof props.actions[number]) {
   return action.label ? 'link' : 'ghost';
@@ -35,12 +31,25 @@ function resolveVariant(action: typeof props.actions[number]) {
     :left-icon="action.icon as any"
     @click="action.action"
   >
-    <template v-if="action.label">{{ action.label }}</template>
+    <template v-if="action.label">
+      {{ action.label }}
+    </template>
   </RcButton>
 
-  <RcDropdown v-if="overflowActions.length" placement="bottom-end">
-    <RcDropdownTrigger class="icon-action" variant="ghost" size="small" aria-label="More actions">
-      <RcIcon type="actions" size="medium" />
+  <RcDropdown
+    v-if="overflowActions.length"
+    placement="bottom-end"
+  >
+    <RcDropdownTrigger
+      class="icon-action"
+      variant="ghost"
+      size="small"
+      aria-label="More actions"
+    >
+      <RcIcon
+        type="actions"
+        size="medium"
+      />
     </RcDropdownTrigger>
 
     <template #dropdownCollection>
@@ -49,8 +58,14 @@ function resolveVariant(action: typeof props.actions[number]) {
         :key="index"
         @click="action.action"
       >
-        <template v-if="action.icon" #before>
-          <RcIcon :type="action.icon as any" size="small" />
+        <template
+          v-if="action.icon"
+          #before
+        >
+          <RcIcon
+            :type="action.icon as any"
+            size="small"
+          />
         </template>
         {{ action.label }}
       </RcDropdownItem>

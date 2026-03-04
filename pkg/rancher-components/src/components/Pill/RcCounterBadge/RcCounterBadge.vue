@@ -19,7 +19,7 @@ const displayCount = computed(() => props.count < 1000 ? props.count : '999+');
 .rc-counter-badge {
     box-sizing: border-box;
     height: 21px;
-    
+
     display: inline-flex;
     padding: 2px 8px;
     align-items: center;

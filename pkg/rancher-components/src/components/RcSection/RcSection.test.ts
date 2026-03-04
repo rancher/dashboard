@@ -108,13 +108,21 @@ describe('component: RcSection', () => {
     });
 
     it('should set aria-expanded on header when expandable', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
 
       expect(wrapper.find('.section-header').attributes('aria-expanded')).toBe('true');
     });
 
     it('should emit update:expanded with false when clicking an expanded header', async() => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
 
       await wrapper.find('.section-header').trigger('click');
 
@@ -123,7 +131,11 @@ describe('component: RcSection', () => {
     });
 
     it('should emit update:expanded with true when clicking a collapsed header', async() => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: false } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
 
       await wrapper.find('.section-header').trigger('click');
 
@@ -140,7 +152,11 @@ describe('component: RcSection', () => {
     });
 
     it('should emit update:expanded on Enter keydown', async() => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
 
       await wrapper.find('.section-header').trigger('keydown.enter');
 
@@ -149,7 +165,11 @@ describe('component: RcSection', () => {
     });
 
     it('should emit update:expanded on Space keydown', async() => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
 
       await wrapper.find('.section-header').trigger('keydown.space');
 
@@ -185,19 +205,31 @@ describe('component: RcSection', () => {
     });
 
     it('should apply expandable-content class when expandable is true', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
 
       expect(wrapper.find('.section-content').classes()).toContain('expandable-content');
     });
 
     it('should not apply expandable-content class when expandable is false', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: false, expanded: true } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: false, expanded: true
+        }
+      });
 
       expect(wrapper.find('.section-content').classes()).not.toContain('expandable-content');
     });
 
     it('should add collapsed class to header when not expanded', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true, expanded: false } });
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
 
       expect(wrapper.find('.section-header').classes()).toContain('collapsed');
     });
