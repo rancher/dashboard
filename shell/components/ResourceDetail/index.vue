@@ -36,6 +36,8 @@ async function getYaml(store, model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
+  console.error('getYaml yaml:', yaml); // eslint-disable-line no-console
+
   return model.cleanForDownload(yaml);
 }
 
@@ -110,6 +112,13 @@ export default {
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
+    const management = store.getters[`management/all`](SCHEMA); // eslint-disable-line no-console
+    const managementSchema = management.find((s) => s.id === resourceType);
+
+    console.error('schemas in resource detail', schemas); // eslint-disable-line no-console
+    console.error('mgmt schemas in resource detail', management); // eslint-disable-line no-console
+    console.error('managementSchema', managementSchema); // eslint-disable-line no-console
+
     // As determines what component will be rendered
     const requested = route.query[AS];
     let as;
@@ -164,6 +173,11 @@ export default {
           await schema.fetchResourceFields();
         }
 
+        console.error('*** MODE createYaml MODE **** schemas:', schemas); // eslint-disable-line no-console
+        console.error('*** MODE createYaml MODE **** schema:', schema); // eslint-disable-line no-console
+        console.error('*** MODE createYaml MODE **** resourceType:', resourceType); // eslint-disable-line no-console
+        console.error('*** createYaml MODE **** data:', data); // eslint-disable-line no-console
+
         yaml = createYaml(schemas, resourceType, data);
       }
     } else {
@@ -203,6 +217,7 @@ export default {
         this.errors.push(e);
       }
       if ( as === _YAML ) {
+        console.error('I AM HERE!!', liveModel); // eslint-disable-line no-console
         try {
           yaml = await getYaml(this.$store, liveModel);
         } catch (e) {

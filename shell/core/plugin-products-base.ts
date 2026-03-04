@@ -2,7 +2,7 @@ import { IExtension } from '@shell/core/types';
 import {
   ProductChild, ProductMetadata,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
-  ProductChildCustomPage
+  ProductChildCustomPage, ProductChildSpoofedType
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
@@ -11,8 +11,10 @@ import {
   isProductChildWithComponent,
   isProductChildWithType,
   hasNameProperty,
-  hasTypeProperty
+  hasTypeProperty,
+  isProductChildSpoofed
 } from '@shell/core/plugin-products-type-guards';
+import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 
 /**
  * Base class for product registration in extensions
@@ -124,13 +126,19 @@ export abstract class BasePluginProduct {
         }
       }
     });
+
+    // debugger prods
+    DSLRegistrationsPerProduct(store, this.name);
+    registeredRoutes(store, this.name);
   }
 
   /**
-   * Handles product registration via DSL
+   * Handles product registration via DSL (we also define entry route for the product here based on the config of the product - ordering)
    */
   protected handleProductRegistration(): void {
-    const { basicType, product } = this.DSLMethods;
+    const {
+      basicType, product, mapGroup, ignoreGroup
+    } = this.DSLMethods;
 
     let defaultRoute;
     const names = this.getIDsForGroupsOrBasicTypes(this.name, this.config);
@@ -147,7 +155,9 @@ export abstract class BasePluginProduct {
 
           if (!firstConfig.component) {
             // Group without component - route to first child
-            if (isProductChildWithType(entryChild)) {
+            if (isProductChildSpoofed(entryChild)) {
+              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
+            } else if (isProductChildWithType(entryChild)) {
               defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
             } else if (isProductChildWithComponent(entryChild)) {
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
@@ -159,6 +169,9 @@ export abstract class BasePluginProduct {
             });
           }
         }
+      } else if (isProductChildSpoofed(firstConfig)) {
+        // Spoofed type route (fake resource page)
+        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
         defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
@@ -170,6 +183,18 @@ export abstract class BasePluginProduct {
       // this is the "to" route for a simple page product (no config items)
       defaultRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { omitPath: true });
       basicType(names);
+    }
+
+    if (this.product?.mapToGroup?.length) {
+      this.product.mapToGroup.forEach((mapping) => {
+        mapGroup(mapping.condition, mapping.group);
+      });
+    }
+
+    if (this.product?.ignoreGroups?.length) {
+      this.product.ignoreGroups.forEach((ignore) => {
+        ignoreGroup(ignore.groupId, ignore.fn);
+      });
     }
 
     // register the product via DSL
@@ -186,13 +211,47 @@ export abstract class BasePluginProduct {
   }
 
   /**
-   * Configure virtualType (custom page) or configureType (resource page) for a page item
+   * Configure spoofedType (fake resource page) / Configure virtualType (custom page) / configureType (resource page) for a page item
    */
   protected configurePageItem(parentName: string, item: ProductChild, groupNaming?: string): void {
-    const { configureType, virtualType, weightType } = this.DSLMethods;
+    const {
+      configureType, virtualType, weightType, spoofedType,
+      mapType, ignoreType, hideBulkActions
+    } = this.DSLMethods;
 
-    // Page with a "component" specified maps to a virtualType
-    if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
+    // Spoofed type page
+    if (isProductChildSpoofed(item)) {
+      const spoofedTypeConfig: ProductChildSpoofedType = { ...item };
+
+      // the "type" for the spoofed type is actually generated based on the name of the item
+      spoofedTypeConfig.type = item.name;
+
+      // entry route for the spoofed type page
+      spoofedTypeConfig.route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, spoofedTypeConfig, { extendProduct: !this.isNewProduct });
+
+      // generate schema for the spoofed type if not provided - this is required to have the type show up in the UI
+      if (!spoofedTypeConfig.schemas || spoofedTypeConfig.schemas.length === 0) {
+        spoofedTypeConfig.schemas = [pluginProductsHelpers.generateSchemaForSpoofedType({
+          type:              spoofedTypeConfig.name,
+          collectionMethods: spoofedTypeConfig.collectionMethods || ['GET'],
+          namespaced:        spoofedTypeConfig.namespaced || false,
+          resourceFields:    spoofedTypeConfig.resourceFields || {},
+          attributes:        spoofedTypeConfig.attributes || { namespaced: spoofedTypeConfig.namespaced || false },
+        })];
+      }
+
+      if (spoofedTypeConfig.overrideListResourceName) {
+        mapType(spoofedTypeConfig.type, spoofedTypeConfig.overrideListResourceName);
+      }
+
+      if (spoofedTypeConfig.hideBulkActions) {
+        hideBulkActions(spoofedTypeConfig.type, true);
+      }
+
+      spoofedType(spoofedTypeConfig);
+
+      // Page with a "component" specified maps to a virtualType
+    } else if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
       // Extract properties we need from the narrowed item
       const name = `${ parentName }-${ item.name }`;
       const finalName = groupNaming ? `${ parentName }-${ groupNaming }-${ item.name }` : name;
@@ -228,6 +287,18 @@ export abstract class BasePluginProduct {
         canYaml:     true,
         customRoute: route
       };
+
+      if (item.overrideListResourceName) {
+        mapType(item.type, item.overrideListResourceName);
+      }
+
+      if (item.hideFromMoreResourcesMenu) {
+        ignoreType(item.type);
+      }
+
+      if (item.hideBulkActions) {
+        hideBulkActions(item.type, true);
+      }
 
       configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
 
@@ -310,7 +381,9 @@ export abstract class BasePluginProduct {
         return null;
       }
 
-      if (typeof item === 'string') {
+      if (isProductChildSpoofed(item)) {
+        return item.name;
+      } else if (typeof item === 'string') {
         return item;
       } else if (hasNameProperty(item)) {
         return `${ parent }-${ item.name }`;
