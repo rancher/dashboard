@@ -23,6 +23,7 @@ const props = withDefaults(defineProps<{
   mode: 'with-header' | 'no-header';
   expandable: boolean;
   expanded?: boolean;
+  background: 'primary' | 'secondary';
   title?: string;
 }>(), { expanded: true });
 
@@ -36,6 +37,8 @@ const sectionClass = computed(() => ({
   'rc-section':     true,
   'type-primary':   props.type === 'primary',
   'type-secondary': props.type === 'secondary',
+  'bg-primary':     props.background === 'primary',
+  'bg-secondary':   props.background === 'secondary',
 }));
 
 const contentClass = computed(() => ({
@@ -127,6 +130,14 @@ function toggle() {
       font-weight: 600;
     }
   }
+
+  &.bg-primary {
+    background-color: var(--rc-section-background-primary);
+  }
+
+  &.bg-secondary {
+    background-color: var(--rc-section-background-secondary);
+  }
 }
 
 .section-header {
@@ -134,7 +145,7 @@ function toggle() {
   flex-direction: row;
   align-items: center;
   gap: 24px;
-  min-height: 36px;
+  height: 56px;
 
   &.expandable {
     cursor: pointer;
@@ -162,6 +173,7 @@ function toggle() {
 
 .toggle-icon {
   flex-shrink: 0;
+  color: var(--body-text, inherit);
 }
 
 .right-wrapper {

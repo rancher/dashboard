@@ -1,10 +1,11 @@
 import type { Status } from '@components/utils/status';
 import type { RcIconType } from '@components/RcIcon/types';
-import type { ButtonVariant } from '@components/RcButton/types';
 
 export type SectionType = 'primary' | 'secondary';
 
 export type SectionMode = 'with-header' | 'no-header';
+
+export type SectionBackground = 'primary' | 'secondary';
 
 // ---------------------------------------------------------------------------
 // Badge helpers
@@ -26,14 +27,12 @@ export interface RcSectionBadgesProps {
 // ---------------------------------------------------------------------------
 
 export interface ActionConfig {
-  /** Identifier emitted when the action is clicked. */
-  key: string;
   /** Button label. When omitted the button renders as icon-only (ghost). */
   label?: string;
   /** Icon shown on the button (left position for labeled, sole content for icon-only). */
   icon?: RcIconType;
-  /** Override the default variant (secondary for labeled, ghost for icon-only). */
-  variant?: ButtonVariant;
+  /** Callback invoked when the action is clicked. */
+  action: () => void;
 }
 
 export interface RcSectionActionsProps {
@@ -58,6 +57,13 @@ export interface RcSectionProps {
    * - 'no-header': hides the header entirely; content padding adjusts to 16px vertical.
    */
   mode: SectionMode;
+
+  /**
+   * Background color of the section.
+   * - 'primary'
+   * - 'secondary'
+   */
+  background: SectionBackground;
 
   /**
    * Whether the section can be expanded/collapsed via the header.

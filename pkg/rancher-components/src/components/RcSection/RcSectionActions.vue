@@ -6,16 +6,11 @@ import RcDropdownTrigger from '@components/RcDropdown/RcDropdownTrigger.vue';
 import RcDropdownItem from '@components/RcDropdown/RcDropdownItem.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-const props = defineProps<{
-  actions: {
-    key: string;
-    label?: string;
-    icon?: string;
-    variant?: 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
-  }[];
-}>();
+import type { ActionConfig } from './types';
 
-const emit = defineEmits<{ action: [key: string] }>();
+const props = defineProps<{
+  actions: ActionConfig[];
+}>();
 
 const primaryActions = computed(() =>
   props.actions.length < 3 ? props.actions : props.actions.slice(0, 2)
@@ -26,23 +21,19 @@ const overflowActions = computed(() =>
 );
 
 function resolveVariant(action: typeof props.actions[number]) {
-  if (action.variant) {
-    return action.variant;
-  }
-
   return action.label ? 'link' : 'ghost';
 }
 </script>
 
 <template>
   <RcButton
-    v-for="action in primaryActions"
-    :key="action.key"
+    v-for="(action, index) in primaryActions"
+    :key="index"
     :class="{ 'icon-action': !action.label }"
     :variant="resolveVariant(action)"
     size="large"
     :left-icon="action.icon as any"
-    @click="emit('action', action.key)"
+    @click="action.action"
   >
     <template v-if="action.label">{{ action.label }}</template>
   </RcButton>
@@ -54,14 +45,14 @@ function resolveVariant(action: typeof props.actions[number]) {
 
     <template #dropdownCollection>
       <RcDropdownItem
-        v-for="action in overflowActions"
-        :key="action.key"
-        @click="emit('action', action.key)"
+        v-for="(action, index) in overflowActions"
+        :key="index"
+        @click="action.action"
       >
         <template v-if="action.icon" #before>
           <RcIcon :type="action.icon as any" size="small" />
         </template>
-        {{ action.label || action.key }}
+        {{ action.label }}
       </RcDropdownItem>
     </template>
   </RcDropdown>
@@ -76,6 +67,8 @@ function resolveVariant(action: typeof props.actions[number]) {
 }
 
 button.rc-button {
-  color: var(--disabled-text);
+  &, &:hover {
+    color: var(--disabled-text);
+  }
 }
 </style>
