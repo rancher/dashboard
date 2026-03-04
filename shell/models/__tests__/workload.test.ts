@@ -274,6 +274,7 @@ describe('class: Workload', () => {
       expect(card).not.toBeNull();
       expect(card.props.title).toBe('component.resource.detail.card.podsCard.title');
       expect(card.props.showScaling).toBe(true);
+      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
     });
 
     it('should return card for DaemonSet type without scaling', () => {
@@ -312,7 +313,7 @@ describe('class: Workload', () => {
       expect(card).toBeNull();
     });
 
-    it('should return null when pods array is empty', () => {
+    it('should return card when pods array is empty (scaled to 0)', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
@@ -324,6 +325,27 @@ describe('class: Workload', () => {
       });
 
       Object.defineProperty(workload, 'pods', { get: () => [] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      const card = workload.podsCard;
+
+      expect(card).not.toBeNull();
+      expect(card.props.resources).toStrictEqual([]);
+      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+    });
+
+    it('should return null when pods is undefined', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => undefined });
 
       const card = workload.podsCard;
 

@@ -47,7 +47,7 @@ const displayCounts = computed(() => {
       </SubtleLink>
       <span
         v-else
-        class="text-muted"
+        class="text-deemphasized"
       >
         {{ label }}
       </span>
@@ -55,7 +55,7 @@ const displayCounts = computed(() => {
     <div class="right">
       <div
         v-if="!counts || counts.length == 0"
-        class="text-muted"
+        class="text-deemphasized"
       >
         0
       </div>

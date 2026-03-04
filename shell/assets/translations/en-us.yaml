@@ -9363,6 +9363,7 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+          noPods: There are no pods currently present.
         jobsCard:
           title: Jobs
           ariaResourceName: jobs
