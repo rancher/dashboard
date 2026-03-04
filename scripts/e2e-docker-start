@@ -6,20 +6,40 @@ DIR=$(cd $(dirname $0)/..; pwd)
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
-# Image version
-RANCHER_IMG_VERSION=head
+# Container image
+RANCHER_IMG_TAG=head
+RANCHER_IMG_REGISTRY=
+RANCHER_IMG_NAMESPACE=rancher
+RANCHER_IMG_NAME=rancher
+RANCHER_IMG=${RANCHER_IMG_NAMESPACE}/${RANCHER_IMG_NAME}:${RANCHER_IMG_TAG}
 
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
 
-# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
-  RANCHER_IMG_VERSION=$1
+  RANCHER_IMG_TAG=$1
   # When an image is specified, we use that image, including its front-end, so we don't want the volume args to mount the locally-built UI
   VOLUME_ARGS=""
 fi
 
-echo "Using Rancher image version: ${RANCHER_IMG_VERSION}"
+# Target branch of PR
+BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+
+if [ -n "$BRANCH_DATA" ]; then
+  REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
+  RANCHER_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].namespace')
+  RANCHER_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].name')
+  RANCHER_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].tag')
+
+  if [ -n "$REGISTRY" ]; then
+    RANCHER_IMG_REGISTRY="${REGISTRY}/"
+  fi
+
+  RANCHER_IMG=${RANCHER_IMG_REGISTRY}${RANCHER_IMG_NAMESPACE}/${RANCHER_IMG_NAME}:${RANCHER_IMG_TAG}
+fi
+
+echo "Using Rancher image: ${RANCHER_IMG}"
 
 # Configure the Rancher server URL from start, similarly to how chart installations work
 # The special host.docker.internal domain only works for Docker Desktop, not plain Docker Engine on linux, so using the special IP 172.17.0.1 to access the gateway of the default bridge network
@@ -37,7 +57,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION} \
+  $RANCHER_IMG \
   --features=oidc-provider=true
 
 docker ps

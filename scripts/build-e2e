@@ -4,7 +4,7 @@ set -x
 
 # Builds a production version of dashboard directly in the dist folder with the
 # base configured to be /dashboard so that this can be mapped or copied into a docker container
-# deploymet of Rancher
+# deployment of Rancher
 
 # This is currently used by the e2e tests to build a version of dashboard and map this into
 # the docker container to avoid having to run a separate node process to serve up the dashboard static assets
@@ -45,4 +45,18 @@ OUTPUT_EMBER_DIR="${E2E_BUILD_DIST_EMBER_DIR:-dist_ember}"
 
 echo "Pulling latest rancher/ui"
 mkdir $OUTPUT_EMBER_DIR
-curl https://releases.rancher.com/ui/latest2/index.html -k -o $OUTPUT_EMBER_DIR/index.html
+
+EMBER_URL=https://releases.rancher.com/ui/latest2/index.html
+
+# Target branch of PR
+BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+
+if [ -n "$BRANCH_DATA" ]; then
+    UI_INDEX=$(echo "$BRANCH_DATA" | jq -r '.["rancher-rancher-repo"]."ui-index"')
+
+    if [[ -n "$UI_INDEX" ]]; then
+        EMBER_URL=$UI_INDEX
+    fi
+fi
+
+curl $EMBER_URL -k -o $OUTPUT_EMBER_DIR/index.html

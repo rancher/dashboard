@@ -13,12 +13,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "main": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
-            "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
-          } 
-        }
+        "branch": "main",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
+        "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
       }
     },
     "release-2.13": {
@@ -35,12 +32,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.13": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.13/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.13/index.html"
-          } 
-        }
+        "branch": "release/v2.13",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.13/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.13/index.html"
       }
     },
     "release-2.12": {
@@ -57,12 +51,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.12": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
-          } 
-        }
+        "branch": "release/v2.12",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
       }
     },
     "release-2.11": {
@@ -79,12 +70,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.12": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
-          } 
-        }
+        "branch": "release/v2.11",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
       }
     }
   }
