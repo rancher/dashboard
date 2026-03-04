@@ -27,119 +27,75 @@ const defaultMountOptions = {
 };
 
 describe('component: ManagementCattleIoProject', () => {
-  it('should remove a standard resource quota correctly', async() => {
-    const value = {
-      spec: {
-        resourceQuota:                 { limit: { limitsCpu: '100m', limitsMemory: '1Gi' } },
-        namespaceDefaultResourceQuota: { limit: { limitsCpu: '50m', limitsMemory: '500Mi' } }
-      },
-      metadata:     { namespace: 'test-ns', annotations: {} },
-      save:         jest.fn(),
-      listLocation: { name: 'list' }
-    };
-
-    const wrapper = shallowMount(
-      ManagementCattleIoProject,
-      {
-        ...defaultMountOptions,
-        props: {
-          ...defaultMountOptions.props,
-          value,
+  describe('onQuotasInput', () => {
+    it('should update resourceQuota limit while preserving other resourceQuota fields', () => {
+      const value = {
+        spec: {
+          resourceQuota:                 { limit: { limitsCpu: '100m' }, usedLimit: { limitsCpu: '50m' } },
+          namespaceDefaultResourceQuota: { limit: { limitsCpu: '50m' } }
         },
-      }
-    );
+        metadata:     { namespace: 'test-ns', annotations: {} },
+        save:         jest.fn(),
+        listLocation: { name: 'list' }
+      };
 
-    wrapper.vm.removeQuota('limitsCpu');
-
-    expect(wrapper.vm.value.spec.resourceQuota.limit.limitsCpu).toBeUndefined();
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.limitsCpu).toBeUndefined();
-    expect(wrapper.vm.value.spec.resourceQuota.limit.limitsMemory).toBe('1Gi'); // Ensure other quotas are not affected
-  });
-
-  it('should remove a custom resource quota with single period in name correctly', async() => {
-    const value = {
-      spec: {
-        resourceQuota:                 { limit: { extended: { test2: '1' } } },
-        namespaceDefaultResourceQuota: { limit: { extended: { test2: '2' } } }
-      },
-      metadata:     { namespace: 'test-ns', annotations: {} },
-      save:         jest.fn(),
-      listLocation: { name: 'list' }
-    };
-
-    const wrapper = shallowMount(
-      ManagementCattleIoProject,
-      {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
         ...defaultMountOptions,
-        props: {
-          ...defaultMountOptions.props,
-          value,
+        props: { ...defaultMountOptions.props, value },
+      });
+
+      wrapper.vm.onQuotasInput({ projectLimit: { limitsCpu: '200m' }, nsLimit: { limitsCpu: '100m' } });
+
+      expect(wrapper.vm.value.spec.resourceQuota.limit).toStrictEqual({ limitsCpu: '200m' });
+      expect(wrapper.vm.value.spec.resourceQuota.usedLimit).toStrictEqual({ limitsCpu: '50m' });
+    });
+
+    it('should update namespaceDefaultResourceQuota limit while preserving other namespaceDefaultResourceQuota fields', () => {
+      const value = {
+        spec: {
+          resourceQuota:                 { limit: { limitsCpu: '100m' } },
+          namespaceDefaultResourceQuota: { limit: { limitsCpu: '50m' }, extraField: 'preserved' }
         },
-      }
-    );
+        metadata:     { namespace: 'test-ns', annotations: {} },
+        save:         jest.fn(),
+        listLocation: { name: 'list' }
+      };
 
-    wrapper.vm.removeQuota(`extended.test2`);
-
-    expect(wrapper.vm.value.spec.resourceQuota.limit.extended).toBeUndefined();
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended).toBeUndefined();
-  });
-
-  it('should remove a custom resource quota with multiple periods in name correctly', async() => {
-    const value = {
-      spec: {
-        resourceQuota:                 { limit: { extended: { 'requests.nvidia.com/gpu': '4' } } },
-        namespaceDefaultResourceQuota: { limit: { extended: { 'requests.nvidia.com/gpu': '2' } } }
-      },
-      metadata:     { namespace: 'test-ns', annotations: {} },
-      save:         jest.fn(),
-      listLocation: { name: 'list' }
-    };
-
-    const wrapper = shallowMount(
-      ManagementCattleIoProject,
-      {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
         ...defaultMountOptions,
-        props: {
-          ...defaultMountOptions.props,
-          value,
+        props: { ...defaultMountOptions.props, value },
+      });
+
+      wrapper.vm.onQuotasInput({ projectLimit: { limitsCpu: '200m' }, nsLimit: { limitsCpu: '100m' } });
+
+      expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit).toStrictEqual({ limitsCpu: '100m' });
+      expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.extraField).toStrictEqual('preserved');
+    });
+
+    it('should set both resourceQuota and namespaceDefaultResourceQuota limits from input', () => {
+      const value = {
+        spec: {
+          resourceQuota:                 { limit: {} },
+          namespaceDefaultResourceQuota: { limit: {} }
         },
-      }
-    );
+        metadata:     { namespace: 'test-ns', annotations: {} },
+        save:         jest.fn(),
+        listLocation: { name: 'list' }
+      };
 
-    wrapper.vm.removeQuota(`extended.requests.nvidia.com/gpu`);
-
-    expect(wrapper.vm.value.spec.resourceQuota.limit.extended).toBeUndefined();
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended).toBeUndefined();
-  });
-
-  it('should remove one of multiple custom resource quotas correctly', async() => {
-    const value = {
-      spec: {
-        resourceQuota:                 { limit: { extended: { test1: '1', test2: '2' } } },
-        namespaceDefaultResourceQuota: { limit: { extended: { test1: '3', test2: '4' } } }
-      },
-      metadata:     { namespace: 'test-ns', annotations: {} },
-      save:         jest.fn(),
-      listLocation: { name: 'list' }
-    };
-
-    const wrapper = shallowMount(
-      ManagementCattleIoProject,
-      {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
         ...defaultMountOptions,
-        props: {
-          ...defaultMountOptions.props,
-          value,
-        },
-      }
-    );
+        props: { ...defaultMountOptions.props, value },
+      });
 
-    wrapper.vm.removeQuota('extended.test1');
+      wrapper.vm.onQuotasInput({
+        projectLimit: { limitsCpu: '500m', limitsMemory: '2Gi' },
+        nsLimit:      { limitsCpu: '250m', limitsMemory: '1Gi' },
+      });
 
-    expect(wrapper.vm.value.spec.resourceQuota.limit.extended.test1).toBeUndefined();
-    expect(wrapper.vm.value.spec.resourceQuota.limit.extended.test2).toBe('2');
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended.test1).toBeUndefined();
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended.test2).toBe('4');
+      expect(wrapper.vm.value.spec.resourceQuota.limit).toStrictEqual({ limitsCpu: '500m', limitsMemory: '2Gi' });
+      expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit).toStrictEqual({ limitsCpu: '250m', limitsMemory: '1Gi' });
+    });
   });
 
   it('should update isQuotasValid when validateQuotas is called', () => {
@@ -160,33 +116,5 @@ describe('component: ManagementCattleIoProject', () => {
     const cruResource = wrapper.findComponent(CruResource);
 
     expect(cruResource.props('validationPassed')).toStrictEqual(false);
-  });
-
-  it('should remove an extended resource quota correctly with fixed startsWith', async() => {
-    const value = {
-      spec: {
-        resourceQuota:                 { limit: { extended: { test2: '1' } } },
-        namespaceDefaultResourceQuota: { limit: { extended: { test2: '2' } } }
-      },
-      metadata:     { namespace: 'test-ns', annotations: {} },
-      save:         jest.fn(),
-      listLocation: { name: 'list' }
-    };
-
-    const wrapper = shallowMount(
-      ManagementCattleIoProject,
-      {
-        ...defaultMountOptions,
-        props: {
-          ...defaultMountOptions.props,
-          value,
-        },
-      }
-    );
-
-    wrapper.vm.removeQuota('extended.test2');
-
-    expect(wrapper.vm.value.spec.resourceQuota.limit.extended).toBeUndefined();
-    expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended).toBeUndefined();
   });
 });

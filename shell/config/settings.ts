@@ -186,6 +186,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
+  // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
   [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },

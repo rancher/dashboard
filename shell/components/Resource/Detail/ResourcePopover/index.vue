@@ -58,6 +58,7 @@ const actionInvoked = () => {
 
 <template>
   <PopoverCard
+    v-if="!fetch.error"
     class="resource-popover"
     :card-title="nameDisplay"
     fallback-focus="[data-testid='resource-popover-action-menu']"
@@ -104,6 +105,7 @@ const actionInvoked = () => {
       />
     </template>
   </PopoverCard>
+  <span v-else>{{ props.id }}</span>
 </template>
 
 <style lang="scss" scoped>

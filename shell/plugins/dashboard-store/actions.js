@@ -554,7 +554,6 @@ export default {
    */
   async findLabelSelector(ctx, {
     type,
-    context,
     matching: {
       namespace,
       labelSelector
@@ -562,14 +561,10 @@ export default {
     opt
   }) {
     const { getters, dispatch } = ctx;
-    const args = {
-      id: type,
-      context,
-    };
 
     opt = opt || {};
 
-    if (getters[`paginationEnabled`]?.(args)) {
+    if (getters[`paginationEnabled`]?.()) {
       if (isLabelSelectorEmpty(labelSelector)) {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
       }

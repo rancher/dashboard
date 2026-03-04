@@ -288,7 +288,7 @@ export default {
             :colspan="fullColspan - (tableActions ? 1: 0)"
           >
             <div
-              class="text-error"
+              class="text-warning"
               :class="{'mt-5': !!row.stateDescription.trim()}"
             >
               <i class="icon icon-warning" />{{ t('cluster.capi.notSupported') }}

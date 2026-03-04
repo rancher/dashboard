@@ -163,6 +163,7 @@ export default {
     />
 
     <Banner
+      v-if="setting.agent"
       color="info"
       :label="t('advancedSettings.edit.agentConfigBanner.text', { agent: t('advancedSettings.edit.agentConfigBanner.' + setting.agent) })"
       data-testid="setting-agent-config-banner"

@@ -1,15 +1,21 @@
-<script>
+<script lang="ts">
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
-import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
+import {
+  MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES, AUTH_TYPE,
+  CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CLUSTER_REPO_AUTH_GENERATE_NAME
+} from '@shell/config/types';
 import UnitInput from '@shell/components/form/UnitInput.vue';
+import { getVersionData } from '@shell/config/version';
+import { RcItemCard } from '@components/RcItemCard';
+import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params';
+import { RcIconType } from '@components/RcIcon/types';
 
 export default {
   name: 'CruCatalogRepo',
@@ -18,28 +24,86 @@ export default {
 
   components: {
     Footer,
-    RadioGroup,
     LabeledInput,
     NameNsDescription,
     Labels,
     SelectOrCreateAuthSecret,
     Banner,
     Checkbox,
-    UnitInput
+    UnitInput,
+    RcItemCard,
   },
 
   mixins: [CreateEditView],
 
   data() {
-    const clusterRepoType = !!this.value.spec.gitRepo ? CLUSTER_REPO_TYPES.GIT_REPO : this.value.isOciType ? CLUSTER_REPO_TYPES.OCI_URL : CLUSTER_REPO_TYPES.HELM_URL;
+    // Determine the cluster repo type based on existing values (for edit mode)
+    let clusterRepoType = '';
+
+    if (!!this.value.spec.gitRepo) {
+      clusterRepoType = CLUSTER_REPO_TYPES.GIT_REPO;
+    } else if (this.value.isOciType) {
+      clusterRepoType = this.value?.isSuseAppCollectionFromUI ? CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION : CLUSTER_REPO_TYPES.OCI_URL;
+    } else {
+      clusterRepoType = CLUSTER_REPO_TYPES.HELM_URL;
+    }
+
+    const clusterRepoTargets = [
+      {
+        id:      CLUSTER_REPO_TYPES.HELM_URL,
+        header:  { title: { key: 'catalog.repo.target.http.title' } },
+        image:   { icon: 'helm' as RcIconType, alt: { key: 'catalog.repo.target.http.title' } },
+        content: { key: 'catalog.repo.target.http.description' },
+      },
+      {
+        id:      CLUSTER_REPO_TYPES.GIT_REPO,
+        header:  { title: { key: 'catalog.repo.target.git.title' } },
+        image:   { icon: 'git' as RcIconType, alt: { key: 'catalog.repo.target.git.title' } },
+        content: { key: 'catalog.repo.target.git.description' },
+      },
+      {
+        id:      CLUSTER_REPO_TYPES.OCI_URL,
+        header:  { title: { key: 'catalog.repo.target.oci.title' } },
+        image:   { src: require('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
+        content: { key: 'catalog.repo.target.oci.description' },
+      },
+    ];
+
+    // Only show SUSE App Collection option for RancherPrime
+    if (getVersionData()?.RancherPrime === 'true') {
+      clusterRepoTargets.push({
+        id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
+        header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
+        image:   { src: require('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
+        content: { key: 'catalog.repo.target.suseAppCollection.description' },
+      });
+    }
 
     return {
       CLUSTER_REPO_TYPES,
+      AUTH_TYPE,
+      CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
+      CLUSTER_REPO_AUTH_GENERATE_NAME,
       clusterRepoType,
-      ociMinWait:    this.value.spec.exponentialBackOffValues?.minWait,
-      ociMaxWait:    this.value.spec.exponentialBackOffValues?.maxWait,
-      ociMaxRetries: this.value.spec.exponentialBackOffValues?.maxRetries
+      ociMinWait:          this.value.spec.exponentialBackOffValues?.minWait,
+      ociMaxWait:          this.value.spec.exponentialBackOffValues?.maxWait,
+      ociMaxRetries:       this.value.spec.exponentialBackOffValues?.maxRetries,
+      getVersionData,
+      isView:              this.mode === _VIEW,
+      clusterRepoTargets,
+      previousName:        '',
+      previousDescription: '',
     };
+  },
+
+  created() {
+    // When creating a new repo with a target query parameter, initialize the form properly
+    const targetFromQuery = this.mode === _CREATE ? this.$route.query[TARGET] : null;
+
+    if (targetFromQuery && Object.values(CLUSTER_REPO_TYPES).includes(targetFromQuery)) {
+      // Trigger onTargetChange to properly initialize form fields for the selected target
+      this.onTargetChange(targetFromQuery);
+    }
   },
 
   computed: {
@@ -62,20 +126,33 @@ export default {
   methods: {
     onTargetChange(clusterRepoType) {
       // reset input fields when switching options
+      const oldClusterRepoType = this.clusterRepoType;
+
+      this.clusterRepoType = clusterRepoType;
       switch (clusterRepoType) {
       case CLUSTER_REPO_TYPES.GIT_REPO:
         this.resetOciValues();
         this.resetHelmValues();
+        this.resetNameAndDescription(oldClusterRepoType, this.clusterRepoType);
         break;
       case CLUSTER_REPO_TYPES.OCI_URL:
         // set insecurePlainHttp to false as a secondary flag, alongside checking for 'oci://' in the URL, to determine OCI type later
         this.value.spec['insecurePlainHttp'] = false;
         this.resetGitRepoValues();
         this.resetHelmValues();
+        this.resetNameAndDescription(oldClusterRepoType, this.clusterRepoType);
         break;
       case CLUSTER_REPO_TYPES.HELM_URL:
         this.resetOciValues();
         this.resetGitRepoValues();
+        this.resetNameAndDescription(oldClusterRepoType, this.clusterRepoType);
+        break;
+      case CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION:
+        this.resetOciValues();
+        this.resetGitRepoValues();
+        this.resetHelmValues();
+        this.value.spec['url'] = 'oci://dp.apps.rancher.io/charts';
+        this.resetNameAndDescription(oldClusterRepoType, this.clusterRepoType);
         break;
       }
       this.resetClientSecret();
@@ -124,6 +201,25 @@ export default {
     },
     resetClientSecret() {
       this.value.spec['clientSecret'] = null;
+    },
+    resetNameAndDescription(old, neu) {
+      if (this.mode === _EDIT) {
+        return;
+      }
+
+      if (!this.value?.metadata?.annotations) {
+        this.value.metadata.annotations = {};
+      }
+
+      if (neu === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION) {
+        this.previousName = this.value.metadata.name || '';
+        this.previousDescription = this.value.metadata.annotations?.['field.cattle.io/description'] || '';
+        this.value.metadata['name'] = CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION;
+        this.value.metadata.annotations['field.cattle.io/description'] = this.t('catalog.repo.target.suseAppCollection.description');
+      } else if (old === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION) {
+        this.value.metadata['name'] = this.previousName;
+        this.value.metadata.annotations['field.cattle.io/description'] = this.previousDescription;
+      }
     }
   },
 };
@@ -131,27 +227,32 @@ export default {
 
 <template>
   <form>
+    <h2>{{ t('catalog.repo.target.label') }}</h2>
+    <div class="row mb-10">
+      <div class="col span-12 target-groups">
+        <RcItemCard
+          v-for="card in clusterRepoTargets"
+          :id="card.id"
+          :key="card.id"
+          :header="card.header"
+          :image="card.image"
+          :content="card.content"
+          :selected="clusterRepoType === card.id"
+          :clickable="true"
+          :disabled="isView"
+          variant="small"
+          @card-click="onTargetChange(card.id)"
+        />
+      </div>
+    </div>
+
     <NameNsDescription
+      :key="clusterRepoType"
       :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
       @update:value="$emit('input', $event)"
     />
-
-    <h2>{{ t('catalog.repo.target.label') }}</h2>
-    <div class="row mb-10">
-      <div class="col span-8">
-        <RadioGroup
-          v-model:value="clusterRepoType"
-          :name="clusterRepoType"
-          :options="[CLUSTER_REPO_TYPES.HELM_URL, CLUSTER_REPO_TYPES.GIT_REPO, CLUSTER_REPO_TYPES.OCI_URL]"
-          :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git'), t('catalog.repo.target.oci', null, true)]"
-          :mode="mode"
-          data-testid="clusterrepo-radio-input"
-          @update:value="onTargetChange"
-        />
-      </div>
-    </div>
 
     <template v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
       <Banner
@@ -201,6 +302,20 @@ export default {
         </div>
       </template>
 
+      <template v-else-if="clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION">
+        <div class="col span-6">
+          <LabeledInput
+            v-model:value.trim="value.spec.url"
+            :required="true"
+            :label="t('catalog.repo.oci.urlLabel')"
+            :placeholder="t('catalog.repo.oci.placeholder', null, true)"
+            :mode="mode"
+            data-testid="clusterrepo-oci-url-input"
+            :disabled="true"
+          />
+        </div>
+      </template>
+
       <div
         v-else
         class="col span-6"
@@ -240,8 +355,12 @@ export default {
       :limit-to-namespace="false"
       :in-store="inStore"
       :allow-ssh="clusterRepoType !== CLUSTER_REPO_TYPES.OCI_URL"
-      generate-name="clusterrepo-auth-"
+      :pre-select="clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION ? { selected: AUTH_TYPE._BASIC } : null"
+      :allow-none="clusterRepoType !== CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION"
+      :generate-name="clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION ? CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME : CLUSTER_REPO_AUTH_GENERATE_NAME"
       :cache-secrets="true"
+      :fixed-http-basic-auth="clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION"
+      :filter-basic-auth="CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME"
     />
 
     <div v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
@@ -334,3 +453,14 @@ export default {
     />
   </form>
 </template>
+
+<style lang="css" scoped>
+.target-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: var(--gap-md);
+  width: 100%;
+  height: max-content;
+  overflow: hidden;
+}
+</style>

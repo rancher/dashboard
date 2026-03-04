@@ -19,7 +19,7 @@
       }
     },
     "release-2.13": {
-      "milestone": "v2.13.3",
+      "milestone": "v2.13.4",
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",
@@ -38,7 +38,7 @@
       }
     },
     "release-2.12": {
-      "milestone": "v2.12.7",
+      "milestone": "v2.12.8",
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",
@@ -57,7 +57,7 @@
       }
     },
     "release-2.11": {
-      "milestone": "v2.11.11",
+      "milestone": "v2.11.12",
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",

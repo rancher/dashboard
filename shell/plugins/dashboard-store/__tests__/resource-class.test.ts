@@ -428,6 +428,33 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('getter: _glance', () => {
+    it('should not throw when currentCluster or currentProduct is undefined', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: { creationTimestamp: '2024-01-01T00:00:00Z' }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':            (key: string) => key,
+          currentCluster:      undefined,
+          currentProduct:      undefined,
+          'type-map/labelFor': () => 'Test',
+        },
+      });
+
+      expect(() => resource._glance).not.toThrow();
+
+      const glance = resource._glance;
+      const namespaceItem = glance.find((item: any) => item.name === 'namespace');
+
+      expect(namespaceItem.formatter).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.cluster).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.product).toBeUndefined();
+    });
+  });
+
   describe('getter: detailPageAdditionalActions', () => {
     it('should return undefined by default', () => {
       const resource = new Resource({ type: 'test-type' }, {

@@ -550,23 +550,6 @@ export default class Secret extends SteveModel {
     return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
   }
 
-  get clusterAndProjectLabel() {
-    if (!this.isProjectScoped) {
-      return '';
-    }
-    const clusterName = this.projectCluster?.nameDisplay;
-    // project is going to be empty if upstream and trying to show pss from downstream clusters
-    // we only ever have the current clusters projects. if we change this (fetch them in the list)
-    // we wipe out the header ns filter projects
-    const projectName = this.project?.nameDisplay || this.projectScopedProjectId;
-
-    if (clusterName && projectName) {
-      return `${ projectName } (${ clusterName })`;
-    }
-
-    return '';
-  }
-
   get detailLocation() {
     if (this.isProjectScoped) {
       const id = this.id?.replace(/.*\//, '');

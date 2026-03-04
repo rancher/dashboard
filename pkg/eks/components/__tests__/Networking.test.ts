@@ -311,4 +311,38 @@ describe('eKS Networking', () => {
 
     expect(ipFamilyRadio.props().disabled).toBe(true);
   });
+
+  it('shows vpc/subnet ids when name tags are not present', async() => {
+    const setup = requiredSetup();
+
+    // eslint-disable-next-line prefer-const
+    let wrapper: any;
+
+    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
+    });
+
+    wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, subnets: ['subnet-1234'] },
+      ...setup
+    });
+
+    wrapper.setProps({ amazonCredentialSecret: 'abc' });
+    wrapper.setData({ chooseSubnet: true });
+
+    await wrapper.vm.$nextTick();
+
+    // verify that no options are literally labeled 'undefined' // https://github.com/rancher/dashboard/issues/16668
+    const networkDropdown = wrapper.getComponent('[data-testid="eks-subnets-dropdown"]');
+    const optionsWithUndefined = networkDropdown.props().options.filter((opt: any) => opt.label?.includes('undefined'));
+
+    expect(optionsWithUndefined).toHaveLength(0);
+
+    // verify that the vpc and subnet without name tags are showing their ids in the dropdown
+    const vpcWithoutNameTag = networkDropdown.props().options.find((opt: any) => opt.label === 'vpc-123');
+    const subnetWithoutNameTag = networkDropdown.props().options.find((opt: any) => opt.label === 'subnet-1234');
+
+    expect(vpcWithoutNameTag).toBeDefined();
+    expect(subnetWithoutNameTag).toBeDefined();
+  });
 });
