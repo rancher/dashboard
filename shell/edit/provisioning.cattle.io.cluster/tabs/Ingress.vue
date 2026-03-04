@@ -163,7 +163,7 @@ function selectIngress(id: string) {
     preconfigureTraefik();
   } else {
     emit('update:value', id);
-    if (id === TRAEFIK && isEdit) {
+    if (id === TRAEFIK && !!isEdit.value) {
       showTraefikBanner.value = true;
     }
   }
