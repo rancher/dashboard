@@ -1,4 +1,5 @@
 import OidcClientsPagePo from '@/cypress/e2e/po/pages/users-and-auth/oidc-client.po';
+import GenericOidcPo from '@/cypress/e2e/po/edit/auth/genericOidc.po';
 import OidcClientCreateEditPo from '~/cypress/e2e/po/edit/management.cattle.io.oidcclient.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
@@ -197,5 +198,88 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
 
     oidcClientsPage.waitForPage();
     cy.contains(OIDC_CREATE_DATA.APP_NAME).should('not.exist');
+  });
+});
+
+describe('Generic OIDC Auth Provider', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
+  const authClusterId = '_';
+  const genericOidcPo = new GenericOidcPo(authClusterId);
+
+  const clientId = 'test-client-id';
+  const clientSecret = 'test-client-secret';
+  const rancherUrl = 'https://test-rancher-url.com';
+  const issuer = 'https://test-issuer-url.com';
+  const authEndpoint = 'https://test-auth-endpoint.com/auth';
+
+  const nameClaim = 'custom_name';
+  const groupsClaim = 'custom_groups';
+  const emailClaim = 'custom_email';
+
+  const mockStatusCode = 200;
+  const mockBody = {};
+
+  beforeEach(() => {
+    cy.login();
+    genericOidcPo.goTo();
+    genericOidcPo.waitForPage();
+    cy.window().then((win) => {
+      cy.stub(win, 'open').returns({ closed: true });
+    });
+  });
+
+  it('sends correct request with custom claim mapping values to the backend', () => {
+    cy.intercept('POST', 'v3/genericOIDCConfigs/genericoidc?action=configureTest', (req) => {
+      expect(req.body.enabled).to.equal(false);
+      expect(req.body.id).to.equal('genericoidc');
+      expect(req.body.clientId).to.equal(clientId);
+      expect(req.body.clientSecret).to.equal(clientSecret);
+      expect(req.body.issuer).to.equal(issuer);
+      expect(req.body.nameClaim).to.equal(nameClaim);
+      expect(req.body.groupsClaim).to.equal(groupsClaim);
+      expect(req.body.emailClaim).to.equal(emailClaim);
+
+      req.reply(mockStatusCode, mockBody);
+
+      return true;
+    }).as('configureTest');
+
+    genericOidcPo.enterClientId(clientId);
+    genericOidcPo.enterClientSecret(clientSecret);
+    genericOidcPo.selectCustomEndpoint();
+    genericOidcPo.enterRancherUrl(rancherUrl);
+    genericOidcPo.enterIssuer(issuer);
+    genericOidcPo.enterAuthEndpoint(authEndpoint);
+
+    genericOidcPo.enableCustomClaims();
+    genericOidcPo.enterNameClaim(nameClaim);
+    genericOidcPo.enterGroupsClaim(groupsClaim);
+    genericOidcPo.enterEmailClaim(emailClaim);
+
+    genericOidcPo.saveButton().expectToBeEnabled();
+    genericOidcPo.save();
+    cy.wait('@configureTest');
+  });
+
+  it('sends request without custom claim fields when custom claims are not enabled', () => {
+    cy.intercept('POST', 'v3/genericOIDCConfigs/genericoidc?action=configureTest', (req) => {
+      expect(req.body.nameClaim).to.equal(undefined);
+      expect(req.body.groupsClaim).to.equal(undefined);
+      expect(req.body.emailClaim).to.equal(undefined);
+
+      req.reply(mockStatusCode, mockBody);
+
+      return true;
+    }).as('configureTest');
+
+    genericOidcPo.enterClientId(clientId);
+    genericOidcPo.enterClientSecret(clientSecret);
+    genericOidcPo.selectCustomEndpoint();
+    genericOidcPo.enterRancherUrl(rancherUrl);
+    genericOidcPo.enterIssuer(issuer);
+    genericOidcPo.enterAuthEndpoint(authEndpoint);
+
+    genericOidcPo.saveButton().expectToBeEnabled();
+    genericOidcPo.save();
+    cy.wait('@configureTest');
   });
 });
