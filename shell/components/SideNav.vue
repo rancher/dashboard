@@ -20,6 +20,8 @@ import { TYPE_MODES } from '@shell/store/type-map';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
+import { getClusterFromRoute } from 'utils/router';
+import { BLANK_CLUSTER } from 'store/store-types';
 
 export default {
   name:       'SideNav',
@@ -91,7 +93,13 @@ export default {
     },
 
     clusterReady(a, b) {
-      if ( !isEqual(a, b) ) {
+      const currentInStore = this.currentProduct?.inStore;
+      const rootInStore = this.rootProduct?.inStore;
+
+      const isClusterBasedProduct = currentInStore === 'cluster' || rootInStore === 'cluster';
+      const clusterInRoute = getClusterFromRoute(this.$route) && getClusterFromRoute(this.$route) !== BLANK_CLUSTER;
+
+      if ( (isClusterBasedProduct || clusterInRoute) && !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
       }
