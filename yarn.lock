@@ -5830,12 +5830,7 @@ codemirror-editor-vue3@2.8.0:
     codemirror "^5"
     diff-match-patch "^1.0.5"
 
-codemirror@5.65.17:
-  version "5.65.17"
-  resolved "https://registry.npmjs.org/codemirror/-/codemirror-5.65.17.tgz#00d71f34c3518471ae4c0de23a2f8bb39a6df6ca"
-  integrity sha512-1zOsUx3lzAOu/gnMAZkQ9kpIHcPYOc9y1Fbm2UVk5UBPkdq380nhkelG0qUwm1f7wPvTbndu9ZYlug35EwAZRQ==
-
-codemirror@^5:
+codemirror@5.65.21, codemirror@^5:
   version "5.65.21"
   resolved "https://registry.npmjs.org/codemirror/-/codemirror-5.65.21.tgz#cacf320606c5450ad3b3da34bb9c666afec21068"
   integrity sha512-6teYk0bA0nR3QP0ihGMoxuKzpl5W80FpnHpBJpgy66NK3cZv5b/d/HY8PnRvfSsCG1MTfr92u2WUl+wT0E40mQ==
