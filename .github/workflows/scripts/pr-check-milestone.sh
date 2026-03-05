@@ -32,7 +32,7 @@ echo "PR Target Branch: $PR_TARGET_BRANCH"
 echo "PR Target Milestone: $PR_TARGET_MILESTONE"
 
 # Look up expected milestone
-EXPECTED_MILESTONE=$(jq -r --arg branch "$PR_TARGET_BRANCH" '.branches[$branch] | if . == null then "" else .milestone end' "$CONFIG_FILE_PATH")
+EXPECTED_MILESTONE=$(jq -r --arg branch "$PR_TARGET_BRANCH" '.branches[$branch] | if . == null then "" else .milestone.version end' "$CONFIG_FILE_PATH")
 
 if [ -z "$EXPECTED_MILESTONE" ]; then
   echo "❌ PR Target branch '$PR_TARGET_BRANCH' not found in $CONFIG_FILE_PATH."
@@ -47,3 +47,12 @@ if [ "$PR_TARGET_MILESTONE" != "$EXPECTED_MILESTONE" ]; then
 fi
 
 echo "✅ PR Target Milestone '$PR_TARGET_MILESTONE' matches the expected branch milestone '$EXPECTED_MILESTONE'."
+
+CODE_FREEZE=$(jq -r --arg branch "$PR_TARGET_BRANCH" '.branches[$branch].milestone.codeFreeze // false' "$CONFIG_FILE_PATH")
+
+if [ "$CODE_FREEZE" == "true" ]; then
+  echo "❌ The target branch '$PR_TARGET_BRANCH' is currently in code freeze."
+  exit 1
+fi
+
+echo "✅ The target branch '$PR_TARGET_BRANCH' is not in code freeze."
