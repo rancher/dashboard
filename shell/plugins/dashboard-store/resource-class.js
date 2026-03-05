@@ -1193,7 +1193,7 @@ export default class Resource {
    * Allow to handle the response of the save request
    * @param {*} res Full request response
    */
-  processSaveResponse(res) { }
+  processSaveResponse(res, opt = {}) { }
 
   async _save(opt = { }) {
     const forNew = !this.id;
@@ -1279,10 +1279,8 @@ export default class Resource {
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
 
-      if (!opt.supressSuccessToast) {
-        // Allow to process response independently from the related models
-        this.processSaveResponse(res);
-      }
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res, opt);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {

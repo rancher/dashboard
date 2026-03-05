@@ -151,7 +151,7 @@ export default {
 
       const userSaved = await user.save({
         // Don't show a success toast until the secret and GRB are also created
-        supressSuccessToast: true,
+        suppressSuccessToast: true,
       });
 
       return userSaved;
@@ -198,8 +198,13 @@ export default {
           await secret.save();
         } catch (err) {
           if (this.isCreate) {
-          // If secret creation fails, clean up the user to maintain consistency
-            await user.remove();
+            try {
+              // If secret creation fails, attempt to clean up the user to maintain consistency
+              await user.remove();
+            } catch (cleanupErr) {
+              // Log cleanup error but prioritize original error for user feedback
+              console.error('Failed to clean up user after secret creation failure:', cleanupErr); // eslint-disable-line no-console
+            }
           }
 
           throw err;
@@ -216,8 +221,13 @@ export default {
         await this.$refs.grb.save(user.id);
       } catch (err) {
         if (this.isCreate) {
-          // If GRB creation fails, clean up the user to maintain consistency
-          await user.remove();
+          try {
+            // If GRB creation fails, clean up the user to maintain consistency
+            await user.remove();
+          } catch (cleanupErr) {
+            // Log cleanup error but prioritize original error for user feedback
+            console.error('Failed to clean up user after GRB creation failure:', cleanupErr); // eslint-disable-line no-console
+          }
         }
         throw err;
       }
