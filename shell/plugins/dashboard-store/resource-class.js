@@ -1279,8 +1279,10 @@ export default class Resource {
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
 
-      // Allow to process response independently from the related models
-      this.processSaveResponse(res);
+      if (!opt.supressSuccessToast) {
+        // Allow to process response independently from the related models
+        this.processSaveResponse(res);
+      }
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
