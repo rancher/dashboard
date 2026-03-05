@@ -394,29 +394,12 @@ export default {
     },
 
     metricAggregations() {
-      let checkNodes = this.nodes;
-
-      // Special case local cluster
-      if (this.currentCluster.isLocal) {
-        const nodeNames = this.nodes.reduce((acc, n) => {
-          acc[n.id] = n;
-
-          return acc;
-        }, {});
-
-        checkNodes = this.mgmtNodes.filter((n) => {
-          const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
-
-          return !!nodeNames[nodeName];
-        });
-      }
-
-      const someNonWorkerRoles = checkNodes.some((node) => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
         const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
 
-        return node && (!someNonWorkerRoles || node.isWorker);
+        return node;
       });
+
       const initialAggregation = {
         cpu:    0,
         memory: 0
