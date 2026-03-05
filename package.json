@@ -72,7 +72,7 @@
     "@rancher/icons": "2.0.55",
     "@vee-validate/zod": "4.15.0",
     "ansi_up": "5.0.0",
-    "axios": "1.13.2",
+    "axios": "1.13.5",
     "axios-retry": "3.1.9",
     "babel-plugin-module-resolver": "5.0.2",
     "cache-loader": "4.1.0",
