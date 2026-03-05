@@ -755,20 +755,26 @@ export default class Workload extends WorkloadService {
   get podsCard() {
     const supportedTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET];
 
-    if (!supportedTypes.includes(this.type) || (this.pods?.length || 0) <= 0) {
+    if (!supportedTypes.includes(this.type)) {
       return null;
     }
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
+    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+
+    if (!this.pods || (this.pods.length === 0 && !canScale)) {
+      return null;
+    }
 
     return {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
       props:     {
-        title:       this.t('component.resource.detail.card.podsCard.title'),
-        resources:   this.pods,
-        showScaling: this.canUpdate && scalingTypes.includes(this.type),
-        onIncrease:  () => this.scale(true),
-        onDecrease:  () => this.scale(false)
+        title:              this.t('component.resource.detail.card.podsCard.title'),
+        resources:          this.pods,
+        showScaling:        canScale,
+        onIncrease:         () => this.scale(true),
+        onDecrease:         () => this.scale(false),
+        noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
       }
     };
   }

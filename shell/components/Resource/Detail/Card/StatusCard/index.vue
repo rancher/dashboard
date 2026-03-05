@@ -13,6 +13,7 @@ export interface Props {
   title: string;
   resources?: any[];
   showScaling?: boolean;
+  noResourcesMessage?: string;
 }
 </script>
 
@@ -20,7 +21,11 @@ export interface Props {
 const store = useStore();
 const i18n = useI18n(store);
 
-const props = withDefaults(defineProps<Props>(), { resources: undefined, showScaling: false });
+const props = withDefaults(defineProps<Props>(), {
+  resources:          undefined,
+  showScaling:        false,
+  noResourcesMessage: undefined
+});
 const emit = defineEmits(['decrease', 'increase']);
 
 const segmentAccumulator = computed(() => {
@@ -99,9 +104,15 @@ const rows = computed(() => {
         @decrease="(newValue) => emit('decrease', newValue)"
       />
     </template>
-    <StatusBar :segments="segments" />
-    <VerticalGap />
-    <div class="pod-distribution">
+    <StatusBar
+      v-if="rows.length > 0"
+      :segments="segments"
+    />
+    <VerticalGap v-if="rows.length > 0" />
+    <div
+      v-if="rows.length > 0"
+      class="pod-distribution"
+    >
       <StatusRow
         v-for="(row, i) in rows"
         :key="i"
@@ -110,6 +121,12 @@ const rows = computed(() => {
         :count="row.count"
         :percent="row.percent"
       />
+    </div>
+    <div
+      v-else-if="props.noResourcesMessage"
+      class="text-deemphasized"
+    >
+      {{ props.noResourcesMessage }}
     </div>
   </Card>
 </template>
