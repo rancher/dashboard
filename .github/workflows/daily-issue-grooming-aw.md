@@ -49,22 +49,34 @@ defined at the bottom of these instructions.
    - If `is_groomed` is **true**:
      - Post a comment using this exact format:
        ```
+       <details>
+       <summary>
+
        ### 🤖 Issue grooming analysis
+
+       </summary>
 
        {analysis_markdown}
 
        _This analysis was generated automatically based on the repository's grooming checklist._
+       </details>
        ```
      - Apply the label `groomed`.
 
    - If `is_groomed` is **false**:
      - Post a comment using this exact format:
        ```
+       <details open>
+       <summary>
+
        ### 🤖 Issue grooming questions
+
+       </summary>
 
        {questions_markdown}
 
        _This comment was generated automatically to help gather the information needed to groom this issue._
+       </details>
        ```
      - Apply the label `needs-info`.
 
@@ -90,11 +102,17 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
    - If `is_groomed` is **true**:
      - Post a comment using this exact format:
        ```
+       <details>
+       <summary>
+
        ### 🤖 Issue grooming analysis
+
+       </summary>
 
        {analysis_markdown}
 
        _This analysis was generated automatically based on the repository's grooming checklist._
+       </details>
        ```
      - Remove the label `needs-info`.
      - Apply the label `groomed`.
@@ -102,11 +120,17 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
    - If `is_groomed` is **false**:
      - Post a comment using this exact format:
        ```
+       <details open>
+       <summary>
+
        ### 🤖 Issue grooming questions
+
+       </summary>
 
        {questions_markdown}
 
        _This comment was generated automatically to help gather the information needed to groom this issue._
+       </details>
        ```
      - Do NOT repeat questions that have already been answered in the current issue body.
      - Leave the label `needs-info` in place; do not add or remove any labels.
