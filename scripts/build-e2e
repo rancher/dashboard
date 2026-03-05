@@ -52,7 +52,7 @@ EMBER_URL=https://releases.rancher.com/ui/latest2/index.html
 BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
 
 if [ -n "$BRANCH_DATA" ]; then
-    UI_INDEX=$(echo "$BRANCH_DATA" | jq -r '.["rancher-rancher-repo"]."ui-index"')
+    UI_INDEX=$(echo "$BRANCH_DATA" | jq -r '.["rancher-rancher-repo"]."ui-index" // ""')
 
     if [[ -n "$UI_INDEX" ]]; then
         EMBER_URL=$UI_INDEX
