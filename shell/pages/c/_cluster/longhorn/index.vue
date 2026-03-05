@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { SERVICE } from '@shell/config/types';
 import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
+import longhornSvg from '~shell/assets/images/vendor/longhorn.svg';
 import Loading from '@shell/components/Loading';
 
 export default {
@@ -24,7 +25,7 @@ export default {
 
   data() {
     return {
-      longhornImgSrc: require('~shell/assets/images/vendor/longhorn.svg'),
+      longhornImgSrc: longhornSvg,
       uiServices:     null
     };
   },

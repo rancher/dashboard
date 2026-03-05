@@ -3,6 +3,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
+import { requireBrandMetadata } from '@shell/utils/require-asset';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { allHash } from '@shell/utils/promise';
 import { fetchInitialSettings } from '@shell/utils/settings';
@@ -187,7 +188,7 @@ export default {
 
       if ( this.brand ) {
         try {
-          const brandMeta = require(`~shell/assets/brand/${ this.brand }/metadata.json`);
+          const brandMeta = requireBrandMetadata(`~shell/assets/brand/${ this.brand }/metadata.json`);
 
           if (brandMeta?.hasStylesheet === 'true') {
             bodyClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;

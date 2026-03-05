@@ -3,6 +3,7 @@ import Loading from '@shell/components/Loading.vue';
 import { OIDC_CLIENT_SECRET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SECRET } from '@shell/config/types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import keySvg from '~shell/assets/images/key.svg';
 import { defineComponent } from 'vue';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import DateComponent from '@shell/components/formatter/Date.vue';
@@ -228,7 +229,7 @@ export default defineComponent({
           clientSecrets.push({
             id:                 oidcSecretDataKey,
             header:             { title: { text: oidcSecretDataKey } },
-            image:              { src: require('~shell/assets/images/key.svg') },
+            image:              { src: keySvg },
             createdAt,
             lastFiveCharacters: oidcSecretData.lastFiveCharacters,
             lastUsedAt,

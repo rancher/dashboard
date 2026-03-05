@@ -20,6 +20,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
+import { requireAsset } from '@shell/utils/require-asset';
 
 const SORT_GROUPS = {
   template:  1,
@@ -343,7 +344,7 @@ export default {
             id:          `chart:${ chart.id }`,
             label:       chart.chartNameDisplay,
             description: chart.chartDescription,
-            icon:        chart.icon || require('~shell/assets/images/generic-catalog.svg'),
+            icon:        chart.icon || requireAsset('~shell/assets/images/generic-catalog.svg'),
             group:       'template',
             tag:         getters['i18n/t']('generic.techPreview')
           });
@@ -389,7 +390,7 @@ export default {
         if (icon) {
           iconClass = undefined;
         } else if (!iconClass) {
-          icon = require('~shell/assets/images/generic-driver.svg');
+          icon = requireAsset('~shell/assets/images/generic-driver.svg');
         }
 
         const subtype = {
@@ -420,14 +421,14 @@ export default {
 
         if (!icon) {
           try {
-            icon = require(`~shell/assets/images/providers/${ id }.svg`);
+            icon = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
           } catch (e) {}
         }
 
         if (icon) {
           iconClass = undefined;
         } else if (!iconClass) {
-          icon = require('~shell/assets/images/generic-driver.svg');
+          icon = requireAsset('~shell/assets/images/generic-driver.svg');
         }
 
         const subtype = {

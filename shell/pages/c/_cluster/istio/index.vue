@@ -2,6 +2,8 @@
 import { mapGetters } from 'vuex';
 import { SERVICE } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
+import kialiSvg from '~shell/assets/images/vendor/kiali.svg';
+import jaegerSvg from '~shell/assets/images/vendor/jaeger.svg';
 export default {
   components: { Loading },
 
@@ -23,7 +25,7 @@ export default {
 
     kialiLogo() {
       // @TODO move to theme css
-      return require(`~shell/assets/images/vendor/kiali.svg`);
+      return kialiSvg;
     },
 
     kialiUrl() {
@@ -31,7 +33,7 @@ export default {
     },
 
     jaegerLogo() {
-      return require(`~shell/assets/images/vendor/jaeger.svg`);
+      return jaegerSvg;
     },
 
     jaegerUrl() {

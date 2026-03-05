@@ -3,7 +3,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-export default ({
+export default {
 
   name: 'NotificationSettings',
 
@@ -29,7 +29,7 @@ export default ({
     },
   },
 
-});
+};
 </script>
 
 <template>

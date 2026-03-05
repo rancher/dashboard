@@ -23,7 +23,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('[data-testid="wizard-next-btn"]');
 
     btn.click(true);
 
@@ -41,7 +41,7 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    const btn = new AsyncButtonPo('[data-testid="action-button-async-button"]');
+    const btn = new AsyncButtonPo('[data-testid="wizard-finish-async-button"]');
 
     btn.click(true);
 

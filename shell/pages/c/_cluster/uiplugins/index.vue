@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
+import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -73,7 +74,7 @@ export default {
       menuTargetEvent:                null,
       menuOpen:                       false,
       hasFeatureFlag:                 true,
-      defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
+      defaultIcon:                    genericPluginSvg,
       reloadRequired:                 false,
       rancherVersion:                 null
     };

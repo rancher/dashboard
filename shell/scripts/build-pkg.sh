@@ -4,18 +4,6 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 EXIT_CODE=0
-FORMATS="umd-min"
-
-while getopts "df:" opt; do
-  case $opt in
-    d)
-      FORMATS="umd"
-      ;;
-    f)
-      FORMATS=$OPTARG
-      ;;      
-  esac
-done
 
 shift $((OPTIND-1))
 
@@ -36,10 +24,9 @@ NAME=${1}-${VERSION}
 PKG_DIST=${BASE_DIR}/dist-pkg/${NAME}
 
 if [ -d "${BASE_DIR}/pkg/${1}" ]; then
-  echo "Building UI Package $1"
+  echo "Building UI Package $1 (ESM via Vite)"
   echo "  Package name:    ${NAME}"
   echo "  Package version: ${VERSION}"
-  echo "  Output formats:  ${FORMATS}"
   echo "  Output directory: ${PKG_DIST}"
   rm -rf ${PKG_DIST}
   mkdir -p ${PKG_DIST}
@@ -58,23 +45,29 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
     ln -s ${SHELL_DIR} .shell
   fi
 
-  FILE=index.js
-  if [ -f ./index.ts ]; then
-    FILE=index.ts
-  fi
-
   if [ -n "$COMMIT" ]; then
     echo ${COMMIT} > ${PKG_DIST}/version
   fi
 
-  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats ${FORMATS} --filename ${NAME}
+  # Build the extension as an ESM library using Vite.
+  # Prefer the package's own vite.config if it exists, otherwise fall back
+  # to the shell's pkg config (which uses process.cwd() to resolve the dir).
+  if [ -f "vite.config.js" ]; then
+    VITE_CONFIG="vite.config.js"
+  else
+    VITE_CONFIG=".shell/pkg/vite.config.js"
+  fi
+  ${BASE_DIR}/node_modules/.bin/vite build \
+    --config ${VITE_CONFIG} \
+    --outDir ${PKG_DIST}
   EXIT_CODE=$?
+
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak
   rm .shell
 
-  popd  
+  popd
 fi
 
 if [ $EXIT_CODE -ne 0 ]; then

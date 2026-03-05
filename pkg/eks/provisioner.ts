@@ -3,6 +3,7 @@ import CruEKS from './components/CruEKS.vue';
 import { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
 import { mapDriver } from '@shell/store/plugins';
+import eksIcon from './assets/amazoneks.svg';
 export class EKSProvisioner implements IClusterProvisioner {
   static ID = 'eks'
 
@@ -15,7 +16,7 @@ export class EKSProvisioner implements IClusterProvisioner {
   }
 
   get icon(): any {
-    return require('./assets/amazoneks.svg');
+    return eksIcon;
   }
 
   get group(): string {

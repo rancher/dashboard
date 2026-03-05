@@ -17,6 +17,8 @@ module.exports = {
     '^~/(.*)$':                                                                      '<rootDir>/$1',
     '^~~/(.*)$':                                                                     '<rootDir>/$1',
     '^@/(.*)$':                                                                      '<rootDir>/$1',
+    '@rancher/dynamic-importer-modules':                                             '<rootDir>/shell/utils/dynamic-importer-modules.jest.js',
+    '@shell/(.*)\\.js\\?worker$':                                                    '<rootDir>/shell/$1.js',
     '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
     '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
     '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',

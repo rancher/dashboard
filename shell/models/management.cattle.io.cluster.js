@@ -13,6 +13,7 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider } from '@shell/utils/provider';
@@ -221,7 +222,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get providerOsLogo() {
-    return require(`~shell/assets/images/vendor/${ this.providerOs }.svg`);
+    return requireAsset(`~shell/assets/images/vendor/${ this.providerOs }.svg`);
   }
 
   get workerOSs() {
@@ -282,11 +283,13 @@ export default class MgmtCluster extends SteveModel {
     let icon;
 
     try {
-      icon = require(`~shell/assets/images/providers/${ prv }.svg`);
+      icon = requireAsset(`~shell/assets/images/providers/${ prv }.svg`);
     } catch (e) {
       console.warn(`Can not find provider logo for provider ${ logo }`); // eslint-disable-line no-console
+    }
+    if (!icon) {
       // Use fallback generic Kubernetes icon
-      icon = require(`~shell/assets/images/providers/kubernetes.svg`);
+      icon = requireAsset(`~shell/assets/images/providers/kubernetes.svg`);
     }
 
     return icon;

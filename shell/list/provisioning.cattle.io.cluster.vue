@@ -300,7 +300,7 @@ export default {
   </div>
 </template>
 
-<stye scoped lang="scss">
+<style scoped lang="scss">
   .capi-unsupported {
     &.has-description {
       border-bottom: none;
@@ -317,4 +317,4 @@ export default {
       display: flex;
     }
   }
-</stye>
+</style>

@@ -11,16 +11,10 @@
   },
   "scripts": {},
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "@vue/cli-plugin-typescript": "~5.0.0"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "vite": "^6.0.0",
+    "@vitejs/plugin-vue": "^5.0.0"
+  }
 }

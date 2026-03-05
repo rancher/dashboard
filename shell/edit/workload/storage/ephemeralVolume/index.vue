@@ -5,6 +5,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { mapGetters } from 'vuex';
 
+const ephemeralDriverModules = import.meta.glob('@shell/edit/workload/storage/ephemeralVolume/*.vue', { eager: true });
+
 export default {
   emits: ['remove'],
 
@@ -32,15 +34,21 @@ export default {
   },
   computed: {
     driverComponent() {
-      try {
-        return require(`@shell/edit/workload/storage/ephemeralVolume/${ this.value.csi.driver }`).default;
-      } catch {
+      const driver = this.value?.csi?.driver;
+
+      if (!driver) {
         return null;
       }
+
+      const key = Object.keys(ephemeralDriverModules).find((k) => k.endsWith(`/${ driver }.vue`));
+
+      return key ? (ephemeralDriverModules[key].default || ephemeralDriverModules[key]) : null;
     },
 
     driverOpts() {
-      return require.context('@shell/edit/workload/storage/ephemeralVolume', true, /^.*\.vue$/).keys().map((path) => path.replace(/(\.\/)|(.vue)/g, '')).filter((file) => file !== 'index');
+      return Object.keys(ephemeralDriverModules)
+        .map((p) => p.split('/').pop().replace('.vue', ''))
+        .filter((file) => file !== 'index');
     },
 
     ...mapGetters({ t: 'i18n/t' })

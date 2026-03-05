@@ -118,7 +118,10 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./providers/${ name }`).default;
+      const modules = import.meta.glob('./providers/*.vue', { eager: true });
+      const mod = modules[`./providers/${ name }.vue`];
+
+      return mod?.default || null;
     },
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
