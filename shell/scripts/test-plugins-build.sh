@@ -240,6 +240,6 @@ function clone_repo_test_extension_build() {
 # clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
 clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
 # clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
-clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
+# clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
 
 echo "All done"
