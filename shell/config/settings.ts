@@ -56,6 +56,7 @@ export const SETTING = {
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
   SERVER_URL:                                    'server-url',
   RKE_METADATA_CONFIG:                           'rke-metadata-config',
+  KDM_USE_LOCAL_DATA:                            'kdm-use-local-data',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
   AUTH_USER_SESSION_IDLE_TTL_MINUTES:            'auth-user-session-idle-ttl-minutes',
@@ -163,6 +164,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
+  [SETTING.KDM_USE_LOCAL_DATA]:                   { kind: 'boolean' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
   [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
@@ -202,6 +204,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 export const PROVISIONING_SETTINGS = [
   SETTING.ENGINE_ISO_URL,
   SETTING.RKE_METADATA_CONFIG,
+  SETTING.KDM_USE_LOCAL_DATA,
   SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
   SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
   SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
