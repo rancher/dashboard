@@ -105,6 +105,10 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().activate().click();
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
+    // wait for drivers to be activating
+    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Activating');
+    driversPage.list().details(oracleDriver, 1).should('contain', 'Activating');
+    // wait for drivers to be active
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
 
