@@ -1431,6 +1431,8 @@ catalog:
     refreshInterval:
       label: Refresh Interval
       placeholder: 'default: {hours}'
+    error:
+      refresh: Error refreshing repository
   tools:
     iconAlt: Icon for {app} Cluster Tool
     header: Cluster Tools

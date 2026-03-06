@@ -57,15 +57,22 @@ export default class ClusterRepo extends SteveModel {
    * @param {boolean} dispatchLoad - Whether to dispatch the catalog/load action after refreshing. Defaults to true.
    */
   async refresh(dispatchLoad = true) {
-    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+    try {
+      const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
-    this.spec.forceUpdate = now;
-    await this.save();
+      this.spec.forceUpdate = now;
+      await this.save();
 
-    await this.waitForState('active', 10000, 1000);
+      await this.waitForState('active', 10000, 1000);
 
-    if (dispatchLoad) {
-      this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });
+      if (dispatchLoad) {
+        this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });
+      }
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.t('catalog.repo.error.refresh', {}, 'Error refreshing repository'),
+        err,
+      }, { root: true });
     }
   }
 

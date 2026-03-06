@@ -42,6 +42,21 @@ describe('clusterRepo', () => {
       expect(model.waitForState).toHaveBeenCalledWith('active', 10000, 1000);
       expect(model.$dispatch).not.toHaveBeenCalled();
     });
+
+    it('dispatches error to growl if save or waitForState fails', async() => {
+      const error = new Error('waitForState timeout');
+
+      model.waitForState.mockRejectedValue(error);
+      jest.spyOn(model, 't', 'get').mockReturnValue(jest.fn().mockReturnValue('Error refreshing repository'));
+      jest.spyOn(model, 'nameDisplay', 'get').mockReturnValue('Test Repo');
+
+      await model.refresh();
+
+      expect(model.$dispatch).toHaveBeenCalledWith('growl/fromError', {
+        title: 'Error refreshing repository',
+        err:   error
+      }, { root: true });
+    });
   });
 
   describe('refreshBulk', () => {
