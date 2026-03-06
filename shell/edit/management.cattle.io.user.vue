@@ -16,8 +16,6 @@ export default {
     ChangePassword, GlobalRoleBindings, CruResource, LabeledInput, Loading
   },
 
-  emits: ['update:mode'],
-
   mixins: [
     CreateEditView
   ],
@@ -42,8 +40,7 @@ export default {
         password:     false,
         roles:        !showGlobalRoles,
         rolesChanged: false,
-      },
-      watchOverride: false,
+      }
     };
   },
 
@@ -303,7 +300,6 @@ export default {
         :user-id="value.id || liveValue.id"
         :mode="mode"
         :real-mode="realMode"
-        :watch-override="watchOverride"
         type="user"
         @hasChanges="validation.rolesChanged = $event"
         @canLogIn="validation.roles = $event"
