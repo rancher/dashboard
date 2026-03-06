@@ -120,7 +120,7 @@ describe('class CatalogApp', () => {
       [installedCertManagerOfficialFromCli, [], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromCli, [appCoMatchingChart1], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2], APP_UPGRADE_STATUS.NO_UPGRADE],
-      [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.NO_UPGRADE],
       // when you add application collection OCI repo through UI
       [installedCertManagerAppCoFromRancherUI, [], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerAppCoFromRancherUI, [appCoMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
@@ -136,9 +136,15 @@ describe('class CatalogApp', () => {
     it.each(testCases)('should return the correct upgrade status', (installedChart: Object, matchingCharts: any, expected: any) => {
       const catalogApp = new CatalogApp({ spec: { chart: installedChart } }, {
         rootGetters: {
-          'catalog/chart': () => matchingCharts,
-          currentCluster:  { workerOSs: ['linux'] },
-          'prefs/get':     () => false
+          'catalog/chart': ({ repoName }) => {
+            if (repoName) {
+              return matchingCharts.filter((c: any) => c.repoName === repoName);
+            }
+
+            return matchingCharts;
+          },
+          currentCluster: { workerOSs: ['linux'] },
+          'prefs/get':    () => false
         }
       });
 
