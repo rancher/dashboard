@@ -2,7 +2,7 @@ import { IExtension } from '@shell/core/types';
 import {
   ProductChild, ProductMetadata,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
-  ProductChildCustomPage, ProductChildSpoofedType
+  ProductChildCustomPage, ProductChildSpoofedTypePage
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
@@ -216,12 +216,12 @@ export abstract class BasePluginProduct {
   protected configurePageItem(parentName: string, item: ProductChild, groupNaming?: string): void {
     const {
       configureType, virtualType, weightType, spoofedType,
-      mapType, ignoreType, hideBulkActions
+      mapType, ignoreType, hideBulkActions, headers
     } = this.DSLMethods;
 
     // Spoofed type page
     if (isProductChildSpoofed(item)) {
-      const spoofedTypeConfig: ProductChildSpoofedType = { ...item };
+      const spoofedTypeConfig: ProductChildSpoofedTypePage = { ...item };
 
       // the "type" for the spoofed type is actually generated based on the name of the item
       spoofedTypeConfig.type = item.name;
@@ -238,6 +238,10 @@ export abstract class BasePluginProduct {
           resourceFields:    spoofedTypeConfig.resourceFields || {},
           attributes:        spoofedTypeConfig.attributes || { namespaced: spoofedTypeConfig.namespaced || false },
         })];
+      }
+
+      if (spoofedTypeConfig.headers) {
+        headers(spoofedTypeConfig.type, spoofedTypeConfig.headers);
       }
 
       if (spoofedTypeConfig.overrideListResourceName) {
@@ -287,6 +291,10 @@ export abstract class BasePluginProduct {
         canYaml:     true,
         customRoute: route
       };
+
+      if (item.headers) {
+        headers(item.type, item.headers);
+      }
 
       if (item.overrideListResourceName) {
         mapType(item.type, item.overrideListResourceName);

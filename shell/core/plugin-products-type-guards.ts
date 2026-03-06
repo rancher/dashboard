@@ -1,6 +1,6 @@
 import {
   ProductChild, ProductChildGroup, ProductMetadata,
-  ProductSinglePage, ProductChildCustomPage, ProductChildResourcePage, ProductChildSpoofedType
+  ProductSinglePage, ProductChildCustomPage, ProductChildResourcePage, ProductChildSpoofedTypePage
 } from '@shell/core/plugin-types';
 
 /**
@@ -24,7 +24,7 @@ export function isProductChildWithType(child: ProductChild): child is ProductChi
   return 'type' in child && typeof child.type === 'string' && !isProductChildGroup(child) && !('getInstances' in child);
 }
 
-export function isProductChildSpoofed(child: ProductChild): child is ProductChildSpoofedType {
+export function isProductChildSpoofed(child: ProductChild): child is ProductChildSpoofedTypePage {
   return 'getInstances' in child && typeof child.getInstances === 'function';
 }
 

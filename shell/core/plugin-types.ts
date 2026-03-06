@@ -4,6 +4,7 @@ import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
 import { NAME as AUTH_PROD_NAME } from '@shell/config/product/auth.js';
+import { TableHeader } from '@shell/config/standard-headers';
 
 type Async<T> = () => Promise<T>;
 
@@ -175,6 +176,8 @@ export type ProductChildResourcePage = {
   hideFromMoreResourcesMenu?: boolean;
   /** Whether to hide bulk actions for this resource */
   hideBulkActions?: boolean;
+  /** Table headers for this resource type */
+  headers?: TableHeader[];
 };
 
 export type SpoofedTypeSchema = {
@@ -207,7 +210,7 @@ export type SpoofedTypeSchemaOptions = {
 /**
  * Represents a spoofed/synthetic resource type that behaves like a real resource
  */
-export type ProductChildSpoofedType = ProductChildMetadata & {
+export type ProductChildSpoofedTypePage = ProductChildMetadata & {
   /** Type identifier for the spoofed resource */
   type?: string;
   /** Whether the spoofed type is namespaced */
@@ -234,6 +237,8 @@ export type ProductChildSpoofedType = ProductChildMetadata & {
   overrideListResourceName?: string;
   /** Whether to hide bulk actions for this resource */
   hideBulkActions?: boolean;
+  /** Table headers for this resource type */
+  headers?: TableHeader[];
 };
 
 /**
@@ -241,7 +246,7 @@ export type ProductChildSpoofedType = ProductChildMetadata & {
  * - For custom pages: use `component` with `name` and `label`/`labelKey`
  * - For resource pages: use `type` with optional `config` and `headers`
  */
-export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildSpoofedType;
+export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildSpoofedTypePage;
 
 /**
  * Represents a product child in the navigation
