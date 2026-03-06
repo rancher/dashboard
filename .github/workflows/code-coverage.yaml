@@ -26,7 +26,7 @@ jobs:
       - name: Run tests and collect coverage
         run: ./scripts/code-coverage
       - name: Upload code coverage folder
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: ./coverage/output
