@@ -186,8 +186,22 @@ export default {
           to.params.product = p.name;
         }
 
+        let label;
+
+        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
+        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
+        if (p.labelKey) {
+          label = this.$store.getters['i18n/t'](p.labelKey);
+        } else if (p.label) {
+          label = p.label;
+        }
+
+        if (!label) {
+          label = this.$store.getters['i18n/withFallback'](`product.${ p.name }`, null, ucFirst(p.name));
+        }
+
         return {
-          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          label,
           icon:              `icon-${ p.icon || 'copy' }`,
           svg:               p.svg,
           value:             p.name,

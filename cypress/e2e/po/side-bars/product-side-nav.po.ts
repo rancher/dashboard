@@ -16,6 +16,14 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   /**
+   * Get all navigation accordion items
+   * @returns {Cypress.Chainable}
+   */
+  accordionItems(): Cypress.Chainable {
+    return this.self().find('.accordion');
+  }
+
+  /**
    * Get all the expanded accordion groups
    * @returns
    */
@@ -27,7 +35,7 @@ export default class ProductNavPo extends ComponentPo {
    * Get all the visible child links
    */
   visibleNavTypes(): Cypress.Chainable {
-    return this.self().find('.accordion.expanded li.nav-type>a');
+    return this.self().find('.accordion.expanded li.nav-type>a, .accordion:not(.has-children):not(.expanded) li.nav-type>a');
   }
 
   /**
@@ -95,7 +103,7 @@ export default class ProductNavPo extends ComponentPo {
    * Active navigation item
    */
   activeNavItem() {
-    return this.groups().find('.router-link-active').should('exist').invoke('text')
+    return this.accordionItems().find('.router-link-active').should('exist').invoke('text')
       .then((s) => s.trim());
   }
 }

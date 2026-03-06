@@ -317,6 +317,12 @@ export function DSL(store, product, module = 'type-map') {
       }
     },
 
+    labelGroup(group, label, labelKey) {
+      store.commit(`${ module }/labelGroup`, {
+        group, label, labelKey
+      });
+    },
+
     setGroupDefaultType(input, defaultType) {
       if ( isArray(input) ) {
         store.commit(`${ module }/setGroupDefaultType`, { groups: input, defaultType });
@@ -397,6 +403,7 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupDefaultTypes:       {},
+    groupLabels:             {},
     basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
@@ -496,6 +503,23 @@ export const getters = {
       });
 
       return out;
+    };
+  },
+
+  groupLabel(state) {
+    return (group) => {
+      // Handle null/undefined
+      if (!group) {
+        return;
+      }
+
+      // commit is done with lowercase group names, so lowercase here to match
+      const groupName = group.toLowerCase();
+
+      // If this has been explicitly set, use that
+      if (groupName && state.groupLabels[groupName]) {
+        return state.groupLabels[groupName];
+      }
     };
   },
 
@@ -740,10 +764,21 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
-        // i18n-uses nav.group.*
-        const key = `nav.group."${ name }"`;
+        let key;
 
-        if ( rootGetters['i18n/exists'](key) ) {
+        // See if we have a configured label for this group
+        const groupLabel = getters['groupLabel'](name);
+
+        if (groupLabel?.label) {
+          label = groupLabel.label;
+        } else if (groupLabel?.labelKey) {
+          key = groupLabel.labelKey;
+        } else {
+          // i18n-uses nav.group.*
+          key = `nav.group."${ name }"`;
+        }
+
+        if (key && rootGetters['i18n/exists'](key) ) {
           label = rootGetters['i18n/t'](key);
         }
 
@@ -1678,6 +1713,10 @@ export const mutations = {
     for ( const g of groups ) {
       map[g.toLowerCase()] = weight;
     }
+  },
+
+  labelGroup(state, { group, label, labelKey }) {
+    state.groupLabels[group.toLowerCase()] = { label, labelKey };
   },
 
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
