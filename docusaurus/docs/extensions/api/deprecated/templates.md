@@ -1,21 +1,21 @@
-# Page templates
+# Page templates (deprecated)
 
 When you create a page, either a [Custom Page](./custom-page.md) (`virtualType`) or a [Resource Page](./resource-page.md) (`configureType`), you can make use of different templates. By default it will use the `default` layout, but there are two different templates available:
 
-## default template
+## default template (deprecated)
 
 ![Default Template](../../screenshots/default-template.png)
 
 The `default` template always renders the main side bar **and** the side menu, leaving a smaller area marked in blue (check screenshot above) for the actual page render.
 
 
-## plain template
+## plain template (deprecated)
 
 ![Plain Template](../../screenshots/plain-template.png)
 
 The `plain` template always renders the main side bar but **without** any side menu, leaving a slightly bigger area, when compared with the "default" template, marked in blue (check screenshot above) for the actual page render.
 
-## How to use a template
+## How to use a template (deprecated)
 
 How does a developer make use of a template? 
 

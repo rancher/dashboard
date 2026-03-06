@@ -203,12 +203,6 @@ export default {
       return !!this.currentCluster?.actions?.apply;
     },
 
-    prod() {
-      const name = this.rootProduct.name;
-
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
-    },
-
     showSearch() {
       return this.rootProduct?.inStore === 'cluster';
     },
@@ -239,6 +233,30 @@ export default {
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
+
+    productLabel() {
+      const name = this.currentProduct.name;
+
+      // single products do their own thing, which is the previous default behavior as per next line
+      if (this.isSingleProduct) {
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      } else {
+        if (this.currentProduct?.label) {
+          return this.currentProduct.label;
+        }
+        if (this.currentProduct?.labelKey) {
+          return this.$store.getters['i18n/t'](this.currentProduct.labelKey);
+        }
+
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      }
+    },
+
+    // Determine if we are on a route that shows the logo instead of the product label
+    // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
+    isLogoRoute() {
+      return !this.$route.name.includes('c-cluster');
+    }
   },
 
   watch: {
@@ -518,7 +536,7 @@ export default {
           :alt="t('branding.logos.label')"
         >
         <div class="product-name">
-          {{ prod }}
+          {{ productLabel }}
         </div>
       </div>
     </div>
@@ -532,6 +550,13 @@ export default {
         class="product-name"
       >
         {{ t(isSingleProduct.productNameKey) }}
+      </div>
+
+      <div
+        v-if="productLabel && !isLogoRoute"
+        class="product-name"
+      >
+        {{ productLabel }}
       </div>
 
       <div

@@ -114,8 +114,7 @@ Replace the contents of the file `./pkg/my-app/index.ts` with:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
-import extensionRouting from './routing/extension-routing';
+import { IPlugin, ProductMetadata, ProductChild } from '@shell/core/types';
 
 // Init the package
 export default function (plugin: IPlugin) {
@@ -126,69 +125,41 @@ export default function (plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
-  // Load a product
-  plugin.addProduct(require('./product'));
+  const productMetadata: ProductMetadata = {
+    name:  'my-product',
+    label: 'My Product',
+    icon:  'gear',
+  };
 
-  // Add Vue Routes
-  plugin.addRoutes(extensionRouting);
+  const productConfig: ProductChild[] = [
+    {
+      name:      'overview', // custom page
+      label:     'Overview',
+      component: () => import('./components/overview.vue'),
+    },
+    {
+      type:   'provisioning.cattle.io.cluster', // resource page
+      label:  'Custom Clusters view',
+    },
+    {
+      name:      'custom-settings', // group with children (only allowed for custom pages)
+      label:     'Custom Settings',
+      children: [
+        {
+          name:      'general',
+          label:     'General',
+          component: () => import('./components/general.vue'),
+        },
+      ],
+    },
+  ];
+
+  // adds a new extension
+  plugin.addProduct(productMetadata, productConfig);
 }
 ```
 
-Next, create a new file `./pkg/my-app/product.ts` with this content:
-
-```ts
-import { IPlugin } from '@shell/core/types';
-
-export function init($extension: IPlugin, store: any) {
-  const YOUR_PRODUCT_NAME = 'myProductName';
-  const BLANK_CLUSTER = '_';
-
-  const { product } = $extension.DSL(store, YOUR_PRODUCT_NAME);
-
-  product({
-    icon: 'gear',
-    inStore: 'management',
-    weight: 100,
-    to: {
-      name: `${YOUR_PRODUCT_NAME}-c-cluster`,
-      path: `/${YOUR_PRODUCT_NAME}/c/:cluster/dashboard`,
-      params: {
-        product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER,
-        pkg: YOUR_PRODUCT_NAME,
-      },
-    },
-  });
-}
-```
-
-And finally create a file + folder `/routing/extension-routing.js` with the content:
-
-```js
-// Don't forget to create a VueJS page called index.vue in the /pages folder!!!
-import Dashboard from '../pages/index.vue';
-
-const BLANK_CLUSTER = '_';
-const YOUR_PRODUCT_NAME = 'myProductName';
-
-const routes = [
-  {
-    name: `${YOUR_PRODUCT_NAME}-c-cluster`,
-    path: `/${YOUR_PRODUCT_NAME}/c/:cluster`,
-    component: Dashboard,
-    meta: {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER,
-      pkg: YOUR_PRODUCT_NAME,
-    },
-  },
-];
-
-export default routes;
-```
-
-This will create an entry on the main navigation bar in Rancher UI and when clicked it will take you to a `dashboard` page inside it
-
+This will create a new extension, with a custom page, a resource page and a group with another custom page inside. To know more about product registration, check this [page](./api/products.md).
 
 ## Building the Extension
 

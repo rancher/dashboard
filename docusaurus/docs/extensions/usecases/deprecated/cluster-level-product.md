@@ -1,10 +1,10 @@
-# Extension as a top-level product
+# Extension as a cluster-level product (deprecated)
 
-## What is a top-level product
-If you're not familiar with a top-level product is, check it's definition [here](../api/concepts.md#what-is-a-top-level-product).
+## What is a cluster-level product (deprecated)
+If you're not familiar with a cluster-level product is, check it's definition [here](../../api/deprecated/concepts-deprecated.md#what-is-a-cluster-level-product).
 
-## Top-level product full code example
-As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
+## Cluster-level product full code example (deprecated)
+As a full example of an Extension as cluster-level product, let's start with the definition of `product.ts` config:
 
 ```ts
 // ./index.ts
@@ -35,37 +35,29 @@ The `product.ts` config will then define the product and which "pages/views" we 
 // ./product.ts
 import { IPlugin } from '@shell/core/types';
 
-// this is the definition of a "blank cluster" for Rancher Dashboard
-// definition of a "blank cluster" in Rancher Dashboard
-const BLANK_CLUSTER = '_';
-
-
 export function init($extension: IPlugin, store: any) {
-  const YOUR_PRODUCT_NAME = 'myProductName';
+  const YOUR_PRODUCT_NAME = 'clusterLevelProduct';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
-  
-  const { 
+
+  const {
     product,
     configureType,
     virtualType,
     basicType
   } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
-  // registering a top-level product
+  // registering a cluster-level product
   product({
-    icon: 'gear',
-    inStore: 'management',
-    weight: 100,
-    to: {
-      name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
-      params: {
-        product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER
-      }
+    icon:    'gear',
+    inStore: 'cluster', // this is what defines the extension as a cluster-level product
+    weight:  100,
+    to:      {
+      name:   `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
+      params: { product: YOUR_PRODUCT_NAME }
     }
   });
-  
+
   // defining a k8s resource as page
   configureType(YOUR_K8S_RESOURCE_NAME, {
     displayName: 'some-custom-name-you-wish-to-assign-to-this-resource',
@@ -76,111 +68,89 @@ export function init($extension: IPlugin, store: any) {
     showState:   true,
     canYaml:     true,
     customRoute: {
-      name: `${ YOUR_PRODUCT_NAME }-c-cluster-resource`,
+      name:   `c-cluster-${ YOUR_PRODUCT_NAME }-resource`,
       params: {
-        product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER,
+        product:  YOUR_PRODUCT_NAME,
         resource: YOUR_K8S_RESOURCE_NAME
       }
     }
   });
-
-  
 
   // creating a custom page
   virtualType({
     labelKey: 'some.translation.key',
     name:     CUSTOM_PAGE_NAME,
     route:    {
-      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
-      params: {
-        product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER
-      }
+      name:   `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
+      params: { product: YOUR_PRODUCT_NAME }
     }
   });
 
   // registering the defined pages as side-menu entries
   basicType([YOUR_K8S_RESOURCE_NAME, CUSTOM_PAGE_NAME]);
 }
-```
 
+```
 
 In the example above, we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
 
-> Note: For more information on routing for a Top-level-product, check [here](../api/nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product)
+> Note: For more information on routing for a Top-level-product, check [here](../../api/deprecated/routing.md#routes-definition-for-an-extension-as-a-top-level-product)
 
 The `/routing/extension-routing.ts` would then be defined like:
 
 ```ts
 // ./routing/extension-routing.ts
-// definition of a "blank cluster" in Rancher Dashboard
-const BLANK_CLUSTER = '_';
-
-import MyCustomPage from '../pages/myCustomPage.vue';
 import ListResource from '@shell/pages/c/_cluster/_product/_resource/index.vue';
 import CreateResource from '@shell/pages/c/_cluster/_product/_resource/create.vue';
 import ViewResource from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
 import ViewNamespacedResource from '@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue';
+import MyCustomPage from '../pages/myCustomPage.vue';
 
 // to achieve naming consistency throughout the extension
 // we recommend this to be defined on a config file and exported
 // so that the developer can import it wherever it needs to be used
-const YOUR_PRODUCT_NAME = 'the-name-of-your-product';
+const YOUR_PRODUCT_NAME = 'clusterLevelProduct';
 const CUSTOM_PAGE_NAME = 'page1';
 
 const routes = [
   // this covers the "custom page"
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/${ CUSTOM_PAGE_NAME }`,
+    name:      `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
+    path:      `/c/:cluster/${ YOUR_PRODUCT_NAME }/${ CUSTOM_PAGE_NAME }`,
     component: MyCustomPage,
-    meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
-    },
+    meta:      { product: YOUR_PRODUCT_NAME },
   },
   // the following routes cover the "resource page"
   // registering routes for list/edit/create views
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-resource`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/:resource`,
+    name:      `c-cluster-${ YOUR_PRODUCT_NAME }-resource`,
+    path:      `/c/:cluster/${ YOUR_PRODUCT_NAME }/:resource`,
     component: ListResource,
-    meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
-    },
+    meta:      { product: YOUR_PRODUCT_NAME },
   },
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-resource-create`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/:resource/create`,
+    name:      `c-cluster-${ YOUR_PRODUCT_NAME }-resource-create`,
+    path:      `/c/:cluster/${ YOUR_PRODUCT_NAME }/:resource/create`,
     component: CreateResource,
-    meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
-    },
+    meta:      { product: YOUR_PRODUCT_NAME },
   },
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-resource-id`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/:resource/:id`,
+    name:      `c-cluster-${ YOUR_PRODUCT_NAME }-resource-id`,
+    path:      `/c/:cluster/${ YOUR_PRODUCT_NAME }/:resource/:id`,
     component: ViewResource,
-    meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
-    },
+    meta:      { product: YOUR_PRODUCT_NAME },
   },
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-resource-namespace-id`,
-    path:      `/${ YOUR_PRODUCT_NAME }/:cluster/:resource/:namespace/:id`,
+    name:      `c-cluster-${ YOUR_PRODUCT_NAME }-resource-namespace-id`,
+    path:      `/:cluster/${ YOUR_PRODUCT_NAME }/:resource/:namespace/:id`,
     component: ViewNamespacedResource,
-    meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
-    },
+    meta:      { product: YOUR_PRODUCT_NAME },
   }
 ];
 
 export default routes;
 ```
+
+> Note: Comparing with a [Top-level product](./top-level-product), we can see that the routes definition in `product.ts` and `/routing/extension-routing.ts` don't have the notion of a `BLANK CLUSTER`. This is on purpose, because a Cluster-level product needs the context of cluster where it's running when compared with a Top-level product, which is "above" all clusters.
 
 A full working example of this code, which can be deployed as an Extension on you Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dasboard.

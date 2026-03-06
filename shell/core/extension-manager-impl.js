@@ -405,6 +405,11 @@ export const createExtensionManager = (context) => {
       }
     },
 
+    // Internal use only
+    _add(id, plugin) {
+      plugins[id] = plugin;
+    },
+
     // For debugging
     getAll() {
       return dynamic;
@@ -506,6 +511,26 @@ export const createExtensionManager = (context) => {
             if (impl.init) {
               impl.init(plugin, store);
             }
+          });
+        }
+
+        // Load products and product extensions using the simpler API
+        if (plugin.productConfigs?.length) {
+          // Add new products first
+          plugin.productConfigs.filter((p) => p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+
+          // Extend existing products after new products are added
+          plugin.productConfigs.filter((p) => !p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+        }
+
+        // Apply all type configurations
+        if (plugin.resourceTypeConfigs?.length) {
+          plugin.resourceTypeConfigs.forEach((resourceTypeConfig) => {
+            resourceTypeConfig.apply(plugin, store, app.router, pluginRoutes);
           });
         }
       });
