@@ -315,6 +315,10 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
         </div>
 
         <slot name="item-card-sub-header" />
+        <template v-if="!$slots['item-card-sub-header']">
+          <!-- DIV added to add the gap if the sub-header is not provided -->
+          <div />
+        </template>
 
         <template v-if="$slots['item-card-content']">
           <slot name="item-card-content">
@@ -406,6 +410,10 @@ $image-medium-box-width: 48px;
     width: 100%;
     height: 24px;
     color: var(--body-text);
+
+    &.small {
+      height: 32px;
+    }
 
     &-left,
     &-right {
