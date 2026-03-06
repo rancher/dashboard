@@ -314,11 +314,10 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
           </div>
         </div>
 
-        <slot name="item-card-sub-header" />
-        <template v-if="!$slots['item-card-sub-header']">
+        <slot name="item-card-sub-header">
           <!-- DIV added to add the gap if the sub-header is not provided -->
           <div />
-        </template>
+        </slot>
 
         <template v-if="$slots['item-card-content']">
           <slot name="item-card-content">
