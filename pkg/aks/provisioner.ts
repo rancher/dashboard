@@ -38,11 +38,11 @@ export class AKSProvisioner implements IClusterProvisioner {
     return {
       machines:     false,
       logs:         false,
-      registration: false,
+      registration: true,
       snapshots:    false,
       related:      true,
-      events:       false,
-      conditions:   false,
+      events:       true,
+      conditions:   true,
     };
   }
 
