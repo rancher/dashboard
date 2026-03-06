@@ -40,3 +40,17 @@ export function getHighestAlertColor(colors: StateColor[]) {
 
 // 1x1 transparent image as a placeholder image
 export const BLANK_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+/**
+ * Checks if the given element's text is truncated.
+ *
+ * @param element The DOM element to check for truncation
+ * @returns boolean indicating if the element's text is truncated
+ */
+export function isTruncated(element: HTMLElement | null): boolean {
+  if (!element) {
+    return false;
+  }
+
+  return element.scrollWidth > element.clientWidth || (element.scrollHeight - element.clientHeight > 1);
+}
