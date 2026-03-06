@@ -51,6 +51,7 @@ export default {
     v-model:value="value.data"
     :mode="mode"
     :initial-empty-row="true"
+    :value-can-be-empty="true"
     :handle-base64="true"
     :value-trim="false"
     :add-allowed="true"
