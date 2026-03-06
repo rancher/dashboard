@@ -760,15 +760,21 @@ export default class Workload extends WorkloadService {
     }
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
+    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+
+    if (!this.pods || (this.pods.length === 0 && !canScale)) {
+      return null;
+    }
 
     return {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
       props:     {
-        title:       this.t('component.resource.detail.card.podsCard.title'),
-        resources:   this.pods,
-        showScaling: this.canUpdate && scalingTypes.includes(this.type),
-        onIncrease:  () => this.scale(true),
-        onDecrease:  () => this.scale(false)
+        title:              this.t('component.resource.detail.card.podsCard.title'),
+        resources:          this.pods,
+        showScaling:        canScale,
+        onIncrease:         () => this.scale(true),
+        onDecrease:         () => this.scale(false),
+        noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
       }
     };
   }
@@ -776,7 +782,7 @@ export default class Workload extends WorkloadService {
   get jobsCard() {
     const supportedTypes = [WORKLOAD_TYPES.CRON_JOB];
 
-    if (!supportedTypes.includes(this.type)) {
+    if (!supportedTypes.includes(this.type) || (this.jobs?.length || 0) <= 0) {
       return null;
     }
 
@@ -794,6 +800,7 @@ export default class Workload extends WorkloadService {
     return [
       this.podsCard,
       this.jobsCard,
+      this.insightCard,
       ...this._cards
     ];
   }

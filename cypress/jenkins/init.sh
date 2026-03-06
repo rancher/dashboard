@@ -107,9 +107,7 @@ create_initial_clusters() {
     # Configure Helm Repositories and Chart URLs
     # ============================================================================
     # Determines which Helm chart repository to use based on RANCHER_HELM_REPO:
-    # - Prime repos (rancher-prime, rancher-latest, rancher-alpha): Use production rancher-prime chart
-    # - Community repos (rancher-com-alpha, rancher-community, rancher-com-rc): Use respective community chart repos
-    # Sets up chart URLs, repo names, and image registries for corral configuration
+    # Sets up chart URLs, repo names, and image registries for corral.
     # ============================================================================
     if [[ -n "${RANCHER_HELM_REPO}" ]]; then
       if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" ]]; then
@@ -122,22 +120,20 @@ create_initial_clusters() {
         RANCHER_CHART_REPO_FOR_CORRAL="prime"
       elif [[ "${RANCHER_HELM_REPO}" == "rancher-latest" ]]; then
         # Prime - staging (RC versions)
-        RANCHER_CHART_URL=https://charts.rancher.com/server-charts/prime
-        HELM_REPO_NAME=rancher-prime
+        RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/latest
+        HELM_REPO_NAME=rancher-latest 
         helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}"
-        helm repo add rancher-latest https://charts.optimus.rancher.io/server-charts/latest
         helm repo update
         corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
-        RANCHER_CHART_REPO_FOR_CORRAL="prime"
+        RANCHER_CHART_REPO_FOR_CORRAL="latest"
       elif [[ "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
         # Prime alpha - staging
-        RANCHER_CHART_URL=https://charts.rancher.com/server-charts/prime
-        HELM_REPO_NAME=rancher-prime
+        RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/alpha
+        HELM_REPO_NAME=rancher-alpha 
         helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}"
-        helm repo add rancher-alpha https://charts.optimus.rancher.io/server-charts/alpha
         helm repo update
         corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
-        RANCHER_CHART_REPO_FOR_CORRAL="prime"
+        RANCHER_CHART_REPO_FOR_CORRAL="alpha"
       elif [[ "${RANCHER_HELM_REPO}" == "rancher-com-alpha" ]]; then
         # Community alpha - staging
         RANCHER_CHART_URL=https://releases.rancher.com/server-charts/alpha
@@ -173,32 +169,19 @@ create_initial_clusters() {
     # ============================================================================
     # Resolve Rancher Chart Version
     # ============================================================================
-    # Searches the configured Helm repository to find the matching chart version:
-    # - For rancher-prime: Finds version matching the base image tag (handles both partial like "v2.13" 
-    #   and full versions like "v2.13.1")
-    # - For rancher-latest/rancher-alpha: Extracts major.minor version from the image tag
-    #   (e.g., "2.13" from "v2.13" or "v2.13.1") to find the highest matching production 
-    #   chart version (e.g., "2.13.1")
-    # - For head tags: Gets the latest available version from the repo
+    # Resolve to the latest chart in the major.minor series (from version_string) in the repo for that build type.
     # ============================================================================
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
     if [[ -n "${HELM_REPO_NAME}" ]]; then
       if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
         RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
+      elif [ "${RANCHER_HELM_REPO}" = "rancher-alpha" ]; then
+        RANCHER_VERSION=$(helm search repo rancher-alpha --devel --versions | grep "^rancher-alpha/rancher[[:space:]]" | grep "${version_string}" | grep -- "-alpha" | head -n 1 | cut -f2 | tr -d '[:space:]')
+      elif [ "${RANCHER_HELM_REPO}" = "rancher-latest" ]; then
+        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "^rancher-latest/rancher[[:space:]]" | grep "${version_string}" | grep -- "-rc" | head -n 1 | cut -f2 | tr -d '[:space:]')
       else
-        if [ "${RANCHER_HELM_REPO}" = "rancher-alpha" ] || [ "${RANCHER_HELM_REPO}" = "rancher-latest" ]; then
-          major_minor=$(echo "${version_string}" | sed 's/^v//' | cut -d. -f1-2)
-          RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "^${HELM_REPO_NAME}/rancher[[:space:]]" | grep "${major_minor}" | head -n 1 | cut -f2 | tr -d '[:space:]')
-          # Validate that RANCHER_VERSION was found for Prime repos
-          if [ -z "${RANCHER_VERSION}" ]; then
-            echo "ERROR: Could not find Rancher chart version for ${RANCHER_IMAGE_TAG} (major.minor: ${major_minor}) in ${HELM_REPO_NAME} repo. Failing pipeline early."
-            exit 1
-          fi
-        else
-          RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
-        fi
+        RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
       fi
-      # Validate that RANCHER_VERSION was found (for non-Prime repos and head tags)
       if [ -z "${RANCHER_VERSION}" ]; then
         echo "ERROR: Could not find Rancher version for ${RANCHER_IMAGE_TAG} in ${HELM_REPO_NAME} repo. Failing pipeline early."
         exit 1
@@ -208,42 +191,20 @@ create_initial_clusters() {
     # ============================================================================
     # Determine Image Tags and Registry Configuration
     # ============================================================================
-    # Sets the correct image tag and registry for each repo type:
-    # - rancher-prime (production): Uses chart version (from Step 2) with 'v' prefix from production registry
-    # - rancher-latest (RC): Searches rancher-latest repo to find the highest matching RC image version (e.g., "2.13.1-rc1")
-    # - rancher-alpha (alpha): Searches rancher-alpha repo to find the highest matching alpha image version (e.g., "2.13.2-alpha1")
-    # - Community repos: Uses RANCHER_IMAGE_TAG as-is (including -head tags)
-    # Configures environment variables (CATTLE_AGENT_IMAGE, RANCHER_VERSION_TYPE) for corral
+    # Prime: image tag = v + RANCHER_VERSION; sets env_var_map (CATTLE_AGENT_IMAGE, RANCHER_VERSION_TYPE).
+    # Community: RANCHER_IMAGE_TAG as-is (including -head tags).
     # ============================================================================
     if [ "${RANCHER_HELM_REPO}" = "rancher-prime" ] || \
        [ "${RANCHER_HELM_REPO}" = "rancher-latest" ] || \
        [ "${RANCHER_HELM_REPO}" = "rancher-alpha" ]; then
-      if [[ "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
-        found_version=$(helm search repo rancher-alpha --devel --versions | grep "^rancher-alpha/rancher[[:space:]]" | grep "${version_string}" | grep -- "-alpha" | head -n 1 | cut -f2 | tr -d '[:space:]')
-        if [[ -n "${found_version}" ]]; then
-          RANCHER_IMAGE_TAG_FOR_CORRAL="v${found_version}"
-        else
-          echo "ERROR: Could not find alpha version for ${RANCHER_IMAGE_TAG} in rancher-alpha repo. Failing pipeline early."
-          exit 1
-        fi
-        corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG_FOR_CORRAL}"
-        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|stgregistry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG_FOR_CORRAL}', RANCHER_VERSION_TYPE|prime"]'
-      elif [[ "${RANCHER_HELM_REPO}" == "rancher-latest" ]]; then
-        found_version=$(helm search repo rancher-latest --devel --versions | grep "^rancher-latest/rancher[[:space:]]" | grep "${version_string}" | grep -- "-rc" | head -n 1 | cut -f2 | tr -d '[:space:]')
-        if [[ -n "${found_version}" ]]; then
-          RANCHER_IMAGE_TAG_FOR_CORRAL="v${found_version}"
-        else
-          echo "ERROR: Could not find RC version for ${RANCHER_IMAGE_TAG} in rancher-latest repo. Failing pipeline early."
-          exit 1
-        fi
+      if [[ "${RANCHER_HELM_REPO}" == "rancher-alpha" ]] || [[ "${RANCHER_HELM_REPO}" == "rancher-latest" ]]; then
+        RANCHER_IMAGE_TAG_FOR_CORRAL="v${RANCHER_VERSION}"
         corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG_FOR_CORRAL}"
         corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|stgregistry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG_FOR_CORRAL}', RANCHER_VERSION_TYPE|prime"]'
       else
         RANCHER_IMAGE_TAG_FOR_CORRAL="v${RANCHER_VERSION}"
         corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG_FOR_CORRAL}"
-        if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" ]]; then
-          corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|registry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG_FOR_CORRAL}', RANCHER_VERSION_TYPE|prime"]'
-        fi
+        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|registry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG_FOR_CORRAL}', RANCHER_VERSION_TYPE|prime"]'
       fi
     else
       corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
@@ -344,10 +305,18 @@ corral config vars set nodejs_version "${NODEJS_VERSION}"
 corral config vars set dashboard_repo "${DASHBOARD_REPO}"
 corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 
-# Jenkins pipeline runs against Vai-enabled Rancher; append exclusion of @noVai tests
-# (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
+# Exclude tagged E2E tests that don't apply to Rancher build:
+# - @noVai: Jenkins pipeline runs against Vai-enabled Rancher; skip tests that assume Vai is off
+#   (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
+# - @noPrime: on Prime/alpha/latest, skip tests that assume non-Prime defaults
+#   (e.g. priority/oidc-provider-setup.spec.ts — OIDC Provider is already enabled on Prime).
+# - @prime: on community builds, skip tests that are Prime-only.
 if [[ -n "${CYPRESS_TAGS}" ]]; then
-  CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
+  if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" || "${RANCHER_HELM_REPO}" == "rancher-latest" || "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
+    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai+-@noPrime"
+  else
+    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai+-@prime"
+  fi
 fi
 corral config vars set cypress_tags "${CYPRESS_TAGS}"
 

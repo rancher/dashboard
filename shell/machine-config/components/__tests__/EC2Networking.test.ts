@@ -82,9 +82,9 @@ describe('component: EC2Networking', () => {
   });
 
   it.each([
-    [[{ hasIpv6: true }, { hasIpv6: false }], true],
-    [[{ hasIpv6: false }, { hasIpv6: false }], false],
-    [[{ hasIpv6: true }, { hasIpv6: true }], false],
+    [[{ isIpv6: true }, { isIpv6: false }], true],
+    [[{ isIpv6: false }, { isIpv6: false }], false],
+    [[{ isIpv6: true }, { isIpv6: true }], false],
   ])('should show an error banner if pools do not either all have ipv6 or all have ipv4', (pools, shouldShowError) => {
     const wrapper = shallowMount(EC2Networking, { ...defaultCreateSetup, propsData: { ...defaultCreateSetup.propsData, machinePools: pools } });
     const ipv6Warning = wrapper.findComponent('[data-testid="amazonEc2__ipv6Warning"]');
@@ -97,7 +97,7 @@ describe('component: EC2Networking', () => {
       ...defaultCreateSetup,
       propsData: {
         ...defaultCreateSetup.propsData,
-        machinePools: [{ hasIpv6: true }],
+        machinePools: [{ isIpv6: true }],
       },
     });
 
@@ -112,7 +112,7 @@ describe('component: EC2Networking', () => {
       ...defaultCreateSetup,
       propsData: {
         ...defaultCreateSetup.propsData,
-        machinePools: [{ hasIpv6: false }],
+        machinePools: [{ isIpv6: false }],
       },
     });
 
@@ -127,7 +127,7 @@ describe('component: EC2Networking', () => {
       ...defaultCreateSetup,
       propsData: {
         ...defaultCreateSetup.propsData,
-        machinePools: [{ hasIpv6: true }, { hasIpv6: false }],
+        machinePools: [{ isIpv6: true }, { isIpv6: false }],
       },
     });
 
@@ -139,7 +139,7 @@ describe('component: EC2Networking', () => {
       ...defaultCreateSetup,
       propsData: {
         ...defaultCreateSetup.propsData,
-        machinePools: [{ hasIpv6: true }, { hasIpv6: true }],
+        machinePools: [{ isIpv6: true }, { isIpv6: true }],
       },
     });
 

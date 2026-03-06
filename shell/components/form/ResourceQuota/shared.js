@@ -1,62 +1,86 @@
+export const TYPES = {
+  EXTENDED:                'extended',
+  CONFIG_MAPS:             'configMaps',
+  LIMITS_CPU:              'limitsCpu',
+  LIMITS_MEM:              'limitsMemory',
+  PVC:                     'persistentVolumeClaims',
+  PODS:                    'pods',
+  REPLICATION_CONTROLLERS: 'replicationControllers',
+  REQUESTS_CPU:            'requestsCpu',
+  REQUESTS_MEMORY:         'requestsMemory',
+  REQUESTS_STORAGE:        'requestsStorage',
+  SECRETS:                 'secrets',
+  SERVICES:                'services',
+  SERVICES_LOAD_BALANCERS: 'servicesLoadBalancers',
+  SERVICES_NODE_PORTS:     'servicesNodePorts',
+};
+
 export const RANCHER_TYPES = [
   {
-    value:          'configMaps',
+    value:          TYPES.EXTENDED,
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.custom',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:          TYPES.CONFIG_MAPS,
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.configMaps',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'limitsCpu',
+    value:          TYPES.LIMITS_CPU,
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.limitsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:          'limitsMemory',
+    value:          TYPES.LIMITS_MEM,
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.limitsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    value:          'persistentVolumeClaims',
+    value:          TYPES.PVC,
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.persistentVolumeClaims',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'pods',
+    value:          TYPES.PODS,
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.pods',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'replicationControllers',
+    value:          TYPES.REPLICATION_CONTROLLERS,
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.replicationControllers',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'requestsCpu',
+    value:          TYPES.REQUESTS_CPU,
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.requestsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:          'requestsMemory',
+    value:          TYPES.REQUESTS_MEMORY,
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.requestsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    value:          'requestsStorage',
+    value:          TYPES.REQUESTS_STORAGE,
     units:          'storage',
     inputExponent:  2,
     increment:      1024,
@@ -64,7 +88,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.storagePlaceholder'
   },
   {
-    value:          'secrets',
+    value:          TYPES.SECRETS,
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -72,7 +96,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'services',
+    value:          TYPES.SERVICES,
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -80,7 +104,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'servicesLoadBalancers',
+    value:          TYPES.SERVICES_LOAD_BALANCERS,
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -88,7 +112,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:          'servicesNodePorts',
+    value:          TYPES.SERVICES_NODE_PORTS,
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -99,28 +123,28 @@ export const RANCHER_TYPES = [
 
 export const HARVESTER_TYPES = [
   {
-    value:          'limitsCpu',
+    value:          TYPES.LIMITS_CPU,
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.limitsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:          'limitsMemory',
+    value:          TYPES.LIMITS_MEM,
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.limitsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    value:          'requestsCpu',
+    value:          TYPES.REQUESTS_CPU,
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.requestsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:          'requestsMemory',
+    value:          TYPES.REQUESTS_MEMORY,
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.requestsMemory',
@@ -130,7 +154,7 @@ export const HARVESTER_TYPES = [
 
 export const ROW_COMPUTED = {
   typeOption() {
-    return this.types.find((type) => type.value === this.type);
+    return this.types.find((type) => type.value === this.type.split('.')[0]);
   }
 };
 

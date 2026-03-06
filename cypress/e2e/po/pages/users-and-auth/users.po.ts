@@ -24,7 +24,7 @@ export default class UsersPo extends ClusterPage {
   }
 
   waitForRequests() {
-    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0'], 15000);
+    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/management.cattle.io.users?*'], 15000);
   }
 
   list() {

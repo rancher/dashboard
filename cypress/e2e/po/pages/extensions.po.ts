@@ -83,7 +83,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.waitForPage();
 
     // fill the form
-    appRepoCreate.repoRadioBtn().set(1);
+    appRepoCreate.selectGitRepoCard();
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
@@ -118,7 +118,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
-    appRepoCreate.selectRadioOptionGitRepo(1);
+    appRepoCreate.selectRcItemCard('git-repo');
     // fill the git repo form
     appRepoCreate.enterGitRepoName(repo);
     appRepoCreate.enterGitBranchName(branch);

@@ -159,7 +159,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -239,11 +243,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // // so we need to stub status code and body here to force the error
     // // to prevent the user from updating the password.
     // // To be clear, this is not a bug, the issue is specific to Cypress automation
-    // // cy.intercept('POST', '/v3/users?action=changepassword', {
+    // // cy.intercept('POST', '/v1/ext.cattle.io.passwordchangerequests', {
     // //   statusCode: 422,
     // //   body:       { message: `Password must be at least ${ settings['password-min-length'].new } characters` }
     // // }).as('changePwError');
-    // cy.intercept('POST', '/v3/users?action=changepassword').as('changePwError');
+    // cy.intercept('POST', '/v1/ext.cattle.io.passwordchangerequests').as('changePwError');
 
     // accountPage.apply();
     // cy.wait('@changePwError');

@@ -9,6 +9,7 @@ const displayCount = computed(() => props.count < 1000 ? props.count : '999+');
   <div
     class="rc-counter-badge"
     :class="{[props.type]: true, disabled: props.disabled}"
+    data-testid="rc-counter-badge"
   >
     {{ displayCount }}
   </div>

@@ -42,12 +42,13 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   machines(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .get('.col-machine-summary-graph');
   }
 
   explore(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(7)
-      .find('.btn');
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .get('[data-testid="cluster-manager-list-explore-management"]');
   }
 
   actionMenu(clusterName: string) {

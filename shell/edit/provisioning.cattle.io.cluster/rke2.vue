@@ -28,8 +28,9 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve,
 } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -43,7 +44,6 @@ import { canViewClusterMembershipEditor } from '@shell/components/form/Members/C
 import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
-import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS, CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
@@ -66,8 +66,11 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
+import {
+  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
+} from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
-const HARVESTER = 'harvester';
+
 const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -158,6 +161,8 @@ export default {
 
     this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
     this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+    this.fleetAgentDefaultPC = sc.fleetAgentDefaultPC;
+    this.fleetAgentDefaultPDB = sc.fleetAgentDefaultPDB;
     this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
     this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
     this.errors = this.errors.concat(sc.errors);
@@ -169,9 +174,8 @@ export default {
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
 
-      this.userChartValues[key] = value;
+      this.set(this.userChartValues, key, value);
     });
-
     this.setAgentConfiguration();
   },
 
@@ -272,7 +276,7 @@ export default {
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasSomeIpv6Pools
+      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
       clusterAgentDeploymentCustomization:      null,
@@ -280,6 +284,8 @@ export default {
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
+      fleetAgentDefaultPC:                      null,
+      fleetAgentDefaultPDB:                     null,
       activeTab:                                null,
       isGoogle,
       isAuthenticated:                          !isGoogle || this.mode === _EDIT,
@@ -290,11 +296,16 @@ export default {
       addonConfigDiffs:                         {},
       originalKubeVersion:                      null,
       isEmpty,
+      AGENT_CONFIGURATION_TYPES,
+      basicsValid:                              true
     };
   },
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+    isK3s() {
+      return this.value?.isK3s;
+    },
 
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
@@ -848,8 +859,12 @@ export default {
       }
     },
 
-    hasSomeIpv6Pools() {
-      return !!(this.machinePools || []).find((p) => p.hasIpv6);
+    hasOnlyIpv6Pools() {
+      return !(this.machinePools || []).find((p) => !p.isIpv6 || p.isDualStack);
+    },
+
+    hasDualStackPools() {
+      return !!(this.machinePools || []).find((p) => p.isDualStack);
     },
 
     validationPassed() {
@@ -889,9 +904,16 @@ export default {
     overallFormValidationPassed() {
       return this.validationPassed &&
             this.fvFormIsValid &&
-            this.etcdConfigValid;
+            this.etcdConfigValid &&
+            this.basicsValid;
     },
+    nginxSupported() {
+      if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
+        return true;
+      }
 
+      return false;
+    },
   },
 
   watch: {
@@ -957,7 +979,6 @@ export default {
       }
 
       this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
-
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
       if (this.mode === _CREATE) {
@@ -988,22 +1009,11 @@ export default {
         this.agentConfig['cloud-provider-name'] = undefined;
       }
     },
-
-    hasSomeIpv6Pools(neu) {
-      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
-        if (neu) {
-          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
-
-          return;
-        }
-
-        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
-      }
-    },
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
+    this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
@@ -1061,7 +1071,7 @@ export default {
         this.rkeConfig.etcd = {
           disableSnapshots:     false,
           s3:                   null,
-          snapshotRetention:    5,
+          snapshotRetention:    RETENTION_DEFAULT,
           snapshotScheduleCron: '0 */5 * * *',
         };
       } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
@@ -1155,11 +1165,27 @@ export default {
       }
     },
 
-    setSchedulingCustomization(val) {
-      if (val) {
-        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+    setSchedulingCustomization({ event, agentType }) {
+      if (event) {
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+          break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          set(this.value, 'spec.fleetAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.fleetAgentDefaultPC, podDisruptionBudget: this.fleetAgentDefaultPDB });
+          break;
+        default:
+        }
       } else {
-        delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
+          break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          delete this.value.spec.fleetAgentDeploymentCustomization.schedulingCustomization;
+          break;
+        default:
+        }
       }
     },
 
@@ -1328,14 +1354,15 @@ export default {
       const name = `pool${ ++this.lastIdx }`;
 
       const pool = {
-        id:      name,
+        id:          name,
         config,
-        remove:  false,
-        create:  true,
-        update:  false,
-        uid:     name,
-        hasIpv6: false,
-        pool:    {
+        remove:      false,
+        create:      true,
+        update:      false,
+        uid:         name,
+        isIpv6:      false,
+        isDualStack: false,
+        pool:        {
           name,
           etcdRole:             numCurrentPools === 0,
           controlPlaneRole:     numCurrentPools === 0,
@@ -1523,6 +1550,59 @@ export default {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.value.mgmt.id);
       }
+    },
+
+    async showIpv6Warning(hookContext) {
+      if (this.mode !== _CREATE || !this.machinePools?.length) {
+        return;
+      }
+      const stackPreference = this.value.spec.rkeConfig.networking.stackPreference;
+      const isK3s = (this.selectedVersion?.label || '').toLowerCase().includes('k3s');
+      const flannelMasqEnabled = this.serverConfig['flannel-ipv6-masq'];
+      const clusterCIDR = (this.serverConfig['cluster-cidr'] || '');
+      const serviceCIDR = (this.serverConfig['service-cidr'] || '');
+
+      const isDualStack = this.hasDualStackPools;
+      const isIpv6 = this.hasOnlyIpv6Pools;
+
+      const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && ![STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(stackPreference));
+
+      const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
+      const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');
+
+      if (!stackPrefInvalid && !flannelMasqInvalid && !clusterCIDRInvalid && !serviceCIDRInvalid) {
+        return;
+      }
+
+      const warnings = [];
+
+      if (stackPrefInvalid) {
+        warnings.push('cluster.rke2.modal.ipv6Warning.stackPrefInvalid');
+      }
+      if (flannelMasqInvalid) {
+        warnings.push('cluster.rke2.modal.ipv6Warning.flannelMasqInvalid');
+      }
+      if (clusterCIDRInvalid || serviceCIDRInvalid) {
+        warnings.push(isK3s ? 'cluster.rke2.modal.ipv6Warning.cidrInvalidK3s' : 'cluster.rke2.modal.ipv6Warning.cidrInvalidRke2');
+      }
+
+      await new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', {
+          component:      'Ipv6NetworkingDialog',
+          componentProps: {
+            warnings,
+            isK3s,
+            confirm: (confirmed) => {
+              if (confirmed) {
+                resolve();
+              } else {
+                reject(new Error('User Cancelled'));
+              }
+            }
+          },
+        });
+      });
     },
 
     /**
@@ -1771,25 +1851,10 @@ export default {
       });
     },
 
-    /**
-     * Ensure all chart information required to show addons is available
-     *
-     * This basically means
-     * 1) That the full chart relating to the addon is fetched (which includes core chart, readme and values)
-     * 2) We're ready to cache any values the user provides for each addon
-     */
-    async initAddons() {
-      this.addonConfigValidation = {};
+    async getChartValue(chartName) {
+      const entry = this.chartVersions[chartName];
 
-      for (const chartName of this.addonNames) {
-        const entry = this.chartVersions[chartName];
-
-        // prevent fetching of addon config for 'none' CNI option
-        // https://github.com/rancher/dashboard/issues/10338
-        if (this.versionInfo[chartName] || chartName.includes('none')) {
-          continue;
-        }
-
+      if (entry) {
         try {
           const res = await this.$store.dispatch('catalog/getVersionInfo', {
             repoType:    'cluster',
@@ -1807,6 +1872,28 @@ export default {
         } catch (e) {
           console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
         }
+      }
+    },
+
+    /**
+     * Ensure all chart information required to show addons is available
+     *
+     * This basically means
+     * 1) That the full chart relating to the addon is fetched (which includes core chart, readme and values)
+     * 2) We're ready to cache any values the user provides for each addon
+     */
+    async initAddons() {
+      this.addonConfigValidation = {};
+      const ingressCharts = !this.isK3s ? ['rke2-ingress-nginx', 'rke2-traefik'] : [];
+
+      for (const chartName of [...this.addonNames, ...ingressCharts]) {
+        // prevent fetching of addon config for 'none' CNI option
+        // https://github.com/rancher/dashboard/issues/10338
+        if (this.versionInfo[chartName] || chartName.includes('none')) {
+          continue;
+        }
+
+        await this.getChartValue(chartName);
       }
     },
 
@@ -1882,6 +1969,7 @@ export default {
       if (!this.serverConfig?.profile) {
         this.serverConfig.profile = null;
       }
+      this.updateNginxConfiguration(this.serverConfig?.disable || []);
     },
 
     chartVersionKey(name) {
@@ -2116,6 +2204,8 @@ export default {
     handleKubernetesChange(value, old) {
       if (value) {
         this.togglePsaDefault();
+        // Need to make sure we explicitly set ingress due to a default change
+        this.updateNginxConfiguration(this.serverConfig?.disable || []);
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
@@ -2137,8 +2227,28 @@ export default {
         this.machinePoolValidation[id] = value;
       }
     },
+
+    updateNginxConfiguration(disabledServerConfig) {
+      // We only need to explicitly set INGRESS_CONTROLLER for RKE2, we continue to rely on disable list for K3s
+      if (!this.isK3s) {
+        // For new instances, we want Traefik to be default
+        if (this.isCreate) {
+          this.serverConfig[INGRESS_CONTROLLER] = TRAEFIK;
+        // Older existing instances might be relying on default setting, which is changing from nginx to traefik
+        // so we need to make sure to set it to nginx explicitly to avoid breaking existing clusters
+        } else if (!this.serverConfig[INGRESS_CONTROLLER]) {
+          if (!disabledServerConfig.includes(RKE2_INGRESS_NGINX) && this.nginxSupported) {
+            this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
+          } else {
+            this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
+          }
+        }
+      }
+    },
+
     handleEnabledSystemServicesChanged(val) {
       this.serverConfig.disable = val;
+      this.updateNginxConfiguration(val);
     },
 
     handleCiliumValuesChanged(neu) {
@@ -2221,9 +2331,9 @@ export default {
 
     handleFlannelMasqChanged(neu) {
       if (neu || neu === false) {
-        this.serverConfig['enable-flannel-masq'] = neu;
+        this.serverConfig['flannel-ipv6-masq'] = neu;
       } else {
-        delete this.serverConfig['enable-flannel-masq'];
+        delete this.serverConfig['flannel-ipv6-masq'];
       }
     },
 
@@ -2266,7 +2376,6 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
-
   }
 };
 </script>
@@ -2462,10 +2571,10 @@ export default {
             <Basics
               ref="tab-Basics"
               v-model:value="localValue"
-              :live-value="liveValue"
               :mode="mode"
               :provider="provider"
               :user-chart-values="userChartValues"
+              :version-info="versionInfo"
               :credential="credential"
               :compliance-override="complianceOverride"
               :all-psas="allPSAs"
@@ -2482,7 +2591,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
-              :has-some-ipv6-pools="hasSomeIpv6Pools"
+              :has-some-ipv6-pools="hasOnlyIpv6Pools"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
@@ -2490,6 +2599,10 @@ export default {
               @compliance-changed="handleComplianceChanged"
               @psa-default-changed="handlePsaDefaultChanged"
               @show-deprecated-patch-versions-changed="handleShowDeprecatedPatchVersionsChanged"
+              @update-values="updateValues"
+              @yaml-validation-changed="e => addonConfigValidationChanged(e.name, e.val)"
+              @config-validation-changed="(val)=>basicsValid = val"
+              @error="e=>errors.push(e)"
             />
           </Tab>
 
@@ -2538,8 +2651,8 @@ export default {
               :selected-version="selectedVersion"
               :truncate-limit="truncateLimit"
               :machine-pools="machinePools"
-              :has-some-ipv6-pools="hasSomeIpv6Pools"
-              :enable-flannel-masq="serverConfig['enable-flannel-masq']"
+              :has-some-ipv6-pools="hasOnlyIpv6Pools"
+              :flannel-ipv6-masq="serverConfig['flannel-ipv6-masq']"
               @truncate-hostname-changed="truncateHostname"
               @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
               @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
@@ -2552,7 +2665,7 @@ export default {
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
               @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
               @validationChanged="(val)=>stackPreferenceError = !val"
-              @enable-flannel-masq-changed="handleFlannelMasqChanged"
+              @flannel-ipv6-masq-changed="handleFlannelMasqChanged"
             />
           </Tab>
 
@@ -2644,7 +2757,7 @@ export default {
             <AgentConfiguration
               v-model:value="value.spec.clusterAgentDeploymentCustomization"
               data-testid="rke2-cluster-agent-config"
-              type="cluster"
+              :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
               :mode="mode"
               :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
               :default-p-c="clusterAgentDefaultPC"
@@ -2663,8 +2776,13 @@ export default {
               v-if="value.spec.fleetAgentDeploymentCustomization"
               v-model:value="value.spec.fleetAgentDeploymentCustomization"
               data-testid="rke2-fleet-agent-config"
-              type="fleet"
+              :type="AGENT_CONFIGURATION_TYPES.FLEET"
               :mode="mode"
+              :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+              :default-p-c="fleetAgentDefaultPC"
+              :default-p-d-b="fleetAgentDefaultPDB"
+              :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
+              @scheduling-customization-changed="setSchedulingCustomization"
             />
           </Tab>
 

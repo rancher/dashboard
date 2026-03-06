@@ -187,6 +187,17 @@ describe('class Namespace', () => {
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');
 
+  describe('hideDetailLocation', () => {
+    it('should not throw when currentProduct is undefined', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ currentProduct: undefined });
+
+      expect(() => namespace.hideDetailLocation).not.toThrow();
+      expect(namespace.hideDetailLocation).toBe(true);
+    });
+  });
+
   describe('glance', () => {
     it('should return projectGlance instead of namespace when namespace is in a project', () => {
       const t = jest.fn((key) => key);

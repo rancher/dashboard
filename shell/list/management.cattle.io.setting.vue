@@ -66,6 +66,17 @@ export default {
 
     this.settings = settings;
     this.provisioningSettings = provisioningSettings;
+
+    this.$nextTick(() => {
+      // Handle scrolling to hash anchor after data is loaded
+      if (this.$route.hash) {
+        const element = document.querySelector(this.$route.hash);
+
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
   },
 
   data() {
@@ -89,6 +100,7 @@ export default {
     </Banner>
     <div
       v-for="(setting) in settings"
+      :id="setting.id"
       :key="setting.id"
     >
       <Setting
@@ -101,6 +113,7 @@ export default {
     </h2>
     <div
       v-for="(setting) in provisioningSettings"
+      :id="setting.id"
       :key="setting.id"
     >
       <Setting

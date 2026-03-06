@@ -28,16 +28,16 @@ export function install(router, context) {
 }
 
 /**
- * Generate an object that includes both the v3User and the me data
- * @param {*} v3User V3 user information
+ * Generate an object that includes both the user and the me data
+ * @param {*} user User information
  * @param {*} me Me user data
  * @returns User info to be passed to `isLoggedIn`
  */
-function getUserObject(v3User, me) {
+function getUserObject(user, me) {
   return {
     id: me.id,
     me,
-    v3User,
+    user,
   };
 }
 
@@ -59,10 +59,9 @@ export async function authenticate(to, from, next, { store }) {
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
+    const user = store.getters['auth/user'] || {};
 
-    const v3User = store.getters['auth/v3User'] || {};
-
-    if (v3User?.mustChangePassword) {
+    if (user?.mustChangePassword) {
       return next({ name: 'auth-setup' });
     }
 
@@ -75,7 +74,7 @@ export async function authenticate(to, from, next, { store }) {
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
-      await isLoggedIn(store, getUserObject(v3User, me));
+      await isLoggedIn(store, getUserObject(user, me));
       handleOidcRedirectToCallbackUrl();
     } else if ( fromHeader === 'false' ) {
       notLoggedIn(store, next, to);
@@ -86,7 +85,7 @@ export async function authenticate(to, from, next, { store }) {
       try {
         const me = await findMe(store);
 
-        await isLoggedIn(store, getUserObject(v3User, me));
+        await isLoggedIn(store, getUserObject(user, me));
         handleOidcRedirectToCallbackUrl();
       } catch (e) {
         const status = e?._status;

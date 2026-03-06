@@ -397,9 +397,7 @@ describe('class: Resource', () => {
 
       const cards = resource.cards;
 
-      expect(cards).toHaveLength(1);
-      expect(cards[0]).toHaveProperty('component');
-      expect(cards[0]).toHaveProperty('props');
+      expect(cards).toHaveLength(0);
     });
   });
 
@@ -427,6 +425,33 @@ describe('class: Resource', () => {
       expect(props.rows).toHaveLength(2);
       expect(props.rows[0].label).toBe('component.resource.detail.card.insightsCard.rows.conditions');
       expect(props.rows[1].label).toBe('component.resource.detail.card.insightsCard.rows.events');
+    });
+  });
+
+  describe('getter: _glance', () => {
+    it('should not throw when currentCluster or currentProduct is undefined', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: { creationTimestamp: '2024-01-01T00:00:00Z' }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':            (key: string) => key,
+          currentCluster:      undefined,
+          currentProduct:      undefined,
+          'type-map/labelFor': () => 'Test',
+        },
+      });
+
+      expect(() => resource._glance).not.toThrow();
+
+      const glance = resource._glance;
+      const namespaceItem = glance.find((item: any) => item.name === 'namespace');
+
+      expect(namespaceItem.formatter).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.cluster).toBeUndefined();
+      expect(namespaceItem.formatterOpts.to.product).toBeUndefined();
     });
   });
 

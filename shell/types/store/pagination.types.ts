@@ -73,7 +73,7 @@ export const enum PaginationFilterEquality {
   /**
    * Field does not match a value
    */
-  NOT_EQUALS= '!=', // eslint-disable-line no-unused-vars
+  NOT_EQUALS = '!=', // eslint-disable-line no-unused-vars
   /**
    * Unknown
    */
@@ -81,19 +81,19 @@ export const enum PaginationFilterEquality {
   /**
    * Field must partially match a value
    */
-  CONTAINS= '~', // eslint-disable-line no-unused-vars
+  CONTAINS = '~', // eslint-disable-line no-unused-vars
   /**
    * Field must not partially match a value
    */
-  NOT_CONTAINS= '!~', // eslint-disable-line no-unused-vars
+  NOT_CONTAINS = '!~', // eslint-disable-line no-unused-vars
   /**
    * Field must be greater than a value
    */
-  GREATER_THAN= 'gt', // eslint-disable-line no-unused-vars
+  GREATER_THAN = 'gt', // eslint-disable-line no-unused-vars
   /**
    * Field must be less than a value
    */
-  LESS_THAN= 'lt', // eslint-disable-line no-unused-vars
+  LESS_THAN = 'lt', // eslint-disable-line no-unused-vars
 }
 
 /**

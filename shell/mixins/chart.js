@@ -10,7 +10,8 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease, compare, isUpgradeFromPreToStable } from '@shell/utils/version';
+import { isPrerelease } from '@shell/utils/version';
+import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
@@ -51,7 +52,12 @@ export default {
     },
 
     mappedVersions() {
-      const versions = this.chart?.versions || [];
+      const versions = (this.chart?.versions || []).slice();
+
+      versions.sort((a, b) => {
+        return compareChartVersions(b.version, a.version);
+      });
+
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
       const out = [];
@@ -240,13 +246,9 @@ export default {
         };
       }
 
-      if (isUpgradeFromPreToStable(this.currentVersion, this.targetVersion)) {
-        return {
-          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
-        };
-      }
+      const diff = compareChartVersions(this.currentVersion, this.targetVersion);
 
-      if (compare(this.currentVersion, this.targetVersion) < 0) {
+      if (diff < 0) {
         return {
           name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
         };

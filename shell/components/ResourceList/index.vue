@@ -86,6 +86,18 @@ export default {
     }
   },
 
+  beforeMount() {
+    if (!this.hasListComponent) {
+      // If a list doesn't have a list component confirm via schema that the resource is listable
+      const inStore = this.$store.getters['currentStore'](this.resource);
+      const canList = this.$store.getters[`${ inStore }/canList`](this.resource);
+
+      if (!canList) {
+        this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true)));
+      }
+    }
+  },
+
   data() {
     const getters = this.$store.getters;
     const params = { ...this.$route.params };

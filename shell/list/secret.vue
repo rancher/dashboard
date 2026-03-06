@@ -7,8 +7,8 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
-import { SECRET_CLONE, SECRET_PROJECT_SCOPED } from '@shell/config/table-headers';
-import { STEVE_SECRET_CLONE } from '@shell/config/pagination-table-headers';
+import { SECRET_ORIGIN } from '@shell/config/table-headers';
+import { STEVE_SECRET_ORIGIN } from '@shell/config/pagination-table-headers';
 
 export default {
   name: 'ListSecret',
@@ -61,13 +61,8 @@ export default {
 
     if (this.canViewProjects) {
       // if the user can see projects, add a column to let them know if it's a secret from a project scoped secret
-      headers.push(SECRET_CLONE);
-      headersSSP.push(STEVE_SECRET_CLONE);
-      if (this.currentCluster.isLocal) {
-        // if the user is on the local cluster, add a column to let them know if it's a project scoped secret (from another cluster)
-        headers.push(SECRET_PROJECT_SCOPED);
-        headersSSP.push(SECRET_PROJECT_SCOPED);
-      }
+      headers.push(SECRET_ORIGIN);
+      headersSSP.push(STEVE_SECRET_ORIGIN);
     }
 
     headers.push(this.namespacedHeaders[this.namespacedHeaders.length - 1]);

@@ -1,6 +1,6 @@
 <script>
 import BackLink from '@shell/components/BackLink';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import Loading from '@shell/components/Loading';
 import Principal from '@shell/components/auth/Principal';
@@ -9,25 +9,74 @@ import { mapGetters } from 'vuex';
 
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
-import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import TabTitle from '@shell/components/TabTitle';
 
-const API_ENDPOINT = '/v3';
+import { allHash } from '@shell/utils/promise';
+
+import {
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE,
+  LAST_USED, AGE_NORMAN, SCOPE_NORMAN, NORMAN_KEY_DEPRECATION
+} from '@shell/config/table-headers';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   components: {
-    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
+    BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
   },
   mixins: [BackRoute],
   async fetch() {
+    const hashedRequests = {};
+
     this.canChangePassword = await this.calcCanChangePassword();
 
-    if (this.apiKeySchema) {
-      this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
+    this.normanTokenSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
+    this.steveTokenSchema = this.$store.getters[`management/schemaFor`](EXT.TOKEN);
+
+    const selfUser = await this.$store.dispatch('auth/getSelfUser');
+
+    if (this.normanTokenSchema) {
+      hashedRequests.normanTokens = this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
+    }
+
+    if (this.steveTokenSchema) {
+      this.filterByUserTokens = this.$store.getters[`management/paginationEnabled`](EXT.TOKEN);
+
+      if (this.filterByUserTokens && selfUser?.status?.userID) {
+        // Only get associated with the current user
+        const opt = { // Of type ActionFindPageArgs
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createSingleField({
+              field: 'metadata.fields.1',
+              value: selfUser.status?.userID,
+            })
+          })
+        };
+
+        hashedRequests.steveTokens = this.$store.dispatch(`management/findPage`, { type: EXT.TOKEN, opt });
+      } else {
+        hashedRequests.steveTokens = this.$store.dispatch('management/findAll', { type: EXT.TOKEN });
+      }
+    }
+
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
+      hashedRequests.user = this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      });
     }
 
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
-    const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    hashedRequests.allSettings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+
+    const {
+      normanTokens, steveTokens, allSettings, user
+    } = await allHash(hashedRequests);
+
+    this.normanTokens = normanTokens;
+    this.steveTokens = steveTokens;
+    this.user = user;
+
     const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
     const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);
 
@@ -36,54 +85,31 @@ export default {
   },
   data() {
     return {
+      normanTokenSchema: undefined,
+      steveTokenSchema:  undefined,
       apiHostSetting:    null,
       serverUrlSetting:  null,
       rows:              null,
-      canChangePassword: false
+      canChangePassword: false,
+      user:              null,
+      normanTokens:      null,
+      steveTokens:       null,
     };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
     apiKeyheaders() {
-      return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
-    },
-
-    // Port of Ember code for API Url - see: https://github.com/rancher/ui/blob/8e07c492673171731f3b26af14c978bc103d1828/lib/shared/addon/endpoint/service.js#L58
-    apiUrlBase() {
-      let setting = this.apiHostSetting;
-
-      if (setting && setting.indexOf('http') !== 0) {
-        setting = `http://${ setting }`;
-      }
-
-      // Use Server Setting URL if the api host setting is not set
-      let url = setting || this.serverUrlSetting;
-
-      // If the URL is relative, add on the current base URL from the browser
-      if ( url.indexOf('http') !== 0 ) {
-        url = `${ window.location.origin }/${ url.replace(/^\/+/, '') }`;
-      }
-
-      // URL must end in a single slash
-      url = `${ url.replace(/\/+$/, '') }/`;
-
-      return url;
-    },
-
-    apiUrl() {
-      const base = this.apiUrlBase;
-      const path = API_ENDPOINT.replace(/^\/+/, '');
-
-      return `${ base }${ path }`;
-    },
-
-    apiKeySchema() {
-      try {
-        return this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
-      } catch (e) {}
-
-      return null;
+      return [
+        EXPIRY_STATE,
+        ACCESS_KEY,
+        DESCRIPTION,
+        SCOPE_NORMAN,
+        NORMAN_KEY_DEPRECATION,
+        LAST_USED,
+        EXPIRES,
+        AGE_NORMAN
+      ];
     },
 
     principal() {
@@ -97,7 +123,7 @@ export default {
       return principal || {};
     },
 
-    apiKeys() {
+    filteredNormanTokens() {
       // Filter out tokens that are not API Keys and are not expired UI Sessions
       const isApiKey = (key) => {
         const labels = key.labels;
@@ -107,7 +133,24 @@ export default {
         return ( !expired || !labels || !labels['ui-session'] ) && !current;
       };
 
-      return !this.rows ? [] : this.rows.filter(isApiKey);
+      return !this.normanTokens ? [] : this.normanTokens.filter(isApiKey);
+    },
+
+    filteredNewTokens() {
+      // Filter out tokens that are not API Keys and are not expired UI Sessions
+      const isApiKey = (key) => {
+        const labels = key.metadata?.labels;
+        const expired = key.status?.expired;
+        const current = key.status?.current;
+
+        return ( !expired || !labels || !labels['ui-session'] ) && !current;
+      };
+
+      return !this.steveTokens ? [] : this.steveTokens.filter(isApiKey);
+    },
+
+    apiKeys() {
+      return (this.filteredNormanTokens || []).concat(this.filteredNewTokens || []);
     }
   },
 
@@ -124,24 +167,18 @@ export default {
         return !!this.principal.loginName;
       }
 
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
-      });
+      const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      if (users && users.length === 1) {
-        return !!users[0].username;
-      }
-
-      return false;
+      return !!passwordChangeRequest?.canChangePassword;
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {
-        component:   'ChangePasswordDialog',
-        testId:      'change-password__modal',
-        customClass: 'change-password-modal',
-        modalWidth:  '500',
-        height:      '465'
+        component:      'ChangePasswordDialog',
+        componentProps: { user: this.user },
+        testId:         'change-password__modal',
+        customClass:    'change-password-modal',
+        modalWidth:     '500',
+        height:         '465'
       });
     }
   }
@@ -184,16 +221,9 @@ export default {
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
-        <div class="api-url">
-          <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <CopyToClipboardText
-            :aria-label="t('accountAndKeys.apiKeys.copyApiEnpoint')"
-            :text="apiUrl"
-          />
-        </div>
       </div>
       <button
-        v-if="apiKeySchema"
+        v-if="steveTokenSchema"
         role="button"
         :aria-label="t('accountAndKeys.apiKeys.add.label')"
         class="btn role-primary add mb-20"
@@ -204,11 +234,17 @@ export default {
       </button>
     </div>
     <div
-      v-if="apiKeySchema"
+      v-if="steveTokenSchema"
       class="keys"
     >
+      <Banner
+        v-if="filteredNormanTokens.length"
+        color="warning"
+        class="mb-20"
+        :label="t('accountAndKeys.apiKeys.normanTokenDeprecation')"
+      />
       <ResourceTable
-        :schema="apiKeySchema"
+        :schema="steveTokenSchema"
         :rows="apiKeys"
         :headers="apiKeyheaders"
         key-field="id"

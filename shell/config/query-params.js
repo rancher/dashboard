@@ -94,3 +94,6 @@ export const SECRET_QUERY_PARAMS = {
 export const SECRET_SCOPE = 'scope';
 // RANCHER OIDC CLIENT
 export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];
+
+// For REPOSITORIES, to determine which type of repo to create, used on clusterrepo create page
+export const TARGET = 'target';

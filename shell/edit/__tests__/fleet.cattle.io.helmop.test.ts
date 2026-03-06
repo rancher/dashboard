@@ -264,6 +264,7 @@ describe.each([
 
     wrapper.vm.pollingInterval = inputValue;
     wrapper.vm.updatePollingInterval(inputValue);
+    wrapper.vm.validatePollingInterval();
 
     await wrapper.vm.$nextTick();
 

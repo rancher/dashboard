@@ -1,9 +1,26 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import { SECRET } from '@shell/config/types';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 import { get } from '@shell/utils/object';
 import { rke2TestTable } from './utils/rke2-test-data';
+import {
+  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK
+} from '@shell/edit/provisioning.cattle.io.cluster/shared';
+
+jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
+  RETENTION_DEFAULT:         5,
+  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
+  RKE2_TRAEFIK:              'rke2-traefik',
+  INGRESS_NGINX:             'ingress-nginx',
+  INGRESS_CONTROLLER:        'ingress-controller',
+  TRAEFIK:                   'traefik',
+  HARVESTER:                 'harvester',
+  INGRESS_DUAL:              'dual',
+  INGRESS_NONE:              'none',
+  INGRESS_OPTIONS:           [],
+  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+}));
 
 /**
  * DISCLAIMER ***************************************************************************************
@@ -452,7 +469,11 @@ describe('component: rke2', () => {
       rke2Versions: [{
         id:         k8s,
         version:    k8s,
-        serverArgs: true
+        serverArgs: true,
+        charts:     {
+          [RKE2_INGRESS_NGINX]: {},
+          [RKE2_TRAEFIK]:       {}
+        }
       }]
     });
 
@@ -592,6 +613,7 @@ describe('component: rke2', () => {
                 repo:    'rancher-rke2-charts',
                 version: '3.12.200'
               },
+              'rke2-traefik': {}
             }
           }
         ]
@@ -611,5 +633,177 @@ describe('component: rke2', () => {
     wrapper.vm.applyChartValues(wrapper.vm.value.spec.rkeConfig);
 
     expect(wrapper.vm.value.spec.rkeConfig.chartValues).toStrictEqual(expected);
+  });
+
+  describe('should correctly update NGINX configuration', () => {
+    const k8sVersion = 'v1.25.0+rke2r1';
+    const createWrapper = (mode = _EDIT) => {
+      return shallowMount(rke2, {
+        props: {
+          mode,
+          value: {
+            spec: {
+              ...defaultSpec,
+              rkeConfig: {
+                machineGlobalConfig:   {},
+                chartValues:           {},
+                upgradeStrategy:       {},
+                dataDirectories:       {},
+                machineSelectorConfig: []
+              },
+              kubernetesVersion: k8sVersion,
+            },
+            agentConfig: {}
+          },
+          provider: 'custom',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+    const mockCharts = {
+      [RKE2_INGRESS_NGINX]: {},
+      [RKE2_TRAEFIK]:       {}
+    };
+
+    it('should set ingress-controller to traefik by default for new clusters', async() => {
+      const wrapper = createWrapper(_CREATE);
+
+      await wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }]
+      });
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
+    });
+
+    it('should set ingress-controller to None on version change when nginx is not supported', async() => {
+      const wrapper = createWrapper();
+      const newVersion = 'v1.26.0+rke2r1';
+
+      await wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [] } },
+          charts:     mockCharts
+        },
+        {
+          id:         newVersion,
+          version:    newVersion,
+          serverArgs: { disable: { options: [] } },
+          charts:     mockCharts
+        }]
+      });
+      wrapper.vm.value.spec.kubernetesVersion = newVersion;
+      (wrapper.vm as any).handleKubernetesChange(newVersion);
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
+    });
+
+    it('should set ingress-controller to ingress-nginx on change when nginx is supported and not disabled', () => {
+      const wrapper = createWrapper();
+
+      wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }]
+      });
+
+      (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
+    });
+
+    it('should set ingress-controller to None when nginx is supported but disabled', () => {
+      const wrapper = createWrapper();
+
+      wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }]
+      });
+
+      (wrapper.vm as any).handleEnabledSystemServicesChanged([RKE2_INGRESS_NGINX]);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
+    });
+
+    it('should set ingress-controller for existing cluster to None when nginx is not supported', () => {
+      const wrapper = createWrapper();
+
+      wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [] } },
+          charts:     mockCharts
+        }]
+      });
+
+      (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
+    });
+
+    it('should correctly update disable list in serverConfig', () => {
+      const wrapper = createWrapper();
+
+      wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }]
+      });
+      const disabledServices = ['other-service'];
+
+      (wrapper.vm as any).handleEnabledSystemServicesChanged(disabledServices);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig.disable).toStrictEqual(disabledServices);
+    });
+
+    it('should set ingress-controller to ingress-nginx on version change when nginx is supported', async() => {
+      const wrapper = createWrapper();
+      const newVersion = 'v1.26.0+rke2r1';
+
+      await wrapper.setData({
+        rke2Versions: [
+          {
+            id:         k8sVersion,
+            version:    k8sVersion,
+            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+            charts:     mockCharts
+          },
+          {
+            id:         newVersion,
+            version:    newVersion,
+            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+            charts:     mockCharts
+          }
+        ]
+      });
+
+      wrapper.vm.value.spec.kubernetesVersion = newVersion;
+      (wrapper.vm as any).handleKubernetesChange(newVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
+    });
   });
 });

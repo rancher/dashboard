@@ -5,6 +5,7 @@ import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
+import { COUNT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
@@ -238,6 +239,7 @@ export default {
        */
       sortGeneration:               undefined,
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
+      hasSearchFilter:              false,
     };
   },
 
@@ -600,6 +602,26 @@ export default {
         pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
       };
     },
+
+    /**
+     * Get the counts data by namespace for the current resource type
+     */
+    namespaceCounts() {
+      if (!this.inStore || !this.schema?.id) {
+        return {};
+      }
+
+      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      return counts[this.schema.id]?.namespaces || {};
+    },
+
+    /**
+     * Whether we should show namespace counts in group tabs
+     */
+    showNamespaceCounts() {
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
+    },
   },
 
   methods: {
@@ -671,6 +693,8 @@ export default {
           }
         });
       }
+
+      this.hasSearchFilter = !!arg?.filtering?.searchQuery;
     }
   }
 };
@@ -750,10 +774,15 @@ export default {
     </template>
 
     <template #group-by="{group: thisGroup}">
-      <div
-        v-clean-html="thisGroup.ref"
-        class="group-tab"
-      />
+      <div class="group-tab">
+        <span v-clean-html="thisGroup.ref" />
+        <span
+          v-if="showNamespaceCounts && Number.isInteger(namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count)"
+          class="count"
+        >
+          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count }})
+        </span>
+      </div>
     </template>
 
     <!-- Pass down templates provided by the caller -->
@@ -798,5 +827,10 @@ export default {
 <style lang="scss" scoped>
 .auto-update {
   min-width: 150px; height: 40px
+}
+
+.group-tab .count {
+  opacity: 0.7;
+  margin-left: 2px;
 }
 </style>

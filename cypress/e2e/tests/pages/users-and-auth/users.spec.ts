@@ -121,45 +121,41 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   it('can Refresh Group Memberships', () => {
-    // Refresh Group Membership and verify request is made
+    // Refresh Group Membership and verify request is made.
     usersPo.goTo();
     usersPo.waitForPage();
-    cy.intercept('POST', '/v3/users?action=refreshauthprovideraccess').as('refreshGroup');
+    cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
     usersPo.list().refreshGroupMembership().click();
-    cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
+    cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
   });
 
   describe('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
-      cy.intercept('GET', '/v3/users?limit=0').as('getUsers');
+      cy.intercept('GET', '/v1/management.cattle.io.users?*').as('getUsers');
       usersPo.goTo();
       usersPo.waitForPage();
       cy.wait('@getUsers');
 
-      let menu = usersPo.list().actionMenu(standardUsername);
-
-      // Deactivate user and check state is Inactive
-      menu.checkVisible();
-      menu.getMenuItem('Disable').click();
-      menu.checkNotExists();
+      // Deactivate user - must chain directly, don't store menu in variable
+      usersPo.list().actionMenu(standardUsername).getMenuItem('Disable').click();
 
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
+      // Wait for the menu to fully close before opening again - check that no visible dropdown exists
+      cy.get('[dropdown-menu-collection]:visible').should('not.exist');
+
       // Activate user and check state is Active
-      menu = usersPo.list().actionMenu(standardUsername);
-      menu.checkVisible();
-      menu.getMenuItem('Enable').click();
-      menu.checkNotExists();
+      usersPo.list().actionMenu(standardUsername).getMenuItem('Enable').click();
 
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
 
     it('can Refresh Group Memberships', () => {
       // Refresh Group Membership and verify request is made
-      cy.intercept('POST', `/v3/users/${ userId }?action=refreshauthprovideraccess`).as('refreshGroup');
+      cy.intercept('POST', `/v1/ext.cattle.io.groupmembershiprefreshrequests`).as('refreshGroup');
       usersPo.waitForRequests();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
-      cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
+      cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
     });
 
     it('can Edit Config', () => {
@@ -173,7 +169,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const mgmtUserEditPo = new MgmtUserEditPo();
 
       mgmtUserEditPo.description().set('e2e_test');
-      mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
+      mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v1/management.cattle.io.users/${ userId }`).then((res) => {
         expect(res.response?.statusCode).to.equal(200);
         expect(res.response?.body.description).to.equal('e2e_test');
       });
@@ -217,10 +213,12 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       const promptRemove = new PromptRemove();
 
-      cy.intercept('DELETE', '/v3/users/*').as('deleteUser');
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(standardUsername);
       promptRemove.remove();
-      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
+        expect([200, 204]).to.include(statusCode);
+      });
       usersPo.list().elementWithName(standardUsername).should('not.exist');
     });
   });
@@ -228,7 +226,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Bulk Actions', () => {
     it('can Deactivate and Activate users', () => {
       // Deactivate user and check state is Inactive
-      cy.intercept('PUT', '/v3/users/*').as('updateUsers');
+      cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
       usersPo.waitForRequests();
       usersPo.list().selectAll().set();
       usersPo.list().deactivate().click();
@@ -264,10 +262,12 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().bulkActionButton('Delete').click({ force: true });
       const promptRemove = new PromptRemove();
 
-      cy.intercept('DELETE', '/v3/users/*').as('deleteUser');
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(userBaseUsername);
       promptRemove.remove();
-      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
+        expect([200, 204]).to.include(statusCode);
+      });
       usersPo.list().elementWithName(userBaseUsername).should('not.exist');
     });
   });
@@ -280,8 +280,15 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     before('set up', () => {
       cy.login();
-      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
-        initialCount = resp.body.data.length - 1;
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        initialCount = filteredUsersNotSystem.length - 1;
       });
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
 
@@ -315,8 +322,15 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const count = initialCount + 26;
 
       // check users count
-      cy.waitForRancherResources('v3', 'users', count).then((resp: Cypress.Response<any>) => {
-        const count = resp.body.data.length;
+      cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        const count = filteredUsersNotSystem.length;
 
         // pagination is visible
         usersPo.list().resourceTable().sortableTable().pagination()
@@ -506,7 +520,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     after(() => {
       cy.deleteManyResources({
         toDelete: userIdsList,
-        deleteFn: (r) => cy.deleteRancherResource('v3', 'Users', r, false)
+        deleteFn: (r) => cy.deleteRancherResource('v1', 'management.cattle.io.users', r, false)
       });
 
       // Ensure the default rows per page value is set after executing the tests

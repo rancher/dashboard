@@ -49,6 +49,7 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
+      isQuotasValid:      true,
     };
   },
   computed: {
@@ -109,6 +110,9 @@ export default {
     }
   },
   methods: {
+    validateQuotas(isValid) {
+      this.isQuotasValid = isValid;
+    },
     async save(saveCb) {
       try {
         this.errors = [];
@@ -156,15 +160,9 @@ export default {
       this['membershipUpdate'] = update;
     },
 
-    removeQuota(key) {
-      ['resourceQuota', 'namespaceDefaultResourceQuota'].forEach((specProp) => {
-        if (this.value?.spec[specProp]?.limit && this.value?.spec[specProp]?.limit[key]) {
-          delete this.value?.spec[specProp]?.limit[key];
-        }
-        if (this.value?.spec[specProp]?.usedLimit && this.value?.spec[specProp]?.usedLimit[key]) {
-          delete this.value?.spec[specProp]?.usedLimit[key];
-        }
-      });
+    onQuotasInput({ projectLimit, nsLimit }) {
+      this.value.spec.resourceQuota = { ...this.value.spec.resourceQuota, limit: projectLimit };
+      this.value.spec.namespaceDefaultResourceQuota = { ...this.value.spec.namespaceDefaultResourceQuota, limit: nsLimit };
     }
   },
 };
@@ -178,7 +176,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && isQuotasValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -227,7 +225,8 @@ export default {
           :value="value"
           :mode="canEditTabElements"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @remove="removeQuota"
+          @input="onQuotasInput"
+          @validationChanged="validateQuotas"
         />
       </Tab>
       <Tab

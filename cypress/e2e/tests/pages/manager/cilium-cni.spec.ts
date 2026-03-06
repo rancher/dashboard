@@ -38,7 +38,7 @@ describe('RKE2 Cilium CNI', () => {
     cy.login();
   });
 
-  it('bandwidth manager configuration is sent correctly on cluster create', { tags: ['@manager', '@adminUser'] }, () => {
+  it('bandwidth manager configuration is sent correctly on cluster create', { tags: ['@manager', '@adminUser', '@clusterConfig'] }, () => {
     cy.intercept('GET', '/v3/cloudcredentials', reply(200, cloudCredentialsResponse)).as('cloudCredentials');
 
     const clusterList = new ClusterManagerListPagePo();

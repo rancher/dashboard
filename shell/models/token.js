@@ -16,4 +16,8 @@ export default class extends NormanModel {
 
     return expiry.isBefore(day());
   }
+
+  get isDeprecated() {
+    return true;
+  }
 }

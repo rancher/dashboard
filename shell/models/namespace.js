@@ -134,6 +134,10 @@ export default class Namespace extends SteveModel {
     return project;
   }
 
+  get projectNameDisplay() {
+    return this.project?.nameDisplay || '';
+  }
+
   get groupById() {
     const projectId = this.project?.id;
 
@@ -267,7 +271,9 @@ export default class Namespace extends SteveModel {
   }
 
   get hideDetailLocation() {
-    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
+    const currentProduct = this.$rootGetters['currentProduct'];
+
+    return currentProduct ? !!currentProduct.hideNamespaceLocation : true;
   }
 
   get glance() {

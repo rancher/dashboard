@@ -7,6 +7,10 @@ export default {
   components: { Checkbox, Banner },
   emits:      ['scheduling-customization-changed'],
   props:      {
+    type: {
+      type:     String,
+      required: true,
+    },
     value: {
       type:    Object,
       default: () => {},
@@ -26,6 +30,10 @@ export default {
     defaultPDB: {
       type:    Object,
       default: () => {},
+    },
+    checkboxWithOnlyAgentName: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -59,10 +67,10 @@ export default {
     <Checkbox
       :value="enabled"
       :mode="mode"
-      label-key="cluster.agentConfig.subGroups.schedulingCustomization.label"
-      descriptionKey="cluster.agentConfig.subGroups.schedulingCustomization.description"
+      :label="checkboxWithOnlyAgentName ? t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`) : t('cluster.agentConfig.subGroups.agentsScheduling.label', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
+      :description="checkboxWithOnlyAgentName ? '' :t('cluster.agentConfig.subGroups.agentsScheduling.description', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
       data-testid="scheduling-customization-checkbox"
-      @update:value="$emit('scheduling-customization-changed', $event)"
+      @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
     >
       <template
         v-if="feature && isEdit && settingMissmatch"
@@ -71,13 +79,13 @@ export default {
         <Banner
           class="mt-10 mb-10"
           color="info"
-          label-key="cluster.agentConfig.subGroups.schedulingCustomization.banner"
+          :label="t('cluster.agentConfig.subGroups.agentsScheduling.banner', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
         />
         <Checkbox
           :value="applyGlobal"
           :mode="mode"
-          label-key="cluster.agentConfig.subGroups.schedulingCustomization.innerCheckbox"
-          @update:value="$emit('scheduling-customization-changed', feature)"
+          :label="t('cluster.agentConfig.subGroups.agentsScheduling.innerCheckbox', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
+          @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
         />
       </template>
     </Checkbox>

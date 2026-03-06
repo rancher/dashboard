@@ -79,6 +79,18 @@ describe('component: ResourcePopover/index.vue', () => {
       expect(wrapper.find('.display').exists()).toBe(false);
     });
 
+    it('should show plain text and no PopoverCard when fetch fails', async() => {
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(PopoverCard).exists()).toBe(false);
+      expect(wrapper.text()).toBe('test-ns/test-pod');
+    });
+
     it('should fetch data using the default store', async() => {
       const wrapper = createWrapper();
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RcItemCardAction } from '@components/RcItemCard';
+import { RcButton } from '@components/RcButton';
 
 interface FooterItem {
   icon?: string;
@@ -30,26 +31,34 @@ function onClickItem(type: string, label: string) {
       class="app-chart-card-footer-item"
       data-testid="app-chart-card-footer-item"
     >
-      <i
-        v-if="footerItem.icon"
-        v-clean-tooltip="t(footerItem.iconTooltip?.key)"
-        :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
-      />
       <template
         v-for="(label, j) in footerItem.labels"
         :key="j"
       >
         <rc-item-card-action
           v-if="clickable && footerItem.type"
-          v-clean-tooltip="footerItem.labelTooltip"
-          class="app-chart-card-footer-item-text secondary-text-link"
-          data-testid="app-chart-card-footer-item-text"
-          tabindex="0"
-          :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
-          @click="onClickItem(footerItem.type, label)"
+          class="app-chart-card-footer-item-text"
         >
-          {{ label }}
-          <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+          <rc-button
+            v-clean-tooltip="footerItem.labelTooltip"
+            variant="ghost"
+            class="app-chart-card-footer-button secondary-text-link"
+            data-testid="app-chart-card-footer-item-text"
+            :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel', { filter: label })"
+            @click="onClickItem(footerItem.type, label)"
+          >
+            <template
+              v-if="footerItem.icon"
+              #before
+            >
+              <i
+                v-clean-tooltip="t(footerItem.iconTooltip?.key)"
+                :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
+              />
+            </template>
+            {{ label }}
+            <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+          </rc-button>
         </rc-item-card-action>
         <span
           v-else
@@ -78,7 +87,6 @@ function onClickItem(type: string, label: string) {
     margin-right: 8px;
 
     &-text {
-      text-transform: capitalize;
       margin-right: 8px;
       display: -webkit-box;
       -webkit-line-clamp: 1;
@@ -97,6 +105,22 @@ function onClickItem(type: string, label: string) {
       justify-content: center;
       margin-right: 8px;
     }
+  }
+
+  &-button {
+    text-transform: capitalize;
+  }
+}
+
+button.variant-ghost.app-chart-card-footer-button {
+  padding: 0;
+  gap: 0;
+  min-height: 20px;
+
+  &:focus-visible {
+    border-color: var(--primary);
+    @include focus-outline;
+    outline-offset: -2px;
   }
 }
 </style>

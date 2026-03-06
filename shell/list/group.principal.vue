@@ -2,14 +2,13 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { NORMAN, MANAGEMENT, EXT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { applyProducts } from '@shell/store/type-map';
 import { NAME } from '@shell/config/product/auth';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { allHash } from '@shell/utils/promise';
 
 export default {
   components: {
@@ -37,21 +36,20 @@ export default {
     const authConfigSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.AUTH_CONFIG);
     const grbSchema = this.$store.getters['rancher/schemaFor'](NORMAN.GLOBAL_ROLE_BINDING);
 
-    const hash = await allHash({
-      user:      this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' }),
-      providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
-    });
+    const providers = authConfigSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : [];
 
-    const nonLocalAuthProvider = !!hash.providers.find((p) => p.name !== 'local' && p.enabled === true);
+    const nonLocalAuthProvider = !!providers.find((p) => p.name !== 'local' && p.enabled === true);
 
-    this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
+    this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
   },
   data() {
     return {
       rows:                       [],
+      membershipRefreshRequests:  undefined,
       canCreateGlobalRoleBinding: false,
-      canRefreshAccess:           false,
+      canRefreshMemberships:      false,
       assignLocation:             {
         path:  `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
@@ -86,11 +84,9 @@ export default {
     },
     async refreshGroupMemberships(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/request', {
-          url:    '/v3/users?action=refreshauthprovideraccess',
-          method: 'post',
-          data:   { },
-        });
+        // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+        this.membershipRefreshRequests.spec = { userId: '*' };
+        await this.membershipRefreshRequests.save();
 
         await this.updateGroupPrincipals(true);
 
@@ -125,7 +121,7 @@ export default {
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshAccess"
+          v-if="canRefreshMemberships"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"

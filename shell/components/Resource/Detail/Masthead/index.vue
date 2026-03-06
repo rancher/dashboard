@@ -24,10 +24,11 @@ const props = defineProps<MastheadProps>();
       </template>
     </TitleBar>
     <Metadata
+      class="metadata-section"
       v-bind="props.metadataProps"
     />
     <Cards
-      class="mb-20"
+      class="cards-section"
       :resource="props.titleBarProps.resource"
     />
   </div>
@@ -35,8 +36,14 @@ const props = defineProps<MastheadProps>();
 
 <style lang='scss' scoped>
 .masthead {
-    :deep().metadata {
-        margin-top: 24px;
-    }
+  :deep() .metadata-section {
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+
+  .cards-section {
+    margin: 0;
+    margin-bottom: 24px;
+  }
 }
 </style>

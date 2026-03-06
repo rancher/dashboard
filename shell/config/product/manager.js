@@ -2,16 +2,21 @@ import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
+  EXT,
+  COUNT,
   NORMAN,
   HCI,
   MANAGEMENT,
   SNAPSHOT,
   VIRTUAL_TYPES,
-  HOSTED_PROVIDER
+  HOSTED_PROVIDER,
+  SAVED_COUNTS
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { markRaw } from 'vue';
+
 export const NAME = 'manager';
 
 export function init(store) {
@@ -125,14 +130,17 @@ export function init(store) {
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
-  weightType(CATALOG.CLUSTER_REPO, 1, true);
+  configureType(EXT.KUBECONFIG, { canYaml: false });
+  weightType(EXT.KUBECONFIG, 1, true);
+  weightType(CATALOG.CLUSTER_REPO, 0, true);
   weightType(MANAGEMENT.PSA, 5, true);
-  weightType(VIRTUAL_TYPES.JWT_AUTHENTICATION, 0, true);
+  weightType(VIRTUAL_TYPES.JWT_AUTHENTICATION, -1, true);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
+    EXT.KUBECONFIG,
     CATALOG.CLUSTER_REPO,
     MANAGEMENT.PSA,
     VIRTUAL_TYPES.JWT_AUTHENTICATION
@@ -192,4 +200,39 @@ export function init(store) {
     MACHINE_SUMMARY,
     AGE
   ]);
+
+  headers(EXT.KUBECONFIG, [
+    {
+      name:      'clusters',
+      labelKey:  'tableHeaders.clusters',
+      value:     'spec.clusters',
+      sort:      ['referencedClustersSortable'],
+      search:    ['referencedClustersSortable'],
+      formatter: 'KubeconfigClusters',
+    },
+    {
+      name:          'ttl',
+      labelKey:      'tableHeaders.ttl',
+      value:         'expiresAt',
+      formatter:     'LiveDate',
+      formatterOpts: { isCountdown: true },
+    },
+    {
+      ...AGE,
+      defaultSort: true,
+    },
+  ]);
+
+  // Configure custom count getter for cluster count (so we don't include Harvester clusters)
+  configureType(CAPI.RANCHER_CLUSTER, {
+    custom: {
+      countGetter: markRaw((getters) => {
+        const savedClusterCount = getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+        const counts = getters[`management/all`](COUNT)?.[0]?.counts || {};
+        const clusterCount = counts[CAPI.RANCHER_CLUSTER]?.summary.count;
+
+        return savedClusterCount || clusterCount;
+      })
+    }
+  });
 }

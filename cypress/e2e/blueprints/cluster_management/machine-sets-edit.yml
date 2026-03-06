@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineSet
 metadata:
   creationTimestamp: '2023-12-06T23:41:44Z'
@@ -6,7 +6,7 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: local
   managedFields:
-    - apiVersion: cluster.x-k8s.io/v1beta1
+    - apiVersion: cluster.x-k8s.io/v1beta2
       fieldsType: FieldsV1
       fieldsV1:
         f:spec:
@@ -39,6 +39,10 @@ spec:
       labels:
         cluster.x-k8s.io/set-name: e2e-machine-name-1701906098950
     spec:
-      bootstrap: {}
+      bootstrap: 
+        dataSecretName: secretname
       clusterName: local
-      infrastructureRef: {}
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123

@@ -2,7 +2,7 @@ import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 
-describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@provisioning'] }, () => {
   const providersPage = new HostedProvidersPagePo();
   const clusterList = new ClusterManagerListPagePo();
   const createCluster = new ClusterManagerCreatePagePo();

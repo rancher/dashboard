@@ -15,6 +15,10 @@ export default {
       default: null,
       type:    String
     },
+    labelIcon: {
+      type:    String,
+      default: null
+    },
     name: {
       required: true,
       type:     String
@@ -39,6 +43,10 @@ export default {
     error: {
       type:    Boolean,
       default: false
+    },
+    errorIconTooltip: {
+      type:    String,
+      default: ''
     },
     badge: {
       default:  0,

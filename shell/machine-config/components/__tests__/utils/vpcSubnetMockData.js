@@ -25,10 +25,6 @@ export const vpcInfo = {
         {
           Key:   'displayName',
           Value: 'test'
-        },
-        {
-          Key:   'Name',
-          Value: 'test-eks-vpc-VPC'
         }
       ]
     },
@@ -107,11 +103,6 @@ export const subnetInfo = {
       OwnerId:                     '1234',
       AssignIpv6AddressOnCreation: false,
       Tags:                        [
-        {
-          Key:   'Name',
-          Value: 'aws-controltower-PrivateSubnet2A'
-        },
-
         {
           Key:   'Network',
           Value: 'Private'

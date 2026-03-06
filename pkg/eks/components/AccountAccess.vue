@@ -5,7 +5,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { DEFAULT_REGION } from './CruEKS.vue';
 import { mapGetters } from 'vuex';
-import { AWS } from 'types';
+import * as AWS from '@shell/types/aws-sdk';
+
 import { formatAWSError } from '@shell/utils/error';
 
 export default defineComponent({

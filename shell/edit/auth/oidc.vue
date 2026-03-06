@@ -273,7 +273,7 @@ export default {
 
       this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
 
-      if ( isKeycloak ) {
+      if ( isKeycloak || this.isGenericOidc ) {
         this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
       }
     },

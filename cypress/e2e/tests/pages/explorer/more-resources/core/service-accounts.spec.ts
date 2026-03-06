@@ -23,7 +23,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
       serviceAccountsPagePo.waitForPage();
       cy.wait('@serviceAccNoData');
 
-      const expectedHeaders = ['State', 'Name', 'Namespace', 'Secrets', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Age'];
 
       serviceAccountsPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -41,7 +41,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
       cy.wait('@serviceAccDataSmall');
 
       // check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Namespace', 'Secrets', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Age'];
 
       serviceAccountsPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -66,7 +66,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
         .click();
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Secrets', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Age'];
 
       serviceAccountsPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

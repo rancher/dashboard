@@ -26,7 +26,7 @@ export default {
     };
   },
   computed: {
-    machinenName() {
+    machineName() {
       const name = this.resources.length > 0 ? this.resources[0]?.id?.split('/')[1] : '';
 
       return name;
@@ -81,7 +81,7 @@ export default {
     <template #body>
       <div class="pl-10 pr-10">
         <div>
-          {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ machinenName }}</b>
+          {{ t('promptScaleMachineDown.attemptingToScaleDown', { type }) }} <b>{{ machineName }}</b>
         </div>
         <div>
           <Checkbox

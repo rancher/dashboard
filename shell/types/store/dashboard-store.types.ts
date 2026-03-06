@@ -46,6 +46,10 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
    * This is done via the native kube pagination api, not steve
    */
   depaginate?: boolean,
+  /**
+   * Specifies the name to use if we should save the count returned in the paginated request
+   */
+  saveCountAs?: string,
 }
 
 /**
@@ -76,6 +80,9 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
+
+  saveCountAs?: string,
+
   /**
    * The target minimum revision for the resource.
    *

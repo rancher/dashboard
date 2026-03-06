@@ -122,6 +122,9 @@ export const READ_SUPPORT_NOTICE = create('read-support-notice', '', { parseJSON
 export const READ_UPCOMING_SUPPORT_NOTICE = create('read-upcoming-support-notice', '', { parseJSON });
 export const READ_ANNOUNCEMENTS = create('read-announcements', '', { parseJSON });
 
+// Hidden banners
+export const HIDE_SUSE_APP_COLLECTION_REPO_BANNER = create('hide-suse-app-collection-repo-banner', false);
+
 // --------------------
 
 const cookiePrefix = 'R_';

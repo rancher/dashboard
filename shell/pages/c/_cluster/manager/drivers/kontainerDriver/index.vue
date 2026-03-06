@@ -37,14 +37,15 @@ export default {
     async refreshK8sMetadata(buttonDone) {
       try {
         await this.$store.dispatch('rancher/request', {
-          url:    '/v3/kontainerdrivers?action=refresh',
-          method: 'post',
-          data:   { },
+          url:     '/v3/kontainerdrivers?action=refresh',
+          method:  'post',
+          data:    { },
+          timeout: 15000,
         });
 
         buttonDone(true);
       } catch (err) {
-        this.$store.dispatch('growl/fromError', { title: 'Error refreshing kontainer drivers', err }, { root: true });
+        this.$store.dispatch('growl/fromError', { title: this.t('drivers.kontainer.refreshError', { error: err }) }, { root: true });
         buttonDone(false);
       }
     }

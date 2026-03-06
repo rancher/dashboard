@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import { _VIEW } from '@shell/config/query-params';
 import { get, set, isEmpty, clone } from '@shell/utils/object';
-import { POD, NODE, NAMESPACE } from '@shell/config/types';
+import { POD, NAMESPACE } from '@shell/config/types';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
@@ -11,7 +11,6 @@ import { randomStr } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { getUniqueLabelKeys } from '@shell/utils/array';
 
 const NAMESPACE_SELECTION_OPTION_VALUES = {
   POD:      'pod',
@@ -45,11 +44,6 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    },
-
-    nodes: {
-      type:    Array,
-      default: () => []
     },
 
     namespaces: {
@@ -110,10 +104,6 @@ export default {
       return POD;
     },
 
-    node() {
-      return NODE;
-    },
-
     labeledInputNamespaceLabel() {
       return this.removeLabeledInputNamespaceLabel ? '' : this.overwriteLabels?.namespaceInputLabel || this.t('workload.scheduling.affinity.matchExpressions.inNamespaces');
     },
@@ -130,14 +120,6 @@ export default {
       }), 'label');
 
       return out;
-    },
-
-    existingNodeLabels() {
-      return getUniqueLabelKeys(this.nodes);
-    },
-
-    hasNodes() {
-      return this.nodes.length;
     },
 
     namespaceSelectionOptions() {
@@ -440,24 +422,7 @@ export default {
           />
           <div class="row mt-20">
             <div class="col span-9">
-              <LabeledSelect
-                v-if="hasNodes"
-                v-model:value="props.row.value.topologyKey"
-                :taggable="true"
-                :searchable="true"
-                :close-on-select="false"
-                :mode="mode"
-                required
-                :label="t('workload.scheduling.affinity.topologyKey.label')"
-                :placeholder="topologyKeyPlaceholder"
-                :options="existingNodeLabels"
-                :disabled="mode==='view'"
-                :loading="loading"
-                :data-testid="`pod-affinity-topology-select-index${props.i}`"
-                @update:value="update"
-              />
               <LabeledInput
-                v-else
                 v-model:value="props.row.value.topologyKey"
                 :mode="mode"
                 :label="t('workload.scheduling.affinity.topologyKey.label')"

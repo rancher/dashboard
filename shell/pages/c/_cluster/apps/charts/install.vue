@@ -25,7 +25,10 @@ import Wizard from '@shell/components/Wizard';
 import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI } from '@shell/config/types';
+import {
+  CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI, SECRET,
+  AUTH_TYPE, NAMESPACE as NAMESPACE_TYPE
+} from '@shell/config/types';
 import {
   CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
@@ -40,6 +43,8 @@ import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
+import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -91,7 +96,8 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription
+    TypeDescription,
+    SelectOrCreateAuthSecret
   },
 
   mixins: [
@@ -321,6 +327,8 @@ export default {
         userValues = {};
       }
 
+      this.userValues = userValues;
+
       /*
         Remove global values if they are identical to
         the currently available information about the cluster
@@ -370,49 +378,84 @@ export default {
 
     /* Look for annotation to say this app is a legacy migrated app (we look in either place for now) */
     this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
+
+    if (this.repo.isSuseAppCollection) {
+      let defaultSelectedSecret = await this.$store.getters['cluster/byId'](SECRET, `cattle-system/${ this.repo.spec.clientSecret.name }`);
+
+      if (!defaultSelectedSecret) {
+        try {
+          defaultSelectedSecret = (await this.$store.dispatch('cluster/find', { type: SECRET, id: `cattle-system/${ this.repo.spec.clientSecret.name }` }));
+        } catch (e) {
+          // If cannot get the secret for any reason, permission or doesn't exist
+          // We can fallback to use the name only and with that name move forward.
+          // On only other required data is the DecodedData but not having it will only trigger a different flow.
+          defaultSelectedSecret = { name: this.repo.spec.clientSecret.name };
+        }
+      }
+
+      this.selectedSecret = defaultSelectedSecret;
+      this.defaultGeneratedNameForImagePullSecret = `${ this.selectedSecret.name }-image-pull-secret`;
+      this.generatedNameForImagePullSecret = `${ this.selectedSecret.name }-image-pull-secret-${ generateRandomAlphaString(5) }`;
+      this.appCoDataFetched = true;
+      await this.initializeDataForNamespaceChanges();
+      await this.setImagePullSecretData();
+    }
   },
 
   data() {
     return {
-      defaultRegistrySetting: '',
-      customRegistrySetting:  '',
-      serverUrlSetting:       null,
-      chartValues:            null,
-      clusterRegistry:        '',
-      originalYamlValues:     null,
-      previousYamlValues:     null,
-      errors:                 null,
-      existing:               null,
-      globalRegistry:         '',
-      forceNamespace:         null,
-      loadedVersion:          null,
-      loadedVersionValues:    null,
-      legacyApp:              null,
-      mcapp:                  null,
-      mode:                   null,
-      value:                  null,
-      valuesComponent:        null,
-      valuesYaml:             '',
-      project:                null,
-      migratedApp:            false,
+      defaultRegistrySetting:                 '',
+      customRegistrySetting:                  '',
+      serverUrlSetting:                       null,
+      chartValues:                            null,
+      clusterRegistry:                        '',
+      originalYamlValues:                     null,
+      previousYamlValues:                     null,
+      errors:                                 null,
+      existing:                               null,
+      globalRegistry:                         '',
+      forceNamespace:                         null,
+      loadedVersion:                          null,
+      loadedVersionValues:                    null,
+      legacyApp:                              null,
+      mcapp:                                  null,
+      mode:                                   null,
+      value:                                  null,
+      valuesComponent:                        null,
+      valuesYaml:                             '',
+      project:                                null,
+      migratedApp:                            false,
       defaultCmdOpts,
-      customCmdOpts:          { ...defaultCmdOpts },
-      autoInstallInfo:        [],
-
-      nameDisabled: false,
-
-      preFormYamlOption:       VALUES_STATE.YAML,
-      formYamlOption:          VALUES_STATE.YAML,
-      showDiff:                false,
-      showValuesComponent:     true,
-      showQuestions:           true,
-      showSlideIn:             false,
-      shownReadmeWindows:      [],
-      showCommandStep:         false,
-      showCustomRegistryInput: false,
-      isNamespaceNew:          false,
-
-      stepBasic: {
+      customCmdOpts:                          { ...defaultCmdOpts },
+      autoInstallInfo:                        [],
+      nameDisabled:                           false,
+      preFormYamlOption:                      VALUES_STATE.YAML,
+      formYamlOption:                         VALUES_STATE.YAML,
+      showDiff:                               false,
+      showValuesComponent:                    true,
+      showQuestions:                          true,
+      showSlideIn:                            false,
+      shownReadmeWindows:                     [],
+      showCommandStep:                        false,
+      showCustomRegistryInput:                false,
+      isNamespaceNew:                         false,
+      selectedSecret:                         null,
+      secrets:                                [],
+      secretsView:                            [],
+      appCoSecretsView:                       [],
+      selectedImagePullSecret:                null,
+      appCoImagePullSecretView:               [],
+      generatedNameForImagePullSecret:        null,
+      defaultGeneratedNameForImagePullSecret: null,
+      defaultImagePullSecret:                 null,
+      clientSecret:                           null,
+      showCreateAuthSecret:                   false,
+      dontUseDefaultOption:                   null,
+      disabledCheckbox:                       false,
+      appCoDataFetched:                       false,
+      AUTH_TYPE,
+      CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
+      stepBasic:                              {
         name:           'basics',
         label:          this.t('catalog.install.steps.basics.label'),
         subtext:        this.t('catalog.install.steps.basics.subtext'),
@@ -465,6 +508,11 @@ export default {
       return ignoreVariables(this.versionInfo);
     },
 
+    hasDecodedDataAvailable() {
+      // Will return false if doesn't have access to neither the decodedData or the selectedSecret, or if the decodedData is empty
+      return this.selectedSecret?.decodedData;
+    },
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -478,6 +526,22 @@ export default {
 
     showProject() {
       return this.isRancher && !this.existing && this.forceNamespace;
+    },
+
+    selectedRepoAuthBanner() {
+      if (!this.selectedSecret) {
+        return '';
+      }
+
+      if (!this.dontUseDefaultOption && !this.selectedImagePullSecret) {
+        return `${ this.t('catalog.install.steps.basics.generatedImagePullSecretBannerFromPreviousAuth', { imagePullSecretName: this.defaultGeneratedNameForImagePullSecret, repoAuthenticationName: this.selectedSecret.name }, {}, true) }`;
+      } else if (!this.selectedImagePullSecret) {
+        return `${ this.t('catalog.install.steps.basics.generatedNewImagePullSecret', { imagePullSecretName: this.generatedNameForImagePullSecret }, {}, true) }`;
+      } else if (this.selectedImagePullSecret === this.defaultImagePullSecret?.name) {
+        return `${ this.t('catalog.install.steps.basics.usePreviouslyGeneratedImagePullSecretBanner', { imagePullSecretName: this.selectedImagePullSecret, repoAuthenticationName: this.selectedSecret.name }, {}, true) }`;
+      }
+
+      return '';
     },
 
     projectOpts() {
@@ -729,6 +793,13 @@ export default {
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
     },
 
+    setImagePullSecretDataTrigger() {
+      return `
+        ${ this.defaultImagePullSecret?.name }
+        ${ this.dontUseDefaultOption }
+         ${ this.selectedImagePullSecret }`;
+    }
+
   },
 
   watch: {
@@ -741,7 +812,7 @@ export default {
       }
     },
 
-    'value.metadata.namespace'(neu, old) {
+    async 'value.metadata.namespace'(neu, old) {
       if (neu) {
         const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
 
@@ -751,6 +822,14 @@ export default {
           this.project = project.replace(':', '/');
         }
       }
+
+      if (this.repo.isSuseAppCollection) {
+        await this.initializeDataForNamespaceChanges();
+      }
+    },
+
+    async setImagePullSecretDataTrigger() {
+      await this.setImagePullSecretData();
     },
 
     preFormYamlOption(neu, old) {
@@ -818,6 +897,9 @@ export default {
     window.scrollTop = 0;
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+
+    // Register the image pull secret creation hook with lower priority (runs after SelectOrCreateAuthSecret at 99)
+    this.registerBeforeHook(this.createImagePullSecret, 'createImagePullSecret', 150);
   },
 
   beforeUnmount() {
@@ -854,6 +936,54 @@ export default {
       }
     },
 
+    async initializeDataForNamespaceChanges() {
+      // Skip the flow if the data still not fetched, it will trigger after fetching manually
+      if (!this.appCoDataFetched) {
+        try {
+          this.defaultImagePullSecret = await this.$store.dispatch('cluster/find', { type: SECRET, id: `${ this.targetNamespace }/${ this.repo.spec.clientSecret.name }-image-pull-secret` });
+        } catch (e) {
+        // If the secret doesn't exist, that's fine, we'll just create a new one later
+          this.defaultImagePullSecret = null;
+        }
+
+        // Reset if doesnt have the defaultImagePullSecret and doesn't have decoded data
+        // Disable the checkbox
+        const previousDontUseDefaultOption = this.dontUseDefaultOption;
+        let dontUseDefaultOption = false;
+
+        if (!this.hasDecodedDataAvailable && !this.defaultImagePullSecret) {
+          dontUseDefaultOption = true;
+          this.disabledCheckbox = true;
+        } else {
+          dontUseDefaultOption = false;
+          this.disabledCheckbox = false;
+        }
+
+        // On upgrade mode you cannot change namespace so this works as a full setup
+        if (!!this.existing) {
+          if (this.userValues?.global?.imagePullSecrets?.[0]) {
+            this.selectedImagePullSecret = this.userValues?.global?.imagePullSecrets[0];
+          }
+          this.dontUseDefaultOption = true;
+
+          return;
+        }
+
+        this.dontUseDefaultOption = dontUseDefaultOption;
+        // Setting default values if changing to avoid duplicated trigger
+        if (this.dontUseDefaultOption !== previousDontUseDefaultOption) {
+          if (this.defaultImagePullSecret) {
+          // If the default option is used and the default secret already exists, use it
+            this.selectedImagePullSecret = this.defaultImagePullSecret.name;
+            this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+          } else if (!this.defaultImagePullSecret) {
+          // Create new option with default generated name if the default option is selected
+            this.selectedImagePullSecret = null;
+            this.chartValues.global.imagePullSecrets = [this.defaultGeneratedNameForImagePullSecret];
+          }
+        }
+      }
+    },
     async getClusterRegistry() {
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
@@ -894,6 +1024,30 @@ export default {
             return defaultRegistry.url;
           }
         }
+      }
+    },
+
+    async setImagePullSecretData() {
+      if (this.selectedSecret && this.repo.isSuseAppCollection && this.dontUseDefaultOption !== null) {
+        if (!this.dontUseDefaultOption && this.defaultImagePullSecret) {
+          // If the default option is used and the default secret already exists, use it
+          this.selectedImagePullSecret = this.defaultImagePullSecret.name;
+          this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+        } else if (!this.dontUseDefaultOption && !this.defaultImagePullSecret) {
+          // Create new option with default generated name if the default option is selected
+          this.selectedImagePullSecret = null;
+          this.chartValues.global.imagePullSecrets = [this.defaultGeneratedNameForImagePullSecret];
+        } else if (this.dontUseDefaultOption) {
+          // If doesn't have the dontUseDefaultOption selected, it will respect the SELECT
+          // New one with new username and password
+          if (!this.selectedImagePullSecret) {
+            this.chartValues.global.imagePullSecrets = [this.generatedNameForImagePullSecret];
+          } else {
+            this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+          }
+        }
+
+        this.valuesYaml = saferDump(this.chartValues);
       }
     },
 
@@ -973,11 +1127,41 @@ export default {
       }
     },
 
+    async createNamespaceIfNeeded() {
+      const namespace = this.targetNamespace;
+
+      // Check if namespace already exists
+      try {
+        await this.$store.dispatch('cluster/find', {
+          type: NAMESPACE_TYPE,
+          id:   namespace
+        });
+
+        // Namespace exists, no need to create it
+        return;
+      } catch (e) {
+        // Namespace doesn't exist, create it
+      }
+
+      // Create the namespace
+      const nsResource = await this.$store.dispatch('cluster/createNamespace', { name: namespace });
+
+      // Apply any defaults and save
+      nsResource.applyDefaults();
+      await nsResource.save();
+    },
+
     async finish(btnCb) {
       try {
         const isUpgrade = !!this.existing;
 
         this.errors = [];
+
+        // Create namespace if it doesn't exist (before hooks run)
+        // And only if it is SUSE APP Collection, overall should just do the same flow
+        if (!isUpgrade && this.isNamespaceNew && this.repo.isSuseAppCollection) {
+          await this.createNamespaceIfNeeded();
+        }
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
@@ -1170,7 +1354,8 @@ export default {
         annotations: {
           ...migratedAnnotations,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
-          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
+          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName,
+          ...(this.repo.isSuseAppCollection ? { [CATALOG_ANNOTATIONS.SUSE_APP_COLLECTION]: 'true' } : {}),
         },
         values,
       };
@@ -1309,6 +1494,49 @@ export default {
           step[prop] = update[prop];
         }
       }
+    },
+
+    async createImagePullSecret() {
+      if (!this.repo.isSuseAppCollection) {
+        return;
+      }
+
+      let imagePullSecretName = '';
+
+      // If wants to use the default one, it will create the Image Pull Secret
+      if (!this.dontUseDefaultOption && !this.selectedImagePullSecret && this.hasDecodedDataAvailable) {
+        // Create the secret for app collections
+        const secret = await this.$store.dispatch('cluster/create', {
+          type:     SECRET,
+          _type:    'kubernetes.io/dockerconfigjson',
+          metadata: {
+            name:      this.defaultGeneratedNameForImagePullSecret,
+            namespace: this.targetNamespace,
+          },
+          data: {}
+        });
+
+        const registryHost = this.repo?.spec?.url ? new URL(this.repo.spec.url).host : '';
+        const config = { auths: { [registryHost]: this.selectedSecret?.decodedData } };
+        const json = JSON.stringify(config);
+
+        secret.setData('.dockerconfigjson', json);
+
+        const result = await secret.save();
+
+        // Now use the secret to add to the input
+        imagePullSecretName = result.id.split('/')[1];
+
+        // Now if it is not default, and there is a selectedImagePullSecret, ideally we should use it
+      } else if (this.dontUseDefaultOption && !this.selectedImagePullSecret) {
+        imagePullSecretName = this.selectedImagePullSecret;
+      }
+      // If the dontUseDefaultOption is false, than there is no need to change the data
+
+      // Finally add the imagePullSecrets to the input, if it is already a DOCKER_JSON, it can use what has been setup on the page
+      if (imagePullSecretName) {
+        this.chartValues.global.imagePullSecrets = [imagePullSecretName];
+      }
     }
   },
 };
@@ -1427,6 +1655,7 @@ export default {
             </div>
           </div>
           <NameNsDescription
+            v-if="showNameEditor"
             v-model:value="value"
             :description-hidden="true"
             :mode="mode"
@@ -1456,6 +1685,52 @@ export default {
               />
             </template>
           </NameNsDescription>
+          <div
+            v-if="repo.isSuseAppCollection"
+            class="mb-20"
+          >
+            <Banner
+              color="info"
+              class="mt-10"
+              label-key="catalog.install.steps.basics.requiresImagePullSecret"
+            />
+            <Checkbox
+              v-model:value="dontUseDefaultOption"
+              label-key="catalog.install.steps.basics.dontUseDefaultImagePullSecret"
+              :disabled="disabledCheckbox"
+            />
+
+            <div v-if="dontUseDefaultOption">
+              <SelectOrCreateAuthSecret
+                v-model:value="selectedImagePullSecret"
+                :mode="mode"
+                data-testid="clusterrepo-auth-secret"
+                :register-before-hook="registerBeforeHook"
+                :namespace="value.namespace"
+                :pre-select="{ selected: AUTH_TYPE._IMAGE_PULL_SECRET }"
+                :limit-to-namespace="true"
+                :in-store="inStore"
+                :allow-ssh="false"
+                :allow-none="false"
+                :allow-basic="false"
+                :generate-name="`${CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME}image-pull-secret-`"
+                :cache-secrets="true"
+                :fixed-image-pull-secret="true"
+                :client-generated-name="generatedNameForImagePullSecret"
+                :image-pull-secret-docker-json-url-config="repo?.spec?.url"
+              />
+            </div>
+            <Banner
+              v-if="selectedRepoAuthBanner"
+              color="info"
+              class="mt-10"
+            >
+              <span
+                v-clean-html="selectedRepoAuthBanner"
+              />
+            </Banner>
+          </div>
+
           <Checkbox
             v-model:value="showCommandStep"
             class="mb-20"

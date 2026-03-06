@@ -61,6 +61,7 @@ export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
+export const AUDIT_POLICY = 'auditlog.cattle.io.auditpolicy';
 export const SCHEMA = 'schema';
 export const SERVICE = 'service';
 export const SECRET = 'secret';
@@ -263,8 +264,12 @@ export const BRAND = {
 };
 
 export const EXT = {
-  USER_ACTIVITY: 'ext.cattle.io.useractivity',
-  KUBECONFIG:    'ext.cattle.io.kubeconfig',
+  USER_ACTIVITY:                     'ext.cattle.io.useractivity',
+  SELFUSER:                          'ext.cattle.io.selfuser',
+  GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
+  PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest',
+  KUBECONFIG:                        'ext.cattle.io.kubeconfig',
+  TOKEN:                             'ext.cattle.io.token',
 };
 
 export const CAPI = {
@@ -386,20 +391,34 @@ export const ADDRESSES = {
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
 export const AUTH_TYPE = {
-  _NONE:  '_none',
-  _BASIC: '_basic',
-  _SSH:   '_ssh',
-  _S3:    '_S3',
-  _RKE:   '_RKE',
+  _NONE:              '_none',
+  _BASIC:             '_basic',
+  _SSH:               '_ssh',
+  _S3:                '_S3',
+  _RKE:               '_RKE',
+  _IMAGE_PULL_SECRET: '_IPS',
 };
 
 export const LOCAL_CLUSTER = 'local';
 
 export const CLUSTER_REPO_TYPES = {
-  HELM_URL: 'helm-url',
-  GIT_REPO: 'git-repo',
-  OCI_URL:  'oci-url'
+  HELM_URL:            'helm-url',
+  GIT_REPO:            'git-repo',
+  OCI_URL:             'oci-url',
+  SUSE_APP_COLLECTION: 'suse-application-collection'
 };
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for SUSE App Collection repositories.
+ */
+export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for standard repositories.
+ */
+export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
@@ -409,3 +428,7 @@ export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
 export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
 export const HOSTED_PROVIDER = 'hostedprovider';
+
+// Named saved counts
+
+export const SAVED_COUNTS = { K8S_CLUSTERS: 'k8sClusters' };

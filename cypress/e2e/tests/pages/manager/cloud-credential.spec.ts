@@ -12,7 +12,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 /******
 *  Running this test will delete all Amazon cloud credentials from the target cluster
 ******/
-describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
+describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const doCreatedCloudCredsIds = [];
   const azCreatedCloudCredsIds = [];
@@ -314,6 +314,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
   });
 
   after(() => {
+    cy.login(); // this is needed to avoid getting "Unauthorized 401: must authenticate" error
     for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {
       cy.deleteRancherResource('v3', `cloudcredentials`, doCreatedCloudCredsIds[i]);
     }
@@ -327,8 +328,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
 describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
-    // Set theme to light
-    cy.setUserPreference({ theme: 'ui-light' });
+    cy.applyDefaultTestTheme();
     HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
   });
 

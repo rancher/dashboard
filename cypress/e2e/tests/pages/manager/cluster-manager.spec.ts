@@ -113,7 +113,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
-    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
+    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster', '@provisioning'] }, () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
@@ -128,7 +128,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           // The test validate the warning when selecting none, but now this get back to calico.
           // A CNI is mandatory to get the cluster active otherwise manual intervention is needed or
           // the use of a cloud provider but that's not in scope.
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico', 'ingress-controller': 'ingress-nginx' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -336,7 +336,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
+  describe('Imported', { tags: ['@jenkins', '@importedCluster', '@provisioning'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
     const fqdn = 'fqdn';
     const cacert = 'cacert';
@@ -822,8 +822,7 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
 describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
   before(() => {
     cy.login();
-    // Set theme to light
-    cy.setUserPreference({ theme: 'ui-light' });
+    cy.applyDefaultTestTheme();
   });
   it('should display cluster manager page', () => {
     const clusterList = new ClusterManagerListPagePo();

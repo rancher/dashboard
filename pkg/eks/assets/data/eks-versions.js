@@ -1,5 +1,5 @@
-export default ['1.34',
+export default ['1.35',
 
   '1.33',
 
-  '1.32'];
+  '1.33'];

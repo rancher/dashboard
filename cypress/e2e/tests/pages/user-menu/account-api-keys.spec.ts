@@ -42,16 +42,16 @@ describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardU
 //       accountPage.currentPassword().set(Cypress.env('password'));
 //       accountPage.newPassword().set('NewPassword11!!');
 //       accountPage.confirmPassword().set('NewPassword11!!');
-//       cy.intercept('POST', '/v3/users?action=changepassword').as('changePw');
+//       cy.intercept('POST', '/v1/ext.cattle.io.passwordchangerequests').as('changePw');
 //       accountPage.apply();
-//       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
+//       cy.wait('@changePw').its('response.statusCode').should('eq', 201);
 
 //       accountPage.changePassword();
 //       accountPage.currentPassword().set('NewPassword11!!');
 //       accountPage.newPassword().set(Cypress.env('password'));
 //       accountPage.confirmPassword().set(Cypress.env('password'));
 //       accountPage.apply();
-//       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
+//       cy.wait('@changePw').its('response.statusCode').should('eq', 201);
 //     });
 
 //     it('Can create and delete API keys', () => {

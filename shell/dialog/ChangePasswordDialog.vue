@@ -9,6 +9,13 @@ export default {
   components: {
     Card, AsyncButton, ChangePassword
   },
+  props: {
+    user: {
+      type:     Object,
+      default:  () => null,
+      required: true
+    }
+  },
   data() {
     return { valid: false, password: '' };
   },
@@ -45,6 +52,7 @@ export default {
       <form @submit.prevent>
         <ChangePassword
           ref="changePassword"
+          :user="user"
           @valid="valid = $event"
         />
       </form>

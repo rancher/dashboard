@@ -10,7 +10,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
  *  Running this test will delete all Amazon cloud credentials from the target cluster
  ******/
 
-describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 

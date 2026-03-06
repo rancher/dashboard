@@ -15,6 +15,7 @@ describe('page: Install', () => {
       }),
       getters: {
         'catalog/inStore':         'cluster',
+        'catalog/repo':            () => ({ metadata: { name: 'test-repo' } }),
         'features/get':            () => false,
         defaultNamespace:          'default',
         'i18n/withFallback':       (key: string) => key,
@@ -69,7 +70,9 @@ describe('page: Install', () => {
             targetName:      'wrong-name',
             versions:        []
           },
-          query: { versionName: '1.0.0' }
+          query:       { versionName: '1.0.0' },
+          chartValues: { global: { imagePullSecrets: [] } },
+          repo:        { spec: { clientSecret: { name: 'test-secret' } } }
         };
       }
     });
