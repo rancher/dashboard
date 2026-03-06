@@ -6349,12 +6349,17 @@ selectOrCreateAuthSecret:
     username: Username
     password: Password
     passwordPersonalAccessToken: Password/Personal Access Token
+  githubApp:
+    appId: GitHub App ID
+    installationId: Installation ID
+    privateKey: Private Key
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create an SSH Key Secret
   createBasic: Create an HTTP Basic Auth Secret
+  createGithubApp: Create a GitHub App Secret
   createS3: Create an S3-Compatible Auth Secret
   createRKE: Create an RKE Auth Config Secret
   createImagePullSecretBasedOnAuth: Create an Image Pull Secret based on Authentication Secret

@@ -393,6 +393,7 @@ export const DEFAULT_WORKSPACE = 'fleet-default';
 export const AUTH_TYPE = {
   _NONE:              '_none',
   _BASIC:             '_basic',
+  _GITHUB_APP:        '_github_app',
   _SSH:               '_ssh',
   _S3:                '_S3',
   _RKE:               '_RKE',
