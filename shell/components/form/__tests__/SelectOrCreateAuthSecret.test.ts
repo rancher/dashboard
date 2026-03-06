@@ -66,4 +66,26 @@ describe('component: SelectOrCreateAuthSecret', () => {
 
     expect(passwordLabeledInput!.props('labelKey')).toBe(expectedLabelKey);
   });
+
+  it('shows GitHub App fields when GitHub App auth is selected', async() => {
+    const wrapper = mount(SelectOrCreateAuthSecret, {
+      ...requiredSetup(),
+      props: {
+        mode:               _EDIT,
+        namespace:          'default',
+        value:              {},
+        allowGithubApp:     true,
+        registerBeforeHook: () => {},
+      },
+      data() {
+        return { selected: AUTH_TYPE._GITHUB_APP } as any;
+      }
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="auth-secret-github-app-id"]').exists()).toBeTruthy();
+    expect(wrapper.find('[data-testid="auth-secret-github-app-installation-id"]').exists()).toBeTruthy();
+    expect(wrapper.find('[data-testid="auth-secret-github-app-private-key"]').exists()).toBeTruthy();
+  });
 });
