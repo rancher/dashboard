@@ -938,7 +938,7 @@ export default {
 
     async initializeDataForNamespaceChanges() {
       // Skip the flow if the data still not fetched, it will trigger after fetching manually
-      if (!this.appCoDataFetched) {
+      if (this.appCoDataFetched) {
         try {
           this.defaultImagePullSecret = await this.$store.dispatch('cluster/find', { type: SECRET, id: `${ this.targetNamespace }/${ this.repo.spec.clientSecret.name }-image-pull-secret` });
         } catch (e) {
