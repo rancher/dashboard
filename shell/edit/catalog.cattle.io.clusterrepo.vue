@@ -228,7 +228,7 @@ export default {
 <template>
   <form>
     <h2>{{ t('catalog.repo.target.label') }}</h2>
-    <div class="row mb-10">
+    <div class="row mb-20">
       <div class="col span-12 target-groups">
         <RcItemCard
           v-for="card in clusterRepoTargets"
