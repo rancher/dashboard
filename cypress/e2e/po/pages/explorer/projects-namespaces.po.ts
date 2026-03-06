@@ -49,7 +49,7 @@ export class ProjectCreateEditPagePo extends BaseDetailPagePo {
   }
 
   btnAddResource() {
-    return this.self().getId('array-list-button');
+    return this.self().getId('btn-add-resource');
   }
 
   inputProjectLimit() {

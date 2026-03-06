@@ -6,7 +6,12 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 const mockStore = {
   getters: {
-    productId: 'PRODUCT_ID', clusterId: 'CLUSTER_ID', 'type-map/optionsFor': jest.fn(), currentCluster: 'CLUSTER_ID'
+    productId:             'PRODUCT_ID',
+    clusterId:             'CLUSTER_ID',
+    'type-map/optionsFor': jest.fn(),
+    currentCluster:        'CLUSTER_ID',
+    currentStore:          () => 'cluster',
+    'cluster/canList':     () => true,
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER', namespace: 'NAMESPACE' } };
@@ -32,12 +37,24 @@ describe('composables: IdentifyingFields', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should return a valid namespace row', () => {
+    it('should return a valid namespace row with ResourcePopover when user canList namespaces', () => {
+      mockStore.getters['cluster/canList'] = () => true;
       const resource = { namespace: 'NAMESPACE' };
       const result = useNamespace(resource);
 
       expect(result?.value.valueOverride?.props.type).toStrictEqual(NAMESPACE);
       expect(result?.value.valueOverride?.props.id).toStrictEqual(resource.namespace);
+      expect(result?.value.value).toStrictEqual(resource.namespace);
+      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
+      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
+    });
+
+    it('should return a plain text namespace row when user cannot canList namespaces', () => {
+      mockStore.getters['cluster/canList'] = () => false;
+      const resource = { namespace: 'NAMESPACE' };
+      const result = useNamespace(resource);
+
+      expect(result?.value.valueOverride).toBeUndefined();
       expect(result?.value.value).toStrictEqual(resource.namespace);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');

@@ -202,7 +202,6 @@ export function init(store) {
   ]);
 
   headers(EXT.KUBECONFIG, [
-    STATE,
     {
       name:      'clusters',
       labelKey:  'tableHeaders.clusters',

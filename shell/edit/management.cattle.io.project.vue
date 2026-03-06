@@ -6,7 +6,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Project';
-import { HARVESTER_TYPES, RANCHER_TYPES, TYPES } from '@shell/components/form/ResourceQuota/shared';
+import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -49,7 +49,6 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
-      resourceQuotaKey:   0,
       isQuotasValid:      true,
     };
   },
@@ -161,44 +160,9 @@ export default {
       this['membershipUpdate'] = update;
     },
 
-    removeQuota(key) {
-      const isExtended = key.startsWith(`${ TYPES.EXTENDED }`);
-      let resourceKey = key;
-
-      if (isExtended) {
-        resourceKey = key.substring(`${ TYPES.EXTENDED }.`.length);
-      }
-
-      ['resourceQuota', 'namespaceDefaultResourceQuota'].forEach((specProp) => {
-        const limit = this.value?.spec[specProp]?.limit;
-        const usedLimit = this.value?.spec[specProp]?.usedLimit;
-
-        if (isExtended) {
-          if (limit?.extended && typeof limit.extended[resourceKey] !== 'undefined') {
-            delete limit.extended[resourceKey];
-            if (Object.keys(limit.extended).length === 0) {
-              delete limit.extended;
-            }
-          }
-
-          if (usedLimit?.extended && typeof usedLimit.extended[resourceKey] !== 'undefined') {
-            delete usedLimit.extended[resourceKey];
-            if (Object.keys(usedLimit.extended).length === 0) {
-              delete usedLimit.extended;
-            }
-          }
-        } else {
-          if (limit && typeof limit[resourceKey] !== 'undefined') {
-            delete limit[resourceKey];
-          }
-          if (usedLimit && typeof usedLimit[resourceKey] !== 'undefined') {
-            delete usedLimit[resourceKey];
-          }
-        }
-      });
-
-      // Incrementing the key forces the ResourceQuota component to re-render
-      this.resourceQuotaKey++;
+    onQuotasInput({ projectLimit, nsLimit }) {
+      this.value.spec.resourceQuota = { ...this.value.spec.resourceQuota, limit: projectLimit };
+      this.value.spec.namespaceDefaultResourceQuota = { ...this.value.spec.namespaceDefaultResourceQuota, limit: nsLimit };
     }
   },
 };
@@ -258,11 +222,10 @@ export default {
         :weight="9"
       >
         <ResourceQuota
-          :key="resourceQuotaKey"
           :value="value"
           :mode="canEditTabElements"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @remove="removeQuota"
+          @input="onQuotasInput"
           @validationChanged="validateQuotas"
         />
       </Tab>

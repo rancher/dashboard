@@ -2722,7 +2722,7 @@ cluster:
   validation:
     iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
   capi:
-    notSupported: Clusters created using upstream CAPI infrastructure providers cannot be modified through the UI.
+    notSupported: Managing clusters provisioned using CAPI infrastructure providers via the UI is currently limited to Rancher Turtles provisioned clusters.
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -2835,7 +2835,7 @@ drivers:
   kontainer:
     title: Cluster Drivers
     emberDeprecationMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and will be removed in a future release. These need to be migrated to the new <a href="https://extensions.rancher.io" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
-
+    refreshError: 'Error refreshing cluster drivers: {error}'
   node:
     title: Node Drivers
   add:
@@ -9101,6 +9101,13 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
+  ariaLabel:
+    grid: Resource Quotas
+    resourceType: 'Resource Type, row {row}'
+    resourceIdentifier: 'Resource Identifier, row {row}'
+    projectLimit: 'Project Limit, row {row}'
+    namespaceDefaultLimit: 'Namespace Default Limit, row {row}'
+    remove: 'Remove {identifier}'
 customLinks:
   displayTitle: Links
   label: Home Links
@@ -9356,6 +9363,7 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+          noPods: There are no pods currently present.
         jobsCard:
           title: Jobs
           ariaResourceName: jobs

@@ -116,6 +116,19 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tr.group-row', name);
   }
 
+  /**
+   * Get all group row elements that contain the given name
+   * Unlike groupElementWithName which only returns the first match,
+   * this returns all matching group rows
+   * @param name - The text to search for in group rows
+   * @returns Cypress chainable with all matching group row elements
+   */
+  groupElementsWithName(name: string) {
+    return this.self().find('tr.group-row').filter((index, el) => {
+      return Cypress.$(el).text().includes(name);
+    });
+  }
+
   rowElements(options?: any) {
     return this.self().find('tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)', options);
   }
