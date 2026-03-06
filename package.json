@@ -7,7 +7,7 @@
   "private": true,
   "version": "0.0.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   },
   "workspaces": [
     "pkg/rancher-components"
@@ -78,7 +78,7 @@
     "cache-loader": "4.1.0",
     "chart.js": "4.5.1",
     "clipboard-polyfill": "4.0.1",
-    "codemirror": "5.65.17",
+    "codemirror": "5.65.21",
     "codemirror-editor-vue3": "2.8.0",
     "color": "5.0.3",
     "cookie": "0.7.0",
@@ -119,7 +119,7 @@
     "node-polyfill-webpack-plugin": "4.1.0",
     "papaparse": "5.3.0",
     "portal-vue": "3.0.0",
-    "sass": "1.90.0",
+    "sass": "1.97.3",
     "sass-loader": "12.6.0",
     "set-cookie-parser": "2.4.6",
     "shell-quote": "1.7.3",
@@ -129,7 +129,7 @@
     "unfetch": "4.2.0",
     "url-parse": "1.5.10",
     "vee-validate": "4.15.0",
-    "vue-router": "4.5.1",
+    "vue-router": "4.6.4",
     "vue-select": "4.0.0-beta.6",
     "vue-server-renderer": "2.6.14",
     "vue3-resize": "0.2.0",
@@ -163,7 +163,7 @@
     "@types/jest": "29.5.12",
     "@types/js-yaml": "4.0.5",
     "@types/lodash": "4.14.184",
-    "@types/node": "20.10.8",
+    "@types/node": "25.3.3",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
     "@vue/cli-service": "5.0.8",
@@ -180,7 +180,7 @@
     "babel-plugin-istanbul": "7.0.1",
     "babel-plugin-transform-require-context": "0.1.1",
     "babel-preset-vue": "2.0.2",
-    "core-js": "3.45.0",
+    "core-js": "3.48.0",
     "css-loader": "7.1.2",
     "csv-loader": "3.0.3",
     "cy2": "4.0.9",
@@ -212,7 +212,7 @@
     "style-loader": "3.3.2",
     "ts-jest": "27.1.5",
     "typescript": "5.6.3",
-    "vue": "3.5.18",
+    "vue": "3.5.29",
     "webpack-bundle-analyzer": "4.10.2",
     "webpack-virtual-modules": "0.6.2",
     "worker-loader": "3.0.8",
