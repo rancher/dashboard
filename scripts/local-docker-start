@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+
+# Container image
+RANCHER_IMG_TAG=head
+RANCHER_IMG_REGISTRY=
+RANCHER_IMG_NAMESPACE=rancher
+RANCHER_IMG_NAME=rancher
+RANCHER_IMG=${RANCHER_IMG_NAMESPACE}/${RANCHER_IMG_NAME}:${RANCHER_IMG_TAG}
+
+# Target branch of PR
+BRANCH_DATA=$(./scripts/get-branch-metadata.sh)
+
+if [ -n "$BRANCH_DATA" ]; then
+  REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
+  RANCHER_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].namespace')
+  RANCHER_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].name')
+  RANCHER_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].tag')
+
+  if [ -n "$REGISTRY" ]; then
+    RANCHER_IMG_REGISTRY="${REGISTRY}/"
+  fi
+
+  RANCHER_IMG=${RANCHER_IMG_REGISTRY}${RANCHER_IMG_NAMESPACE}/${RANCHER_IMG_NAME}:${RANCHER_IMG_TAG}
+fi
+
+echo "Using Rancher image: ${RANCHER_IMG}"
+
+docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -e CATTLE_BOOTSTRAP_PASSWORD=password -e CATTLE_PASSWORD_MIN_LENGTH=3 --name cypress --privileged $RANCHER_IMG
