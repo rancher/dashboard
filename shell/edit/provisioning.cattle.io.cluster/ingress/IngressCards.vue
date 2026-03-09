@@ -60,18 +60,20 @@ const { t } = useI18n(store);
         v-once
         #item-card-footer
       >
-        <rc-item-card-action>
-          <a
-            :href="card.doc.url"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-            class="ingress-card-footer-button secondary-text-link"
-          >
-            {{ t('cluster.ingress.learnMore.label') }}
-            <i class="icon icon-external-link" />
-            <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
-          </a>
-        </rc-item-card-action>
+        <div class="mmt-2">
+          <rc-item-card-action>
+            <a
+              :href="card.doc.url"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+              class="ingress-card-footer-button secondary-text-link"
+            >
+              {{ t('cluster.ingress.learnMore.label') }}
+              <i class="icon icon-external-link" />
+              <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+            </a>
+          </rc-item-card-action>
+        </div>
       </template>
     </rc-item-card>
   </div>
