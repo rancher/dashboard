@@ -18,6 +18,7 @@
  */
 import { Solver } from '@shell/utils/svg-filter';
 import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
+import { mapGetters } from 'vuex';
 
 const filterCache = {};
 
@@ -76,6 +77,18 @@ export default {
     }
   },
 
+  computed: {
+    ...mapGetters({
+      brand: 'management/brand',
+      theme: 'prefs/theme',
+    })
+  },
+
+  watch: {
+    brand: 'recomputeColor',
+    theme: 'recomputeColor',
+  },
+
   methods: {
     getComputedStyleFor(cssVar, fallback) {
       const value = window.getComputedStyle(document.body).getPropertyValue(cssVar).trim();
@@ -120,7 +133,18 @@ export default {
       this.activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
 
       this['className'] = className;
-    }
+    },
+
+    recomputeColor() {
+      if (!this.src) {
+        return;
+      }
+
+      this.mainFilter = null;
+      this.hoverFilter = null;
+      this.activeFilter = null;
+      this.setColor();
+    },
   }
 };
 </script>
