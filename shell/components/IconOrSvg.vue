@@ -169,14 +169,23 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  img.svg-icon {
+    filter: v-bind(mainFilter);
+  }
+
+  button:hover > img.svg-icon,
+  li:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
   .side-menu .category div a > img.svg-icon {
     height: 24px;
     width: 24px;
     filter: v-bind(mainFilter);
+  }
 
-    &:hover {
-      filter: v-bind(hoverFilter);
-    }
+  .side-menu .category div a:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
   }
 
   .side-menu .category div a.active-menu-link > img.svg-icon {
