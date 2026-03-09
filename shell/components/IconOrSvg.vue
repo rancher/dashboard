@@ -155,7 +155,7 @@ export default {
     }
   }
 
-  .side-menu .category div a.active-menu-link > img,svg-icon {
+  .side-menu .category div a.active-menu-link > img.svg-icon {
     filter: v-bind(activeFilter);
 
     &:hover {
