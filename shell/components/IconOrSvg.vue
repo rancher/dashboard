@@ -33,7 +33,7 @@ const colors = {
   },
   primary: {
     color:          '--on-tertiary',
-    hover:          '--link',
+    hover:          '--tertiary-hover-app-bar',
     colorFallback:  '--on-tertiary',
     hoverFallback:  '--primary-hover-text',
     active:         '--on-active',
