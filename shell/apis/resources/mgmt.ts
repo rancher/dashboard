@@ -70,7 +70,7 @@ export class MgmtApiImpl implements MgmtApi {
     options?: any
   ): Promise<T[]> {
     try {
-      const resources = await this.store.dispatch('management/findAll', {
+      const resources = await this.store.dispatch('management/findPage', {
         type: resourceType,
         opt:  options || {}
       });
@@ -79,6 +79,55 @@ export class MgmtApiImpl implements MgmtApi {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(`Failed to list resources ${ resourceType }:`, e);
+
+      return [];
+    }
+  }
+
+  /**
+   * Fetches all resources of a specific type with advanced options.
+   * This method provides additional capabilities like incremental loading, depagination, and namespace filtering.
+   *
+   * @template T - The type of the resources (defaults to ResourceBase)
+   * @param resourceType - The type of the resources to list (use K8S constants).
+   * @param options - Optional advanced fetch options (incremental loading, depagination, namespace filtering, etc.)
+   * @returns An array of resource items or an empty array if none are found.
+   *
+   * @example
+   * ```ts
+   * import { K8S } from '@shell/apis';
+   * import type { User } from '@shell/types/resources';
+   *
+   * // Fetch all users with incremental loading
+   * const users = await resources.mgmt.listAll<User>(K8S.USER, {
+   *   incremental: {
+   *     quickLoadCount: 10,
+   *     resourcesPerIncrement: 50,
+   *     increments: 5,
+   *     pageByNumber: false
+   *   }
+   * });
+   *
+   * // Fetch all resources across all pages
+   * const allUsers = await resources.mgmt.listAll<User>(K8S.USER, {
+   *   depaginate: true
+   * });
+   * ```
+   */
+  async listAll<T extends ResourceBase = ResourceBase>(
+    resourceType: ResourceType,
+    options?: any
+  ): Promise<T[]> {
+    try {
+      const resources = await this.store.dispatch('management/findAll', {
+        type: resourceType,
+        opt:  options || {}
+      });
+
+      return resources as T[];
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to list all resources ${ resourceType }:`, e);
 
       return [];
     }

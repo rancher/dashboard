@@ -70,7 +70,7 @@ export class ClusterApiImpl implements ClusterApi {
     options?: any
   ): Promise<T[]> {
     try {
-      const resources = await this.store.dispatch('cluster/findAll', {
+      const resources = await this.store.dispatch('cluster/findPage', {
         type: resourceType,
         opt:  options || {}
       });
@@ -79,6 +79,60 @@ export class ClusterApiImpl implements ClusterApi {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(`Failed to list resources ${ resourceType }:`, e);
+
+      return [];
+    }
+  }
+
+  /**
+   * Fetches all resources of a specific type with advanced options.
+   * This method provides additional capabilities like incremental loading, depagination, and namespace filtering.
+   *
+   * @template T - The type of the resources (defaults to ResourceBase)
+   * @param resourceType - The type of the resources to list (use K8S constants).
+   * @param options - Optional advanced fetch options (incremental loading, depagination, namespace filtering, etc.)
+   * @returns An array of resource items or an empty array if none are found.
+   *
+   * @example
+   * ```ts
+   * import { K8S } from '@shell/apis';
+   * import type { Pod } from '@shell/types/resources';
+   *
+   * // Fetch all pods with incremental loading
+   * const pods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   incremental: {
+   *     quickLoadCount: 10,
+   *     resourcesPerIncrement: 50,
+   *     increments: 5,
+   *     pageByNumber: false
+   *   }
+   * });
+   *
+   * // Fetch all resources across all pages
+   * const allPods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   depaginate: true
+   * });
+   *
+   * // Fetch resources in specific namespaces
+   * const namespacedPods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   namespaced: ['default', 'kube-system']
+   * });
+   * ```
+   */
+  async listAll<T extends ResourceBase = ResourceBase>(
+    resourceType: ResourceType,
+    options?: any
+  ): Promise<T[]> {
+    try {
+      const resources = await this.store.dispatch('cluster/findAll', {
+        type: resourceType,
+        opt:  options || {}
+      });
+
+      return resources as T[];
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to list all resources ${ resourceType }:`, e);
 
       return [];
     }

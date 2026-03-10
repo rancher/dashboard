@@ -1,5 +1,5 @@
 import { ResourceType, ResourceBase } from './resource-base';
-import { ActionFindPageArgs, ActionFindLabelSelectorArgs, ActionFindArgs } from '@shell/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindLabelSelectorArgs, ActionFindArgs, ActionFindAllArgs } from '@shell/types/store/dashboard-store.types';
 
 /**
  * Provides access to the Cluster API which can be used for managing cluster resources in Rancher UI
@@ -62,6 +62,46 @@ export interface ClusterApi {
   list<T extends ResourceBase = ResourceBase>(
     resourceType: ResourceType,
     options?: ActionFindPageArgs
+  ): Promise<T[]>;
+
+  /**
+   * Fetches all resources of a specific type with advanced options.
+   * This method provides additional capabilities like incremental loading, depagination, and namespace filtering.
+   *
+   * @template T - The type of the resources (defaults to ResourceBase)
+   * @param resourceType - The type of the resources to list (use K8S constants).
+   * @param options - Optional advanced fetch options (incremental loading, depagination, namespace filtering, etc.)
+   * @returns An array of resource items or an empty array if none are found.
+   *
+   * @example
+   * ```ts
+   * import { K8S } from '@shell/apis';
+   * import type { Pod } from '@shell/types/resources';
+   *
+   * // Fetch all pods with incremental loading
+   * const pods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   incremental: {
+   *     quickLoadCount: 10,
+   *     resourcesPerIncrement: 50,
+   *     increments: 5,
+   *     pageByNumber: false
+   *   }
+   * });
+   *
+   * // Fetch all resources across all pages
+   * const allPods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   depaginate: true
+   * });
+   *
+   * // Fetch resources in specific namespaces
+   * const namespacedPods = await resources.cluster.listAll<Pod>(K8S.POD, {
+   *   namespaced: ['default', 'kube-system']
+   * });
+   * ```
+   */
+  listAll<T extends ResourceBase = ResourceBase>(
+    resourceType: ResourceType,
+    options?: ActionFindAllArgs
   ): Promise<T[]>;
 
   /**

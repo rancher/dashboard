@@ -18,6 +18,7 @@ export type ResourceType = K8SResourceType | string;
 
 /**
  * Base interface for all resource objects returned from the API
+ * @internal
  */
 export interface ResourceBase {
   id?: string;
