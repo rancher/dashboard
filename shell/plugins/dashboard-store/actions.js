@@ -661,11 +661,16 @@ export default {
   },
 
   // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  //  watch: boolean - whether to start a watch on the selector (default: true) ok
+  //  force: boolean - whether to force a new fetch even if we have data for the selector (default: false) ok
+  //  transient: boolean - whether to return the results without caching (default: false) ok
+  //  invalidatePageCache: boolean - whether to invalidate the page cache (default: false) ? is desc and default right ? ok
+  //  method: string - XHR request get, post, put, delete (default: get) ? (used on steve "request" action)
+  //  headers: object - custom headers for the request (used on steve "request" action)
+  //  limit: Number of records to return per page (default: 1000) ? this option doesn't make sense here...
+  //  sortBy: Sort by field ? this option doesn't make sense here...
+  //  sortOrder: asc or desc ? this option doesn't make sense here...
+  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.  ok
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {

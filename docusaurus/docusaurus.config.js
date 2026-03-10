@@ -90,6 +90,23 @@ const config = {
         excludeInternal: true
       },
     ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        disableSources:      true,
+        textContentMappings: { 'title.memberPage': '{name}' },
+        useCodeBlocks:       true,
+        entryPoints:         ['../shell/apis/intf/resources.ts'],
+        tsconfig:            'tsconfig-typedoc-integration.json',
+        out:                 'docs/extensions/resources-api',
+        readme:              'none',
+        cleanOutputDir:      false,
+        sidebar:             { autoConfiguration: true },
+        entryFileName:       '_api-index.md',
+        id:                  'resources-api-docs',
+        excludeInternal:     true
+      },
+    ],
     [require.resolve('docusaurus-lunr-search'), { excludeRoutes: ['internal/*', 'internal/**/*', '/internal/*', '/internal/**/*', 'blog/*', 'blog/**/*', '/blog/*', '/blog/**/*'] }
     ],
     [

@@ -9,7 +9,7 @@
         "typeRoots": ["./node_modules/@types"],
     },
     "include": [
-        "../shell/apis/intf/shell.ts"
+        "../shell/apis/intf"
     ],
     "exclude": [
         "node_modules"

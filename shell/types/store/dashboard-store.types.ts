@@ -9,6 +9,23 @@ export type ActionCoreFindArgs = {
   force?: boolean,
 }
 
+export interface ActionFindArgs extends ActionCoreFindArgs {
+  /**
+   * Watch for changes
+   *
+   * false = no, all other values = yes
+   */
+  watch?: boolean,
+  /**
+   * If true don't persist the http response to the store, just pass it back (default: false)
+   */
+  transient?: boolean,
+  //  invalidatePageCache: boolean - whether to invalidate the page cache (default: false) ? is desc and default right ? ok
+  //  method: string - XHR request get, post, put, delete (default: get) ? (used on steve "request" action)
+  //  headers: object - custom headers for the request (used on steve "request" action)
+  // namespaced? cannot find any usage of this but it would make sense...
+}
+
 /**
  * Args used for findAll action
  */
@@ -95,6 +112,13 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   revision?: string
 }
+
+/**
+ * Response to the find action
+ *
+ * resource object returned by the API, or null if not found
+ */
+export type ActionFindResponse<T = any> = T;
 
 /**
  * Response to a transient (not stored in cache) findPage action
