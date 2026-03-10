@@ -19,6 +19,7 @@ interface Props {
   mode?: string;
   value: string | string[];
   nginxSupported: boolean;
+  traefikSupported: boolean;
   nginxChart: string;
   traefikChart: string;
   userChartValues: any;
@@ -30,6 +31,7 @@ const {
   nginxChart,
   traefikChart,
   nginxSupported,
+  traefikSupported,
   userChartValues,
   versionInfo
 } = defineProps<Props>();
@@ -44,6 +46,9 @@ const showAdvanced = ref<Boolean>(false);
 const isView = computed(() => mode === _VIEW);
 const isEdit = computed(() => mode === _EDIT);
 const showTraefikBanner = ref<Boolean>(false);
+const traefikMerged = ref(initYamlEditor(traefikChart));
+const nginxMerged = ref(initYamlEditor(nginxChart));
+const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[nginxChart]);
 
 const ingressSelection = computed(() => {
   if (Array.isArray(value) ) {
@@ -55,9 +60,21 @@ const ingressSelection = computed(() => {
   }
 });
 const ingressOptions = computed(() => {
-  return INGRESS_OPTIONS.filter((option) => !(option.id === INGRESS_DUAL && mode === _CREATE) &&
-  !((option.id === INGRESS_NGINX || option.id === INGRESS_DUAL) && !nginxSupported)
-  ).map((option) => {
+  return INGRESS_OPTIONS.filter((option) => {
+    if (option.id === INGRESS_NGINX) {
+      return nginxSupported;
+    } else if (option.id === TRAEFIK) {
+      return traefikSupported;
+    } else if (option.id === INGRESS_DUAL) {
+      if (mode === _CREATE) {
+        return false;
+      } else {
+        return traefikSupported && nginxSupported;
+      }
+    }
+
+    return true;
+  }).map((option) => {
     return {
       ...option,
       selected: option.id === ingressSelection.value
@@ -73,7 +90,13 @@ const ingressEnabled = computed({
     if (!val) {
       emit('update:value', INGRESS_NONE);
     } else {
-      emit('update:value', TRAEFIK);
+      if (traefikSupported) {
+        emit('update:value', TRAEFIK);
+      } else if (nginxSupported) {
+        emit('update:value', INGRESS_NGINX);
+      } else {
+        emit('update:value', INGRESS_NONE);
+      }
     }
   }
 });
@@ -101,9 +124,6 @@ function preconfigureTraefik() {
   setCompatibilityModeValues(true);
   emit('update-values', traefikChart, traefikMerged.value);
 }
-
-const traefikMerged = ref(initYamlEditor(traefikChart));
-const nginxMerged = ref(initYamlEditor(nginxChart));
 
 const nginxHttp = computed({
   get() {
@@ -193,12 +213,14 @@ function updateYaml(component: any, value: any) {
   </div>
   <div v-else>
     <Banner
+      v-if="traefikSupported"
       color="info"
       label-key="cluster.ingress.banners.transitioning.label"
     />
     <IngressCards
       :options="ingressOptions"
       :mode="mode"
+      :class="!traefikSupported ? 'mt-10' : ''"
       @select="selectIngress"
     />
     <Banner
@@ -219,79 +241,81 @@ function updateYaml(component: any, value: any) {
         </template>
       </RichTranslation>
     </Banner>
-    <div class="mt-20">
-      <IngressConfiguration
-        v-model:compatibility-mode="compatibilityMode"
-        v-model:nginxHttp="nginxHttp"
-        v-model:nginxHttps="nginxHttps"
-        v-model:traefikHttp="traefikHttp"
-        v-model:traefikHttps="traefikHttps"
-        :mode="mode"
-        :ingress-selection="ingressSelection"
-        @validation-changed="emit('config-validation-changed', $event)"
-      />
-    </div>
-    <div>
-      <button
-        type="button"
-        class="btn role-link advanced-toggle mb-0"
-        @click="showAdvanced = !showAdvanced"
-      >
-        {{ showAdvanced ? t('cluster.ingress.hideAdvanced') : t('cluster.ingress.showAdvanced') }}
-      </button>
-    </div>
-    <template v-if="showAdvanced">
-      <div class="row">
-        <div
-          v-if="ingressSelection === TRAEFIK || ingressSelection === INGRESS_DUAL"
-          :class="{ 'col': true, 'span-6': ingressSelection === INGRESS_DUAL, 'span-12': ingressSelection !== INGRESS_DUAL }"
-        >
-          <p
-            v-if="ingressSelection === INGRESS_DUAL"
-            class="mb-10"
-          >
-            {{ t('cluster.ingress.traefik.header') }}
-          </p>
-          <YamlEditor
-            ref="traefik-yaml"
-            class="ingress-yaml-editor"
-            data-testid="traefik-yaml-editor"
-            :value="traefikMerged"
-            :mode="mode"
-            :scrolling="true"
-            :as-object="true"
-            :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
-            :hide-preview-buttons="true"
-            @update:value="emit('update-values', traefikChart, $event)"
-            @validationChanged="emit('yaml-validation-changed', {name: traefikChart, val: $event})"
-          />
-        </div>
-        <div
-          v-if="ingressSelection === INGRESS_NGINX || ingressSelection === INGRESS_DUAL"
-          :class="{ 'col': true, 'span-6': ingressSelection === INGRESS_DUAL, 'span-12': ingressSelection !== INGRESS_DUAL }"
-        >
-          <p
-            v-if="ingressSelection === INGRESS_DUAL"
-            class="mb-10"
-          >
-            {{ t('cluster.ingress.nginx.header') }}
-          </p>
-          <YamlEditor
-            ref="nginx-yaml"
-            class="ingress-yaml-editor"
-            data-testid="ingress-nginx-yaml-editor"
-            :value="nginxMerged"
-            :mode="mode"
-            :scrolling="true"
-            :as-object="true"
-            :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
-            :hide-preview-buttons="true"
-            @update:value="emit('update-values', nginxChart, $event)"
-            @validationChanged="emit('yaml-validation-changed', {name: nginxChart, val: $event})"
-          />
-        </div>
+    <div v-if="showConfig">
+      <div class="mt-20">
+        <IngressConfiguration
+          v-model:compatibility-mode="compatibilityMode"
+          v-model:nginxHttp="nginxHttp"
+          v-model:nginxHttps="nginxHttps"
+          v-model:traefikHttp="traefikHttp"
+          v-model:traefikHttps="traefikHttps"
+          :mode="mode"
+          :ingress-selection="ingressSelection"
+          @validation-changed="emit('config-validation-changed', $event)"
+        />
       </div>
-    </template>
+      <div>
+        <button
+          type="button"
+          class="btn role-link advanced-toggle mb-0"
+          @click="showAdvanced = !showAdvanced"
+        >
+          {{ showAdvanced ? t('cluster.ingress.hideAdvanced') : t('cluster.ingress.showAdvanced') }}
+        </button>
+      </div>
+      <template v-if="showAdvanced">
+        <div class="row">
+          <div
+            v-if="ingressSelection === TRAEFIK || ingressSelection === INGRESS_DUAL"
+            :class="{ 'col': true, 'span-6': ingressSelection === INGRESS_DUAL, 'span-12': ingressSelection !== INGRESS_DUAL }"
+          >
+            <p
+              v-if="ingressSelection === INGRESS_DUAL"
+              class="mb-10"
+            >
+              {{ t('cluster.ingress.traefik.header') }}
+            </p>
+            <YamlEditor
+              ref="traefik-yaml"
+              class="ingress-yaml-editor"
+              data-testid="traefik-yaml-editor"
+              :value="traefikMerged"
+              :mode="mode"
+              :scrolling="true"
+              :as-object="true"
+              :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
+              :hide-preview-buttons="true"
+              @update:value="emit('update-values', traefikChart, $event)"
+              @validationChanged="emit('yaml-validation-changed', {name: traefikChart, val: $event})"
+            />
+          </div>
+          <div
+            v-if="ingressSelection === INGRESS_NGINX || ingressSelection === INGRESS_DUAL"
+            :class="{ 'col': true, 'span-6': ingressSelection === INGRESS_DUAL, 'span-12': ingressSelection !== INGRESS_DUAL }"
+          >
+            <p
+              v-if="ingressSelection === INGRESS_DUAL"
+              class="mb-10"
+            >
+              {{ t('cluster.ingress.nginx.header') }}
+            </p>
+            <YamlEditor
+              ref="nginx-yaml"
+              class="ingress-yaml-editor"
+              data-testid="ingress-nginx-yaml-editor"
+              :value="nginxMerged"
+              :mode="mode"
+              :scrolling="true"
+              :as-object="true"
+              :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
+              :hide-preview-buttons="true"
+              @update:value="emit('update-values', nginxChart, $event)"
+              @validationChanged="emit('yaml-validation-changed', {name: nginxChart, val: $event})"
+            />
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
