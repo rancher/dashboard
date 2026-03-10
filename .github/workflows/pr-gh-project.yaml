@@ -4,6 +4,7 @@ on:
     types: [ opened, reopened, edited, closed ]
 
 jobs:
+  rancher_gh_project:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     steps:
