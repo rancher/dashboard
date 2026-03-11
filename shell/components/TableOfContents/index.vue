@@ -65,9 +65,9 @@ const props = defineProps({
 
   .toc-container {
     overflow-y: auto;
-    max-height: calc(100vh - var(--footer-height) - 250px); //TODO nb do the right way
+    max-height: calc(100vh - var(--footer-height) - 260px); //TODO nb do the right way
     position: sticky;
-    top: 20px;
+    top: 24px;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
     background-color: var(--subtle-overlay-bg ); //TODO nb confirm which var to use here

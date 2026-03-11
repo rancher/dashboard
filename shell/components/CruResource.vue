@@ -560,7 +560,10 @@ export default {
 </script>
 
 <template>
-  <section class="cru">
+  <section
+    :class="{'show-toc':canShowToc}"
+    class="cru"
+  >
     <slot name="noticeBanner" />
     <p
       v-if="description"
@@ -793,30 +796,31 @@ export default {
       </template>
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
+        <TableOfContents
+          v-if="canShowToc"
+          ref="toc"
+          class="cru__toc"
+          :accordions="accordions"
+        />
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="cru__content_toc_container resource-container"
-          :class="{'show-toc':canShowToc}"
+          class="cru__content resource-container"
+
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
           <!-- <div
             class="resource-container cru__content"
             :style="[minHeight ? { 'min-height': minHeight } : {}]"
           > -->
-          <div
+          <!-- <div
             class="cru__content"
-          >
-            <slot name="single">
-              <slot />
-            </slot>
-          </div>
-          <TableOfContents
-            v-if="canShowToc"
-            ref="toc"
-            class="cru__toc"
-            :accordions="accordions"
-          />
+          > -->
+          <slot name="single">
+            <slot />
+          </slot>
+          <!-- </div> -->
         </div>
+
         <slot name="form-footer">
           <CruResourceFooter
             v-if="!isView"
@@ -949,6 +953,11 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+$logo: 60px;
+$logo-space: 100px;
+
+$table-contents-width: 250px;
+
 .cru-resource-yaml-container {
   .resource-yaml {
     .yaml-editor {
@@ -973,9 +982,6 @@ export default {
     }
   }
 }
-
-$logo: 60px;
-$logo-space: 100px;
 
 .title {
   margin-top: 20px;
@@ -1024,28 +1030,18 @@ form.create-resource-container .cru {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-
   &__form {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-  }
 
-  &__content_toc_container {
-    flex-grow: 1;
-  }
-
-  &__content_toc_container.show-toc {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: row;
   }
 
   &__toc {
-    width: 250px;
+    width: $table-contents-width;
     margin-left: var(--gap-lg);
-    min-width: 250px;
-    max-width: 250px;
+    min-width: $table-contents-width;
+    max-width: $table-contents-width;
     margin-top: 20px
 
   }
@@ -1054,6 +1050,7 @@ form.create-resource-container .cru {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+
     &-wizard {
       display: flex;
     }
@@ -1081,6 +1078,29 @@ form.create-resource-container .cru {
     background-color: var(--header-bg);
     margin: 10px 0;
   }
+}
+
+.show-toc.cru{
+    .cru__form{
+        display: grid;
+        grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));
+        grid-template-rows: [content] 1fr [footer] min-content;
+    }
+
+    .cru__content {
+        grid-column: content;
+        grid-row: content;
+    }
+
+    .cru__toc {
+        grid-column: toc;
+        grid-row: content;
+    }
+
+    .cru__footer {
+        grid-column: content / 3;
+        grid-row: footer;
+    }
 }
 
 .description {

@@ -1,5 +1,7 @@
 import debounce from 'lodash/debounce';
-import { getCurrentInstance, provide, ref } from 'vue';
+import {
+  getCurrentInstance, onMounted, onUnmounted, provide, ref, inject
+} from 'vue';
 
 export function useFormSummary(searchClass: string) {
   const root = getCurrentInstance();
@@ -21,8 +23,8 @@ export function useFormSummary(searchClass: string) {
       const out = {
         node,
         children: [],
-        label:    getComponentLabel(node),
-        scrollTo: () => scrollToComponent(node)
+        label:    getComponentLabel(getComponentFromVNode(node)?.ctx), // TODO nb add fallback for no label
+        scrollTo: node?.component?.ctx ? () => scrollToComponent(node?.component?.ctx) : undefined // TODO nb no link if scrollTo undefined?
       };
 
       components.push(out);
@@ -53,33 +55,78 @@ export function useFormSummary(searchClass: string) {
 
   const debouncedFindComponents = debounce(findComponents);
 
-  const scrollToComponent = (vnode: any) => {
-    const comp = getComponentFromVNode(vnode);
-
-    if (!comp) {
-      return;
-    }
-
-    if (comp.ctx.scrollTo) {
-      comp.ctx.scrollTo();
+  const scrollToComponent = (component: any) => {
+    if (component.scrollTo) {
+      component.scrollTo();
     } else {
-      vnode.el.scrollIntoView(true);
+      component.vnode.el.scrollIntoView(true);
     }
   };
 
-  const getComponentLabel = (vnode : any) => {
-    const fallback = vnode?.el?.id;
-
-    const componentContext = getComponentFromVNode(vnode)?.ctx;
-
-    return componentContext?.displayTitle || componentContext?.title || fallback;
+  const getComponentLabel = (component: any) => {
+    return component?.displayTitle || component?.title || component?.label || '';
   };
 
   const getComponentFromVNode = (vnode: any) => {
     return vnode?.component ? vnode.component : vnode?.ctx?.vnode?.component;
   };
 
-  provide('updateSummary', debouncedFindComponents);
+  const findEntryByLabel = (entries: any[], label: string): any => {
+    for (const entry of entries) {
+      if (entry?.label === label) {
+        return entry;
+      }
 
-  return { matchingComponents };
+      if (entry?.children?.length) {
+        const childMatch = findEntryByLabel(entry.children, label);
+
+        if (childMatch) {
+          return childMatch;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const registerComponent = (component: any) => {
+    if (!component) {
+      return;
+    }
+
+    debouncedFindComponents();
+
+    const label = getComponentLabel(component);
+
+    if (!label) {
+      return;
+    }
+
+    const entry = findEntryByLabel(matchingComponents.value, label);
+
+    if (entry) {
+      entry.component = component;
+    }
+  };
+
+  provide('updateSummary', debouncedFindComponents);
+  provide('registerComponent', registerComponent);
+
+  return { matchingComponents, registerComponent };
+}
+
+export function useInSummary() {
+  const registerComponent = inject('registerComponent') as any || (() => {});
+  const updateSummary = inject('updateSummary') as any || (() => {});
+  const instance = getCurrentInstance();
+  const component = instance?.proxy;
+
+  onMounted(() => {
+    console.log('*** registering component: ', component);
+    registerComponent(component);
+  });
+
+  onUnmounted(() => {
+    updateSummary();
+  });
 }

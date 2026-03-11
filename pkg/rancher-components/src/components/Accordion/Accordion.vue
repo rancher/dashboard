@@ -1,6 +1,7 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent } from 'vue';
 import { mapGetters } from 'vuex';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default defineComponent({
   props: {
@@ -20,11 +21,14 @@ export default defineComponent({
     }
   },
 
+  setup() {
+    useInSummary();
+
+    return {};
+  },
+
   data() {
-    return {
-      isOpen:        this.openInitially,
-      updateSummary: inject('updateSummary') as Function
-    };
+    return { isOpen: this.openInitially };
   },
 
   computed: {
@@ -33,14 +37,6 @@ export default defineComponent({
     displayTitle() {
       return this.titleKey ? this.t(this.titleKey) : this.title;
     },
-  },
-
-  mounted() {
-    this.updateSummary();
-  },
-
-  beforeUnmount() {
-    this.updateSummary();
   },
 
   methods: {
