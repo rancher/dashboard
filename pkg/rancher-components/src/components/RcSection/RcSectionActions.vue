@@ -15,18 +15,14 @@ const props = defineProps<{
 const primaryActions = computed(() => (props.actions.length < 3 ? props.actions : props.actions.slice(0, 2)));
 
 const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.actions.slice(2)));
-
-function resolveVariant(action: typeof props.actions[number]) {
-  return action.label ? 'link' : 'ghost';
-}
 </script>
 
 <template>
   <RcButton
     v-for="(action, index) in primaryActions"
     :key="index"
-    :class="{ 'icon-action': !action.label }"
-    :variant="resolveVariant(action)"
+    :class="{ 'icon-action': !action.label, 'section-action': true }"
+    variant="ghost"
     :size="action.label ? 'small' : 'large'"
     :left-icon="action.icon as any"
     :aria-label="action.ariaLabel"
@@ -66,6 +62,7 @@ function resolveVariant(action: typeof props.actions[number]) {
           #before
         >
           <RcIcon
+            class="section-action"
             :type="action.icon as any"
             size="small"
           />
@@ -84,9 +81,9 @@ function resolveVariant(action: typeof props.actions[number]) {
   }
 }
 
-button.rc-button {
+.section-action {
   &, &:hover {
-    color: var(--disabled-text);
+    color: var(--rc-section-action-color);
   }
 }
 </style>
