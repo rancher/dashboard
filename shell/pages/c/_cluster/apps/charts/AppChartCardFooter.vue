@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RcItemCardAction } from '@components/RcItemCard';
 import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
 
 interface FooterItem {
   icon?: string;
@@ -31,13 +32,19 @@ function onClickItem(type: string, label: string) {
       class="app-chart-card-footer-item"
       data-testid="app-chart-card-footer-item"
     >
+      <RcIcon
+        v-if="footerItem.icon"
+        v-clean-tooltip="footerItem.iconTooltip?.key ? t(footerItem.iconTooltip?.key) : undefined"
+        class="app-chart-card-footer-item-icon"
+        :type="footerItem.icon"
+      />
       <template
         v-for="(label, j) in footerItem.labels"
         :key="j"
       >
         <rc-item-card-action
           v-if="clickable && footerItem.type"
-          class="app-chart-card-footer-item-text"
+          class="app-chart-card-footer-item-action"
         >
           <rc-button
             v-clean-tooltip="footerItem.labelTooltip"
@@ -47,18 +54,12 @@ function onClickItem(type: string, label: string) {
             :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel', { filter: label })"
             @click="onClickItem(footerItem.type, label)"
           >
-            <template
-              v-if="footerItem.icon"
-              #before
-            >
-              <i
-                v-clean-tooltip="t(footerItem.iconTooltip?.key)"
-                :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
-              />
-            </template>
-            {{ label }}
-            <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+            <span class="app-chart-card-footer-button-label">{{ label }}</span>
           </rc-button>
+          <span
+            v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1"
+            class="app-chart-card-footer-item-separator"
+          >,</span>
         </rc-item-card-action>
         <span
           v-else
@@ -67,7 +68,10 @@ function onClickItem(type: string, label: string) {
           data-testid="app-chart-card-footer-item-text"
         >
           {{ label }}
-          <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+          <span
+            v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1"
+            class="app-chart-card-footer-item-separator"
+          >,</span>
         </span>
       </template>
     </div>
@@ -78,6 +82,7 @@ function onClickItem(type: string, label: string) {
 .app-chart-card-footer {
   display: flex;
   flex-wrap: wrap;
+  max-width: 100%;
 
   &-item {
     display: flex;
@@ -85,18 +90,31 @@ function onClickItem(type: string, label: string) {
     color: var(--link-text-secondary);
     margin-top: 8px;
     margin-right: 8px;
+    min-width: 0;
+    max-width: 100%;
+
+    &-action {
+      display: flex;
+      align-items: center;
+      min-width: 0; // Critical for truncation in flex containers
+      max-width: 100%;
+    }
 
     &-text {
-      margin-right: 8px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
+      display: block;
       overflow: hidden;
       text-overflow: ellipsis;
-      word-break: break-all;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    &-separator {
+      flex-shrink: 0;
+      margin-right: 4px;
     }
 
     &-icon {
+      flex-shrink: 0;
       width: 20px;
       height: 20px;
       display: flex;
@@ -109,6 +127,15 @@ function onClickItem(type: string, label: string) {
 
   &-button {
     text-transform: capitalize;
+    min-width: 0;
+    max-width: 100%;
+
+    &-label {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
 

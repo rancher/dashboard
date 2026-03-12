@@ -873,7 +873,7 @@ export default {
       }
 
       return labels.length ? [{
-        icon:        'icon-tag-alt',
+        icon:        'tag-alt',
         iconTooltip: { key: 'generic.tags' },
         labels,
       }] : [];
