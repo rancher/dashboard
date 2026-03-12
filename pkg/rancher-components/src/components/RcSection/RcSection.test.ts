@@ -80,13 +80,13 @@ describe('component: RcSection', () => {
     it('should render toggle button when expandable is true', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });
 
-      expect(wrapper.find('.toggle-btn').exists()).toBe(true);
+      expect(wrapper.find('.toggle-button').exists()).toBe(true);
     });
 
     it('should not render toggle button when expandable is false', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: false } });
 
-      expect(wrapper.find('.toggle-btn').exists()).toBe(false);
+      expect(wrapper.find('.toggle-button').exists()).toBe(false);
     });
 
     it('should set aria-expanded on toggle button when expandable', () => {
@@ -96,7 +96,7 @@ describe('component: RcSection', () => {
         }
       });
 
-      expect(wrapper.find('.toggle-btn').attributes('aria-expanded')).toBe('true');
+      expect(wrapper.find('.toggle-button').attributes('aria-expanded')).toBe('true');
     });
 
     it('should set aria-expanded="false" on toggle button when collapsed', () => {
@@ -106,7 +106,7 @@ describe('component: RcSection', () => {
         }
       });
 
-      expect(wrapper.find('.toggle-btn').attributes('aria-expanded')).toBe('false');
+      expect(wrapper.find('.toggle-button').attributes('aria-expanded')).toBe('false');
     });
 
     it('should set aria-label to "Collapse section" on toggle button when expanded', () => {
@@ -116,7 +116,7 @@ describe('component: RcSection', () => {
         }
       });
 
-      expect(wrapper.find('.toggle-btn').attributes('aria-label')).toBe('Collapse section');
+      expect(wrapper.find('.toggle-button').attributes('aria-label')).toBe('Collapse section');
     });
 
     it('should set aria-label to "Expand section" on toggle button when collapsed', () => {
@@ -126,7 +126,7 @@ describe('component: RcSection', () => {
         }
       });
 
-      expect(wrapper.find('.toggle-btn').attributes('aria-label')).toBe('Expand section');
+      expect(wrapper.find('.toggle-button').attributes('aria-label')).toBe('Expand section');
     });
 
     it('should emit update:expanded with false when clicking an expanded header', async() => {
@@ -170,7 +170,7 @@ describe('component: RcSection', () => {
         }
       });
 
-      await wrapper.find('.toggle-btn').trigger('click');
+      await wrapper.find('.toggle-button').trigger('click');
 
       expect(wrapper.emitted('update:expanded')).toHaveLength(1);
       expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([false]);
