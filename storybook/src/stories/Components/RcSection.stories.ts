@@ -344,7 +344,9 @@ export const AllTypes: Story = {
       const middleExpanded = ref(true);
       const innerExpanded = ref(true);
 
-      return { outerExpanded, middleExpanded, innerExpanded };
+      return {
+        outerExpanded, middleExpanded, innerExpanded
+      };
     },
     template: `
       <div style="max-width: 900px;">

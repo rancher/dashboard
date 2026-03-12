@@ -164,7 +164,9 @@ describe('component: RcSectionActions', () => {
     });
 
     it('should use left-icon for labeled actions with an icon', () => {
-      const wrapper = createWrapper([{ label: 'Edit', icon: 'edit', action: jest.fn() }]);
+      const wrapper = createWrapper([{
+        label: 'Edit', icon: 'edit', action: jest.fn()
+      }]);
 
       expect(wrapper.find('.rc-button').attributes('data-left-icon')).toBe('edit');
     });
