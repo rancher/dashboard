@@ -21,13 +21,18 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
   <RcButton
     v-for="(action, index) in primaryActions"
     :key="index"
-    :class="{ 'icon-action': !action.label, 'section-action': true }"
-    variant="ghost"
-    :size="action.label ? 'small' : 'large'"
-    :left-icon="action.icon as any"
+    :class="{ 'icon-action': !action.label }"
+    variant="tertiary"
+    size="small"
+    :left-icon="action.label && action.icon ? (action.icon as any) : undefined"
     :aria-label="action.ariaLabel"
     @click.stop="action.action"
   >
+    <RcIcon
+      v-if="!action.label && action.icon"
+      :type="action.icon as any"
+      size="medium"
+    />
     <template v-if="action.label">
       {{ action.label }}
     </template>
@@ -40,7 +45,7 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
   >
     <RcDropdownTrigger
       class="icon-action"
-      variant="ghost"
+      variant="tertiary"
       size="small"
       aria-label="More actions"
     >
@@ -62,7 +67,6 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
           #before
         >
           <RcIcon
-            class="section-action"
             :type="action.icon as any"
             size="small"
           />
@@ -75,13 +79,13 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
 
 <style lang="scss" scoped>
 .icon-action {
-  &.rc-button.btn-large.variant-ghost, &.rc-button.btn-small.variant-ghost {
+  &.rc-button.btn-large.variant-ghost, &.rc-button.btn-small.variant-tertiary {
     width: 24px;
     padding: 0;
   }
 }
 
-.section-action {
+.rc-button.btn-small.variant-tertiary {
   &, &:hover {
     color: var(--rc-section-action-color);
   }

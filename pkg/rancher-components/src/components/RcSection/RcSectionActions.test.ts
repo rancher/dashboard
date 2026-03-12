@@ -6,7 +6,7 @@ const RcButtonStub = {
   name:     'RcButton',
   props:    ['variant', 'size', 'leftIcon', 'ariaLabel'],
   emits:    ['click'],
-  template: '<button class="rc-button" :data-variant="variant" :aria-label="ariaLabel" @click="$emit(\'click\', $event)"><slot /></button>',
+  template: '<button class="rc-button" :data-variant="variant" :data-left-icon="leftIcon" :aria-label="ariaLabel" @click="$emit(\'click\', $event)"><slot /></button>',
 };
 
 const RcDropdownStub = {
@@ -144,16 +144,29 @@ describe('component: RcSectionActions', () => {
   });
 
   describe('variant resolution', () => {
-    it('should use "link" variant for actions with a label', () => {
+    it('should use "tertiary" variant for actions with a label', () => {
       const wrapper = createWrapper([{ label: 'Edit', action: jest.fn() }]);
 
-      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('link');
+      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('tertiary');
     });
 
-    it('should use "ghost" variant for actions without a label', () => {
+    it('should use "tertiary" variant for icon-only actions', () => {
       const wrapper = createWrapper([{ icon: 'copy', action: jest.fn() }]);
 
-      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('ghost');
+      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('tertiary');
+    });
+
+    it('should render icon inside button for icon-only actions', () => {
+      const wrapper = createWrapper([{ icon: 'copy', action: jest.fn() }]);
+
+      expect(wrapper.find('.rc-button .rc-icon').exists()).toBe(true);
+      expect(wrapper.find('.rc-button .rc-icon').attributes('data-type')).toBe('copy');
+    });
+
+    it('should use left-icon for labeled actions with an icon', () => {
+      const wrapper = createWrapper([{ label: 'Edit', icon: 'edit', action: jest.fn() }]);
+
+      expect(wrapper.find('.rc-button').attributes('data-left-icon')).toBe('edit');
     });
   });
 

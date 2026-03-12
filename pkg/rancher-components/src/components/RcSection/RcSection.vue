@@ -66,7 +66,7 @@ function toggle() {
       <div class="left-wrapper">
         <RcButton
           v-if="props.expandable"
-          class="toggle-btn"
+          class="toggle-button"
           variant="ghost"
           :aria-expanded="props.expanded"
           :aria-label="props.expanded ? 'Collapse section' : 'Expand section'"
@@ -74,16 +74,16 @@ function toggle() {
         >
           <RcIcon
             :type="props.expanded ? 'chevron-down' : 'chevron-right'"
-            size="inherit"
+            size="medium"
           />
         </RcButton>
         <div class="title">
           <slot name="title">
             {{ props.title }}
           </slot>
+          <slot name="counter" />
+          <slot name="errors" />
         </div>
-        <slot name="counter" />
-        <slot name="errors" />
       </div>
       <div
         v-if="$slots.badges || $slots.actions"
@@ -160,19 +160,23 @@ function toggle() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .title {
+  display: inline-flex;
+  gap: 12px;
   font-size: 18px;
   line-height: 1.2;
   color: var(--body-text, inherit);
 }
 
-.toggle-btn {
+button.btn-medium.toggle-button {
   flex-shrink: 0;
   font-size: 16px;
   color: var(--body-text, inherit);
+  padding: 0;
+  min-height: initial;
 }
 
 .right-wrapper {
@@ -195,7 +199,7 @@ function toggle() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .section-content {
