@@ -52,5 +52,8 @@ export function isTruncated(element: HTMLElement | null): boolean {
     return false;
   }
 
-  return element.scrollWidth > element.clientWidth || (element.scrollHeight - element.clientHeight > 1);
+  const isHorizontallyTruncated = element.scrollWidth > element.clientWidth;
+  const isVerticallyTruncated = element.scrollHeight - element.clientHeight > 1;
+
+  return isHorizontallyTruncated || isVerticallyTruncated;
 }
