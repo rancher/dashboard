@@ -2,7 +2,7 @@
   "branches": {
     "master": {
       "milestone": {
-        "version": "v2.14.0",
+        "version": "v2.15.0",
         "codeFreeze": false
       },
       "e2e": {
