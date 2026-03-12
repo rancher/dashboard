@@ -337,78 +337,80 @@ export const AllTypes: Story = {
       RcSectionBadges,
       RcSectionActions,
       RcCounterBadge,
+      RcIcon,
     },
     setup() {
-      const primaryExpanded = ref(true);
-      const secondaryExpanded = ref(true);
+      const outerExpanded = ref(true);
+      const middleExpanded = ref(true);
+      const innerExpanded = ref(true);
 
-      return { primaryExpanded, secondaryExpanded };
+      return { outerExpanded, middleExpanded, innerExpanded };
     },
     template: `
-      <div style="display: flex; flex-direction: column; gap: 32px; max-width: 900px;">
-        <div>
-          <h3 style="margin-bottom: 12px; color: #6C6F76;">Primary — Fixed</h3>
-          <RcSection title="Primary fixed section" type="primary" mode="with-header" background="primary" :expandable="false">
-            <template #badges>
-              <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
-            </template>
-            ${ contentGroup('Content Group 1', 'Content goes here.', true) }
-          </RcSection>
-        </div>
+      <div style="max-width: 900px;">
+        <RcSection
+          title="Cluster overview"
+          type="primary"
+          mode="with-header"
+          background="primary"
+          expandable
+          v-model:expanded="outerExpanded"
+        >
+          <template #counter>
+            <RcCounterBadge :count="12" type="inactive" />
+          </template>
+          <template #errors>
+            <RcIcon v-clean-tooltip="'2 validation errors'" type="error" size="large" status="error" />
+          </template>
+          <template #badges>
+            <RcSectionBadges :badges="[
+              { label: 'Active', status: 'success', tooltip: 'Cluster is healthy' },
+              { label: 'Upgrading', status: 'warning', tooltip: 'Upgrade in progress' },
+            ]" />
+          </template>
+          <template #actions>
+            <RcSectionActions :actions="[
+              { label: 'Edit', icon: 'edit', action: () => {} },
+              { icon: 'copy', ariaLabel: 'Copy cluster ID', action: () => {} },
+              { icon: 'more', ariaLabel: 'More actions', action: () => {} },
+            ]" />
+          </template>
 
-        <div>
-          <h3 style="margin-bottom: 12px; color: #6C6F76;">Primary — Expandable</h3>
           <RcSection
-            title="Primary expandable section"
-            type="primary"
-            mode="with-header"
-            background="primary"
-            expandable
-            v-model:expanded="primaryExpanded"
-          >
-            <template #counter>
-              <RcCounterBadge :count="12" type="inactive" />
-            </template>
-            <template #actions>
-              <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
-            </template>
-            ${ contentGroup('Content Group 1', 'Expandable content goes here.', true) }
-          </RcSection>
-        </div>
-
-        <div style="background: #EFEFEF; padding: 24px; border-radius: 8px;">
-          <h3 style="margin-bottom: 12px; color: #6C6F76;">Secondary — Fixed</h3>
-          <RcSection title="Secondary fixed section" type="secondary" mode="with-header" background="secondary" :expandable="false">
-            <template #badges>
-              <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
-            </template>
-            ${ contentGroup('Content Group 1', 'Content goes here.', true) }
-          </RcSection>
-        </div>
-
-        <div style="background: #EFEFEF; padding: 24px; border-radius: 8px;">
-          <h3 style="margin-bottom: 12px; color: #6C6F76;">Secondary — Expandable</h3>
-          <RcSection
-            title="Secondary expandable section"
+            title="Node pools"
             type="secondary"
             mode="with-header"
             background="secondary"
             expandable
-            v-model:expanded="secondaryExpanded"
+            v-model:expanded="middleExpanded"
           >
-            <template #actions>
-              <RcSectionActions :actions="[{ label: 'Configure', action: () => {} }]" />
+            <template #counter>
+              <RcCounterBadge :count="3" type="inactive" />
             </template>
-            ${ contentGroup('Content Group 1', 'Expandable content goes here.', true) }
-          </RcSection>
-        </div>
+            <template #actions>
+              <RcSectionActions :actions="[
+                { label: 'Add pool', action: () => {} },
+              ]" />
+            </template>
 
-        <div>
-          <h3 style="margin-bottom: 12px; color: #6C6F76;">No header</h3>
-          <RcSection type="primary" mode="no-header" background="primary" :expandable="false">
-            ${ contentGroup('Content Group 1', 'Content without a header.', true) }
+            <RcSection
+              title="worker-pool-1"
+              type="secondary"
+              mode="with-header"
+              background="primary"
+              expandable
+              v-model:expanded="innerExpanded"
+            >
+              <template #actions>
+                <RcSectionActions :actions="[
+                  { label: 'Scale', action: () => {} },
+                  { icon: 'trash', ariaLabel: 'Delete pool', action: () => {} },
+                ]" />
+              </template>
+              ${ contentGroup('Pool details', '3 nodes running, 0 pending', true) }
+            </RcSection>
           </RcSection>
-        </div>
+        </RcSection>
       </div>
     `,
   }),
