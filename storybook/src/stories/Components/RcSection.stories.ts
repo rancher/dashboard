@@ -83,19 +83,19 @@ export const Default: Story = {
           <RcCounterBadge :count="99" type="inactive" />
         </template>
         <template #errors>
-          <RcIcon type="error" size="large" status="error" />
+          <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
         </template>
         <template #badges>
           <RcSectionBadges :badges="[
-            { label: 'Status', status: 'success' },
-            { label: 'Status', status: 'warning' },
-            { label: 'Status', status: 'error' },
+            { label: 'Status', status: 'success', tooltip: 'All systems operational' },
+            { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
+            { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
           ]" />
         </template>
         <template #actions>
           <RcSectionActions :actions="[
             { label: 'Action', icon: 'chevron-left', action: () => {} },
-            { icon: 'copy', action: () => {} },
+            { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
             { icon: 'trash', label:'Delete', action: () => {} },
           ]" />
         </template>
@@ -265,7 +265,7 @@ export const WithErrorsSlot: Story = {
     template:   `
       <RcSection title="Section with errors" type="primary" mode="with-header" background="primary" :expandable="false">
         <template #errors>
-          <RcIcon type="error" size="large" status="error" />
+          <RcIcon v-clean-tooltip="'1 validation error'" type="error" size="large" status="error" />
         </template>
         ${ contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true) }
       </RcSection>
@@ -304,20 +304,20 @@ export const FullHeader: Story = {
           <RcCounterBadge :count="99" type="inactive" />
         </template>
         <template #errors>
-          <RcIcon type="error" size="large" status="error" />
+          <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
         </template>
         <template #badges>
           <RcSectionBadges :badges="[
-            { label: 'Status', status: 'success' },
-            { label: 'Status', status: 'warning' },
-            { label: 'Status', status: 'error' },
+            { label: 'Status', status: 'success', tooltip: 'All systems operational' },
+            { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
+            { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
           ]" />
         </template>
         <template #actions>
           <RcSectionActions :actions="[
             { label: 'Action', icon: 'chevron-left', action: () => {} },
-            { icon: 'copy', action: () => {} },
-            { icon: 'more', action: () => {} },
+            { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
+            { icon: 'more', ariaLabel: 'More actions', action: () => {} },
           ]" />
         </template>
         ${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }

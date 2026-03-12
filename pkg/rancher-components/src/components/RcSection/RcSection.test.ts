@@ -77,44 +77,56 @@ describe('component: RcSection', () => {
   });
 
   describe('expandable behavior', () => {
-    it('should render toggle icon when expandable is true', () => {
+    it('should render toggle button when expandable is true', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });
 
-      expect(wrapper.find('.toggle-icon').exists()).toBe(true);
+      expect(wrapper.find('.toggle-btn').exists()).toBe(true);
     });
 
-    it('should not render toggle icon when expandable is false', () => {
+    it('should not render toggle button when expandable is false', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: false } });
 
-      expect(wrapper.find('.toggle-icon').exists()).toBe(false);
+      expect(wrapper.find('.toggle-btn').exists()).toBe(false);
     });
 
-    it('should set role="button" on header when expandable', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });
-
-      expect(wrapper.find('.section-header').attributes('role')).toBe('button');
-    });
-
-    it('should not set role on header when not expandable', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: false } });
-
-      expect(wrapper.find('.section-header').attributes('role')).toBeUndefined();
-    });
-
-    it('should set tabindex="0" on header when expandable', () => {
-      const wrapper = mount(RcSection, { props: { ...defaultProps, expandable: true } });
-
-      expect(wrapper.find('.section-header').attributes('tabindex')).toBe('0');
-    });
-
-    it('should set aria-expanded on header when expandable', () => {
+    it('should set aria-expanded on toggle button when expandable', () => {
       const wrapper = mount(RcSection, {
         props: {
           ...defaultProps, expandable: true, expanded: true
         }
       });
 
-      expect(wrapper.find('.section-header').attributes('aria-expanded')).toBe('true');
+      expect(wrapper.find('.toggle-btn').attributes('aria-expanded')).toBe('true');
+    });
+
+    it('should set aria-expanded="false" on toggle button when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
+
+      expect(wrapper.find('.toggle-btn').attributes('aria-expanded')).toBe('false');
+    });
+
+    it('should set aria-label to "Collapse section" on toggle button when expanded', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true
+        }
+      });
+
+      expect(wrapper.find('.toggle-btn').attributes('aria-label')).toBe('Collapse section');
+    });
+
+    it('should set aria-label to "Expand section" on toggle button when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
+
+      expect(wrapper.find('.toggle-btn').attributes('aria-label')).toBe('Expand section');
     });
 
     it('should emit update:expanded with false when clicking an expanded header', async() => {
@@ -151,27 +163,14 @@ describe('component: RcSection', () => {
       expect(wrapper.emitted('update:expanded')).toBeUndefined();
     });
 
-    it('should emit update:expanded on Enter keydown', async() => {
+    it('should emit update:expanded when toggle button is clicked', async() => {
       const wrapper = mount(RcSection, {
         props: {
           ...defaultProps, expandable: true, expanded: true
         }
       });
 
-      await wrapper.find('.section-header').trigger('keydown.enter');
-
-      expect(wrapper.emitted('update:expanded')).toHaveLength(1);
-      expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([false]);
-    });
-
-    it('should emit update:expanded on Space keydown', async() => {
-      const wrapper = mount(RcSection, {
-        props: {
-          ...defaultProps, expandable: true, expanded: true
-        }
-      });
-
-      await wrapper.find('.section-header').trigger('keydown.space');
+      await wrapper.find('.toggle-btn').trigger('click');
 
       expect(wrapper.emitted('update:expanded')).toHaveLength(1);
       expect(wrapper.emitted('update:expanded')![0]).toStrictEqual([false]);

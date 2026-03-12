@@ -4,8 +4,9 @@ import RcSectionActions from './RcSectionActions.vue';
 // Stubs for child components to isolate unit tests
 const RcButtonStub = {
   name:     'RcButton',
-  props:    ['variant', 'size', 'leftIcon'],
-  template: '<button class="rc-button" :data-variant="variant" @click="$emit(\'click\')"><slot /></button>',
+  props:    ['variant', 'size', 'leftIcon', 'ariaLabel'],
+  emits:    ['click'],
+  template: '<button class="rc-button" :data-variant="variant" :aria-label="ariaLabel" @click="$emit(\'click\', $event)"><slot /></button>',
 };
 
 const RcDropdownStub = {
@@ -20,7 +21,9 @@ const RcDropdownTriggerStub = {
 
 const RcDropdownItemStub = {
   name:     'RcDropdownItem',
-  template: '<div class="rc-dropdown-item" @click="$emit(\'click\')"><slot name="before" /><slot /></div>',
+  props:    ['ariaLabel'],
+  emits:    ['click'],
+  template: '<div class="rc-dropdown-item" :aria-label="ariaLabel" @click="$emit(\'click\', $event)"><slot name="before" /><slot /></div>',
 };
 
 const RcIconStub = {
@@ -38,7 +41,7 @@ const globalStubs = {
 };
 
 describe('component: RcSectionActions', () => {
-  function createWrapper(actions: { label?: string; icon?: string; action: () => void }[]) {
+  function createWrapper(actions: { label?: string; icon?: string; ariaLabel?: string; action: () => void }[]) {
     return mount(RcSectionActions, {
       props:  { actions },
       global: { stubs: globalStubs },
@@ -123,7 +126,7 @@ describe('component: RcSectionActions', () => {
 
       await wrapper.find('.rc-button').trigger('click');
 
-      expect(action).toHaveBeenCalledWith();
+      expect(action).toHaveBeenCalledTimes(1);
     });
 
     it('should invoke the correct action callback for overflow items', async() => {
@@ -136,7 +139,7 @@ describe('component: RcSectionActions', () => {
 
       await wrapper.find('.rc-dropdown-item').trigger('click');
 
-      expect(actionC).toHaveBeenCalledWith();
+      expect(actionC).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -151,6 +154,34 @@ describe('component: RcSectionActions', () => {
       const wrapper = createWrapper([{ icon: 'copy', action: jest.fn() }]);
 
       expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('ghost');
+    });
+  });
+
+  describe('ariaLabel', () => {
+    it('should set aria-label on a primary button when ariaLabel is provided', () => {
+      const wrapper = createWrapper([{
+        icon: 'copy', ariaLabel: 'Copy item', action: jest.fn()
+      }]);
+
+      expect(wrapper.find('.rc-button').attributes('aria-label')).toBe('Copy item');
+    });
+
+    it('should not set aria-label on a primary button when ariaLabel is omitted', () => {
+      const wrapper = createWrapper([{ label: 'Edit', action: jest.fn() }]);
+
+      expect(wrapper.find('.rc-button').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should set aria-label on overflow dropdown items when ariaLabel is provided', () => {
+      const wrapper = createWrapper([
+        { label: 'A', action: jest.fn() },
+        { label: 'B', action: jest.fn() },
+        {
+          label: 'C', ariaLabel: 'Do C action', action: jest.fn()
+        },
+      ]);
+
+      expect(wrapper.find('.rc-dropdown-item').attributes('aria-label')).toBe('Do C action');
     });
   });
 

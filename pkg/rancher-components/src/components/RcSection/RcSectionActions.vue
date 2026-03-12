@@ -27,9 +27,10 @@ function resolveVariant(action: typeof props.actions[number]) {
     :key="index"
     :class="{ 'icon-action': !action.label }"
     :variant="resolveVariant(action)"
-    size="large"
+    :size="action.label ? 'small' : 'large'"
     :left-icon="action.icon as any"
-    @click="action.action"
+    :aria-label="action.ariaLabel"
+    @click.stop="action.action"
   >
     <template v-if="action.label">
       {{ action.label }}
@@ -39,6 +40,7 @@ function resolveVariant(action: typeof props.actions[number]) {
   <RcDropdown
     v-if="overflowActions.length"
     placement="bottom-end"
+    @click.stop
   >
     <RcDropdownTrigger
       class="icon-action"
@@ -56,7 +58,8 @@ function resolveVariant(action: typeof props.actions[number]) {
       <RcDropdownItem
         v-for="(action, index) in overflowActions"
         :key="index"
-        @click="action.action"
+        :aria-label="action.ariaLabel"
+        @click.stop="action.action"
       >
         <template
           v-if="action.icon"

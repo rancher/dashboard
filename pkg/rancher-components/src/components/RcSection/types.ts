@@ -16,6 +16,8 @@ export interface BadgeConfig {
   label: string;
   /** Status colour of the badge. */
   status: Status;
+  /** Optional tooltip text shown on hover. */
+  tooltip?: string;
 }
 
 export interface RcSectionBadgesProps {
@@ -31,6 +33,8 @@ export interface ActionConfig {
   label?: string;
   /** Icon shown on the button (left position for labeled, sole content for icon-only). */
   icon?: RcIconType;
+  /** Accessible label for the button. Required when `label` is omitted so screen readers can describe the action. */
+  ariaLabel?: string;
   /** Callback invoked when the action is clicked. */
   action: () => void;
 }

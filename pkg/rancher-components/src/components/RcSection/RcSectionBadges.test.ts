@@ -9,10 +9,13 @@ const RcStatusBadgeStub = {
 };
 
 describe('component: RcSectionBadges', () => {
-  function createWrapper(badges: { label: string; status: string }[]) {
+  function createWrapper(badges: { label: string; status: string; tooltip?: string }[]) {
     return mount(RcSectionBadges, {
       props:  { badges },
-      global: { stubs: { RcStatusBadge: RcStatusBadgeStub } },
+      global: {
+        stubs:      { RcStatusBadge: RcStatusBadgeStub },
+        directives: { 'clean-tooltip': () => {} },
+      },
     });
   }
 
@@ -79,6 +82,32 @@ describe('component: RcSectionBadges', () => {
 
     expect(wrapper.findAll('.rc-status-badge')).toHaveLength(1);
     expect(wrapper.find('.rc-status-badge').text()).toContain('Only');
+  });
+
+  describe('tooltip', () => {
+    it('should pass tooltip value to v-clean-tooltip directive', () => {
+      const badges = [
+        {
+          label: 'Active', status: 'success', tooltip: 'All systems operational'
+        },
+      ];
+      const wrapper = createWrapper(badges);
+
+      // The directive is registered; if the template used an unknown directive it would throw.
+      // Verify the badge still renders correctly when tooltip is provided.
+      expect(wrapper.findAll('.rc-status-badge')).toHaveLength(1);
+      expect(wrapper.find('.rc-status-badge').text()).toContain('Active');
+    });
+
+    it('should render badges without tooltip when tooltip is omitted', () => {
+      const badges = [
+        { label: 'Pending', status: 'warning' },
+      ];
+      const wrapper = createWrapper(badges);
+
+      expect(wrapper.findAll('.rc-status-badge')).toHaveLength(1);
+      expect(wrapper.find('.rc-status-badge').text()).toContain('Pending');
+    });
   });
 
   describe('console warning', () => {

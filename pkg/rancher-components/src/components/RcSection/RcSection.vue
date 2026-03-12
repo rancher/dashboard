@@ -16,6 +16,7 @@
  * </rc-section>
  */
 import { computed } from 'vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
 const props = withDefaults(defineProps<{
@@ -60,20 +61,22 @@ function toggle() {
       v-if="hasHeader"
       class="section-header"
       :class="{ expandable: props.expandable, collapsed: !props.expanded }"
-      :role="props.expandable ? 'button' : undefined"
-      :tabindex="props.expandable ? 0 : undefined"
-      :aria-expanded="props.expandable ? props.expanded : undefined"
       @click="toggle"
-      @keydown.enter="toggle"
-      @keydown.space.prevent="toggle"
     >
       <div class="left-wrapper">
-        <RcIcon
+        <RcButton
           v-if="props.expandable"
-          class="toggle-icon"
-          :type="props.expanded ? 'chevron-down' : 'chevron-right'"
-          size="medium"
-        />
+          class="toggle-btn"
+          variant="ghost"
+          :aria-expanded="props.expanded"
+          :aria-label="props.expanded ? 'Collapse section' : 'Expand section'"
+          @click.stop="toggle"
+        >
+          <RcIcon
+            :type="props.expanded ? 'chevron-down' : 'chevron-right'"
+            size="inherit"
+          />
+        </RcButton>
         <div class="title">
           <slot name="title">
             {{ props.title }}
@@ -150,11 +153,6 @@ function toggle() {
   &.expandable {
     cursor: pointer;
     user-select: none;
-
-    &:focus-visible {
-      @include focus-outline;
-      outline-offset: 2px;
-    }
   }
 }
 
@@ -171,8 +169,9 @@ function toggle() {
   color: var(--body-text, inherit);
 }
 
-.toggle-icon {
+.toggle-btn {
   flex-shrink: 0;
+  font-size: 16px;
   color: var(--body-text, inherit);
 }
 

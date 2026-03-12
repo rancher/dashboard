@@ -22,6 +22,7 @@ const visibleBadges = computed(() => {
   <RcStatusBadge
     v-for="(badge, i) in visibleBadges"
     :key="i"
+    v-clean-tooltip="badge.tooltip"
     :status="badge.status"
   >
     {{ badge.label }}
