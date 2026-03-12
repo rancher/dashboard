@@ -236,12 +236,12 @@ describe('class Chart', () => {
 
       expect(result.footerItems).toHaveLength(3);
 
-      const categoryItem = result.footerItems.find((i) => i.icon === 'icon-category-alt');
+      const categoryItem = result.footerItems.find((i) => i.icon === 'category-alt');
 
       expect(categoryItem).toBeDefined();
       expect(categoryItem?.labels).toContain('database');
 
-      const tagItem = result.footerItems.find((i) => i.icon === 'icon-tag-alt');
+      const tagItem = result.footerItems.find((i) => i.icon === 'tag-alt');
 
       expect(tagItem).toBeDefined();
       expect(tagItem?.labels).toStrictEqual(expect.arrayContaining(['linux', 'experimentl']));

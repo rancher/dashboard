@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 import { RcItemCardAction } from '@components/RcItemCard';
 import { RcButton } from '@components/RcButton';
 import { isTruncated } from '@shell/utils/style';
+import { RcIcon } from '@components/RcIcon';
 
 interface FooterItem {
   icon?: string;
@@ -81,10 +82,11 @@ function getTooltip(key: string, fallback?: string): string | undefined {
       class="app-chart-card-footer-item"
       data-testid="app-chart-card-footer-item"
     >
-      <i
+      <RcIcon
         v-if="footerItem.icon"
         v-clean-tooltip="footerItem.iconTooltip?.key ? t(footerItem.iconTooltip.key) : undefined"
-        :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
+        class="app-chart-card-footer-item-icon"
+        :type="footerItem.icon"
       />
       <template
         v-for="(label, j) in footerItem.labels"
@@ -111,7 +113,7 @@ function getTooltip(key: string, fallback?: string): string | undefined {
           <span
             v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1"
             class="app-chart-card-footer-item-separator"
-          >,&nbsp;</span>
+          >,</span>
         </rc-item-card-action>
         <span
           v-else
@@ -121,7 +123,11 @@ function getTooltip(key: string, fallback?: string): string | undefined {
           data-testid="app-chart-card-footer-item-text"
           @mouseenter="updateTooltipOnHover(createLabelKey(i, j), label, footerItem.labelTooltip)"
         >
-          {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">,&nbsp;</span>
+          {{ label }}
+          <span
+            v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1"
+            class="app-chart-card-footer-item-separator"
+          >,</span>
         </span>
       </template>
     </div>
@@ -160,6 +166,7 @@ function getTooltip(key: string, fallback?: string): string | undefined {
 
     &-separator {
       flex-shrink: 0;
+      margin-right: 4px;
     }
 
     &-icon {

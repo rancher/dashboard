@@ -321,7 +321,7 @@ export default {
         pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
         header: {
           title:    { text: chart.chartNameDisplay },
-          statuses: this.addStatusesToCharts(chart),
+          statuses: chart.cardContent.statuses
         },
         subHeaderItems: chart.cardContent.subHeaderItems,
         image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
@@ -551,16 +551,6 @@ export default {
         this.observer.observe(sentinel);
         this.observerInitialized = true;
       }
-    },
-
-    addStatusesToCharts(chart) {
-      if (this.suseAppCollectionRepo.includes(chart.repoName)) {
-        return [{
-          icon: 'icon-notify-info', color: 'info', tooltip: { key: 'catalog.charts.isFromSuseAppCoRepository' }
-        }, ...chart.cardContent.statuses];
-      }
-
-      return chart.cardContent.statuses;
     },
 
     async closeSuseAppCollectionBanner() {

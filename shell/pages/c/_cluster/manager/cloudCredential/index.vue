@@ -9,7 +9,7 @@ import {
   ID_UNLINKED,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
-import { allHash } from 'utils/promise';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   components: {

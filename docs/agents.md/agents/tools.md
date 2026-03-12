@@ -6,5 +6,5 @@
   - The dashboard will be available at `https://127.0.0.1:8005`.
 - **Build**: `yarn build`
 - **Lint**: `yarn lint`
-- **Unit Tests**: `yarn test` (Jest)
+- **Unit Tests**: `yarn test:ci` (Jest)
 - **E2E Tests**: See contributors guide

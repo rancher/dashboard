@@ -164,7 +164,7 @@ export default class Chart extends SteveModel {
     const footerItems = [
       {
         type:         REPO,
-        icon:         'icon-repository-alt',
+        icon:         'repository-alt',
         iconTooltip:  { key: 'tableHeaders.repoName' },
         labels:       [this.repoNameDisplay],
         labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.repo') }, true)
@@ -174,7 +174,7 @@ export default class Chart extends SteveModel {
     if (this.categories.length) {
       footerItems.push( {
         type:         CATEGORY,
-        icon:         'icon-category-alt',
+        icon:         'category-alt',
         iconTooltip:  { key: 'generic.category' },
         labels:       this.categories,
         labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.category') }, true)
@@ -184,7 +184,7 @@ export default class Chart extends SteveModel {
     if (this.tags.length) {
       footerItems.push({
         type:         TAG,
-        icon:         'icon-tag-alt',
+        icon:         'tag-alt',
         iconTooltip:  { key: 'generic.tags' },
         labels:       this.tags,
         labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.tag') }, true)
