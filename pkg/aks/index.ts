@@ -21,7 +21,7 @@ export default function(plugin: IPlugin): void {
     context:  { provider: 'aks' }
   }, {
     name:      'custom',
-    label:     'Node Pools',
+    labelKey:  'cluster.tabs.nodePools',
     component: () => import('./components/NodePoolDetailTab.vue')
   });
 }

@@ -130,7 +130,7 @@ export default {
         >
           {{ group.ref?.name || t('resourceTable.groupLabel.notInANodePool') }}
           <div
-            v-if="group.ref"
+            v-if="group.ref && group.ref.description"
             v-clean-html="group.ref.description"
             class="description text-muted text-small"
           />
