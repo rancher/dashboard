@@ -18,6 +18,24 @@
         "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
       }
     },
+    "release-2.14": {
+      "milestone": {
+        "version": "v2.14.0",
+        "codeFreeze": false
+      },
+      "e2e": {
+        "rancher-image": {
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.14-head"
+        }
+      },
+      "rancher-rancher-repo": {
+        "branch": "release/v2.14",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.14/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.14/index.html"
+      }
+    },
     "release-2.13": {
       "milestone": {
         "version": "v2.13.4",
