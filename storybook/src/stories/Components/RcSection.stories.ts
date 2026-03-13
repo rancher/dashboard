@@ -193,10 +193,10 @@ export const SecondaryFixed: Story = {
     template: `
       <div style="background: #EFEFEF; padding: 24px;">
         ${ withSlotContent(
-    secondaryFixedTemplate,
-    `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+      secondaryFixedTemplate,
+      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
            ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
-  ) }
+    ) }
       </div>
     `,
   }),
@@ -396,6 +396,80 @@ export const FullHeader: Story = {
     docs:     {
       canvas: { sourceState: 'shown' },
       source: { code: fullHeaderTemplate },
+    },
+  },
+};
+
+/**
+ * **Automatic alternating backgrounds**
+ *
+ * When the `background` prop is omitted, nested sections automatically
+ * alternate between `primary` and `secondary` backgrounds. The outermost
+ * section defaults to `primary` (no parent), its child resolves to
+ * `secondary`, the grandchild back to `primary`, and so on. This creates
+ * visual depth without any manual configuration.
+ */
+const alternatingBgTemplate = `<!-- No background prop — backgrounds alternate automatically -->
+<RcSection title="Level 1" type="primary" mode="with-header" :expandable="false">
+  <p>No parent — defaults to primary</p>
+  <RcSection title="Level 2" type="secondary" mode="with-header" :expandable="false">
+    <p>Parent is primary — auto-resolves to secondary</p>
+    <RcSection title="Level 3" type="secondary" mode="with-header" :expandable="false">
+      <p>Parent is secondary — auto-resolves back to primary</p>
+    </RcSection>
+  </RcSection>
+</RcSection>`;
+
+export const AlternatingBackgrounds: Story = {
+  render: (args: any) => ({
+    components: { RcSection },
+    setup() {
+      return { args };
+    },
+    template: alternatingBgTemplate,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: alternatingBgTemplate },
+    },
+  },
+};
+
+/**
+ * **Overriding automatic backgrounds**
+ *
+ * You can override the automatic alternation by explicitly setting the
+ * `background` prop. Here the outermost section is `primary`, and we force
+ * both the child and grandchild to `primary` as well — breaking the
+ * automatic alternation. This is useful when you need consecutive sections
+ * to share the same visual weight regardless of nesting depth.
+ */
+const overrideBgTemplate = `<!-- Explicit background prop overrides the automatic alternation -->
+<RcSection title="Level 1" type="secondary" mode="with-header" :expandable="false" background="secondary">
+  <p>Explicit background="secondary"</p>
+  <RcSection title="Level 2" type="secondary" mode="with-header" :expandable="false" background="secondary">
+    <p>Would auto-resolve to primary, but forced to secondary</p>
+    <RcSection title="Level 3" type="secondary" mode="with-header" :expandable="false" background="secondary">
+      <p>Also forced to secondary — all three levels share the same background</p>
+    </RcSection>
+  </RcSection>
+</RcSection>`;
+
+export const BackgroundOverride: Story = {
+  render: (args: any) => ({
+    components: { RcSection },
+    setup() {
+      return { args };
+    },
+    template: overrideBgTemplate,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: overrideBgTemplate },
     },
   },
 };

@@ -239,6 +239,7 @@ button.btn-medium.toggle-button {
   flex-direction: column;
   gap: 24px;
   padding: 0 0 16px;
+  color: var(--body-text);
 
   &.expandable-content {
     padding: 0 0 16px 24px;
