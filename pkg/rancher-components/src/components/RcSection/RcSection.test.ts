@@ -36,6 +36,49 @@ describe('component: RcSection', () => {
 
       expect(wrapper.find('.rc-section').classes()).toContain('bg-secondary');
     });
+
+    it('should default to "primary" background when no background prop and no parent', () => {
+      const { background: _, ...propsWithoutBg } = defaultProps;
+      const wrapper = mount(RcSection, { props: propsWithoutBg });
+
+      expect(wrapper.find('.rc-section').classes()).toContain('bg-primary');
+    });
+
+    it('should alternate background from parent via provide/inject', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, background: 'primary', expanded: true
+        },
+        slots: {
+          default: {
+            components: { RcSection },
+            template:   '<RcSection type="secondary" mode="with-header" :expandable="false" title="Child" />',
+          },
+        },
+      });
+
+      const childSection = wrapper.findAll('.rc-section')[1];
+
+      expect(childSection.classes()).toContain('bg-secondary');
+    });
+
+    it('should allow explicit background to override the injected alternation', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, background: 'primary', expanded: true
+        },
+        slots: {
+          default: {
+            components: { RcSection },
+            template:   '<RcSection type="secondary" mode="with-header" :expandable="false" background="primary" title="Child" />',
+          },
+        },
+      });
+
+      const childSection = wrapper.findAll('.rc-section')[1];
+
+      expect(childSection.classes()).toContain('bg-primary');
+    });
   });
 
   describe('mode prop', () => {

@@ -49,7 +49,7 @@ const meta: Meta<typeof RcSection> = {
     background: {
       options:     ['primary', 'secondary'] as SectionBackground[],
       control:     { type: 'select' },
-      description: 'Background color of the section. Primary - a color that blends in with the background. Secondary - a color that contrasts the background.',
+      description: 'Background color of the section. Primary - a color that blends in with the background. Secondary - a color that contrasts the background. When omitted, nested sections automatically alternate between primary and secondary.',
     },
   },
 };
@@ -382,7 +382,6 @@ export const AllTypes: Story = {
             title="Node pools"
             type="secondary"
             mode="with-header"
-            background="secondary"
             expandable
             v-model:expanded="middleExpanded"
           >
@@ -399,7 +398,6 @@ export const AllTypes: Story = {
               title="worker-pool-1"
               type="secondary"
               mode="with-header"
-              background="primary"
               expandable
               v-model:expanded="innerExpanded"
             >

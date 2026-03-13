@@ -6,11 +6,9 @@ import RcDropdownTrigger from '@components/RcDropdown/RcDropdownTrigger.vue';
 import RcDropdownItem from '@components/RcDropdown/RcDropdownItem.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-import type { ActionConfig } from './types';
+import type { RcSectionActionsProps } from './types';
 
-const props = defineProps<{
-  actions: ActionConfig[];
-}>();
+const props = defineProps<RcSectionActionsProps>();
 
 const primaryActions = computed(() => (props.actions.length < 3 ? props.actions : props.actions.slice(0, 2)));
 

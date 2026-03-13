@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import RcStatusBadge from '@components/Pill/RcStatusBadge';
+import type { RcSectionBadgesProps } from './types';
 
 const MAX_BADGES = 3;
 
-const props = defineProps<{
-  badges: { label: string; status: 'info' | 'success' | 'warning' | 'error' | 'unknown' | 'none' }[];
-}>();
+const props = defineProps<RcSectionBadgesProps>();
 
 const visibleBadges = computed(() => {
   if (props.badges.length > MAX_BADGES) {

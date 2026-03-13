@@ -63,11 +63,10 @@ export interface RcSectionProps {
   mode: SectionMode;
 
   /**
-   * Background color of the section.
-   * - 'primary'
-   * - 'secondary'
+   * Background color of the section. When omitted, automatically alternates
+   * from the parent RcSection's background (primary -> secondary -> primary).
    */
-  background: SectionBackground;
+  background?: SectionBackground;
 
   /**
    * Whether the section can be expanded/collapsed via the header.

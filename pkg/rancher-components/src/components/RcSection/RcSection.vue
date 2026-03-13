@@ -5,27 +5,38 @@
  *
  * Example:
  *
- * <rc-section title="Details" type="primary">
+ * <RcSection title="Details" type="primary">
  *   <p>Section content here</p>
- * </rc-section>
+ * </RcSection>
  *
- * <rc-section title="Advanced" type="secondary" expandable v-model:expanded="isExpanded">
+ * <RcSection title="Advanced" type="secondary" expandable v-model:expanded="isExpanded">
  *   <template #badges><RcStatusBadge status="success">Active</RcStatusBadge></template>
  *   <template #actions><RcButton variant="secondary" size="small">Edit</RcButton></template>
  *   <p>Expandable section content</p>
- * </rc-section>
+ * </RcSection>
  */
-import { computed } from 'vue';
+import { computed, inject, provide, type Ref } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
+import type { RcSectionProps, SectionBackground } from './types';
 
-const props = withDefaults(defineProps<{
-  type: 'primary' | 'secondary';
-  mode: 'with-header' | 'no-header';
-  expandable: boolean;
-  background: 'primary' | 'secondary';
-  title?: string;
-}>(), { title: '' });
+const RC_SECTION_BG_KEY = 'rc-section-background';
+
+const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+
+const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
+
+const resolvedBackground = computed<SectionBackground>(() => {
+  if (props.background) {
+    return props.background;
+  }
+
+  const parent = parentBackground?.value ?? null;
+
+  return parent === 'primary' ? 'secondary' : 'primary';
+});
+
+provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
 
@@ -37,8 +48,8 @@ const sectionClass = computed(() => ({
   'rc-section':     true,
   'type-primary':   props.type === 'primary',
   'type-secondary': props.type === 'secondary',
-  'bg-primary':     props.background === 'primary',
-  'bg-secondary':   props.background === 'secondary',
+  'bg-primary':     resolvedBackground.value === 'primary',
+  'bg-secondary':   resolvedBackground.value === 'secondary',
 }));
 
 const contentClass = computed(() => ({
@@ -159,7 +170,11 @@ function toggle() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+
+  .toggle-button + .title {
+    margin-left: -4px;
+  }
 }
 
 .title {
