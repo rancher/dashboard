@@ -4,6 +4,8 @@ import { mapGetters } from 'vuex';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default defineComponent({
+  name: 'Accordion',
+
   props: {
     title: {
       type:    String,
@@ -22,9 +24,9 @@ export default defineComponent({
   },
 
   setup() {
-    useInSummary();
+    const { summaryID } = useInSummary();
 
-    return {};
+    return { summaryID };
   },
 
   data() {

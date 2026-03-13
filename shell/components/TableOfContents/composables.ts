@@ -1,31 +1,54 @@
 import debounce from 'lodash/debounce';
+import { randomStr } from 'utils/string';
 import {
   getCurrentInstance, onMounted, onUnmounted, provide, ref, inject
 } from 'vue';
 
-export function useFormSummary(searchClass: string) {
+/**
+ * useFormSummary composable works in tandem with inFormSummary and TableOfContents vue component
+ * inFormSummary component is used by form elements to register with tableOfContents
+ * I need to update useFormSummary to only work with accordions?
+ * What if in addition to ToC there is a summary component that registers DIFFERENT components entirely?
+ *
+ *
+ */
+// targetComponents is name of components to include in summary
+// if undefined, any component using the inFormSummary composable can register itself
+export function useFormSummary(targetComponents = [] as string[], excludedComponents?: string[]) {
   const root = getCurrentInstance();
 
-  const matchingComponents = ref([] as any[]);
+  const registeredComponents = ref({} as any);
+  const locatedComponents = ref([] as any[]);
 
-  const hasClass = (vNode: any) => {
-    const className = vNode?.el?.className || '';
-
-    // // TODO nb better way of doing this that doesn't rely on a class
-    // className could be an SVGAnimatedString object
-    return typeof className === 'string' && className.includes(searchClass);
+  // TODO nb allow labelKey as well
+  const getComponentLabel = (component: any) => {
+    return component?.displayTitle || component?.title || component?.label || component?.name || '';
   };
 
-  const findChildComponents = (components = [] as any[], node: any ) => {
+  // this will find components not attached to virtual dom anymore? //TODO nb what it do
+  const getComponentFromVNode = (vnode: any) => {
+    return vnode?.component ? vnode.component : vnode?.ctx?.vnode?.component;
+  };
+
+  const getComponentInstance = (node: any) => {
+    return node?.component?.proxy || node?.component?.ctx || node?.component?.instance?.proxy || getComponentFromVNode(node)?.ctx;
+  };
+
+  const buildTree = (components = [] as any[], node: any, found = new Set<string>()) => {
     let nextInput = components;
 
-    if (hasClass(node)) {
-      const out = {
+    const component = getComponentInstance(node);
+
+    if (component && registeredComponents.value[component.summaryID] && !found.has(component.summaryID)) {
+      found.add(component.summaryID);
+      const out: any = {
         node,
         children: [],
-        label:    getComponentLabel(getComponentFromVNode(node)?.ctx), // TODO nb add fallback for no label
-        scrollTo: node?.component?.ctx ? () => scrollToComponent(node?.component?.ctx) : undefined // TODO nb no link if scrollTo undefined?
+        label:    getComponentLabel(component),
+        scrollTo: component ? () => scrollToComponent(component) : undefined // TODO nb no link if no scrollTo?
       };
+
+      out.component = component;
 
       components.push(out);
       nextInput = out.children;
@@ -36,83 +59,61 @@ export function useFormSummary(searchClass: string) {
     }
 
     // TODO nb refactor eyesore
-    const children = node?.component?.subTree?.children || node?.el?.children ? Array.from(node?.el?.children) : [];
+    const children = node?.component?.subTree?.children || node?.el?.children ? Array.from(node?.el?.children) as any[] : [];
 
-    children.map((c) => {
-      if (c.__vnode) {
-        return findChildComponents(nextInput, c.__vnode );
+    children.forEach((child: any) => {
+      if (child?.__vnode) {
+        buildTree(nextInput, child.__vnode, found);
       }
     });
 
     return components;
   };
 
-  const findComponents = () => {
+  const locateRegisteredComponents = () => {
     const parent = root?.parent || {} as any;
 
-    matchingComponents.value = findChildComponents([], parent.vnode) || [];
+    locatedComponents.value = buildTree([], parent.vnode) || [];
   };
 
-  const debouncedFindComponents = debounce(findComponents);
+  const debouncedLocateRegisteredComponents = debounce(locateRegisteredComponents);
 
   const scrollToComponent = (component: any) => {
     if (component.scrollTo) {
       component.scrollTo();
     } else {
-      component.vnode.el.scrollIntoView(true);
+      component?.vnode?.el?.scrollIntoView(true);
     }
-  };
-
-  const getComponentLabel = (component: any) => {
-    return component?.displayTitle || component?.title || component?.label || '';
-  };
-
-  const getComponentFromVNode = (vnode: any) => {
-    return vnode?.component ? vnode.component : vnode?.ctx?.vnode?.component;
-  };
-
-  const findEntryByLabel = (entries: any[], label: string): any => {
-    for (const entry of entries) {
-      if (entry?.label === label) {
-        return entry;
-      }
-
-      if (entry?.children?.length) {
-        const childMatch = findEntryByLabel(entry.children, label);
-
-        if (childMatch) {
-          return childMatch;
-        }
-      }
-    }
-
-    return null;
   };
 
   const registerComponent = (component: any) => {
     if (!component) {
       return;
     }
+    const componentName = component?.$options?.name;
 
-    debouncedFindComponents();
-
-    const label = getComponentLabel(component);
-
-    if (!label) {
+    if (targetComponents && targetComponents.length > 0 && !targetComponents.includes(componentName)) {
       return;
     }
 
-    const entry = findEntryByLabel(matchingComponents.value, label);
-
-    if (entry) {
-      entry.component = component;
+    if (excludedComponents && excludedComponents.length > 0 && excludedComponents.includes(componentName)) {
+      return;
     }
+
+    registeredComponents.value[component.summaryID] = component;
+
+    debouncedLocateRegisteredComponents();
   };
 
-  provide('updateSummary', debouncedFindComponents);
+  provide('updateSummary', debouncedLocateRegisteredComponents);
   provide('registerComponent', registerComponent);
 
-  return { matchingComponents, registerComponent };
+  return {
+    registerComponent,
+    locateRegisteredComponents,
+    locatedComponents,
+    registeredComponents
+  };
 }
 
 export function useInSummary() {
@@ -121,12 +122,15 @@ export function useInSummary() {
   const instance = getCurrentInstance();
   const component = instance?.proxy;
 
+  const summaryID = randomStr();
+
   onMounted(() => {
-    console.log('*** registering component: ', component);
     registerComponent(component);
   });
 
   onUnmounted(() => {
     updateSummary();
   });
+
+  return { summaryID };
 }

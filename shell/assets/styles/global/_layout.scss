@@ -2,6 +2,7 @@
 .main-layout {
   grid-area: main;
   overflow: auto;
+  scroll-behavior: smooth;
 
   .outlet {
     display: flex;

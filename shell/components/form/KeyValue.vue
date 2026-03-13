@@ -13,9 +13,16 @@ import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default {
   name: 'KeyValue',
+
+  setup() {
+    const { summaryID } = useInSummary();
+
+    return { summaryID };
+  },
 
   emits: ['focusKey', 'update:value'],
 

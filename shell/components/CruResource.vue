@@ -177,9 +177,9 @@ export default {
   },
 
   setup() {
-    const { matchingComponents } = useFormSummary('accordion-container');
+    const { locatedComponents: accordions } = useFormSummary(['Accordion']);
 
-    return { accordions: matchingComponents };
+    return { accordions };
   },
 
   data(props) {
@@ -1030,6 +1030,7 @@ form.create-resource-container .cru {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+
   &__form {
     display: flex;
     flex-direction: column;
@@ -1081,6 +1082,7 @@ form.create-resource-container .cru {
 }
 
 .show-toc.cru{
+
     .cru__form{
         display: grid;
         grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));

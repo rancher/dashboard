@@ -3,6 +3,7 @@ import { PropType, defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 interface Option {
   value: unknown,
@@ -12,6 +13,7 @@ interface Option {
 }
 
 export default defineComponent({
+  name:       'RadioGroup',
   components: { RadioButton },
   props:      {
     /**
@@ -106,6 +108,12 @@ export default defineComponent({
   },
 
   emits: ['update:value'],
+
+  setup() {
+    const { summaryID } = useInSummary();
+
+    return { summaryID };
+  },
 
   data() {
     return {
