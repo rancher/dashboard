@@ -47,43 +47,42 @@ function toContextKey(path) {
  * Look up an image asset URL by path, similar to Webpack's require() for images.
  *
  * Accepts paths with ~shell/ or @shell/ prefix.
- * Returns the resolved asset URL string, or null if not found.
+ * Throws if the asset is not found (matching the original require() behavior),
+ * so callers can use try/catch for fallback logic.
  *
  * @param {string} path - Asset path, e.g. '~shell/assets/images/providers/aws.svg'
- * @returns {string|null} The resolved asset URL or null
+ * @returns {string} The resolved asset URL
+ * @throws {Error} If the asset is not found or imgCtx is not available
  */
 export function requireAsset(path) {
   if (!imgCtx) {
-    return null;
+    // Throw to match original require() behavior — callers rely on try/catch for fallback logic
+    throw new Error(`Asset context not available for: ${ path }`);
   }
 
   const key = toContextKey(path);
 
-  try {
-    return imgCtx(key);
-  } catch (e) {
-    return null;
-  }
+  return imgCtx(key);
 }
 
 /**
  * Load a JSON file from @shell/assets.
  *
+ * Throws if the JSON file is not found (matching the original require() behavior),
+ * so callers can use try/catch for fallback logic.
+ *
  * @param {string} path - Path like '~shell/assets/brand/suse/metadata.json'
- * @returns {object|null} The parsed JSON data or null
+ * @returns {object} The parsed JSON data
+ * @throws {Error} If the JSON file is not found or jsonCtx is not available
  */
 export function requireJson(path) {
   if (!jsonCtx) {
-    return null;
+    // Throw to match original require() behavior — callers rely on try/catch for fallback logic
+    throw new Error(`JSON context not available for: ${ path }`);
   }
 
   const key = toContextKey(path);
+  const mod = jsonCtx(key);
 
-  try {
-    const mod = jsonCtx(key);
-
-    return mod.default || mod;
-  } catch (e) {
-    return null;
-  }
+  return mod.default || mod;
 }
