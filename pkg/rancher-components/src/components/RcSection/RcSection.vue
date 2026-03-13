@@ -23,12 +23,11 @@ const props = withDefaults(defineProps<{
   type: 'primary' | 'secondary';
   mode: 'with-header' | 'no-header';
   expandable: boolean;
-  expanded?: boolean;
   background: 'primary' | 'secondary';
   title?: string;
-}>(), { expanded: true, title: '' });
+}>(), { title: '' });
 
-const emit = defineEmits<{ 'update:expanded': [value: boolean] }>();
+const expanded = defineModel<boolean>('expanded', { default: true });
 
 const hasHeader = computed(() => {
   return props.mode === 'with-header';
@@ -50,7 +49,7 @@ const contentClass = computed(() => ({
 
 function toggle() {
   if (props.expandable) {
-    emit('update:expanded', !props.expanded);
+    expanded.value = !expanded.value;
   }
 }
 </script>
@@ -60,7 +59,7 @@ function toggle() {
     <div
       v-if="hasHeader"
       class="section-header"
-      :class="{ expandable: props.expandable, collapsed: !props.expanded }"
+      :class="{ expandable: props.expandable, collapsed: !expanded }"
       @click="toggle"
     >
       <div class="left-wrapper">
@@ -68,12 +67,12 @@ function toggle() {
           v-if="props.expandable"
           class="toggle-button"
           variant="ghost"
-          :aria-expanded="props.expanded"
-          :aria-label="props.expanded ? 'Collapse section' : 'Expand section'"
+          :aria-expanded="expanded"
+          :aria-label="expanded ? 'Collapse section' : 'Expand section'"
           @click.stop="toggle"
         >
           <RcIcon
-            :type="props.expanded ? 'chevron-down' : 'chevron-right'"
+            :type="expanded ? 'chevron-down' : 'chevron-right'"
             size="medium"
           />
         </RcButton>
@@ -105,7 +104,7 @@ function toggle() {
       </div>
     </div>
     <div
-      v-if="props.expanded"
+      v-if="expanded"
       :class="contentClass"
     >
       <slot />
