@@ -177,9 +177,14 @@ export default {
   },
 
   setup() {
-    const { locatedComponents: accordions } = useFormSummary(['Accordion']);
+    // const { locatedComponents: accordions, locateComponentsByNamePattern } = useFormSummary();
+    const { locateComponentsByNamePattern } = useFormSummary();
 
-    return { accordions };
+    const accordions = locateComponentsByNamePattern('Accordion');
+
+    const notAccordions = locateComponentsByNamePattern('^(?!Accordion).*');
+
+    return { accordions, notAccordions };
   },
 
   data(props) {
@@ -802,6 +807,12 @@ export default {
           class="cru__toc"
           :accordions="accordions"
         />
+        <!-- <TableOfContents
+          v-if="canShowToc"
+          ref="toc"
+          class="cru__toc"
+          :accordions="notAccordions"
+        /> -->
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="cru__content resource-container"

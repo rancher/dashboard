@@ -24,9 +24,9 @@ export default defineComponent({
   },
 
   setup() {
-    const { summaryID } = useInSummary();
+    const { summary } = useInSummary();
 
-    return { summaryID };
+    return { summary };
   },
 
   data() {

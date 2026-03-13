@@ -19,9 +19,9 @@ export default {
   name: 'KeyValue',
 
   setup() {
-    const { summaryID } = useInSummary();
+    const { summary } = useInSummary();
 
-    return { summaryID };
+    return { summary };
   },
 
   emits: ['focusKey', 'update:value'],

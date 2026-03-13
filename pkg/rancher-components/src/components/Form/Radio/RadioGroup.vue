@@ -110,9 +110,9 @@ export default defineComponent({
   emits: ['update:value'],
 
   setup() {
-    const { summaryID } = useInSummary();
+    const { summary } = useInSummary();
 
-    return { summaryID };
+    return { summary };
   },
 
   data() {

@@ -1,8 +1,13 @@
 import debounce from 'lodash/debounce';
 import { randomStr } from 'utils/string';
 import {
-  getCurrentInstance, onMounted, onUnmounted, provide, ref, inject
+  computed, getCurrentInstance, onMounted, onUnmounted, ref
 } from 'vue';
+
+const summarySingleton = {
+  registerComponent: (_component: any) => {},
+  updateSummary:     () => {}
+};
 
 /**
  * useFormSummary composable works in tandem with inFormSummary and TableOfContents vue component
@@ -12,9 +17,8 @@ import {
  *
  *
  */
-// targetComponents is name of components to include in summary
-// if undefined, any component using the inFormSummary composable can register itself
-export function useFormSummary(targetComponents = [] as string[], excludedComponents?: string[]) {
+
+export function useFormSummary() {
   const root = getCurrentInstance();
 
   const registeredComponents = ref({} as any);
@@ -22,7 +26,7 @@ export function useFormSummary(targetComponents = [] as string[], excludedCompon
 
   // TODO nb allow labelKey as well
   const getComponentLabel = (component: any) => {
-    return component?.displayTitle || component?.title || component?.label || component?.name || '';
+    return component?.displayTitle || component?.title || component?.label || component?.name || component?.summaryID || '';
   };
 
   // this will find components not attached to virtual dom anymore? //TODO nb what it do
@@ -38,9 +42,10 @@ export function useFormSummary(targetComponents = [] as string[], excludedCompon
     let nextInput = components;
 
     const component = getComponentInstance(node);
+    const summary = component?.summary;
 
-    if (component && registeredComponents.value[component.summaryID] && !found.has(component.summaryID)) {
-      found.add(component.summaryID);
+    if (component && summary && registeredComponents.value[summary.id] && !found.has(summary.id)) {
+      found.add(summary.id);
       const out: any = {
         node,
         children: [],
@@ -81,6 +86,8 @@ export function useFormSummary(targetComponents = [] as string[], excludedCompon
   const scrollToComponent = (component: any) => {
     if (component.scrollTo) {
       component.scrollTo();
+    } else if (component?.summary?.scrollTo) {
+      component.summary.scrollTo();
     } else {
       component?.vnode?.el?.scrollIntoView(true);
     }
@@ -90,41 +97,72 @@ export function useFormSummary(targetComponents = [] as string[], excludedCompon
     if (!component) {
       return;
     }
-    const componentName = component?.$options?.name;
-
-    if (targetComponents && targetComponents.length > 0 && !targetComponents.includes(componentName)) {
-      return;
-    }
-
-    if (excludedComponents && excludedComponents.length > 0 && excludedComponents.includes(componentName)) {
-      return;
-    }
 
     registeredComponents.value[component.summaryID] = component;
 
     debouncedLocateRegisteredComponents();
   };
 
-  provide('updateSummary', debouncedLocateRegisteredComponents);
-  provide('registerComponent', registerComponent);
+  const locateComponentsByNamePattern = (pattern: string) => {
+    const matcher = new RegExp(pattern);
+
+    const matches = (entry: any) => {
+      const componentName = entry?.component?.$options?.name || entry?.component?.type?.name || '';
+
+      return matcher.test(componentName);
+    };
+
+    const filterTree = (entries: any[] = []) => {
+      return entries.reduce((acc: any[], entry: any) => {
+        const filteredChildren = filterTree(entry?.children || []);
+        const isMatch = matches(entry);
+
+        if (isMatch) {
+          acc.push({
+            ...entry,
+            children: filteredChildren
+          });
+        } else if (filteredChildren.length) {
+          acc.push(...filteredChildren);
+        }
+
+        return acc;
+      }, []);
+    };
+
+    return computed(() => filterTree(locatedComponents.value));
+  };
+
+  summarySingleton.registerComponent = registerComponent;
+  summarySingleton.updateSummary = debouncedLocateRegisteredComponents;
 
   return {
     registerComponent,
     locateRegisteredComponents,
+    locateComponentsByNamePattern,
     locatedComponents,
     registeredComponents
   };
 }
 
 export function useInSummary() {
-  const registerComponent = inject('registerComponent') as any || (() => {});
-  const updateSummary = inject('updateSummary') as any || (() => {});
+  const registerComponent = summarySingleton.registerComponent;
+  const updateSummary = summarySingleton.updateSummary;
   const instance = getCurrentInstance();
   const component = instance?.proxy;
+
+  const scrollTo = () => {
+    const el = (component as any)?.$el || (component as any)?.vnode?.el;
+
+    el?.scrollIntoView(true);
+  };
 
   const summaryID = randomStr();
 
   onMounted(() => {
+    if (component) {
+      (component as any).summaryID = summaryID; // TODO nb why is this still required??
+    }
     registerComponent(component);
   });
 
@@ -132,5 +170,5 @@ export function useInSummary() {
     updateSummary();
   });
 
-  return { summaryID };
+  return { summary: { id: summaryID, scrollTo } };
 }
