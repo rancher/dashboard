@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RcSectionActions from './RcSectionActions.vue';
+import type { ActionConfig } from './types';
 
 // Stubs for child components to isolate unit tests
 const RcButtonStub = {
@@ -41,7 +42,7 @@ const globalStubs = {
 };
 
 describe('component: RcSectionActions', () => {
-  function createWrapper(actions: { label?: string; icon?: string; ariaLabel?: string; action: () => void }[]) {
+  function createWrapper(actions: ActionConfig[]) {
     return mount(RcSectionActions, {
       props:  { actions },
       global: { stubs: globalStubs },
@@ -144,16 +145,16 @@ describe('component: RcSectionActions', () => {
   });
 
   describe('variant resolution', () => {
-    it('should use "tertiary" variant for actions with a label', () => {
+    it('should use "link" variant for actions with a label', () => {
       const wrapper = createWrapper([{ label: 'Edit', action: jest.fn() }]);
 
-      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('tertiary');
+      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('link');
     });
 
-    it('should use "tertiary" variant for icon-only actions', () => {
+    it('should use "link" variant for icon-only actions', () => {
       const wrapper = createWrapper([{ icon: 'copy', action: jest.fn() }]);
 
-      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('tertiary');
+      expect(wrapper.find('.rc-button').attributes('data-variant')).toBe('link');
     });
 
     it('should render icon inside button for icon-only actions', () => {

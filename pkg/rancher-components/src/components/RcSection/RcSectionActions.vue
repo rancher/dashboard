@@ -20,8 +20,8 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
     v-for="(action, index) in primaryActions"
     :key="index"
     :class="{ 'icon-action': !action.label }"
-    variant="tertiary"
-    size="small"
+    variant="link"
+    size="medium"
     :left-icon="action.label && action.icon ? (action.icon as any) : undefined"
     :aria-label="action.ariaLabel"
     @click.stop="action.action"
@@ -43,8 +43,8 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
   >
     <RcDropdownTrigger
       class="icon-action"
-      variant="tertiary"
-      size="small"
+      variant="link"
+      size="medium"
       aria-label="More actions"
     >
       <RcIcon
@@ -76,14 +76,8 @@ const overflowActions = computed(() => (props.actions.length < 3 ? [] : props.ac
 </template>
 
 <style lang="scss" scoped>
-.icon-action {
-  &.rc-button.btn-large.variant-ghost, &.rc-button.btn-small.variant-tertiary {
-    width: 24px;
-    padding: 0;
-  }
-}
 
-.rc-button.btn-small.variant-tertiary {
+.rc-button.btn-medium.variant-link {
   &, &:hover {
     color: var(--rc-section-action-color);
   }

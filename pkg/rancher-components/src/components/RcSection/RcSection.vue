@@ -213,7 +213,7 @@ button.btn-medium.toggle-button {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 0;
 }
 
 .section-content {
