@@ -16,6 +16,7 @@ import { getVersionData } from '@shell/config/version';
 import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params';
 import { RcIconType } from '@components/RcIcon/types';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export default {
   name: 'CruCatalogRepo',
@@ -64,7 +65,7 @@ export default {
       {
         id:      CLUSTER_REPO_TYPES.OCI_URL,
         header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: require('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
+        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
         content: { key: 'catalog.repo.target.oci.description' },
       },
     ];
@@ -74,7 +75,7 @@ export default {
       clusterRepoTargets.push({
         id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
         header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        image:   { src: require('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
+        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
         content: { key: 'catalog.repo.target.suseAppCollection.description' },
       });
     }

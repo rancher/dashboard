@@ -3,6 +3,7 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { MANAGEMENT, NORMAN, SCHEMA, DEFAULT_WORKSPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { requireAsset } from '@shell/utils/require-asset';
 import CruResource from '@shell/components/CruResource';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
@@ -177,7 +178,7 @@ export default {
 
         if (!bannerImage) {
           try {
-            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+            bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
           } catch (e) {
             bannerImage = null;
             bannerAbbrv = this.initialDisplayFor(id);
