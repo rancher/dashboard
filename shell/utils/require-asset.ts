@@ -17,10 +17,27 @@
  *   );
  */
 
+// --- Webpack: require.context type declarations ---
+
+interface WebpackRequireContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (key: string): any;
+  keys(): string[];
+  resolve(key: string): string;
+  id: string;
+}
+
+declare global {
+  // eslint-disable-next-line no-unused-vars
+  interface NodeRequire {
+    context(directory: string, useSubdirectories?: boolean, regExp?: RegExp): WebpackRequireContext;
+  }
+}
+
 // --- Webpack: require.context (compile-time transform) ---
 
-let imgCtx = null;
-let jsonCtx = null;
+let imgCtx: WebpackRequireContext | null = null;
+let jsonCtx: WebpackRequireContext | null = null;
 
 try {
   imgCtx = require.context('@shell/assets', true, /\.(svg|png|jpe?g|gif|ico|webp)$/);
@@ -35,11 +52,8 @@ try {
  *
  * Input:  '~shell/assets/images/providers/aws.svg' or '@shell/assets/images/providers/aws.svg'
  * Output: './images/providers/aws.svg'
- *
- * @param {string} path
- * @returns {string}
  */
-function toContextKey(path) {
+export function toContextKey(path: string): string {
   return `./${ path.replace(/^[~@]shell\/assets\//, '') }`;
 }
 
@@ -49,12 +63,8 @@ function toContextKey(path) {
  * Accepts paths with ~shell/ or @shell/ prefix.
  * Throws if the asset is not found (matching the original require() behavior),
  * so callers can use try/catch for fallback logic.
- *
- * @param {string} path - Asset path, e.g. '~shell/assets/images/providers/aws.svg'
- * @returns {string} The resolved asset URL
- * @throws {Error} If the asset is not found or imgCtx is not available
  */
-export function requireAsset(path) {
+export function requireAsset(path: string): string {
   if (!imgCtx) {
     // Throw to match original require() behavior — callers rely on try/catch for fallback logic
     throw new Error(`Asset context not available for: ${ path }`);
@@ -70,12 +80,8 @@ export function requireAsset(path) {
  *
  * Throws if the JSON file is not found (matching the original require() behavior),
  * so callers can use try/catch for fallback logic.
- *
- * @param {string} path - Path like '~shell/assets/brand/suse/metadata.json'
- * @returns {object} The parsed JSON data
- * @throws {Error} If the JSON file is not found or jsonCtx is not available
  */
-export function requireJson(path) {
+export function requireJson(path: string): object {
   if (!jsonCtx) {
     // Throw to match original require() behavior — callers rely on try/catch for fallback logic
     throw new Error(`JSON context not available for: ${ path }`);
@@ -85,4 +91,10 @@ export function requireJson(path) {
   const mod = jsonCtx(key);
 
   return mod.default || mod;
+}
+
+// Exported for testing — allows injecting mock contexts
+export function _setContexts(img: WebpackRequireContext | null, json: WebpackRequireContext | null): void {
+  imgCtx = img;
+  jsonCtx = json;
 }
