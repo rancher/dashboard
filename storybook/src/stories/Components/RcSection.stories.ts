@@ -21,6 +21,11 @@ const contentGroup = (title: string, body: string, required = false) => {
   </div>`;
 };
 
+const SLOT = '<!-- default slot -->';
+
+/** Replace the slot placeholder with actual rendered content */
+const withSlotContent = (template: string, slotContent: string) => template.replace(SLOT, slotContent);
+
 const meta: Meta<typeof RcSection> = {
   component: RcSection,
   argTypes:  {
@@ -57,6 +62,30 @@ const meta: Meta<typeof RcSection> = {
 export default meta;
 type Story = StoryObj<typeof RcSection>;
 
+const defaultTemplate = `<RcSection v-bind="args" v-model:expanded="expanded">
+  <template #counter>
+    <RcCounterBadge :count="99" type="inactive" />
+  </template>
+  <template #errors>
+    <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
+  </template>
+  <template #badges>
+    <RcSectionBadges :badges="[
+      { label: 'Status', status: 'success', tooltip: 'All systems operational' },
+      { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
+      { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
+    ]" />
+  </template>
+  <template #actions>
+    <RcSectionActions :actions="[
+      { label: 'Action', icon: 'chevron-left', action: () => {} },
+      { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
+      { icon: 'trash', label:'Delete', action: () => {} },
+    ]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
 export const Default: Story = {
   render: (args: any) => ({
     components: {
@@ -77,32 +106,11 @@ export const Default: Story = {
 
       return { args, expanded };
     },
-    template: `
-      <RcSection v-bind="args" v-model:expanded="expanded">
-        <template #counter>
-          <RcCounterBadge :count="99" type="inactive" />
-        </template>
-        <template #errors>
-          <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
-        </template>
-        <template #badges>
-          <RcSectionBadges :badges="[
-            { label: 'Status', status: 'success', tooltip: 'All systems operational' },
-            { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
-            { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
-          ]" />
-        </template>
-        <template #actions>
-          <RcSectionActions :actions="[
-            { label: 'Action', icon: 'chevron-left', action: () => {} },
-            { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
-            { icon: 'trash', label:'Delete', action: () => {} },
-          ]" />
-        </template>
-        ${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
-        ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }
-      </RcSection>
-    `,
+    template: withSlotContent(
+      defaultTemplate,
+      `${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
+       ${ contentGroup('Content Group N (optional)', 'Detach instance to manage the groups and their content') }`,
+    ),
   }),
   args: {
     type:       'secondary',
@@ -111,72 +119,115 @@ export const Default: Story = {
     title:      'Section title',
     background: 'secondary',
   },
-};
-
-export const PrimaryFixed: Story = {
-  render: () => ({
-    components: {
-      RcSection,
-      RcSectionBadges,
-      RcSectionActions,
-      RcCounterBadge,
-    },
-    template: `
-      <RcSection title="Primary section" type="primary" mode="with-header" :expandable="false" background="primary">
-        <template #counter>
-          <RcCounterBadge :count="5" type="inactive" />
-        </template>
-        <template #badges>
-          <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
-        </template>
-        <template #actions>
-          <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
-        </template>
-        ${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-        ${ contentGroup('Content Group 2', 'Second group content goes here.') }
-      </RcSection>
-    `,
-  }),
   parameters: {
-    controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs: {
+      canvas: { sourceState: 'shown' },
+      source: { code: defaultTemplate },
+    },
   },
 };
 
-export const SecondaryFixed: Story = {
-  render: () => ({
+const primaryFixedTemplate = `<RcSection title="Primary section" type="primary" mode="with-header" :expandable="false" background="primary">
+  <template #counter>
+    <RcCounterBadge :count="5" type="inactive" />
+  </template>
+  <template #badges>
+    <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
+  </template>
+  <template #actions>
+    <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
+export const PrimaryFixed: Story = {
+  render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
       RcSectionActions,
       RcCounterBadge,
     },
+    setup() {
+      return { args };
+    },
+    template: withSlotContent(
+      primaryFixedTemplate,
+      `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+    ),
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: primaryFixedTemplate },
+    },
+  },
+};
+
+const secondaryFixedTemplate = `<RcSection title="Secondary section" type="secondary" mode="with-header" :expandable="false" background="secondary">
+  <template #counter>
+    <RcCounterBadge :count="3" type="inactive" />
+  </template>
+  <template #badges>
+    <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
+  </template>
+  <template #actions>
+    <RcSectionActions :actions="[{ label: 'Configure', action: () => {} }]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
+export const SecondaryFixed: Story = {
+  render: (args: any) => ({
+    components: {
+      RcSection,
+      RcSectionBadges,
+      RcSectionActions,
+      RcCounterBadge,
+    },
+    setup() {
+      return { args };
+    },
     template: `
       <div style="background: #EFEFEF; padding: 24px;">
-        <RcSection title="Secondary section" type="secondary" mode="with-header" :expandable="false" background="secondary">
-          <template #counter>
-            <RcCounterBadge :count="3" type="inactive" />
-          </template>
-          <template #badges>
-            <RcSectionBadges :badges="[{ label: 'Pending', status: 'info' }]" />
-          </template>
-          <template #actions>
-            <RcSectionActions :actions="[{ label: 'Configure', action: () => {} }]" />
-          </template>
-          ${ contentGroup('Content Group 1', 'First group content goes here.', true) }
-          ${ contentGroup('Content Group 2', 'Second group content goes here.') }
-        </RcSection>
+        ${ withSlotContent(
+    secondaryFixedTemplate,
+    `${ contentGroup('Content Group 1', 'First group content goes here.', true) }
+           ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+  ) }
       </div>
     `,
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: secondaryFixedTemplate },
+    },
   },
 };
 
+const expandableTemplate = `<RcSection
+  title="Expandable section"
+  type="primary"
+  mode="with-header"
+  background="primary"
+  expandable
+  v-model:expanded="expanded"
+>
+  <template #badges>
+    <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
+  </template>
+  <template #actions>
+    <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
 export const Expandable: Story = {
-  render: () => ({
+  render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
@@ -185,100 +236,144 @@ export const Expandable: Story = {
     setup() {
       const expanded = ref(true);
 
-      return { expanded };
+      return { args, expanded };
     },
-    template: `
-      <RcSection
-        title="Expandable section"
-        type="primary"
-        mode="with-header"
-        background="primary"
-        expandable
-        v-model:expanded="expanded"
-      >
-        <template #badges>
-          <RcSectionBadges :badges="[{ label: 'Active', status: 'success' }]" />
-        </template>
-        <template #actions>
-          <RcSectionActions :actions="[{ label: 'Edit', action: () => {} }]" />
-        </template>
-        ${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
-        ${ contentGroup('Content Group 2', 'Another content group.') }
-      </RcSection>
-    `,
+    template: withSlotContent(
+      expandableTemplate,
+      `${ contentGroup('Content Group 1', 'This content is visible when expanded.', true) }
+       ${ contentGroup('Content Group 2', 'Another content group.') }`,
+    ),
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: expandableTemplate },
+    },
   },
 };
 
+const collapsedByDefaultTemplate = `<RcSection
+  title="Collapsed by default"
+  type="primary"
+  mode="with-header"
+  background="primary"
+  expandable
+  v-model:expanded="expanded"
+>
+  <template #badges>
+    <RcSectionBadges :badges="[{ label: 'Pending', status: 'warning' }]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
 export const CollapsedByDefault: Story = {
-  render: () => ({
+  render: (args: any) => ({
     components: { RcSection, RcSectionBadges },
     setup() {
       const expanded = ref(false);
 
-      return { expanded };
+      return { args, expanded };
     },
-    template: `
-      <RcSection
-        title="Collapsed by default"
-        type="primary"
-        mode="with-header"
-        background="primary"
-        expandable
-        v-model:expanded="expanded"
-      >
-        <template #badges>
-          <RcSectionBadges :badges="[{ label: 'Pending', status: 'warning' }]" />
-        </template>
-        ${ contentGroup('Content Group 1', 'This content is hidden until expanded.', true) }
-      </RcSection>
-    `,
+    template: withSlotContent(
+      collapsedByDefaultTemplate,
+      contentGroup('Content Group 1', 'This content is hidden until expanded.', true),
+    ),
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: collapsedByDefaultTemplate },
+    },
   },
 };
+
+const noHeaderTemplate = `<RcSection type="primary" mode="no-header" background="primary" :expandable="false">
+  ${ SLOT }
+</RcSection>`;
 
 export const NoHeader: Story = {
-  render: () => ({
+  render: (args: any) => ({
     components: { RcSection },
-    template:   `
-      <RcSection type="primary" mode="no-header" background="primary" :expandable="false">
-        ${ contentGroup('Content Group 1', 'No header, just content.', true) }
-        ${ contentGroup('Content Group 2', 'Second group content goes here.') }
-      </RcSection>
-    `,
+    setup() {
+      return { args };
+    },
+    template: withSlotContent(
+      noHeaderTemplate,
+      `${ contentGroup('Content Group 1', 'No header, just content.', true) }
+       ${ contentGroup('Content Group 2', 'Second group content goes here.') }`,
+    ),
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: noHeaderTemplate },
+    },
   },
 };
+
+const withErrorsSlotTemplate = `<RcSection title="Section with errors" type="primary" mode="with-header" background="primary" :expandable="false">
+  <template #errors>
+    <RcIcon v-clean-tooltip="'1 validation error'" type="error" size="large" status="error" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
 
 export const WithErrorsSlot: Story = {
-  render: () => ({
+  render: (args: any) => ({
     components: { RcSection, RcIcon },
-    template:   `
-      <RcSection title="Section with errors" type="primary" mode="with-header" background="primary" :expandable="false">
-        <template #errors>
-          <RcIcon v-clean-tooltip="'1 validation error'" type="error" size="large" status="error" />
-        </template>
-        ${ contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true) }
-      </RcSection>
-    `,
+    setup() {
+      return { args };
+    },
+    template: withSlotContent(
+      withErrorsSlotTemplate,
+      contentGroup('Content Group 1', 'This section has validation errors indicated in the header.', true),
+    ),
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: withErrorsSlotTemplate },
+    },
   },
 };
 
+const fullHeaderTemplate = `<RcSection
+  title="Section title"
+  type="primary"
+  mode="with-header"
+  background="primary"
+  expandable
+  v-model:expanded="expanded"
+>
+  <template #counter>
+    <RcCounterBadge :count="99" type="inactive" />
+  </template>
+  <template #errors>
+    <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
+  </template>
+  <template #badges>
+    <RcSectionBadges :badges="[
+      { label: 'Status', status: 'success', tooltip: 'All systems operational' },
+      { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
+      { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
+    ]" />
+  </template>
+  <template #actions>
+    <RcSectionActions :actions="[
+      { label: 'Action', icon: 'chevron-left', action: () => {} },
+      { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
+      { icon: 'more', ariaLabel: 'More actions', action: () => {} },
+    ]" />
+  </template>
+  ${ SLOT }
+</RcSection>`;
+
 export const FullHeader: Story = {
-  render: () => ({
+  render: (args: any) => ({
     components: {
       RcSection,
       RcSectionBadges,
@@ -289,44 +384,19 @@ export const FullHeader: Story = {
     setup() {
       const expanded = ref(true);
 
-      return { expanded };
+      return { args, expanded };
     },
-    template: `
-      <RcSection
-        title="Section title"
-        type="primary"
-        mode="with-header"
-        background="primary"
-        expandable
-        v-model:expanded="expanded"
-      >
-        <template #counter>
-          <RcCounterBadge :count="99" type="inactive" />
-        </template>
-        <template #errors>
-          <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
-        </template>
-        <template #badges>
-          <RcSectionBadges :badges="[
-            { label: 'Status', status: 'success', tooltip: 'All systems operational' },
-            { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
-            { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
-          ]" />
-        </template>
-        <template #actions>
-          <RcSectionActions :actions="[
-            { label: 'Action', icon: 'chevron-left', action: () => {} },
-            { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
-            { icon: 'more', ariaLabel: 'More actions', action: () => {} },
-          ]" />
-        </template>
-        ${ contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true) }
-      </RcSection>
-    `,
+    template: withSlotContent(
+      fullHeaderTemplate,
+      contentGroup('Content Group 1 (required)', 'Detach instance to manage the groups and their content', true),
+    ),
   }),
   parameters: {
     controls: { disabled: true },
-    docs:     { canvas: { sourceState: 'shown' } },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: fullHeaderTemplate },
+    },
   },
 };
 
@@ -339,13 +409,13 @@ export const AllTypes: Story = {
       RcCounterBadge,
       RcIcon,
     },
-    setup() {
+    setup(args: any) {
       const outerExpanded = ref(true);
       const middleExpanded = ref(true);
       const innerExpanded = ref(true);
 
       return {
-        outerExpanded, middleExpanded, innerExpanded
+        args, outerExpanded, middleExpanded, innerExpanded
       };
     },
     template: `
