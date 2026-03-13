@@ -5,14 +5,32 @@
  *
  * Example:
  *
- * <RcSection title="Details" type="primary">
+ * <RcSection title="Section title" type="secondary" mode="with-header" :expandable="false" background="secondary">
  *   <p>Section content here</p>
  * </RcSection>
  *
- * <RcSection title="Advanced" type="secondary" expandable v-model:expanded="isExpanded">
- *   <template #badges><RcStatusBadge status="success">Active</RcStatusBadge></template>
- *   <template #actions><RcButton variant="secondary" size="small">Edit</RcButton></template>
- *   <p>Expandable section content</p>
+ * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
+ *   <template #counter>
+ *     <RcCounterBadge :count="99" type="inactive" />
+ *   </template>
+ *   <template #errors>
+ *     <RcIcon v-clean-tooltip="'3 validation errors'" type="error" size="large" status="error" />
+ *   </template>
+ *   <template #badges>
+ *     <RcSectionBadges :badges="[
+ *       { label: 'Status', status: 'success', tooltip: 'All systems operational' },
+ *       { label: 'Status', status: 'warning', tooltip: 'Degraded performance' },
+ *       { label: 'Status', status: 'error', tooltip: 'Service unavailable' },
+ *     ]" />
+ *   </template>
+ *   <template #actions>
+ *     <RcSectionActions :actions="[
+ *       { label: 'Action', icon: 'chevron-left', action: () => {} },
+ *       { icon: 'copy', ariaLabel: 'Copy', action: () => {} },
+ *       { icon: 'trash', label: 'Delete', action: () => {} },
+ *     ]" />
+ *   </template>
+ *   <p>Section content here</p>
  * </RcSection>
  */
 import { computed, inject, provide, type Ref } from 'vue';
