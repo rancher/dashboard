@@ -5,8 +5,8 @@ import {
 } from 'vue';
 
 const summarySingleton = {
-  registerComponent: (_component: any) => {},
-  updateSummary:     () => {}
+  registerComponent:   (_component: any) => {},
+  unRegisterComponent: () => {}
 };
 
 /**
@@ -15,18 +15,38 @@ const summarySingleton = {
  * I need to update useFormSummary to only work with accordions?
  * What if in addition to ToC there is a summary component that registers DIFFERENT components entirely?
  *
- *
+ * performance: tested with >1000 accordions on page; no discernable lag in updates to toc or scrolling
  */
 
 export function useFormSummary() {
   const root = getCurrentInstance();
+  const t = root?.proxy?.$store?.getters?.['i18n/t'];
 
   const registeredComponents = ref({} as any);
   const locatedComponents = ref([] as any[]);
 
-  // TODO nb allow labelKey as well
   const getComponentLabel = (component: any) => {
-    return component?.displayTitle || component?.title || component?.label || component?.name || component?.summaryID || '';
+    if (component?.displayTitle) {
+      return component.displayTitle;
+    }
+
+    if (component?.title) {
+      return component.title;
+    }
+
+    if (component?.label) {
+      return component.label;
+    }
+
+    if (component?.labelKey) {
+      return typeof t === 'function' ? t(component.labelKey) : component.labelKey;
+    }
+
+    if (component?.name) {
+      return component.name;
+    }
+
+    return component?.summary?.id || '';
   };
 
   // this will find components not attached to virtual dom anymore? //TODO nb what it do
@@ -83,7 +103,40 @@ export function useFormSummary() {
 
   const debouncedLocateRegisteredComponents = debounce(locateRegisteredComponents);
 
+  /**
+   * scrollToComponent will also 'scroll to' the top-level parent component to ensure that any logic in the parent to make its children visible is triggered
+   * (eg open the accordion containing the component being targeted)
+   * @param component instance of a component in registeredComponents
+   * @returns the entry in locatedComponents that contains the provided component either at the top level or within its children (or children's children, etc.)
+   */
+  const findParent = (component: any) => {
+    const walk = (entries: any[] = [], parent: any = null): any => {
+      for (const entry of entries) {
+        if (entry?.component?.summary?.id === component?.summary?.id) {
+          return parent;
+        }
+
+        if (entry?.children?.length) {
+          const found = walk(entry.children, entry);
+
+          if (found) {
+            return found;
+          }
+        }
+      }
+
+      return null;
+    };
+
+    return walk(locatedComponents.value);
+  };
+
   const scrollToComponent = (component: any) => {
+    const parent = findParent(component);
+
+    if (parent) {
+      scrollToComponent(parent.component);
+    }
     if (component.scrollTo) {
       component.scrollTo();
     } else if (component?.summary?.scrollTo) {
@@ -94,11 +147,11 @@ export function useFormSummary() {
   };
 
   const registerComponent = (component: any) => {
-    if (!component) {
+    if (!component || !component.summary?.id) {
       return;
     }
 
-    registeredComponents.value[component.summaryID] = component;
+    registeredComponents.value[component.summary?.id] = component;
 
     debouncedLocateRegisteredComponents();
   };
@@ -134,7 +187,7 @@ export function useFormSummary() {
   };
 
   summarySingleton.registerComponent = registerComponent;
-  summarySingleton.updateSummary = debouncedLocateRegisteredComponents;
+  summarySingleton.unRegisterComponent = debouncedLocateRegisteredComponents;
 
   return {
     registerComponent,
@@ -147,7 +200,7 @@ export function useFormSummary() {
 
 export function useInSummary() {
   const registerComponent = summarySingleton.registerComponent;
-  const updateSummary = summarySingleton.updateSummary;
+  const unRegisterComponent = summarySingleton.unRegisterComponent;
   const instance = getCurrentInstance();
   const component = instance?.proxy;
 
@@ -160,14 +213,11 @@ export function useInSummary() {
   const summaryID = randomStr();
 
   onMounted(() => {
-    if (component) {
-      (component as any).summaryID = summaryID; // TODO nb why is this still required??
-    }
     registerComponent(component);
   });
 
   onUnmounted(() => {
-    updateSummary();
+    unRegisterComponent();
   });
 
   return { summary: { id: summaryID, scrollTo } };

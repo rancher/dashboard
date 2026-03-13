@@ -21,7 +21,11 @@ const props = defineProps({
           v-for="acc, i in props.accordions"
           :key="i"
         >
-          <a @click="acc.scrollTo"> {{ acc.label }}</a>
+          <a
+            v-if="acc.scrollTo"
+            @click="acc.scrollTo()"
+          > {{ acc.label }}</a>
+          <span v-else>{{ acc.label }}</span>
           <template v-if="acc?.children?.length">
             <ul>
               <li
@@ -29,7 +33,11 @@ const props = defineProps({
                 :key="j"
               >
                 <!-- TODO nb add aria attribute -->
-                <a @click="acc.scrollTo(); childAcc.scrollTo()"> {{ childAcc.label }}</a>
+                <a
+                  v-if="childAcc.scrollTo"
+                  @click="childAcc.scrollTo()"
+                > {{ childAcc.label }}</a>
+                <span v-else>{{ childAcc.label }}</span>
               </li>
             </ul>
           </template>

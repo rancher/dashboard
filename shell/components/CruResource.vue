@@ -19,9 +19,6 @@ import {
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 import { useFormSummary } from '@shell/components/TableOfContents/composables';
-import debounce from 'lodash/debounce';
-
-import { provide } from 'vue';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -177,14 +174,11 @@ export default {
   },
 
   setup() {
-    // const { locatedComponents: accordions, locateComponentsByNamePattern } = useFormSummary();
     const { locateComponentsByNamePattern } = useFormSummary();
 
     const accordions = locateComponentsByNamePattern('Accordion');
 
-    const notAccordions = locateComponentsByNamePattern('^(?!Accordion).*');
-
-    return { accordions, notAccordions };
+    return { accordions };
   },
 
   data(props) {
@@ -807,12 +801,6 @@ export default {
           class="cru__toc"
           :accordions="accordions"
         />
-        <!-- <TableOfContents
-          v-if="canShowToc"
-          ref="toc"
-          class="cru__toc"
-          :accordions="notAccordions"
-        /> -->
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="cru__content resource-container"
