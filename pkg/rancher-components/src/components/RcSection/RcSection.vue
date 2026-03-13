@@ -222,12 +222,12 @@ button.btn-medium.toggle-button {
   gap: 24px;
   padding: 0 0 16px;
 
-  &.no-header {
-    padding: 16px 0;
-  }
-
   &.expandable-content {
     padding: 0 0 16px 24px;
+  }
+
+  &.no-header {
+    padding: 16px 0;
   }
 }
 </style>
