@@ -80,7 +80,6 @@ export default {
       fitAddon:          null,
       searchAddon:       null,
       webglAddon:        null,
-      canvasAddon:       null,
       isOpen:            false,
       isOpening:         false,
       backlog:           [],
@@ -168,7 +167,7 @@ export default {
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
-      if (schema) {
+      if (schema && nodeId) {
         await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
       }
     } catch {}
@@ -215,14 +214,13 @@ export default {
 
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
-      const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
+      const xterm = await import(/* webpackChunkName: "xterm" */ '@xterm/xterm');
 
       const addons = await allHash({
-        fit:      import(/* webpackChunkName: "xterm" */ 'xterm-addon-fit'),
-        webgl:    import(/* webpackChunkName: "xterm" */ 'xterm-addon-webgl'),
-        weblinks: import(/* webpackChunkName: "xterm" */ 'xterm-addon-web-links'),
-        search:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-search'),
-        canvas:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-canvas')
+        fit:      import(/* webpackChunkName: "xterm" */ '@xterm/addon-fit'),
+        webgl:    import(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl'),
+        weblinks: import(/* webpackChunkName: "xterm" */ '@xterm/addon-web-links'),
+        search:   import(/* webpackChunkName: "xterm" */ '@xterm/addon-search'),
       });
 
       const terminal = new xterm.Terminal({
@@ -243,13 +241,21 @@ export default {
       terminal.open(this.$refs.xterm);
 
       try {
+        // if user is using Safari with webGPU disabled, webglAddon will silently fail
+        // and we do not have a way to detect that.
+        // To avoid it, default to DOM rendering for Safari browsers
+
+        const ua = window.navigator.userAgent.toLowerCase();
+        const isSafari = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
+
+        if (isSafari) {
+          throw new Error('Safari WebGL support is unstable');
+        }
         this.webglAddon = new addons.webgl.WebglAddon();
         terminal.loadAddon(this.webglAddon);
       } catch (e) {
         // Some browsers (Safari) don't support the webgl renderer, so don't use it.
         this.webglAddon = null;
-        this.canvasAddon = new addons.canvas.CanvasAddon();
-        terminal.loadAddon(this.canvasAddon);
       }
       this.fit();
       this.flush();
@@ -288,7 +294,7 @@ export default {
       }
 
       const url = addParams(
-        `${ this.pod.links.view.replace(/^http/, 'ws') }/exec`,
+        `${ this.pod.links?.view.replace(/^http/, 'ws') }/exec`,
         {
           container: this.container,
           stdout:    1,

@@ -12,47 +12,72 @@ jest.mock('@shell/utils/crypto', () => {
   return {
     __esModule:   true,
     ...originalModule,
-    base64Decode: jest.fn().mockImplementation((str:String) => str)
+    base64Decode: jest.fn().mockImplementation((str:string) => str)
   };
 });
+
+const mockOnData = jest.fn();
+const mockLoadAddon = jest.fn();
+const mockOpen = jest.fn();
+const mockFocus = jest.fn();
+const mockWrite = jest.fn();
+const mockWriteln = jest.fn();
+const mockReset = jest.fn();
+const mockOnResize = jest.fn();
+const mockPaste = jest.fn();
+const mockDispose = jest.fn();
+const mockClear = jest.fn();
+
+jest.mock(/* webpackChunkName: "xterm" */ '@xterm/xterm', () => {
+  return {
+    Terminal: class {
+      onData = mockOnData;
+      loadAddon = mockLoadAddon;
+      open = mockOpen;
+      focus = mockFocus;
+      write = mockWrite;
+      writeln = mockWriteln;
+      reset = mockReset;
+      onResize = mockOnResize;
+      paste = mockPaste;
+      dispose = mockDispose;
+      clear = mockClear;
+    }
+  };
+});
+
+const mockFit = jest.fn();
+const mockProposeDimensions = jest.fn().mockImplementation(() => ({ rows: 1, cols: 1 }));
+
+jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-fit', () => {
+  return {
+    FitAddon: class {
+      fit = mockFit;
+      proposeDimensions = mockProposeDimensions;
+    }
+  };
+});
+
+jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-web-links', () => {
+  return { WebLinksAddon: class {} };
+}, { virtual: true });
+
+jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-search', () => {
+  return {
+    SearchAddon: class {
+ findNext = jest.fn(); findPrevious = jest.fn();
+    }
+  };
+}, { virtual: true });
+
+jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl', () => {
+  return { WebglAddon: class {} };
+}, { virtual: true });
 
 describe('component: ContainerShell', () => {
   const action = jest.fn();
   const translate = jest.fn();
   const schemaFor = jest.fn();
-  const onData = jest.fn();
-  const loadAddon = jest.fn();
-  const open = jest.fn();
-  const focus = jest.fn();
-  const fit = jest.fn();
-  const proposeDimensions = jest.fn().mockImplementation(() => {
-    return { rows: 1 };
-  });
-  const write = jest.fn();
-  const writeln = jest.fn();
-  const reset = jest.fn();
-
-  jest.mock(/* webpackChunkName: "xterm" */ 'xterm', () => {
-    return {
-      Terminal: class {
-        onData = onData;
-        loadAddon = loadAddon;
-        open = open;
-        focus = focus;
-        write = write;
-        writeln = writeln;
-        reset = reset
-      }
-    };
-  });
-  jest.mock(/* webpackChunkName: "xterm" */ 'xterm-addon-fit', () => {
-    return {
-      FitAddon: class {
-        fit = fit
-        proposeDimensions = proposeDimensions
-      }
-    };
-  });
 
   const defaultContainerShellParams = {
     propsData: {
@@ -77,7 +102,8 @@ describe('component: ContainerShell', () => {
           dispatch: action,
           getters:  {
             'i18n/t':            translate,
-            'cluster/schemaFor': schemaFor
+            'cluster/schemaFor': schemaFor,
+            'prefs/theme':       jest.fn().mockReturnValue('dark')
           }
         }
       },
@@ -87,6 +113,7 @@ describe('component: ContainerShell', () => {
   const resetMocks = () => {
     // Clear all instances and calls to constructor and all methods:
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     defaultContainerShellParams.propsData.pod.os = 'linux';
   };
 
@@ -99,7 +126,14 @@ describe('component: ContainerShell', () => {
     return wrapper;
   };
 
-  it.todo('test that we are calling the xterm terminal and fitAddon class method mocks correctly');
+  it('test that we are calling the xterm terminal and fitAddon class method mocks correctly', async() => {
+    resetMocks();
+    await wrapperPostMounted(defaultContainerShellParams);
+
+    expect(mockLoadAddon).toHaveBeenCalled();
+    expect(mockOpen).toHaveBeenCalled();
+    expect(mockFit).toHaveBeenCalled();
+  });
 
   it('creates a window on the page', async() => {
     resetMocks();
@@ -242,7 +276,23 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.os).toBe('linux');
   });
 
-  it.todo('test that fit and flush are operating properly');
+  it('test that fit and flush are operating properly', async() => {
+    resetMocks();
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    mockFit.mockClear();
+
+    if (typeof wrapper.vm.fit === 'function') {
+      wrapper.vm.fit();
+    }
+
+    expect(mockFit).toHaveBeenCalled();
+
+    if (typeof wrapper.vm.flush === 'function') {
+      wrapper.vm.flush();
+    }
+  });
+
   it.todo('test that we are properly feeding the terminal the commandOnFirstConnect prop correctly on connected');
 
   it('the socket message event sets data props correctly', async() => {
