@@ -3,7 +3,6 @@ import { PropType, defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 interface Option {
   value: unknown,
@@ -108,12 +107,6 @@ export default defineComponent({
   },
 
   emits: ['update:value'],
-
-  setup() {
-    const { summary } = useInSummary();
-
-    return { summary };
-  },
 
   data() {
     return {

@@ -3,29 +3,53 @@ import { randomStr } from 'utils/string';
 import {
   computed, getCurrentInstance, onMounted, onUnmounted, ref
 } from 'vue';
+import type {
+  ComponentInternalInstance,
+  ComponentPublicInstance,
+  ComputedRef,
+  VNode
+} from 'vue';
+
+type SummaryInfo = {
+  id: string;
+  scrollTo?: () => void;
+};
+
+type SummaryComponent = ComponentPublicInstance & {
+  summary?: SummaryInfo;
+  summaryID?: string;
+  displayTitle?: string;
+  title?: string;
+  label?: string;
+  labelKey?: string;
+  name?: string;
+  scrollTo?: () => void;
+  vnode?: VNode;
+};
+
+type SummaryEntry = {
+  node: VNode;
+  children: SummaryEntry[];
+  label: string;
+  scrollTo?: () => void;
+  component?: SummaryComponent;
+};
+
+type RegisterComponent = (component?: SummaryComponent | null) => void;
 
 const summarySingleton = {
-  registerComponent:   (_component: any) => {},
+  registerComponent:   (_component?: SummaryComponent | null) => {},
   unRegisterComponent: () => {}
 };
 
-/**
- * useFormSummary composable works in tandem with inFormSummary and TableOfContents vue component
- * inFormSummary component is used by form elements to register with tableOfContents
- * I need to update useFormSummary to only work with accordions?
- * What if in addition to ToC there is a summary component that registers DIFFERENT components entirely?
- *
- * performance: tested with >1000 accordions on page; no discernable lag in updates to toc or scrolling
- */
-
 export function useFormSummary() {
   const root = getCurrentInstance();
-  const t = root?.proxy?.$store?.getters?.['i18n/t'];
+  const t = root?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
 
-  const registeredComponents = ref({} as any);
-  const locatedComponents = ref([] as any[]);
+  const registeredComponents = ref<Record<string, SummaryComponent>>({});
+  const locatedComponents = ref<SummaryEntry[]>([]);
 
-  const getComponentLabel = (component: any) => {
+  const getComponentLabel = (component: SummaryComponent) => {
     if (component?.displayTitle) {
       return component.displayTitle;
     }
@@ -49,7 +73,7 @@ export function useFormSummary() {
     return component?.summary?.id || '';
   };
 
-  // this will find components not attached to virtual dom anymore? //TODO nb what it do
+  // components not attached to virtual dom?
   const getComponentFromVNode = (vnode: any) => {
     return vnode?.component ? vnode.component : vnode?.ctx?.vnode?.component;
   };
@@ -58,7 +82,7 @@ export function useFormSummary() {
     return node?.component?.proxy || node?.component?.ctx || node?.component?.instance?.proxy || getComponentFromVNode(node)?.ctx;
   };
 
-  const buildTree = (components = [] as any[], node: any, found = new Set<string>()) => {
+  const buildTree = (components: SummaryEntry[] = [], node?: VNode | null, found = new Set<string>()) => {
     let nextInput = components;
 
     const component = getComponentInstance(node);
@@ -66,11 +90,11 @@ export function useFormSummary() {
 
     if (component && summary && registeredComponents.value[summary.id] && !found.has(summary.id)) {
       found.add(summary.id);
-      const out: any = {
-        node,
+      const out: SummaryEntry = {
+        node:     node as VNode,
         children: [],
         label:    getComponentLabel(component),
-        scrollTo: component ? () => scrollToComponent(component) : undefined // TODO nb no link if no scrollTo?
+        scrollTo: component ? () => scrollToComponent(component) : undefined
       };
 
       out.component = component;
@@ -83,12 +107,13 @@ export function useFormSummary() {
       return;
     }
 
-    // TODO nb refactor eyesore
     const children = node?.component?.subTree?.children || node?.el?.children ? Array.from(node?.el?.children) as any[] : [];
 
-    children.forEach((child: any) => {
-      if (child?.__vnode) {
-        buildTree(nextInput, child.__vnode, found);
+    children.forEach((child) => {
+      const vnodeChild = (child as { __vnode?: VNode }).__vnode;
+
+      if (vnodeChild) {
+        buildTree(nextInput, vnodeChild, found);
       }
     });
 
@@ -96,9 +121,9 @@ export function useFormSummary() {
   };
 
   const locateRegisteredComponents = () => {
-    const parent = root?.parent || {} as any;
+    const parent = root?.parent as ComponentInternalInstance | null | undefined;
 
-    locatedComponents.value = buildTree([], parent.vnode) || [];
+    locatedComponents.value = buildTree([], parent?.vnode) || [];
   };
 
   const debouncedLocateRegisteredComponents = debounce(locateRegisteredComponents);
@@ -109,8 +134,8 @@ export function useFormSummary() {
    * @param component instance of a component in registeredComponents
    * @returns the entry in locatedComponents that contains the provided component either at the top level or within its children (or children's children, etc.)
    */
-  const findParent = (component: any) => {
-    const walk = (entries: any[] = [], parent: any = null): any => {
+  const findParent = (component: SummaryComponent) => {
+    const walk = (entries: SummaryEntry[] = [], parent: SummaryEntry | null = null): SummaryEntry | null => {
       for (const entry of entries) {
         if (entry?.component?.summary?.id === component?.summary?.id) {
           return parent;
@@ -131,10 +156,10 @@ export function useFormSummary() {
     return walk(locatedComponents.value);
   };
 
-  const scrollToComponent = (component: any) => {
+  const scrollToComponent = (component: SummaryComponent) => {
     const parent = findParent(component);
 
-    if (parent) {
+    if (parent?.component) {
       scrollToComponent(parent.component);
     }
     if (component.scrollTo) {
@@ -146,7 +171,7 @@ export function useFormSummary() {
     }
   };
 
-  const registerComponent = (component: any) => {
+  const registerComponent: RegisterComponent = (component) => {
     if (!component || !component.summary?.id) {
       return;
     }
@@ -156,17 +181,25 @@ export function useFormSummary() {
     debouncedLocateRegisteredComponents();
   };
 
-  const locateComponentsByNamePattern = (pattern: string) => {
+  /**
+   * Return a reactive subset of locatedComponents matching a name pattern.
+   * If no pattern is provided, all located components will be returned.
+   */
+  const locateComponentsByNamePattern = (pattern?: string): ComputedRef<SummaryEntry[]> => {
+    if (!pattern) {
+      return computed(() => locatedComponents.value);
+    }
+
     const matcher = new RegExp(pattern);
 
-    const matches = (entry: any) => {
-      const componentName = entry?.component?.$options?.name || entry?.component?.type?.name || '';
+    const matches = (entry: SummaryEntry) => {
+      const componentName = entry.component?.$options?.name || (entry.component?.$?.type as { name?: string } | undefined)?.name || '';
 
       return matcher.test(componentName);
     };
 
-    const filterTree = (entries: any[] = []) => {
-      return entries.reduce((acc: any[], entry: any) => {
+    const filterTree = (entries: SummaryEntry[] = []) => {
+      return entries.reduce((acc: SummaryEntry[], entry) => {
         const filteredChildren = filterTree(entry?.children || []);
         const isMatch = matches(entry);
 
@@ -198,14 +231,19 @@ export function useFormSummary() {
   };
 }
 
+/**
+ * Hook to register a component in the summary system.
+ * This hook should be used inside a Vue component to automatically register it with the summary system when mounted and unregister it when unmounted.
+ * returns a 'summary' object containing a unique ID used to locate the component in the virtual dom and determine its position relative to other registered components
+ */
 export function useInSummary() {
   const registerComponent = summarySingleton.registerComponent;
   const unRegisterComponent = summarySingleton.unRegisterComponent;
   const instance = getCurrentInstance();
-  const component = instance?.proxy;
+  const component = instance?.proxy as SummaryComponent | null | undefined;
 
   const scrollTo = () => {
-    const el = (component as any)?.$el || (component as any)?.vnode?.el;
+    const el = component?.$el || component?.vnode?.el;
 
     el?.scrollIntoView(true);
   };

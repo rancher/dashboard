@@ -32,7 +32,6 @@ const props = defineProps({
                 v-for="childAcc, j in acc.children"
                 :key="j"
               >
-                <!-- TODO nb add aria attribute -->
                 <a
                   v-if="childAcc.scrollTo"
                   @click="childAcc.scrollTo()"
@@ -73,11 +72,11 @@ const props = defineProps({
 
   .toc-container {
     overflow-y: auto;
-    max-height: calc(100vh - var(--footer-height) - 260px); //TODO nb do the right way
+    max-height: calc(100vh - var(--footer-height) - 260px);
     position: sticky;
     top: 24px;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
-    background-color: var(--subtle-overlay-bg ); //TODO nb confirm which var to use here
+    background-color: var(--subtle-overlay-bg );
   }
 </style>
