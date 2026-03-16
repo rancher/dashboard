@@ -185,6 +185,51 @@ export function foldByYamlPath(path: string): Extension {
 }
 
 /**
+ * Declarative fold service: folds blocks of consecutive comment lines (starting with #).
+ * Add this to `extensions` so the fold gutter widget appears on comment block start lines.
+ */
+export const commentFoldService: Extension = foldService.of((state, lineStart) => {
+  const line = state.doc.lineAt(lineStart)
+  if (!/^\s*#/.test(line.text)) return null
+
+  let foldTo = line.to
+  for (let i = line.number + 1; i <= state.doc.lines; i++) {
+    const next = state.doc.line(i)
+    if (!/^\s*#/.test(next.text)) break
+    foldTo = next.to
+  }
+
+  if (foldTo === line.to) return null
+  return { from: line.to, to: foldTo }
+})
+
+/**
+ * Imperative: folds all comment blocks in the document. Call in a `ready` handler.
+ * Requires `commentFoldService` to be registered so the fold gutter widget also appears.
+ */
+export function foldAllComments(view: EditorView): void {
+  const { state } = view
+  const ranges: { from: number; to: number }[] = []
+  let i = 1
+  while (i <= state.doc.lines) {
+    const line = state.doc.line(i)
+    if (!/^\s*#/.test(line.text)) { i++; continue }
+
+    let foldTo = line.to
+    let j = i + 1
+    while (j <= state.doc.lines) {
+      const next = state.doc.line(j)
+      if (!/^\s*#/.test(next.text)) break
+      foldTo = next.to
+      j++
+    }
+    if (foldTo !== line.to) ranges.push({ from: line.to, to: foldTo })
+    i = j
+  }
+  if (ranges.length > 0) view.dispatch({ effects: ranges.map(r => foldEffect.of(r)) })
+}
+
+/**
  * Imperative: folds all lines matching `pattern`. Call in a `ready` handler.
  * Delegates range detection to registered fold services via `foldable()`.
  */
