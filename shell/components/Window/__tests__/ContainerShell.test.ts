@@ -130,9 +130,9 @@ describe('component: ContainerShell', () => {
     resetMocks();
     await wrapperPostMounted(defaultContainerShellParams);
 
-    expect(mockLoadAddon).toHaveBeenCalled();
-    expect(mockOpen).toHaveBeenCalled();
-    expect(mockFit).toHaveBeenCalled();
+    expect(mockLoadAddon).toHaveBeenCalledWith(expect.any(Object));
+    expect(mockOpen).toHaveBeenCalledWith(expect.any(HTMLElement));
+    expect(mockFit).toHaveBeenCalledWith();
   });
 
   it('creates a window on the page', async() => {
@@ -286,7 +286,7 @@ describe('component: ContainerShell', () => {
       wrapper.vm.fit();
     }
 
-    expect(mockFit).toHaveBeenCalled();
+    expect(mockFit).toHaveBeenCalledWith();
 
     if (typeof wrapper.vm.flush === 'function') {
       wrapper.vm.flush();
