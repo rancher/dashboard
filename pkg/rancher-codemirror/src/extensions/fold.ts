@@ -185,17 +185,31 @@ export function foldByYamlPath(path: string): Extension {
 }
 
 /**
- * Declarative fold service: folds blocks of consecutive comment lines (starting with #).
- * Add this to `extensions` so the fold gutter widget appears on comment block start lines.
+ * Returns the indentation depth of the content after the leading `#` on a comment line,
+ * or null if the line is not a comment.
+ */
+function commentContentIndent(text: string): number | null {
+  const match = text.match(/^\s*#(.*)$/)
+  if (!match) return null
+  return match[1].match(/^(\s*)/)?.[1].length ?? 0
+}
+
+/**
+ * Declarative fold service: folds comment lines whose immediately-following comment lines
+ * have deeper content indentation (i.e. the comment has "children").
+ * A plain `# note` line with no deeper-indented comment siblings will not get a fold widget.
  */
 export const commentFoldService: Extension = foldService.of((state, lineStart) => {
   const line = state.doc.lineAt(lineStart)
-  if (!/^\s*#/.test(line.text)) return null
+  const indent = commentContentIndent(line.text)
+  if (indent === null) return null
 
   let foldTo = line.to
   for (let i = line.number + 1; i <= state.doc.lines; i++) {
     const next = state.doc.line(i)
-    if (!/^\s*#/.test(next.text)) break
+    const nextIndent = commentContentIndent(next.text)
+    if (nextIndent === null) break
+    if (nextIndent <= indent) break
     foldTo = next.to
   }
 
@@ -204,28 +218,31 @@ export const commentFoldService: Extension = foldService.of((state, lineStart) =
 })
 
 /**
- * Imperative: folds all comment blocks in the document. Call in a `ready` handler.
- * Requires `commentFoldService` to be registered so the fold gutter widget also appears.
+ * Imperative: folds all comment lines that have deeper-indented comment children.
+ * Folds at every nesting level so nested structure is preserved when unfolding.
+ * Call in a `ready` handler. Requires `commentFoldService` to be registered.
  */
 export function foldAllComments(view: EditorView): void {
   const { state } = view
   const ranges: { from: number; to: number }[] = []
-  let i = 1
-  while (i <= state.doc.lines) {
+
+  for (let i = 1; i <= state.doc.lines; i++) {
     const line = state.doc.line(i)
-    if (!/^\s*#/.test(line.text)) { i++; continue }
+    const indent = commentContentIndent(line.text)
+    if (indent === null) continue
 
     let foldTo = line.to
-    let j = i + 1
-    while (j <= state.doc.lines) {
+    for (let j = i + 1; j <= state.doc.lines; j++) {
       const next = state.doc.line(j)
-      if (!/^\s*#/.test(next.text)) break
+      const nextIndent = commentContentIndent(next.text)
+      if (nextIndent === null) break
+      if (nextIndent <= indent) break
       foldTo = next.to
-      j++
     }
+
     if (foldTo !== line.to) ranges.push({ from: line.to, to: foldTo })
-    i = j
   }
+
   if (ranges.length > 0) view.dispatch({ effects: ranges.map(r => foldEffect.of(r)) })
 }
 
