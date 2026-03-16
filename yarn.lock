@@ -4424,11 +4424,6 @@
     "@webassemblyjs/ast" "1.14.1"
     "@xtuc/long" "4.2.2"
 
-"@xterm/addon-canvas@0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@xterm/addon-canvas/-/addon-canvas-0.7.0.tgz#d3a3835f3634e0106e108661315ae14da23e8dd7"
-  integrity sha512-LF5LYcfvefJuJ7QotNRdRSPc9YASAVDeoT5uyXS/nZshZXjYplGXRECBGiznwvhNL2I8bq1Lf5MzRwstsYQ2Iw==
-
 "@xterm/addon-fit@0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@xterm/addon-fit/-/addon-fit-0.11.0.tgz#ba4778b69fcc9044a060c2176bbe077657d7b37e"

@@ -49,7 +49,7 @@ jest.mock(/* webpackChunkName: "xterm" */ '@xterm/xterm', () => {
 const mockFit = jest.fn();
 const mockProposeDimensions = jest.fn().mockImplementation(() => ({ rows: 1, cols: 1 }));
 
-jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-fit', () => {
+jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-fit', () => {
   return {
     FitAddon: class {
       fit = mockFit;
@@ -58,11 +58,11 @@ jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-fit', () => {
   };
 });
 
-jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-web-links', () => {
+jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-web-links', () => {
   return { WebLinksAddon: class {} };
 }, { virtual: true });
 
-jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-search', () => {
+jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-search', () => {
   return {
     SearchAddon: class {
  findNext = jest.fn(); findPrevious = jest.fn();
@@ -70,7 +70,7 @@ jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-search', () => {
   };
 }, { virtual: true });
 
-jest.mock(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl', () => {
+jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-webgl', () => {
   return { WebglAddon: class {} };
 }, { virtual: true });
 
@@ -142,6 +142,26 @@ describe('component: ContainerShell', () => {
 
     expect(windowComponent.exists()).toBe(true);
     expect(windowComponent.isVisible()).toBe(true);
+  });
+
+  it('does not load webgl addon on Safari browser', async() => {
+    resetMocks();
+
+    const originalUserAgent = window.navigator.userAgent;
+
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value:        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+      configurable: true
+    });
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    expect(wrapper.vm.webglAddon).toBeNull();
+
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value:        originalUserAgent,
+      configurable: true
+    });
   });
 
   it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {

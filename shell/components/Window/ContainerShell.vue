@@ -246,7 +246,11 @@ export default {
         // To avoid it, default to DOM rendering for Safari browsers
 
         const ua = window.navigator.userAgent.toLowerCase();
-        const isSafari = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
+        const isSafari = ua.includes('safari') &&
+           !ua.includes('crios') && // Chrome iOS
+           !ua.includes('fxios') && // Firefox iOS
+           !ua.includes('edgios') && // Edge iOS
+           !ua.includes('opr'); // Opera
 
         if (isSafari) {
           throw new Error('Safari WebGL support is unstable');
