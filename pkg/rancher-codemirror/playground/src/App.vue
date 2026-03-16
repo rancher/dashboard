@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef } from 'vue'
-import { CodeMirror, indentFoldService } from '@rancher/codemirror'
+import { CodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath } from '@rancher/codemirror'
 import type { CodeMirrorProps } from '@rancher/codemirror'
 import type { EditorView } from '@codemirror/view'
 
@@ -61,6 +61,12 @@ const lineWrapping = ref(false)
 // Custom fold example (indent strategy for YAML)
 const customFoldOptions = { strategy: 'indent' as const }
 
+// Declarative fold rules: register fold services for specific patterns
+const yamlFoldExtensions = [
+  foldByLineMatch(/^spec:\s*$/),
+  foldByYamlPath('metadata.labels'),
+]
+
 // EditorView refs exposed from the component
 const yamlEditorView = shallowRef<EditorView>()
 const jsonEditorView = shallowRef<EditorView>()
@@ -68,6 +74,9 @@ const jsonEditorView = shallowRef<EditorView>()
 function onYamlReady(v: EditorView) {
   yamlEditorView.value = v
   console.log('[playground] YAML editor ready', v)
+  // Imperatively auto-fold on load
+  foldMatchingLines(v, /^spec:\s*$/)
+  foldYamlPath(v, 'metadata.labels')
 }
 
 function onJsonReady(v: EditorView) {
@@ -133,6 +142,7 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark']
             :line-wrapping="lineWrapping"
             :fold-gutter="true"
             :fold-options="customFoldOptions"
+            :extensions="yamlFoldExtensions"
             @ready="onYamlReady"
             @change="(v) => console.log('yaml change', v.length, 'chars')"
           />

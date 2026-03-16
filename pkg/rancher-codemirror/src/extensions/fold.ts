@@ -1,6 +1,8 @@
 import type { Extension } from '@codemirror/state'
 import type { EditorState } from '@codemirror/state'
-import { foldGutter as cmFoldGutter, foldService } from '@codemirror/language'
+import { foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree } from '@codemirror/language'
+import type { EditorView } from '@codemirror/view'
+import type { SyntaxNode } from '@lezer/common'
 
 /** The raw callback signature accepted by foldService.of() */
 export type FoldServiceFn = (
@@ -91,20 +93,137 @@ export const bracketFoldService: Extension = foldService.of(
 
 export function buildFoldExtension(opts?: FoldOptions): Extension {
   const extensions: Extension[] = [cmFoldGutter()]
-
-  if (opts?.custom) {
-    extensions.push(opts.custom)
-    return extensions
-  }
-
   const strategy = opts?.strategy ?? 'language'
-
-  if (strategy === 'indent') {
-    extensions.push(indentFoldService)
-  } else if (strategy === 'bracket') {
-    extensions.push(bracketFoldService)
-  }
+  if (strategy === 'indent') extensions.push(indentFoldService)
+  else if (strategy === 'bracket') extensions.push(bracketFoldService)
   // 'language' relies on the language extension's own fold service
-
+  if (opts?.custom) extensions.push(opts.custom)
   return extensions
+}
+
+/**
+ * Declarative fold service: marks lines matching `pattern` as foldable.
+ * The fold range covers the indented block below the matching line.
+ */
+export function foldByLineMatch(pattern: RegExp): Extension {
+  return foldService.of((state, lineStart) => {
+    const line = state.doc.lineAt(lineStart)
+    if (!pattern.test(line.text)) return null
+
+    const indent = line.text.match(/^(\s*)/)?.[1].length ?? 0
+    let foldTo = line.to
+    for (let i = line.number + 1; i <= state.doc.lines; i++) {
+      const nextLine = state.doc.line(i)
+      const nextText = nextLine.text
+      if (nextText.trim() === '') { foldTo = nextLine.to; continue }
+      if ((nextText.match(/^(\s*)/)?.[1].length ?? 0) <= indent) break
+      foldTo = nextLine.to
+    }
+    if (foldTo === line.to) return null
+    return { from: line.to, to: foldTo }
+  })
+}
+
+/** Walks a Key node's ancestor Pairs to reconstruct the full dot-notation path. */
+function getKeyPath(keyNode: SyntaxNode, state: EditorState): string[] {
+  const path: string[] = [state.doc.sliceString(keyNode.from, keyNode.to).trim()]
+  // Key → Pair → BlockMapping → Pair → BlockMapping → ...
+  let cur: SyntaxNode | null = keyNode.parent // Pair
+  while (cur) {
+    cur = cur.parent // BlockMapping
+    if (!cur) break
+    cur = cur.parent // parent Pair
+    if (!cur || cur.name !== 'Pair') break
+    const parentKey = cur.firstChild
+    if (parentKey?.name === 'Key') {
+      path.unshift(state.doc.sliceString(parentKey.from, parentKey.to).trim())
+    }
+  }
+  return path
+}
+
+/**
+ * Declarative fold service: marks the line at the given YAML dot-notation path as foldable.
+ * Requires a YAML language extension to be active (uses the lezer syntax tree).
+ */
+export function foldByYamlPath(path: string): Extension {
+  const segments = path.split('.')
+  const lastSegment = segments[segments.length - 1]
+
+  return foldService.of((state, lineStart) => {
+    const line = state.doc.lineAt(lineStart)
+    const tree = syntaxTree(state)
+
+    let keyNode: SyntaxNode | null = null
+    tree.iterate({
+      from: line.from,
+      to: line.to,
+      enter(node) {
+        if (node.name !== 'Key') return
+        if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) return
+        if (getKeyPath(node.node, state).join('.') === path) {
+          keyNode = node.node
+          return false
+        }
+      }
+    })
+
+    if (!keyNode) return null
+
+    const indent = line.text.match(/^(\s*)/)?.[1].length ?? 0
+    let foldTo = line.to
+    for (let i = line.number + 1; i <= state.doc.lines; i++) {
+      const nextLine = state.doc.line(i)
+      const nextText = nextLine.text
+      if (nextText.trim() === '') { foldTo = nextLine.to; continue }
+      if ((nextText.match(/^(\s*)/)?.[1].length ?? 0) <= indent) break
+      foldTo = nextLine.to
+    }
+    if (foldTo === line.to) return null
+    return { from: line.to, to: foldTo }
+  })
+}
+
+/**
+ * Imperative: folds all lines matching `pattern`. Call in a `ready` handler.
+ * Delegates range detection to registered fold services via `foldable()`.
+ */
+export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
+  const { state } = view
+  const ranges: { from: number; to: number }[] = []
+  for (let i = 1; i <= state.doc.lines; i++) {
+    const line = state.doc.line(i)
+    if (!pattern.test(line.text)) continue
+    const range = foldable(state, line.from, line.to)
+    if (range) ranges.push(range)
+  }
+  if (ranges.length > 0) view.dispatch({ effects: ranges.map(r => foldEffect.of(r)) })
+}
+
+/**
+ * Imperative: folds the line at the given YAML dot-notation path. Call in a `ready` handler.
+ */
+export function foldYamlPath(view: EditorView, path: string): void {
+  const { state } = view
+  const segments = path.split('.')
+  const lastSegment = segments[segments.length - 1]
+  const tree = syntaxTree(state)
+
+  let targetFrom: number | null = null
+  tree.iterate({
+    enter(node) {
+      if (targetFrom !== null) return false
+      if (node.name !== 'Key') return
+      if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) return
+      if (getKeyPath(node.node, state).join('.') === path) {
+        targetFrom = state.doc.lineAt(node.from).from
+        return false
+      }
+    }
+  })
+
+  if (targetFrom === null) return
+  const line = state.doc.lineAt(targetFrom)
+  const range = foldable(state, line.from, line.to)
+  if (range) view.dispatch({ effects: foldEffect.of(range) })
 }
