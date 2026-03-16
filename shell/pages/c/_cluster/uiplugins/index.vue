@@ -229,8 +229,6 @@ export default {
     },
 
     pluginCards() {
-      console.log({ list: this.list });
-
       return this.list.map((plugin) => ({
         id:     plugin.id,
         header: {

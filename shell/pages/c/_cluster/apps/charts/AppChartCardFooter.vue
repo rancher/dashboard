@@ -105,6 +105,7 @@ function onClickItem(type: string, label: string) {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      text-transform: capitalize;
       min-width: 0;
     }
 
