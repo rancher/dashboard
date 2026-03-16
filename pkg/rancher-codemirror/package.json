@@ -1,6 +1,6 @@
 {
   "name": "@rancher/codemirror",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Vue 3 CodeMirror 6 component library",
   "type": "module",
   "main": "./dist/rancher-codemirror.umd.cjs",
