@@ -296,10 +296,10 @@ describe('page: UI plugins/Extensions', () => {
         computed: {
           // Override the computed property for this test suite
           available: () => [
-            { name: 'plugin1' },
-            { name: 'plugin2' },
-            { name: 'plugin3' },
-            { name: 'plugin4' },
+            { name: 'plugin1', id: 'repo/plugin1' },
+            { name: 'plugin2', id: 'repo/plugin2' },
+            { name: 'plugin3', id: 'repo/plugin3' },
+            { name: 'plugin4', id: 'repo/plugin4' },
           ],
           hasMenuActions: () => true,
           menuActions:    () => []
@@ -311,9 +311,9 @@ describe('page: UI plugins/Extensions', () => {
 
       // Set the 'installing' status on the component instance
       wrapper.vm.installing = {
-        plugin1: 'install',
-        plugin2: 'downgrade',
-        plugin3: 'uninstall',
+        'repo/plugin1': 'install',
+        'repo/plugin2': 'downgrade',
+        'repo/plugin3': 'uninstall',
       };
 
       // Reset errors
@@ -330,7 +330,7 @@ describe('page: UI plugins/Extensions', () => {
       wrapper.vm.helmOps = helmOps;
       await wrapper.vm.$nextTick();
 
-      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin1', 'install');
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('repo/plugin1', 'install');
     });
 
     it('should not update status for an upgrade op when a downgrade was initiated', async() => {
@@ -344,7 +344,7 @@ describe('page: UI plugins/Extensions', () => {
       await wrapper.vm.$nextTick();
 
       // It should not be called with 'upgrade' for plugin2
-      expect(updatePluginInstallStatusMock).not.toHaveBeenCalledWith('plugin2', 'upgrade');
+      expect(updatePluginInstallStatusMock).not.toHaveBeenCalledWith('repo/plugin2', 'upgrade');
     });
 
     it('should clear status for a completed uninstall operation', async() => {
@@ -357,7 +357,7 @@ describe('page: UI plugins/Extensions', () => {
       wrapper.vm.helmOps = helmOps;
       await wrapper.vm.$nextTick();
 
-      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin3', false);
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('repo/plugin3', false);
     });
 
     it('should set error and clear status for a failed operation', async() => {
@@ -370,8 +370,8 @@ describe('page: UI plugins/Extensions', () => {
       wrapper.vm.helmOps = helmOps;
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.errors.plugin1).toBe(true);
-      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin1', false);
+      expect(wrapper.vm.errors['repo/plugin1']).toBe(true);
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('repo/plugin1', false);
     });
 
     it('should clear status for plugins with no active operation', async() => {
@@ -385,7 +385,7 @@ describe('page: UI plugins/Extensions', () => {
       await wrapper.vm.$nextTick();
 
       // plugin4 has no op, so its status should be cleared
-      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin4', false);
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('repo/plugin4', false);
     });
   });
 });

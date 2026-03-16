@@ -66,6 +66,7 @@ export default {
       installing:                     {},
       errors:                         {},
       plugins:                        [], // The installed plugins
+      apps:                           [], // The installed helm apps
       helmOps:                        [], // Helm operations
       addExtensionReposBannerSetting: undefined,
       loading:                        true,
@@ -100,6 +101,12 @@ export default {
       hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
+    // Load CATALOG.APP to cross-reference installed plugins with their source repositories
+    // This allows us to determine from which repo an extension was installed if the same extension name exists in multiple repos
+    if (this.$store.getters['management/schemaFor'](CATALOG.APP)) {
+      hash.apps = this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+    }
+
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
       hash.repos = this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
     }
@@ -110,6 +117,7 @@ export default {
 
     this.rancherVersion = getVersionData()?.Version;
     this.plugins = res.plugins || [];
+    this.apps = res.apps || [];
     this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
@@ -314,8 +322,8 @@ export default {
           }
         }
 
-        if (this.installing[item.name]) {
-          item.installing = this.installing[item.name];
+        if (this.installing[item.id]) {
+          item.installing = this.installing[item.id];
         }
 
         return item;
@@ -360,7 +368,23 @@ export default {
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
-        const chart = all.find((c) => c.name === p.name);
+        let chart;
+        const app = this.apps.find((a) => a.metadata.name === p.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
+
+        // Try to identify the specific chart from the correct repository by checking the Helm App's annotations.
+        // This prevents picking the wrong chart when multiple repositories provide an extension with the same name.
+        if (app) {
+          const repoName = app.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+
+          if (repoName) {
+            chart = all.find((c) => c.name === p.name && c.chart?.repoName === repoName);
+          }
+        }
+
+        // Fallback to name matching if we can't determine the repo
+        if (!chart) {
+          chart = all.find((c) => c.name === p.name);
+        }
 
         if (chart) {
           chart.installed = true;
@@ -368,7 +392,7 @@ export default {
           chart.installedVersion = p.version;
 
           // Can't do this here
-          chart.installing = this.installing[chart.name];
+          chart.installing = this.installing[chart.id];
 
           // Check for upgrade
           const latestInstallableVersion = chart.installableVersions?.[0];
@@ -423,7 +447,7 @@ export default {
 
       // Merge in the plugin load errors from help ops
       Object.keys(this.errors).forEach((e) => {
-        const chart = all.find((c) => c.name === e);
+        const chart = all.find((c) => c.id === e);
 
         if (chart) {
           chart.helmError = !!this.errors[e];
@@ -457,28 +481,50 @@ export default {
           const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
           if (op) {
+            const allWithSameName = this.available.filter((p) => p.name === plugin.name);
+            let targetPluginId;
+
+            // When multiple plugins share the same name (from different repositories),
+            // a single helm operation will trigger updates. We need to correctly identify
+            // the specific plugin that is either currently being installed/updated or is already installed
+            // so we don't accidentally mark all identically named plugins as "installing".
+            const installingPlugin = allWithSameName.find((p) => this.installing[p.id]);
+            const installedPlugin = allWithSameName.find((p) => p.installed);
+
+            if (installingPlugin) {
+              targetPluginId = installingPlugin.id;
+            } else if (installedPlugin) {
+              targetPluginId = installedPlugin.id;
+            } else {
+              targetPluginId = allWithSameName[0]?.id;
+            }
+
+            if (plugin.id !== targetPluginId) {
+              return;
+            }
+
             const active = op.metadata.state?.transitioning;
             const error = op.metadata.state?.error;
 
-            this.errors[plugin.name] = error;
+            this.errors[plugin.id] = error;
 
             if (active) {
             // Can use the status directly, apart from upgrade, which maps to update
               const status = op.status.action;
 
-              if (status === 'upgrade' && this.installing[plugin.name] === 'downgrade') {
+              if (status === 'upgrade' && this.installing[plugin.id] === 'downgrade') {
                 // Helm op is an upgrade, but we initiated a downgrade, so keep the 'downgrade' status
               } else {
-                this.updatePluginInstallStatus(plugin.name, status);
+                this.updatePluginInstallStatus(plugin.id, status);
               }
             } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             } else if (error) {
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             }
           } else {
-            this.updatePluginInstallStatus(plugin.name, false);
+            this.updatePluginInstallStatus(plugin.id, false);
           }
         });
       },
@@ -504,7 +550,11 @@ export default {
               changes++;
             }
 
-            this.updatePluginInstallStatus(plugin.name, false);
+            (this.available || []).forEach((c) => {
+              if (c.name === plugin.name) {
+                this.updatePluginInstallStatus(c.id, false);
+              }
+            });
           }
         });
 
@@ -606,8 +656,8 @@ export default {
           plugin,
           action,
           initialVersion,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
             this.didInstall(res);
@@ -628,8 +678,8 @@ export default {
         returnFocusFirstIterableNodeSelector: '#extensions-main-page',
         componentProps:                       {
           plugin,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
             this.didUninstall(res);
@@ -640,7 +690,7 @@ export default {
 
     didUninstall(plugin) {
       if (plugin) {
-        this.updatePluginInstallStatus(plugin.name, 'uninstall');
+        this.updatePluginInstallStatus(plugin.id, 'uninstall');
 
         if (plugin.catalog) {
           this.refreshCharts();
@@ -667,8 +717,8 @@ export default {
       this.$refs.infoPanel.show({ ...plugin, tags });
     },
 
-    updatePluginInstallStatus(name, status) {
-      this.installing[name] = status;
+    updatePluginInstallStatus(id, status) {
+      this.installing[id] = status;
     },
 
     setMenu(event) {

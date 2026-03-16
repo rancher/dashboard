@@ -223,7 +223,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.updateStatus(plugin.name, this.action);
+      this.updateStatus(plugin.id, this.action);
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find((v) => v.version === this.version);
