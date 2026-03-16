@@ -221,6 +221,8 @@ export default {
     },
 
     pluginCards() {
+      console.log({ list: this.list });
+
       return this.list.map((plugin) => ({
         id:     plugin.id,
         header: {
@@ -849,6 +851,16 @@ export default {
     },
 
     getFooterItems(plugin) {
+      const footerItems = [];
+
+      if (plugin?.chart?.repoNameDisplay) {
+        footerItems.push({
+          icon:        'repository-alt',
+          iconTooltip: { key: 'tableHeaders.repoName' },
+          labels:      [plugin.chart.repoNameDisplay]
+        });
+      }
+
       const labels = [];
 
       // "developer load" tag
@@ -872,11 +884,15 @@ export default {
         labels.push(this.t('plugins.labels.experimental'));
       }
 
-      return labels.length ? [{
-        icon:        'tag-alt',
-        iconTooltip: { key: 'generic.tags' },
-        labels,
-      }] : [];
+      if (labels.length) {
+        footerItems.push({
+          icon:        'tag-alt',
+          iconTooltip: { key: 'generic.tags' },
+          labels,
+        });
+      }
+
+      return footerItems;
     },
 
     getStatuses(plugin) {
