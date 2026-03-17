@@ -11,6 +11,7 @@ export {
   RcDropdownMenu
 } from './components/RcDropdown';
 export { RcIcon } from './components/RcIcon';
+export { RcSection } from './components/RcSection';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
 export { default as RcCounterBadge } from './components/Pill/RcCounterBadge';
 export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';
