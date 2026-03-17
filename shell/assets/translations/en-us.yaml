@@ -30,6 +30,7 @@ generic:
   comma: ', '
   copy: Copy
   copyToClipboard: Copy text to Clipboard
+  copyValueToClipboard: 'Copy {value} to Clipboard'
   copiedToClipboard: Text copied to Clipboard
   create: Create
   created: Created
