@@ -1655,7 +1655,6 @@ export default {
             </div>
           </div>
           <NameNsDescription
-            v-if="showNameEditor"
             v-model:value="value"
             :description-hidden="true"
             :mode="mode"
