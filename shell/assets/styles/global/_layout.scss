@@ -2,7 +2,10 @@
 .main-layout {
   grid-area: main;
   overflow: auto;
-  scroll-behavior: smooth;
+
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
 
   .outlet {
     display: flex;

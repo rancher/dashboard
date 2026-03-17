@@ -797,7 +797,6 @@ export default {
       <template v-else-if="showAsForm">
         <TableOfContents
           v-if="canShowToc"
-          ref="toc"
           class="cru__toc"
           :accordions="accordions"
         />
@@ -807,17 +806,9 @@ export default {
 
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <!-- <div
-            class="resource-container cru__content"
-            :style="[minHeight ? { 'min-height': minHeight } : {}]"
-          > -->
-          <!-- <div
-            class="cru__content"
-          > -->
           <slot name="single">
             <slot />
           </slot>
-          <!-- </div> -->
         </div>
 
         <slot name="form-footer">
@@ -1039,11 +1030,14 @@ form.create-resource-container .cru {
 
   &__toc {
     width: $table-contents-width;
-    margin-left: var(--gap-lg);
+    margin: 20px var(--gap-lg) 20px var(--gap-lg);
     min-width: $table-contents-width;
     max-width: $table-contents-width;
-    margin-top: 20px
-
+    position: fixed;
+    top: calc(var(--header-height) + 112px);
+    bottom: $footer-height;
+    right: 0px;
+    overflow: auto;
   }
 
   &__content {
@@ -1093,10 +1087,12 @@ form.create-resource-container .cru {
         grid-row: content;
     }
 
-    .cru__toc {
-        grid-column: toc;
-        grid-row: content;
-    }
+    // .cru__toc {
+    //     position: fixed;
+    //     top: calc(var(--header-height) + 112px);
+    //     bottom: $footer-height;
+    //     right: 0px;
+    // }
 
     .cru__footer {
         grid-column: content / 3;

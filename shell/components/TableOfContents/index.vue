@@ -1,5 +1,4 @@
 <script setup>
-import { defineProps } from 'vue';
 
 const props = defineProps({
   accordions: {
@@ -21,10 +20,14 @@ const props = defineProps({
           v-for="acc, i in props.accordions"
           :key="i"
         >
-          <a
+          <button
             v-if="acc.scrollTo"
+            type="button"
+            class="btn role-link accordion-link"
             @click="acc.scrollTo()"
-          > {{ acc.label }}</a>
+          >
+            {{ acc.label }}
+          </button>
           <span v-else>{{ acc.label }}</span>
           <template v-if="acc?.children?.length">
             <ul>
@@ -32,10 +35,14 @@ const props = defineProps({
                 v-for="childAcc, j in acc.children"
                 :key="j"
               >
-                <a
+                <button
                   v-if="childAcc.scrollTo"
+                  type="button"
+                  class="btn role-link accordion-link"
                   @click="childAcc.scrollTo()"
-                > {{ childAcc.label }}</a>
+                >
+                  {{ childAcc.label }}
+                </button>
                 <span v-else>{{ childAcc.label }}</span>
               </li>
             </ul>
@@ -72,11 +79,14 @@ const props = defineProps({
 
   .toc-container {
     overflow-y: auto;
-    max-height: calc(100vh - var(--footer-height) - 260px);
-    position: sticky;
-    top: 24px;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
     background-color: var(--subtle-overlay-bg );
+  }
+
+  .accordion-link {
+    padding: 0px;
+    min-height: 0px;
+    line-height: 1em;
   }
 </style>

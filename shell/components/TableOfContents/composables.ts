@@ -17,7 +17,6 @@ type SummaryInfo = {
 
 type SummaryComponent = ComponentPublicInstance & {
   summary?: SummaryInfo;
-  summaryID?: string;
   displayTitle?: string;
   title?: string;
   label?: string;
@@ -39,7 +38,7 @@ type RegisterComponent = (component?: SummaryComponent | null) => void;
 
 const summarySingleton = {
   registerComponent:   (_component?: SummaryComponent | null) => {},
-  unRegisterComponent: () => {}
+  unRegisterComponent: (_component?: SummaryComponent | null) => {}
 };
 
 export function useFormSummary() {
@@ -107,7 +106,7 @@ export function useFormSummary() {
       return;
     }
 
-    const children = node?.component?.subTree?.children || node?.el?.children ? Array.from(node?.el?.children) as any[] : [];
+    const children = node?.el?.children ? Array.from(node?.el?.children) as any[] : [];
 
     children.forEach((child) => {
       const vnodeChild = (child as { __vnode?: VNode }).__vnode;
@@ -181,6 +180,16 @@ export function useFormSummary() {
     debouncedLocateRegisteredComponents();
   };
 
+  const unRegisterComponent: RegisterComponent = (component) => {
+    if (!component || !component.summary?.id) {
+      return;
+    }
+
+    delete registeredComponents.value[component.summary?.id];
+
+    debouncedLocateRegisteredComponents();
+  };
+
   /**
    * Return a reactive subset of locatedComponents matching a name pattern.
    * If no pattern is provided, all located components will be returned.
@@ -220,7 +229,7 @@ export function useFormSummary() {
   };
 
   summarySingleton.registerComponent = registerComponent;
-  summarySingleton.unRegisterComponent = debouncedLocateRegisteredComponents;
+  summarySingleton.unRegisterComponent = unRegisterComponent;
 
   return {
     registerComponent,
@@ -255,7 +264,7 @@ export function useInSummary() {
   });
 
   onUnmounted(() => {
-    unRegisterComponent();
+    unRegisterComponent(component);
   });
 
   return { summary: { id: summaryID, scrollTo } };
