@@ -120,7 +120,6 @@ describe('class CatalogApp', () => {
       [installedCertManagerOfficialFromCli, [], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromCli, [appCoMatchingChart1], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2], APP_UPGRADE_STATUS.NO_UPGRADE],
-      // [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
       // when you add application collection OCI repo through UI
       [installedCertManagerAppCoFromRancherUI, [], APP_UPGRADE_STATUS.NO_UPGRADE],
