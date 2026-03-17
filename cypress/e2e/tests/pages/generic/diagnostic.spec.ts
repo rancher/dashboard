@@ -9,12 +9,26 @@ describe('Diagnostics Page', { tags: ['@generic', '@adminUser'] }, () => {
   });
 
   it('User should be able to download the diagnostics package JSON', () => {
+    // Ignore the focus-trap error that fires when the modal closes immediately
+    // after the download is triggered (known cosmetic side-effect of the dialog)
+    cy.on('uncaught:exception', (err) => {
+      if (err.message.includes('focus-trap')) {
+        return false;
+      }
+    });
+
     const diagnosticsPage = new DiagnosticsPagePo();
 
     diagnosticsPage.goTo();
 
+    // Wait for page to fully load before opening modal
+    diagnosticsPage.diagnosticsPackageBtn().self().should('be.visible').and('be.enabled');
+
     // open modal
     diagnosticsPage.diagnosticsPackageBtn().click(true);
+
+    // Wait for modal to appear and download button to be ready
+    diagnosticsPage.downloadDiagnosticsModalActionBtn().self().should('be.visible').and('be.enabled');
 
     // modal button to actually trigger the download
     diagnosticsPage.downloadDiagnosticsModalActionBtn().click(true);

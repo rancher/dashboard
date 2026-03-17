@@ -438,7 +438,6 @@ accountAndKeys:
     notAllowed: You do not have permission to manage API Keys
     apiEndpoint: "API Endpoint:"
     copyApiEnpoint: Copy API Endpoint to clipboard
-    normanTokenDeprecation: The API Keys feature is being migrated to a new API. Any existing API Keys from the legacy API will continue to work, but new API Keys will be created using the new API.
     add:
       description:
         label: Description
@@ -464,9 +463,7 @@ accountAndKeys:
           month: Months
           year: Years
       scope: Scope
-      userPrincipal: User Principal
       noScope: No Scope
-      enabled: Token enabled
     info:
       accessKey: Access Key
       secretKey: Secret Key
@@ -475,7 +472,7 @@ accountAndKeys:
       keyCreated: A new API Key has been created
       bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
       ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
-      expiryOptionsWithNever: Since "auth-token-max-ttl-minutes" is set to <= 0, the API Key will not expire unless the "Automatically expire" option is set to "Custom" and a custom expiry time is set.
+
 addClusterMemberDialog:
   title: Add Cluster Member
 
@@ -6857,7 +6854,6 @@ storageClass:
       tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
-  isLegacy: Legacy
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
   accessKey: Access Key

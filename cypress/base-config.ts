@@ -131,7 +131,7 @@ const baseConfig = defineConfig({
   reporter:        'cypress-mochawesome-reporter',
   reporterOptions: {
     saveJson:        true,
-    saveAllAttempts: false,
+    saveAllAttempts: true,
     reportDir:       'cypress/reports'
   },
   e2e: {

@@ -131,8 +131,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension card ------------------
-  extensionCard(extensionTitle: string): RcItemCardPo {
-    return RcItemCardPo.getCardByTitle(extensionTitle);
+  extensionCard(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(extensionTitle, options);
   }
 
   private clickAction(extensionTitle: string, actionLabel: string) {

@@ -80,6 +80,7 @@ declare global {
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;
+      clearAllSessions(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
       createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;

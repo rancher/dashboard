@@ -10,7 +10,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import CardPo from '~/cypress/e2e/po/components/card.po';
+import CardPo from '@/cypress/e2e/po/components/card.po';
 
 describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   const kubectl = new Kubectl();
@@ -118,46 +118,60 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
     installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Wait for table to load and check if charts exist before attempting uninstall
     installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-    installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
-    installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
+    installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail').then((rowNames: string[]) => {
+      // Check if both charts exist, fail test if they don't
+      const hasLoggingChart = rowNames.includes(chartApp);
+      const hasCrdChart = rowNames.includes(chartCrd);
 
-    clusterTools.goTo();
-    clusterTools.waitForPage();
-    cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    clusterTools.deleteChart(chartAppDisplayName);
+      if (!hasLoggingChart || !hasCrdChart) {
+        throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
+      }
 
-    const promptRemove = new PromptRemove();
+      // Charts exist, verify they are properly displayed
+      installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
+      installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
 
-    cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging?action=uninstall`).as('chartUninstall');
-    cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging-crd?action=uninstall`).as('crdUninstall');
-    promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
+      // Proceed with uninstallation
+      clusterTools.goTo();
+      clusterTools.waitForPage();
+      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      clusterTools.deleteChart(chartAppDisplayName);
 
-    promptRemove.checkbox().set();
-    promptRemove.checkbox().isChecked();
-    promptRemove.remove();
+      const promptRemove = new PromptRemove();
 
-    const card = new CardPo();
+      cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging?action=uninstall`).as('chartUninstall');
+      cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging-crd?action=uninstall`).as('crdUninstall');
+      promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
 
-    card.checkNotExists(MEDIUM_TIMEOUT_OPT);
-    cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-    cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
+      promptRemove.checkbox().set();
+      promptRemove.checkbox().isChecked();
+      promptRemove.remove();
 
-    kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-    kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
-    kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-    kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
+      const card = new CardPo();
 
-    installedAppsPage.goTo('local', 'apps');
-    installedAppsPage.waitForPage();
-    cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-    installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-    installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-    installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
-      .should('not.contain', chartApp);
-    // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
-    installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+      card.checkNotExists(MEDIUM_TIMEOUT_OPT);
+      cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+      cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
+
+      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+      kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
+      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+      kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
+
+      // Verify charts are removed after uninstallation
+      installedAppsPage.goTo('local', 'apps');
+      installedAppsPage.waitForPage();
+      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
+      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+      installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
+        .should('not.contain', chartApp);
+      // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
+      installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+    });
   });
 
   after('clean up', () => {

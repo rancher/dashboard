@@ -3,7 +3,7 @@ import ElementalPo from '~/cypress/e2e/po/extensions/elemental/elemental.utils';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import * as jsyaml from 'js-yaml';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const EXTENSION_NAME = 'elemental';
 const EXTENSION_VERSION = '3.0.1';

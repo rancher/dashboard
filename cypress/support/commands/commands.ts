@@ -54,6 +54,19 @@ Cypress.Commands.add('logout', () => {
   //   cy.wait('@loggedOut').its('response.statusCode').should('eq', 200);
 });
 
+/**
+ * Clear all sessions including Cypress sessions, cookies, local storage, and session storage
+ */
+Cypress.Commands.add('clearAllSessions', () => {
+  Cypress.session.clearAllSavedSessions();
+  cy.clearCookies();
+  cy.clearLocalStorage();
+  cy.window().then((win) => {
+    win.sessionStorage.clear();
+  });
+  cy.logout();
+});
+
 Cypress.Commands.add('iFrame', () => {
   return cy
     .get('[data-testid="ember-iframe"]', { log: false })

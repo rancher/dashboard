@@ -122,7 +122,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check - No actions available
     cy.reload();
-    featureFlagsPage.list().getRowActionMenuItem('token-hashing', 'No actions available');
+    featureFlagsPage.list().getRowNoActionMenu('token-hashing');
     featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
   });
 

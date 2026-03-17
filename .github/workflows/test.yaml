@@ -202,6 +202,7 @@ jobs:
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
+          TEST_NO_VIDEOS: true          
 
       - name: Upload report
         uses: actions/upload-artifact@v6

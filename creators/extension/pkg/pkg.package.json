@@ -11,7 +11,7 @@
   },
   "scripts": {},
   "engines": {
-    "node": ">=16"
+    "node": ">=24"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
