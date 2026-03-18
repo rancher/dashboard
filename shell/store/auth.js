@@ -77,6 +77,71 @@ export const getters = {
 
   selfUser(state) {
     return state.selfUser;
+  },
+
+  /**
+   * Returns a function (roleTemplateMap, roleTemplateId, resource, verb) => boolean
+   * that walks the role template inheritance chain to check if a role template
+   * (or any of its ancestors) grants a specific verb on a resource.
+   */
+  roleTemplateGrantsAccess() {
+    return (roleTemplateMap, roleTemplateId, resource, verb) => {
+      const queue = [roleTemplateId];
+      const visited = new Set();
+
+      while (queue.length) {
+        const id = queue.pop();
+
+        if (visited.has(id)) {
+          continue;
+        }
+
+        visited.add(id);
+
+        const rt = roleTemplateMap[id];
+
+        if (!rt) {
+          continue;
+        }
+
+        const hasRule = (rt.rules || []).some((rule) => {
+          return (rule.resources || []).includes(resource) && ((rule.verbs || []).includes(verb) || (rule.verbs || []).includes('*'));
+        });
+
+        if (hasRule) {
+          return true;
+        }
+
+        queue.push(...(rt.roleTemplateNames || []));
+      }
+
+      return false;
+    };
+  },
+
+  /**
+   * Returns a function (projectId, resource, verb) => boolean that checks
+   * whether the current user has a specific permission within a project,
+   * based on their project role template bindings.
+   */
+  userHasAccessToProjectResource(state, getters, rootState, rootGetters) {
+    return (projectId, resource, verb) => {
+      const principalId = getters.principalId;
+
+      if (!principalId || !projectId) {
+        return false;
+      }
+
+      const bindings = rootGetters['management/all'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
+      const roleTemplates = rootGetters['management/all'](MANAGEMENT.ROLE_TEMPLATE);
+      const roleTemplateMap = Object.fromEntries(roleTemplates.map((rt) => [rt.id, rt]));
+
+      const userBindings = bindings.filter((prtb) => {
+        return prtb.projectId === projectId && prtb.principalId === principalId;
+      });
+
+      return userBindings.some((prtb) => getters.roleTemplateGrantsAccess(roleTemplateMap, prtb.roleTemplateName, resource, verb));
+    };
   }
 };
 

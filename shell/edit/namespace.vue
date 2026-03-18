@@ -41,6 +41,12 @@ export default {
       this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
       this.project = this.projects.find((p) => p.id.includes(this.projectName));
+
+      // Ensure PRTBs and role templates are loaded for the project permission check in projectOpts
+      await Promise.all([
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING }),
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+      ]);
     }
   },
 
@@ -75,10 +81,12 @@ export default {
 
     projectOpts() {
       const clusterId = this.$store.getters['currentCluster'].id;
+      const isClusterAdmin = this.$store.getters['currentCluster']?.canUpdate;
+      const userHasAccess = this.$store.getters['auth/userHasAccessToProjectResource'];
       let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      // Filter out projects not for the current cluster
-      projects = projects.filter((c) => c.spec?.clusterName === clusterId);
+      // Filter to current cluster, and for non-admin users only show projects where they can create namespaces
+      projects = projects.filter((c) => c.spec?.clusterName === clusterId && (isClusterAdmin || userHasAccess(c.id, 'namespaces', 'create')));
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
