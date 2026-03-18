@@ -4,7 +4,8 @@ To get started with a new extension, just replace the contents of the `./index.t
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, ProductMetadata, ProductChild } from '@shell/core/types';
+import { IPlugin } from '@shell/core/types';
+import { ProductMetadata, ProductChild } from '@shell/core/plugin-types';
 
 // Init the package
 export default function (plugin: IPlugin) {
@@ -28,12 +29,11 @@ export default function (plugin: IPlugin) {
       component: () => import('./components/overview.vue'),
     },
     {
-      type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Custom Clusters view',
+      type: 'provisioning.cattle.io.cluster', // resource page
     },
     {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
+      name:     'custom-settings', // group with children (only allowed for custom pages)
+      label:    'Custom Settings',
       children: [
         {
           name:      'general',

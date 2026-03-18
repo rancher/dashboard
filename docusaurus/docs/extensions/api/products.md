@@ -1,6 +1,6 @@
 # Product registration
 
-*(Rancher version v2.14.0)*
+*(Rancher version v2.15.0)*
 
 This page describes the updated way to create or extend products using the extension API. The deprecated flow is preserved in a "Deprecated navigation & pages” section below.
 
@@ -25,7 +25,8 @@ Where:
 Example:
 ```ts
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, ProductMetadata, ProductChild } from '@shell/core/types';
+import { IPlugin } from '@shell/core/types';
+import { ProductMetadata, ProductChild } from '@shell/core/plugin-types';
 
 export default function init(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
@@ -48,12 +49,11 @@ export default function init(plugin: IPlugin) {
       component: () => import('./components/overview.vue'),
     },
     {
-      type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Custom Clusters view',
+      type: 'provisioning.cattle.io.cluster', // resource page
     },
     {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
+      name:     'custom-settings', // group with children (only allowed for custom pages)
+      label:    'Custom Settings',
       children: [
         {
           name:      'general',
@@ -70,34 +70,45 @@ export default function init(plugin: IPlugin) {
 
 ### Product Metadata parameters
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `name` | string | Product identifier (used in route names/paths and translation key `product.<name>`) |
-| `labelKey` | string | i18n key; overrides `label` |
-| `label` | string | Display label (fallback if translation not found) |
-| `icon` | string | Icon name (Rancher icon set) |
-| `svg` | module | Optional SVG module instead of icon name |
-| `weight` | number | Ordering in top-level menu (higher value = higher in order) |
-| `showClusterSwitcher` | boolean | Whether to show cluster switcher the Header (default `false`) |
-| `category` | string | Category label (default `global`) |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Product identifier (used in route names/paths and translation key `product.<name>`) |
+| `label` | `string` | One of `label`/`labelKey` | Display label (fallback if translation not found) |
+| `labelKey` | `string` | One of `label`/`labelKey` | i18n key; overrides `label` |
+| `icon` | `string` | No | Icon name from the [Rancher icon set](https://github.com/rancher/icons) |
+| `svg` | `Function` | No | Alternative to `icon`; a dynamic import returning an SVG module |
+| `iconHeader` | `string` | No | Icon shown in the masthead/header area |
+| `weight` | `number` | No | Ordering in the top-level nav (higher value = higher position) |
+| `showClusterSwitcher` | `boolean` | No | Show the cluster switcher in the header (default `false`) |
+| `showNamespaceFilter` | `boolean` | No | Show the namespace filter in the header (default `false`) |
+| `hideCopyConfig` | `boolean` | No | Hide the Copy KubeConfig button in the header |
+| `hideKubeConfig` | `boolean` | No | Hide the Download KubeConfig button in the header |
+| `hideKubeShell` | `boolean` | No | Hide the Kubectl Shell button in the header |
+| `hideNamespaceLocation` | `boolean` | No | Hide the namespace location indicator |
+| `hideSystemResources` | `boolean` | No | Hide system resources from resource lists |
+| `ifFeature` | `string \| RegExp` | No | Only register the product if the specified feature flag is present |
+| `ifHave` | `string` | No | Only register the product if the specified resource type exists |
+| `ifHaveGroup` | `string \| RegExp` | No | Only register the product if the specified API group is present |
+| `ifHaveType` | `string \| RegExp` | No | Only register the product if the specified resource type is present |
+| `ifNotHaveType` | `string \| RegExp` | No | Hide the product if the specified resource type is present |
 
 ### Product Config parameters (children inside array)
 
 | Field | Type | Applies to | Description |
 | --- | --- | --- | --- |
-| `name` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Unique page/group id (used in route names) |
-| `labelKey` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | i18n key; overrides `label` |
-| `label` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Display label (if no `labelKey`) |
-| `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
-| `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
-| `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
-| `headers` | object | [resource page](#resource-page) | Table columns configuration. See [Configuring table headers](#configuring-table-headers). |
-| `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
-| `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
+| `name` | `string` | [custom page](#custom-page), [group](#groups-and-overview-pages) | Unique page/group identifier (used in route names). Required for custom pages and groups. |
+| `label` | `string` | [custom page](#custom-page), [group](#groups-and-overview-pages) | Display label. One of `label`/`labelKey` is required. |
+| `labelKey` | `string` | [custom page](#custom-page), [group](#groups-and-overview-pages) | i18n key; overrides `label`. One of `label`/`labelKey` is required. |
+| `component` | component loader | [custom page](#custom-page), [group](#groups-and-overview-pages) | Vue component to render. Required for custom pages. On groups, renders an overview page. **Not allowed on group parents when extending an existing product.** |
+| `children` | `ProductChild[]` | [group](#groups-and-overview-pages) | Child items inside a group. Makes this item a group. |
+| `default` | `string` | [group](#groups-and-overview-pages) | Name of the child to navigate to by default. |
+| `type` | `string` | [resource page](#resource-page) | Kubernetes resource type (built-in or CRD) to render via Rancher's standard resource views. Required for resource pages. |
+| `config` | `ConfigureTypeConfiguration \| VirtualTypeConfiguration` | [resource page](#resource-page), [custom page](#custom-page) | Optional advanced configuration. For resource pages see [`ConfigureTypeConfiguration`](#resource-page-config-options); for custom pages see [`VirtualTypeConfiguration`](#custom-page-config-options). |
+| `weight` | `number` | all | Side-menu ordering weight (higher value = higher position within scope). |
 
 
 ## "extendProduct" method
-Extend an existing product (`StandardProductName`) with extra pages, groups, and resources.
+Extend an existing product with extra pages, groups, and resources.
 
 ![Cluster Level Product](../screenshots/c-level-prod.png)
 
@@ -111,14 +122,15 @@ Where:
 
 | Argument | Type | Description |
 | --- | --- | --- |
-| `productName` | string | Product identifier to be extended. Admissible values are refered by `StandardProductName` |
-| `productConfig` | Array | Array of objects that specify the pages to be rendered, like [custom pages](#custom-page), [resource pages](#resource-page), and groups. |
+| `productName` | `StandardProductName` | Identifier of the built-in product to extend. Use a value from the `StandardProductNames` const (see [below](#standard-rancher-products-you-can-extend)). |
+| `productConfig` | `ProductChild[]` | Array of objects specifying the pages to add: [custom pages](#custom-page), [resource pages](#resource-page), and [groups](#groups-and-overview-pages). |
 
 
 Example:
 ```ts
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, ProductChild, StandardProductName } from '@shell/core/types';
+import { IPlugin } from '@shell/core/types';
+import { ProductChild, StandardProductNames } from '@shell/core/plugin-types';
 
 export default function init(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
@@ -139,8 +151,8 @@ export default function init(plugin: IPlugin) {
       weight: 80,
     },
     {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
+      name:     'custom-settings', // group with children (only allowed for custom pages)
+      label:    'Custom Settings',
       children: [
         {
           name:      'general',
@@ -151,7 +163,7 @@ export default function init(plugin: IPlugin) {
     },
   ];
 
-  plugin.extendProduct(StandardProductName.EXPLORER, productConfig);
+  plugin.extendProduct(StandardProductNames.EXPLORER, config);
 }
 ```
 
@@ -159,27 +171,21 @@ export default function init(plugin: IPlugin) {
 
 ### Standard Rancher products you can extend
 
-Current enum values for `StandardProductName`:
+`StandardProductNames` is a const object exported from `@shell/core/plugin-types`. Its keys map to the built-in product identifiers:
 
-- `EXPLORER` — Cluster explorer
-- `MANAGER` — Cluster management
-- `SETTINGS` — Global settings
-- `AUTH` — Users & Authentication
+| Key | Value | Product |
+| --- | --- | --- |
+| `StandardProductNames.EXPLORER` | `'explorer'` | Cluster Explorer |
+| `StandardProductNames.MANAGER` | `'manager'` | Cluster Management |
+| `StandardProductNames.SETTINGS` | `'settings'` | Global Settings |
+| `StandardProductNames.AUTH` | `'auth'` | Users & Authentication |
 
 
 ### Product child items (config array)
 
-| Field | Type | Applies to | Description |
-| --- | --- | --- | --- |
-| `name` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Unique page/group id (used in route names) |
-| `labelKey` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | i18n key; overrides `label` |
-| `label` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Display label (if no `labelKey`) |
-| `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
-| `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
-| `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
-| `headers` | object | [resource page](#resource-page) | Table columns configuration. See [Configuring table headers](#configuring-table-headers). |
-| `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
-| `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
+The config array accepts the same item shapes as `addProduct`. See [Product Config parameters](#product-config-parameters-children-inside-array) above for the full field reference.
+
+> **Extending constraint:** group parents cannot specify `component` when extending an existing product (this would cause route-matching conflicts). Place components on the children inside the group instead.
 
 ## What Rancher wires in automatically
 
@@ -220,9 +226,18 @@ It's defined by using the property `type`:
 
 ```ts
 {
-  type:      'storage.k8s.io.storageclass',
-  label:     'Some custom label',
-  weight:    90,
+  type:   'storage.k8s.io.storageclass',
+  weight: 90,
+}
+```
+
+To override the display name, use `config.displayName`:
+
+```ts
+{
+  type:   'storage.k8s.io.storageclass',
+  config: { displayName: 'Storage Classes' },
+  weight: 90,
 }
 ```
 

@@ -4,7 +4,8 @@ Extensions can "extend" an existing product (`StandardProductName`) with extra p
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, ProductChild, StandardProductName } from '@shell/core/types';
+import { IPlugin } from '@shell/core/types';
+import { ProductChild, StandardProductNames } from '@shell/core/plugin-types';
 
 export default function init(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
@@ -25,8 +26,8 @@ export default function init(plugin: IPlugin) {
       weight: 80,
     },
     {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
+      name:     'custom-settings', // group with children (only allowed for custom pages)
+      label:    'Custom Settings',
       children: [
         {
           name:      'general',
@@ -37,7 +38,7 @@ export default function init(plugin: IPlugin) {
     },
   ];
 
-  plugin.extendProduct(StandardProductName.EXPLORER, productConfig);
+  plugin.extendProduct(StandardProductNames.EXPLORER, config);
 }
 ```
 

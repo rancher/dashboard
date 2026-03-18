@@ -58,42 +58,15 @@ export default function(plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
-  const productMetadata: ProductMetadata = {
-    name:  'my-product',
-    label: 'My Product',
-    icon:  'gear',
-  };
+  // Register a product — see Product Registration docs for full config options
+  plugin.addProduct({ name: 'my-product' }, [{ name: 'my-page' }]);
 
-  const productConfig: ProductChild[] = [
-    {
-      name:      'overview', // custom page
-      label:     'Overview',
-      component: () => import('./components/overview.vue'),
-    },
-    {
-      type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Custom Clusters view',
-    },
-    {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
-      children: [
-        {
-          name:      'general',
-          label:     'General',
-          component: () => import('./components/general.vue'),
-        },
-      ],
-    },
-  ];
-
-  // Load a product
-  plugin.addProduct(productMetadata, productConfig);
-  
-  // => => => Add Vuex store
+  // Register the custom Vuex store
   plugin.addDashboardStore(extensionStore.config.namespace, extensionStore.specifics, extensionStore.config);
 }
 ```
+
+> For the full set of product registration options, see the [Product Registration](../api/products.md) page.
 
 
 Extensions can optionally define their own cluster store module by setting `isClusterStore` in the store index, eg:

@@ -39,42 +39,15 @@ export default function(plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
-  const productMetadata: ProductMetadata = {
-    name:  'my-product',
-    label: 'My Product',
-    icon:  'gear',
-  };
+  // Register a product — see Product Registration docs for full config options
+  plugin.addProduct({ name: 'my-product' }, [{ name: 'my-page' }]);
 
-  const productConfig: ProductChild[] = [
-    {
-      name:      'overview', // custom page
-      label:     'Overview',
-      component: () => import('./components/overview.vue'),
-    },
-    {
-      type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Custom Clusters view',
-    },
-    {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
-      children: [
-        {
-          name:      'general',
-          label:     'General',
-          component: () => import('./components/general.vue'),
-        },
-      ],
-    },
-  ];
-
-  // Load a product
-  plugin.addProduct(productMetadata, productConfig);
-
-  // => => => Add hooks to Vue navigation world
+  // Add navigation hooks
   plugin.addNavHooks(onEnter, onLeave);
 }
 ```
+
+> For the full set of product registration options, see the [Product Registration](../api/products.md) page.
 
 ## Login and Logout hooks
 Extensions can define `onLogIn` and `onLogOut` hooks in their index `addNavHooks` extension method , which will run when the user logs in or logs out of Rancher. This is particularly useful if from the extension initialisation file `index.ts` you'll need to perform store-based actions (Vuex) from this context.
@@ -94,50 +67,19 @@ export default function(plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
-  const productMetadata: ProductMetadata = {
-    name:  'my-product',
-    label: 'My Product',
-    icon:  'gear',
-  };
+  // Register a product — see Product Registration docs for full config options
+  plugin.addProduct({ name: 'my-product' }, [{ name: 'my-page' }]);
 
-  const productConfig: ProductChild[] = [
-    {
-      name:      'overview', // custom page
-      label:     'Overview',
-      component: () => import('./components/overview.vue'),
-    },
-    {
-      type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Custom Clusters view',
-    },
-    {
-      name:      'custom-settings', // group with children (only allowed for custom pages)
-      label:     'Custom Settings',
-      children: [
-        {
-          name:      'general',
-          label:     'General',
-          component: () => import('./components/general.vue'),
-        },
-      ],
-    },
-  ];
-
-  // Load a product
-  plugin.addProduct(productMetadata, productConfig);
-
-  // => => => Add hooks to Vue navigation world
-  // on login
+  // Add login/logout hooks
   plugin.addNavHooks({
     onLogIn: async(store: any) => {
-      ....
+      // ...
     }
   });
 
-  // on logout
   plugin.addNavHooks({
     onLogOut: async(store: any) => {
-      ....
+      // ...
     }
   });
 }

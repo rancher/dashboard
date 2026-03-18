@@ -3,7 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import type {
-  ProductMetadata, ProductChild, ProductSinglePage,
+  ProductMetadata, ProductSinglePage,
   StandardProductName, RouteRecordRawWithParams, ProductChildGroup,
   ProductChildPage
 } from './plugin-types';
