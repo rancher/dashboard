@@ -2,7 +2,7 @@ import { FleetClusterListPagePo, FleetClusterDetailsPo } from '@/cypress/e2e/po/
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -421,6 +421,10 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
   });
 
   it('should only display action menu with allowed actions only', () => {
+    // Ensure table is fully loaded before interacting with action menu
+    fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
+    fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
       .rowActionMenuOpen('local');
 
@@ -438,7 +442,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
       constActionMenu.getMenuItem(action).should('exist');
     });
 
-    // Disabled actions should not exist
+    // For disabled actions, check that they don't exist in the dropdown
     disabledActions.forEach((action) => {
       constActionMenu.getMenuItem(action).should('not.exist');
     });

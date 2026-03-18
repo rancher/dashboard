@@ -403,25 +403,6 @@ export default {
       // Remove id? How does subtype get in (cluster/node)
       this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
       this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
-    },
-    /**
-     * Sets the mode and initializes the resource components.
-     *
-     * This method sets the mode of the component and configures the resource
-     * components based on the provided user and resource.
-     *
-     * @param {Object} payload - An object containing the mode, user, and
-     * resource properties.
-     * @param {string} payload.mode - The mode to set.
-     * @param {Object} payload.user - The user object containing user-specific
-     * information.
-     * @param {string} payload.resource - The resource string to use for
-     * initialization.
-     */
-    setMode({ mode, userId, resource }) {
-      this.mode = mode;
-      this.value.id = userId;
-      this.configureResource(userId, resource);
     }
   }
 };
@@ -444,7 +425,6 @@ export default {
     :class="{'flex-content': flexContent}"
     :resource-errors="errors"
     @update:value="$emit('input', $event)"
-    @update:mode="setMode"
     @set-subtype="setSubtype"
   />
   <div v-else>
@@ -514,7 +494,6 @@ export default {
       :real-mode="realMode"
       :class="{'flex-content': flexContent}"
       @update:value="$emit('input', $event)"
-      @update:mode="setMode"
       @set-subtype="setSubtype"
     />
 

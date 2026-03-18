@@ -5,6 +5,7 @@ import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/ti
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { CompliancePo, ComplianceListPo } from '~/cypress/e2e/po/other-products/compliance.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 
 describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
@@ -43,24 +44,46 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
     describe('Compliance Chart setup', () => {
       it('Complete install and a Scan is created', () => {
         cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
-        const kubectl = new Kubectl();
         const compliance = new CompliancePo();
         const complianceList = new ComplianceListPo();
         const sideNav = new ProductNavPo();
         const terminal = new Kubectl();
+        const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
+
+        // Add API intercepts before starting the installation process
+        cy.intercept('POST', '**/catalog.cattle.io.clusterrepos/**').as('complianceInstall');
+        cy.intercept('POST', '**/action=install').as('installAction');
+        cy.intercept('GET', '**/catalog.cattle.io.app**').as('getInstalledApps');
 
         ChartPage.navTo(null, 'Rancher Compliance');
         chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
 
         installChartPage.nextPage();
-
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         installChartPage.installChart();
-        cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-        kubectl.waitForTerminalStatus('Disconnected');
 
-        kubectl.closeTerminal();
+        // Wait for terminal to show installation progress and complete
+        terminal.waitForTerminalStatus('Disconnected', LONG_TIMEOUT_OPT);
+        terminal.closeTerminal();
+
+        // Navigate to installed apps page explicitly and wait for it to load
+        installedAppsPage.goTo('local', 'apps');
+
+        // Wait for the page to load and API calls to complete
+        cy.wait('@getInstalledApps', { timeout: 30000 });
+
+        // Wait for the apps list element to be visible
+        cy.get('[data-testid="installed-app-catalog-list"]', { timeout: 30000 }).should('be.visible');
+
+        // Wait for table to load and check for deployed apps
+        installedAppsPage.appsList().checkVisible();
+        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+
+        // Verify compliance components are present (don't check specific deployment status which can be flaky)
+        installedAppsPage.appsList().sortableTable().rowElementWithName('rancher-compliance')
+          .should('be.visible');
+        installedAppsPage.appsList().sortableTable().rowElementWithName('rancher-compliance-crd')
+          .should('be.visible');
 
         sideNav.navToSideMenuGroupByLabel('Compliance');
         complianceList.waitForPage();

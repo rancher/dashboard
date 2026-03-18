@@ -1033,15 +1033,6 @@ export const SCOPE_NORMAN = {
   sort:  ['clusterId'],
 };
 
-export const NORMAN_KEY_DEPRECATION = {
-  name:        'isNormanKeyDeprecated',
-  labelKey:    'tableHeaders.isLegacy',
-  value:       (row) => row.isDeprecated ? 'True' : undefined,
-  sort:        'isDeprecated',
-  align:       'left',
-  dashIfEmpty: true,
-};
-
 export const EXPIRES = {
   name:      'expires',
   value:     'expiresAt',

@@ -39,6 +39,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
   it('Chart and sub-pages are highlighted correctly', () => {
     HomePagePo.goTo();
     chartsPage.goTo();
+    chartsPage.waitForPage();
 
     const productNavPo = new ProductNavPo();
 
@@ -48,9 +49,22 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
       });
     productNavPo.activeNavItem().should('equal', 'Charts');
 
+    // Wait for charts page to load - check for chart container to appear
+    chartsPage.chartCards().should('be.visible');
+
+    // Search for the chart to ensure it's available
+    chartsPage.chartsSearchFilterInput().type(CHART.name);
+    // Wait for search results to filter
+    chartsPage.chartsSearchFilterInput().should('have.value', CHART.name);
+
+    // Ensure the specific chart exists before trying to click it
+    chartsPage.getChartByName(CHART.name).self().should('be.visible');
+
     // Go to install page
     chartsPage.clickChart(CHART.name);
-    chartPage.waitForChartPage(CHART.repo, CHART.id);
+
+    // Wait for navigation to the chart page to complete
+    chartPage.waitForPageWithSpecificUrl(undefined, `repo-type=cluster&repo=${ CHART.repo }&chart=${ CHART.id }`);
     productNavPo.activeNavItem().should('equal', 'Charts');
 
     chartPage.goToInstall();

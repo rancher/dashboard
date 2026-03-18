@@ -25,6 +25,10 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   });
 
   it('can deploy chart successfully', () => {
+    // Clean up any previously installed chart before each attempt, so retries start with a clean state
+    cy.createRancherResource('v1', 'catalog.cattle.io.apps/default/rancher-alerting-drivers?action=uninstall', '{}', false);
+    cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'default/rancher-alerting-drivers', (resp: any) => resp.status === 404, 20, { failOnStatusCode: false });
+
     clusterTools.goTo();
     clusterTools.waitForPage();
     clusterTools.getChartVersion('Alerting Drivers').invoke('text').then((el) => {
