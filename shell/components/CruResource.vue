@@ -782,6 +782,7 @@ export default {
         </div>
         <slot name="form-footer">
           <CruResourceFooter
+            v-if="!isView"
             class="cru__footer"
             :mode="mode"
             :is-form="showAsForm"
