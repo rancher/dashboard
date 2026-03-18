@@ -342,9 +342,10 @@ export default {
           v-model:value.trim="value.spec.refreshInterval"
           :label="t('catalog.repo.refreshInterval.label')"
           :mode="mode"
-          min="0"
-          :suffix="t('unit.hour', { count: value.spec.refreshInterval })"
-          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
+          :min="-1"
+          :suffix="t('suffix.sec')"
+          :placeholder="t('catalog.repo.refreshInterval.placeholder', { value: value.defaultRefreshIntervalHours, units: value.defaultRefreshIntervalHours > 1 ? 'hours' : 'hour' })"
+          :tooltip="t('catalog.repo.refreshInterval.tooltip')"
           @update:value="updateRefreshInterval($event)"
         />
       </div>

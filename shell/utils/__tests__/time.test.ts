@@ -1,5 +1,5 @@
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
-import { dateTimeFormat, isMissingDate } from '@shell/utils/time';
+import { dateTimeFormat, isMissingDate, formatDuration } from '@shell/utils/time';
 import { type Store } from 'vuex';
 import { ZERO_TIME } from '@shell/config/types';
 
@@ -40,5 +40,15 @@ describe('function: dateTimeFormat', () => {
     const formattedDate = dateTimeFormat(undefined, store);
 
     expect(formattedDate).toBe('');
+  });
+});
+
+describe('function: formatDuration', () => {
+  it('should format durations correctly', () => {
+    expect(formatDuration(30)).toBe('30s');
+    expect(formatDuration(126)).toBe('2m 6s');
+    expect(formatDuration(3610)).toBe('1h 10s');
+    expect(formatDuration(86520)).toBe('1d 2m');
+    expect(formatDuration(100000)).toBe('1d 3h 46m 40s');
   });
 });

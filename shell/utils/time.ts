@@ -129,6 +129,26 @@ export function elapsedTime(seconds: any) {
 }
 
 /**
+ * Formats duration into days, hours, minutes and seconds components
+ * @param seconds Date string to format
+ * @returns Formatted duration string
+ */
+export function formatDuration(seconds: number): string {
+  const d = Math.trunc(seconds / 86400);
+  const h = Math.trunc((seconds % 86400) / 3600);
+  const m = Math.trunc((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  return [
+    { unit: 'd', value: d },
+    { unit: 'h', value: h },
+    { unit: 'm', value: m },
+    { unit: 's', value: s },
+  ].filter((e) => !!e.value)
+    .map((e) => `${ e.value }${ e.unit }`).join(' ');
+}
+
+/**
    * Format date and time using user preferences
    * @param value Date string to format
    * @returns Formatted date string

@@ -82,6 +82,21 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
   });
 
+  it('can disable automatic updates', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
+    repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
+    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue('-1');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`);
+    repositoriesPage.waitForPage();
+
+    // The interval should not trigger a refresh
+    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 2).click();
+    cy.contains('label', 'Refresh Interval').should('have.value', 'Disabled');
+  });
+
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();

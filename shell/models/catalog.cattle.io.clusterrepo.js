@@ -1,6 +1,7 @@
 import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
+import { formatDuration } from '@shell/utils/time';
 import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { _CREATE } from '@shell/config/query-params';
@@ -218,6 +219,24 @@ export default class ClusterRepo extends SteveModel {
     return this.spec?.gitBranch || '(default)';
   }
 
+  get defaultRefreshIntervalHours() {
+    return this.isOciType ? 24 : 1;
+  }
+
+  get defaultRefreshInterval() {
+    return 60 * 60 * this.defaultRefreshIntervalHours;
+  }
+
+  get refreshInterval() {
+    const value = this.spec?.refreshInterval || this.defaultRefreshInterval;
+
+    if (value === -1) {
+      return 'Disabled';
+    }
+
+    return formatDuration(value);
+  }
+
   get details() {
     return [
       {
@@ -229,6 +248,10 @@ export default class ClusterRepo extends SteveModel {
         content:       this.status.downloadTime,
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
+      },
+      {
+        label:   'Refresh Interval',
+        content: this.refreshInterval,
       },
     ];
   }

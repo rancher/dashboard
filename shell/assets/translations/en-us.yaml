@@ -1440,7 +1440,8 @@ catalog:
           placeholder: 'default: 5'
     refreshInterval:
       label: Refresh Interval
-      placeholder: 'default: {hours}'
+      placeholder: 'default: {value} {units}'
+      tooltip: Using any negative value disables periodic updates
     error:
       refresh: Error refreshing repository
   tools:
