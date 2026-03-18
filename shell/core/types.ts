@@ -3,7 +3,9 @@ import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import type {
-  ProductMetadata, ProductChild, ProductSinglePage, StandardProductName, RouteRecordRawWithParams
+  ProductMetadata, ProductChild, ProductSinglePage,
+  StandardProductName, RouteRecordRawWithParams, ProductChildGroup,
+  ProductChildPage
 } from './plugin-types';
 
 // Cluster Provisioning types
@@ -655,9 +657,9 @@ export interface IExtension {
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
    * @param name
    * @param config
-   * @param options
    */
-  addProduct(product: ProductMetadata, config: ProductChild[]): void;
+  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
+  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)
@@ -678,7 +680,8 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
-  extendProduct(product: StandardProductName, config: ProductChild[] | ProductChild): void;
+  extendProduct(product: StandardProductName, config: ProductChildGroup[]): void;
+  extendProduct(product: StandardProductName, config: ProductChildPage[]): void;
 
   /**
    * Add a locale to the i18n store

@@ -19,7 +19,7 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     const isProductValid = Object.values(StandardProductNames).includes(productName);
 
     if (!isProductValid) {
-      throw new Error('Invalid product name');
+      this.surfaceError('Invalid product name');
     }
 
     // existing standard product - no need to add routes

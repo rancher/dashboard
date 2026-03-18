@@ -1387,7 +1387,7 @@ export default class Resource {
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+    if (plugins[currPluginName]?.topLevelProduct) {
       return {
         name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
         params: {

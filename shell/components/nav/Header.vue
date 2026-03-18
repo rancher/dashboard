@@ -235,17 +235,17 @@ export default {
     },
 
     productLabel() {
-      const name = this.currentProduct.name;
+      const name = this.rootProduct.name;
 
       // single products do their own thing, which is the previous default behavior as per next line
       if (this.isSingleProduct) {
         return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
       } else {
-        if (this.currentProduct?.label) {
-          return this.currentProduct.label;
+        if (this.rootProduct?.label) {
+          return this.rootProduct.label;
         }
-        if (this.currentProduct?.labelKey) {
-          return this.$store.getters['i18n/t'](this.currentProduct.labelKey);
+        if (this.rootProduct?.labelKey) {
+          return this.$store.getters['i18n/t'](this.rootProduct.labelKey);
         }
 
         return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
@@ -553,7 +553,7 @@ export default {
       </div>
 
       <div
-        v-if="productLabel && !isLogoRoute"
+        v-else-if="productLabel && !isLogoRoute"
         class="product-name"
       >
         {{ productLabel }}

@@ -45,7 +45,7 @@ export default async function(context) {
   try {
     const res = await allHashSettled(fetches);
 
-    // Allow legacy products to be loaded as extensions (if migrated to use $init)
+    // Allow legacy products in shell/config/product to be loaded as if they came from an extension (if migrated to use $init)
     for (const product of listProducts()) {
       const impl = await loadProduct(product);
 

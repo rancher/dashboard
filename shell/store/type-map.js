@@ -517,7 +517,7 @@ export const getters = {
       const groupName = group.toLowerCase();
 
       // If this has been explicitly set, use that
-      if (groupName && state.groupLabels[groupName]) {
+      if (groupName) {
         return state.groupLabels[groupName];
       }
     };

@@ -13,6 +13,7 @@ import {
   hasNameProperty,
   hasTypeProperty
 } from '@shell/core/plugin-products-type-guards';
+import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 
 /**
  * Base class for product registration in extensions
@@ -39,6 +40,13 @@ export abstract class BasePluginProduct {
   abstract get isNewProduct(): boolean;
 
   /**
+   * Helper to throw errors during product registration
+   */
+  protected surfaceError(message: string): void {
+    throw new Error(`Extensions - product "${ this.name }" registration error ::: ${ message }`);
+  }
+
+  /**
    * Validates and reorders config children by weight
    */
   protected processConfigChildren(): void {
@@ -47,13 +55,13 @@ export abstract class BasePluginProduct {
       const reorderedChildren = pluginProductsHelpers.gatherChildrenOrdering(this.config);
 
       if (reorderedChildren.length === 0) {
-        throw new Error('No children found for product with config');
+        this.surfaceError('No children found for product with config');
       }
 
       const firstChild = reorderedChildren[0];
 
       if (!hasNameProperty(firstChild) && !hasTypeProperty(firstChild)) {
-        throw new Error('Invalid child item for product default route - missing name or type');
+        this.surfaceError('Invalid child item for product default route - missing name or type');
       }
 
       // update config with reordered children
@@ -68,9 +76,7 @@ export abstract class BasePluginProduct {
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
-    const {
-      basicType, labelGroup, setGroupDefaultType, weightGroup
-    } = this.DSLMethods;
+    const { basicType } = this.DSLMethods;
 
     // execute the product registration
     // this.product is NOT set when extending existing standard products
@@ -89,41 +95,84 @@ export abstract class BasePluginProduct {
       this.configurePageItem(this.name, item);
 
       if (isProductChildGroup(item)) {
-        const itemGroup = item;
-        const groupName = `${ this.name }-${ itemGroup.name }`;
-
-        if (Array.isArray(itemGroup.children)) {
-          const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.children);
-
-          // looking at current records of registered products,
-          // the parent group item is also added to the group
-          navNames.push(groupName);
-
-          // Register the group items under the same basic type
-          basicType(navNames, groupName);
-
-          // register virtualTypes/configureTypes for each child item
-          itemGroup.children.forEach((subItem: ProductChild) => this.configurePageItem(`${ this.name }`, subItem, itemGroup.name));
-
-          // set the group indication IF there's no component page for the actual group item
-          if (!itemGroup.component) {
-            setGroupDefaultType(groupName, navNames[0]);
-          }
-
-          // group weight
-          if (itemGroup.weight) {
-            weightGroup(groupName, itemGroup.weight, true);
-          }
-
-          // group label
-          if (itemGroup.label || itemGroup.labelKey) {
-            labelGroup(groupName, itemGroup.label, itemGroup.labelKey);
-          }
-        } else {
-          throw new Error('Children defined for group are not in an array format');
-        }
+        this.processGroupRecursively(item, this.name);
       }
     });
+
+    DSLRegistrationsPerProduct(store, this.name);
+    registeredRoutes(store, this.name);
+  }
+
+  /**
+   * Recursively processes a group and all its nested children/groups
+   */
+  protected processGroupRecursively(item: ProductChild, productName: string, parentGroupName?: string, parentHierarchicalPath?: string): void {
+    const {
+      basicType, labelGroup, setGroupDefaultType, weightGroup
+    } = this.DSLMethods;
+
+    // Type guard to ensure we're working with a group
+    if (!isProductChildGroup(item)) {
+      return;
+    }
+
+    const itemGroup = item;
+    const groupName = parentGroupName ? `${ productName }-${ parentGroupName }-${ itemGroup.name }` : `${ productName }-${ itemGroup.name }`;
+
+    if (!Array.isArray(itemGroup.children)) {
+      this.surfaceError('Children defined for group are not in an array format');
+
+      return;
+    }
+
+    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.children);
+
+    // Build the full hierarchical path with :: separators for the store's _ensureGroup function
+    // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
+    const hierarchicalPath = parentHierarchicalPath ? `${ parentHierarchicalPath }::${ groupName }` : groupName;
+
+    // For root-level groups (no parent), add the group itself to establish its identity.
+    // For nested groups, skip this - they're already registered in their parent's basicType.
+    // Adding nested groups here would overwrite their parent registration and make them
+    // appear at the wrong level in the hierarchy.
+    if (!parentGroupName) {
+      navNames.push(groupName);
+    }
+
+    // Register the group's children (and possibly itself if root) under this group's hierarchical path
+    // This uses :: separators so the store knows to create nested group structure
+    basicType(navNames, hierarchicalPath);
+
+    // register virtualTypes/configureTypes for each child item
+    itemGroup.children.forEach((subItem: ProductChild) => {
+      const currentGroupName = parentGroupName ? `${ parentGroupName }-${ itemGroup.name }` : itemGroup.name;
+
+      this.configurePageItem(productName, subItem, currentGroupName);
+
+      // Recursively process nested groups, passing the full hierarchical path
+      if (isProductChildGroup(subItem)) {
+        this.processGroupRecursively(subItem, productName, currentGroupName, hierarchicalPath);
+      }
+    });
+
+    // set the group indication based on whether the group has its own component page
+    if (!itemGroup.component) {
+      // Group without component - route to first child
+      setGroupDefaultType(groupName, navNames[0]);
+    } else {
+      // Group with component - route to the group's own page
+      setGroupDefaultType(groupName, groupName);
+    }
+
+    // group weight
+    if (itemGroup.weight) {
+      weightGroup(groupName, itemGroup.weight, true);
+    }
+
+    // group label
+    if (itemGroup.label || itemGroup.labelKey) {
+      labelGroup(groupName, itemGroup.label, itemGroup.labelKey);
+    }
   }
 
   /**
@@ -142,7 +191,7 @@ export abstract class BasePluginProduct {
 
       if (isProductChildGroup(firstConfig)) {
         // First config item is a group
-        if (firstConfig.children.length > 0) {
+        if (firstConfig.children.length) {
           const entryChild = firstConfig.children[0];
 
           if (!firstConfig.component) {
@@ -158,6 +207,11 @@ export abstract class BasePluginProduct {
               omitPath: true, component: firstConfig.component, extendProduct: !this.isNewProduct
             });
           }
+        } else if (firstConfig.component) {
+          // Group with component but no children - route to the group page itself
+          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, undefined, {
+            omitPath: true, component: firstConfig.component, extendProduct: !this.isNewProduct
+          });
         }
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
@@ -174,13 +228,13 @@ export abstract class BasePluginProduct {
 
     // register the product via DSL
     product({
-      inStore:             'management',
-      version:             2,
-      icon:                this.product?.icon || 'extension',
       showClusterSwitcher: false,
+      ...this.product,
       category:            'global',
       to:                  defaultRoute,
-      ...this.product,
+      icon:                this.product?.icon || 'extension',
+      version:             2,
+      inStore:             'management',
       name:                this.name,
     });
   }
@@ -246,11 +300,11 @@ export abstract class BasePluginProduct {
       if (isProductChildGroup(child)) {
         // Validate group doesn't have type property
         if (hasTypeProperty(child)) {
-          throw new Error('Group items cannot have a "type" property - only custom pages can have groups.');
+          this.surfaceError('Group items cannot have a "type" property - only custom pages can have groups.');
         }
 
         if (child.component && !this.isNewProduct) {
-          throw new Error('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
+          this.surfaceError('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
         }
 
         let route;
@@ -276,7 +330,7 @@ export abstract class BasePluginProduct {
       } else if (isProductChildWithComponent(child)) {
         // virtualType page
         if (hasTypeProperty(child)) {
-          throw new Error('Custom pages cannot have a "type" property - only resource pages can use "type".');
+          this.surfaceError('Custom pages cannot have a "type" property - only resource pages can use "type".');
         }
 
         const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child, { component: child.component, extendProduct: !this.isNewProduct });

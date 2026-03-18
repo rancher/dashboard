@@ -23,7 +23,8 @@ export class PluginProduct {
       // This is extending an existing standard product
       this.instance = new ExtendingPluginProduct(plugin, product, config);
     } else {
-      throw new Error('Invalid product');
+      // at this point we may not know the product name
+      throw new Error('Extensions product registration error ::: Invalid product');
     }
   }
 

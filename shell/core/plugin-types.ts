@@ -4,6 +4,7 @@ import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
 import { NAME as AUTH_PROD_NAME } from '@shell/config/product/auth.js';
+import { ProductOptions } from '@shell/core/types';
 
 type Async<T> = () => Promise<T>;
 
@@ -197,25 +198,11 @@ export type ProductChildGroup = ProductChildMetadata & {
 /**
  * Represents the allowed configuration for a product
  */
-export type ProductMetadata = {
+export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey' | 'category' | 'to' | 'version' | 'inStore'> & {
   /**
    * Product name (unique identifier)
    */
   name: string;
-  /**
-   * The icon that should be displayed beside this item in the navigation.
-   */
-  icon?: string;
-  /**
-   * Alternative to the icon property. Use require to reference an SVG file
-   */
-  svg?: Function;
-  /**
-   * The category this product belongs under. i.e. 'config', default is 'global'
-   */
-  category?: string;
-  /** Ordering weight for the product, if applicable */
-  weight?: number;
 } & (
   /** Human-readable label for the product
    * Either label or labelKey are required */

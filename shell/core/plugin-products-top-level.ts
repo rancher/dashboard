@@ -27,7 +27,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     // convert this to "string" to match all types moving forward
     // doesn't impact anything, fixes build problems of extensions
     // and allows extensions to use either string literal or enum value for product name
-    this.name = prodName as string;
+    this.name = prodName;
     this.product = product;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)

@@ -453,7 +453,7 @@ describe('pluginProduct', () => {
       );
     });
 
-    it('should not set group default type when group has component', () => {
+    it('should set group default type to itself when group has component', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
       const mockDSL = {
@@ -492,7 +492,12 @@ describe('pluginProduct', () => {
 
       pluginProduct.apply(mockPlugin, mockStore);
 
-      expect(mockDSL.setGroupDefaultType).not.toHaveBeenCalled();
+      // When a group has a component, setGroupDefaultType should be called with the group name itself
+      // This ensures clicking the group in nav routes to the group's page, not bypassing to first child
+      expect(mockDSL.setGroupDefaultType).toHaveBeenCalledWith(
+        'groupwithcomponent-group',
+        'groupwithcomponent-group'
+      );
     });
 
     it('should apply group weight when specified', () => {
@@ -672,6 +677,152 @@ describe('pluginProduct', () => {
               resource: 'provisioning.cattle.io.cluster',
             }),
           }),
+        })
+      );
+    });
+
+    it('should use resource type as default route when first item is configureType', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'resource-first',
+        label: 'Resource First',
+      };
+      const config: ProductChildPage[] = [
+        { type: 'apps.deployment' },
+        {
+          name:      'overview',
+          label:     'Overview',
+          component: { name: 'OverviewComponent' },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.product).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: expect.objectContaining({
+            name:   'resourcefirst-c-cluster-resource',
+            params: expect.objectContaining({
+              product:  'resourcefirst',
+              cluster:  '__BLANK_CLUSTER__',
+              resource: 'apps.deployment',
+            }),
+          }),
+        })
+      );
+    });
+
+    it('should use group component as default route when group has component but no children', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'empty-group',
+        label: 'Empty Group',
+      };
+      const config: ProductChildGroup[] = [
+        {
+          name:      'empty-group-with-page',
+          label:     'Empty Group With Page',
+          component: { name: 'EmptyGroupComponent' },
+          children:  [],
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // Verify default route points to the group's component page (not a child, since there are none)
+      expect(mockDSL.product).toHaveBeenCalledWith(
+        expect.objectContaining({ to: expect.objectContaining({ name: expect.stringContaining('emptygroup') }) })
+      );
+    });
+
+    it('should use group component as default route when group has both component and children', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'group-with-page',
+        label: 'Group With Page',
+      };
+      const config: ProductChildGroup[] = [
+        {
+          name:      'settings',
+          label:     'Settings',
+          component: { name: 'SettingsOverviewComponent' },
+          children:  [
+            {
+              name:      'general',
+              label:     'General Settings',
+              component: { name: 'GeneralComponent' },
+            },
+            {
+              name:      'advanced',
+              label:     'Advanced Settings',
+              component: { name: 'AdvancedComponent' },
+            },
+          ],
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // Verify default route points to the group's component page (not first child)
+      // When a group has a component, it should route to that component, not the first child
+      expect(mockDSL.product).toHaveBeenCalledWith(
+        expect.objectContaining({ to: expect.objectContaining({ name: 'groupwithpage-group' }) })
+      );
+
+      // Verify virtualType was still created for the group component
+      expect(mockDSL.virtualType).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name:     'groupwithpage-settings',
+          exact:    true,
+          overview: true,
         })
       );
     });
@@ -2285,6 +2436,610 @@ describe('pluginProduct', () => {
         expect(virtualItems.length).toBeGreaterThanOrEqual(4); // dashboard, jobs, general, advanced
         expect(configureItems.length).toBeGreaterThanOrEqual(3); // configmap, deployment, pod
         expect(menuStructure.groups).toHaveLength(2); // workloads, settings
+      });
+    });
+
+    describe('deeply nested groups (groups within groups)', () => {
+      it('should handle 2-level nested groups with correct hierarchical paths', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const basicTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn((...args) => basicTypeCalls.push(args)),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'nested-product',
+          label: 'Nested Product',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:     'root-group',
+            label:    'Root Group',
+            weight:   100,
+            children: [
+              {
+                name:      'page1',
+                label:     'Page 1',
+                component: { name: 'Page1Component' },
+              },
+              {
+                name:     'nested-group',
+                label:    'Nested Group',
+                weight:   50,
+                children: [
+                  {
+                    name:      'nested-page1',
+                    label:     'Nested Page 1',
+                    component: { name: 'NestedPage1Component' },
+                  },
+                  {
+                    name:      'nested-page2',
+                    label:     'Nested Page 2',
+                    component: { name: 'NestedPage2Component' },
+                  },
+                ],
+              },
+              {
+                name:      'page2',
+                label:     'Page 2',
+                component: { name: 'Page2Component' },
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Verify basicType calls include hierarchical paths with :: separators
+        // First call should be for root group items
+        const rootGroupCall = basicTypeCalls.find((call) => call[1] === 'nestedproduct-root-group');
+
+        expect(rootGroupCall).toBeDefined();
+        expect(rootGroupCall[0]).toContain('nestedproduct-root-group-page1');
+        expect(rootGroupCall[0]).toContain('nestedproduct-root-group-page2');
+        expect(rootGroupCall[0]).toContain('nestedproduct-root-group-nested-group');
+        expect(rootGroupCall[0]).toContain('nestedproduct-root-group'); // Root group itself
+
+        // Second call should be for nested group with hierarchical path
+        const nestedGroupCall = basicTypeCalls.find((call) => call[1] === 'nestedproduct-root-group::nestedproduct-root-group-nested-group');
+
+        expect(nestedGroupCall).toBeDefined();
+        expect(nestedGroupCall[0]).toContain('nestedproduct-root-group-nested-group-nested-page1');
+        expect(nestedGroupCall[0]).toContain('nestedproduct-root-group-nested-group-nested-page2');
+      });
+
+      it('should handle 3-level nested groups with correct hierarchical paths', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const basicTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn((...args) => basicTypeCalls.push(args)),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'deep-nested',
+          label: 'Deep Nested',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:     'level1',
+            label:    'Level 1',
+            children: [
+              {
+                name:     'level2',
+                label:    'Level 2',
+                children: [
+                  {
+                    name:     'level3',
+                    label:    'Level 3',
+                    children: [
+                      {
+                        name:      'deep-page',
+                        label:     'Deep Page',
+                        component: { name: 'DeepPageComponent' },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Verify level 1 (root)
+        const level1Call = basicTypeCalls.find((call) => call[1] === 'deepnested-level1');
+
+        expect(level1Call).toBeDefined();
+        expect(level1Call[0]).toContain('deepnested-level1-level2');
+
+        // Verify level 2 (nested in level1)
+        const level2Call = basicTypeCalls.find((call) => call[1] === 'deepnested-level1::deepnested-level1-level2');
+
+        expect(level2Call).toBeDefined();
+        expect(level2Call[0]).toContain('deepnested-level1-level2-level3');
+
+        // Verify level 3 (nested in level2)
+        const level3Call = basicTypeCalls.find((call) => call[1] === 'deepnested-level1::deepnested-level1-level2::deepnested-level1-level2-level3');
+
+        expect(level3Call).toBeDefined();
+        expect(level3Call[0]).toContain('deepnested-level1-level2-level3-deep-page');
+      });
+
+      it('should handle mixed nested groups and pages in standard product extension', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const basicTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn((...args) => basicTypeCalls.push(args)),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const validStandardProduct = StandardProductNames.EXPLORER;
+        const config: (ProductChildGroup | ProductChildPage)[] = [
+          {
+            name:      'top-page',
+            label:     'Top Page',
+            component: { name: 'TopPageComponent' },
+          },
+          {
+            name:     'parent-group',
+            label:    'Parent Group',
+            weight:   90,
+            children: [
+              {
+                name:      'sibling-page',
+                label:     'Sibling Page',
+                component: { name: 'SiblingPageComponent' },
+              },
+              {
+                name:     'child-group',
+                label:    'Child Group',
+                weight:   80,
+                children: [
+                  {
+                    name:      'nested-page',
+                    label:     'Nested Page',
+                    component: { name: 'NestedPageComponent' },
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Verify parent group has both pages and nested groups
+        const parentGroupCall = basicTypeCalls.find((call) => call[1] === 'explorer-parent-group');
+
+        expect(parentGroupCall).toBeDefined();
+        expect(parentGroupCall[0]).toContain('explorer-parent-group-sibling-page');
+        expect(parentGroupCall[0]).toContain('explorer-parent-group-child-group');
+
+        // Verify child group uses hierarchical path
+        const childGroupCall = basicTypeCalls.find((call) => call[1] === 'explorer-parent-group::explorer-parent-group-child-group');
+
+        expect(childGroupCall).toBeDefined();
+        expect(childGroupCall[0]).toContain('explorer-parent-group-child-group-nested-page');
+      });
+
+      it('should only add root-level groups to their own basicType list', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const basicTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn((...args) => basicTypeCalls.push(args)),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'test-self-ref',
+          label: 'Test Self Reference',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:     'root',
+            label:    'Root',
+            children: [
+              {
+                name:     'nested',
+                label:    'Nested',
+                children: [
+                  {
+                    name:      'page',
+                    label:     'Page',
+                    component: { name: 'PageComponent' },
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Root group should include itself in its basicType call
+        const rootCall = basicTypeCalls.find((call) => call[1] === 'testselfref-root');
+
+        expect(rootCall).toBeDefined();
+        expect(rootCall[0]).toContain('testselfref-root'); // Self-reference
+
+        // Nested group should NOT include itself (would create wrong hierarchy)
+        const nestedCall = basicTypeCalls.find((call) => call[1] === 'testselfref-root::testselfref-root-nested');
+
+        expect(nestedCall).toBeDefined();
+        expect(nestedCall[0]).not.toContain('testselfref-root-nested'); // No self-reference for nested
+        expect(nestedCall[0]).toContain('testselfref-root-nested-page'); // Contains its child page
+      });
+
+      it('should handle multiple nested groups at the same level', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const basicTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn((...args) => basicTypeCalls.push(args)),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'multi-nested',
+          label: 'Multi Nested',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:     'parent',
+            label:    'Parent',
+            children: [
+              {
+                name:     'child1',
+                label:    'Child 1',
+                children: [
+                  {
+                    name:      'page1',
+                    label:     'Page 1',
+                    component: { name: 'Page1Component' },
+                  },
+                ],
+              },
+              {
+                name:     'child2',
+                label:    'Child 2',
+                children: [
+                  {
+                    name:      'page2',
+                    label:     'Page 2',
+                    component: { name: 'Page2Component' },
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Verify both child groups have correct hierarchical paths
+        const child1Call = basicTypeCalls.find((call) => call[1] === 'multinested-parent::multinested-parent-child1');
+
+        expect(child1Call).toBeDefined();
+        expect(child1Call[0]).toContain('multinested-parent-child1-page1');
+
+        const child2Call = basicTypeCalls.find((call) => call[1] === 'multinested-parent::multinested-parent-child2');
+
+        expect(child2Call).toBeDefined();
+        expect(child2Call[0]).toContain('multinested-parent-child2-page2');
+
+        // Verify parent includes both child groups
+        const parentCall = basicTypeCalls.find((call) => call[1] === 'multinested-parent');
+
+        expect(parentCall).toBeDefined();
+        expect(parentCall[0]).toContain('multinested-parent-child1');
+        expect(parentCall[0]).toContain('multinested-parent-child2');
+      });
+    });
+
+    describe('group default type behavior with components', () => {
+      it('should set correct default types for mixed groups (with and without components)', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const setGroupDefaultTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn(),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn((...args) => setGroupDefaultTypeCalls.push(args)),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'mixed-groups',
+          label: 'Mixed Groups',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:      'group-with-page',
+            label:     'Group With Page',
+            component: { name: 'GroupPageComponent' },
+            children:  [
+              {
+                name:      'child1',
+                label:     'Child 1',
+                component: { name: 'Child1Component' },
+              },
+            ],
+          },
+          {
+            name:     'group-without-page',
+            label:    'Group Without Page',
+            children: [
+              {
+                name:      'child2',
+                label:     'Child 2',
+                component: { name: 'Child2Component' },
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Group WITH component should have defaultType pointing to itself
+        const groupWithPageCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'mixedgroups-group-with-page');
+
+        expect(groupWithPageCall).toBeDefined();
+        expect(groupWithPageCall[0]).toBe('mixedgroups-group-with-page');
+        expect(groupWithPageCall[1]).toBe('mixedgroups-group-with-page'); // Points to itself
+
+        // Group WITHOUT component should have defaultType pointing to first child
+        const groupWithoutPageCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'mixedgroups-group-without-page');
+
+        expect(groupWithoutPageCall).toBeDefined();
+        expect(groupWithoutPageCall[0]).toBe('mixedgroups-group-without-page');
+        expect(groupWithoutPageCall[1]).toBe('mixedgroups-group-without-page-child2'); // Points to first child
+      });
+
+      it('should handle nested groups where both parent and child have components', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const setGroupDefaultTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn(),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn((...args) => setGroupDefaultTypeCalls.push(args)),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'nested-with-pages',
+          label: 'Nested With Pages',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:      'parent',
+            label:     'Parent',
+            component: { name: 'ParentComponent' },
+            children:  [
+              {
+                name:      'child-group',
+                label:     'Child Group',
+                component: { name: 'ChildGroupComponent' },
+                children:  [
+                  {
+                    name:      'grandchild',
+                    label:     'Grandchild',
+                    component: { name: 'GrandchildComponent' },
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Parent group with component should point to itself
+        const parentCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'nestedwithpages-parent');
+
+        expect(parentCall).toBeDefined();
+        expect(parentCall[1]).toBe('nestedwithpages-parent');
+
+        // Nested child group with component should also point to itself
+        const childCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'nestedwithpages-parent-child-group');
+
+        expect(childCall).toBeDefined();
+        expect(childCall[1]).toBe('nestedwithpages-parent-child-group');
+      });
+
+      it('should reproduce user bug: group with component and children routes to group page not first child', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const setGroupDefaultTypeCalls: any[] = [];
+        const virtualTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn(),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn((...args) => setGroupDefaultTypeCalls.push(args)),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn((...args) => virtualTypeCalls.push(args)),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        // Exact scenario from user's bug report
+        const productMetadata: ProductMetadata = {
+          name:  'group-with-page',
+          label: 'Group With Page',
+        };
+        const config: (ProductChildGroup | ProductChildPage)[] = [
+          {
+            name:      'general1',
+            label:     'General Settings1',
+            component: { name: 'GeneralComponent' },
+          },
+          {
+            name:      'settings',
+            label:     'Settings',
+            component: { name: 'SettingsOverviewComponent' },
+            children:  [
+              {
+                name:      'general',
+                label:     'General Settings',
+                component: { name: 'GeneralComponent' },
+              },
+              {
+                name:      'advanced',
+                label:     'Advanced Settings',
+                component: { name: 'AdvancedComponent' },
+              },
+            ],
+          },
+          {
+            name:      'general2',
+            label:     'General Settings2',
+            component: { name: 'GeneralComponent' },
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Verify the settings group (which has component + children) has defaultType pointing to itself
+        const settingsCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'groupwithpage-settings');
+
+        expect(settingsCall).toBeDefined();
+        expect(settingsCall[0]).toBe('groupwithpage-settings');
+        expect(settingsCall[1]).toBe('groupwithpage-settings'); // Should point to itself, NOT 'groupwithpage-settings-general'
+
+        // Verify the settings virtualType was created with exact + overview flags
+        const settingsVirtualType = virtualTypeCalls.find((call) => call[0].name === 'groupwithpage-settings');
+
+        expect(settingsVirtualType).toBeDefined();
+        expect(settingsVirtualType[0].exact).toBe(true);
+        expect(settingsVirtualType[0].overview).toBe(true);
+      });
+
+      it('should handle empty children array with component (group page, no children)', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const setGroupDefaultTypeCalls: any[] = [];
+
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn(),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn((...args) => setGroupDefaultTypeCalls.push(args)),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        const productMetadata: ProductMetadata = {
+          name:  'empty-children',
+          label: 'Empty Children',
+        };
+        const config: ProductChildGroup[] = [
+          {
+            name:      'standalone-group',
+            label:     'Standalone Group',
+            component: { name: 'StandaloneComponent' },
+            children:  [],
+          },
+        ];
+
+        const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+        pluginProduct.apply(mockPlugin, mockStore);
+
+        // Group with component but empty children should still point to itself
+        const groupCall = setGroupDefaultTypeCalls.find((call) => call[0] === 'emptychildren-standalone-group');
+
+        expect(groupCall).toBeDefined();
+        expect(groupCall[1]).toBe('emptychildren-standalone-group');
       });
     });
   });
