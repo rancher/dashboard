@@ -1,8 +1,6 @@
 <script>
 import { NORMAN } from '@shell/config/types';
-import { isAdminUser } from '@shell/store/type-map';
 import ResourceTable from '@shell/components/ResourceTable';
-import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Banner from '@components/Banner/Banner.vue';
@@ -10,7 +8,7 @@ import Banner from '@components/Banner/Banner.vue';
 export default {
   name:       'KontainerDrivers',
   components: {
-    ResourceTable, Loading, Masthead, AsyncButton, Banner
+    ResourceTable, Loading, Masthead, Banner
   },
 
   async fetch() {
@@ -20,36 +18,20 @@ export default {
   data() {
     return {
       allDrivers:                       null,
-      canRefreshK8sMetadata:            true,
       resource:                         NORMAN.KONTAINER_DRIVER,
       schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
       forceUpdateLiveAndDelayed:        10,
-      showDeprecationBanner:            isAdminUser(this.$store.getters),
     };
   },
   computed: {
     rows() {
       return this.allDrivers || [];
     },
+    hasEmberUiDrivers() {
+      return this.rows.some((driver) => driver.active && driver.isEmber);
+    },
   },
-  methods: {
-    async refreshK8sMetadata(buttonDone) {
-      try {
-        await this.$store.dispatch('rancher/request', {
-          url:     '/v3/kontainerdrivers?action=refresh',
-          method:  'post',
-          data:    { },
-          timeout: 15000,
-        });
-
-        buttonDone(true);
-      } catch (err) {
-        this.$store.dispatch('growl/fromError', { title: this.t('drivers.kontainer.refreshError', { error: err }) }, { root: true });
-        buttonDone(false);
-      }
-    }
-  }
 };
 </script>
 
@@ -60,25 +42,11 @@ export default {
       :schema="schema"
       :resource="resource"
       :type-display="t('drivers.kontainer.title')"
-    >
-      <template #extraActions>
-        <AsyncButton
-          v-if="canRefreshK8sMetadata"
-          mode="refresh"
-          :action-label="t('drivers.actions.refresh')"
-          :waiting-label="t('drivers.actions.refresh')"
-          :success-label="t('drivers.actions.refresh')"
-          :error-label="t('drivers.actions.refresh')"
-          :data-testid="'kontainer-driver-refresh'"
-          @click="refreshK8sMetadata"
-        />
-      </template>
-    </Masthead>
+    />
     <Banner
-      v-if="showDeprecationBanner"
+      v-if="hasEmberUiDrivers"
       color="warning"
-      label-key="drivers.kontainer.emberDeprecationMessage"
-      data-testid="kontainer-driver-ember-deprecation-banner"
+      label-key="drivers.kontainer.emberRemovalMessage"
     />
     <ResourceTable
       :schema="schema"

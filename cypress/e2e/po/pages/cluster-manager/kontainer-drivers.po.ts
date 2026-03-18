@@ -47,15 +47,6 @@ export default class KontainerDriversPagePo extends PagePo {
     return cy.contains('.title > h1', 'Cluster Drivers');
   }
 
-  refreshKubMetadata() {
-    return cy.contains('[data-testid="kontainer-driver-refresh"]', 'Refresh Kubernetes Metadata');
-  }
-
-  createDriver() {
-    return this.list().masthead().actions().eq(1)
-      .click();
-  }
-
   list(): KontainerDriversListPo {
     return new KontainerDriversListPo('[data-testid="kontainer-driver-list"]');
   }

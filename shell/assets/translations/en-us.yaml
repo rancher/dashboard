@@ -2836,8 +2836,8 @@ providers:
 drivers:
   kontainer:
     title: Cluster Drivers
-    emberDeprecationMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and will be removed in a future release. These need to be migrated to the new <a href="https://extensions.rancher.io" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
-    refreshError: 'Error refreshing cluster drivers: {error}'
+    emberRemovalMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and has been removed in 2.15.0. If you still need one of these plugins, it will need to be migrated to the new <a href="https://extensions.rancher.io/extensions/next/provisioning/hosted-provider/overview" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
+    emberRemovalTooltip: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and has been removed in 2.15.0. If you still need this plugin, it will need to be migrated to the new UI Extensions framework.'
   node:
     title: Node Drivers
   add:
@@ -9173,10 +9173,6 @@ support:
     four:
       title: Innovate with Freedom
       text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.
-
-embedding:
-  retry: Retry
-  unavailable: Cluster Manager UI is not available
 
 serverUpgrade:
   title: "{vendor} Server Changed"

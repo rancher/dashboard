@@ -7307,10 +7307,6 @@ support:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。
 
-embedding:
-  retry: 重试
-  unavailable: Cluster Manager UI 不可用
-
 legacy:
   alerts: 告警
   apps: 应用

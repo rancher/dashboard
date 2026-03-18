@@ -5,10 +5,6 @@ export default class KontainerDriversListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
 
-  activate() {
-    return cy.getId('sortable-table-activate');
-  }
-
   deactivate() {
     return cy.getId('sortable-table-deactivate');
   }
