@@ -593,15 +593,12 @@ export default {
 
 .project-namespaces {
   & :deep() {
-    .project-namespaces-table table {
-      table-layout: fixed;
-    }
-
     .project-name {
       line-height: 30px;
     }
 
     .project-bar {
+      contain: inline-size;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
