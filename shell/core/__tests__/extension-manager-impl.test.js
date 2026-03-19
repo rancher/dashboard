@@ -299,6 +299,28 @@ describe('extension Manager', () => {
       delete window[pluginId];
     });
 
+    it('surfaces the plugin id and original error message when initialization fails', async() => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const pluginId = 'surface-error-plugin';
+      const originalError = new Error('something went wrong');
+      const mockPluginInit = jest.fn().mockImplementation(() => {
+        throw originalError;
+      });
+
+      window[pluginId] = { default: mockPluginInit };
+
+      const loadPromise = manager.loadAsync(pluginId, 'test.js');
+      const script = document.head.querySelector(`script[id="${ pluginId }"]`);
+
+      script.onload();
+
+      await expect(loadPromise).rejects.toThrow(`Could not initialize plugin ${ pluginId } - ${ originalError.message }`);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(`Could not initialize plugin ${ pluginId }`, originalError);
+
+      consoleErrorSpy.mockRestore();
+      delete window[pluginId];
+    });
+
     it('rejects if script load fails', async() => {
       const pluginId = 'fail-plugin';
       const loadPromise = manager.loadAsync(pluginId, 'bad-url.js');
