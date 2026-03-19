@@ -16,11 +16,35 @@ function replaceAll(str, find, replace) {
 // Vue globalProperties, regardless of which one the host injected. This makes all
 // extensions compatible across Rancher versions without any per-extension code changes.
 const COMPAT_SHIM = `  if (typeof document !== 'undefined') {
-    var __vueApp = document.getElementById('app') && document.getElementById('app').__vue_app__;
-    if (__vueApp && __vueApp.config && __vueApp.config.globalProperties) {
-      var __gp = __vueApp.config.globalProperties;
-      if (!__gp.$extension && __gp.$plugin) { __gp.$extension = __gp.$plugin; }
-      else if (!__gp.$plugin && __gp.$extension) { __gp.$plugin = __gp.$extension; }
+    var patchGlobalProps = function() {
+      var __vueApp = document.getElementById('app').__vue_app__;
+
+      if (!__vueApp) {
+        // no __vue_app__, vueApp.mount('#app') has not been called yet
+        return false;
+      }
+
+      if (__vueApp.config && __vueApp.config.globalProperties) {
+        var __gp = __vueApp.config.globalProperties;
+        if (!__gp.$extension && __gp.$plugin) { __gp.$extension = __gp.$plugin; }
+        else if (!__gp.$plugin && __gp.$extension) { __gp.$plugin = __gp.$extension; }
+        return true;
+      }
+
+      // Fallback to failure case
+      return false;
+    };
+
+    if (!patchGlobalProps()) {
+      // Could not patch, keep retrying until it works
+      var __retry = setInterval(function() {
+        if (patchGlobalProps()) {
+          clearInterval(__retry);
+        }
+      }, 100);
+
+      // Fallback: clear interval after 10 seconds just in case
+      setTimeout(function() { clearInterval(__retry); }, 10000);
     }
   }\n`;
 
