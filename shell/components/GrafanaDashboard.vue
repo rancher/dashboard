@@ -58,6 +58,13 @@ export default {
     currentUrl() {
       return this.computeUrl();
     },
+    isCrossOrigin() {
+      try {
+        return new URL(this.currentUrl, window.location.origin).origin !== window.location.origin;
+      } catch {
+        return false;
+      }
+    },
     grafanaUrl() {
       return this.currentUrl.replace('&kiosk', '');
     },
@@ -73,6 +80,10 @@ export default {
   },
   watch: {
     currentUrl(neu) {
+      if (this.isCrossOrigin) {
+        return;
+      }
+
       // Should consider changing `this.graphWindow?.angular` to something like `!loaded && !error`
       // https://github.com/rancher/dashboard/pull/5802
       if (this.graphHistory && this.graphWindow?.angular) {
@@ -92,7 +103,8 @@ export default {
     }
   },
   mounted() {
-    this.$refs.frame.onload = this.inject;
+    this.loading = true;
+    this.$refs.frame.onload = this.handleLoad;
     this.poll();
   },
   beforeUnmount() {
@@ -105,7 +117,20 @@ export default {
     }
   },
   methods: {
+    handleLoad() {
+      if (this.isCrossOrigin) {
+        this.loading = false;
+
+        return;
+      }
+
+      this.inject();
+    },
     poll() {
+      if (this.isCrossOrigin) {
+        return;
+      }
+
       if (this.interval) {
         clearInterval(this.interval);
         this.interval = null;
@@ -231,7 +256,14 @@ export default {
     },
 
     inject() {
+      if (this.isCrossOrigin) {
+        this.loading = false;
+
+        return;
+      }
+
       this.injectCss();
+      this.loading = false;
     }
   }
 };

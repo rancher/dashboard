@@ -11,9 +11,16 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allDashboardsExist } from '@shell/utils/grafana';
+import {
+  allDashboardsExist,
+  buildMonitoringDashboardUrl
+} from '@shell/utils/grafana';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { fetchNodesForServiceTargets } from '@shell/models/service';
+import {
+  getMonitoringApp,
+  getMonitoringDashboardValues
+} from '@shell/utils/monitoring';
 
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
@@ -57,8 +64,13 @@ export default {
     }
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
+    const monitoringApp = await getMonitoringApp(this.$store);
+    const dashboardValues = getMonitoringDashboardValues(monitoringApp);
 
-    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
+    this.WORKLOAD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-workload-pods-1', 'rancher-workload-pods', WORKLOAD_METRICS_DETAIL_URL);
+    this.WORKLOAD_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-workload-1', 'rancher-workload', WORKLOAD_METRICS_SUMMARY_URL);
+    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_METRICS_DETAIL_URL, this.WORKLOAD_METRICS_SUMMARY_URL]);
     if (!this.showMetrics) {
       const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
 
@@ -82,14 +94,15 @@ export default {
 
   data() {
     return {
-      allIngresses:                    [],
-      matchingIngresses:               [],
+      allIngresses:                         [],
+      matchingIngresses:                    [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
-      POD_PROJECT_METRICS_DETAIL_URL:  '',
-      POD_PROJECT_METRICS_SUMMARY_URL: '',
-      showMetrics:                     false,
-      showProjectMetrics:              false,
+      modifyMetricsPrefix:                  true,
+      WORKLOAD_PROJECT_METRICS_DETAIL_URL:  '',
+      WORKLOAD_PROJECT_METRICS_SUMMARY_URL: '',
+      showMetrics:                          false,
+      showProjectMetrics:                   false,
     };
   },
 
@@ -314,6 +327,7 @@ export default {
             v-if="props.active"
             :detail-url="WORKLOAD_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_METRICS_SUMMARY_URL"
+            :modify-prefix="modifyMetricsPrefix"
             :vars="graphVars"
             graph-height="600px"
           />

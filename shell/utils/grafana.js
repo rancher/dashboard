@@ -1,6 +1,9 @@
-import { haveV2Monitoring } from '@shell/utils/monitoring';
+import {
+  getMonitoringApp,
+  getMonitoringDashboardValues,
+  haveV2Monitoring
+} from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
-import { CATALOG } from '@shell/config/types';
 
 // these two versions of monitoring included a bug fix attempt that required the local cluster to use a different url
 // the solution going forward doesn't require this, see https://github.com/rancher/dashboard/issues/8885
@@ -14,10 +17,62 @@ export function getClusterPrefix(monitoringVersion, clusterId) {
   return clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
 }
 
-export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
+function isAbsoluteUrl(url) {
+  return !!(url.protocol && url.authority);
+}
+
+function trimTrailingSlash(url = '') {
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+}
+
+function getDashboardUid(embedUrl) {
   const url = parseUrl(embedUrl);
 
-  let newUrl = modifyPrefix ? `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }` : url.path;
+  return url.path.split('/')[2] || '';
+}
+
+function hasDashboardInventoryEntry(dashboardValues, uid) {
+  const dashboards = dashboardValues?.rancherDashboards;
+
+  if (!dashboards || !uid) {
+    return true;
+  }
+
+  if (Array.isArray(dashboards)) {
+    return dashboards.includes(uid);
+  }
+
+  return Object.prototype.hasOwnProperty.call(dashboards, uid);
+}
+
+export function buildGrafanaUrl(baseUrl, path) {
+  if (!baseUrl) {
+    return '';
+  }
+
+  const normalizedBaseUrl = trimTrailingSlash(baseUrl);
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+
+  return `${ normalizedBaseUrl }/${ normalizedPath }`;
+}
+
+export function buildMonitoringDashboardUrl(dashboardValues, uid, slug, fallbackUrl) {
+  if (!dashboardValues?.grafanaURL) {
+    return fallbackUrl;
+  }
+
+  return buildGrafanaUrl(dashboardValues.grafanaURL, `d/${ uid }/${ slug }?orgId=1`);
+}
+
+export function canProxyGrafanaQueries(dashboardValues = {}) {
+  return !dashboardValues.grafanaURL || dashboardValues.grafanaURL.includes('/api/v1/namespaces/');
+}
+
+export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
+  const url = parseUrl(embedUrl);
+  const useAbsoluteUrl = !modifyPrefix && isAbsoluteUrl(url);
+
+  let newUrl = useAbsoluteUrl ? `${ url.protocol }://${ url.authority }${ url.path }` : (modifyPrefix ? `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }` : url.path);
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
@@ -33,7 +88,11 @@ export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, para
   return newUrl;
 }
 
-export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster', projectId = null) {
+export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster', projectId = null, dashboardValues = {}) {
+  if (!projectId && dashboardValues.grafanaURL) {
+    return hasDashboardInventoryEntry(dashboardValues, getDashboardUid(embedUrl));
+  }
+
   if ( !haveV2Monitoring(store.getters) ) {
     return false;
   }
@@ -60,23 +119,17 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
 }
 
 export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster', projectId = null) {
-  let res;
-
   let monitoringVersion = '';
+  let dashboardValues = {};
 
-  if (!projectId && store.getters[`${ storeName }/canList`](CATALOG.APP)) {
-    try {
-      res = await store.dispatch(`${ storeName }/find`, {
-        type: CATALOG.APP,
-        id:   'cattle-monitoring-system/rancher-monitoring'
-      });
-    } catch (err) {
-    }
+  if (!projectId) {
+    const monitoringApp = await getMonitoringApp(store, storeName);
 
-    monitoringVersion = res?.currentVersion;
+    monitoringVersion = monitoringApp?.currentVersion || '';
+    dashboardValues = getMonitoringDashboardValues(monitoringApp);
   }
 
-  const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId));
+  const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId, dashboardValues));
 
   return (await Promise.all(existPromises)).every((exists) => exists);
 }

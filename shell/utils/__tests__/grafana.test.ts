@@ -1,4 +1,9 @@
-import { getClusterPrefix } from '@shell/utils/grafana';
+import {
+  buildMonitoringDashboardUrl,
+  canProxyGrafanaQueries,
+  computeDashboardUrl,
+  getClusterPrefix
+} from '@shell/utils/grafana';
 
 describe('fx: getClusterPrefix', () => {
   it('old monitoring version, downstream cluster', () => {
@@ -40,5 +45,37 @@ describe('fx: getClusterPrefix', () => {
     const prefix = getClusterPrefix('', 'local');
 
     expect(prefix).toStrictEqual('');
+  });
+});
+
+describe('fx: computeDashboardUrl', () => {
+  it('preserves the full external grafana url when prefix modification is disabled', () => {
+    const url = computeDashboardUrl('', 'https://grafana.example.com/d/rancher-cluster-1/rancher-cluster?orgId=1', 'local', { 'var-cluster': 'local' }, false);
+
+    expect(url).toStrictEqual('https://grafana.example.com/d/rancher-cluster-1/rancher-cluster?orgId=1&kiosk&_dash.hideTimePicker=true&var-cluster=local');
+  });
+});
+
+describe('fx: buildMonitoringDashboardUrl', () => {
+  it('builds dashboard urls from dashboardValues.grafanaURL when present', () => {
+    const url = buildMonitoringDashboardUrl({ grafanaURL: 'https://grafana.example.com/' }, 'rancher-node-1', 'rancher-node', '/fallback');
+
+    expect(url).toStrictEqual('https://grafana.example.com/d/rancher-node-1/rancher-node?orgId=1');
+  });
+
+  it('falls back to the legacy in-cluster grafana proxy url when dashboardValues are absent', () => {
+    const url = buildMonitoringDashboardUrl({}, 'rancher-node-1', 'rancher-node', '/fallback');
+
+    expect(url).toStrictEqual('/fallback');
+  });
+});
+
+describe('fx: canProxyGrafanaQueries', () => {
+  it('returns false for external grafana urls', () => {
+    expect(canProxyGrafanaQueries({ grafanaURL: 'https://grafana.example.com' })).toStrictEqual(false);
+  });
+
+  it('returns true for the legacy in-cluster proxy url', () => {
+    expect(canProxyGrafanaQueries({ grafanaURL: '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/' })).toStrictEqual(true);
   });
 });

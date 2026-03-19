@@ -16,7 +16,14 @@ import createEditView from '@shell/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allDashboardsExist } from '@shell/utils/grafana';
+import {
+  allDashboardsExist,
+  buildMonitoringDashboardUrl
+} from '@shell/utils/grafana';
+import {
+  getMonitoringApp,
+  getMonitoringDashboardValues
+} from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
 import metricPoller from '@shell/mixins/metric-poller';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
@@ -70,7 +77,13 @@ export default {
       }
     }
 
-    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
+    const monitoringApp = await getMonitoringApp(this.$store);
+    const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+
+    this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
+    this.NODE_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-node-detail-1', 'rancher-node-detail', NODE_METRICS_DETAIL_URL);
+    this.NODE_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-node-1', 'rancher-node', NODE_METRICS_SUMMARY_URL);
+    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.NODE_METRICS_DETAIL_URL, this.NODE_METRICS_SUMMARY_URL]);
   },
 
   data() {
@@ -100,11 +113,12 @@ export default {
         EFFECT
       ],
       podSchema,
-      podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema),
+      podTableHeaders:     this.$store.getters['type-map/headersFor'](podSchema),
       NODE_METRICS_DETAIL_URL,
       NODE_METRICS_SUMMARY_URL,
-      showMetrics:     false,
-      filterByApi:     undefined,
+      modifyMetricsPrefix: true,
+      showMetrics:         false,
+      filterByApi:         undefined,
     };
   },
 
@@ -269,6 +283,7 @@ export default {
             v-if="props.active"
             :detail-url="NODE_METRICS_DETAIL_URL"
             :summary-url="NODE_METRICS_SUMMARY_URL"
+            :modify-prefix="modifyMetricsPrefix"
             :vars="graphVars"
             graph-height="875px"
           />

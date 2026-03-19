@@ -27,10 +27,20 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-import { monitoringStatus, canViewGrafanaLink } from '@shell/utils/monitoring';
+import {
+  monitoringStatus,
+  canViewGrafanaLink,
+  getMonitoringApp,
+  getMonitoringDashboardValues,
+  hasAlertManagerEndpoint
+} from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { allDashboardsExist } from '@shell/utils/grafana';
+import {
+  allDashboardsExist,
+  buildMonitoringDashboardUrl,
+  canProxyGrafanaQueries
+} from '@shell/utils/grafana';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
 import ResourceSummary, { resourceCounts } from '@shell/components/ResourceSummary';
@@ -96,24 +106,36 @@ export default {
 
   mixins: [metricPoller],
 
-  fetch() {
+  async fetch() {
     fetchClusterResources(this.$store, NODE);
 
     if (this.currentCluster) {
+      const monitoringApp = await getMonitoringApp(this.$store);
+      const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+
+      this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
+      this.showEtcdInfoBanner = canProxyGrafanaQueries(dashboardValues);
+      this.CLUSTER_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-cluster-nodes-1', 'rancher-cluster-nodes', CLUSTER_METRICS_DETAIL_URL);
+      this.CLUSTER_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-cluster-1', 'rancher-cluster', CLUSTER_METRICS_SUMMARY_URL);
+      this.K8S_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-k8s-components-nodes-1', 'rancher-kubernetes-components-nodes', K8S_METRICS_DETAIL_URL);
+      this.K8S_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-k8s-components-1', 'rancher-kubernetes-components', K8S_METRICS_SUMMARY_URL);
+      this.ETCD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-etcd-nodes-1', 'rancher-etcd-nodes', ETCD_METRICS_DETAIL_URL);
+      this.ETCD_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-etcd-1', 'rancher-etcd', ETCD_METRICS_SUMMARY_URL);
+
       setPromiseResult(
-        allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+        allDashboardsExist(this.$store, this.currentCluster.id, [this.CLUSTER_METRICS_DETAIL_URL, this.CLUSTER_METRICS_SUMMARY_URL]),
         this,
         'showClusterMetrics',
         `Determine cluster metrics`
       );
       setPromiseResult(
-        allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+        allDashboardsExist(this.$store, this.currentCluster.id, [this.K8S_METRICS_DETAIL_URL, this.K8S_METRICS_SUMMARY_URL]),
         this,
         'showK8sMetrics',
         `Determine k8s metrics`
       );
       setPromiseResult(
-        allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+        allDashboardsExist(this.$store, this.currentCluster.id, [this.ETCD_METRICS_DETAIL_URL, this.ETCD_METRICS_SUMMARY_URL]),
         this,
         'showEtcdMetrics',
         `Determine etcd metrics`
@@ -122,6 +144,7 @@ export default {
       // It's not enough to check that the grafana links are working for the current user; embedded cluster-level dashboards should only be shown if the user can view the grafana endpoint
       // https://github.com/rancher/dashboard/issues/9792
       setPromiseResult(canViewGrafanaLink(this.$store), this, 'canViewMetrics', 'Determine Grafana Permission');
+      setPromiseResult(hasAlertManagerEndpoint(this.$store), this, 'showAlerts', 'Determine Alertmanager Permission');
 
       if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
@@ -143,6 +166,9 @@ export default {
       showK8sMetrics:          false,
       showEtcdMetrics:         false,
       canViewMetrics:          false,
+      modifyMetricsPrefix:     true,
+      showAlerts:              false,
+      showEtcdInfoBanner:      true,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -736,7 +762,7 @@ export default {
           <EventsTable />
         </Tab>
         <Tab
-          v-if="hasMonitoring"
+          v-if="showAlerts"
           name="cluster-alerts"
           :label="t('clusterIndexPage.sections.alerts.label')"
           :weight="1"
@@ -774,6 +800,7 @@ export default {
             v-if="props.active"
             :detail-url="CLUSTER_METRICS_DETAIL_URL"
             :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            :modify-prefix="modifyMetricsPrefix"
             graph-height="875px"
           />
         </template>
@@ -789,6 +816,7 @@ export default {
             v-if="props.active"
             :detail-url="K8S_METRICS_DETAIL_URL"
             :summary-url="K8S_METRICS_SUMMARY_URL"
+            :modify-prefix="modifyMetricsPrefix"
             graph-height="600px"
           />
         </template>
@@ -805,9 +833,10 @@ export default {
             class="etcd-metrics"
             :detail-url="ETCD_METRICS_DETAIL_URL"
             :summary-url="ETCD_METRICS_SUMMARY_URL"
+            :modify-prefix="modifyMetricsPrefix"
             graph-height="600px"
           >
-            <EtcdInfoBanner />
+            <EtcdInfoBanner v-if="showEtcdInfoBanner" />
           </DashboardMetrics>
         </template>
       </Tab>
