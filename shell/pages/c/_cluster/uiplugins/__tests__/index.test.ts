@@ -207,6 +207,68 @@ describe('page: UI plugins/Extensions', () => {
 
       expect(items).toHaveLength(0);
     });
+
+    it('should display repository name for non-installed plugins with chart info', () => {
+      const plugin = {
+        installed: false,
+        chart:     { repoNameDisplay: 'rancher-charts' },
+        certified: true
+      };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].icon).toBe('repository-alt');
+      expect(items[0].labels).toStrictEqual(['rancher-charts']);
+    });
+
+    it('should display repository name for installed plugins when chart info is present (original repo exists)', () => {
+      const plugin = {
+        installed: true,
+        chart:     { repoNameDisplay: 'rancher-charts' },
+        certified: true
+      };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].icon).toBe('repository-alt');
+      expect(items[0].labels).toStrictEqual(['rancher-charts']);
+    });
+
+    it('should display original repository name for installed plugins when original repo was removed', () => {
+      const plugin = {
+        installed:        true,
+        originalRepoName: 'removed-repo',
+        certified:        true
+      };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].icon).toBe('repository-alt');
+      expect(items[0].labels).toStrictEqual(['removed-repo']);
+    });
+
+    it('should prefer chart.repoNameDisplay over originalRepoName when both are present', () => {
+      const plugin = {
+        installed:        true,
+        chart:            { repoNameDisplay: 'current-repo' },
+        originalRepoName: 'original-repo',
+        certified:        true
+      };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].labels).toStrictEqual(['current-repo']);
+    });
+
+    it('should NOT display repository name when neither chart nor originalRepoName are present', () => {
+      const plugin = {
+        installed: true,
+        certified: true
+      };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items).toHaveLength(0);
+    });
   });
 
   describe('getStatuses', () => {

@@ -368,22 +368,18 @@ export default {
       this.plugins.forEach((p) => {
         let chart;
         const app = this.apps.find((a) => a.metadata.name === p.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
+        const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
 
         // Try to identify the specific chart from the correct repository by checking the Helm App's annotations.
         // This prevents picking the wrong chart when multiple repositories provide an extension with the same name.
-        if (app) {
-          const repoName = app.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
-
-          if (repoName) {
-            chart = all.find((c) => c.name === p.name && c.chart?.repoName === repoName);
-          }
+        if (originalRepoName) {
+          chart = all.find((c) => c.name === p.name && c.chart?.repoName === originalRepoName);
         }
 
-        // Fallback to name matching if we can't determine the repo
-        if (!chart) {
-          chart = all.find((c) => c.name === p.name);
-        }
-
+        // If we couldn't find the chart from the original repo (e.g., repo was removed),
+        // don't fall back to a chart from another repo. Instead, create a standalone item
+        // for the installed plugin. This prevents marking an unrelated chart as "installed"
+        // which would incorrectly remove it from the "Available" tab.
         if (chart) {
           chart.installed = true;
           chart.uiplugin = p;
@@ -408,20 +404,42 @@ export default {
             chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
         } else {
-          // No chart, so add a card for the plugin based on its Custom resource being present
+          // No chart found from original repo, so add a card for the plugin based on its Custom resource
+          // This handles both cases:
+          // 1. The original repo was removed
+          // 2. There was never a chart (e.g., developer-loaded plugin)
+
+          // Try to get metadata from the installed Helm app to display richer information
+          const appChartMeta = app?.spec?.chart?.metadata;
+          const appAnnotations = appChartMeta?.annotations || {};
+
+          // Get the original repo display name (falls back to repo name if no i18n key exists)
+          let originalRepoDisplayName = null;
+
+          if (originalRepoName) {
+            originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
+          }
+
           const item = {
             name:                p.name,
-            label:               p.name,
-            description:         p.description || '-',
+            label:               appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || p.name,
+            description:         appChartMeta?.description || p.description || '-',
+            icon:                appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
             id:                  `${ p.name }-${ p.version }`,
             versions:            [],
             displayVersion:      p.version,
             displayVersionLabel: p.version || '-',
             isDeveloper:         p.isDeveloper,
             installed:           true,
+            installedVersion:    p.version,
             installing:          false,
             builtin:             false,
             uiplugin:            p,
+            primeOnly:           appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
+            experimental:        appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:           appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
+            // Store the original repo name from the Helm app so we can display it even after the repo is removed
+            originalRepoName:    originalRepoDisplayName,
           };
 
           all.push(item);
@@ -901,11 +919,16 @@ export default {
     getFooterItems(plugin) {
       const footerItems = [];
 
-      if (plugin?.chart?.repoNameDisplay) {
+      // Display the repository name:
+      // - Use chart.repoNameDisplay if the original repository still exists
+      // - Use originalRepoName if the original repository was removed (stored from Helm app annotations)
+      const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoName;
+
+      if (repoNameToDisplay) {
         footerItems.push({
           icon:        'repository-alt',
           iconTooltip: { key: 'tableHeaders.repoName' },
-          labels:      [plugin.chart.repoNameDisplay]
+          labels:      [repoNameToDisplay]
         });
       }
 
