@@ -176,11 +176,11 @@ create_initial_clusters() {
       if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
         RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
       elif [ "${RANCHER_HELM_REPO}" = "rancher-alpha" ]; then
-        RANCHER_VERSION=$(helm search repo rancher-alpha --devel --versions | grep "^rancher-alpha/rancher[[:space:]]" | grep "${version_string}" | grep -- "-alpha" | head -n 1 | cut -f2 | tr -d '[:space:]')
+        RANCHER_VERSION=$(helm search repo rancher-alpha --devel --versions | grep "^rancher-alpha/rancher[[:space:]]" | grep "${version_string}" | grep -- "-alpha" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
       elif [ "${RANCHER_HELM_REPO}" = "rancher-latest" ]; then
-        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "^rancher-latest/rancher[[:space:]]" | grep "${version_string}" | grep -- "-rc" | head -n 1 | cut -f2 | tr -d '[:space:]')
+        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "^rancher-latest/rancher[[:space:]]" | grep "${version_string}" | grep -- "-rc" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
       else
-        RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
+        RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "${version_string}" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
       fi
       if [ -z "${RANCHER_VERSION}" ]; then
         echo "ERROR: Could not find Rancher version for ${RANCHER_IMAGE_TAG} in ${HELM_REPO_NAME} repo. Failing pipeline early."

@@ -11,6 +11,43 @@ function replaceAll(str, find, replace) {
   return str.split(find).join(replace);
 }
 
+// Injected at the top of every generated importTypes() function.
+// Ensures both $extension (newer Rancher) and $plugin (older Rancher) are available on
+// Vue globalProperties, regardless of which one the host injected. This makes all
+// extensions compatible across Rancher versions without any per-extension code changes.
+const COMPAT_SHIM = `  if (typeof document !== 'undefined') {
+    var patchGlobalProps = function() {
+      var __vueApp = document.getElementById('app').__vue_app__;
+
+      if (!__vueApp) {
+        // no __vue_app__, vueApp.mount('#app') has not been called yet
+        return false;
+      }
+
+      if (__vueApp.config && __vueApp.config.globalProperties) {
+        var __gp = __vueApp.config.globalProperties;
+        if (!__gp.$extension && __gp.$plugin) { __gp.$extension = __gp.$plugin; }
+        else if (!__gp.$plugin && __gp.$extension) { __gp.$plugin = __gp.$extension; }
+        return true;
+      }
+
+      // Fallback to failure case
+      return false;
+    };
+
+    if (!patchGlobalProps()) {
+      // Could not patch, keep retrying until it works
+      var __retry = setInterval(function() {
+        if (patchGlobalProps()) {
+          clearInterval(__retry);
+        }
+      }, 100);
+
+      // Fallback: clear interval after 10 seconds just in case
+      setTimeout(function() { clearInterval(__retry); }, 10000);
+    }
+  }\n`;
+
 function registerFile(file, type, pkg, f) {
   const importType = (f === 'models') ? 'require' : 'import';
   const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
@@ -30,6 +67,8 @@ function register(file, pkg, f) {
 // the code splitting will be respected
 function generateTypeImport(pkg, dir) {
   let content = 'export function importTypes($extension) { \n';
+
+  content += COMPAT_SHIM;
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
@@ -78,6 +117,8 @@ function generateTypeImport(pkg, dir) {
 function generateDynamicTypeImport(pkg, dir) {
   const template = fs.readFileSync(path.join(__dirname, 'import.js'), { encoding: 'utf8' });
   let content = 'export function importTypes($extension) { \n';
+
+  content += COMPAT_SHIM;
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
