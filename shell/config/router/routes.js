@@ -501,6 +501,11 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/projectsnamespaces.vue')),
         name:      'c-cluster-product-projectsnamespaces'
       }, {
+        path:      '/c/:cluster/:product/apps.deployment',
+        component: () => interopDefault(import('@shell/list/apps.deployment.vue')),
+        name:      'c-cluster-product-apps-deployment',
+        meta:      { resource: 'apps.deployment' }
+      }, {
         path:      '/c/:cluster/:product/:resource',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/index.vue')),
         name:      'c-cluster-product-resource'
