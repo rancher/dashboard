@@ -5783,7 +5783,6 @@ projectMembers:
     configmapsView: View Config Maps
     ingressView: View Ingress
     monitoringUiView: View Monitoring
-    projectcatalogsView: View Project Catalogs
     projectroletemplatebindingsView: View Project Members
     secretsView: View Secrets
     serviceaccountsView: View Service Accounts
