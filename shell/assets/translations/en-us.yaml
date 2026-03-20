@@ -2718,8 +2718,6 @@ cluster:
     v2: RKE2/K3s
   validation:
     iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
-  capi:
-    notSupported: Managing clusters provisioned using CAPI infrastructure providers via the UI is currently limited to Rancher Turtles provisioned clusters.
 
 clusterIndexPage:
   hardwareResourceGauge:
