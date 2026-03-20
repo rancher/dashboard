@@ -36,6 +36,7 @@
 import { computed, inject, provide, type Ref } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { useInSummary } from '@components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';
@@ -57,6 +58,19 @@ const resolvedBackground = computed<SectionBackground>(() => {
 provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
+
+// Register this section in form summary/table-of-contents context (if provided)
+const { summary } = useInSummary();
+
+// Expose summary, name, and a display label on the component public instance so
+// TOC discovery can access component
+const displayTitle = computed(() => props.title);
+
+const name = 'RcSection';
+
+defineExpose({
+  summary, displayTitle, name
+});
 
 const hasHeader = computed(() => {
   return props.mode === 'with-header';

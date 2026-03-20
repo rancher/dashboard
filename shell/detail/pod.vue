@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, SIMPLE_NAME, IMAGE_NAME } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
@@ -25,7 +25,7 @@ export default {
     DashboardMetrics,
     ResourceTabs,
     Tab,
-    SortableTable,
+    ResourceTable,
   },
 
   mixins: [CreateEditView],
@@ -183,6 +183,14 @@ export default {
       };
     },
 
+    containerSchema() {
+      return {
+        id:         'container',
+        type:       'container',
+        attributes: {}
+      };
+    },
+
     dateTimeFormatString() {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
@@ -210,14 +218,15 @@ export default {
       name="containers"
       :weight="3"
     >
-      <SortableTable
+      <ResourceTable
+        :schema="containerSchema"
         :rows="containers"
         :headers="containerHeaders"
-        :mode="mode"
-        key-field="name"
         :search="false"
         :row-actions="true"
         :table-actions="false"
+        key-field="name"
+        :namespaced="false"
       />
     </Tab>
     <Tab

@@ -662,7 +662,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
-    :show-toc="true"
+    :show-toc="hasCredential"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"

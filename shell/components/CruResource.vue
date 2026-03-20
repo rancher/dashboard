@@ -11,14 +11,13 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
 import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
 
-import TableOfContents from '@shell/components/TableOfContents';
+import { TableOfContents, useFormSummary } from '@components/TableOfContents';
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
-import { useFormSummary } from '@shell/components/TableOfContents/composables';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -173,10 +172,17 @@ export default {
     }
   },
 
+  // beforeMount() {
+  //   if (this.showToc) {
+  //     const { locateComponentsByNamePattern } = useFormSummary();
+
+  //     this.accordions = locateComponentsByNamePattern('Accordion');
+  //   }
+  // },
+
   setup() {
     const { locateComponentsByNamePattern } = useFormSummary();
-
-    const accordions = locateComponentsByNamePattern('Accordion');
+    const accordions = locateComponentsByNamePattern();
 
     return { accordions };
   },
@@ -292,12 +298,7 @@ export default {
           icon:    null
         }
       }), {});
-    },
-
-    canShowToc() {
-      return this.showToc && (this.accordions || []).length > 0;
-    },
-
+    }
   },
 
   created() {
@@ -560,7 +561,7 @@ export default {
 
 <template>
   <section
-    :class="{'show-toc':canShowToc}"
+    :class="{'show-toc':showToc}"
     class="cru"
   >
     <slot name="noticeBanner" />
@@ -796,7 +797,7 @@ export default {
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
         <TableOfContents
-          v-if="canShowToc"
+          v-if="showToc"
           class="cru__toc"
           :accordions="accordions"
         />
@@ -1075,28 +1076,20 @@ form.create-resource-container .cru {
 }
 
 .show-toc.cru{
-
-    .cru__form{
+   &>.cru__form{
         display: grid;
         grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));
         grid-template-rows: [content] 1fr [footer] min-content;
-    }
 
-    .cru__content {
-        grid-column: content;
-        grid-row: content;
-    }
+      &>.cru__content {
+          grid-column: content;
+          grid-row: content;
+      }
 
-    // .cru__toc {
-    //     position: fixed;
-    //     top: calc(var(--header-height) + 112px);
-    //     bottom: $footer-height;
-    //     right: 0px;
-    // }
-
-    .cru__footer {
+      &>.cru__footer {
         grid-column: content / 3;
         grid-row: footer;
+      }
     }
 }
 

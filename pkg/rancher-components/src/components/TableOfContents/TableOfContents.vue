@@ -1,12 +1,10 @@
 <script setup>
-
 const props = defineProps({
   accordions: {
     type:     Array,
     required: true,
   }
 });
-
 </script>
 
 <template>
@@ -81,7 +79,7 @@ const props = defineProps({
     overflow-y: auto;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
-    background-color: var(--subtle-overlay-bg );
+    background-color: var(--subtle-overlay-bg);
   }
 
   .accordion-link {
