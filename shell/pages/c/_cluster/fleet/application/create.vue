@@ -35,7 +35,7 @@ export default {
 
           const canCreate = !!schema.resourceMethods?.includes('PUT');
 
-          return [
+          let out = [
             ...acc,
             {
               id:          type,
@@ -46,6 +46,23 @@ export default {
               tooltip:     canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
             }
           ];
+
+          if (type === FLEET.HELM_OP) {
+            out = [
+              ...out,
+              {
+                id:                  type,
+                label:               `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.label`,
+                description:         `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.description`,
+                icon:                FleetUtils.dashboardIcons[FLEET.SUSE_APP_COLLECTION],
+                disabled:            !canCreate,
+                tooltip:             canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
+                isSuseAppCollection: true,
+              }
+            ];
+          }
+
+          return out;
         }
 
         return acc;
@@ -74,6 +91,7 @@ export default {
           product:  this.$store.getters['productId'],
           resource: subtype.id,
         },
+        query: { [SUB_TYPE]: subtype.isSuseAppCollection ? FLEET.SUSE_APP_COLLECTION : subtype.id },
       });
     },
 

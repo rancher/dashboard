@@ -66,6 +66,10 @@ defineProps({
   registerBeforeHook: {
     type:     Function,
     required: true
+  },
+  isSuseAppCollection: {
+    type:    Boolean,
+    default: false
   }
 });
 
@@ -120,7 +124,7 @@ const validatePollingInterval = () => {
       data-testid="helmOp-advanced-info"
     />
 
-    <h2>{{ t('fleet.helmOp.auth.title') }}</h2>
+    <h2>{{ isSuseAppCollection ? t('fleet.helmOp.auth.appco') : t('fleet.helmOp.auth.title') }}</h2>
 
     <SelectOrCreateAuthSecret
       :value="value.spec.helmSecretName"
@@ -129,9 +133,12 @@ const validatePollingInterval = () => {
       :delegate-create-to-parent="true"
       in-store="management"
       :mode="mode"
-      generate-name="helmrepo-auth-"
-      label-key="fleet.helmOp.auth.helm"
-      :pre-select="tempCachedValues.helmSecretName"
+      :generate-name="isSuseAppCollection ? 'appco-auth-' : 'helmrepo-auth-'"
+      :label-key="isSuseAppCollection ? 'fleet.helmOp.auth.appco' : 'fleet.helmOp.auth.helm'"
+      :fixed-http-basic-auth="isSuseAppCollection"
+      :filter-basic-auth="isSuseAppCollection ? 'appco-auth-' : ''"
+      :allow-none="!isSuseAppCollection"
+      :pre-select="isSuseAppCollection && !tempCachedValues.helmSecretName ? { selected: '_basic' } : tempCachedValues.helmSecretName"
       :cache-secrets="true"
       :show-ssh-known-hosts="true"
       @update:value="updateAuth($event, 'helmSecretName')"

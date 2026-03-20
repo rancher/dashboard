@@ -294,6 +294,7 @@ export const FLEET = {
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
   HELM_OP:                  'fleet.cattle.io.helmop',
+  SUSE_APP_COLLECTION:      'suse-application-collection',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
@@ -418,6 +419,18 @@ export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
  * for standard repositories.
  */
 export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
+
+/**
+ * The `generateName` prefix used when creating Helm Op authentication secrets
+ * for SUSE App Collection.
+ */
+export const HELMOP_APPCO_AUTH_GENERATE_NAME = 'appco-auth-';
+
+/**
+ * The `generateName` prefix used when creating Helm Op authentication secrets
+ * for standard Helm sources.
+ */
+export const AUTH_GENERATE_NAME = 'auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 

@@ -3162,6 +3162,9 @@ fleet:
         description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
+      suse-application-collection:
+        label: SUSE Application Collection
+        description: A SUSE Application Collection is a curated set of applications from SUSE for enterprise usage.
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
@@ -3382,6 +3385,9 @@ fleet:
         chart:
           label: OCI Registry URL
           placeholder: e.g. oci://foo.bar/baz
+        chartName:
+          label: Application Name
+          placeholder: e.g. my-application
       version:
         label: Version
         placeholder: The Chart version
@@ -3456,6 +3462,7 @@ fleet:
       title: Authentication
       label: Authentication
       helm: Helm Authentication
+      appco: SUSE App Collection Authentication
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -7180,6 +7187,7 @@ user:
           placeholder: Unix timestamp
 validation:
   noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
+  noStartSlash: '"{key}" must not start with "/"'
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'

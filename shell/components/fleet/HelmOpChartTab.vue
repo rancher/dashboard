@@ -26,6 +26,10 @@ defineProps({
     type:     Array,
     required: true
   },
+  isSuseAppCollection: {
+    type:    Boolean,
+    default: false
+  },
   fvGetAndReportPathRules: {
     type:     Function,
     required: true
@@ -40,6 +44,7 @@ const { t } = useI18n(store);
 const onSourceTypeSelect = (type) => {
   emit('update:source-type', type);
 };
+
 </script>
 
 <template>
@@ -71,6 +76,7 @@ const onSourceTypeSelect = (type) => {
           :mode="mode"
           :selectable="option => !option.disabled"
           :label="t('fleet.helmOp.source.selectLabel')"
+          :disabled="isSuseAppCollection"
           @update:value="onSourceTypeSelect"
         />
       </div>
@@ -131,23 +137,39 @@ const onSourceTypeSelect = (type) => {
     <template v-if="sourceType === SOURCE_TYPE.OCI">
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.helm.repo"
-            :mode="mode"
-            :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
-            :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
-            :rules="fvGetAndReportPathRules('spec.helm.repo')"
-            :required="true"
-          />
+          <div class="row mb-20">
+            <LabeledInput
+              v-model:value="value.spec.helm.repo"
+              :mode="mode"
+              :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
+              :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.repo')"
+              :required="true"
+              :disabled="isSuseAppCollection"
+            />
+            <!-- repo is pre-filled with oci://dp.apps.rancher.io/charts by the parent when isSuseAppCollection -->
+          </div>
+          <div class="row mb-20">
+            <LabeledInput
+              v-model:value="value.spec.helm.chart"
+              :mode="mode"
+              :label="t('fleet.helmOp.source.oci.chartName.label')"
+              :placeholder="t('fleet.helmOp.source.oci.chartName.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.chart')"
+              :required="true"
+            />
+          </div>
         </div>
-        <div class="col span-4">
-          <LabeledInput
-            v-model:value="value.spec.helm.version"
-            :mode="mode"
-            label-key="fleet.helmOp.source.version.label"
-            :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
-            :rules="fvGetAndReportPathRules('spec.helm.version')"
-          />
+        <div class="col span-4 helm-version">
+          <div class="row mb-20">
+            <LabeledInput
+              v-model:value="value.spec.helm.version"
+              :mode="mode"
+              label-key="fleet.helmOp.source.version.label"
+              :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -155,4 +177,7 @@ const onSourceTypeSelect = (type) => {
 </template>
 
 <style lang="scss" scoped>
+.helm-version {
+  align-self: end;
+}
 </style>

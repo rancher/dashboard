@@ -5,9 +5,11 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
+import {
+  AUTH_TYPE, CONFIG_MAP, FLEET, HELMOP_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
+} from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -34,6 +36,8 @@ const VALUES_STATE = {
   YAML: 'YAML',
   DIFF: 'DIFF'
 };
+
+const SUSE_APP_COLLECTION_REPO_URL = 'oci://dp.apps.rancher.io/charts';
 
 export default {
   name: 'CruHelmOp',
@@ -84,7 +88,7 @@ export default {
       allWorkspaces:    [],
       pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
-      sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
+      sourceType:       this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION || (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL) ? SOURCE_TYPE.OCI : (this.value.sourceType || SOURCE_TYPE.REPO),
       helmSpecInit:     clone(this.value.spec.helm),
       yamlForm:         VALUES_STATE.YAML,
       chartValues,
@@ -110,6 +114,21 @@ export default {
   mounted() {
     this.value.applyDefaults();
     this.updateValidationRules(this.sourceType);
+
+    if (this.isSuseAppCollection) {
+      const repo = this.value.spec?.helm?.repo || '';
+
+      if (!repo) {
+        // Create flow: pre-fill the locked base URL
+        set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
+      } else if (repo.startsWith(SUSE_APP_COLLECTION_REPO_URL) && repo.length > SUSE_APP_COLLECTION_REPO_URL.length) {
+        // Edit flow: split "oci://dp.apps.rancher.io/charts/my-app" back into repo + chart
+        const chart = repo.slice(SUSE_APP_COLLECTION_REPO_URL.length).replace(/^\//, '');
+
+        set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
+        set(this.value, 'spec.helm.chart', chart);
+      }
+    }
   },
 
   computed: {
@@ -163,6 +182,11 @@ export default {
           weight:         1,
         },
       ];
+    },
+
+    isSuseAppCollection() {
+      return this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
+        (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
     },
 
     sourceTypeOptions() {
@@ -246,6 +270,9 @@ export default {
 
   methods: {
     onSourceTypeSelect(type) {
+      if (this.isSuseAppCollection) {
+        return;
+      }
       this.sourceType = type;
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
@@ -306,13 +333,21 @@ export default {
       this.updateCachedAuthVal(val, key);
     },
 
-    async doCreateSecrets() {
+    async doCreateSecrets(context) {
       if (this.tempCachedValues.clientSecretName) {
         await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
       }
 
       if (this.tempCachedValues.helmSecretName) {
         await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
+      }
+
+      if (this.isSuseAppCollection && this.tempCachedValues.helmSecretName) {
+        // authSecretName may be a full "namespace/name" id — extract just the name
+        const rawSelected = this.tempCachedValues.helmSecretName.selected || '';
+        const authSecretName = rawSelected.includes('/') ? rawSelected.split('/')[1] : rawSelected;
+
+        await this.ensureAppCoImagePullSecret(authSecretName);
       }
     },
 
@@ -343,7 +378,7 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: 'auth-',
+            generateName: this.isSuseAppCollection ? HELMOP_APPCO_AUTH_GENERATE_NAME : AUTH_GENERATE_NAME,
             labels:       { [FLEET_LABELS.MANAGED]: 'true' }
           }
         });
@@ -386,6 +421,80 @@ export default {
       return secret;
     },
 
+    /**
+     * Edit flow: the auth secret already exists. Checks if the image-pull-secret exists;
+     * creates it if missing, then ensures it is wired into downstreamResources and helm values.
+     */
+    async ensureAppCoImagePullSecret(authSecretName) {
+      const namespace = this.value.metadata.namespace;
+      const imagePullSecretName = `${ authSecretName }-image-pull-secret`;
+
+      let imagePullSecret = this.$store.getters[`${ CATALOG._MANAGEMENT }/byId`](SECRET, `${ namespace }/${ imagePullSecretName }`);
+
+      if (!imagePullSecret) {
+        try {
+          imagePullSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: SECRET, id: `${ namespace }/${ imagePullSecretName }` });
+        } catch (e) {
+          // Does not exist yet — fetch the auth secret so we can recreate credentials
+          let authSecret;
+
+          try {
+            authSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: SECRET, id: `${ namespace }/${ authSecretName }` });
+          } catch (_) {
+            // Cannot access auth secret; skip image-pull-secret creation
+            return;
+          }
+
+          const registryHost = new URL(SUSE_APP_COLLECTION_REPO_URL.replace('oci://', 'https://')).host;
+          const username = authSecret.decodedData?.username || '';
+          const password = authSecret.decodedData?.password || '';
+          const config = { auths: { [registryHost]: { username, password } } };
+
+          const newSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
+            type:     SECRET,
+            _type:    SECRET_TYPES.DOCKER_JSON,
+            metadata: {
+              name:   imagePullSecretName,
+              namespace,
+              labels: { [FLEET_LABELS.MANAGED]: 'true' }
+            }
+          });
+
+          newSecret.setData('.dockerconfigjson', JSON.stringify(config));
+          await newSecret.save();
+        }
+      }
+
+      this.addAppCoImagePullSecretToSpec(imagePullSecretName);
+    },
+
+    /**
+     * Adds the image-pull-secret to downstreamResources (Secret kind) and
+     * to spec.helm.values.global.imagePullSecrets.
+     */
+    addAppCoImagePullSecretToSpec(imagePullSecretName) {
+      // Replace downstream resources: remove stale appco-auth-* image-pull-secrets, add the current one
+      const existingSecrets = (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'Secret');
+      const nonAppcoSecrets = existingSecrets.filter((r) => !r.name.startsWith(HELMOP_APPCO_AUTH_GENERATE_NAME));
+
+      this.updateDownstreamResources('Secret', [
+        ...nonAppcoSecrets.map((r) => r.name),
+        imagePullSecretName,
+      ]);
+
+      // Replace spec.helm.values.global.imagePullSecrets: remove stale appco-auth-* entries, add the current one
+      const currentValues = this.value.spec.helm.values || {};
+      const nonAppcoSecretNames = (currentValues?.global?.imagePullSecrets || []).filter((n) => !n.startsWith(HELMOP_APPCO_AUTH_GENERATE_NAME));
+
+      set(this.value, 'spec.helm.values', {
+        ...currentValues,
+        global: {
+          ...(currentValues.global || {}),
+          imagePullSecrets: [imagePullSecretName],
+        },
+      });
+    },
+
     updateYamlForm() {
       if (this.$refs.yaml) {
         this.$refs.yaml.updateValue(this.chartValues);
@@ -406,6 +515,16 @@ export default {
 
       if (this.mode === _CREATE) {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
+      }
+
+      // For OCI sources with a chart name, merge repo + chart into a single repo field
+      // e.g. oci://dp.apps.rancher.io/charts + my-app => oci://dp.apps.rancher.io/charts/my-app (SUSE App Collection)
+      if (this.sourceType === SOURCE_TYPE.OCI && this.value.spec?.helm?.chart) {
+        const repo = (this.value.spec.helm.repo || '').replace(/\/$/, '');
+        const chart = this.value.spec.helm.chart;
+
+        set(this.value, 'spec.helm.repo', `${ repo }/${ chart }`);
+        delete this.value.spec.helm.chart;
       }
     },
 
@@ -431,6 +550,9 @@ export default {
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
           rules: ['ociRegistry'],
+        }, {
+          path:  'spec.helm.chart',
+          rules: ['noStartSlash'],
         }, {
           path:  'spec.helm.version',
           rules: ['semanticVersion'],
@@ -499,6 +621,7 @@ export default {
         :is-view="isView"
         :source-type="sourceType"
         :source-type-options="sourceTypeOptions"
+        :is-suse-app-collection="isSuseAppCollection"
         :fv-get-and-report-path-rules="fvGetAndReportPathRules"
         @update:source-type="onSourceTypeSelect"
       />
@@ -543,6 +666,7 @@ export default {
         :mode="mode"
         :is-view="isView"
         :source-type="sourceType"
+        :is-suse-app-collection="isSuseAppCollection"
         :temp-cached-values="tempCachedValues"
         :correct-drift-enabled="correctDriftEnabled"
         :polling-interval="pollingInterval"
@@ -591,6 +715,7 @@ export default {
             :is-view="isView"
             :source-type="sourceType"
             :source-type-options="sourceTypeOptions"
+            :is-suse-app-collection="isSuseAppCollection"
             :fv-get-and-report-path-rules="fvGetAndReportPathRules"
             @update:source-type="onSourceTypeSelect"
           />
@@ -647,6 +772,7 @@ export default {
             :mode="mode"
             :is-view="isView"
             :source-type="sourceType"
+            :is-suse-app-collection="isSuseAppCollection"
             :temp-cached-values="tempCachedValues"
             :correct-drift-enabled="correctDriftEnabled"
             :polling-interval="pollingInterval"
