@@ -269,22 +269,3 @@ export default {
     </ResourceTable>
   </div>
 </template>
-
-<style scoped lang="scss">
-  .capi-unsupported {
-    &.has-description {
-      border-bottom: none;
-      padding: 0px;
-      td {
-        padding-top: 0px;
-      }
-    }
-
-    & div {
-      & i {
-        margin-right: 0.1em;
-      }
-      display: flex;
-    }
-  }
-</style>
