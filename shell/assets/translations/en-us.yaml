@@ -5773,7 +5773,6 @@ projectMembers:
     createNs: Create Namespaces
     configmapsManage: Manage Config Maps
     ingressManage: Manage Ingress
-    projectcatalogsManage: Manage Project Catalogs
     projectroletemplatebindingsManage: Manage Project Members
     secretsManage: Manage Secrets
     serviceaccountsManage: Manage Service Accounts
