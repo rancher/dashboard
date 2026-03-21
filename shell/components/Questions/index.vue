@@ -1,5 +1,5 @@
 <script>
-import Jexl from 'jexl';
+import { bonsai } from 'bonsai-js';
 import Tab from '@shell/components/Tabbed/Tab';
 import { get, set } from '@shell/utils/object';
 import { sortBy, camelCase } from 'lodash';
@@ -16,6 +16,8 @@ import CloudCredentialType from './CloudCredential';
 import RadioType from './Radio';
 import YamlType from './Yaml';
 import Loading from '@shell/components/Loading';
+
+const bonsaiExpr = bonsai();
 
 export const knownTypes = {
   string:          StringType,
@@ -100,12 +102,12 @@ function migrate(expr) {
         out = `${ key } ${ op } "${ val }"`;
       }
     } else {
-      try {
-        Jexl.compile(expr);
+      const result = bonsaiExpr.validate(expr);
 
+      if ( result.valid ) {
         out = expr;
-      } catch (e) {
-        console.error('Error migrating expression:', expr); // eslint-disable-line no-console
+      } else {
+        console.error('Error migrating expression:', expr, result.errors[0]?.message); // eslint-disable-line no-console
 
         out = 'true';
       }
@@ -302,7 +304,7 @@ export default {
     },
     evalExpr(expr, values, question, allQuestions) {
       try {
-        const out = Jexl.evalSync(expr, values);
+        const out = bonsaiExpr.evaluateSync(expr, values);
 
         // console.log('Eval', expr, '=> ', out);
 
