@@ -1,13 +1,19 @@
 <script>
-import isEmpty from 'lodash/isEmpty';
 import AlertTable from '@shell/components/AlertTable';
-import { CATALOG, MONITORING } from '@shell/config/types';
+import { MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 import { buildGrafanaUrl, getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
-import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
+import {
+  canViewAlertManagerLink,
+  canViewGrafanaLink,
+  canViewPrometheusLink,
+  getClusterMonitoringDashboardValues,
+  getMonitoringApp,
+  hasAlertManagerEndpoint
+} from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
 import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
 import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
@@ -92,24 +98,24 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
-      const hash = {};
-
-      if ($store.getters['cluster/canList'](CATALOG.APP)) {
-        hash.apps = $store.dispatch('cluster/findAll', { type: CATALOG.APP });
-      }
+      const hash = {
+        dashboardValues: getClusterMonitoringDashboardValues($store),
+        monitoringApp:   getMonitoringApp($store)
+      };
       const res = await allHash(hash);
 
-      const rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
-      const dashboardValues = rancherMonitoring?.status?.dashboardValues || {};
+      const rancherMonitoring = res.monitoringApp;
+      const dashboardValues = res.dashboardValues || {};
       const isDashboardOnly = !!dashboardValues.grafanaURL && !dashboardValues.prometheusURL && !dashboardValues.alertmanagerURL;
       const canViewAlertManager = await canViewAlertManagerLink(this.$store);
       const canViewGrafana = await canViewGrafanaLink(this.$store);
       const canViewPrometheus = await canViewPrometheusLink(this.$store);
+      const canViewAlertTable = await hasAlertManagerEndpoint(this.$store);
       const alertmanagerMatch = findBy(externalLinks, 'group', 'alertmanager');
       const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
       const prometheusMatches = externalLinks.filter((el) => el.group === 'prometheus');
 
-      this.showAlertTable = canViewAlertManager;
+      this.showAlertTable = canViewAlertTable;
 
       if (dashboardValues.alertmanagerURL) {
         alertmanagerMatch.link = dashboardValues.alertmanagerURL;

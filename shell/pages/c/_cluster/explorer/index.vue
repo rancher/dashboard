@@ -30,8 +30,7 @@ import {
 import {
   monitoringStatus,
   canViewGrafanaLink,
-  getMonitoringApp,
-  getMonitoringDashboardValues,
+  getClusterMonitoringDashboardValues,
   hasAlertManagerEndpoint
 } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
@@ -110,8 +109,7 @@ export default {
     fetchClusterResources(this.$store, NODE);
 
     if (this.currentCluster) {
-      const monitoringApp = await getMonitoringApp(this.$store);
-      const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+      const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
 
       this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
       this.showEtcdInfoBanner = canProxyGrafanaQueries(dashboardValues);

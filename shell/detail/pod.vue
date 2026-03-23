@@ -17,10 +17,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
-import {
-  getMonitoringApp,
-  getMonitoringDashboardValues
-} from '@shell/utils/monitoring';
+import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
 const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
@@ -38,8 +35,7 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const monitoringApp = await getMonitoringApp(this.$store);
-    const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
 
     this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
     this.POD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-pod-containers-1', 'rancher-pod-containers', POD_METRICS_DETAIL_URL);

@@ -20,10 +20,7 @@ import {
   allDashboardsExist,
   buildMonitoringDashboardUrl
 } from '@shell/utils/grafana';
-import {
-  getMonitoringApp,
-  getMonitoringDashboardValues
-} from '@shell/utils/monitoring';
+import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
 import metricPoller from '@shell/mixins/metric-poller';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
@@ -77,8 +74,7 @@ export default {
       }
     }
 
-    const monitoringApp = await getMonitoringApp(this.$store);
-    const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
 
     this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
     this.NODE_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-node-detail-1', 'rancher-node-detail', NODE_METRICS_DETAIL_URL);

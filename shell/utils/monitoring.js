@@ -2,6 +2,7 @@
 
 import {
   CATALOG,
+  CONFIG_MAP,
   COUNT,
   ENDPOINTS,
   MONITORING,
@@ -12,6 +13,7 @@ import { findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
 
 export const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+export const MONITORING_DASHBOARD_VALUES_CONFIG_MAP = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboard-values`;
 
 // Can be used inside a components' computed property
 export function monitoringStatus() {
@@ -28,14 +30,22 @@ export function monitoringStatus() {
 
 export function haveV2Monitoring(getters) {
   const inStore = getters['getStoreNameByProductId'];
+  const monitoringAppId = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`;
+  const apps = getters[`${ inStore }/all`](CATALOG.APP) || [];
 
-  // Just check for the pod monitors CRD
-  const schemas = getters[`${ inStore }/all`](SCHEMA);
-  const exists = findBy(schemas, 'id', normalizeType(MONITORING.PODMONITOR));
   const counts = getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
   const monitoringApps = counts?.[CATALOG.APP]?.namespaces?.[CATTLE_MONITORING_NAMESPACE];
+  const monitoringApp = findBy(apps, 'id', monitoringAppId);
 
-  return !!exists || !!monitoringApps;
+  if (monitoringApps || monitoringApp) {
+    return true;
+  }
+
+  // Fall back to the legacy CRD signal for older embedded monitoring installs.
+  const schemas = getters[`${ inStore }/all`](SCHEMA);
+  const exists = findBy(schemas, 'id', normalizeType(MONITORING.PODMONITOR));
+
+  return !!exists;
 }
 
 export async function getMonitoringApp(store, storeName = 'cluster') {
@@ -55,6 +65,54 @@ export async function getMonitoringApp(store, storeName = 'cluster') {
 
 export function getMonitoringDashboardValues(monitoringApp) {
   return monitoringApp?.status?.dashboardValues || {};
+}
+
+export function getConfigMapMonitoringDashboardValues(configMap) {
+  const rawValues = configMap?.data?.['values.json'];
+
+  if (!rawValues) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawValues) || {};
+  } catch (e) {
+    console.error(`Failed to parse monitoring dashboard metadata from ConfigMap ${ MONITORING_DASHBOARD_VALUES_CONFIG_MAP }`, e); // eslint-disable-line no-console
+
+    return {};
+  }
+}
+
+export async function getMonitoringValuesConfigMap(store, storeName = 'cluster') {
+  if (!store.getters[`${ storeName }/schemaFor`](CONFIG_MAP)) {
+    return null;
+  }
+
+  try {
+    return await store.dispatch(`${ storeName }/find`, {
+      type: CONFIG_MAP,
+      id:   MONITORING_DASHBOARD_VALUES_CONFIG_MAP
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function getClusterMonitoringDashboardValues(store, storeName = 'cluster') {
+  const monitoringApp = await getMonitoringApp(store, storeName);
+  const appDashboardValues = getMonitoringDashboardValues(monitoringApp);
+
+  if (!isEmpty(appDashboardValues)) {
+    return appDashboardValues;
+  }
+
+  const configMap = await getMonitoringValuesConfigMap(store, storeName);
+
+  return getConfigMapMonitoringDashboardValues(configMap);
+}
+
+async function hasConfiguredMonitoringUrl(store, urlKey) {
+  return !!(await getClusterMonitoringDashboardValues(store))?.[urlKey];
 }
 
 async function hasEndpointSubsets(store, id) {
@@ -82,18 +140,15 @@ export async function hasPrometheusEndpoint(store) {
 }
 
 export async function canViewGrafanaLink(store) {
-  const monitoringApp = await getMonitoringApp(store);
-  const dashboardValues = getMonitoringDashboardValues(monitoringApp);
-
-  return !!dashboardValues.grafanaURL || await hasGrafanaEndpoint(store);
+  return await hasConfiguredMonitoringUrl(store, 'grafanaURL') || await hasGrafanaEndpoint(store);
 }
 
 export async function canViewAlertManagerLink(store) {
-  return await hasAlertManagerEndpoint(store);
+  return await hasConfiguredMonitoringUrl(store, 'alertmanagerURL') || await hasAlertManagerEndpoint(store);
 }
 
 export async function canViewPrometheusLink(store) {
-  return await hasPrometheusEndpoint(store);
+  return await hasConfiguredMonitoringUrl(store, 'prometheusURL') || await hasPrometheusEndpoint(store);
 }
 
 // Other ways we check for monitoring:

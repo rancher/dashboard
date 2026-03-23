@@ -2,6 +2,7 @@ import {
   buildMonitoringDashboardUrl,
   canProxyGrafanaQueries,
   computeDashboardUrl,
+  getDashboardUid,
   getClusterPrefix
 } from '@shell/utils/grafana';
 
@@ -67,6 +68,16 @@ describe('fx: buildMonitoringDashboardUrl', () => {
     const url = buildMonitoringDashboardUrl({}, 'rancher-node-1', 'rancher-node', '/fallback');
 
     expect(url).toStrictEqual('/fallback');
+  });
+});
+
+describe('fx: getDashboardUid', () => {
+  it('extracts the uid from a direct grafana dashboard url', () => {
+    expect(getDashboardUid('https://grafana.example.com/d/rancher-node-1/rancher-node?orgId=1')).toStrictEqual('rancher-node-1');
+  });
+
+  it('extracts the uid from a Rancher service proxy grafana url', () => {
+    expect(getDashboardUid('/api/v1/namespaces/monitoring/services/http:ext-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1')).toStrictEqual('rancher-cluster-1');
   });
 });
 

@@ -1,6 +1,6 @@
 import {
+  getClusterMonitoringDashboardValues,
   getMonitoringApp,
-  getMonitoringDashboardValues,
   haveV2Monitoring
 } from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
@@ -25,10 +25,16 @@ function trimTrailingSlash(url = '') {
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
-function getDashboardUid(embedUrl) {
+export function getDashboardUid(embedUrl) {
   const url = parseUrl(embedUrl);
+  const pathParts = url.path.split('/').filter(Boolean);
+  const dashboardPathIndex = pathParts.findIndex((part) => part === 'd');
 
-  return url.path.split('/')[2] || '';
+  if (dashboardPathIndex < 0) {
+    return '';
+  }
+
+  return pathParts[dashboardPathIndex + 1] || '';
 }
 
 function hasDashboardInventoryEntry(dashboardValues, uid) {
@@ -126,7 +132,7 @@ export async function allDashboardsExist(store, clusterId, embeddedUrls, storeNa
     const monitoringApp = await getMonitoringApp(store, storeName);
 
     monitoringVersion = monitoringApp?.currentVersion || '';
-    dashboardValues = getMonitoringDashboardValues(monitoringApp);
+    dashboardValues = await getClusterMonitoringDashboardValues(store, storeName);
   }
 
   const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId, dashboardValues));

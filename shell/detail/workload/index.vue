@@ -17,10 +17,7 @@ import {
 } from '@shell/utils/grafana';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { fetchNodesForServiceTargets } from '@shell/models/service';
-import {
-  getMonitoringApp,
-  getMonitoringDashboardValues
-} from '@shell/utils/monitoring';
+import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
 
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
@@ -64,8 +61,7 @@ export default {
     }
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
-    const monitoringApp = await getMonitoringApp(this.$store);
-    const dashboardValues = getMonitoringDashboardValues(monitoringApp);
+    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
 
     this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
     this.WORKLOAD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-workload-pods-1', 'rancher-workload-pods', WORKLOAD_METRICS_DETAIL_URL);
