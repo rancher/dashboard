@@ -837,6 +837,10 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  createAppCoAuth:
+    action: Save Secret
+    success: Secret Saved
+    waiting: Saving&hellip;
   registerApplication:
     action: Add Application
     success: Added
@@ -3364,6 +3368,20 @@ fleet:
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
+        auth:
+          label: Authentication
+          title: Set up SUSE App Collection Authentication
+          subtext: 'Create authentication credentials'
+          description: Provide your SUSE App Collection credentials to authenticate against the registry.
+          info: Enter your SUSE Application Collection username and password to create an authentication secret.
+          username: Username
+          usernamePlaceholder: e.g. user@example.com
+          password: Password
+          passwordPlaceholder: Your SUSE App Collection password
+          createButton: Create Auth Secret
+          createButtonWaiting: Creating&hellip;
+          createButtonSuccess: Auth Secret Created
+          created: 'Authentication secret created successfully.'
     source:
       title: Source
       selectLabel: Type

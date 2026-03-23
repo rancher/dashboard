@@ -8,6 +8,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
+import { AUTH_GENERATE_NAME } from '@shell/config/types';
 
 defineProps({
   value: {
@@ -124,26 +125,25 @@ const validatePollingInterval = () => {
       data-testid="helmOp-advanced-info"
     />
 
-    <h2>{{ isSuseAppCollection ? t('fleet.helmOp.auth.appco') : t('fleet.helmOp.auth.title') }}</h2>
+    <template v-if="!isSuseAppCollection">
+      <h2>{{ t('fleet.helmOp.auth.title') }}</h2>
 
-    <SelectOrCreateAuthSecret
-      :value="value.spec.helmSecretName"
-      :register-before-hook="registerBeforeHook"
-      :namespace="value.metadata.namespace"
-      :delegate-create-to-parent="true"
-      in-store="management"
-      :mode="mode"
-      :generate-name="isSuseAppCollection ? 'appco-auth-' : 'helmrepo-auth-'"
-      :label-key="isSuseAppCollection ? 'fleet.helmOp.auth.appco' : 'fleet.helmOp.auth.helm'"
-      :fixed-http-basic-auth="isSuseAppCollection"
-      :filter-basic-auth="isSuseAppCollection ? 'appco-auth-' : ''"
-      :allow-none="!isSuseAppCollection"
-      :pre-select="isSuseAppCollection && !tempCachedValues.helmSecretName ? { selected: '_basic' } : tempCachedValues.helmSecretName"
-      :cache-secrets="true"
-      :show-ssh-known-hosts="true"
-      @update:value="updateAuth($event, 'helmSecretName')"
-      @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
-    />
+      <SelectOrCreateAuthSecret
+        :value="value.spec.helmSecretName"
+        :register-before-hook="registerBeforeHook"
+        :namespace="value.metadata.namespace"
+        :delegate-create-to-parent="true"
+        in-store="management"
+        :mode="mode"
+        generate-name="helmrepo-auth-"
+        label-key="fleet.helmOp.auth.helm"
+        :pre-select="tempCachedValues.helmSecretName"
+        :cache-secrets="true"
+        :show-ssh-known-hosts="true"
+        @update:value="updateAuth($event, 'helmSecretName')"
+        @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
+      />
+    </template>
 
     <div class="row mt-20 mb-20">
       <div class="col span-6">

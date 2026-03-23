@@ -8,9 +8,9 @@ import { base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
-  AUTH_TYPE, CONFIG_MAP, FLEET, HELMOP_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
+  AUTH_TYPE, CATALOG as CATALOG_TYPES, CONFIG_MAP, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
 } from '@shell/config/types';
-import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { CATALOG, DESCRIPTION, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -29,6 +29,7 @@ import HelmOpChartTab from '@shell/components/fleet/HelmOpChartTab.vue';
 import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
+import HelmOpAppCoAuthTab from '@shell/components/fleet/HelmOpAppCoAuthTab.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -57,6 +58,7 @@ export default {
     HelmOpValuesTab,
     HelmOpTargetTab,
     HelmOpAdvancedTab,
+    HelmOpAppCoAuthTab,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -95,6 +97,7 @@ export default {
       chartValuesInit:  chartValues,
       correctDriftEnabled,
       tempCachedValues: {},
+      authCreateErrors: [],
       doneRouteList:    'c-cluster-fleet-application',
       isRealModeEdit:   this.realMode === _EDIT,
       targetsCreated:   '',
@@ -145,6 +148,15 @@ export default {
           ready:          this.isView || !!this.value.metadata.name,
           weight:         1
         },
+        ...( this.isSuseAppCollection ? [{
+          name:           'auth',
+          title:          this.t('fleet.helmOp.add.steps.auth.title'),
+          label:          this.t('fleet.helmOp.add.steps.auth.label'),
+          subtext:        this.t('fleet.helmOp.add.steps.auth.subtext'),
+          descriptionKey: 'fleet.helmOp.add.steps.auth.description',
+          ready:          this.isView || !!this.value.spec?.helmSecretName,
+          weight:         1
+        }] : []),
         {
           name:           'chart',
           title:          this.t('fleet.helmOp.add.steps.chart.title'),
@@ -321,7 +333,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
-    updateAuth(val, key) {
+    async updateAuth(val, key) {
       const spec = this.value.spec;
 
       if ( val ) {
@@ -330,24 +342,56 @@ export default {
         delete spec[key];
       }
 
+      // If the auth is created on suseAppCollection
+      // It add the globalValues and the downstreamSecret
+      if (this.isSuseAppCollection) {
+        await this.updateGlobalValuesAndDownstreamSecrets();
+      }
+
       this.updateCachedAuthVal(val, key);
     },
 
-    async doCreateSecrets(context) {
+    async onCreateAuth(credentials) {
+      this.authCreateErrors = [];
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(credentials.selected) ) {
+        return;
+      }
+      try {
+        await this.doCreate('helmSecretName', credentials);
+        await this.updateGlobalValuesAndDownstreamSecrets();
+      } catch (e) {
+        const msg = e?.message || String(e);
+
+        this.authCreateErrors = [msg];
+        throw e;
+      }
+    },
+
+    async updateGlobalValuesAndDownstreamSecrets() {
+      if (!this.value.spec.helmSecretName) {
+        return;
+      }
+      if (this.isSuseAppCollection) {
+        const rawSelected = this.value.spec.helmSecretName || '';
+        const authSecretName = rawSelected.includes('/') ? rawSelected.split('/')[1] : rawSelected;
+
+        await Promise.all([
+          this.ensureAppCoImagePullSecret(authSecretName),
+          this.ensureAppCoClusterRepo(authSecretName),
+        ]);
+      }
+    },
+
+    async doCreateSecrets() {
       if (this.tempCachedValues.clientSecretName) {
         await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
       }
 
-      if (this.tempCachedValues.helmSecretName) {
+      // For SUSE App Collection, helmSecretName is created eagerly in onCreateAuth (on Next click);
+      // ensureAppCoImagePullSecret and ensureAppCoClusterRepo are also called there.
+      // Skip all of that here to avoid duplicates.
+      if (!this.isSuseAppCollection && this.tempCachedValues.helmSecretName) {
         await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
-      }
-
-      if (this.isSuseAppCollection && this.tempCachedValues.helmSecretName) {
-        // authSecretName may be a full "namespace/name" id — extract just the name
-        const rawSelected = this.tempCachedValues.helmSecretName.selected || '';
-        const authSecretName = rawSelected.includes('/') ? rawSelected.split('/')[1] : rawSelected;
-
-        await this.ensureAppCoImagePullSecret(authSecretName);
       }
     },
 
@@ -378,7 +422,7 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: this.isSuseAppCollection ? HELMOP_APPCO_AUTH_GENERATE_NAME : AUTH_GENERATE_NAME,
+            generateName: this.isSuseAppCollection ? FLEET_APPCO_AUTH_GENERATE_NAME : AUTH_GENERATE_NAME,
             labels:       { [FLEET_LABELS.MANAGED]: 'true' }
           }
         });
@@ -469,30 +513,71 @@ export default {
     },
 
     /**
+     * Creates a ClusterRepo named `fleet-{authSecretName}` for the SUSE App Collection
+     * pointing to the locked OCI URL and referencing the given auth secret.
+     * If the repo already exists the save will fail (409) and the error propagates.
+     */
+    async ensureAppCoClusterRepo(authSecretName) {
+      const repoName = authSecretName.replace('auth', 'repo');
+
+      try {
+        const repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
+          type:     CATALOG_TYPES.CLUSTER_REPO,
+          metadata: {
+            name:        repoName,
+            annotations: {
+              [DESCRIPTION]:                 this.t('catalog.repo.target.suseAppCollection.description'),
+              [CATALOG.SUSE_APP_COLLECTION]: 'true',
+            },
+          },
+          spec: {
+            url:          SUSE_APP_COLLECTION_REPO_URL,
+            clientSecret: {
+              namespace: this.value.metadata.namespace,
+              name:      authSecretName,
+            },
+          },
+        });
+
+        await repo.save();
+      } catch (e) {
+        if (e.status === 409) {
+          // Repo already exists — likely from a previous attempt to save the HelmOp. Ignore.
+          return;
+        }
+
+        throw e;
+      }
+    },
+
+    /**
      * Adds the image-pull-secret to downstreamResources (Secret kind) and
      * to spec.helm.values.global.imagePullSecrets.
      */
     addAppCoImagePullSecretToSpec(imagePullSecretName) {
-      // Replace downstream resources: remove stale appco-auth-* image-pull-secrets, add the current one
+      // Replace downstream resources: remove stale fleet-appco-auth-* image-pull-secrets, add the current one
       const existingSecrets = (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'Secret');
-      const nonAppcoSecrets = existingSecrets.filter((r) => !r.name.startsWith(HELMOP_APPCO_AUTH_GENERATE_NAME));
+      const nonAppcoSecrets = existingSecrets.filter((r) => !r.name.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME));
 
       this.updateDownstreamResources('Secret', [
         ...nonAppcoSecrets.map((r) => r.name),
         imagePullSecretName,
       ]);
 
-      // Replace spec.helm.values.global.imagePullSecrets: remove stale appco-auth-* entries, add the current one
+      // Replace spec.helm.values.global.imagePullSecrets: remove stale fleet-appco-auth-* entries, add the current one
       const currentValues = this.value.spec.helm.values || {};
-      const nonAppcoSecretNames = (currentValues?.global?.imagePullSecrets || []).filter((n) => !n.startsWith(HELMOP_APPCO_AUTH_GENERATE_NAME));
 
-      set(this.value, 'spec.helm.values', {
+      const newValues = {
         ...currentValues,
         global: {
           ...(currentValues.global || {}),
           imagePullSecrets: [imagePullSecretName],
         },
-      });
+      };
+
+      set(this.value, 'spec.helm.values', newValues);
+      this.chartValuesInit = saferDump(clone(newValues));
+      this.chartValues = saferDump(clone(newValues));
     },
 
     updateYamlForm() {
@@ -614,6 +699,22 @@ export default {
       />
     </template>
 
+    <template
+      v-if="isSuseAppCollection"
+      #auth
+    >
+      <HelmOpAppCoAuthTab
+        :value="value"
+        :mode="mode"
+        :is-view="isView"
+        :temp-cached-values="tempCachedValues"
+        :create-errors="authCreateErrors"
+        :on-create-auth="onCreateAuth"
+        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+        @update:auth="updateAuth($event.value, $event.key)"
+      />
+    </template>
+
     <template #chart>
       <HelmOpChartTab
         :value="value"
@@ -688,7 +789,7 @@ export default {
     </template>
 
     <template
-      v-if="isView && steps.length === 5"
+      v-if="isView && steps.length >= 5"
       #single
     >
       <NameNsDescription

@@ -421,10 +421,10 @@ export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
 export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
 
 /**
- * The `generateName` prefix used when creating Helm Op authentication secrets
+ * The `generateName` prefix used when creating Fleet Helm authentication secrets
  * for SUSE App Collection.
  */
-export const HELMOP_APPCO_AUTH_GENERATE_NAME = 'appco-auth-';
+export const FLEET_APPCO_AUTH_GENERATE_NAME = 'fleet-appco-auth-';
 
 /**
  * The `generateName` prefix used when creating Helm Op authentication secrets
