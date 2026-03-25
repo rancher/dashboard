@@ -59,6 +59,14 @@ export default {
     usedAsResourceName: {
       type:   Boolean,
       defaut: false
+    },
+
+    /**
+     * Override the default "Used" label text (e.g. "Running" for pods).
+     */
+    usedLabel: {
+      type:    String,
+      default: null
     }
   },
   computed: {
@@ -105,7 +113,7 @@ export default {
         <h4 v-if="usedAsResourceName">
           {{ resourceName }}
         </h4>
-        <span v-else>{{ t('node.detail.glance.consumptionGauge.used') }}</span>
+        <span v-else>{{ usedLabel || t('node.detail.glance.consumptionGauge.used') }}</span>
         <span class="numbers-stats">
           {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
           <span class="percentage"><i>/&nbsp;</i>{{ formattedPercentage }}</span>

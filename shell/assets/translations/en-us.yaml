@@ -5028,6 +5028,7 @@ node:
         cpu: CPU
         memory: MEMORY
         pods: PODS
+        running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
       memoryPressure: Memory Pressure
