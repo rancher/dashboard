@@ -30,7 +30,7 @@ jobs:
         ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           fetch-depth: 1
       - name: Setup env
@@ -60,7 +60,7 @@ jobs:
       
       # Upload to sorry cypress in case of failure
       - name: Upload screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
