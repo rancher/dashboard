@@ -27,23 +27,18 @@ interface WebpackRequireContext {
   id: string;
 }
 
-declare global {
-  // eslint-disable-next-line no-unused-vars
-  interface NodeRequire {
-    context(directory: string, useSubdirectories?: boolean, regExp?: RegExp): WebpackRequireContext;
-  }
-}
-
 // --- Webpack: require.context (compile-time transform) ---
 
 let imgCtx: WebpackRequireContext | null = null;
 let jsonCtx: WebpackRequireContext | null = null;
 
 try {
+  // @ts-expect-error — require.context is a webpack compile-time transform, not visible to TypeScript
   imgCtx = require.context('@shell/assets', true, /\.(svg|png|jpe?g|gif|ico|webp)$/);
 } catch (e) {}
 
 try {
+  // @ts-expect-error — require.context is a webpack compile-time transform, not visible to TypeScript
   jsonCtx = require.context('@shell/assets', true, /\.json$/);
 } catch (e) {}
 
