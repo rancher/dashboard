@@ -22,6 +22,7 @@ import Loading from '@shell/components/Loading.vue';
 import Config from './Config.vue';
 import Import from './Import.vue';
 
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
@@ -89,6 +90,7 @@ const defaultCluster = {
   labels:                  {},
   annotations:             {},
   windowsPreferedCluster:  false,
+  importedConfig:          { privateRegistryURL: null },
 };
 
 export const NETWORKING_AUTH_MODES = {
@@ -110,6 +112,7 @@ export default defineComponent({
     Labels,
     Accordion,
     Banner,
+    PrivateRegistry,
     Loading,
     Config,
     Import
@@ -176,6 +179,9 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
+    if (!this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
+    }
     if (this.isImport) {
       this.normanCluster.aksConfig = cloneDeep(importedDefaultAksConfig);
       this.config = this.normanCluster.aksConfig;
@@ -204,7 +210,7 @@ export default defineComponent({
 
     return {
       NETWORKING_AUTH_MODES,
-      normanCluster:    { name: '' } as any,
+      normanCluster:    { name: '', importedConfig: { privateRegistryURL: null } } as any,
       nodePools:        [] as AKSNodePool[],
       config:           { } as AKSConfig,
       membershipUpdate: {} as any,
@@ -225,10 +231,18 @@ export default defineComponent({
       {
         path:  'clusterName',
         rules: ['importedName']
+      },
+      {
+        path:  'normanCluster.importedConfig.privateRegistryURL',
+        rules: ['registryUrl']
       }
       ] : [{
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
+      },
+      {
+        path:  'normanCluster.importedConfig.privateRegistryURL',
+        rules: ['registryUrl']
       }],
     };
   },
@@ -248,6 +262,10 @@ export default defineComponent({
 
     isImport() {
       return this.$route?.query?.mode === _IMPORT;
+    },
+
+    isImportedCluster() {
+      return this.isImport || !!this.config?.imported;
     },
     /**
      * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here
@@ -526,6 +544,18 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isImportedCluster"
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
         />
       </Accordion>
     </div>

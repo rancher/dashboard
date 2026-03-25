@@ -19,6 +19,7 @@ import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
@@ -133,6 +134,7 @@ const defaultImportedCluster = {
   enableNetworkPolicy:    false,
   windowsPreferedCluster: false,
   name:                   '',
+  importedConfig:         { privateRegistryURL: null },
   gkeConfig:              {
     imported:               true,
     clusterName:            '',
@@ -155,6 +157,7 @@ export default defineComponent({
     Networking,
     GKENodePoolComponent,
     Config,
+    PrivateRegistry,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -198,6 +201,9 @@ export default defineComponent({
       if (!this.$store.getters['auth/principalId'].includes('local://')) {
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
+    }
+    if (!this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
     }
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
@@ -246,7 +252,7 @@ export default defineComponent({
 
     return {
       isImport,
-      normanCluster:    { name: '' } as any,
+      normanCluster:    { name: '', importedConfig: { privateRegistryURL: null } } as any,
       nodePools:        [] as GKENodePool[],
       config:           { } as GKEConfig,
       membershipUpdate: {} as any,
@@ -265,6 +271,9 @@ export default defineComponent({
       }, {
         path:  'importName',
         rules: ['importNameRequired']
+      }, {
+        path:  'normanCluster.importedConfig.privateRegistryURL',
+        rules: ['registryUrl']
       }] : [
         {
           path:  'diskSizeGb',
@@ -310,6 +319,10 @@ export default defineComponent({
           path:  'clusterIpv4Cidr',
           rules: ['clusterIpv4CidrFormat']
         },
+        {
+          path:  'normanCluster.importedConfig.privateRegistryURL',
+          rules: ['registryUrl']
+        },
       ],
       isAuthenticated: false,
 
@@ -337,6 +350,10 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    isImportedCluster() {
+      return this.isImport || !!this.config?.imported;
+    },
 
     /**
      * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here
@@ -571,6 +588,7 @@ export default defineComponent({
     'config.region'() {
       this.debouncedLoadGCPData();
     },
+
   },
 
   methods: {
@@ -915,6 +933,18 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isImportedCluster"
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
         />
       </Accordion>
     </div>

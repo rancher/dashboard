@@ -235,6 +235,52 @@ describe('eKS provisioning form', () => {
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
   });
 
+  it('should show the registries accordion when the mode is import', async() => {
+    const setup = {
+      global: {
+        mocks: {
+          $store:      mockedStore({ value: '<=1.27.x' }),
+          $route:      { query: { mode: 'import' } },
+          $fetchState: {},
+        },
+        stubs: { CruResource: false, Accordion: false }
+      }
+    };
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+    const registriesAccordion = wrapper.find('[data-testid="registries-accordion"]');
+
+    expect(registriesAccordion.exists()).toBe(true);
+  });
+
+  it('should show the registries accordion when editing an imported cluster', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG, imported: true } as EKSConfig);
+    const registriesAccordion = wrapper.find('[data-testid="registries-accordion"]');
+
+    expect(registriesAccordion.exists()).toBe(true);
+  });
+
+  it('should not show the registries accordion for a non-imported cluster', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+    const registriesAccordion = wrapper.find('[data-testid="registries-accordion"]');
+
+    expect(registriesAccordion.exists()).toBe(false);
+  });
+
   it('should fetch ssh keys from the aws api and save response as list of keypair KeyNames', async() => {
     const setup = requiredSetup();
 

@@ -27,7 +27,7 @@ import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
@@ -45,7 +45,7 @@ export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, LabeledInput, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -84,7 +84,6 @@ export default defineComponent({
         this.normanCluster.importedConfig = {};
       }
 
-      this.showPrivateRegistryInput = !!this.normanCluster?.importedConfig?.privateRegistryURL;
       this.getVersions();
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
@@ -108,7 +107,6 @@ export default defineComponent({
 
   data() {
     return {
-      showPrivateRegistryInput:                 false,
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
       loadingVersions:                          false,
       membershipUpdate:                         {},
@@ -407,16 +405,7 @@ export default defineComponent({
         }
       }
     },
-  },
-
-  watch: {
-    showPrivateRegistryInput(value) {
-      if (!value) {
-        this.normanCluster.importedConfig.privateRegistryURL = null;
-      }
-    }
   }
-
 });
 </script>
 
@@ -607,27 +596,12 @@ export default defineComponent({
         data-testid="registries-accordion"
         :open-initially="false"
       >
-        <Banner
-          color="info"
-          class="mt-0"
-        >
-          {{ t('cluster.privateRegistry.importedDescription') }}
-        </Banner>
-        <Checkbox
-          v-model:value="showPrivateRegistryInput"
-          class="mb-20"
-          :mode="mode"
-          :label="t('cluster.privateRegistry.label')"
-          data-testid="private-registry-enable-checkbox"
-        />
-        <LabeledInput
-          v-if="showPrivateRegistryInput"
+        <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           :mode="mode"
           :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
-          label-key="catalog.chart.registry.custom.inputLabel"
-          data-testid="private-registry-url"
-          :placeholder="t('catalog.chart.registry.custom.placeholder')"
+          checkbox-test-id="private-registry-enable-checkbox"
+          input-test-id="private-registry-url"
         />
       </Accordion>
       <Accordion
