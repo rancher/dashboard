@@ -663,6 +663,36 @@ export default {
       ev?.preventDefault?.();
       ev?.stopPropagation?.();
 
+      // Check if a plugin with the same name is already installed from a different source
+      // This happens when the same extension exists in multiple repos and the user tries to install from another repo
+      if (action === 'install') {
+        const installedPlugin = this.available.find((p) => p.name === plugin.name && p.installed);
+        const isInstalledFromDifferentSource = !!installedPlugin && installedPlugin.id !== plugin.id;
+
+        if (isInstalledFromDifferentSource) {
+          // Show a different dialog that prompts the user to uninstall the existing version first
+          this.$store.dispatch('management/promptModal', {
+            component:                            'UninstallExistingExtensionDialog',
+            testId:                               'uninstall-existing-extension-modal',
+            returnFocusSelector:                  `[data-testid="extension-card-${ action }-btn-${ plugin?.name }"]`,
+            returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+            componentProps:                       {
+              installedPlugin,
+              updateStatus: (pluginId, type) => {
+                this.updatePluginInstallStatus(pluginId, type);
+              },
+              closed: (res) => {
+                if (res?.uninstalled) {
+                  this.didUninstall(res.plugin);
+                }
+              }
+            }
+          });
+
+          return;
+        }
+      }
+
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
         testId:                               'install-extension-modal',

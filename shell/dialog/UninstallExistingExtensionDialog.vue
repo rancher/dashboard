@@ -5,6 +5,10 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
+/**
+ * Dialog shown when user tries to install an extension that is already installed from a different source.
+ * Prompts the user to uninstall the existing version first before installing from the new source.
+ */
 export default {
   emits: ['close'],
 
@@ -12,9 +16,9 @@ export default {
 
   props: {
     /**
-     * Plugin object
+     * The installed plugin that needs to be uninstalled
      */
-    plugin: {
+    installedPlugin: {
       type:     Object,
       default:  () => {},
       required: true
@@ -52,10 +56,6 @@ export default {
   computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
 
   methods: {
-    showDialog(plugin) {
-      this.plugin = plugin;
-      this.busy = false;
-    },
     closeDialog(result) {
       this.closed(result);
       this.$emit('close');
@@ -63,7 +63,7 @@ export default {
     async uninstall() {
       this.busy = true;
 
-      const plugin = this.plugin;
+      const plugin = this.installedPlugin;
 
       this.updateStatus(plugin.id, 'uninstall');
 
@@ -89,12 +89,17 @@ export default {
             message: e.message ? e.message : e,
             timeout: 10000
           }, { root: true });
+
+          this.busy = false;
+
+          return;
         }
 
         await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }
 
-      this.closeDialog(plugin);
+      // Close the dialog
+      this.closeDialog({ uninstalled: true, plugin });
     }
   }
 };
@@ -103,27 +108,27 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t('plugins.uninstall.title', { name: `"${plugin?.label}"` }, true) }}
+      {{ t('plugins.install.alreadyInstalledTitle') }}
     </h4>
     <div class="mt-10 dialog-panel">
       <div class="dialog-info">
         <p>
-          {{ t('plugins.uninstall.prompt') }}
+          {{ t('plugins.install.alreadyInstalledPrompt') }}
         </p>
       </div>
       <div class="dialog-buttons">
         <button
           :disabled="busy"
           class="btn role-secondary"
-          data-testid="uninstall-ext-modal-cancel-btn"
+          data-testid="uninstall-existing-ext-modal-cancel-btn"
           @click="closeDialog(false)"
         >
           {{ t('generic.cancel') }}
         </button>
         <AsyncButton
           mode="uninstall"
-          :icon="busy ? '' : 'icon-delete'"
-          data-testid="uninstall-ext-modal-uninstall-btn"
+          :action-label="t('plugins.install.uninstallExisting')"
+          data-testid="uninstall-existing-ext-modal-uninstall-btn"
           @click="uninstall()"
         />
       </div>

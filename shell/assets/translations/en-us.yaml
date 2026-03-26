@@ -5571,6 +5571,9 @@ plugins:
     prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
+    alreadyInstalledTitle: This extension is already installed from another source
+    alreadyInstalledPrompt: To install it from this source, you need to uninstall the existing version first and reload the page (required). Would you like to continue?
+    uninstallExisting: Uninstall existing version
   upgrade:
     label: Upgrade
     title: Upgrade extension {name}
