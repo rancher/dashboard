@@ -195,6 +195,16 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    /**
+     * When true and no value is already set, auto-select the first existing
+     * secret from the options list after secrets have been fetched.
+     * Falls back to the preSelect value when no existing secrets are found.
+     */
+    selectFirstExisting: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   async fetch() {
@@ -229,6 +239,16 @@ export default {
     }
 
     this.updateSelectedFromValue();
+
+    // Auto-select the first existing secret if enabled and no value is already bound
+    if (this.selectFirstExisting && !this.value) {
+      const firstExisting = this.options.find((o) => !o.disabled && !o.kind && o.value && !Object.values(AUTH_TYPE).includes(o.value));
+
+      if (firstExisting) {
+        this.selected = firstExisting.value;
+      }
+    }
+
     this.update();
   },
 

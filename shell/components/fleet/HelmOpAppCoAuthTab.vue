@@ -104,6 +104,7 @@ const saveSecret = async(buttonCb) => {
       :filter-basic-auth="FLEET_APPCO_AUTH_GENERATE_NAME"
       :allow-none="false"
       :pre-select="preSelectedValue"
+      :select-first-existing="true"
       :cache-secrets="true"
       @update:value="updateAuth($event, 'helmSecretName')"
       @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
