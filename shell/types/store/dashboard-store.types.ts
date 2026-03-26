@@ -2,14 +2,25 @@ import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 import { PaginationArgs, StorePagination } from '@shell/types/store/pagination.types';
 
 /**
- * Properties on all findX actions
+ * @internal
+ * Core properties on all findX actions
  */
-export type ActionCoreFindArgs = {
+export type ActionCoreFindOptions = {
+  /**
+   * Use this to override URL instead of looking up the URL for the type/id
+   */
   url?: string,
+  /**
+   * Force the request to go to the server instead of checking for a cached value first
+   */
   force?: boolean,
 }
 
-export interface ActionFindArgs extends ActionCoreFindArgs {
+/**
+ * @internal
+ * Args used for find action
+ */
+export interface ActionFindArgs extends ActionCoreFindOptions {
   /**
    * Watch for changes
    *
@@ -17,23 +28,62 @@ export interface ActionFindArgs extends ActionCoreFindArgs {
    */
   watch?: boolean,
   /**
-   * If true don't persist the http response to the store, just pass it back (default: false)
+   * @internal
+   * Whether to invalidate the page cache (default: false)
    */
-  transient?: boolean,
-  //  invalidatePageCache: boolean - whether to invalidate the page cache (default: false) ? is desc and default right ? ok
-  //  method: string - XHR request get, post, put, delete (default: get) ? (used on steve "request" action)
-  //  headers: object - custom headers for the request (used on steve "request" action)
-  // namespaced? cannot find any usage of this but it would make sense...
+  invalidatePageCache?: boolean,
+  /**
+   * XHR request verbs `get`, `post`, `put`, `delete` (default: get)
+   */
+  method?: string,
+  /**
+   * Used if we want to specify custom headers for the request
+   */
+  headers?: object,
+  /**
+   * @internal
+   * Array of namespaces to filter by (used in url path, not part of pagination params)
+   */
+  namespaced?: string[],
+  /**
+   * @internal
+   * Sort by field
+   */
+  sortBy?: string,
+  /**
+   * @internal
+   * Sort order (asc or desc)
+   */
+  sortOrder?: string,
+  /**
+   * Use this to override URL instead of looking up the URL for the type/id
+   */
+  url?: string,
 }
 
 /**
+ * @interface
+ * Resources API "get" options
+ */
+export type GetMethodOptions = Omit<ActionFindArgs, 'invalidatePageCache' | 'namespaced' | 'sortBy' | 'sortOrder'>;
+
+/**
+ * @internal
  * Args used for findAll action
  */
-export interface ActionFindAllArgs extends ActionCoreFindArgs {
+export interface ActionFindAllArgs extends ActionCoreFindOptions {
+  /**
+   * Watch for changes
+   *
+   * false = no, all other values = yes
+   */
   watch?: boolean,
+  /**
+   * Array of namespaces to filter by (used in url path, not part of pagination params)
+   */
   namespaced?: string[],
   /**
-   * Should resources be fetched in increments?
+   * Properties that determine and control if resources should be fetched in increments
    */
   incremental?: {
     /**
@@ -55,24 +105,38 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
      */
     pageByNumber: boolean,
   },
+  /**
+   * @internal
+   * Flag to indicate if this request is coming from a list with manual refresh, which may require different handling in the store
+   */
   hasManualRefresh?: boolean,
+  /**
+   * Number of records to return per page
+   */
   limit?: number,
   /**
+   * @internal
    * Iterate over all pages and return all resources.
-   *
-   * This is done via the native kube pagination api, not steve
    */
   depaginate?: boolean,
   /**
+   * @internal
    * Specifies the name to use if we should save the count returned in the paginated request
    */
   saveCountAs?: string,
 }
 
 /**
+ * @interface
+ * Resources API "listAll" options
+ */
+export type ListAllMethodOptions = Omit<ActionFindAllArgs, 'hasManualRefresh' | 'depaginate' | 'saveCountAs'>;
+
+/**
+ * @internal
  * Args used for findPage action
  */
-export interface ActionFindPageArgs extends ActionCoreFindArgs {
+export interface ActionFindPageArgs extends ActionCoreFindOptions {
   /**
    * Set of pagination settings that creates the url.
    *
@@ -90,6 +154,7 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   watch?: boolean,
   /**
+   * @internal
    * Does this request stem from a list with manual refresh?
    */
   hasManualRefresh?: boolean,
@@ -98,6 +163,10 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   transient?: boolean,
 
+  /**
+   * @internal
+   * Specifies the name to use if we should save the count returned in the paginated request
+   */
   saveCountAs?: string,
 
   /**
@@ -114,13 +183,20 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
 }
 
 /**
+ * @interface
+ * Resources API "list" options
+ */
+export type ListMethodOptions = Omit<ActionFindPageArgs, 'hasManualRefresh' | 'saveCountAs'>;
+
+/**
+ * @internal
  * Response to the find action
- *
  * resource object returned by the API, or null if not found
  */
 export type ActionFindResponse<T = any> = T;
 
 /**
+ * @internal
  * Response to a transient (not stored in cache) findPage action
  */
 export type ActionFindPageTransientResponse<T = any> = {
@@ -129,6 +205,7 @@ export type ActionFindPageTransientResponse<T = any> = {
 };
 
 /**
+ * @internal
  * Response to the findPage action
  *
  * If the request was transient (not stored in cache) this will be an object contain all the details of the request
@@ -138,20 +215,54 @@ export type ActionFindPageTransientResponse<T = any> = {
 export type ActionFindPageResponse<T = any> = ActionFindPageTransientResponse | T[];
 
 /**
- * Args used for findPage action
+ * Args used for findMatching action
  */
-export interface ActionFindMatchingArgs extends ActionCoreFindArgs {
+export interface ActionFindMatchingArgs extends ActionCoreFindOptions {
+  /**
+   * Represents the label selector to filter by
+   * @example
+   * ```
+   * {
+   *   matchLabels: {
+   *     app: 'my-app',
+   *     tier: 'frontend'
+   *   },
+   *   matchExpressions: [
+   *     {
+   *       key: 'environment',
+   *       operator: 'In',
+   *       values: ['production', 'staging']
+   *     }
+   *   ]
+   * }
+   * ```
+   */
   labelSelector: KubeLabelSelector,
+  /**
+   * The single namespace to filter by (used in url path, not part of pagination params)
+   */
   namespaced?: string,
+  /**
+   * @internal
+   * Iterate over all pages and return all resources.
+   */
   depaginate?: boolean
 }
 
 /**
+ * @internal
  * Response to the findMatching action
  */
 export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
 
 /**
+ * @internal
  * Args used for findLabelSelector action
  */
 export type ActionFindLabelSelectorArgs = ActionFindPageArgs | ActionFindMatchingArgs;
+
+/**
+ * @interface
+ * Resources API "labelSelector" options
+ */
+export type LabelSelectorMethodOptions = ListMethodOptions | Omit<ActionFindMatchingArgs, 'depaginate'>;

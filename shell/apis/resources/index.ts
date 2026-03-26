@@ -1,15 +1,14 @@
 import { Store } from 'vuex';
 import { ClusterApi, MgmtApi, ResourcesApi } from '@shell/apis/intf/resources';
-import { ClusterApiImpl } from './cluster';
-import { MgmtApiImpl } from './mgmt';
+import { ResourcesApiClassImpl } from './resources-api-class';
 
 export class ResourcesApiImpl implements ResourcesApi {
   private clusterApi: ClusterApi;
   private mgmtApi: MgmtApi;
 
   constructor(store: Store<any>) {
-    this.clusterApi = new ClusterApiImpl(store);
-    this.mgmtApi = new MgmtApiImpl(store);
+    this.clusterApi = new ResourcesApiClassImpl(store, 'cluster');
+    this.mgmtApi = new ResourcesApiClassImpl(store, 'management');
   }
 
   get cluster(): ClusterApi {

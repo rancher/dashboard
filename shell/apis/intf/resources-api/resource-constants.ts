@@ -2,8 +2,6 @@
  * Resource type constants for Kubernetes and Rancher resources.
  * Use these constants instead of string literals for type safety and autocomplete.
  *
- * This file dynamically generates K8S constants from shell/config/types.js
- * to avoid duplication and ensure consistency.
  *
  * @example
  * ```ts
@@ -46,7 +44,6 @@ import {
 
 /**
  * Kubernetes core and common resource types
- * Dynamically generated from shell/config/types.js
  */
 export const K8S = {
   // Core resources
@@ -185,6 +182,7 @@ export const K8S = {
 } as const;
 
 /**
- * Type helper to extract resource type values from K8S constants
+ * Type helper to extract resource type values from K8S constants.
+ * Check **{@link K8S}** constant documentation
  */
 export type K8SResourceType = typeof K8S[keyof typeof K8S];

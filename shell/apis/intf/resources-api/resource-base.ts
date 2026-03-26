@@ -1,7 +1,8 @@
 import { K8SResourceType } from './resource-constants';
 
 /**
- * The type of the resource - can be a string (for CRDs) or a constant from K8S
+ * @interface
+ * The type of the resource - can be a **string** (for CRDs) or a constant from **{@link K8S}**
  *
  * @example
  * ```ts
@@ -15,22 +16,3 @@ import { K8SResourceType } from './resource-constants';
  * ```
  */
 export type ResourceType = K8SResourceType | string;
-
-/**
- * Base interface for all resource objects returned from the API
- * @internal
- */
-export interface ResourceBase {
-  id?: string;
-  type?: string;
-  metadata?: {
-    name?: string;
-    namespace?: string;
-    uid?: string;
-    resourceVersion?: string;
-    labels?: Record<string, string>;
-    annotations?: Record<string, string>;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}

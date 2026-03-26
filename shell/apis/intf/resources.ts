@@ -4,8 +4,13 @@ import { MgmtApi } from '@shell/apis/intf/resources-api/mgmt-api';
 
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
-export * from '@shell/apis/intf/resources-api/resource-base';
+export { ResourceType } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
+
+export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
+export {
+  GetMethodOptions, ListAllMethodOptions, ListMethodOptions, LabelSelectorMethodOptions
+} from '@shell/types/store/dashboard-store.types';
 
 /**
  * @internal
@@ -29,7 +34,7 @@ export * from '@shell/apis/intf/resources-api/resource-constants';
  */
 export interface ResourcesApi {
   /**
-   * Provides access to the Cluster API which can be used for managing cluster resources in Rancher UI.
+   * Provides access to the Cluster API which can be used for managing Kubernetes cluster resources.
    * This includes Kubernetes native resources like Pods, Deployments, Services, etc.
    */
   get cluster(): ClusterApi;
