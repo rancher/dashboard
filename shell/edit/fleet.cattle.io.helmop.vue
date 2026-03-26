@@ -67,12 +67,12 @@ export default {
     // Fetch Secrets and ConfigMaps to mask the loading phase in FleetValuesFrom.vue
     checkSchemasForFindAllHash({
       allSecrets: {
-        inStoreType: 'management',
+        inStoreType: CATALOG._MANAGEMENT,
         type:        SECRET
       },
 
       allConfigMaps: {
-        inStoreType: 'management',
+        inStoreType: CATALOG._MANAGEMENT,
         type:        CONFIG_MAP
       }
     }, this.$store);
@@ -359,7 +359,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
-    async updateAuth(val, key) {
+    async updateAuth(val, key, doNotUpdateGlobalValuesAndDownstreamSecrets = false) {
       const spec = this.value.spec;
 
       if ( val ) {
@@ -368,13 +368,9 @@ export default {
         delete spec[key];
       }
 
-      // If the auth is created on suseAppCollection
-      // It add the globalValues and the downstreamSecret
-      if (this.isSuseAppCollection) {
+      if (this.isSuseAppCollection && !doNotUpdateGlobalValuesAndDownstreamSecrets) {
         await this.updateGlobalValuesAndDownstreamSecrets();
       }
-
-      this.updateCachedAuthVal(val, key);
     },
 
     async onCreateAuth(credentials) {
@@ -384,7 +380,6 @@ export default {
       }
       try {
         await this.doCreate('helmSecretName', credentials);
-        await this.updateGlobalValuesAndDownstreamSecrets();
       } catch (e) {
         const msg = e?.message || String(e);
 
@@ -485,7 +480,7 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.metadata.name, name);
+        this.updateAuth(secret.metadata.name, name, true);
       });
 
       return secret;
@@ -673,7 +668,7 @@ export default {
           rules: ['required'],
         }, {
           path:  'spec.helm.version',
-          rules: this.isSuseAppCollection ? ['required'] : ['semanticVersion'],
+          rules: this.isSuseAppCollection ? ['required', 'semanticVersion'] : ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:

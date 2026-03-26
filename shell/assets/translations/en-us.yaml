@@ -841,6 +841,10 @@ asyncButton:
     action: Save Secret
     success: Secret Saved
     waiting: Saving&hellip;
+  setAppCoDefault:
+    action: Set as Default
+    success: Default Saved
+    waiting: Saving&hellip;
   registerApplication:
     action: Add Application
     success: Added
@@ -3481,6 +3485,9 @@ fleet:
       label: Authentication
       helm: Helm Authentication
       appco: SUSE App Collection Authentication
+      setDefault: Set as default for this workspace
+      setDefaultTooltip: When enabled, this secret will be pre-selected for new SUSE Application Collection App Bundles in this workspace.
+      alreadyDefault: This secret is already set as the default for this workspace.
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"

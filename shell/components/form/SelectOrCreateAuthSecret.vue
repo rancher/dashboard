@@ -195,16 +195,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
-    /**
-     * When true and no value is already set, auto-select the first existing
-     * secret from the options list after secrets have been fetched.
-     * Falls back to the preSelect value when no existing secrets are found.
-     */
-    selectFirstExisting: {
-      type:    Boolean,
-      default: false,
-    },
   },
 
   async fetch() {
@@ -239,15 +229,6 @@ export default {
     }
 
     this.updateSelectedFromValue();
-
-    // Auto-select the first existing secret if enabled and no value is already bound
-    if (this.selectFirstExisting && !this.value) {
-      const firstExisting = this.options.find((o) => !o.disabled && !o.kind && o.value && !Object.values(AUTH_TYPE).includes(o.value));
-
-      if (firstExisting) {
-        this.selected = firstExisting.value;
-      }
-    }
 
     this.update();
   },
@@ -322,6 +303,19 @@ export default {
               this.secretTypes.length &&
               !this.secretTypes.includes(x._type)
             ) {
+              return false;
+            }
+
+            return true;
+          });
+      } else if (this.cacheSecrets && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET)) {
+        // When cacheSecrets is true, findPage stored data in the Vuex store and set up a watch.
+        // Read from the live store array so new secrets (e.g. created by a parent component) are
+        // picked up reactively, instead of relying on the static snapshot in this.filteredSecrets.
+        filteredSecrets = (this.$store.getters[`${ this.inStore }/all`](SECRET) || [])
+          .filter((x) => this.filterByNamespace ? x.metadata.namespace === this.namespace : true)
+          .filter((x) => {
+            if (this.secretTypes.length && !this.secretTypes.includes(x._type)) {
               return false;
             }
 

@@ -68,21 +68,22 @@ const onChartSelect = (val) => {
   const versions = props.appCoChartEntries[val];
 
   if (versions && versions.length) {
-    emit('update:app-co-version-options', [
-      ...versions
-        .map((entry) => entry.version)
-        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-        .map((v) => ({
-          label: v,
-          value: v
-        }))
-    ]);
+    const sorted = versions
+      .map((entry) => entry.version)
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+      .map((v) => ({
+        label: v,
+        value: v
+      }));
+
+    emit('update:app-co-version-options', sorted);
+
+    // Auto-select the latest version
+    props.value.spec.helm.version = sorted[0].value;
   } else {
     emit('update:app-co-version-options', []);
+    props.value.spec.helm.version = '';
   }
-
-  // Reset version when chart changes
-  props.value.spec.helm.version = '';
 };
 
 const onVersionSelect = (val) => {
@@ -195,7 +196,7 @@ const onVersionSelect = (val) => {
           </div>
           <div class="row mb-20">
             <LabeledSelect
-              v-if="isSuseAppCollection"
+              v-if="isSuseAppCollection && appCoChartOptions?.length"
               :value="value.spec.helm.chart"
               :options="appCoChartOptions"
               :loading="appCoChartsLoading"
@@ -223,7 +224,7 @@ const onVersionSelect = (val) => {
         <div class="col span-4 helm-version">
           <div class="row mb-20">
             <LabeledSelect
-              v-if="isSuseAppCollection"
+              v-if="isSuseAppCollection && appCoVersionOptions?.length"
               :value="value.spec.helm.version"
               :options="appCoVersionOptions"
               :loading="appCoChartsLoading"

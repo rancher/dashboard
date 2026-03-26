@@ -140,6 +140,7 @@ export const FLEET = {
   CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
   OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
   OCI_STORAGE_SECRET_GENERATED: 'fleet.cattle.io/bundle-internal-secret',
+  APPCO_DEFAULT_AUTH:           'ui-suse-appco-default-auth',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
