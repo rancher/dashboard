@@ -13,7 +13,9 @@ export default {
 
   computed: {
     displayName() {
-      return this.t(`model.authConfig.provider.${ this.name }`);
+      const translationKey = this.name.replace('Provider', '');
+
+      return this.t(`model.authConfig.provider.${ translationKey }`);
     }
   },
 

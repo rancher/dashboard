@@ -2,29 +2,33 @@ import { insertAt } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 
+/**
+ * MISSING:
+ *             "_type": "oidcConfig",
+ */
 export const configType = {
-  activedirectory: 'ldap',
-  azuread:         'oauth',
-  openldap:        'ldap',
-  freeipa:         'ldap',
-  ping:            'saml',
-  adfs:            'saml',
-  keycloak:        'saml',
-  okta:            'saml',
-  shibboleth:      'saml',
-  googleoauth:     'oauth',
-  local:           '',
-  github:          'oauth',
-  githubapp:       'oauth',
-  keycloakoidc:    'oidc',
-  genericoidc:     'oidc',
-  cognito:         'oidc',
+  activeDirectoryProvider: 'ldap',
+  azureADProvider:         'oauth',
+  openLdapProvider:        'ldap',
+  freeIpaProvider:         'ldap',
+  pingProvider:            'saml',
+  adfsProvider:            'saml',
+  keyCloakProvider:        'saml',
+  oktaProvider:            'saml',
+  shibbolethProvider:      'saml',
+  googleOauthProvider:     'oauth',
+  localProvider:           '',
+  githubProvider:          'oauth',
+  githubAppProvider:       'oauth',
+  keyCloakOIDCProvider:    'oidc',
+  genericOIDCProvider:     'oidc',
+  cognitoProvider:         'oidc',
 };
 
 const imageOverrides = {
-  azuread:      'entraid',
-  keycloakoidc: 'keycloak',
-  genericoidc:  'openid',
+  azureADProvider: 'entraid',
+  keyCloakOIDCProvider: 'keycloak',
+  genericOIDCProvider: 'openid',
 };
 
 export default class AuthConfig extends SteveModel {
@@ -52,7 +56,7 @@ export default class AuthConfig extends SteveModel {
   }
 
   get configType() {
-    return configType[this.id];
+    return configType[this.type];
   }
 
   get sideLabel() {
