@@ -54,7 +54,7 @@ export default {
                 id:                  type,
                 label:               `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.label`,
                 description:         `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.description`,
-                icon:                FleetUtils.dashboardIcons[FLEET.SUSE_APP_COLLECTION],
+                bannerImage:         require('@shell/assets/images/content/suse.svg'),
                 disabled:            !canCreate,
                 tooltip:             canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
                 isSuseAppCollection: true,
