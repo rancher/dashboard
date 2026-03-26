@@ -8,7 +8,6 @@ import UnitInput from '@shell/components/form/UnitInput';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
-import { AUTH_GENERATE_NAME } from '@shell/config/types';
 
 defineProps({
   value: {

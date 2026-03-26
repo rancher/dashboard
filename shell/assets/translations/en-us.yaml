@@ -7205,7 +7205,6 @@ user:
           placeholder: Unix timestamp
 validation:
   noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
-  noStartSlash: '"{key}" must not start with "/"'
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'

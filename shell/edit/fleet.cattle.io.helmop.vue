@@ -201,6 +201,17 @@ export default {
         (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
     },
 
+    appCoRepoName() {
+      if (!this.isSuseAppCollection) {
+        return '';
+      }
+
+      const raw = this.value.spec?.helmSecretName || '';
+      const authName = raw.includes('/') ? raw.split('/')[1] : raw;
+
+      return authName ? authName.replace('auth', 'repo') : '';
+    },
+
     sourceTypeOptions() {
       return Object.values(SOURCE_TYPE).map((value) => ({
         value,
@@ -519,34 +530,41 @@ export default {
      */
     async ensureAppCoClusterRepo(authSecretName) {
       const repoName = authSecretName.replace('auth', 'repo');
+      let repo = this.$store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
 
-      try {
-        const repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
-          type:     CATALOG_TYPES.CLUSTER_REPO,
-          metadata: {
-            name:        repoName,
-            annotations: {
-              [DESCRIPTION]:                 this.t('catalog.repo.target.suseAppCollection.description'),
-              [CATALOG.SUSE_APP_COLLECTION]: 'true',
-            },
-          },
-          spec: {
-            url:          SUSE_APP_COLLECTION_REPO_URL,
-            clientSecret: {
-              namespace: this.value.metadata.namespace,
-              name:      authSecretName,
-            },
-          },
-        });
+      if (!repo) {
+        try {
+          repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: CATALOG_TYPES.CLUSTER_REPO, id: repoName });
+        } catch (e) {
+          try {
+            repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
+              type:     CATALOG_TYPES.CLUSTER_REPO,
+              metadata: {
+                name:        repoName,
+                annotations: {
+                  [DESCRIPTION]:                 this.t('catalog.repo.target.suseAppCollection.description'),
+                  [CATALOG.SUSE_APP_COLLECTION]: 'true',
+                },
+              },
+              spec: {
+                url:          SUSE_APP_COLLECTION_REPO_URL,
+                clientSecret: {
+                  namespace: this.value.metadata.namespace,
+                  name:      authSecretName,
+                },
+              },
+            });
 
-        await repo.save();
-      } catch (e) {
-        if (e.status === 409) {
-          // Repo already exists — likely from a previous attempt to save the HelmOp. Ignore.
-          return;
+            await repo.save();
+          } catch (e) {
+            if (e.status === 409) {
+              // Repo already exists — likely from a previous attempt to save the HelmOp. Ignore.
+              return;
+            }
+
+            throw e;
+          }
         }
-
-        throw e;
       }
     },
 
@@ -637,10 +655,10 @@ export default {
           rules: ['ociRegistry'],
         }, {
           path:  'spec.helm.chart',
-          rules: ['noStartSlash'],
+          rules: ['required'],
         }, {
           path:  'spec.helm.version',
-          rules: ['semanticVersion'],
+          rules: this.isSuseAppCollection ? ['required'] : ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
@@ -710,6 +728,7 @@ export default {
         :temp-cached-values="tempCachedValues"
         :create-errors="authCreateErrors"
         :on-create-auth="onCreateAuth"
+        :register-before-hook="registerBeforeHook"
         @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
         @update:auth="updateAuth($event.value, $event.key)"
       />
@@ -723,6 +742,7 @@ export default {
         :source-type="sourceType"
         :source-type-options="sourceTypeOptions"
         :is-suse-app-collection="isSuseAppCollection"
+        :app-co-repo-name="appCoRepoName"
         :fv-get-and-report-path-rules="fvGetAndReportPathRules"
         @update:source-type="onSourceTypeSelect"
       />
@@ -817,6 +837,7 @@ export default {
             :source-type="sourceType"
             :source-type-options="sourceTypeOptions"
             :is-suse-app-collection="isSuseAppCollection"
+            :app-co-repo-name="appCoRepoName"
             :fv-get-and-report-path-rules="fvGetAndReportPathRules"
             @update:source-type="onSourceTypeSelect"
           />

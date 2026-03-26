@@ -1,11 +1,14 @@
 <script setup>
+import { ref, watchEffect } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
+import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { CATALOG } from '@shell/config/labels-annotations';
 
-defineProps({
+const props = defineProps({
   value: {
     type:     Object,
     required: true
@@ -30,6 +33,10 @@ defineProps({
     type:    Boolean,
     default: false
   },
+  appCoRepoName: {
+    type:    String,
+    default: ''
+  },
   fvGetAndReportPathRules: {
     type:     Function,
     required: true
@@ -41,9 +48,113 @@ const emit = defineEmits(['update:source-type']);
 const store = useStore();
 const { t } = useI18n(store);
 
+const chartOptions = ref([]);
+const versionOptions = ref([]);
+const chartEntries = ref({});
+const chartsLoading = ref(false);
+
 const onSourceTypeSelect = (type) => {
   emit('update:source-type', type);
 };
+
+const onChartSelect = (val) => {
+  props.value.spec.helm.chart = val;
+
+  // Update available versions based on selected chart
+  const versions = chartEntries.value[val];
+
+  if (versions && versions.length) {
+    versionOptions.value = [
+      ...versions
+        .map((entry) => entry.version)
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+        .map((v) => ({
+          label: v,
+          value: v
+        }))
+    ];
+  } else {
+    versionOptions.value = [];
+  }
+
+  // Reset version when chart changes
+  props.value.spec.helm.version = '';
+};
+
+const onVersionSelect = (val) => {
+  props.value.spec.helm.version = val;
+};
+
+async function fetchAppCoCharts(repoName) {
+  if (!repoName) {
+    chartOptions.value = [];
+    chartEntries.value = {};
+    versionOptions.value = [];
+
+    return;
+  }
+
+  chartsLoading.value = true;
+
+  try {
+    let repo = store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
+
+    if (!repo) {
+      try {
+        repo = await store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
+          type: CATALOG_TYPES.CLUSTER_REPO,
+          id:   repoName,
+        });
+      } catch (e) {
+        chartOptions.value = [];
+        chartEntries.value = {};
+        versionOptions.value = [];
+
+        return;
+      }
+    }
+
+    const index = await repo.followLink('index');
+    const entries = index?.entries || {};
+
+    chartEntries.value = entries;
+
+    chartOptions.value = Object.keys(entries).sort().map((name) => ({
+      label: name,
+      value: name
+    }));
+
+    // If a chart is already selected (e.g. edit mode), populate its versions
+    const currentChart = props.value.spec?.helm?.chart;
+
+    if (currentChart && entries[currentChart]) {
+      const versions = entries[currentChart];
+
+      versionOptions.value = [
+        ...versions
+          .map((entry) => entry.version)
+          .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+          .map((v) => ({
+            label: v,
+            value: v
+          }))
+      ];
+    }
+  } catch (e) {
+    console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
+    chartOptions.value = [];
+    chartEntries.value = {};
+    versionOptions.value = [];
+  } finally {
+    chartsLoading.value = false;
+  }
+}
+
+watchEffect(() => {
+  if (props.isSuseAppCollection && props.appCoRepoName) {
+    fetchAppCoCharts(props.appCoRepoName);
+  }
+});
 
 </script>
 
@@ -150,7 +261,23 @@ const onSourceTypeSelect = (type) => {
             <!-- repo is pre-filled with oci://dp.apps.rancher.io/charts by the parent when isSuseAppCollection -->
           </div>
           <div class="row mb-20">
+            <LabeledSelect
+              v-if="isSuseAppCollection"
+              :value="value.spec.helm.chart"
+              :options="chartOptions"
+              :loading="chartsLoading"
+              :mode="mode"
+              :label="t('fleet.helmOp.source.oci.chartName.label')"
+              :placeholder="t('fleet.helmOp.source.oci.chartName.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.chart')"
+              :required="true"
+              :searchable="true"
+              :taggable="true"
+              option-key="value"
+              @update:value="onChartSelect"
+            />
             <LabeledInput
+              v-else
               v-model:value="value.spec.helm.chart"
               :mode="mode"
               :label="t('fleet.helmOp.source.oci.chartName.label')"
@@ -162,7 +289,23 @@ const onSourceTypeSelect = (type) => {
         </div>
         <div class="col span-4 helm-version">
           <div class="row mb-20">
+            <LabeledSelect
+              v-if="isSuseAppCollection"
+              :value="value.spec.helm.version"
+              :options="versionOptions"
+              :loading="chartsLoading"
+              :mode="mode"
+              :label="t('fleet.helmOp.source.version.label')"
+              :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
+              :required="true"
+              :searchable="true"
+              :taggable="true"
+              option-key="value"
+              @update:value="onVersionSelect"
+            />
             <LabeledInput
+              v-else
               v-model:value="value.spec.helm.version"
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"

@@ -32,6 +32,10 @@ const props = defineProps({
     type:     Function,
     required: true
   },
+  registerBeforeHook: {
+    type:     Function,
+    required: true
+  },
 });
 
 const emit = defineEmits(['update:cached-auth', 'update:auth']);
@@ -91,6 +95,7 @@ const saveSecret = async(buttonCb) => {
       :value="value.spec.helmSecretName"
       :namespace="value.metadata.namespace"
       :delegate-create-to-parent="true"
+      :register-before-hook="registerBeforeHook"
       in-store="management"
       :mode="mode"
       :generate-name="FLEET_APPCO_AUTH_GENERATE_NAME"

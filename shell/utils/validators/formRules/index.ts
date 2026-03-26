@@ -156,8 +156,6 @@ export default function(
 
   const noUpperCase: Validator = (val = '') => val.toLowerCase() !== val ? t('validation.noUpperCase', { key }) : undefined;
 
-  const noStartSlash: Validator = (val = '') => val.startsWith('/') ? t('validation.noStartSlash', { key }) : undefined;
-
   const cronSchedule: Validator = (val: string) => {
     try {
       cronScheduleRule.validation(val);
@@ -630,7 +628,6 @@ export default function(
     minLength,
     minValue,
     noUpperCase,
-    noStartSlash,
     ociRegistry,
     portNumber,
     registryUrl,
