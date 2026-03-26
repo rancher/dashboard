@@ -1,12 +1,9 @@
 <script setup>
-import { ref, watchEffect } from 'vue';
-import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
-import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import { CATALOG } from '@shell/config/labels-annotations';
 
 const props = defineProps({
   value: {
@@ -33,9 +30,21 @@ const props = defineProps({
     type:    Boolean,
     default: false
   },
-  appCoRepoName: {
-    type:    String,
-    default: ''
+  appCoChartOptions: {
+    type:    Array,
+    default: () => []
+  },
+  appCoVersionOptions: {
+    type:    Array,
+    default: () => []
+  },
+  appCoChartEntries: {
+    type:    Object,
+    default: () => ({})
+  },
+  appCoChartsLoading: {
+    type:    Boolean,
+    default: false
   },
   fvGetAndReportPathRules: {
     type:     Function,
@@ -43,15 +52,10 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:source-type']);
+const emit = defineEmits(['update:source-type', 'update:app-co-version-options']);
 
 const store = useStore();
 const { t } = useI18n(store);
-
-const chartOptions = ref([]);
-const versionOptions = ref([]);
-const chartEntries = ref({});
-const chartsLoading = ref(false);
 
 const onSourceTypeSelect = (type) => {
   emit('update:source-type', type);
@@ -61,10 +65,10 @@ const onChartSelect = (val) => {
   props.value.spec.helm.chart = val;
 
   // Update available versions based on selected chart
-  const versions = chartEntries.value[val];
+  const versions = props.appCoChartEntries[val];
 
   if (versions && versions.length) {
-    versionOptions.value = [
+    emit('update:app-co-version-options', [
       ...versions
         .map((entry) => entry.version)
         .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
@@ -72,9 +76,9 @@ const onChartSelect = (val) => {
           label: v,
           value: v
         }))
-    ];
+    ]);
   } else {
-    versionOptions.value = [];
+    emit('update:app-co-version-options', []);
   }
 
   // Reset version when chart changes
@@ -84,77 +88,6 @@ const onChartSelect = (val) => {
 const onVersionSelect = (val) => {
   props.value.spec.helm.version = val;
 };
-
-async function fetchAppCoCharts(repoName) {
-  if (!repoName) {
-    chartOptions.value = [];
-    chartEntries.value = {};
-    versionOptions.value = [];
-
-    return;
-  }
-
-  chartsLoading.value = true;
-
-  try {
-    let repo = store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
-
-    if (!repo) {
-      try {
-        repo = await store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
-          type: CATALOG_TYPES.CLUSTER_REPO,
-          id:   repoName,
-        });
-      } catch (e) {
-        chartOptions.value = [];
-        chartEntries.value = {};
-        versionOptions.value = [];
-
-        return;
-      }
-    }
-
-    const index = await repo.followLink('index');
-    const entries = index?.entries || {};
-
-    chartEntries.value = entries;
-
-    chartOptions.value = Object.keys(entries).sort().map((name) => ({
-      label: name,
-      value: name
-    }));
-
-    // If a chart is already selected (e.g. edit mode), populate its versions
-    const currentChart = props.value.spec?.helm?.chart;
-
-    if (currentChart && entries[currentChart]) {
-      const versions = entries[currentChart];
-
-      versionOptions.value = [
-        ...versions
-          .map((entry) => entry.version)
-          .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-          .map((v) => ({
-            label: v,
-            value: v
-          }))
-      ];
-    }
-  } catch (e) {
-    console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
-    chartOptions.value = [];
-    chartEntries.value = {};
-    versionOptions.value = [];
-  } finally {
-    chartsLoading.value = false;
-  }
-}
-
-watchEffect(() => {
-  if (props.isSuseAppCollection && props.appCoRepoName) {
-    fetchAppCoCharts(props.appCoRepoName);
-  }
-});
 
 </script>
 
@@ -264,8 +197,8 @@ watchEffect(() => {
             <LabeledSelect
               v-if="isSuseAppCollection"
               :value="value.spec.helm.chart"
-              :options="chartOptions"
-              :loading="chartsLoading"
+              :options="appCoChartOptions"
+              :loading="appCoChartsLoading"
               :mode="mode"
               :label="t('fleet.helmOp.source.oci.chartName.label')"
               :placeholder="t('fleet.helmOp.source.oci.chartName.placeholder', null, true)"
@@ -292,8 +225,8 @@ watchEffect(() => {
             <LabeledSelect
               v-if="isSuseAppCollection"
               :value="value.spec.helm.version"
-              :options="versionOptions"
-              :loading="chartsLoading"
+              :options="appCoVersionOptions"
+              :loading="appCoChartsLoading"
               :mode="mode"
               :label="t('fleet.helmOp.source.version.label')"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"

@@ -102,6 +102,12 @@ export default {
       isRealModeEdit:   this.realMode === _EDIT,
       targetsCreated:   '',
       fvFormRuleSets:   [],
+
+      appCoChartsCache:    {},
+      appCoChartOptions:   [],
+      appCoVersionOptions: [],
+      appCoChartEntries:   {},
+      appCoChartsLoading:  false,
     };
   },
 
@@ -288,6 +294,15 @@ export default {
       if (this.isCreate) {
         set(this.value, 'metadata.namespace', neu);
       }
+    },
+
+    appCoRepoName: {
+      immediate: true,
+      handler(repoName) {
+        if (this.isSuseAppCollection && repoName) {
+          this.fetchAppCoCharts(repoName);
+        }
+      },
     },
   },
 
@@ -670,6 +685,102 @@ export default {
       }
     },
 
+    async fetchAppCoCharts(repoName) {
+      if (!repoName) {
+        this.appCoChartOptions = [];
+        this.appCoChartEntries = {};
+        this.appCoVersionOptions = [];
+
+        return;
+      }
+
+      // Return cached data if available
+      if (this.appCoChartsCache[repoName]) {
+        const cached = this.appCoChartsCache[repoName];
+
+        this.appCoChartEntries = cached.entries;
+        this.appCoChartOptions = cached.chartOptions;
+
+        // Re-populate version options if a chart is already selected (e.g. edit mode)
+        const currentChart = this.value.spec?.helm?.chart;
+
+        if (currentChart && cached.entries[currentChart]) {
+          const versions = cached.entries[currentChart];
+
+          this.appCoVersionOptions = [
+            ...versions
+              .map((entry) => entry.version)
+              .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+              .map((v) => ({
+                label: v,
+                value: v
+              }))
+          ];
+        }
+
+        return;
+      }
+
+      this.appCoChartsLoading = true;
+
+      try {
+        let repo = this.$store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
+
+        if (!repo) {
+          try {
+            repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
+              type: CATALOG_TYPES.CLUSTER_REPO,
+              id:   repoName,
+            });
+          } catch (e) {
+            this.appCoChartOptions = [];
+            this.appCoChartEntries = {};
+            this.appCoVersionOptions = [];
+
+            return;
+          }
+        }
+
+        const index = await repo.followLink('index');
+        const entries = index?.entries || {};
+
+        const chartOptions = Object.keys(entries).sort().map((name) => ({
+          label: name,
+          value: name
+        }));
+
+        // Cache the fetched data
+        this.appCoChartsCache[repoName] = { entries, chartOptions };
+
+        this.appCoChartEntries = entries;
+        this.appCoChartOptions = chartOptions;
+
+        // If a chart is already selected (e.g. edit mode), populate its versions
+        const currentChart = this.value.spec?.helm?.chart;
+
+        if (currentChart && entries[currentChart]) {
+          const versions = entries[currentChart];
+
+          this.appCoVersionOptions = [
+            ...versions
+              .map((entry) => entry.version)
+              .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+              .map((v) => ({
+                label: v,
+                value: v
+              }))
+          ];
+        }
+      } catch (e) {
+        console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
+        this.appCoChartOptions = [];
+        this.appCoChartEntries = {};
+        this.appCoVersionOptions = [];
+      } finally {
+        this.appCoChartsLoading = false;
+      }
+    },
+
     updateDownstreamResources(kind, list) {
       switch (kind) {
       case 'Secret':
@@ -742,9 +853,13 @@ export default {
         :source-type="sourceType"
         :source-type-options="sourceTypeOptions"
         :is-suse-app-collection="isSuseAppCollection"
-        :app-co-repo-name="appCoRepoName"
+        :app-co-chart-options="appCoChartOptions"
+        :app-co-version-options="appCoVersionOptions"
+        :app-co-chart-entries="appCoChartEntries"
+        :app-co-charts-loading="appCoChartsLoading"
         :fv-get-and-report-path-rules="fvGetAndReportPathRules"
         @update:source-type="onSourceTypeSelect"
+        @update:app-co-version-options="appCoVersionOptions = $event"
       />
     </template>
 
@@ -837,9 +952,13 @@ export default {
             :source-type="sourceType"
             :source-type-options="sourceTypeOptions"
             :is-suse-app-collection="isSuseAppCollection"
-            :app-co-repo-name="appCoRepoName"
+            :app-co-chart-options="appCoChartOptions"
+            :app-co-version-options="appCoVersionOptions"
+            :app-co-chart-entries="appCoChartEntries"
+            :app-co-charts-loading="appCoChartsLoading"
             :fv-get-and-report-path-rules="fvGetAndReportPathRules"
             @update:source-type="onSourceTypeSelect"
+            @update:app-co-version-options="appCoVersionOptions = $event"
           />
         </Tab>
         <Tab
