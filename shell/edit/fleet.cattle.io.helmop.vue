@@ -2,6 +2,7 @@
 import { clone, set } from '@shell/utils/object';
 import semver from 'semver';
 import jsyaml from 'js-yaml';
+import { isPrerelease } from '@shell/utils/version';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
@@ -704,6 +705,7 @@ export default {
 
           this.appCoVersionOptions = [
             ...versions
+              .filter((entry) => !isPrerelease(entry.version))
               .map((entry) => entry.version)
               .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
               .map((v) => ({
@@ -758,6 +760,7 @@ export default {
 
           this.appCoVersionOptions = [
             ...versions
+              .filter((entry) => !isPrerelease(entry.version))
               .map((entry) => entry.version)
               .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
               .map((v) => ({

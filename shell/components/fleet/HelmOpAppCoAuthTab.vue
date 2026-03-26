@@ -58,7 +58,7 @@ const hasCredentials = computed(() => {
 const selectedSecretName = computed(() => {
   const raw = props.value.spec?.helmSecretName || '';
 
-  return raw.includes('/') ? raw.split('/')[1] : raw;
+  return raw?.includes?.('/') ? raw?.split?.('/')[1] : raw;
 });
 
 // Check if the selected secret is currently the workspace default
@@ -80,6 +80,18 @@ const isExistingSecretSelected = computed(() => {
 
 const isAlreadyDefault = computed(() => {
   return !!(selectedSecretName.value && selectedSecretName.value === currentDefault.value);
+});
+
+const preSelectValue = computed(() => {
+  if (props.tempCachedValues.helmSecretName) {
+    return props.tempCachedValues.helmSecretName;
+  }
+
+  if (currentDefault.value) {
+    return { selected: `${ props.value.metadata?.namespace }/${ currentDefault.value }` };
+  }
+
+  return { selected: AUTH_TYPE._BASIC };
 });
 
 const updateCachedAuthVal = async(value, key) => {
@@ -149,7 +161,7 @@ const saveAsDefault = async(buttonCb) => {
         :fixed-http-basic-auth="true"
         :filter-basic-auth="FLEET_APPCO_AUTH_GENERATE_NAME"
         :allow-none="false"
-        :pre-select="tempCachedValues.helmSecretName || { selected: AUTH_TYPE._BASIC }"
+        :pre-select="preSelectValue"
         :cache-secrets="true"
         @update:value="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"

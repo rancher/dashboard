@@ -4,6 +4,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
+import { isPrerelease } from '@shell/utils/version';
 
 const props = defineProps({
   value: {
@@ -69,6 +70,7 @@ const onChartSelect = (val) => {
 
   if (versions && versions.length) {
     const sorted = versions
+      .filter((entry) => !isPrerelease(entry.version))
       .map((entry) => entry.version)
       .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
       .map((v) => ({
