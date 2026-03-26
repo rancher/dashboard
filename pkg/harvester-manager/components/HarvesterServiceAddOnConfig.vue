@@ -1,9 +1,8 @@
 <script>
 import { mapGetters } from 'vuex';
 import semver from 'semver';
-
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SERVICE } from '@shell/config/types';
@@ -19,32 +18,20 @@ const HARVESTER_ADD_ON_CONFIG = [{
   default:      ''
 }];
 
+const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
+
 export default {
+  name: 'HarvesterServiceAddOnConfig',
+
   components: { LabeledSelect },
 
   props: {
-    mode: {
-      type:    String,
-      default: _CREATE,
-    },
-
-    value: {
+    resource: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-
-    registerBeforeHook: {
-      type:    Function,
-      default: null
-    },
-  },
-
-  created() {
-    if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.willSave, 'harvesterWillSave');
-    }
   },
 
   async fetch() {
@@ -61,19 +48,15 @@ export default {
   },
 
   data() {
+    const annotations = this.resource?.metadata?.annotations || {};
+
     const harvesterAddOnConfig = {};
 
     HARVESTER_ADD_ON_CONFIG.forEach((c) => {
-      harvesterAddOnConfig[c.variableName] = this.value.metadata.annotations[c.key] || c.default;
+      harvesterAddOnConfig[c.variableName] = annotations[c.key] || c.default;
     });
 
-    let showShareIP;
-
-    if (this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE]) {
-      showShareIP = true;
-    } else {
-      showShareIP = false;
-    }
+    const showShareIP = !!annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE];
 
     return {
       ...harvesterAddOnConfig,
@@ -84,6 +67,10 @@ export default {
 
   computed: {
     ...mapGetters(['allowedNamespaces', 'namespaces', 'currentCluster']),
+
+    currentMode() {
+      return this.$route?.query?.mode === _EDIT ? _EDIT : _CREATE;
+    },
 
     ipamOptions() {
       return [{
@@ -96,7 +83,7 @@ export default {
     },
 
     portOptions() {
-      const ports = this.value?.spec?.ports || [];
+      const ports = this.resource?.spec?.ports || [];
 
       return ports.filter((p) => p.port && p.protocol === 'TCP').map((p) => p.port) || [];
     },
@@ -111,7 +98,7 @@ export default {
         const ingress = s?.status?.loadBalancer?.ingress || [];
 
         return ingress.length > 0 &&
-                !s?.metadata?.annotations?.['cloudprovider.harvesterhci.io/primary-service'] &&
+                !s?.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE] &&
                 s.spec?.type === 'LoadBalancer' &&
                 namespaces[s.metadata.namespace];
       });
@@ -125,12 +112,13 @@ export default {
 
       if (kubernetesVersionExtension.startsWith('+rke2')) {
         const charts = ((this.rke2Versions?.data || []).find((v) => v.id === kubernetesVersion) || {}).charts;
-        let ccmVersion = charts?.['harvester-cloud-provider']?.version || '';
+        let ccmVersion = charts?.[HARVESTER_CLOUD_PROVIDER]?.version || '';
 
         if (ccmVersion.endsWith('00')) {
           ccmVersion = ccmVersion.slice(0, -2);
         }
 
+        // check since share IP is only supported in ccm version 0.2.0 and above
         return semver.satisfies(ccmVersion, '>=0.2.0');
       } else {
         return true;
@@ -138,28 +126,36 @@ export default {
     },
   },
 
+  watch: {
+    ipam() {
+      this.syncAnnotations();
+    },
+
+    sharedService() {
+      this.syncAnnotations();
+    },
+
+    showShareIP() {
+      this.syncAnnotations();
+    }
+  },
+
   methods: {
-    willSave() {
-      const errors = [];
-
-      if (this.showShareIP) {
-        if (!this.sharedService) {
-          errors.push(this.t('validation.required', { key: this.t('servicesPage.harvester.shareIP.label') }, true));
-        }
+    syncAnnotations() {
+      if (!this.resource?.metadata) {
+        return;
       }
 
-      if (errors.length > 0) {
-        return Promise.reject(errors);
-      }
+      this.resource.metadata.annotations = this.resource.metadata.annotations || {};
 
       HARVESTER_ADD_ON_CONFIG.forEach((c) => {
-        this.value.metadata.annotations[c.key] = String(get(this, c.variableName));
+        this.resource.metadata.annotations[c.key] = String(get(this, c.variableName));
       });
 
       if (this.showShareIP) {
-        delete this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM];
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM];
       } else {
-        delete this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE];
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE];
       }
     },
 
@@ -171,36 +167,34 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div class="row mt-30">
-      <div class="col span-6">
-        <LabeledSelect
-          v-if="showShareIP"
-          v-model:value="sharedService"
-          :mode="mode"
-          :options="serviceOptions"
-          :label="t('servicesPage.harvester.shareIP.label')"
-          :disabled="mode === 'edit'"
-        />
-        <LabeledSelect
-          v-else
-          v-model:value="ipam"
-          :mode="mode"
-          :options="ipamOptions"
-          :label="t('servicesPage.harvester.ipam.label')"
-          :disabled="mode === 'edit'"
-        />
-        <div
-          v-if="mode === 'create'"
-          class="mt-10"
+  <div class="row mt-30">
+    <div class="col span-6">
+      <LabeledSelect
+        v-if="showShareIP"
+        v-model:value="sharedService"
+        :mode="currentMode"
+        :options="serviceOptions"
+        :label="t('servicesPage.harvester.shareIP.label')"
+        :disabled="currentMode === 'edit'"
+      />
+      <LabeledSelect
+        v-else
+        v-model:value="ipam"
+        :mode="currentMode"
+        :options="ipamOptions"
+        :label="t('servicesPage.harvester.ipam.label')"
+        :disabled="currentMode === 'edit'"
+      />
+      <div
+        v-if="currentMode === 'create'"
+        class="mt-10"
+      >
+        <a
+          role="button"
+          @click="toggleShareIP"
         >
-          <a
-            role="button"
-            @click="toggleShareIP"
-          >
-            {{ showShareIP ? t('servicesPage.harvester.useIpam.label') : t('servicesPage.harvester.useShareIP.label') }}
-          </a>
-        </div>
+          {{ showShareIP ? t('servicesPage.harvester.useIpam.label') : t('servicesPage.harvester.useShareIP.label') }}
+        </a>
       </div>
     </div>
   </div>

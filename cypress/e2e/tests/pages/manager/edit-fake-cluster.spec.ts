@@ -13,7 +13,9 @@ const fakeMgmtClusterId = 'some-fake-mgmt-id';
 describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
   describe('Cluster Edit (Fake DO cluster)', () => {
     beforeEach(() => {
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId, true);
+      generateFakeClusterDataAndIntercepts({
+        fakeProvClusterId, fakeMgmtClusterId, addEditClusterCapabilities: true
+      });
 
       cy.login();
     });

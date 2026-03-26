@@ -16,7 +16,9 @@ describe('Side Menu: main', () => {
 
   describe('Needs intercepts BEFORE route navigation', () => {
     beforeEach(() => {
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({
+        fakeProvClusterId, fakeMgmtClusterId, longClusterDescription
+      });
 
       HomePagePo.goTo();
     });
@@ -29,8 +31,8 @@ describe('Side Menu: main', () => {
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
-      BurgerMenuPo.burgerMenuGetNavClusterbyLabel('local').should('exist');
-      BurgerMenuPo.burgerMenuGetNavClusterbyLabel(fakeProvClusterId).should('exist');
+      BurgerMenuPo.burgerMenuGetNavClusterByLabel('local').should('exist');
+      BurgerMenuPo.burgerMenuGetNavClusterByLabel(fakeProvClusterId).should('exist');
 
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
@@ -53,9 +55,9 @@ describe('Side Menu: main', () => {
       const burgerMenuPo = new BurgerMenuPo();
 
       // we cannot assert text truncation because it always adds to the HTML the full content
-      // truncation (text-overflow: ellipsis) is just a CSS gimick thing that adds the ... visually
-      burgerMenuPo.getClusterDescription().should('include', longClusterDescription);
-      burgerMenuPo.showClusterDescriptionTooltip();
+      // truncation (text-overflow: ellipsis) is just a CSS gimmick thing that adds the ... visually
+      burgerMenuPo.getClusterDescription('local').should('include', longClusterDescription);
+      burgerMenuPo.showClusterDescriptionTooltip('local');
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription).and('be.visible');
     });

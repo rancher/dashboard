@@ -196,7 +196,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     const featureFlags = [
       'continuous-delivery',
-      'Install Fleet when starting Rancher',
       'harvester',
       'harvester-baremetal-container-workload',
       'istio-virtual-service-ui',
@@ -231,7 +230,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
-        const featureCount = resp.body.count;
+        // We filter out fleet and ui-sql-cache feature flags
+        const featureCount = resp.body.count - 2;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
       });

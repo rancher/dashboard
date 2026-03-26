@@ -25,14 +25,12 @@ describe('User Retention', { testIsolation: 'off' }, () => {
 
   beforeEach(() => {
     cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
-    cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*').as('pageLoad');
   });
 
   describe('User retention: admin user', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('save button should be disabled when form is invalid', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
       userRetentionPo.disableAfterPeriodCheckbox().set();
       userRetentionPo.disableAfterPeriodInput().set('30d');
 
@@ -42,7 +40,6 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('save button should be enabled when form is valid', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
       userRetentionPo.disableAfterPeriodCheckbox().set();
       userRetentionPo.disableAfterPeriodInput().set('300h');
       userRetentionPo.userRetentionCron().set('0 0 1 1 *');
@@ -53,7 +50,6 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('can save user retention settings', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
 
       // Uncheck the data to make sure it is unchecked before the test starts.
       userRetentionPo.disableAfterPeriodCheckbox().uncheck();

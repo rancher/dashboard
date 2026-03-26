@@ -124,7 +124,9 @@ export const createExtensionManager = (context) => {
           } catch (e) {
             delete plugins[id];
 
-            return reject(new Error('Could not initialize plugin'));
+            console.error(`Could not initialize plugin ${ id }`, e); // eslint-disable-line no-console
+
+            return reject(new Error(`Could not initialize plugin ${ id } - ${ e?.message }`));
           }
 
           // Load all of the types etc from the plugin

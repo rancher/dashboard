@@ -584,14 +584,18 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
   const retry = () => {
-    cy.request({
+    cy.log('waitForRancherResource: ', retries, url);
+
+    return cy.request({
       method:  'GET',
       url,
       headers: {
         'x-api-csrf': token.value,
         Accept:       'application/json'
       },
-      failOnStatusCode: config?.failOnStatusCode === undefined ? true : !!config?.failOnStatusCode,
+      failOnStatusCode:      config?.failOnStatusCode === undefined ? true : config?.failOnStatusCode,
+      retryOnNetworkFailure: config?.retryOnNetworkFailure === undefined ? true : config?.retryOnNetworkFailure,
+      timeout:               config?.timeout
     })
       .then((resp) => {
         if (!testFn(resp)) {
@@ -618,7 +622,7 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
   let retries = 20;
 
   const retry = () => {
-    cy.request({
+    return cy.request({
       method:  'GET',
       url,
       headers: {
@@ -639,7 +643,8 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
         if (retries === 0) return resp;
         // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(1000);
-        retry();
+
+        return retry();
       });
   };
 
@@ -676,7 +681,7 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
   let retries = 10;
 
   const retry = () => {
-    cy.request({
+    return cy.request({
       method:  'DELETE',
       url:     `${ Cypress.env('api') }/v3/nodetemplate/${ nodeTemplateId }`,
       failOnStatusCode,
@@ -692,7 +697,8 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
 
         retries = retries - 1;
         if (retries === 0) return resp;
-        retry();
+
+        return retry();
       }
     });
   };
@@ -1165,11 +1171,11 @@ Cypress.Commands.add('isVaiCacheEnabled', () => {
     .then((res) => {
       // copy of shell/models/management.cattle.io.feature.js enabled
 
-      if (res.body.status.lockedValue !== null) {
+      if (res?.body?.status?.lockedValue !== null && res?.body?.status?.lockedValue !== undefined) {
         return res.body.status.lockedValue;
       }
 
-      return (res.body.spec.value !== null) ? res.body.spec.value : res.body.status.default;
+      return (res?.body?.spec?.value !== null && res?.body?.spec?.value !== undefined) ? res.body.spec.value : res?.body?.status?.default;
     });
 });
 

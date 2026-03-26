@@ -59,6 +59,13 @@ if (apiUrl && !baseUrl.startsWith(apiUrl)) {
   console.log('\n ❗ API variable is different to TEST_BASE_URL - tests may fail due to authentication issues');
 }
 
+// Conditionally enable Qase reporter only if reporting is requested AND a token is present
+const qaseEnabled = (process.env.QASE_REPORT === 'true' || process.env.qase_report === 'true') && !!(process.env.QASE_AUTOMATION_TOKEN || process.env.qase_automation_token);
+
+if (qaseEnabled) {
+  console.log('Qase: Reporting enabled. Automation token is defined.');
+}
+
 console.log('');
 
 /**
@@ -74,15 +81,15 @@ export default defineConfig({
     openMode: 0
   },
   env: {
-    grepFilterSpecs:     true,
+    grepFilterSpecs:     false,
     grepOmitFiltered:    true,
     baseUrl,
     api:                 apiUrl,
     username,
     password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    // Jenkins runs against Vai-enabled Rancher; exclude @noVai tests.
-    grepTags:            `${ process.env.GREP_TAGS }+-@noVai`,
+    // Note: grepTags is now fully calculated in cypress.sh entrypoint
+    grepTags:            process.env.CYPRESS_grepTags || process.env.GREP_TAGS,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
@@ -93,14 +100,12 @@ export default defineConfig({
     customNodeKey:       process.env.CUSTOM_NODE_KEY,
     accessibility:       !!process.env.TEST_A11Y, // Are we running accessibility tests?
     a11yFolder:          path.join('.', 'cypress', 'accessibility'),
-    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
-    customNodeIpRke1:    process.env.CUSTOM_NODE_IP_RKE1,
-    customNodeKeyRke1:   process.env.CUSTOM_NODE_KEY_RKE1
+    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT
   },
   // Jenkins reporters configuration jUnit and HTML
   reporter:        'cypress-multi-reporters',
   reporterOptions: {
-    reporterEnabled:                   'cypress-mochawesome-reporter, mocha-junit-reporter',
+    reporterEnabled:                   `cypress-mochawesome-reporter, mocha-junit-reporter${ qaseEnabled ? ', cypress-qase-reporter' : '' }`,
     mochaJunitReporterReporterOptions: {
       mochaFile:      'cypress/jenkins/reports/junit/junit-[hash].xml',
       toConsole:      true,
@@ -108,11 +113,70 @@ export default defineConfig({
       includePending: true
     },
     cypressMochawesomeReporterReporterOptions: { charts: false },
+    cypressQaseReporterReporterOptions:        {
+      mode:    qaseEnabled ? 'testops' : 'off',
+      debug:   true,
+      testops: {
+        api:               { token: process.env.QASE_AUTOMATION_TOKEN || process.env.qase_automation_token },
+        project:           process.env.QASE_PROJECT || process.env.qase_project || 'SANDBOX',
+        uploadAttachments: true,
+        run:               {
+          title:       `UI E2E - ${ process.env.RANCHER_IMAGE_TAG || 'unknown' } - ${ process.env.CYPRESS_grepTags || 'none' } - ${ new Date().toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC') }`,
+          description: `Rancher Version: ${ process.env.RANCHER_VERSION || 'unknown' } | Tags: ${ process.env.CYPRESS_grepTags || 'none' }`,
+          complete:    true
+        }
+      },
+      framework: { cypress: { screenshotsFolder: 'cypress/screenshots' } }
+    }
   },
   e2e: {
     setupNodeEvents(on, config) {
-      require('cypress-mochawesome-reporter/plugin')(on);
       require('@cypress/grep/src/plugin')(config);
+
+      const mochawesome = require('cypress-mochawesome-reporter/lib');
+
+      on('before:run', async(details: Cypress.BeforeRunDetails) => {
+        await mochawesome.beforeRunHook(details);
+        if (qaseEnabled) {
+          const { beforeRunHook } = require('cypress-qase-reporter/hooks');
+
+          await beforeRunHook(config);
+        }
+      });
+
+      if (qaseEnabled) {
+        const { afterSpecHook } = require('cypress-qase-reporter/hooks');
+        const fs = require('fs');
+        const qaseResultsPath = require.resolve('cypress-qase-reporter/hooks').replace('hooks.js', 'metadata/qaseResults');
+
+        on('after:spec', async(spec: Cypress.Spec) => {
+          // Filter out results without a Qase ID to avoid creating unlinked test cases
+          if (fs.existsSync(qaseResultsPath)) {
+            try {
+              const results = JSON.parse(fs.readFileSync(qaseResultsPath, 'utf8'));
+              // eslint-disable-next-line camelcase
+              const filtered = results.filter((r: { testops_id: number | number[] | null }) => r.testops_id !== null && r.testops_id !== undefined);
+
+              fs.writeFileSync(qaseResultsPath, JSON.stringify(filtered));
+            } catch (e) {
+              console.error('Error filtering Qase results:', e);
+            }
+          }
+
+          // afterSpecHook reads filtered results, uploads to Qase API, then clears the file
+          // It also handles video file matching using spec.name when video: true
+          await afterSpecHook(spec, config);
+        });
+      }
+
+      on('after:run', async() => {
+        await mochawesome.afterRunHook();
+        if (qaseEnabled) {
+          const { afterRunHook } = require('cypress-qase-reporter/hooks');
+
+          await afterRunHook(config);
+        }
+      });
 
       // Load Accessibility plugin if configured
       if (process.env.TEST_A11Y) {

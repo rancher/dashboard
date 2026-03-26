@@ -29,7 +29,7 @@ describe('Fleet HelmOps', { testIsolation: 'off', tags: ['@fleet', '@adminUser']
 
     it('Can create a HelmOp with Secrets and ConfigMaps', () => {
       // Generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       // Create test Secrets and ConfigMaps
       const secret1Name = `helmop-secret-${ Date.now() }-1`;

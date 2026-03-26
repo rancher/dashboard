@@ -32,6 +32,7 @@ node {
                         string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
                         string(credentialsId: 'GKE_SERVICE_ACCOUNT', variable: 'GKE_SERVICE_ACCOUNT'),
                         string(credentialsId: 'PERCY_TOKEN', variable: 'PERCY_TOKEN'),
+                        string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN'),
                         string(credentialsId: 'UI_SLACK_BOT_TOKEN', variable: 'UI_SLACK_BOT_TOKEN'),
                         string(credentialsId: 'UI_SLACK_CHANNEL', variable: 'UI_SLACK_CHANNEL')
                         ]) {
@@ -62,8 +63,6 @@ node {
               }
               stage('Run Tests') {
                 try {
-                  sh 'pwd'
-                  sh 'ls -al cypress/jenkins'
                   sh 'cypress/jenkins/init.sh'
                 } catch (err) {
                   echo "Error: " + err
@@ -78,12 +77,17 @@ node {
               stage('Grab Results') {
                 // Safe to run even if init.sh failed (scp fails gracefully)
                 sh "cypress/jenkins/scpget.sh dashboard/results.xml || true"
-                sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html"
+                sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html || true"
               }
               if ("${env.CLEANUP}".toLowerCase() == "true") {
                 stage('Clean Test Environment') {  
-                  sh "corrals=\$(${WORKSPACE}/bin/corral list | grep -v \"NAME\" | grep -v \"-\" | cut -d' ' -f 2)" +
-                  "&& for corral in \$corrals; do ${WORKSPACE}/bin/corral delete \$corral; done"
+                  sh """#!/bin/bash
+                    export PATH=\$PATH:${WORKSPACE}/bin
+                    source cypress/jenkins/utils.sh
+                    set +x
+                    corrals=\$( corral list | grep -v "NAME" | grep -v "-" | cut -d' ' -f 2 )
+                    for corral in \$corrals; do clean_corral delete \$corral; done
+                  """
                 }
               }
               try {
@@ -128,20 +132,6 @@ node {
                     }
                 }
                 currentBuild.result = 'UNSTABLE'
-              }
-              if ("${env.QASE_REPORT}".toLowerCase() == "true") {
-                  try {
-                    stage('Publish to TC Management') {
-                      withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
-                        withEnv(["BUILDTYPE=${buildtype}"]) {
-                          sh "cypress/jenkins/transform-junit.sh"
-                        }
-                      }
-                    }
-                  } catch(err) {
-                      echo "Error: " + err
-                      currentBuild.result = 'UNSTABLE'
-                  }
               }
               
               // test failure -> FAILURE (Slack: FAILED)

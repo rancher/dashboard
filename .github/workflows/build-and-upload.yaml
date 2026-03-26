@@ -23,12 +23,12 @@ jobs:
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -43,19 +43,19 @@ jobs:
         run: ./scripts/build-upload-gate
 
       - name: Get gcs auth
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/google-auth/rancher/credentials token | GOOGLE_AUTH
 
       - name: Apply gcs auth
         # https://github.com/google-github-actions/auth
-        uses: 'google-github-actions/auth@v3'
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           credentials_json: "${{ env.GOOGLE_AUTH }}"
 
       - name: Upload build
-        uses: 'google-github-actions/upload-cloud-storage@v3'
+        uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3
         # https://github.com/google-github-actions/upload-cloud-storage
         with:
           path: ${{steps.build-hosted.outputs.BUILD_HOSTED_DIR}}
@@ -70,12 +70,12 @@ jobs:
     name: Build & Upload Embedded
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -88,19 +88,19 @@ jobs:
           EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
 
       - name: Get gcs auth
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/google-auth/rancher/credentials token | GOOGLE_AUTH
 
       - name: Apply gcs auth
         # https://github.com/google-github-actions/auth
-        uses: 'google-github-actions/auth@v3'
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           credentials_json: "${{ env.GOOGLE_AUTH }}"
 
       - name: Upload tar
-        uses: 'google-github-actions/upload-cloud-storage@v3'
+        uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3'
         with:
           path: ${{steps.build-embedded.outputs.BUILD_EMBEDED_TGZ}}
           # Example - https://releases.rancher.com/ui/2.8.0.tar.gz

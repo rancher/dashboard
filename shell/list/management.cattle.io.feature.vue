@@ -3,6 +3,12 @@ import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import { MANAGEMENT } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { STEVE_CACHE } from '@shell/store/features';
+
+const hideFeatureFlags = [
+  'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
+  STEVE_CACHE
+];
 
 export default {
   components: { ResourceTable },
@@ -32,7 +38,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     filteredRows() {
-      return this.rows.filter((x) => x.name !== 'fleet');
+      return this.rows.filter((x) => hideFeatureFlags.indexOf(x.metadata.name) === -1);
     },
 
     enableRowActions() {

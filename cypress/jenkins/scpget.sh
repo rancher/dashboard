@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 export PATH=$PATH:"${WORKSPACE}/bin"
 
 
