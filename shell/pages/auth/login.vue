@@ -33,6 +33,8 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { getBrandMeta } from '@shell/utils/brand';
 
+const LOCAL_PROVIDER = 'localProvider';
+
 export default {
   name:       'Login',
   components: {
@@ -165,13 +167,14 @@ export default {
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
-    const providers = sortBy(drivers.map((x) => x.id), ['id']);
-    const hasLocal = providers.includes('local');
-    const hasOthers = hasLocal && !!providers.find((x) => x !== 'local');
+
+    const providers = sortBy(drivers.map((x) => x.type), ['id']);
+    const hasLocal = providers.includes(LOCAL_PROVIDER);
+    const hasOthers = hasLocal && !!providers.find((x) => x !== LOCAL_PROVIDER);
 
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
-      removeObject(providers, 'local');
+      removeObject(providers, LOCAL_PROVIDER);
     }
 
     this.vendor = getVendor();
@@ -237,7 +240,9 @@ export default {
     },
 
     displayName(provider) {
-      return this.t(`model.authConfig.provider.${ provider }`);
+      const translationKey = provider.replace('Provider', '');
+
+      return this.t(`model.authConfig.provider.${ translationKey }`);
     },
 
     toggleLocal() {
