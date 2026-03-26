@@ -1018,6 +1018,11 @@ asyncButton:
     waiting: Generating&hellip;
 
 backupRestoreOperator:
+  monitoring:
+    label: Monitoring
+    enableMetrics: Enable Metrics
+    enableServiceMonitor: Enable ServiceMonitor
+    serviceMonitorTooltip: Requires rancher-monitoring to be installed before this can be enabled.
   backup:
     label: Resource Set
     description: The Resource Set determines which resources the backup-restore-operator collects in a backup
