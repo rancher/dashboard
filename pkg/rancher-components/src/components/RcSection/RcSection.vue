@@ -36,7 +36,7 @@
 import { computed, inject, provide, type Ref } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { useInSummary } from '@components/TableOfContents/composables';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';

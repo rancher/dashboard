@@ -11,7 +11,7 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
 import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
 
-import { TableOfContents, useFormSummary } from '@components/TableOfContents';
+import { TableOfContents, useFormSummary } from '@shell/components/TableOfContents';
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';

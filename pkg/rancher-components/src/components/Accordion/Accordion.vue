@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapGetters } from 'vuex';
-import { useInSummary } from '@components/TableOfContents/composables';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default defineComponent({
   name: 'Accordion',

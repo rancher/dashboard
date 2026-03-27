@@ -31,7 +31,7 @@
     "./**/*.tsx",
     "./**/*.vue",
     "../pkg/rancher-components/src/**/*"
-  ],
+, "components/TableOfContents"  ],
   "exclude": [
     "node_modules",
     "dist",
