@@ -20,7 +20,7 @@
     },
     "release-2.14": {
       "milestone": {
-        "version": "v2.14.0",
+        "version": "v2.14.1",
         "codeFreeze": false
       },
       "e2e": {
@@ -38,7 +38,7 @@
     },
     "release-2.13": {
       "milestone": {
-        "version": "v2.13.4",
+        "version": "v2.13.5",
         "codeFreeze": false
       },
       "e2e": {
@@ -57,7 +57,7 @@
     },
     "release-2.12": {
       "milestone": {
-        "version": "v2.12.8",
+        "version": "v2.12.9",
         "codeFreeze": false
       },
       "e2e": {
@@ -76,7 +76,7 @@
     },
     "release-2.11": {
       "milestone": {
-        "version": "v2.11.12",
+        "version": "v2.11.13",
         "codeFreeze": false
       },
       "e2e": {
