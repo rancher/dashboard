@@ -8,14 +8,20 @@ export default {
     name: {
       type:     String,
       required: true
+    },
+
+    type: {
+      type:     String,
+      required: true,
     }
   },
 
   computed: {
     displayName() {
-      const translationKey = this.name.replace('Provider', '');
+      const translationKey = this.type.replace('Provider', '');
+      const providerString = this.t(`model.authConfig.provider.${ translationKey }`);
 
-      return this.t(`model.authConfig.provider.${ translationKey }`);
+      return `${ providerString }: ${ this.name }`;
     }
   },
 

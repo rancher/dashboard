@@ -168,13 +168,23 @@ export default {
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
 
-    const providers = sortBy(drivers.map((x) => x.type), ['id']);
-    const hasLocal = providers.includes(LOCAL_PROVIDER);
-    const hasOthers = hasLocal && !!providers.find((x) => x !== LOCAL_PROVIDER);
+    let providers = sortBy(
+      drivers.map((x) => {
+        return {
+          id:   x.id,
+          type: x.type
+        };
+      }),
+      ['type']
+    );
+    const hasLocal = providers.some((x) => x.type === LOCAL_PROVIDER);
+    const hasOthers = hasLocal && !!providers.find((x) => x.type !== LOCAL_PROVIDER);
 
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
-      removeObject(providers, LOCAL_PROVIDER);
+      providers = providers.filter((x) => {
+        return x.type !== LOCAL_PROVIDER;
+      });
     }
 
     this.vendor = getVendor();
@@ -185,8 +195,8 @@ export default {
     this.firstLogin = firstLoginSetting?.value === 'true';
     this.username = this.firstLogin ? 'admin' : this.username;
 
-    this.providerComponents = this.providers.map((name) => {
-      return markRaw(this.$store.getters['type-map/importLogin'](configType[name] || name));
+    this.providerComponents = this.providers.map((x) => {
+      return markRaw(this.$store.getters['type-map/importLogin'](configType[x.type] || x.type));
     });
 
     this.$nextTick(() => {
@@ -433,11 +443,12 @@ export default {
         >
           <component
             :is="providerComponents[idx]"
-            v-for="(name, idx) in providers"
+            v-for="({type, id}, idx) in providers"
             :key="idx"
             class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
-            :name="name"
+            :name="id"
+            :type="type"
             :open="!showLocal"
             @showInputs="showLocal = false"
             @error="handleProviderError"
