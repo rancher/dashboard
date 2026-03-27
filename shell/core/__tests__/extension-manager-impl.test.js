@@ -38,8 +38,30 @@ jest.mock('@shell/core/plugin', () => {
   };
 });
 
-// Mock ExtensionPoint
-jest.mock('@shell/core/types', () => ({ ExtensionPoint: { EDIT_YAML: 'edit-yaml' } }));
+// Mock ExtensionPoint — only EDIT_YAML, simulating an older dashboard (e.g. 2.13)
+// that does not know about newer ExtensionPoints like 'Table'.
+// The ensureUIConfigCompat tests override this to include TABLE for plugin-helpers,
+// simulating an extension shipping a newer shell.
+jest.mock('@shell/core/types', () => ({
+  ExtensionPoint: { EDIT_YAML: 'edit-yaml' },
+  ActionLocation: { TABLE: 'table-action' },
+  CardLocation:   {},
+}));
+
+jest.mock('@shell/utils/platform', () => ({ isMac: false }));
+jest.mock('@shell/utils/string', () => ({
+  ucFirst:   jest.fn((s) => s),
+  randomStr: jest.fn(() => 'abc123'),
+}));
+jest.mock('@shell/config/query-params', () => ({
+  _EDIT:   'edit',
+  _CONFIG: 'config',
+  _DETAIL: 'detail',
+  _LIST:   'list',
+  _CREATE: 'create',
+}));
+jest.mock('@shell/utils/router', () => ({ getProductFromRoute: jest.fn() }));
+jest.mock('@shell/utils/object', () => ({ isEqual: jest.fn() }));
 
 // Mock PluginRoutes
 jest.mock('@shell/core/plugin-routes', () => {
@@ -454,6 +476,137 @@ describe('extension Manager', () => {
       const config = manager.getUIConfig('edit-yaml', 'non-existent-area');
 
       expect(config).toStrictEqual([]);
+    });
+
+    it('returns empty array for non-existent type', () => {
+      // Simulates an extension using a newer ExtensionPoint (e.g. 'Table')
+      // that the running dashboard does not have in its uiConfig
+      const config = manager.getUIConfig('unknown-type', 'some-area');
+
+      expect(config).toStrictEqual([]);
+    });
+  });
+
+  describe('ensureUIConfigCompat (via plugin-helpers)', () => {
+    // These tests verify that getApplicableExtensionEnhancements backfills
+    // missing ExtensionPoint keys into the singleton's uiConfig via getAllUIConfig().
+    // This is the forwards-compatibility mechanism for extensions running on
+    // older dashboards that don't know about newer ExtensionPoints (e.g. 'Table').
+
+    const mockRoute = {
+      name:   'test',
+      params: {},
+      query:  {},
+      meta:   {},
+      hash:   '',
+      path:   '/test',
+    };
+
+    // Each test needs a fresh plugin-helpers module to reset the _uiConfigPatched flag.
+    // The extension-manager is created with the "old" ExtensionPoint (only EDIT_YAML),
+    // then plugin-helpers is re-required with an "upgraded" ExtensionPoint that includes TABLE,
+    // simulating an extension built with a newer shell running on an older dashboard.
+    let freshGetApplicable;
+    let freshManager;
+
+    beforeEach(() => {
+      freshManager = createExtensionManager(context);
+
+      // Reset modules so plugin-helpers._uiConfigPatched starts as false
+      jest.resetModules();
+
+      // Override the types mock so plugin-helpers sees a newer ExtensionPoint with TABLE
+      jest.doMock('@shell/core/types', () => ({
+        ExtensionPoint: {
+          EDIT_YAML: 'edit-yaml',
+          TABLE:     'Table',
+        },
+        ActionLocation: { TABLE: 'table-action' },
+        CardLocation:   {},
+      }));
+
+      freshGetApplicable = require('@shell/core/plugin-helpers').getApplicableExtensionEnhancements;
+    });
+
+    it('backfills missing ExtensionPoint keys into the singleton uiConfig', () => {
+      // Verify 'Table' is NOT in uiConfig before the patch
+      const uiConfig = freshManager.getAllUIConfig();
+
+      expect(uiConfig['Table']).toBeUndefined();
+
+      // Call getApplicableExtensionEnhancements which triggers ensureUIConfigCompat
+      freshGetApplicable({ $extension: freshManager }, 'Table', 'some-area', mockRoute);
+
+      // Now 'Table' should be backfilled in the singleton's uiConfig
+      expect(uiConfig['Table']).toStrictEqual({});
+    });
+
+    it('does not overwrite existing ExtensionPoint keys', () => {
+      const mockAction = { label: 'Test', locationConfig: {} };
+      const plugin = {
+        types:           {},
+        uiConfig:        { 'edit-yaml': { header: [mockAction] } },
+        l10n:            {},
+        modelExtensions: {},
+        stores:          [],
+        locales:         [],
+        routes:          [],
+        validators:      {},
+        productNames:    [],
+      };
+
+      freshManager.applyPlugin(plugin);
+
+      freshGetApplicable({ $extension: freshManager }, 'edit-yaml', 'header', mockRoute);
+
+      // Existing config should be untouched
+      const uiConfig = freshManager.getAllUIConfig();
+
+      expect(uiConfig['edit-yaml'].header).toHaveLength(1);
+      expect(uiConfig['edit-yaml'].header[0]).toBe(mockAction);
+    });
+
+    it('logs a warning for backfilled ExtensionPoints', () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      freshGetApplicable({ $extension: freshManager }, 'Table', 'some-area', mockRoute);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Table')
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('patches the singleton so dashboard-side getUIConfig calls are also safe', () => {
+      // Before patching: getUIConfig('Table', ...) should not crash (optional chaining fix)
+      // but returns empty array
+      expect(freshManager.getUIConfig('Table', 'some-area')).toStrictEqual([]);
+
+      // Trigger ensureUIConfigCompat via getApplicableExtensionEnhancements
+      freshGetApplicable({ $extension: freshManager }, 'Table', 'some-area', mockRoute);
+
+      // After patching: 'Table' key exists in the singleton's uiConfig
+      const uiConfig = freshManager.getAllUIConfig();
+
+      expect(uiConfig['Table']).toBeDefined();
+
+      // Direct getUIConfig calls (like those from dashboard components) now work
+      expect(freshManager.getUIConfig('Table', 'some-area')).toStrictEqual([]);
+    });
+
+    it('only runs the backfill once', () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // First call triggers backfill
+      freshGetApplicable({ $extension: freshManager }, 'Table', 'some-area', mockRoute);
+      // Second call should not trigger backfill again
+      freshGetApplicable({ $extension: freshManager }, 'Table', 'some-area', mockRoute);
+
+      // Warning should only be logged once
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+
+      consoleWarnSpy.mockRestore();
     });
   });
 });
