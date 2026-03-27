@@ -1,5 +1,4 @@
 <script>
-import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -181,7 +180,7 @@ export default {
     const hasOthers = hasLocal && !!providers.find((x) => x.type !== LOCAL_PROVIDER);
 
     if ( hasLocal ) {
-      // Local is special and handled here so that it can be toggled
+      // Local is special and handled here so that it can be togglee
       providers = providers.filter((x) => {
         return x.type !== LOCAL_PROVIDER;
       });
