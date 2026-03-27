@@ -380,7 +380,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
         BannersPagePo.navTo();
 
         // Show Banner
-        bannersPage.headerBannerCheckbox().set();
+        bannersPage.headerBannerCheckbox().check();
         // to check custom box element width and height in order to prevent regression
         // https://github.com/rancher/dashboard/issues/10000
         bannersPage.headerBannerCheckbox().hasAppropriateWidth();
@@ -433,7 +433,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
         // Show Banner
         bannersPage.loginScreenBannerCheckbox().checkVisible();
-        bannersPage.loginScreenBannerCheckbox().set();
+        bannersPage.loginScreenBannerCheckbox().check();
         bannersPage.consentBannerShowAsDialogCheckbox().set();
         bannersPage.contentTypeToggle('bannerConsent').set('HTML'); // Set content type as HTML
         bannersPage.htmlTextArea('bannerConsent').set(bannerHtml);
