@@ -51,6 +51,10 @@ type ElementWithVNodeChildren = {
   children?: ArrayLike<ChildWithVNode>;
 };
 
+type ElementWithSummaryID = HTMLElement & {
+  summaryID?: string;
+};
+
 type VNodeWithComponent = VNode & {
   component?: ComponentInternalInstance | null;
   ctx?: { vnode?: VNodeWithComponent } | null;
@@ -100,52 +104,56 @@ export function useFormSummary() {
     return component?.summary?.id || '';
   };
 
-  const getComponentFromVNode = (vnode?: VNodeWithComponent | null): ComponentInternalInstance | null => {
-    console.log('*** attemping to find component from vnode ', vnode);
+  // const getComponentFromVNode = (vnode?: VNodeWithComponent | null): ComponentInternalInstance | null => {
+  //   console.log('*** attemping to find component from vnode ', vnode);
 
-    return vnode?.component ?? vnode?.ctx?.vnode?.component ?? null;
-  };
+  //   return vnode?.component ?? vnode?.ctx?.vnode?.component ?? null;
+  // };
 
-  const getComponentInstance = (node?: VNodeWithComponent | null): SummaryComponent | undefined | null => {
-    console.log('*** attempting to find component from node ', node);
-    const internal = node?.component ?? getComponentFromVNode(node);
+  // const getComponentInstance = (node?: VNodeWithComponent | null): SummaryComponent | undefined | null => {
+  //   console.log('*** attempting to find component from node ', node);
+  //   const internal = node?.component ?? getComponentFromVNode(node);
 
-    if (!internal) {
-      return null;
-    }
+  //   if (!internal) {
+  //     return null;
+  //   }
 
-    const proxy = internal.proxy as SummaryComponent | null | undefined;
-    const exposed = internal.exposed as Record<string, unknown> | null | undefined;
+  //   const proxy = internal.proxy as SummaryComponent | null | undefined;
+  //   const exposed = internal.exposed as Record<string, unknown> | null | undefined;
 
-    if (!exposed || Object.keys(exposed).length === 0) {
-      return proxy;
-    }
+  //   if (!exposed || Object.keys(exposed).length === 0) {
+  //     return proxy;
+  //   }
 
-    // Merge proxy and exposed so that properties set via defineExpose() in
-    // <script setup> components are visible alongside standard proxy properties.
-    // Exposed values may be computed refs, so unwrap them automatically.
-    return new Proxy({} as SummaryComponent, {
-      get(_target, key: string) {
-        if (key in (exposed ?? {})) {
-          const val = exposed?.[key];
+  //   // Merge proxy and exposed so that properties set via defineExpose() in
+  //   // <script setup> components are visible alongside standard proxy properties.
+  //   // Exposed values may be computed refs, so unwrap them automatically.
+  //   return new Proxy({} as SummaryComponent, {
+  //     get(_target, key: string) {
+  //       if (key in (exposed ?? {})) {
+  //         const val = exposed?.[key];
 
-          return val && typeof val === 'object' && 'value' in val ? (val as { value: unknown }).value : val;
-        }
+  //         return val && typeof val === 'object' && 'value' in val ? (val as { value: unknown }).value : val;
+  //       }
 
-        return (proxy as Record<string, unknown> | null | undefined)?.[key];
-      }
-    });
-  };
+  //       return (proxy as Record<string, unknown> | null | undefined)?.[key];
+  //     }
+  //   });
+  // };
 
   const buildTree = (
     components: SummaryEntry[] = [],
-    node?: VNodeWithComponent | null,
+    node?: any,
     found = new Set<string>()
   ) => {
     console.log('*** building tree with inputs components, node, found ', components, node, found);
     let nextInput = components;
 
-    const component = getComponentInstance(node);
+    // const component = getComponentInstance(node);
+    // const summary = component?.summary;
+
+    const summaryID = node?.el ? (node?.el as ElementWithSummaryID | null | undefined)?.summaryID || '' : node?.summaryID || '';
+    const component = registeredComponents.value[summaryID];
     const summary = component?.summary;
 
     console.log('*** found component for node ', component, node);
@@ -168,15 +176,17 @@ export function useFormSummary() {
       return;
     }
 
-    const children = Array.from((node.el as ElementWithVNodeChildren | null | undefined)?.children ?? []);
+    const children = node.el ? Array.from((node.el as ElementWithVNodeChildren | null | undefined)?.children ?? []) : Array.from(node.children ?? []);
 
     console.log('*** children for node ', children, node);
-    children.forEach((child) => {
-      const vnodeChild = child.__vnode;
+    children.forEach((child: any) => {
+      // TODO nb __vnode NOT DEFINED IN PROD
+      // const vnodeChild = child.__vnode;
 
-      if (vnodeChild) {
-        buildTree(nextInput, vnodeChild, found);
-      }
+      // if (vnodeChild) {
+      //   buildTree(nextInput, vnodeChild, found);
+      // }
+      buildTree(nextInput, child, found);
     });
 
     return components;
@@ -313,6 +323,16 @@ export function useInSummary() {
   onMounted(() => {
     const exposed = instance?.exposed as Record<string, unknown> | null | undefined;
     const proxy = instance?.proxy as SummaryComponent | null | undefined;
+    const rootEl = (proxy?.$el ?? proxy?.vnode?.el) as ElementWithSummaryID | null | undefined;
+
+    if (rootEl) {
+      rootEl.summaryID = summaryID;
+      rootEl.setAttribute('data-summary-id', summaryID);
+    }
+
+    if (proxy) {
+      (proxy as SummaryComponent & { summaryID?: string }).summaryID = summaryID;
+    }
 
     console.log('*** component mounted exposed, proxy (inFormSummary)', exposed, proxy);
     // Build a merged view of proxy + exposed (unwrapping computed refs from exposed)
@@ -322,6 +342,9 @@ export function useInSummary() {
       get(_target, key: string) {
         if (key === 'summary') {
           return summary;
+        }
+        if (key === 'summaryID') {
+          return summaryID;
         }
         if (exposed && key in exposed) {
           const val = exposed[key];
