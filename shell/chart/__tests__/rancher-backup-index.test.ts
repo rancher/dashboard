@@ -2,9 +2,6 @@ import { shallowMount } from '@vue/test-utils';
 import RancherBackup from '@shell/chart/rancher-backup/index.vue';
 import { set } from '@shell/utils/object';
 
-// Mock the monitoringStatus utility
-jest.mock('@shell/utils/monitoring', () => ({ monitoringStatus: jest.fn(() => ({ monitoringStatus: () => ({ installed: false }) })) }));
-
 describe('rancher-backup: index', () => {
   const defaultMocks = {
     $store: {

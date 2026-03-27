@@ -42,6 +42,16 @@ export default {
     }
   },
 
+  created() {
+    // Initialize monitoring before template renders to avoid undefined access
+    if (!this.value.monitoring) {
+      set(this.value, 'monitoring', {
+        metrics:        { enabled: false },
+        serviceMonitor: { enabled: false }
+      });
+    }
+  },
+
   async  fetch() {
     const hash = await allHash({
       storageClasses:    this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
@@ -52,13 +62,6 @@ export default {
     this.persistentVolumes = hash.persistentVolumes;
 
     this.storageSource = this.getStorageSource(this.value) || 'none';
-
-    if (!this.value.monitoring) {
-      set(this.value, 'monitoring', {
-        metrics:        { enabled: false },
-        serviceMonitor: { enabled: false }
-      });
-    }
   },
 
   data() {
