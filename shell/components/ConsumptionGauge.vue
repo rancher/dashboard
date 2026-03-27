@@ -57,8 +57,8 @@ export default {
      * Reduce the vertical height by replacing 'Used'/usedLabel with the resource name
      */
     usedAsResourceName: {
-      type:   Boolean,
-      defaut: false
+      type:    Boolean,
+      default: false
     },
 
     /**
