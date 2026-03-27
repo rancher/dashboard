@@ -15,8 +15,9 @@ const props = defineProps({
       </h4>
       <ul>
         <li
-          v-for="acc, i in props.accordions"
+          v-for="(acc, i) in props.accordions"
           :key="i"
+          :data-testid="`toc-list-item-${i}`"
         >
           <button
             v-if="acc.scrollTo"
@@ -28,10 +29,11 @@ const props = defineProps({
           </button>
           <span v-else>{{ acc.label }}</span>
           <template v-if="acc?.children?.length">
-            <ul>
+            <ul data-testid="toc-list">
               <li
-                v-for="childAcc, j in acc.children"
+                v-for="(childAcc, j) in acc.children"
                 :key="j"
+                :data-testid="`toc-list-item-${i}-${j}`"
               >
                 <button
                   v-if="childAcc.scrollTo"
