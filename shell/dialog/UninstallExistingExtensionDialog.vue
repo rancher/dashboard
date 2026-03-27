@@ -1,6 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
-
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
@@ -38,22 +36,12 @@ export default {
       type:     Function,
       default:  () => {},
       required: true
-    },
-    resources: {
-      type:    Array,
-      default: () => []
-    },
-    registerBackgroundClosing: {
-      type:    Function,
-      default: () => {}
     }
   },
 
   data() {
     return { busy: false };
   },
-
-  computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
 
   methods: {
     closeDialog(result) {

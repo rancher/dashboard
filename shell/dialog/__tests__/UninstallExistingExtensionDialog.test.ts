@@ -7,10 +7,7 @@ describe('component: UninstallExistingExtensionDialog', () => {
   let wrapper: VueWrapper<any>;
 
   const mountComponent = (propsData = {}) => {
-    const store = {
-      dispatch: jest.fn().mockResolvedValue([]),
-      getters:  { 'catalog/charts': [] }
-    };
+    const store = { dispatch: jest.fn().mockResolvedValue([]) };
 
     const defaultProps = {
       installedPlugin: {
