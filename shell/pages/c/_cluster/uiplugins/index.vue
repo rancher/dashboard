@@ -66,7 +66,6 @@ export default {
       installing:                     {},
       errors:                         {},
       plugins:                        [], // The installed plugins
-      apps:                           [], // The installed helm apps
       helmOps:                        [], // Helm operations
       addExtensionReposBannerSetting: undefined,
       loading:                        true,
@@ -103,8 +102,12 @@ export default {
 
     // Load CATALOG.APP to cross-reference installed plugins with their source repositories
     // This allows us to determine from which repo an extension was installed if the same extension name exists in multiple repos
+    // Only load apps in UI_PLUGIN_NAMESPACE to avoid pulling all apps on large clusters
     if (this.$store.getters['management/schemaFor'](CATALOG.APP)) {
-      hash.apps = this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+      hash.apps = this.$store.dispatch('management/findAll', {
+        type: CATALOG.APP,
+        opt:  { namespaced: UI_PLUGIN_NAMESPACE }
+      });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
@@ -117,7 +120,6 @@ export default {
 
     this.rancherVersion = getVersionData()?.Version;
     this.plugins = res.plugins || [];
-    this.apps = res.apps || [];
     this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
@@ -133,6 +135,12 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    // Reactively get apps from the store so new installs are immediately available
+    apps() {
+      return this.$store.getters['management/all'](CATALOG.APP)
+        .filter((app) => app.metadata?.namespace === UI_PLUGIN_NAMESPACE);
+    },
 
     charts() {
       const c = this.$store.getters['catalog/rawCharts'];
@@ -421,25 +429,25 @@ export default {
           }
 
           const item = {
-            name:                p.name,
-            label:               appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || p.name,
-            description:         appChartMeta?.description || p.description || '-',
-            icon:                appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
-            id:                  `${ p.name }-${ p.version }`,
-            versions:            [],
-            displayVersion:      p.version,
-            displayVersionLabel: p.version || '-',
-            isDeveloper:         p.isDeveloper,
-            installed:           true,
-            installedVersion:    p.version,
-            installing:          false,
-            builtin:             false,
-            uiplugin:            p,
-            primeOnly:           appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
-            experimental:        appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
-            certified:           appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
-            // Store the original repo name from the Helm app so we can display it even after the repo is removed
-            originalRepoName:    originalRepoDisplayName,
+            name:                    p.name,
+            label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || p.name,
+            description:             appChartMeta?.description || p.description || '-',
+            icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
+            id:                      `${ p.name }-${ p.version }`,
+            versions:                [],
+            displayVersion:          p.version,
+            displayVersionLabel:     p.version || '-',
+            isDeveloper:             p.isDeveloper,
+            installed:               true,
+            installedVersion:        p.version,
+            installing:              false,
+            builtin:                 false,
+            uiplugin:                p,
+            primeOnly:               appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
+            experimental:            appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:               appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
+            // Store the original repo display name (i18n translated) so we can show it even after the repo is removed
+            originalRepoNameDisplay: originalRepoDisplayName,
           };
 
           all.push(item);
@@ -951,8 +959,8 @@ export default {
 
       // Display the repository name:
       // - Use chart.repoNameDisplay if the original repository still exists
-      // - Use originalRepoName if the original repository was removed (stored from Helm app annotations)
-      const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoName;
+      // - Use originalRepoNameDisplay if the original repository was removed (stored from Helm app annotations)
+      const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoNameDisplay;
 
       if (repoNameToDisplay) {
         footerItems.push({

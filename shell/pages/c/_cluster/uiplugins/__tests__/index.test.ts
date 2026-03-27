@@ -236,9 +236,9 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should display original repository name for installed plugins when original repo was removed', () => {
       const plugin = {
-        installed:        true,
-        originalRepoName: 'removed-repo',
-        certified:        true
+        installed:               true,
+        originalRepoNameDisplay: 'removed-repo',
+        certified:               true
       };
       const items = wrapper.vm.getFooterItems(plugin);
 
@@ -247,12 +247,12 @@ describe('page: UI plugins/Extensions', () => {
       expect(items[0].labels).toStrictEqual(['removed-repo']);
     });
 
-    it('should prefer chart.repoNameDisplay over originalRepoName when both are present', () => {
+    it('should prefer chart.repoNameDisplay over originalRepoNameDisplay when both are present', () => {
       const plugin = {
-        installed:        true,
-        chart:            { repoNameDisplay: 'current-repo' },
-        originalRepoName: 'original-repo',
-        certified:        true
+        installed:               true,
+        chart:                   { repoNameDisplay: 'current-repo' },
+        originalRepoNameDisplay: 'original-repo',
+        certified:               true
       };
       const items = wrapper.vm.getFooterItems(plugin);
 
@@ -260,7 +260,7 @@ describe('page: UI plugins/Extensions', () => {
       expect(items[0].labels).toStrictEqual(['current-repo']);
     });
 
-    it('should NOT display repository name when neither chart nor originalRepoName are present', () => {
+    it('should NOT display repository name when neither chart nor originalRepoNameDisplay are present', () => {
       const plugin = {
         installed: true,
         certified: true
@@ -328,6 +328,162 @@ describe('page: UI plugins/Extensions', () => {
       const warningStatus = statuses.find((status: any) => status.icon === 'icon-alert-alt');
 
       expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
+    });
+  });
+
+  describe('showInstallDialog', () => {
+    let dispatchMock: jest.Mock;
+
+    const createWrapper = (availablePlugins: any[] = []) => {
+      dispatchMock = jest.fn().mockResolvedValue(true);
+
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': {},
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {},
+          'management/all':    () => [],
+        },
+        dispatch: dispatchMock,
+      };
+
+      const wrapper = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: {
+            $store: store,
+            t,
+          },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      // Mock the available computed property
+      Object.defineProperty(wrapper.vm, 'available', { get: () => availablePlugins });
+
+      return wrapper;
+    };
+
+    it('should open UninstallExistingExtensionDialog when installing a plugin that is already installed from a different source', () => {
+      const installedPlugin = {
+        id:        'other-repo/my-plugin',
+        name:      'my-plugin',
+        installed: true
+      };
+      const pluginToInstall = {
+        id:   'new-repo/my-plugin',
+        name: 'my-plugin'
+      };
+
+      const wrapper = createWrapper([installedPlugin, pluginToInstall]);
+
+      wrapper.vm.showInstallDialog(pluginToInstall, 'install', {});
+
+      expect(dispatchMock).toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({ component: 'UninstallExistingExtensionDialog' })
+      );
+    });
+
+    it('should NOT open InstallExtensionDialog when plugin is already installed from a different source', () => {
+      const installedPlugin = {
+        id:        'other-repo/my-plugin',
+        name:      'my-plugin',
+        installed: true
+      };
+      const pluginToInstall = {
+        id:   'new-repo/my-plugin',
+        name: 'my-plugin'
+      };
+
+      const wrapper = createWrapper([installedPlugin, pluginToInstall]);
+
+      wrapper.vm.showInstallDialog(pluginToInstall, 'install', {});
+
+      expect(dispatchMock).not.toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({ component: 'InstallExtensionDialog' })
+      );
+    });
+
+    it('should pass the installedPlugin to UninstallExistingExtensionDialog', () => {
+      const installedPlugin = {
+        id:        'other-repo/my-plugin',
+        name:      'my-plugin',
+        installed: true
+      };
+      const pluginToInstall = {
+        id:   'new-repo/my-plugin',
+        name: 'my-plugin'
+      };
+
+      const wrapper = createWrapper([installedPlugin, pluginToInstall]);
+
+      wrapper.vm.showInstallDialog(pluginToInstall, 'install', {});
+
+      expect(dispatchMock).toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({
+          component:      'UninstallExistingExtensionDialog',
+          componentProps: expect.objectContaining({ installedPlugin })
+        })
+      );
+    });
+
+    it('should open InstallExtensionDialog when installing a plugin that is NOT installed from another source', () => {
+      const pluginToInstall = {
+        id:   'repo/my-plugin',
+        name: 'my-plugin'
+      };
+
+      const wrapper = createWrapper([pluginToInstall]);
+
+      wrapper.vm.showInstallDialog(pluginToInstall, 'install', {});
+
+      expect(dispatchMock).toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({ component: 'InstallExtensionDialog' })
+      );
+    });
+
+    it('should open InstallExtensionDialog when the same plugin id is being re-installed (same source)', () => {
+      const installedPlugin = {
+        id:        'repo/my-plugin',
+        name:      'my-plugin',
+        installed: true
+      };
+
+      const wrapper = createWrapper([installedPlugin]);
+
+      wrapper.vm.showInstallDialog(installedPlugin, 'install', {});
+
+      expect(dispatchMock).toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({ component: 'InstallExtensionDialog' })
+      );
+    });
+
+    it('should open InstallExtensionDialog for upgrade action even if same name exists in another repo', () => {
+      const installedPlugin = {
+        id:        'repo-a/my-plugin',
+        name:      'my-plugin',
+        installed: true
+      };
+      const otherPlugin = {
+        id:        'repo-b/my-plugin',
+        name:      'my-plugin',
+        installed: false
+      };
+
+      const wrapper = createWrapper([installedPlugin, otherPlugin]);
+
+      // Upgrade action should always go to InstallExtensionDialog
+      wrapper.vm.showInstallDialog(installedPlugin, 'upgrade', {});
+
+      expect(dispatchMock).toHaveBeenCalledWith(
+        'management/promptModal',
+        expect.objectContaining({ component: 'InstallExtensionDialog' })
+      );
     });
   });
 

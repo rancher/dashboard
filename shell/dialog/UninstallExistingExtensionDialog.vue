@@ -73,12 +73,20 @@ export default {
         await plugin.uiplugin.remove();
       }
 
-      // Find the app for this plugin
-      const apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+      // Find the app for this plugin using direct lookup (more efficient than findAll)
+      let pluginApp = null;
 
-      const pluginApp = apps.find((app) => {
-        return app.namespace === UI_PLUGIN_NAMESPACE && app.name === plugin.name;
-      });
+      try {
+        const appId = `${ UI_PLUGIN_NAMESPACE }/${ plugin.name }`;
+
+        pluginApp = await this.$store.dispatch('management/find', {
+          type: CATALOG.APP,
+          id:   appId
+        });
+      } catch (e) {
+        // If the app cannot be found (e.g. already removed), proceed without error
+        pluginApp = null;
+      }
 
       if (pluginApp) {
         try {
