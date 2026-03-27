@@ -17,7 +17,7 @@ jobs:
       test-extensions-creators-and-update-paths-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Retrieve Shell and Creators versions
         run: .github/workflows/scripts/test-extensions-creators-build.sh
@@ -32,7 +32,7 @@ jobs:
         branch: [master, release-2.9, release-2.8]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Validate shipped workflows with creator for branch ${{ matrix.branch }}
         shell: bash
@@ -50,7 +50,7 @@ jobs:
       tags-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: master
 
@@ -61,7 +61,7 @@ jobs:
 
   test-build-extension-charts-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
       actions: write
       contents: write
@@ -76,7 +76,7 @@ jobs:
 
   test-build-extension-catalog-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
       actions: write
       contents: read
@@ -93,7 +93,7 @@ jobs:
 
   test-release-shell-pkg-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@master
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     with:
       is_test:  'true'
       test_branch:  'master'
@@ -101,7 +101,7 @@ jobs:
 
   test-release-creators-pkg-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@master
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     with:
       is_test: 'true'
       test_branch: 'master'

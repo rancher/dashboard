@@ -22,7 +22,7 @@ jobs:
       tags-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: release-2.8
 
@@ -32,7 +32,7 @@ jobs:
         shell: bash
   test-build-extension-charts-release-2-dot-8:
     needs: retrieve-tags-release-2-dot-8
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@release-2.8
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
       actions: write
       contents: write
@@ -46,7 +46,7 @@ jobs:
       test_ext_branch:  'release-2.8.x'
   test-build-extension-catalog-release-2-dot-8:
     needs: retrieve-tags-release-2-dot-8
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@release-2.8
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
       actions: write
       contents: read
@@ -62,14 +62,14 @@ jobs:
       registry_token: ${{ secrets.GITHUB_TOKEN }}
   test-release-shell-pkg-release-2-dot-8:
     needs: retrieve-tags-release-2-dot-8
-    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@release-2.8
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     with:
       is_test:  'true'
       test_branch:  'release-2.8'
       tag: ${{ needs.retrieve-tags-release-2-dot-8.outputs.SHELL_TAG }}
   test-release-creators-pkg-release-2-dot-8:
     needs: retrieve-tags-release-2-dot-8
-    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@release-2.8
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     with:
       is_test: 'true'
       test_branch: 'release-2.8'
