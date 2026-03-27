@@ -1,86 +1,86 @@
-import { shallowMount, VueWrapper } from '@vue/test-utils';
-import CRUAuditPolicy from '../index.vue';
-import { ComponentPublicInstance } from 'vue';
+// import { shallowMount, VueWrapper } from '@vue/test-utils';
+// import CRUAuditPolicy from '../index.vue';
+// import { ComponentPublicInstance } from 'vue';
 
-// Mock the ID generation to have consistent snapshots
-jest.mock('@shell/utils/string', () => ({ generateRandomAlphaString: () => 'test-id-123' }));
+// // Mock the ID generation to have consistent snapshots
+// jest.mock('@shell/utils/string', () => ({ generateRandomAlphaString: () => 'test-id-123' }));
 
-// Type definitions for component
-interface AuditPolicyComponent extends ComponentPublicInstance {
-  mode: string;
-  value: Record<string, any>;
-}
+// // Type definitions for component
+// interface AuditPolicyComponent extends ComponentPublicInstance {
+//   mode: string;
+//   value: Record<string, any>;
+// }
 
-const defaultProps = {
-  value: {
-    id:       'test-policy',
-    type:     'auditlog.cattle.io.auditpolicy',
-    metadata: { name: 'test-policy' },
-    spec:     { enabled: false }
-  },
-  mode: 'create'
-};
+// const defaultProps = {
+//   value: {
+//     id:       'test-policy',
+//     type:     'auditlog.cattle.io.auditpolicy',
+//     metadata: { name: 'test-policy' },
+//     spec:     { enabled: false }
+//   },
+//   mode: 'create'
+// };
 
-const globalMocks = {
-  global: {
-    mocks: {
-      $t:     (key: string) => key,
-      t:      (key: string) => key,
-      $store: {
-        getters: {
-          'i18n/t':            (key: string) => key,
-          currentStore:        () => 'cluster',
-          'cluster/schemaFor': () => ({
-            attributes: { namespaced: true },
-            id:         'auditlog.cattle.io.auditpolicy'
-          })
-        },
-        dispatch: jest.fn()
-      },
-      $route: {
-        params: {},
-        query:  {}
-      },
-      $router: {
-        push:    jest.fn(),
-        replace: jest.fn()
-      },
-      $fetchState: { pending: false }
-    },
-    provide: {
-      store: {
-        getters:  { 'i18n/t': (key: string) => key },
-        dispatch: jest.fn()
-      }
-    },
-    stubs: {
-      Loading:              true,
-      CruResource:          true,
-      NameNsDescription:    true,
-      Error:                true,
-      Tabbed:               true,
-      Tab:                  true,
-      General:              true,
-      Filters:              true,
-      AdditionalRedactions: true,
-      Labels:               true
-    }
-  }
-};
+// const globalMocks = {
+//   global: {
+//     mocks: {
+//       $t:     (key: string) => key,
+//       t:      (key: string) => key,
+//       $store: {
+//         getters: {
+//           'i18n/t':            (key: string) => key,
+//           currentStore:        () => 'cluster',
+//           'cluster/schemaFor': () => ({
+//             attributes: { namespaced: true },
+//             id:         'auditlog.cattle.io.auditpolicy'
+//           })
+//         },
+//         dispatch: jest.fn()
+//       },
+//       $route: {
+//         params: {},
+//         query:  {}
+//       },
+//       $router: {
+//         push:    jest.fn(),
+//         replace: jest.fn()
+//       },
+//       $fetchState: { pending: false }
+//     },
+//     provide: {
+//       store: {
+//         getters:  { 'i18n/t': (key: string) => key },
+//         dispatch: jest.fn()
+//       }
+//     },
+//     stubs: {
+//       Loading:              true,
+//       CruResource:          true,
+//       NameNsDescription:    true,
+//       Error:                true,
+//       Tabbed:               true,
+//       Tab:                  true,
+//       General:              true,
+//       Filters:              true,
+//       AdditionalRedactions: true,
+//       Labels:               true
+//     }
+//   }
+// };
 
-function factory(props: Record<string, any> = {}, options: Record<string, any> = {}): VueWrapper<AuditPolicyComponent> {
-  return shallowMount(CRUAuditPolicy, {
-    props:  { ...defaultProps, ...props },
-    ...globalMocks,
-    global: {
-      ...globalMocks.global,
-      // Prevent directive conflicts by using shallow mounting without plugins
-      plugins: [],
-      ...(options.global || {})
-    },
-    ...options
-  }) as VueWrapper<AuditPolicyComponent>;
-}
+// function factory(props: Record<string, any> = {}, options: Record<string, any> = {}): VueWrapper<AuditPolicyComponent> {
+//   return shallowMount(CRUAuditPolicy, {
+//     props:  { ...defaultProps, ...props },
+//     ...globalMocks,
+//     global: {
+//       ...globalMocks.global,
+//       // Prevent directive conflicts by using shallow mounting without plugins
+//       plugins: [],
+//       ...(options.global || {})
+//     },
+//     ...options
+//   }) as VueWrapper<AuditPolicyComponent>;
+// }
 // TODO nb undo
 // describe('component: CRUAuditPolicy (index)', () => {
 //   describe('rendering & initial state', () => {
