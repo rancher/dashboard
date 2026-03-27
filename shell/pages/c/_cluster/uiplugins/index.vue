@@ -100,9 +100,7 @@ export default {
       hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
-    // Load CATALOG.APP to cross-reference installed plugins with their source repositories
-    // This allows us to determine from which repo an extension was installed if the same extension name exists in multiple repos
-    // Only load apps in UI_PLUGIN_NAMESPACE to avoid pulling all apps on large clusters
+    // Load apps in UI_PLUGIN_NAMESPACE to determine which repo an extension was installed from
     if (this.$store.getters['management/schemaFor'](CATALOG.APP)) {
       hash.apps = this.$store.dispatch('management/findAll', {
         type: CATALOG.APP,
@@ -136,7 +134,7 @@ export default {
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
 
-    // Reactively get apps from the store so new installs are immediately available
+    // Computed to reactively update when new apps are installed
     apps() {
       return this.$store.getters['management/all'](CATALOG.APP)
         .filter((app) => app.metadata?.namespace === UI_PLUGIN_NAMESPACE);
@@ -378,16 +376,12 @@ export default {
         const app = this.apps.find((a) => a.metadata.name === p.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
         const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
 
-        // Try to identify the specific chart from the correct repository by checking the Helm App's annotations.
-        // This prevents picking the wrong chart when multiple repositories provide an extension with the same name.
+        // Find the chart from the original repo to avoid picking a wrong chart with the same name
         if (originalRepoName) {
           chart = all.find((c) => c.name === p.name && c.chart?.repoName === originalRepoName);
         }
 
-        // If we couldn't find the chart from the original repo (e.g., repo was removed),
-        // don't fall back to a chart from another repo. Instead, create a standalone item
-        // for the installed plugin. This prevents marking an unrelated chart as "installed"
-        // which would incorrectly remove it from the "Available" tab.
+        // If original repo was removed, don't fall back to another repo's chart (would break Available tab)
         if (chart) {
           chart.installed = true;
           chart.uiplugin = p;
@@ -412,16 +406,9 @@ export default {
             chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
         } else {
-          // No chart found from original repo, so add a card for the plugin based on its Custom resource
-          // This handles both cases:
-          // 1. The original repo was removed
-          // 2. There was never a chart (e.g., developer-loaded plugin)
-
-          // Try to get metadata from the installed Helm app to display richer information
+          // No chart available - original repo was removed or developer-loaded plugin
           const appChartMeta = app?.spec?.chart?.metadata;
           const appAnnotations = appChartMeta?.annotations || {};
-
-          // Get the original repo display name (falls back to repo name if no i18n key exists)
           let originalRepoDisplayName = null;
 
           if (originalRepoName) {
@@ -446,7 +433,6 @@ export default {
             primeOnly:               appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
             experimental:            appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
             certified:               appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
-            // Store the original repo display name (i18n translated) so we can show it even after the repo is removed
             originalRepoNameDisplay: originalRepoDisplayName,
           };
 
@@ -671,8 +657,7 @@ export default {
       ev?.preventDefault?.();
       ev?.stopPropagation?.();
 
-      // Check if a plugin with the same name is already installed from a different source
-      // This happens when the same extension exists in multiple repos and the user tries to install from another repo
+      // Check if a plugin with the same name is already installed from a different repo
       if (action === 'install') {
         const installedPlugin = this.available.find((p) => p.name === plugin.name && p.installed);
         const isInstalledFromDifferentSource = !!installedPlugin && installedPlugin.id !== plugin.id;
@@ -956,10 +941,6 @@ export default {
 
     getFooterItems(plugin) {
       const footerItems = [];
-
-      // Display the repository name:
-      // - Use chart.repoNameDisplay if the original repository still exists
-      // - Use originalRepoNameDisplay if the original repository was removed (stored from Helm app annotations)
       const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoNameDisplay;
 
       if (repoNameToDisplay) {
