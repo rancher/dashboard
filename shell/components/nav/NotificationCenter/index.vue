@@ -37,6 +37,7 @@ const open = (opened: boolean) => {
   >
     <rc-dropdown-trigger
       variant="tertiary"
+      size="medium"
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
     >

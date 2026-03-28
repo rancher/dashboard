@@ -14,7 +14,7 @@ const meta: Meta<typeof RcButton> = {
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
       control:     { type: 'select' },
-      description: 'Determines the size of the button. Medium is the default size for most use cases.'
+      description: 'Determines the size of the button. Large is the default size, matching the standard 40px button height.'
     },
     leftIcon: {
       options:     ['', ...Object.keys(RcIconTypeToClass)],
@@ -42,7 +42,7 @@ export const Default: Story = {
   }),
   args: {
     variant: 'primary',
-    size:    'medium',
+    size:    'large',
   },
 };
 

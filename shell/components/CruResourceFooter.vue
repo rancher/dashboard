@@ -3,13 +3,16 @@ import { mapGetters } from 'vuex';
 
 import AsyncButton from '@shell/components/AsyncButton';
 import ResourceCancelModal from '@shell/components/ResourceCancelModal';
+import { RcButton } from '@components/RcButton';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
   emits: ['cancel-confirmed', 'finish'],
 
-  components: { AsyncButton, ResourceCancelModal },
-  props:      {
+  components: {
+    AsyncButton, RcButton, ResourceCancelModal
+  },
+  props: {
     mode: {
       type:    String,
       default: 'create',
@@ -84,16 +87,16 @@ export default {
   <div class="cru-resource-footer">
     <slot name="footer-prefix" />
     <slot name="cancel">
-      <button
+      <RcButton
         v-if="!isView && showCancel"
         id="cru-cancel"
         :data-testid="componentTestid + '-cancel'"
         type="button"
-        class="btn role-secondary"
+        variant="secondary"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"
       >
         <t k="generic.cancel" />
-      </button>
+      </RcButton>
     </slot>
     <slot :checkCancel="checkCancel">
       <AsyncButton

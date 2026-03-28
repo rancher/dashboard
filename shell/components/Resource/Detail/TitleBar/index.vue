@@ -124,7 +124,6 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
           :data-testid="showConfigurationDataTestId"
           class="show-configuration"
           variant="primary"
-          size="large"
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
         >
@@ -165,12 +164,6 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     font-size: 16px;
     margin-left: 12px;
     position: relative;
-  }
-
-  .icon-document {
-    width: 15px;
-    font-size: 16px;
-    margin-right: 10px;
   }
 
   .actions {

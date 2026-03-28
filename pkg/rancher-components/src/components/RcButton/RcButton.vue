@@ -33,7 +33,7 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
   { size: 'large', className: 'btn-large' },
 ];
 
-const props = withDefaults(defineProps<ButtonVariantProps & ButtonSizeProps & ButtonVariantNewProps & ButtonSizeNewProps & IconProps>(), { size: 'medium' });
+const props = withDefaults(defineProps<ButtonVariantProps & ButtonSizeProps & ButtonVariantNewProps & ButtonSizeNewProps & IconProps>(), { size: 'large' });
 
 const activeVariantClassName = computed(() => {
   if (props.variant === 'multiAction' || props.multiAction) {
@@ -132,6 +132,12 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  // Override global .btn > .icon:not(:only-child) { margin-right: 6px } from _button.scss.
+  // RcButton uses flex gap for spacing instead. :deep() is needed to target slotted content.
+  &.rc-button > :deep(.icon) {
+    margin-right: 0;
+  }
 
   // Much of the styling in here came from _button.scss. Because we're making changes from role to variant and we don't want to impact existing use cases we're pulling in some of these styles. We should in the long run deprecate that file.
   // Variant styles

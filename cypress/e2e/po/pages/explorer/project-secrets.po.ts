@@ -27,7 +27,7 @@ export class ProjectSecretsListPagePo extends BaseListPagePo {
   }
 
   createButtonTitle() {
-    return this.createButton().invoke('text');
+    return this.createButton().invoke('text').invoke('trim');
   }
 }
 

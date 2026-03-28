@@ -44,6 +44,7 @@ const previewId = randomStr();
     <RcButton
       ref="button"
       variant="ghost"
+      size="medium"
       aria-haspopup="dialog"
       :aria-expanded="showPreview"
       :aria-controls="previewId"

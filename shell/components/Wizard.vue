@@ -2,6 +2,7 @@
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
 import LazyImage from '@shell/components/LazyImage';
@@ -28,6 +29,7 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    RcButton,
     Loading,
     LazyImage,
   },
@@ -44,7 +46,6 @@ export default {
     loading: Wizard will block until all steps are not loading
     nextButton?: {
       labelKey?: default to `wizard.next`
-      style?:  defaults to `btn role-primary`
     },
     previousButton: {
       disable: defaults to false
@@ -185,9 +186,6 @@ export default {
       return this.steps.filter((step) => !step.hidden);
     },
 
-    nextButtonStyle() {
-      return this.activeStep.nextButton?.style || `btn role-primary`;
-    },
     nextButtonLabel() {
       return this.activeStep.nextButton?.labelKey || `wizard.next`;
     }
@@ -444,13 +442,13 @@ export default {
             name="cancel"
             :cancel="cancel"
           >
-            <button
+            <RcButton
               type="button"
-              class="btn role-secondary"
+              variant="secondary"
               @click="cancel"
             >
               <t k="generic.cancel" />
-            </button>
+            </RcButton>
           </slot>
           <div class="controls-steps">
             <slot
@@ -458,14 +456,14 @@ export default {
               name="back"
               :back="back"
             >
-              <button
+              <RcButton
                 :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)"
                 type="button"
-                class="btn role-secondary"
+                variant="secondary"
                 @click="back()"
               >
                 <t k="wizard.previous" />
-              </button>
+              </RcButton>
             </slot>
             <slot
               v-if="activeStepIndex === visibleSteps.length-1"
@@ -484,14 +482,14 @@ export default {
               name="next"
               :next="next"
             >
-              <button
+              <RcButton
                 :disabled="!canNext"
                 type="button"
-                :class="nextButtonStyle"
+                variant="primary"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />
-              </button>
+              </RcButton>
             </slot>
           </div>
         </div>

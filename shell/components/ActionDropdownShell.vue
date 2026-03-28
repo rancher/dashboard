@@ -42,7 +42,7 @@ const setBulkActionOfInterest = (act: HiddenAction | null, event: 'mouseover' | 
       </template>
       <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
       <template #after>
-        <i class="ml-10 icon icon-chevron-down" />
+        <i class="icon icon-chevron-down" />
       </template>
     </rc-dropdown-trigger>
     <template #dropdownCollection>

@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import Favorite from '@shell/components/nav/Favorite';
 import TypeDescription from '@shell/components/TypeDescription';
+import { RcButton } from '@components/RcButton';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
@@ -16,6 +17,7 @@ export default {
 
   components: {
     Favorite,
+    RcButton,
     TypeDescription,
     ResourceLoadingIndicator,
     TabTitle
@@ -221,22 +223,22 @@ export default {
           <slot name="extraActions" />
 
           <slot name="createButton">
-            <router-link
+            <RcButton
               v-if="hasEditComponent && _isCreatable"
-              :to="_createLocation"
-              class="btn role-primary"
+              variant="primary"
               :data-testid="componentTestid+'-create'"
+              @click="$router.push(_createLocation)"
             >
               {{ _createButtonlabel }}
-            </router-link>
-            <router-link
+            </RcButton>
+            <RcButton
               v-else-if="_isYamlCreatable"
-              :to="_yamlCreateLocation"
-              class="btn role-primary"
+              variant="primary"
               :data-testid="componentTestid+'-create-yaml'"
+              @click="$router.push(_yamlCreateLocation)"
             >
               {{ t("resourceList.head.createFromYaml") }}
-            </router-link>
+            </RcButton>
           </slot>
         </div>
       </slot>
