@@ -1,7 +1,10 @@
 <script>
 import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default {
+  name: 'Tab',
+
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
   emits: ['active'],
@@ -65,8 +68,11 @@ export default {
 
   setup(props) {
     const { count, isCountVisible } = useTabCountWatcher();
+    const { summary } = useInSummary();
 
-    return { inferredCount: count, isInferredCountVisible: isCountVisible };
+    return {
+      inferredCount: count, isInferredCountVisible: isCountVisible, summary
+    };
   },
 
   data() {

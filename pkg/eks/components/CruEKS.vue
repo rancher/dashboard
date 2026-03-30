@@ -725,6 +725,7 @@ export default defineComponent({
       <template v-else>
         <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
         <Tabbed
+          :title="t('eks.nodeGroups.title')"
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"

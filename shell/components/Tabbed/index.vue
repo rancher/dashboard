@@ -11,6 +11,7 @@ import { ref } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
 import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default {
   name: 'Tabbed',
@@ -94,6 +95,17 @@ export default {
     removeBorders: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * title is NOT displayed within the Tabbed component itself
+     * this prop is used to determine a label to use for the set of tabs in the table of contents component
+     * if a title is not provided a random string will be used
+     * components using the table of contents may exclude tabbed and only show tab components, too
+     */
+    title: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -161,9 +173,10 @@ export default {
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
+    const { summary } = useInSummary();
 
     return {
-      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage
+      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
     };
   },
 
