@@ -43,23 +43,12 @@ type FormSummaryContext = {
   refreshComponents: () => void;
 };
 
-type ChildWithVNode = {
-  // eslint-disable-next-line no-use-before-define
-  __vnode?: VNodeWithComponent;
-};
-
 type ElementWithVNodeChildren = {
-  children?: ArrayLike<ChildWithVNode>;
+  children?: ArrayLike<Element>;
 };
 
 type ElementWithSummaryID = HTMLElement & {
   summaryID?: string;
-};
-
-type VNodeWithComponent = VNode & {
-  component?: ComponentInternalInstance | null;
-  ctx?: { vnode?: VNodeWithComponent } | null;
-  el?: ElementWithVNodeChildren | null;
 };
 
 // Unique key used by provide/inject so each form subtree gets its own
