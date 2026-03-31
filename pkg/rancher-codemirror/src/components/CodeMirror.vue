@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, onBeforeUnmount, watch } from 'vue'
-import type { Extension } from '@codemirror/state'
-import { EditorState, Compartment } from '@codemirror/state'
+import { ref, shallowRef, onMounted, onBeforeUnmount, watch } from 'vue';
+import type { Extension } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 import {
   EditorView,
   drawSelection,
@@ -11,33 +11,33 @@ import {
   rectangularSelection,
   crosshairCursor,
   lineNumbers as cmLineNumbers
-} from '@codemirror/view'
-import { history } from '@codemirror/commands'
+} from '@codemirror/view';
+import { history } from '@codemirror/commands';
 import {
   indentOnInput,
   syntaxHighlighting,
   defaultHighlightStyle,
   bracketMatching
-} from '@codemirror/language'
-import { closeBrackets, autocompletion } from '@codemirror/autocomplete'
-import { search } from '@codemirror/search'
-import { oneDark } from '@codemirror/theme-one-dark'
-import { getLanguageExtension } from '../extensions/syntax'
-import { getKeymapExtension } from '../extensions/keymaps'
-import { buildFoldExtension } from '../extensions/fold'
-import type { FoldOptions } from '../extensions/fold'
+} from '@codemirror/language';
+import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
+import { search } from '@codemirror/search';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { getLanguageExtension } from '../extensions/syntax';
+import { getKeymapExtension } from '../extensions/keymaps';
+import { buildFoldExtension } from '../extensions/fold';
+import type { FoldOptions } from '../extensions/fold';
 
 export interface Props {
-  modelValue?: string
-  language?: 'yaml' | 'json'
-  keymap?: 'default' | 'vim' | 'emacs'
-  theme?: 'one-dark' | 'none'
-  readOnly?: boolean
-  lineNumbers?: boolean
-  foldGutter?: boolean
-  lineWrapping?: boolean
-  extensions?: Extension[]
-  foldOptions?: FoldOptions
+  modelValue?: string;
+  language?: 'yaml' | 'json';
+  keymap?: 'default' | 'vim' | 'emacs';
+  theme?: 'one-dark' | 'none';
+  readOnly?: boolean;
+  lineNumbers?: boolean;
+  foldGutter?: boolean;
+  lineWrapping?: boolean;
+  extensions?: Extension[];
+  foldOptions?: FoldOptions;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,59 +47,64 @@ const props = withDefaults(defineProps<Props>(), {
   lineNumbers: true,
   foldGutter: true,
   lineWrapping: false
-})
+});
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'change': [value: string]
-  'focus': [view: EditorView]
-  'blur': [view: EditorView]
-  'ready': [view: EditorView]
-}>()
+  'update:modelValue': [value: string];
+  'change': [value: string];
+  'focus': [view: EditorView];
+  'blur': [view: EditorView];
+  'ready': [view: EditorView];
+}>();
 
-const container = ref<HTMLDivElement>()
-const view = shallowRef<EditorView>()
+const container = ref<HTMLDivElement>();
+const view = shallowRef<EditorView>();
 
 // Compartments for hot-swappable extensions
-const languageCompartment = new Compartment()
-const keymapCompartment = new Compartment()
-const themeCompartment = new Compartment()
-const readOnlyCompartment = new Compartment()
-const lineNumbersCompartment = new Compartment()
-const lineWrappingCompartment = new Compartment()
+const languageCompartment = new Compartment();
+const keymapCompartment = new Compartment();
+const themeCompartment = new Compartment();
+const readOnlyCompartment = new Compartment();
+const lineNumbersCompartment = new Compartment();
+const lineWrappingCompartment = new Compartment();
 
 function getThemeExtension(theme?: 'one-dark' | 'none'): Extension {
-  if (theme === 'one-dark') return oneDark
-  return []
+  if (theme === 'one-dark') {
+    return oneDark;
+  }
+  return [];
 }
 
 function getLineNumbersExtension(show: boolean): Extension {
-  return show ? cmLineNumbers() : []
+  return show ? cmLineNumbers() : [];
 }
 
 function getLineWrappingExtension(wrap: boolean): Extension {
-  return wrap ? EditorView.lineWrapping : []
+  return wrap ? EditorView.lineWrapping : [];
 }
 
 onMounted(() => {
-  if (!container.value) return
+  if (!container.value) {
+    return;
+  }
 
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
-      const value = update.state.doc.toString()
-      emit('update:modelValue', value)
-      emit('change', value)
+      const value = update.state.doc.toString();
+      emit('update:modelValue', value);
+      emit('change', value);
     }
     if (update.focusChanged) {
       if (update.view.hasFocus) {
-        emit('focus', update.view)
-      } else {
-        emit('blur', update.view)
+        emit('focus', update.view);
+      }
+      else {
+        emit('blur', update.view);
       }
     }
-  })
+  });
 
-  const foldExt = props.foldGutter ? buildFoldExtension(props.foldOptions) : []
+  const foldExt = props.foldGutter ? buildFoldExtension(props.foldOptions) : [];
 
   const state = EditorState.create({
     doc: props.modelValue ?? '',
@@ -128,29 +133,33 @@ onMounted(() => {
       updateListener,
       ...(props.extensions ?? [])
     ]
-  })
+  });
 
   const editorView = new EditorView({
     state,
     parent: container.value
-  })
+  });
 
-  view.value = editorView
-  emit('ready', editorView)
-})
+  view.value = editorView;
+  emit('ready', editorView);
+});
 
 onBeforeUnmount(() => {
-  view.value?.destroy()
-})
+  view.value?.destroy();
+});
 
 // External modelValue changes → dispatch to editor
 watch(
   () => props.modelValue,
   (newVal) => {
-    const v = view.value
-    if (!v) return
-    const current = v.state.doc.toString()
-    if (newVal === current) return
+    const v = view.value;
+    if (!v) {
+      return;
+    }
+    const current = v.state.doc.toString();
+    if (newVal === current) {
+      return;
+    }
 
     v.dispatch({
       changes: {
@@ -158,9 +167,9 @@ watch(
         to: v.state.doc.length,
         insert: newVal ?? ''
       }
-    })
+    });
   }
-)
+);
 
 // Hot-swap language
 watch(
@@ -168,9 +177,9 @@ watch(
   (lang) => {
     view.value?.dispatch({
       effects: languageCompartment.reconfigure(getLanguageExtension(lang))
-    })
+    });
   }
-)
+);
 
 // Hot-swap keymap
 watch(
@@ -178,9 +187,9 @@ watch(
   (km) => {
     view.value?.dispatch({
       effects: keymapCompartment.reconfigure(getKeymapExtension(km))
-    })
+    });
   }
-)
+);
 
 // Hot-swap theme
 watch(
@@ -188,9 +197,9 @@ watch(
   (theme) => {
     view.value?.dispatch({
       effects: themeCompartment.reconfigure(getThemeExtension(theme))
-    })
+    });
   }
-)
+);
 
 // Hot-swap readOnly
 watch(
@@ -198,9 +207,9 @@ watch(
   (ro) => {
     view.value?.dispatch({
       effects: readOnlyCompartment.reconfigure(EditorView.editable.of(!ro))
-    })
+    });
   }
-)
+);
 
 // Hot-swap lineNumbers
 watch(
@@ -208,9 +217,9 @@ watch(
   (show) => {
     view.value?.dispatch({
       effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show ?? true))
-    })
+    });
   }
-)
+);
 
 // Hot-swap lineWrapping
 watch(
@@ -218,11 +227,11 @@ watch(
   (wrap) => {
     view.value?.dispatch({
       effects: lineWrappingCompartment.reconfigure(getLineWrappingExtension(wrap ?? false))
-    })
+    });
   }
-)
+);
 
-defineExpose({ view })
+defineExpose({ view });
 </script>
 
 <template>
