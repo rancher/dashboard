@@ -23,7 +23,7 @@ export const indentFoldService: Extension = foldService.of(
   (state: EditorState, lineStart: number): { from: number; to: number } | null => {
     const line = state.doc.lineAt(lineStart);
     const lineText = line.text;
-    const indent = lineText.match(/^(\s*)/)?.[1].length ?? 0;
+    const indent = (lineText.match(/^(\s*)/)?.[1] ?? '').length;
 
     if (lineText.trim() === '') {
       return null;
@@ -38,7 +38,7 @@ export const indentFoldService: Extension = foldService.of(
         foldTo = nextLine.to;
         continue;
       }
-      const nextIndent = nextText.match(/^(\s*)/)?.[1].length ?? 0;
+      const nextIndent = (nextText.match(/^(\s*)/)?.[1] ?? '').length;
       if (nextIndent <= indent) {
         break;
       }
@@ -65,8 +65,9 @@ export const bracketFoldService: Extension = foldService.of(
     let openPos = -1;
 
     for (let i = 0; i < text.length; i++) {
-      if (text[i] in openBrackets) {
-        openChar = text[i];
+      const ch = text.charAt(i);
+      if (ch in openBrackets) {
+        openChar = ch;
         openPos = line.from + i;
         break;
       }
@@ -127,7 +128,7 @@ export function foldByLineMatch(pattern: RegExp): Extension {
       return null;
     }
 
-    const indent = line.text.match(/^(\s*)/)?.[1].length ?? 0;
+    const indent = (line.text.match(/^(\s*)/)?.[1] ?? '').length;
     let foldTo = line.to;
     for (let i = line.number + 1; i <= state.doc.lines; i++) {
       const nextLine = state.doc.line(i);
@@ -136,7 +137,7 @@ export function foldByLineMatch(pattern: RegExp): Extension {
         foldTo = nextLine.to;
         continue;
       }
-      if ((nextText.match(/^(\s*)/)?.[1].length ?? 0) <= indent) {
+      if ((nextText.match(/^(\s*)/)?.[1] ?? '').length <= indent) {
         break;
       }
       foldTo = nextLine.to;
@@ -204,7 +205,7 @@ export function foldByYamlPath(path: string): Extension {
       return null;
     }
 
-    const indent = line.text.match(/^(\s*)/)?.[1].length ?? 0;
+    const indent = (line.text.match(/^(\s*)/)?.[1] ?? '').length;
     let foldTo = line.to;
     for (let i = line.number + 1; i <= state.doc.lines; i++) {
       const nextLine = state.doc.line(i);
@@ -213,7 +214,7 @@ export function foldByYamlPath(path: string): Extension {
         foldTo = nextLine.to;
         continue;
       }
-      if ((nextText.match(/^(\s*)/)?.[1].length ?? 0) <= indent) {
+      if ((nextText.match(/^(\s*)/)?.[1] ?? '').length <= indent) {
         break;
       }
       foldTo = nextLine.to;
@@ -234,7 +235,7 @@ function commentContentIndent(text: string): number | null {
   if (!match) {
     return null;
   }
-  return match[1].match(/^(\s*)/)?.[1].length ?? 0;
+  return ((match[1] ?? '').match(/^(\s*)/)?.[1] ?? '').length;
 }
 
 /**
