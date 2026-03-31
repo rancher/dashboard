@@ -1036,11 +1036,12 @@ form.create-resource-container .cru {
     margin: 20px var(--gap-lg) 20px var(--gap-lg);
     min-width: $table-contents-width;
     max-width: $table-contents-width;
-    position: fixed;
-    top: calc(var(--header-height) + 112px);
-    bottom: $footer-height;
-    right: 0px;
-    overflow: auto;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+    max-height: calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &__content {

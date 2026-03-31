@@ -8,7 +8,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div>
+  <div class="toc-root">
     <div class="toc-container">
       <h4>
         {{ t('cruResource.tableOfContents.jumpTo') }}
@@ -78,8 +78,6 @@ const props = defineProps({
   }
 
   .toc-container {
-    overflow-y: auto;
-    overflow-x: hidden;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
     background-color: var(--subtle-overlay-bg);
