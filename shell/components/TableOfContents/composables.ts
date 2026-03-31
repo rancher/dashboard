@@ -1,8 +1,7 @@
-/* eslint-disable no-console */
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 import {
-  computed, getCurrentInstance, inject, onMounted, onUnmounted, provide, ref
+  computed, getCurrentInstance, inject, onMounted, onUnmounted, provide, ref, watch
 } from 'vue';
 import type {
   ComponentInternalInstance,
@@ -13,6 +12,7 @@ import type {
 
 type SummaryInfo = {
   id: string;
+  label?: ComputedRef<string>;
   scrollTo?: () => void;
 };
 
@@ -24,7 +24,7 @@ type SummaryComponent = ComponentPublicInstance & {
   labelKey?: string;
   name?: string;
   scrollTo?: () => void;
-  vnode?: VNode;
+  getComponentLabel?: () => string;
 };
 
 type SummaryEntry = {
@@ -40,6 +40,7 @@ type RegisterComponent = (component?: SummaryComponent | null) => void;
 type FormSummaryContext = {
   registerComponent: RegisterComponent;
   unRegisterComponent: RegisterComponent;
+  refreshComponents: () => void;
 };
 
 type ChildWithVNode = {
@@ -74,71 +75,9 @@ const FORM_SUMMARY_KEY = Symbol('formSummary');
 export function useFormSummary() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const root = getCurrentInstance() as any; // get around issue typing root.proxy.$store
-  const t = root?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
 
   const registeredComponents = ref<Record<string, SummaryComponent>>({});
   const locatedComponents = ref<SummaryEntry[]>([]);
-
-  const getComponentLabel = (component: SummaryComponent) => {
-    if (component?.displayTitle) {
-      return component.displayTitle;
-    }
-
-    if (component?.title) {
-      return component.title;
-    }
-
-    if (component?.label) {
-      return component.label;
-    }
-
-    if (component?.labelKey) {
-      return typeof t === 'function' ? t(component.labelKey) : component.labelKey;
-    }
-
-    if (component?.name) {
-      return component.name;
-    }
-
-    return component?.summary?.id || '';
-  };
-
-  // const getComponentFromVNode = (vnode?: VNodeWithComponent | null): ComponentInternalInstance | null => {
-  //   console.log('*** attemping to find component from vnode ', vnode);
-
-  //   return vnode?.component ?? vnode?.ctx?.vnode?.component ?? null;
-  // };
-
-  // const getComponentInstance = (node?: VNodeWithComponent | null): SummaryComponent | undefined | null => {
-  //   console.log('*** attempting to find component from node ', node);
-  //   const internal = node?.component ?? getComponentFromVNode(node);
-
-  //   if (!internal) {
-  //     return null;
-  //   }
-
-  //   const proxy = internal.proxy as SummaryComponent | null | undefined;
-  //   const exposed = internal.exposed as Record<string, unknown> | null | undefined;
-
-  //   if (!exposed || Object.keys(exposed).length === 0) {
-  //     return proxy;
-  //   }
-
-  //   // Merge proxy and exposed so that properties set via defineExpose() in
-  //   // <script setup> components are visible alongside standard proxy properties.
-  //   // Exposed values may be computed refs, so unwrap them automatically.
-  //   return new Proxy({} as SummaryComponent, {
-  //     get(_target, key: string) {
-  //       if (key in (exposed ?? {})) {
-  //         const val = exposed?.[key];
-
-  //         return val && typeof val === 'object' && 'value' in val ? (val as { value: unknown }).value : val;
-  //       }
-
-  //       return (proxy as Record<string, unknown> | null | undefined)?.[key];
-  //     }
-  //   });
-  // };
 
   const buildTree = (
     components: SummaryEntry[] = [],
@@ -146,9 +85,6 @@ export function useFormSummary() {
     found = new Set<string>()
   ) => {
     let nextInput = components;
-
-    // const component = getComponentInstance(node);
-    // const summary = component?.summary;
 
     const summaryID = node?.el ? (node?.el as ElementWithSummaryID | null | undefined)?.summaryID || '' : node?.summaryID || '';
     const component = registeredComponents.value[summaryID];
@@ -159,7 +95,7 @@ export function useFormSummary() {
       const out: SummaryEntry = {
         node:     node as VNode,
         children: [],
-        label:    getComponentLabel(component),
+        label:    summary.label?.value || summary.id,
         scrollTo: component ? () => scrollToComponent(component) : undefined
       };
 
@@ -176,12 +112,6 @@ export function useFormSummary() {
     const children = node.el ? Array.from((node.el as ElementWithVNodeChildren | null | undefined)?.children ?? []) : Array.from(node.children ?? []);
 
     children.forEach((child: any) => {
-      // TODO nb __vnode NOT DEFINED IN PROD
-      // const vnodeChild = child.__vnode;
-
-      // if (vnodeChild) {
-      //   buildTree(nextInput, vnodeChild, found);
-      // }
       buildTree(nextInput, child, found);
     });
 
@@ -228,8 +158,6 @@ export function useFormSummary() {
       component.scrollTo();
     } else if (component?.summary?.scrollTo) {
       component.summary.scrollTo();
-    } else {
-      component?.vnode?.el?.scrollIntoView(true);
     }
   };
 
@@ -254,6 +182,7 @@ export function useFormSummary() {
   provide<FormSummaryContext>(FORM_SUMMARY_KEY, {
     registerComponent,
     unRegisterComponent,
+    refreshComponents: debouncedLocateRegisteredComponents,
   });
 
   const locateComponentsByNamePattern = (pattern?: string): ComputedRef<SummaryEntry[]> => {
@@ -301,26 +230,60 @@ export function useFormSummary() {
  *  with the nearest ancestor containing useFormSummary
  */
 export function useInSummary() {
-  const context = inject<FormSummaryContext>(FORM_SUMMARY_KEY);
+  const { registerComponent = () => {}, unRegisterComponent = () => {}, refreshComponents = () => {} } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
   const instance = getCurrentInstance();
+  const t = instance?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
+  const component = ref<SummaryComponent | null>(null);
 
+  // can be overwritten by a component method also named "scrollTo"
   const scrollTo = () => {
-    const el = instance?.proxy?.$el ?? (instance?.proxy as SummaryComponent | null | undefined)?.vnode?.el;
+    const el = instance?.proxy?.$el as ElementWithSummaryID | null | undefined;
 
     (el as HTMLElement | undefined)?.scrollIntoView(true);
+  };
+
+  const getComponentLabel = () => {
+    const currentComponent = component.value;
+
+    if (currentComponent?.displayTitle) {
+      return currentComponent.displayTitle;
+    }
+
+    if (currentComponent?.title) {
+      return currentComponent.title;
+    }
+
+    if (currentComponent?.label) {
+      return currentComponent.label;
+    }
+
+    if (currentComponent?.labelKey) {
+      return typeof t === 'function' ? t(currentComponent.labelKey) : currentComponent.labelKey;
+    }
+
+    if (currentComponent?.name) {
+      return currentComponent.name;
+    }
+
+    return summaryID;
   };
 
   const summaryID = randomStr();
   const summary: SummaryInfo = { id: summaryID, scrollTo };
 
+  summary.label = computed(getComponentLabel);
+
+  watch(summary.label, () => {
+    refreshComponents();
+  });
+
   onMounted(() => {
     const exposed = instance?.exposed as Record<string, unknown> | null | undefined;
     const proxy = instance?.proxy as SummaryComponent | null | undefined;
-    const rootEl = (proxy?.$el ?? proxy?.vnode?.el) as ElementWithSummaryID | null | undefined;
+    const rootEl = proxy?.$el as ElementWithSummaryID | null | undefined;
 
     if (rootEl) {
       rootEl.summaryID = summaryID;
-      rootEl.setAttribute('data-summary-id', summaryID);
     }
 
     if (proxy) {
@@ -330,7 +293,7 @@ export function useInSummary() {
     // Build a merged view of proxy + exposed (unwrapping computed refs from exposed)
     // so that registerComponent can read displayTitle, name etc. from <script setup>
     // components that use defineExpose()
-    const component = new Proxy({} as SummaryComponent, {
+    component.value = new Proxy({} as SummaryComponent, {
       get(_target, key: string) {
         if (key === 'summary') {
           return summary;
@@ -348,14 +311,16 @@ export function useInSummary() {
       }
     });
 
-    context?.registerComponent(component);
+    if (component.value) {
+      registerComponent(component.value);
+    }
   });
 
   onUnmounted(() => {
     // Unregister by summary ID — only the ID is needed for deletion
     const stub = { summary } as SummaryComponent;
 
-    context?.unRegisterComponent(stub);
+    unRegisterComponent(stub);
   });
 
   return { summary };

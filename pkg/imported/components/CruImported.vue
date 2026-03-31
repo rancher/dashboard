@@ -571,7 +571,7 @@ export default defineComponent({
         v-for="(acc, i) in testAccs"
         :key="i"
         class="mb-20 accordion"
-        :title="i.toString() + randomStr()"
+        :title="i.toString()"
       >
         {{ i }}
       </Accordion>
