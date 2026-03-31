@@ -17,6 +17,9 @@ pnpm-debug.log*
 logs/
 *.log
 
+# Cache files
+.eslintcache
+
 # Editor directories and files
 .idea
 .vscode
