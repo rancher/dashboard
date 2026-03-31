@@ -644,7 +644,7 @@ export default defineComponent({
         <Accordion
           v-if="!isRKE1"
           class="mb-20 accordion"
-          title="test accordion"
+          title="test accordion has a pretty long title to test long titles"
           :open-initially="false"
         >
           test

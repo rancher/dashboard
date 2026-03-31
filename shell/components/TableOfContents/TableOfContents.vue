@@ -79,6 +79,7 @@ const props = defineProps({
 
   .toc-container {
     overflow-y: auto;
+    overflow-x: hidden;
     padding: var(--gap-md);
     border-radius: var(--border-radius);
     background-color: var(--subtle-overlay-bg);
@@ -88,5 +89,18 @@ const props = defineProps({
     padding: 0px;
     min-height: 0px;
     line-height: 1em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: left;
+    display: block;
+    width: 100%;
+  }
+
+  li > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: block;
   }
 </style>
