@@ -113,6 +113,8 @@ export default {
     const tabs = this.tabs;
 
     return {
+      select: this.select,
+
       sideTabs: this.sideTabs,
 
       addTab(tab) {
@@ -448,6 +450,7 @@ export default {
         <component
           :is="tab.component"
           :resource="resource"
+          @select="select(tab.name)"
         />
       </Tab>
     </div>

@@ -5,7 +5,7 @@ import { useInSummary } from '@shell/components/TableOfContents/composables';
 export default {
   name: 'Tab',
 
-  inject: ['addTab', 'removeTab', 'sideTabs'],
+  inject: ['addTab', 'removeTab', 'sideTabs', 'select'],
 
   emits: ['active'],
 
@@ -124,6 +124,12 @@ export default {
       }
 
       return false;
+    }
+  },
+
+  methods: {
+    scrollTo() {
+      this.select(this.name);
     }
   },
 

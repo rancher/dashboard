@@ -80,7 +80,6 @@ export function useFormSummary() {
   const locatedComponents = ref<SummaryEntry[]>([]);
 
   const getComponentLabel = (component: SummaryComponent) => {
-    console.log('*** getting component label for component ', component);
     if (component?.displayTitle) {
       return component.displayTitle;
     }
@@ -146,7 +145,6 @@ export function useFormSummary() {
     node?: any,
     found = new Set<string>()
   ) => {
-    console.log('*** building tree with inputs components, node, found ', components, node, found);
     let nextInput = components;
 
     // const component = getComponentInstance(node);
@@ -156,7 +154,6 @@ export function useFormSummary() {
     const component = registeredComponents.value[summaryID];
     const summary = component?.summary;
 
-    console.log('*** found component for node ', component, node);
     if (component && summary && registeredComponents.value[summary.id] && !found.has(summary.id)) {
       found.add(summary.id);
       const out: SummaryEntry = {
@@ -178,7 +175,6 @@ export function useFormSummary() {
 
     const children = node.el ? Array.from((node.el as ElementWithVNodeChildren | null | undefined)?.children ?? []) : Array.from(node.children ?? []);
 
-    console.log('*** children for node ', children, node);
     children.forEach((child: any) => {
       // TODO nb __vnode NOT DEFINED IN PROD
       // const vnodeChild = child.__vnode;
@@ -193,7 +189,6 @@ export function useFormSummary() {
   };
 
   const locateRegisteredComponents = () => {
-    console.log('*** locating registered components,  registeredComponents ', registeredComponents.value);
     const parent = root?.parent as ComponentInternalInstance | null | undefined;
 
     locatedComponents.value = buildTree([], parent?.vnode) || [];
@@ -239,12 +234,10 @@ export function useFormSummary() {
   };
 
   const registerComponent: RegisterComponent = (component) => {
-    console.log('*** registering component useFormSummary, components, registeredComponents ', component, registeredComponents.value);
     if (!component || !component.summary?.id) {
       return;
     }
     registeredComponents.value[component.summary?.id] = component;
-    console.log('*** registeredComponents after registration ', registeredComponents.value);
     debouncedLocateRegisteredComponents();
   };
 
@@ -334,7 +327,6 @@ export function useInSummary() {
       (proxy as SummaryComponent & { summaryID?: string }).summaryID = summaryID;
     }
 
-    console.log('*** component mounted exposed, proxy (inFormSummary)', exposed, proxy);
     // Build a merged view of proxy + exposed (unwrapping computed refs from exposed)
     // so that registerComponent can read displayTitle, name etc. from <script setup>
     // components that use defineExpose()
