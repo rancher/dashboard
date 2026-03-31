@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [vue()],
@@ -9,7 +9,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'RancherCodeMirror',
       formats: ['es', 'umd'],
-      fileName: (fmt) => `rancher-codemirror.${fmt === 'es' ? 'js' : 'umd.cjs'}`
+      fileName: fmt => `rancher-codemirror.${fmt === 'es' ? 'js' : 'umd.cjs'}`
     },
     rollupOptions: {
       external: ['vue'],
@@ -20,4 +20,4 @@ export default defineConfig({
       }
     }
   }
-})
+});

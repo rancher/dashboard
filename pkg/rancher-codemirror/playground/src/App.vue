@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue'
-import { CodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath } from '@rancher/codemirror'
-import type { CodeMirrorProps } from '@rancher/codemirror'
-import type { EditorView } from '@codemirror/view'
+import { ref, shallowRef } from 'vue';
+import { CodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath } from '@rancher/codemirror';
+import type { CodeMirrorProps } from '@rancher/codemirror';
+import type { EditorView } from '@codemirror/view';
 
 // YAML editor state
 const yamlContent = ref(`# Kubernetes Deployment
@@ -35,7 +35,7 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
-`)
+`);
 
 // JSON editor state
 const jsonContent = ref(JSON.stringify({
@@ -48,44 +48,44 @@ const jsonContent = ref(JSON.stringify({
     foldGutter: true,
     lineWrapping: false
   }
-}, null, 2))
+}, null, 2));
 
 // Shared controls
-const yamlKeymap = ref<CodeMirrorProps['keymap']>('vim')
-const jsonKeymap = ref<CodeMirrorProps['keymap']>('emacs')
-const theme = ref<CodeMirrorProps['theme']>('one-dark')
-const readOnly = ref(false)
-const lineNumbers = ref(true)
-const lineWrapping = ref(false)
+const yamlKeymap = ref<CodeMirrorProps['keymap']>('vim');
+const jsonKeymap = ref<CodeMirrorProps['keymap']>('emacs');
+const theme = ref<CodeMirrorProps['theme']>('one-dark');
+const readOnly = ref(false);
+const lineNumbers = ref(true);
+const lineWrapping = ref(false);
 
 // Custom fold example (indent strategy for YAML)
-const customFoldOptions = { strategy: 'indent' as const }
+const customFoldOptions = { strategy: 'indent' as const };
 
 // Declarative fold rules: register fold services for specific patterns
 const yamlFoldExtensions = [
   foldByLineMatch(/^spec:\s*$/),
-  foldByYamlPath('metadata.labels'),
-]
+  foldByYamlPath('metadata.labels')
+];
 
 // EditorView refs exposed from the component
-const yamlEditorView = shallowRef<EditorView>()
-const jsonEditorView = shallowRef<EditorView>()
+const yamlEditorView = shallowRef<EditorView>();
+const jsonEditorView = shallowRef<EditorView>();
 
 function onYamlReady(v: EditorView) {
-  yamlEditorView.value = v
-  console.log('[playground] YAML editor ready', v)
+  yamlEditorView.value = v;
+  console.log('[playground] YAML editor ready', v);
   // Imperatively auto-fold on load
-  foldMatchingLines(v, /^spec:\s*$/)
-  foldYamlPath(v, 'metadata.labels')
+  foldMatchingLines(v, /^spec:\s*$/);
+  foldYamlPath(v, 'metadata.labels');
 }
 
 function onJsonReady(v: EditorView) {
-  jsonEditorView.value = v
-  console.log('[playground] JSON editor ready', v)
+  jsonEditorView.value = v;
+  console.log('[playground] JSON editor ready', v);
 }
 
-const keymapOptions: CodeMirrorProps['keymap'][] = ['default', 'vim', 'emacs']
-const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark']
+const keymapOptions: CodeMirrorProps['keymap'][] = ['default', 'vim', 'emacs'];
+const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 </script>
 
 <template>
