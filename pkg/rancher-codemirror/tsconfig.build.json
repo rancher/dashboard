@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
+    "rootDir": "./src",
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "declaration": true,
