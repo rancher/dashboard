@@ -7,7 +7,7 @@
 name: Code Coverage
 on:
   schedule:
-    - cron: '0 1 * * 6' # 1am on Saturdays
+    - cron: '0 1 * * 0' # 1am on Sundays
 
   workflow_dispatch:
 
