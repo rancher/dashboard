@@ -477,7 +477,7 @@ export default {
     :validation-passed="true"
     :errors="errors"
     :steps="!isView ? steps : undefined"
-    :finish-mode="'finish'"
+    :finish-button-mode="isCreate ? 'add' : null"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"

@@ -3314,10 +3314,10 @@ fleet:
     helmRepoURLRegex: Helm Repos (URL Regex)
   helmOp:
     intro:
-      add: Create Helm Op
+      add: Add Helm Op
       empty: No Helm Ops have been added
     actions:
-      add: Create Helm Op
+      add: Add Helm Op
       enablePolling:
         label: Enable Polling
       disablePolling:
