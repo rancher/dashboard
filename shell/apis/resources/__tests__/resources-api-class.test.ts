@@ -1,12 +1,12 @@
 import {
   describe, it, expect, jest, beforeEach, afterEach
 } from '@jest/globals';
-import { ClusterApiImpl } from '../cluster';
+import { ResourcesApiClassImpl } from '../resources-api-class';
 import { Store } from 'vuex';
 
-describe('clusterApiImpl', () => {
+describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with storeType: %s', (storeType) => {
   let mockStore: Store<any>;
-  let clusterApi: ClusterApiImpl;
+  let resourcesApi: ResourcesApiClassImpl;
   let mockDispatch: jest.Mock;
   let consoleErrorSpy: any;
 
@@ -19,7 +19,7 @@ describe('clusterApiImpl', () => {
     mockStore = { dispatch: mockDispatch } as any;
 
     // Instantiate the API
-    clusterApi = new ClusterApiImpl(mockStore);
+    resourcesApi = new ResourcesApiClassImpl(mockStore, storeType);
   });
 
   afterEach(() => {
@@ -30,18 +30,18 @@ describe('clusterApiImpl', () => {
     it('should successfully get a resource by type and id', async() => {
       // Arrange
       const mockResource = {
-        metadata: { name: 'test-pod', namespace: 'default' },
-        spec:     { containers: [] }
+        metadata: { name: 'test-resource' },
+        spec:     { data: 'value' }
       };
 
       mockDispatch.mockResolvedValue(mockResource);
 
       // Act
-      const result = await clusterApi.get('pod', 'test-pod', { watch: true });
+      const result = await resourcesApi.get('pod', 'test-pod', { watch: true });
 
       // Assert
       expect(result).toStrictEqual(mockResource);
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/find', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'pod',
         id:   'test-pod',
         opt:  { watch: true }
@@ -51,35 +51,33 @@ describe('clusterApiImpl', () => {
 
     it('should pass empty options object when no options provided', async() => {
       // Arrange
-      const mockResource = { metadata: { name: 'test-pod' } };
+      const mockResource = { metadata: { name: 'test-resource' } };
 
       mockDispatch.mockResolvedValue(mockResource);
 
       // Act
-      await clusterApi.get('pod', 'test-pod');
+      await resourcesApi.get('pod', 'test-pod');
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/find', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'pod',
         id:   'test-pod',
         opt:  {}
       });
     });
 
-    it('should return null and log error when dispatch fails', async() => {
+    it('should throw error and log when dispatch fails', async() => {
       // Arrange
       const error = new Error('Network error');
 
       mockDispatch.mockRejectedValue(error);
 
-      // Act
-      const result = await clusterApi.get('pod', 'test-pod');
-
-      // Assert
-      expect(result).toBeNull();
+      // Act & Assert
+      await expect(resourcesApi.get('pod', 'test-pod')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to get resource pod/test-pod: Network error`
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to get resource pod/test-pod:',
-        error
+        `Resource API error - ${ storeType } - Failed to get resource pod/test-pod: Network error`
       );
     });
 
@@ -93,11 +91,11 @@ describe('clusterApiImpl', () => {
       mockDispatch.mockResolvedValue(mockDeployment);
 
       // Act
-      const result = await clusterApi.get('apps.deployment', 'test-deployment');
+      const result = await resourcesApi.get('apps.deployment', 'test-deployment');
 
       // Assert
       expect(result).toStrictEqual(mockDeployment);
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/find', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'apps.deployment',
         id:   'test-deployment',
         opt:  {}
@@ -109,62 +107,53 @@ describe('clusterApiImpl', () => {
     it('should successfully list resources by type', async() => {
       // Arrange
       const mockResources = [
-        { metadata: { name: 'pod-1' } },
-        { metadata: { name: 'pod-2' } },
-        { metadata: { name: 'pod-3' } }
+        { metadata: { name: 'resource-1' } },
+        { metadata: { name: 'resource-2' } },
+        { metadata: { name: 'resource-3' } }
       ];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      const result = await clusterApi.list('pod');
+      const result = await resourcesApi.list('pod');
 
       // Assert
       expect(result).toStrictEqual(mockResources);
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findPage', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findPage`, {
         type: 'pod',
         opt:  {}
       });
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    it('should pass pagination options correctly', async() => {
+    it('should pass empty options when none provided', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1' } }];
-      const options = {
-        pagination: {
-          page:     1,
-          pageSize: 10
-        },
-        watch: true
-      };
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.list('pod', options);
+      await resourcesApi.list('pod');
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findPage', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findPage`, {
         type: 'pod',
-        opt:  options
+        opt:  {}
       });
     });
 
-    it('should return empty array and log error when dispatch fails', async() => {
+    it('should throw error and log when dispatch fails', async() => {
       // Arrange
       const error = new Error('Network error');
 
       mockDispatch.mockRejectedValue(error);
 
-      // Act
-      const result = await clusterApi.list('pod');
-
-      // Assert
-      expect(result).toStrictEqual([]);
+      // Act & Assert
+      await expect(resourcesApi.list('pod')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to list resources pod: Network error`
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to list resources pod:',
-        error
+        `Resource API error - ${ storeType } - Failed to list resources pod: Network error`
       );
     });
 
@@ -173,7 +162,7 @@ describe('clusterApiImpl', () => {
       mockDispatch.mockResolvedValue([]);
 
       // Act
-      const result = await clusterApi.list('pod');
+      const result = await resourcesApi.list('pod');
 
       // Assert
       expect(result).toStrictEqual([]);
@@ -185,19 +174,19 @@ describe('clusterApiImpl', () => {
     it('should successfully fetch all resources by type', async() => {
       // Arrange
       const mockResources = [
-        { metadata: { name: 'pod-1' } },
-        { metadata: { name: 'pod-2' } },
-        { metadata: { name: 'pod-3' } }
+        { metadata: { name: 'resource-1' } },
+        { metadata: { name: 'resource-2' } },
+        { metadata: { name: 'resource-3' } }
       ];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      const result = await clusterApi.listAll('pod');
+      const result = await resourcesApi.listAll('pod');
 
       // Assert
       expect(result).toStrictEqual(mockResources);
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findAll', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
         opt:  {}
       });
@@ -206,7 +195,7 @@ describe('clusterApiImpl', () => {
 
     it('should pass incremental loading options correctly', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1' } }];
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
       const options = {
         incremental: {
           quickLoadCount:        10,
@@ -219,47 +208,46 @@ describe('clusterApiImpl', () => {
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.listAll('pod', options);
+      await resourcesApi.listAll('pod', options);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findAll', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
         opt:  options
       });
     });
 
-    it('should pass depaginate option correctly', async() => {
+    it('should pass empty options when none provided', async() => {
       // Arrange
       const mockResources = [
-        { metadata: { name: 'pod-1' } },
-        { metadata: { name: 'pod-2' } }
+        { metadata: { name: 'resource-1' } },
+        { metadata: { name: 'resource-2' } }
       ];
-      const options = { depaginate: true };
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.listAll('pod', options);
+      await resourcesApi.listAll('pod');
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findAll', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
-        opt:  options
+        opt:  {}
       });
     });
 
     it('should pass namespaced filter correctly', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1', namespace: 'default' } }];
+      const mockResources = [{ metadata: { name: 'resource-1', namespace: 'default' } }];
       const options = { namespaced: ['default', 'kube-system'] };
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.listAll('pod', options);
+      await resourcesApi.listAll('pod', options);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findAll', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
         opt:  options
       });
@@ -267,35 +255,50 @@ describe('clusterApiImpl', () => {
 
     it('should pass watch option correctly', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1' } }];
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
       const options = { watch: true };
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.listAll('pod', options);
+      await resourcesApi.listAll('pod', options);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findAll', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
         opt:  options
       });
     });
 
-    it('should return empty array and log error when dispatch fails', async() => {
+    it('should pass limit option correctly', async() => {
+      // Arrange
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
+      const options = { limit: 100 };
+
+      mockDispatch.mockResolvedValue(mockResources);
+
+      // Act
+      await resourcesApi.listAll('pod', options);
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
+        type: 'pod',
+        opt:  options
+      });
+    });
+
+    it('should throw error and log when dispatch fails', async() => {
       // Arrange
       const error = new Error('Network error');
 
       mockDispatch.mockRejectedValue(error);
 
-      // Act
-      const result = await clusterApi.listAll('pod');
-
-      // Assert
-      expect(result).toStrictEqual([]);
+      // Act & Assert
+      await expect(resourcesApi.listAll('pod')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to list all resources pod: Network error`
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to list all resources pod:',
-        error
+        `Resource API error - ${ storeType } - Failed to list all resources pod: Network error`
       );
     });
 
@@ -304,7 +307,7 @@ describe('clusterApiImpl', () => {
       mockDispatch.mockResolvedValue([]);
 
       // Act
-      const result = await clusterApi.listAll('pod');
+      const result = await resourcesApi.listAll('pod');
 
       // Assert
       expect(result).toStrictEqual([]);
@@ -316,71 +319,71 @@ describe('clusterApiImpl', () => {
     it('should successfully find resources by label selector', async() => {
       // Arrange
       const mockResources = [
-        { metadata: { name: 'pod-1', labels: { app: 'nginx' } } },
-        { metadata: { name: 'pod-2', labels: { app: 'nginx' } } }
+        { metadata: { name: 'resource-1', labels: { app: 'nginx' } } },
+        { metadata: { name: 'resource-2', labels: { app: 'nginx' } } }
       ];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      const result = await clusterApi.labelSelector('app=nginx');
+      const result = await resourcesApi.labelSelector('pod', 'app=nginx');
 
       // Assert
       expect(result).toStrictEqual(mockResources);
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findLabelSelector', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findLabelSelector`, {
+        type:     'pod',
         selector: 'app=nginx',
         opt:      {}
       });
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    it('should pass options correctly', async() => {
+    it('should pass empty options when none provided', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1' } }];
-      const options = { depaginate: true, namespaced: 'default' };
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.labelSelector('app=nginx,env=prod', options);
+      await resourcesApi.labelSelector('pod', 'app=nginx,env=prod');
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findLabelSelector', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findLabelSelector`, {
+        type:     'pod',
         selector: 'app=nginx,env=prod',
-        opt:      options
+        opt:      {}
       });
     });
 
     it('should handle complex label selectors', async() => {
       // Arrange
-      const mockResources = [{ metadata: { name: 'pod-1' } }];
+      const mockResources = [{ metadata: { name: 'resource-1' } }];
 
       mockDispatch.mockResolvedValue(mockResources);
 
       // Act
-      await clusterApi.labelSelector('app=nginx,env=prod,tier!=backend');
+      await resourcesApi.labelSelector('pod', 'app=nginx,env=prod,tier!=backend');
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith('cluster/findLabelSelector', {
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findLabelSelector`, {
+        type:     'pod',
         selector: 'app=nginx,env=prod,tier!=backend',
         opt:      {}
       });
     });
 
-    it('should return empty array and log error when dispatch fails', async() => {
+    it('should throw error and log when dispatch fails', async() => {
       // Arrange
       const error = new Error('Invalid selector');
 
       mockDispatch.mockRejectedValue(error);
 
-      // Act
-      const result = await clusterApi.labelSelector('app=nginx');
-
-      // Assert
-      expect(result).toStrictEqual([]);
+      // Act & Assert
+      await expect(resourcesApi.labelSelector('pod', 'app=nginx')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to find resources with selector app=nginx: Invalid selector`
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to find resources with selector app=nginx:',
-        error
+        `Resource API error - ${ storeType } - Failed to find resources with selector app=nginx: Invalid selector`
       );
     });
 
@@ -389,7 +392,7 @@ describe('clusterApiImpl', () => {
       mockDispatch.mockResolvedValue([]);
 
       // Act
-      const result = await clusterApi.labelSelector('app=nonexistent');
+      const result = await resourcesApi.labelSelector('pod', 'app=nonexistent');
 
       // Assert
       expect(result).toStrictEqual([]);
