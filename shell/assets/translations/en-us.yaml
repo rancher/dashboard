@@ -3171,10 +3171,10 @@ fleet:
     noPermissions: You have no permissions to create {label}
   gitRepo:
     intro:
-      add: Create Git Repo
+      add: Add Git Repo
       empty: No Git Repos have been added
     actions:
-      add: Create Git Repo
+      add: Add Git Repo
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
