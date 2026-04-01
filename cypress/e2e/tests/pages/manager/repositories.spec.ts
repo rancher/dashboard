@@ -94,7 +94,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // The interval should not trigger a refresh
     repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
     repositoriesPage.list().details(this.repoName, 2).click();
-    cy.contains('label', 'Refresh Interval').should('have.value', 'Disabled');
+    cy.contains('label', 'Refresh Interval')
+      .siblings('.value')
+      .should('contain.text', 'Disabled');
   });
 
   it('can clone a repository', function() {
