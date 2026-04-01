@@ -1,5 +1,6 @@
 <script lang="ts">
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AsyncButton from '@shell/components/AsyncButton.vue';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -23,6 +24,7 @@ export default {
   emits: ['input'],
 
   components: {
+    AsyncButton,
     Footer,
     LabeledInput,
     NameNsDescription,
@@ -90,6 +92,7 @@ export default {
       ociMaxRetries:       this.value.spec.exponentialBackOffValues?.maxRetries,
       getVersionData,
       isView:              this.mode === _VIEW,
+      isCreate:            this.mode === _CREATE,
       clusterRepoTargets,
       previousName:        '',
       previousDescription: '',
@@ -450,7 +453,18 @@ export default {
       :errors="errors"
       @save="save"
       @done="done"
-    />
+    >
+      <template
+        v-if="isCreate"
+        #save
+      >
+        <AsyncButton
+          mode="add"
+          data-testid="clusterrepo-create-add"
+          @click="save"
+        />
+      </template>
+    </Footer>
   </form>
 </template>
 
