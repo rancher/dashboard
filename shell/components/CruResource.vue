@@ -1,5 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import debounce from 'lodash/debounce';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -200,21 +201,24 @@ export default {
     }
 
     return {
-      isCancelModal:   false,
-      showAsForm:      this.$route.query[AS] !== _YAML,
+      isCancelModal:                      false,
+      showAsForm:                         this.$route.query[AS] !== _YAML,
+      tocContainerHeight:                 0,
+      mainLayoutEl:                       null,
+      debouncedComputeTocContainerHeight: null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      resourceYaml:    null,
+      resourceYaml:                       null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      initialYaml:     null,
+      initialYaml:                        null,
       /**
        * Save a copy of the initial resource. This is used to calc the initial yaml later on
        */
-      initialResource: clone(this.resource),
-      abbrSizes:       {
+      initialResource:                    clone(this.resource),
+      abbrSizes:                          {
         3: '24px',
         4: '18px',
         5: '16px',
@@ -304,6 +308,8 @@ export default {
   },
 
   created() {
+    this.debouncedComputeTocContainerHeight = debounce(this.computeTocContainerHeight, 1);
+
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
@@ -311,14 +317,49 @@ export default {
 
   mounted() {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
+    this.$nextTick(() => {
+      this.debouncedComputeTocContainerHeight?.();
+    });
+    this.mainLayoutEl = document.querySelector('.main-layout');
+    this.mainLayoutEl?.addEventListener('scroll', this.debouncedComputeTocContainerHeight, { passive: true });
   },
 
   beforeUnmount() {
+    this.mainLayoutEl?.removeEventListener('scroll', this.debouncedComputeTocContainerHeight);
+    this.debouncedComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
   methods: {
     stringify,
+
+    computeTocContainerHeight() {
+      const root = this.$el;
+
+      if (!root) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocEl = root.querySelector('.cru__toc');
+      const footerEl = root.querySelector('.cru__footer');
+
+      if (!tocEl || !footerEl) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocTop = tocEl.getBoundingClientRect().top;
+      const footerTop = footerEl.getBoundingClientRect().top;
+      const gapLgValue = getComputedStyle(root).getPropertyValue('--gap-lg').trim();
+      const gapLg = Number.parseFloat(gapLgValue) || 0;
+
+      this.tocContainerHeight = Math.max(0, Math.round((footerTop - tocTop) - gapLg));
+
+      return this.tocContainerHeight;
+    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {
@@ -801,6 +842,7 @@ export default {
         <TableOfContents
           v-if="showToc"
           class="cru__toc"
+          :style="tocContainerHeight ? { '--toc-container-height': `${tocContainerHeight}px` } : {}"
           :accordions="accordions"
         />
         <div
@@ -1039,7 +1081,7 @@ form.create-resource-container .cru {
     position: sticky;
     top: 24px;
     align-self: flex-start;
-    max-height: calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px);
+    max-height: var(--toc-container-height, calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px));
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -1082,7 +1124,17 @@ form.create-resource-container .cru {
    &>.cru__form{
         display: grid;
         grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));
-        grid-template-rows: [content] 1fr [footer] min-content;
+        grid-template-rows: [errors] auto [content] 1fr [footer] min-content;
+
+      &>.cru__errors {
+        grid-column: content;
+        grid-row: errors;
+      }
+
+      &>.cru__toc {
+        grid-column: toc;
+        grid-row: errors / footer;
+      }
 
       &>.cru__content {
           grid-column: content;
