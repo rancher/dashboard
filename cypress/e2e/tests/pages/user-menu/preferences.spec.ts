@@ -7,7 +7,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
-import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
+import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 // import TooltipPo from '@/cypress/e2e/po/components/tooltip.po'; // Used in the below commented test
@@ -330,7 +330,7 @@ describe('User can update their preferences', () => {
     Deselect the checkbox and verify description banner displays
     */
     const banners = new BannersPo('header > .banner');
-    const nodesListPage = new NodesPagePo('local');
+    const featureFlagsPage = new FeatureFlagsPagePo('_');
 
     prefPage.goTo();
     prefPage.hideDescriptionsCheckbox().checkVisible();
@@ -340,8 +340,8 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    nodesListPage.goTo();
-    nodesListPage.waitForPage();
+    featureFlagsPage.goTo();
+    featureFlagsPage.waitForPage();
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -351,8 +351,8 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    nodesListPage.goTo();
-    nodesListPage.waitForPage();
+    featureFlagsPage.goTo();
+    featureFlagsPage.waitForPage();
     banners.self().should('exist');
   });
 
