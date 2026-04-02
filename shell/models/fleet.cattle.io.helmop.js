@@ -6,7 +6,6 @@ import FleetUtils from '@shell/utils/fleet';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
-import { _CREATE } from '@shell/config/query-params';
 
 export default class HelmOp extends FleetApplication {
   applyDefaults() {
@@ -89,14 +88,6 @@ export default class HelmOp extends FleetApplication {
     repo = repo.replace(/\/+$/, '');
 
     return repo;
-  }
-
-  detailPageHeaderActionOverride(realMode) {
-    if (realMode === _CREATE) {
-      return this.t('generic.add');
-    }
-
-    return null;
   }
 
   /**

@@ -4,7 +4,6 @@ import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
 import FleetUtils from '@shell/utils/fleet';
-import { _CREATE } from '@shell/config/query-params';
 
 export default class GitRepo extends FleetApplication {
   applyDefaults() {
@@ -213,13 +212,5 @@ export default class GitRepo extends FleetApplication {
 
   get fullDetailPageOverride() {
     return true;
-  }
-
-  detailPageHeaderActionOverride(realMode) {
-    if (realMode === _CREATE) {
-      return this.t('generic.add');
-    }
-
-    return null;
   }
 }

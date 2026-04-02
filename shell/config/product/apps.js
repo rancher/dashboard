@@ -53,7 +53,7 @@ export function init(store) {
 
   configureType(CATALOG.APP, { isCreatable: false, isEditable: false });
   configureType(CATALOG.OPERATION, { isCreatable: false, isEditable: false });
-  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'generic.add' });
+  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
   const repoType = {
     name:     'type',

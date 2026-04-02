@@ -1379,6 +1379,7 @@ catalog:
       releaseName: Release Name
       releaseNamespace: Release Namespace
   repo:
+    add: Add Repository
     action:
       refresh: Refresh
     all: All
@@ -3171,10 +3172,10 @@ fleet:
     noPermissions: You have no permissions to create {label}
   gitRepo:
     intro:
-      add: Add Git Repo
+      add: Create Git Repo
       empty: No Git Repos have been added
     actions:
-      add: Add Git Repo
+      add: Create Git Repo
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
@@ -3314,10 +3315,10 @@ fleet:
     helmRepoURLRegex: Helm Repos (URL Regex)
   helmOp:
     intro:
-      add: Add Helm Op
+      add: Create Helm Op
       empty: No Helm Ops have been added
     actions:
-      add: Add Helm Op
+      add: Create Helm Op
       enablePolling:
         label: Enable Polling
       disablePolling:

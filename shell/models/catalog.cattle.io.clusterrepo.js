@@ -176,7 +176,7 @@ export default class ClusterRepo extends SteveModel {
 
   detailPageHeaderActionOverride(realMode) {
     if (realMode === _CREATE) {
-      return this.t('generic.add');
+      return this.t('catalog.repo.add');
     }
 
     return null;

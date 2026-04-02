@@ -459,8 +459,7 @@ export default {
         #save
       >
         <AsyncButton
-          mode="add"
-          data-testid="clusterrepo-create-add"
+          :action-label="t('catalog.repo.add')"
           @click="save"
         />
       </template>
