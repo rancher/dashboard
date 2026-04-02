@@ -766,8 +766,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
           { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
           { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
-          SECRET,
-          CAPI.MACHINE_SET
+          SECRET
         ],
         generic: false,
       }

@@ -57,7 +57,7 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn install --frozen-lockfile
 
       - name: Parse Extension Name
         if: github.ref_type == 'tag'

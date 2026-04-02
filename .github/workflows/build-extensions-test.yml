@@ -131,7 +131,7 @@ jobs:
       - name: Install Dependencies
         if: ${{ matrix.folder != '_skip_' }}
         shell: bash
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: "Build extension: ${{ matrix.folder }}"
         if: ${{ matrix.folder != '_skip_' }}
