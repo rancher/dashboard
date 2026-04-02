@@ -3386,6 +3386,38 @@ fleet:
           createButtonWaiting: Creating&hellip;
           createButtonSuccess: Auth Secret Created
           created: 'Authentication secret created successfully.'
+        selection:
+          label: Selection
+          title: 'Create: Step 1'
+          subtext: 'Select a chart from the SUSE Application Collection'
+          description: Browse and select a chart from the SUSE Application Collection catalogue.
+          searchPlaceholder: Search the catalogue...
+          totalCharts: |-
+            {count, plural,
+              =0 {No charts available}
+              =1 {1 chart available}
+              other {{count, number} charts available}
+              }
+          totalMatched: |-
+            {count, plural,
+              =0 {No charts matched}
+              =1 {1 chart matched}
+              other {{count, number} charts matched}
+              }
+          noCharts: No charts found in this repository.
+          authPrompt: Select an authentication secret above to browse the catalogue.
+        appcoConfig:
+          label: App Bundle config
+          title: 'Create: Step 2'
+          subtext: 'Configure the App Bundle'
+          description: Configure the App Bundle with chart version, name and advanced settings.
+    appCoConfig:
+      chartVersion: Chart version
+      name: App Bundle name
+      namePlaceholder: A unique name
+      description: Description
+      descriptionPlaceholder: Any text you want that better describes this resource
+      advanced: Advanced
     source:
       title: Source
       selectLabel: Type

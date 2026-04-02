@@ -30,7 +30,8 @@ import HelmOpChartTab from '@shell/components/fleet/HelmOpChartTab.vue';
 import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
-import HelmOpAppCoAuthTab from '@shell/components/fleet/HelmOpAppCoAuthTab.vue';
+import HelmOpAppCoSelectionTab from '@shell/components/fleet/HelmOpAppCoSelectionTab.vue';
+import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -59,7 +60,8 @@ export default {
     HelmOpValuesTab,
     HelmOpTargetTab,
     HelmOpAdvancedTab,
-    HelmOpAppCoAuthTab,
+    HelmOpAppCoSelectionTab,
+    HelmOpAppCoConfigTab,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -145,7 +147,7 @@ export default {
     ...mapGetters(['workspace']),
 
     steps() {
-      return [
+      return !this.isSuseAppCollection ? [
         {
           name:           'basics',
           title:          this.t('fleet.helmOp.add.steps.metadata.title'),
@@ -155,15 +157,6 @@ export default {
           ready:          this.isView || !!this.value.metadata.name,
           weight:         1
         },
-        ...( this.isSuseAppCollection ? [{
-          name:           'auth',
-          title:          this.t('fleet.helmOp.add.steps.auth.title'),
-          label:          this.t('fleet.helmOp.add.steps.auth.label'),
-          subtext:        this.t('fleet.helmOp.add.steps.auth.subtext'),
-          descriptionKey: 'fleet.helmOp.add.steps.auth.description',
-          ready:          this.isView || !!this.value.spec?.helmSecretName,
-          weight:         1
-        }] : []),
         {
           name:           'chart',
           title:          this.t('fleet.helmOp.add.steps.chart.title'),
@@ -198,6 +191,25 @@ export default {
           subtext:        this.t('fleet.helmOp.add.steps.advanced.subtext'),
           descriptionKey: 'fleet.helmOp.add.steps.advanced.description',
           ready:          true,
+          weight:         1,
+        },
+      ] : [
+        {
+          name:           'selection',
+          title:          this.t('fleet.helmOp.add.steps.selection.title'),
+          label:          this.t('fleet.helmOp.add.steps.selection.label'),
+          subtext:        this.t('fleet.helmOp.add.steps.selection.subtext'),
+          descriptionKey: 'fleet.helmOp.add.steps.selection.description',
+          ready:          true,
+          weight:         1
+        },
+        {
+          name:           'appcoConfig',
+          title:          this.t('fleet.helmOp.add.steps.appcoConfig.title'),
+          label:          this.t('fleet.helmOp.add.steps.appcoConfig.label'),
+          subtext:        this.t('fleet.helmOp.add.steps.appcoConfig.subtext'),
+          descriptionKey: 'fleet.helmOp.add.steps.appcoConfig.description',
+          ready:          !!this.value.metadata.name,
           weight:         1,
         },
       ];
@@ -308,6 +320,10 @@ export default {
   },
 
   methods: {
+    goToNextStep() {
+      this.$refs.cruResource?.$refs?.Wizard?.next();
+    },
+
     onSourceTypeSelect(type) {
       if (this.isSuseAppCollection) {
         return;
@@ -804,6 +820,7 @@ export default {
 
   <CruResource
     v-else
+    ref="cruResource"
     :done-route="doneRouteList"
     :mode="mode"
     :resource="value"
@@ -817,7 +834,10 @@ export default {
     @error="e=>errors = e"
     @finish="save"
   >
-    <template #basics>
+    <template
+      v-if="!isSuseAppCollection"
+      #basics
+    >
       <HelmOpMetadataTab
         :value="value"
         :mode="mode"
@@ -828,9 +848,9 @@ export default {
 
     <template
       v-if="isSuseAppCollection"
-      #auth
+      #selection
     >
-      <HelmOpAppCoAuthTab
+      <HelmOpAppCoSelectionTab
         :value="value"
         :mode="mode"
         :is-view="isView"
@@ -838,12 +858,67 @@ export default {
         :create-errors="authCreateErrors"
         :on-create-auth="onCreateAuth"
         :register-before-hook="registerBeforeHook"
+        :app-co-chart-entries="appCoChartEntries"
+        :app-co-charts-loading="appCoChartsLoading"
         @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
         @update:auth="updateAuth($event.value, $event.key)"
+        @select-chart-next="goToNextStep"
       />
     </template>
 
-    <template #chart>
+    <template
+      v-if="isSuseAppCollection"
+      #appcoConfig
+    >
+      <HelmOpAppCoConfigTab
+        :value="value"
+        :mode="mode"
+        :real-mode="realMode"
+        :is-view="isView"
+        :app-co-chart-entries="appCoChartEntries"
+        :app-co-charts-loading="appCoChartsLoading"
+        :chart-values="chartValues"
+        :chart-values-init="chartValuesInit"
+        :yaml-form="yamlForm"
+        :yaml-form-options="yamlFormOptions"
+        :yaml-diff-mode-options="yamlDiffModeOptions"
+        :is-yaml-diff="isYamlDiff"
+        :editor-mode="editorMode"
+        :diff-mode="diffMode"
+        :is-real-mode-edit="isRealModeEdit"
+        :targets-created="targetsCreated"
+        :source-type="sourceType"
+        :is-suse-app-collection="isSuseAppCollection"
+        :temp-cached-values="tempCachedValues"
+        :correct-drift-enabled="correctDriftEnabled"
+        :polling-interval="pollingInterval"
+        :is-polling-enabled="isPollingEnabled"
+        :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
+        :enable-polling-tooltip="enablePollingTooltip"
+        :is-null-or-static-version="isNullOrStaticVersion"
+        :downstream-secrets-list="downstreamSecretsList"
+        :downstream-config-maps-list="downstreamConfigMapsList"
+        :register-before-hook="registerBeforeHook"
+        @update:value="$emit('input', $event)"
+        @update:yaml-form="updateYamlForm"
+        @update:chart-values="updateChartValues"
+        @update:diff-mode="diffMode = $event"
+        @update:targets="updateTargets"
+        @targets-created="targetsCreated=$event"
+        @update:auth="updateAuth($event.value, $event.key)"
+        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+        @update:correct-drift="correctDriftEnabled = $event"
+        @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
+        @toggle-polling="togglePolling"
+        @update:polling-interval="updatePollingInterval"
+        @update:validate-polling-interval="validatePollingInterval"
+      />
+    </template>
+
+    <template
+      v-if="!isSuseAppCollection"
+      #chart
+    >
       <HelmOpChartTab
         :value="value"
         :mode="mode"
@@ -861,7 +936,10 @@ export default {
       />
     </template>
 
-    <template #values>
+    <template
+      v-if="!isSuseAppCollection"
+      #values
+    >
       <HelmOpValuesTab
         :value="value"
         :mode="mode"
@@ -882,7 +960,10 @@ export default {
       />
     </template>
 
-    <template #target>
+    <template
+      v-if="!isSuseAppCollection"
+      #target
+    >
       <HelmOpTargetTab
         :value="value"
         :mode="mode"
@@ -894,7 +975,10 @@ export default {
       />
     </template>
 
-    <template #advanced>
+    <template
+      v-if="!isSuseAppCollection"
+      #advanced
+    >
       <HelmOpAdvancedTab
         :value="value"
         :mode="mode"
