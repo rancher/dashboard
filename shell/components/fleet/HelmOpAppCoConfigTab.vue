@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { set } from '@shell/utils/object';
 import { isPrerelease } from '@shell/utils/version';
+import { ZERO_TIME } from '@shell/config/types';
 import dayjs from 'dayjs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LazyImage from '@shell/components/LazyImage';
@@ -168,11 +169,12 @@ const versionOptions = computed(() => {
   return selectedChartVersions.value
     .filter((entry) => !isPrerelease(entry.version))
     .map((entry) => {
-      const dateStr = entry.created ? dayjs(entry.created).format('MMM D, YYYY') : '';
+      const isZeroTime = !entry.created || entry.created === ZERO_TIME;
 
       return {
-        label: dateStr ? `${ entry.version }          ${ dateStr }` : entry.version,
+        label: entry.version,
         value: entry.version,
+        date:  isZeroTime ? '' : dayjs(entry.created).format('MMM D, YYYY'),
       };
     })
     .sort((a, b) => b.value.localeCompare(a.value, undefined, { numeric: true, sensitivity: 'base' }));
@@ -210,10 +212,12 @@ const chartSubHeaderItems = computed(() => {
   }
 
   if (entry.created) {
+    const isZeroTime = entry.created === ZERO_TIME;
+
     items.push({
       icon:        'icon-refresh-alt',
       iconTooltip: { key: 'tableHeaders.lastUpdated' },
-      label:       dayjs(entry.created).format('MMM D, YYYY'),
+      label:       isZeroTime ? t('generic.na') : dayjs(entry.created).format('MMM D, YYYY'),
     });
   }
 
@@ -267,7 +271,26 @@ const onVersionSelect = (val) => {
           option-key="value"
           data-testid="appco-config-version-select"
           @update:value="onVersionSelect"
-        />
+        >
+          <template #option="opt">
+            <div class="version-option">
+              <span>{{ opt.label }}</span>
+              <span
+                v-if="opt.date"
+                class="version-option-date"
+              >{{ opt.date }}</span>
+            </div>
+          </template>
+          <template #selected-option="opt">
+            <div class="version-option">
+              <span>{{ opt.label }}</span>
+              <span
+                v-if="opt.date"
+                class="version-option-date"
+              >{{ opt.date }}</span>
+            </div>
+          </template>
+        </LabeledSelect>
       </div>
     </div>
 
@@ -283,6 +306,7 @@ const onVersionSelect = (val) => {
     <!-- Advanced accordion -->
     <Accordion
       :title="t('fleet.helmOp.appCoConfig.advanced')"
+      :lazy-mount="true"
       data-testid="appco-config-advanced"
     >
       <Labels
@@ -397,5 +421,15 @@ const onVersionSelect = (val) => {
 .chart-header-title {
   font-size: 16px;
   font-weight: 600;
+}
+
+.version-option {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.version-option-date {
+  color: var(--muted);
 }
 </style>

@@ -8,7 +8,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
-import { AUTH_TYPE, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME } from '@shell/config/types';
+import { AUTH_TYPE, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, ZERO_TIME } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default {
@@ -213,6 +213,10 @@ export default {
 
   methods: {
     formatDate(dateString) {
+      if (!dateString || dateString === ZERO_TIME) {
+        return this.t('generic.na');
+      }
+
       try {
         const d = new Date(dateString);
 
