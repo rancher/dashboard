@@ -1,6 +1,12 @@
 // Helpers for determining if V2 or v1 Monitoring are installed
 
-import { SCHEMA, MONITORING, ENDPOINTS } from '@shell/config/types';
+import {
+  CATALOG,
+  COUNT,
+  ENDPOINTS,
+  MONITORING,
+  SCHEMA
+} from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
@@ -21,7 +27,16 @@ export function monitoringStatus() {
 export function haveV2Monitoring(getters) {
   const inStore = getters['getStoreNameByProductId'];
 
-  // Just check for the pod monitors CRD
+  // Check for the rancher-monitoring app directly - works for dashboard-only installs that ship no CRDs.
+  const apps = getters[`${ inStore }/all`](CATALOG.APP) || [];
+  const counts = getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
+  const monitoringAppId = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`;
+
+  if (counts?.[CATALOG.APP]?.namespaces?.[CATTLE_MONITORING_NAMESPACE] || findBy(apps, 'id', monitoringAppId)) {
+    return true;
+  }
+
+  // Fall back to the legacy CRD signal for older installs.
   const schemas = getters[`${ inStore }/all`](SCHEMA);
   const exists = findBy(schemas, 'id', normalizeType(MONITORING.PODMONITOR));
 
