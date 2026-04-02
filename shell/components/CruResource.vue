@@ -1,6 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -205,7 +205,7 @@ export default {
       showAsForm:                         this.$route.query[AS] !== _YAML,
       tocContainerHeight:                 0,
       mainLayoutEl:                       null,
-      debouncedComputeTocContainerHeight: null,
+      throttledComputeTocContainerHeight: null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
@@ -308,7 +308,7 @@ export default {
   },
 
   created() {
-    this.debouncedComputeTocContainerHeight = debounce(this.computeTocContainerHeight, 1);
+    this.throttledComputeTocContainerHeight = throttle(this.computeTocContainerHeight, 20);
 
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
@@ -317,16 +317,18 @@ export default {
 
   mounted() {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
-    this.$nextTick(() => {
-      this.debouncedComputeTocContainerHeight?.();
-    });
-    this.mainLayoutEl = document.querySelector('.main-layout');
-    this.mainLayoutEl?.addEventListener('scroll', this.debouncedComputeTocContainerHeight, { passive: true });
+    if (this.showToc) {
+      this.$nextTick(() => {
+        this.throttledComputeTocContainerHeight?.();
+      });
+      this.mainLayoutEl = document.querySelector('.main-layout');
+      this.mainLayoutEl?.addEventListener('scroll', this.throttledComputeTocContainerHeight, { passive: true });
+    }
   },
 
   beforeUnmount() {
-    this.mainLayoutEl?.removeEventListener('scroll', this.debouncedComputeTocContainerHeight);
-    this.debouncedComputeTocContainerHeight?.cancel?.();
+    this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+    this.throttledComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
@@ -1082,6 +1084,7 @@ form.create-resource-container .cru {
     top: 24px;
     align-self: flex-start;
     max-height: var(--toc-container-height, calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px));
+    transition: max-height 50ms ease-in-out;
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -1146,6 +1149,20 @@ form.create-resource-container .cru {
         grid-row: footer;
       }
     }
+}
+
+@media (max-width: map-get($breakpoints, '--viewport-9')) {
+  .show-toc.cru {
+    & > .cru__form {
+      display: flex;
+      grid-template-columns: none;
+      grid-template-rows: none;
+
+      & > .cru__toc {
+        display: none;
+      }
+    }
+  }
 }
 
 .description {
