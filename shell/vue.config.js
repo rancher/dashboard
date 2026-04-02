@@ -143,7 +143,7 @@ const instrumentCode = (config) => {
   }
 };
 
-const getLoaders = (SHELL_ABS) => [
+const getLoaders = (SHELL_ABS, dir) => [
   // no fallback for pre-2013 browsers https://caniuse.com/webworkers
   {
     test:    /web-worker.[a-z-]+.js/i,
@@ -199,7 +199,8 @@ const getLoaders = (SHELL_ABS) => [
           appendTsxSuffixTo: [
             '\\.vue$'
           ],
-          configFile: path.join(SHELL_ABS, 'tsconfig.json')
+          configFile:      path.join(SHELL_ABS, 'tsconfig.json'),
+          compilerOptions: { rootDir: dir }
         }
       }
     ]
@@ -580,7 +581,7 @@ module.exports = function(dir, appConfig = {}) {
 
       config.resolve.symlinks = false;
       processShellFiles(config, SHELL_ABS);
-      config.module.rules.push(...getLoaders(SHELL_ABS));
+      config.module.rules.push(...getLoaders(SHELL_ABS, dir));
       instrumentCode(config);
       preserveWhitespace(config);
     },
