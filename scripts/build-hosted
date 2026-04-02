@@ -10,7 +10,7 @@ fi
 cd $(dirname $0)/..
 
 echo "Bootstrapping..."
-yarn --pure-lockfile install
+yarn install --frozen-lockfile
 
 source scripts/version
 echo "BRANCH: ${COMMIT_BRANCH:-<none>}"

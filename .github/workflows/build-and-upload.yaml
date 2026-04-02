@@ -84,8 +84,6 @@ jobs:
       - id: build-embedded
         name: Build Embedded
         run: ./scripts/build-embedded
-        env:
-          EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
 
       - name: Get gcs auth
         uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3

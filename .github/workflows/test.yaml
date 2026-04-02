@@ -100,6 +100,7 @@ jobs:
       #   uses: ./.github/actions/install-chrome
       #   with:
       #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
 
       - name: Download e2e build
         uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -171,6 +172,7 @@ jobs:
       #   uses: ./.github/actions/install-chrome
       #   with:
       #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
 
       - name: Download e2e build
         uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -311,7 +313,10 @@ jobs:
   #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
   #     - name: Install Codecov CLI
-  #       run : .github/workflows/scripts/install-codecov.sh
+  #       uses : .github/workflows/scripts/install-codecov.sh
+  #       with:
+  #         codecov-version:
+  #         codecov-version-checksum:
 
   #     - name: Upload tests coverage report to Codecov
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json

@@ -28,7 +28,7 @@ OUTPUT_DIR="${E2E_BUILD_DIST_DIR:-dist}"
 
 if [ "$BUILD_DASHBOARD" == "true" ]; then
     echo "Building production build for e2e ..."
-    yarn --pure-lockfile install
+    yarn install --frozen-lockfile
 
     source scripts/version
     echo "BRANCH: ${COMMIT_BRANCH:-<none>}"

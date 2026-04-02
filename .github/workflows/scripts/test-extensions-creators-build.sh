@@ -40,7 +40,7 @@ validate_tagged_extension_creator() {
   cd ${SKELETON_APP_NAME}
 
   # install dependencies
-  yarn install
+  yarn install --frozen-lockfile
 
   # test build of pkg inside skeleton app
   yarn build-pkg ${SKELETON_APP_NAME} | cat
@@ -70,7 +70,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --frozen-lockfile
 
     cat package.json
 
@@ -93,7 +93,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --frozen-lockfile
 
     yarn build-pkg ${SKELETON_APP_NAME} | cat
   fi

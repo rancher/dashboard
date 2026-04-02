@@ -18,7 +18,7 @@ jobs:
           node-version-file: '.nvmrc'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Verify build
         run: yarn build:lib
@@ -34,7 +34,7 @@ jobs:
           node-version-file: '.nvmrc'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install --frozen-lockfile
       
       - name: Run linters
         run: yarn lint:lib
