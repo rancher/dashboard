@@ -710,6 +710,7 @@ export default defineComponent({
           <Tab
             v-for="(node, i) in nodeGroups"
             :key="i"
+            :weight="-1 * i"
             :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
             :name="`${node.nodegroupName} ${i}`"
           >
