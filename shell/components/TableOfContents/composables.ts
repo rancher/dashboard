@@ -41,6 +41,7 @@ type FormSummaryContext = {
   registerComponent: RegisterComponent;
   unRegisterComponent: RegisterComponent;
   refreshComponents: () => void;
+  updateComponentLabel: (summaryID: string, label: string) => boolean;
 };
 
 type ElementWithVNodeChildren = {
@@ -137,6 +138,26 @@ export function useFormSummary() {
     return walk(locatedComponents.value);
   };
 
+  const updateComponentLabel = (summaryID: string, label: string) => {
+    const walk = (entries: SummaryEntry[] = []): boolean => {
+      for (const entry of entries) {
+        if (entry?.component?.summary?.id === summaryID) {
+          entry.label = label;
+
+          return true;
+        }
+
+        if (entry?.children?.length && walk(entry.children)) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    return walk(locatedComponents.value);
+  };
+
   const scrollToComponent = (component: SummaryComponent) => {
     const parent = findParent(component);
 
@@ -172,6 +193,7 @@ export function useFormSummary() {
     registerComponent,
     unRegisterComponent,
     refreshComponents: debouncedLocateRegisteredComponents,
+    updateComponentLabel,
   });
 
   const locateComponentsByNamePattern = (pattern?: string): ComputedRef<SummaryEntry[]> => {
@@ -219,7 +241,12 @@ export function useFormSummary() {
  *  with the nearest ancestor containing useFormSummary
  */
 export function useInSummary() {
-  const { registerComponent = () => {}, unRegisterComponent = () => {}, refreshComponents = () => {} } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
+  const {
+    registerComponent = () => {},
+    unRegisterComponent = () => {},
+    refreshComponents = () => {},
+    updateComponentLabel = () => false
+  } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
   const instance = getCurrentInstance();
   const t = instance?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
   const component = ref<SummaryComponent | null>(null);
@@ -262,8 +289,12 @@ export function useInSummary() {
 
   summary.label = computed(getComponentLabel);
 
-  watch(summary.label, () => {
-    refreshComponents();
+  watch(summary.label, (label) => {
+    const updated = updateComponentLabel(summaryID, label);
+
+    if (!updated) {
+      refreshComponents();
+    }
   });
 
   onMounted(() => {
