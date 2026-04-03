@@ -205,7 +205,7 @@ export default {
       showAsForm:                         this.$route.query[AS] !== _YAML,
       tocContainerHeight:                 0,
       mainLayoutEl:                       null,
-      throttledComputeTocContainerHeight: null,
+      throttledComputeTocContainerHeight: throttle(this.computeTocContainerHeight, 20),
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
@@ -308,8 +308,6 @@ export default {
   },
 
   created() {
-    this.throttledComputeTocContainerHeight = throttle(this.computeTocContainerHeight, 20);
-
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
@@ -317,17 +315,11 @@ export default {
 
   mounted() {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
-    if (this.showToc) {
-      this.$nextTick(() => {
-        this.throttledComputeTocContainerHeight?.();
-      });
-      this.mainLayoutEl = document.querySelector('.main-layout');
-      this.mainLayoutEl?.addEventListener('scroll', this.throttledComputeTocContainerHeight, { passive: true });
-    }
   },
 
   beforeUnmount() {
     this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+    window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
     this.throttledComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
@@ -336,6 +328,7 @@ export default {
     stringify,
 
     computeTocContainerHeight() {
+      console.log('*** attempting to compute toc container height'); // TODO nb remove
       const root = this.$el;
 
       if (!root) {
@@ -359,8 +352,7 @@ export default {
       const gapLg = Number.parseFloat(gapLgValue) || 0;
 
       this.tocContainerHeight = Math.max(0, Math.round((footerTop - tocTop) - gapLg));
-
-      return this.tocContainerHeight;
+      console.log('*** container height computed to be ', this.tocContainerHeight); // TODO nb remove
     },
 
     confirmCancel(isCancelNotBack = true) {
@@ -599,6 +591,28 @@ export default {
           this.initialYaml = await this.createResourceYaml(undefined, this.initialResource);
         }
       }
+    },
+
+    showToc: {
+      handler(neu, old) {
+        console.log('*** showToc handler run with values ', neu, old); // TODO nb remove
+        if (neu) {
+          // Compute height on first render
+          this.$nextTick(() => {
+            this.throttledComputeTocContainerHeight?.();
+          });
+          // Add event listeners for computeTocContainerHeight on scroll
+          this.mainLayoutEl = document.querySelector('.main-layout');
+          this.mainLayoutEl?.addEventListener('scroll', this.throttledComputeTocContainerHeight, { passive: true });
+          // Add event listener for computeTocContainerHeight on window resize
+          window.addEventListener('resize', this.throttledComputeTocContainerHeight, { passive: true });
+        } else if (old) {
+          // // Remove event listeners for computeTocContainerHeight when TOC is hidden
+          // this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+          // window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+        }
+      },
+      immediate: true
     }
   }
 };

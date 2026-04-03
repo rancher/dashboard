@@ -5,6 +5,11 @@ const props = defineProps({
     required: true,
   }
 });
+
+const handleScrollTo = (entry, event) => {
+  entry?.scrollTo?.();
+  event?.currentTarget?.blur?.();
+};
 </script>
 
 <template>
@@ -23,7 +28,7 @@ const props = defineProps({
             v-if="acc.scrollTo"
             type="button"
             class="btn role-link accordion-link"
-            @click="acc.scrollTo()"
+            @click="handleScrollTo(acc, $event)"
           >
             {{ acc.label }}
           </button>
@@ -39,7 +44,7 @@ const props = defineProps({
                   v-if="childAcc.scrollTo"
                   type="button"
                   class="btn role-link accordion-link"
-                  @click="childAcc.scrollTo()"
+                  @click="handleScrollTo(childAcc, $event)"
                 >
                   {{ childAcc.label }}
                 </button>
@@ -86,7 +91,7 @@ const props = defineProps({
   .accordion-link {
     padding: 0px;
     min-height: 0px;
-    line-height: 1em;
+    line-height: 1.3em;
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
