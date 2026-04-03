@@ -175,14 +175,6 @@ export default {
     }
   },
 
-  // beforeMount() {
-  //   if (this.showToc) {
-  //     const { locateComponentsByNamePattern } = useFormSummary();
-
-  //     this.accordions = locateComponentsByNamePattern('Accordion');
-  //   }
-  // },
-
   setup() {
     const { locateComponentsByNamePattern } = useFormSummary();
     const accordions = locateComponentsByNamePattern();
@@ -328,7 +320,6 @@ export default {
     stringify,
 
     computeTocContainerHeight() {
-      console.log('*** attempting to compute toc container height'); // TODO nb remove
       const root = this.$el;
 
       if (!root) {
@@ -352,7 +343,6 @@ export default {
       const gapLg = Number.parseFloat(gapLgValue) || 0;
 
       this.tocContainerHeight = Math.max(0, Math.round((footerTop - tocTop) - gapLg));
-      console.log('*** container height computed to be ', this.tocContainerHeight); // TODO nb remove
     },
 
     confirmCancel(isCancelNotBack = true) {
@@ -595,7 +585,6 @@ export default {
 
     showToc: {
       handler(neu, old) {
-        console.log('*** showToc handler run with values ', neu, old); // TODO nb remove
         if (neu) {
           // Compute height on first render
           this.$nextTick(() => {
@@ -607,9 +596,9 @@ export default {
           // Add event listener for computeTocContainerHeight on window resize
           window.addEventListener('resize', this.throttledComputeTocContainerHeight, { passive: true });
         } else if (old) {
-          // // Remove event listeners for computeTocContainerHeight when TOC is hidden
-          // this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
-          // window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+          // Remove event listeners for computeTocContainerHeight when TOC is hidden
+          this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+          window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
         }
       },
       immediate: true
