@@ -70,8 +70,7 @@ const onClick = (ev: MouseEvent) => {
         border-color: var(--success-border);
         color: var(--success-text);
 
-        transition: all 0.25s;
-        transition-timing-function: ease;
+        transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
 
     &:focus-visible {
