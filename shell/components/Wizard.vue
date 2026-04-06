@@ -476,7 +476,6 @@ export default {
                 v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
-                component-testid="wizard-finish"
                 @click="finish"
               />
             </slot>
@@ -489,7 +488,6 @@ export default {
                 :disabled="!canNext"
                 type="button"
                 :class="nextButtonStyle"
-                data-testid="wizard-next-btn"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />

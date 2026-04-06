@@ -374,23 +374,14 @@ export async function applyProducts(store, $extension) {
 
   called = true;
   for ( const product of listProducts() ) {
-    try {
-      const impl = await loadProduct(product);
+    const impl = await loadProduct(product);
 
-      if ( impl?.init ) {
-        impl.init(store);
-      }
-    } catch (e) {
-      console.error(`Error loading product: ${ product }`, e); // eslint-disable-line no-console
+    if ( impl?.init ) {
+      impl.init(store);
     }
   }
-  // Load the products from all plugins (fire-and-forget to match
-  // master's behaviour — navigation should not block on extension
-  // product loading; extensions that register later are picked up
-  // by the productsLoaded() check inside applyPlugin).
-  $extension.loadProducts().catch((e) => {
-    console.error('Error loading extension products', e); // eslint-disable-line no-console
-  });
+  // Load the products from all plugins
+  $extension.loadProducts();
 }
 
 export function productsLoaded() {

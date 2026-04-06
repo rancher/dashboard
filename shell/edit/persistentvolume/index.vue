@@ -195,10 +195,7 @@ export default {
       }
     },
     getComponent(name) {
-      const modules = import.meta.glob('./plugins/*.vue', { eager: true });
-      const mod = modules[`./plugins/${ name }.vue`];
-
-      return mod?.default || null;
+      return require(`./plugins/${ name }`).default;
     },
     willSave() {
       if (this.value.spec.storageClassName === this.noneOption.value) {

@@ -3,7 +3,6 @@ import CruGKE from './components/CruGKE.vue';
 import { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
 import { mapDriver } from '@shell/store/plugins';
-import gkeIcon from './assets/gke.svg';
 
 export class GKEProvisioner implements IClusterProvisioner {
   static ID = 'gke';
@@ -17,7 +16,7 @@ export class GKEProvisioner implements IClusterProvisioner {
   }
 
   get icon(): any {
-    return gkeIcon;
+    return require('./assets/gke.svg');
   }
 
   get group(): string {

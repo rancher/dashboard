@@ -3,7 +3,6 @@ import CruAks from './components/CruAks.vue';
 import type { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
 import { mapDriver } from '@shell/store/plugins';
-import aksIcon from './icon.svg';
 export class AKSProvisioner implements IClusterProvisioner {
   static ID = 'aks'
 
@@ -16,7 +15,7 @@ export class AKSProvisioner implements IClusterProvisioner {
   }
 
   get icon(): any {
-    return aksIcon;
+    return require('./icon.svg');
   }
 
   get group(): string {

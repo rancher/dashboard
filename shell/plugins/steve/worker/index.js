@@ -1,6 +1,7 @@
-// Web workers loaded using Vite's ?worker suffix
-import BasicWorker from '@shell/plugins/steve/worker/web-worker.basic.js?worker';
-import AdvancedWorker from '@shell/plugins/steve/worker/web-worker.advanced.js?worker';
+// eslint-disable-next-line no-unused-vars
+import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic.js?worker';
+// eslint-disable-next-line no-unused-vars
+import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js?worker';
 
 export const WORKER_MODES = {
   WAITING:      'waiting',
@@ -13,9 +14,9 @@ export default function storeWorker(mode, options = {}, closures = {}) {
   let worker;
 
   if (mode === WORKER_MODES.ADVANCED) {
-    worker = new AdvancedWorker();
+    worker = new advancedWorkerConstructor();
   } else {
-    worker = new BasicWorker();
+    worker = new basicWorkerConstructor();
   }
   worker.mode = mode;
 

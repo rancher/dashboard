@@ -1,4 +1,4 @@
-import { setContext } from '@shell/initialize/entry-helpers';
+import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
@@ -89,14 +89,23 @@ async function extendApp(vueApp) {
       return resolve();
     }
 
-    router.replace(appPartials.context.route.fullPath).then((navigationResult) => {
-      // Vue Router 4: router.replace() resolves with the final route (or
-      // a NavigationFailure for redirected / duplicated navigations).
-      // In all cases the navigation completed, so we can resolve.
-      resolve();
-    }).catch((err) => {
-      // Only real errors (not navigation failures) reject in Vue Router 4
-      reject(err);
+    router.replace(appPartials.context.route.fullPath).then(resolve, (err) => {
+      // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
+      if (!err._isRouter) {
+        return reject(err);
+      }
+      if (err.type !== 2 /* NavigationFailureType.redirected */) {
+        return resolve();
+      }
+
+      // navigated to a different route in router guard
+      const unregister = router.afterEach(async(to, from) => {
+        appPartials.context.route = await getRouteData(to);
+        appPartials.context.params = to.params || {};
+        appPartials.context.query = to.query || {};
+        unregister();
+        resolve();
+      });
     });
   });
 

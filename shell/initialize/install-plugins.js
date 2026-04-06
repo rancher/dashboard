@@ -124,7 +124,7 @@ function inject(key, value, context, vueApp) {
   if (window.installedPlugins[installKey]) {
     return;
   }
-  window.installedPlugins[installKey] = true;
+  window[window.installedPlugins] = true;
 
   // Call vueApp.use() to install the plugin into vm
   vueApp.use(() => {

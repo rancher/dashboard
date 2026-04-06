@@ -1,14 +1,15 @@
 <script>
 import { mapGetters } from 'vuex';
-import logoDark from '../assets/logo_dark.svg';
-import logoLight from '../assets/logo_light.svg';
 
 export default {
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     logo() {
-      return this.theme === 'dark' ? logoDark : logoLight;
+      const darkTheme = this.theme === 'dark';
+      const logo = darkTheme ? require('../assets/logo_dark.svg') : require('../assets/logo_light.svg');
+
+      return logo;
     }
   }
 };

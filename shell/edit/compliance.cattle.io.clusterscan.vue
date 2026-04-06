@@ -15,7 +15,8 @@ import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/compliance.cattle.io.clusterscan';
-import semver from 'semver';
+
+const semver = require('semver');
 
 export default {
   components: {

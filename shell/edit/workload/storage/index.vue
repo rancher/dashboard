@@ -177,19 +177,25 @@ export default {
 
     // import component for volume type
     getComponent(type) {
-      const modules = import.meta.glob(['./*.vue', './*/index.vue'], { eager: true });
-
       switch (type) {
       case 'configMap':
-        return modules['./secret.vue']?.default;
+        return require(`@shell/edit/workload/storage/secret.vue`).default;
       case 'createPVC':
       case 'persistentVolumeClaim':
-        return modules['./persistentVolumeClaim/index.vue']?.default;
+        return require(`@shell/edit/workload/storage/persistentVolumeClaim/index.vue`)
+          .default;
       case 'csi':
-        return modules['./csi/index.vue']?.default;
+        return require(`@shell/edit/workload/storage/csi/index.vue`).default;
 
-      default:
-        return modules[`./${ type }.vue`]?.default || null;
+      default: {
+        let component;
+
+        try {
+          component = require(`@shell/edit/workload/storage/${ type }.vue`).default;
+        } catch {}
+
+        return component;
+      }
       }
     },
 

@@ -13,6 +13,7 @@ const { csvPlugin } = require('./vite-plugins/csv-loader');
 const { markdownPlugin } = require('./vite-plugins/markdown-loader');
 const { serverMiddlewarePlugin } = require('./vite-plugins/server-middleware');
 const { dynamicImporterModulesPlugin } = require('./vite-plugins/dynamic-importer-modules');
+const commonjs = require('vite-plugin-commonjs');
 
 // This is currently hardcoded to avoid importing the TS
 const STANDARD = 1;
@@ -348,6 +349,13 @@ function createShellViteConfig(dir, appConfig = {}) {
         targets: [
           { src: path.join(SHELL_ABS, 'static', '*'), dest: '.' },
         ],
+      }),
+
+      // Support require() calls in source code
+      commonjs.default({
+        dynamic: {
+          onFiles: (files) => files.filter((f) => !f.includes('__tests__') && !f.endsWith('.test.ts') && !f.endsWith('.spec.ts')),
+        },
       }),
 
       // Dev server middleware

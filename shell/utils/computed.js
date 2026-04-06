@@ -1,4 +1,4 @@
-import { set, get } from '@shell/utils/object';
+const { set, get } = require('@shell/utils/object');
 
 /**
  * Creates a computed property that handles converting strings to numbers and numbers to strings. Particularly when dealing with UnitInput.

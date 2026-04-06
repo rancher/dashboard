@@ -126,10 +126,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      const modules = import.meta.glob('./types/*.vue', { eager: true });
-      const mod = modules[`./types/${ name }.vue`];
-
-      return mod?.default || null;
+      return require(`./types/${ name }`).default;
     },
 
     navigateTo(receiverType) {

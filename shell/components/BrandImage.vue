@@ -72,13 +72,11 @@ export default {
     defaultPathToBrandedImage() {
       const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
-      const themed = requireAsset(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
-
-      if (themed) {
-        return themed;
+      try {
+        return requireAsset(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
+      } catch {
+        return requireAsset(`~shell/assets/images/pl/${ this.fileName }`);
       }
-
-      return requireAsset(`~shell/assets/images/pl/${ this.fileName }`);
     },
 
     isDark() {
@@ -97,11 +95,9 @@ export default {
 
         // csp, rgs, and federal map to SUSE, but have their own custom logos
         if (this.brandBase !== this.brand) {
-          const brandBaseImg = requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
-
-          if (brandBaseImg) {
-            return brandBaseImg;
-          }
+          try {
+            return requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
+          } catch { }
         }
       }
 
@@ -129,17 +125,13 @@ export default {
         return this.defaultPathToBrandedImage;
       } else {
         if (this.isDark || this.dark) {
-          const darkImg = requireAsset(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
-
-          if (darkImg) {
-            return darkImg;
-          }
+          try {
+            return requireAsset(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
+          } catch {}
         }
-        const brandImg = requireAsset(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
-
-        if (brandImg) {
-          return brandImg;
-        }
+        try {
+          return requireAsset(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
+        } catch {}
 
         return this.defaultPathToBrandedImage;
       }

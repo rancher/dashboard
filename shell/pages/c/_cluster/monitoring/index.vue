@@ -3,14 +3,14 @@ import isEmpty from 'lodash/isEmpty';
 import AlertTable from '@shell/components/AlertTable';
 import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
-import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
 import { findBy } from '@shell/utils/array';
 import { getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
+import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
+import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
 
 export default {
   components: {

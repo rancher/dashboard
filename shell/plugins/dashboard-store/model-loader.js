@@ -3,15 +3,6 @@ import modelLoaderRequire from './model-loader-require';
 
 const cache = {};
 
-function extractModel(base) {
-  // New Class models
-  if ( base?.default?.prototype ) {
-    return base.default;
-  }
-
-  return null;
-}
-
 function find(cache, type, rootState) {
   const impl = cache[type];
 
@@ -36,12 +27,11 @@ function find(cache, type, rootState) {
       base = pluginModel;
     }
 
-    const model = extractModel(base);
+    // New Class models
+    if ( base?.default?.prototype ) {
+      cache[type] = base.default;
 
-    if (model) {
-      cache[type] = model;
-
-      return model;
+      return base.default;
     }
   } catch (e) {
     if ( e?.code !== 'MODULE_NOT_FOUND' ) {
