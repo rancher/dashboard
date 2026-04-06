@@ -1,0 +1,119 @@
+import { mount } from '@vue/test-utils';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue';
+import { _CREATE } from '@shell/config/query-params';
+import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+
+jest.mock('vuex', () => ({
+  useStore:   () => ({}),
+  mapGetters: () => ({ t: (key: string) => key })
+}));
+jest.mock('@shell/assets/images/providers/traefik.png', () => 'traefik.png');
+jest.mock('@shell/assets/images/providers/kubernetes.svg', () => 'nginx.png');
+
+describe('ingress.vue', () => {
+  const defaultProps = {
+    mode:             _CREATE,
+    value:            INGRESS_NONE,
+    nginxSupported:   true,
+    traefikSupported: true,
+    nginxChart:       'rancher-ingress-nginx',
+    traefikChart:     'traefik',
+    userChartValues:  {},
+    versionInfo:      {
+      'rancher-ingress-nginx': { values: {} },
+      traefik:                 { values: {} }
+    }
+  };
+
+  const createWrapper = (props = {}) => mount(Ingress, {
+    props:  { ...defaultProps, ...props },
+    global: {
+      stubs: {
+        Checkbox:             true,
+        Banner:               true,
+        IngressCards:         true,
+        IngressConfiguration: true,
+        YamlEditor:           true,
+        RichTranslation:      true
+      }
+    }
+  });
+
+  it('renders checkbox to enable/disable ingress', () => {
+    const wrapper = createWrapper();
+    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+
+    expect(checkbox.exists()).toBe(true);
+  });
+
+  it('emits update:value with INGRESS_NONE when ingress is disabled', async() => {
+    const wrapper = createWrapper({ value: TRAEFIK });
+    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+
+    await checkbox.vm.$emit('update:value', false);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NONE]);
+  });
+
+  it('emits update:value with TRAEFIK when ingress is enabled and traefik is supported', async() => {
+    const wrapper = createWrapper({ value: INGRESS_NONE });
+    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+
+    await checkbox.vm.$emit('update:value', true);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([TRAEFIK]);
+  });
+
+  it('emits update:value with INGRESS_NGINX when ingress is enabled, traefik is NOT supported, and nginx IS supported', async() => {
+    const wrapper = createWrapper({ value: INGRESS_NONE, traefikSupported: false });
+    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+
+    await checkbox.vm.$emit('update:value', true);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+  });
+
+  it('selectIngress emits correct array value when INGRESS_DUAL is selected', () => {
+    const wrapper = createWrapper({ value: TRAEFIK });
+    const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+    ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[INGRESS_NGINX, TRAEFIK]]);
+  });
+
+  it('selectIngress emits string value when a single ingress is selected', () => {
+    const wrapper = createWrapper({ value: TRAEFIK });
+    const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+    ingressCards.vm.$emit('select', INGRESS_NGINX);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+  });
+
+  it('renders IngressConfiguration when versionInfo contains chart values', () => {
+    const wrapper = createWrapper({ value: TRAEFIK });
+    const config = wrapper.findComponent({ name: 'IngressConfiguration' });
+
+    expect(config.exists()).toBe(true);
+  });
+
+  it('toggles advanced configuration visibility and renders YamlEditor', async() => {
+    const wrapper = createWrapper({ value: TRAEFIK });
+
+    expect(wrapper.findComponent({ name: 'YamlEditor' }).exists()).toBe(false);
+
+    const advancedButton = wrapper.find('.advanced-toggle');
+
+    await advancedButton.trigger('click');
+
+    const yamlEditor = wrapper.find('[data-testid="traefik-yaml-editor"]');
+
+    expect(yamlEditor.exists()).toBe(true);
+  });
+});
