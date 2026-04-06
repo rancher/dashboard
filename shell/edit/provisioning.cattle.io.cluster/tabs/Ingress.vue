@@ -179,7 +179,7 @@ const compatibilityMode = computed({
 
 function selectIngress(id: string) {
   if ( id === INGRESS_DUAL) {
-    emit('update:value', [TRAEFIK, INGRESS_NGINX]);
+    emit('update:value', [INGRESS_NGINX, TRAEFIK]);
     preconfigureTraefik();
   } else {
     emit('update:value', id);
