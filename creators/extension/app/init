@@ -5,20 +5,21 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const targets = {
-  dev:   'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
-  build: './node_modules/.bin/vue-cli-service build',
+  dev:   './node_modules/.bin/vite',
+  build: './node_modules/.bin/vite build',
   clean: './node_modules/@rancher/shell/scripts/clean'
 };
 
 const files = [
   'tsconfig.json',
-  'vue.config.js',
+  'vite.config.js',
+  'index.html',
+  'main.ts',
   'gitignore',
   '.eslintignore',
   '.eslintrc.js',
   '.nvmrc',
   '.yarnrc.yml',
-  'babel.config.js',
   '.vscode/settings.json'
 ];
 

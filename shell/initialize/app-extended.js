@@ -1,8 +1,9 @@
-import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
+import { setContext } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
 import { normalizeURL } from 'ufo';
+import { preloadModels } from '@shell/plugins/dashboard-store/model-loader-require';
 
 /**
  * Imported from vue-router
@@ -35,6 +36,12 @@ export const getLocation = (base, mode) => {
 async function extendApp(vueApp) {
   const config = { rancherEnv: process.env.rancherEnv, dashboardVersion: process.env.version };
   const store = extendStore();
+
+  // Preload all model modules into synchronous cache before anything renders.
+  // This avoids circular dependency issues with eager loading while ensuring
+  // models are available synchronously when store getters access them.
+  await preloadModels();
+
   const router = extendRouter(config, { store });
 
   // Add this.$router into store actions/mutations
@@ -82,23 +89,14 @@ async function extendApp(vueApp) {
       return resolve();
     }
 
-    router.replace(appPartials.context.route.fullPath).then(resolve, (err) => {
-      // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
-      if (!err._isRouter) {
-        return reject(err);
-      }
-      if (err.type !== 2 /* NavigationFailureType.redirected */) {
-        return resolve();
-      }
-
-      // navigated to a different route in router guard
-      const unregister = router.afterEach(async(to, from) => {
-        appPartials.context.route = await getRouteData(to);
-        appPartials.context.params = to.params || {};
-        appPartials.context.query = to.query || {};
-        unregister();
-        resolve();
-      });
+    router.replace(appPartials.context.route.fullPath).then((navigationResult) => {
+      // Vue Router 4: router.replace() resolves with the final route (or
+      // a NavigationFailure for redirected / duplicated navigations).
+      // In all cases the navigation completed, so we can resolve.
+      resolve();
+    }).catch((err) => {
+      // Only real errors (not navigation failures) reject in Vue Router 4
+      reject(err);
     });
   });
 

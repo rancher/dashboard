@@ -5,11 +5,10 @@
 
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 
-const components = require.context('@shell/components/formatter', false, /[A-Z]\w+\.(vue)$/);
+const modules = import.meta.glob('@shell/components/formatter/[A-Z]*.vue', { eager: true });
 
-components.keys().forEach((fileName) => {
-  const componentConfig = components(fileName);
-  const componentName = fileName.split('/').pop().split('.')[0];
+Object.entries(modules).forEach(([filePath, componentConfig]) => {
+  const componentName = filePath.split('/').pop().split('.')[0];
 
   FORMATTERS[componentName] = componentConfig.default || componentConfig;
 });

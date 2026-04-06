@@ -2,6 +2,7 @@ import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/type
 import CruImported from './components/CruImported.vue';
 import { Component } from 'vue';
 import { mapDriver } from '@shell/store/plugins';
+import genericIcon from './assets/generic.svg';
 /**
  * We need to have different provisioners for these cases because they need to behave differently
  * ie we want to hide local and imported provisioners from create/import wizards, but they are used as type options
@@ -81,7 +82,7 @@ export class ImportGenericCluster implements IClusterProvisioner {
     }
 
     get icon(): any {
-      return require('./assets/generic.svg');
+      return genericIcon;
     }
 }
 

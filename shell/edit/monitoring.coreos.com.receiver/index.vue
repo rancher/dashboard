@@ -126,7 +126,10 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./types/${ name }`).default;
+      const modules = import.meta.glob('./types/*.vue', { eager: true });
+      const mod = modules[`./types/${ name }.vue`];
+
+      return mod?.default || null;
     },
 
     navigateTo(receiverType) {

@@ -286,6 +286,8 @@ export default class MgmtCluster extends SteveModel {
       icon = requireAsset(`~shell/assets/images/providers/${ prv }.svg`);
     } catch (e) {
       console.warn(`Can not find provider logo for provider ${ logo }`); // eslint-disable-line no-console
+    }
+    if (!icon) {
       // Use fallback generic Kubernetes icon
       icon = requireAsset(`~shell/assets/images/providers/kubernetes.svg`);
     }

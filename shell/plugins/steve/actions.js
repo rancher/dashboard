@@ -1,4 +1,3 @@
-import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
 import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
 import { dropKeys, set } from '@shell/utils/object';
@@ -47,7 +46,7 @@ export default {
       }
     }
 
-    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    // httpsAgent is Node.js-only; in the browser, axios handles HTTPS natively
 
     const method = (opt.method || 'get').toLowerCase();
     const headers = (opt.headers || {});

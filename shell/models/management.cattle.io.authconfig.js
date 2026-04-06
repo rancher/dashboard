@@ -57,7 +57,7 @@ export default class AuthConfig extends SteveModel {
 
   get icon() {
     try {
-      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`) || '';
     } catch (e) {
       return '';
     }

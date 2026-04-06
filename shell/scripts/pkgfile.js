@@ -15,7 +15,7 @@ const pkg = require(pkgFilepath);
 
 pkg.files = ['**/*'];
 pkg.rancher = true;
-pkg.main = `${ pkg.name }-${ pkg.version }.umd.min.js`;
+pkg.main = `${ pkg.name }.es.js`;
 
 delete pkg.scripts;
 delete pkg.browserslist;

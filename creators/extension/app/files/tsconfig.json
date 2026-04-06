@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2018",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "lib": [
       "ESNext",
       "ESNext.AsyncIterable",
@@ -31,6 +31,7 @@
     ],
     "types": [
       "@types/node",
+      "vite/client",
       "cypress",
       "rancher",
       "shell"

@@ -19,7 +19,7 @@
     ],    
     "types": [
       "node",
-      "webpack-env",
+      "vite/client",
       "@types/node",
       "@types/jest",
       "@types/lodash",

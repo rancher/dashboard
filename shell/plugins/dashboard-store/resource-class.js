@@ -565,7 +565,13 @@ function maybeFn(val) {
 export default class Resource {
   constructor(data, ctx = {}, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
-      this[k] = data[k];
+      try {
+        this[k] = data[k];
+      } catch {
+        // In ES strict mode (ESM / Vite), assigning to a getter-only
+        // property throws a TypeError.  The model's getter provides
+        // the correct derived value, so skip the raw API field.
+      }
     }
 
     Object.defineProperty(this, '$ctx', {
@@ -915,7 +921,7 @@ export default class Resource {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
-      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
+      component:      defineAsyncComponent(() => import('@shell/components/Drawer/ResourceDetailDrawer/index.vue')),
       componentProps: {
         resource:           this,
         onClose,

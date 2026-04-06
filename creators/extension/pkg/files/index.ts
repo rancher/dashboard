@@ -1,5 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
+import metadata from './package.json';
 
 // Init the package
 export default function(plugin: IPlugin): void {
@@ -7,8 +8,9 @@ export default function(plugin: IPlugin): void {
   importTypes(plugin);
 
   // Provide plugin metadata from package.json
-  plugin.metadata = require('./package.json');
+  plugin.metadata = metadata;
 
   // Load a product
-  // plugin.addProduct(require('./product'));
+  // import product from './product';
+  // plugin.addProduct(product);
 }

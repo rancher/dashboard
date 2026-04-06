@@ -118,7 +118,7 @@ export default {
 </style>
 
 <style scoped lang="scss">
-@import 'node_modules/diff2html/bundles/css/diff2html.min.css';
+@import 'diff2html/bundles/css/diff2html.min.css';
 
 :deep() .d2h-wrapper {
   .d2h-file-header {

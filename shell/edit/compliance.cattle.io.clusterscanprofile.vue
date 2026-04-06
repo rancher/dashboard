@@ -6,7 +6,7 @@ import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { mapGetters } from 'vuex';
 import { COMPLIANCE } from '@shell/config/types';
-const semver = require('semver');
+import semver from 'semver';
 
 export default {
   components: {

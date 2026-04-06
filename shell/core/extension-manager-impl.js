@@ -343,7 +343,9 @@ export const createExtensionManager = (context) => {
 
       // Initialize the product if the store is ready
       if (productsLoaded()) {
-        this.loadProducts([plugin]);
+        this.loadProducts([plugin]).catch((e) => {
+          console.error('Error loading extension products', e); // eslint-disable-line no-console
+        });
       }
 
       // Register vuex stores
@@ -495,22 +497,30 @@ export const createExtensionManager = (context) => {
     },
 
     // Load all of the products provided by plugins
-    loadProducts(loadPlugins) {
+    async loadProducts(loadPlugins) {
       if (!loadPlugins) {
         loadPlugins = Object.values(plugins);
       }
 
+      const promises = [];
+
       loadPlugins.forEach((plugin) => {
         if (plugin.products) {
-          plugin.products.forEach(async(p) => {
-            const impl = await p;
-
-            if (impl.init) {
-              impl.init(plugin, store);
-            }
+          plugin.products.forEach((p) => {
+            promises.push(
+              Promise.resolve(p).then((impl) => {
+                if (impl.init) {
+                  impl.init(plugin, store);
+                }
+              }).catch((e) => {
+                console.error(`Error loading product for plugin ${ plugin.id }`, e); // eslint-disable-line no-console
+              })
+            );
           });
         }
       });
+
+      await Promise.all(promises);
     },
   };
 };

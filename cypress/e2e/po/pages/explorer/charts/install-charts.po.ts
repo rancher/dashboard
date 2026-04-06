@@ -23,7 +23,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('[data-testid="wizard-next-btn"]');
 
     btn.click(true);
 
@@ -41,9 +41,7 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    // Use the same pattern as nextPage() but target the finish/install button specifically
-    // The install button is in the controls-steps area and is the async button for the final step
-    const btn = new AsyncButtonPo('.controls-steps [data-testid="action-button-async-button"]');
+    const btn = new AsyncButtonPo('[data-testid="wizard-finish-async-button"]');
 
     btn.click(true);
 

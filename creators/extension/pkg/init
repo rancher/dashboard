@@ -6,8 +6,7 @@ const path = require('path');
 
 const files = [
   'tsconfig.json',
-  'vue.config.js',
-  'babel.config.js',
+  'vite.config.js',
   'index.ts'
 ];
 

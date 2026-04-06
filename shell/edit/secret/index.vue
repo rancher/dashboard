@@ -179,7 +179,10 @@ export default {
     },
 
     dataComponent() {
-      return require(`@shell/edit/secret/${ this.typeKey }`).default;
+      const modules = import.meta.glob('./*.vue', { eager: true });
+      const mod = modules[`./${ this.typeKey }.vue`];
+
+      return mod?.default || null;
     },
 
     driverName() {
@@ -209,12 +212,10 @@ export default {
         );
 
         for ( const id of machineTypes ) {
-          let bannerImage, bannerAbbrv;
+          const bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
+          let bannerAbbrv;
 
-          try {
-            bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
-          } catch (e) {
-            bannerImage = null;
+          if (!bannerImage) {
             bannerAbbrv = this.initialDisplayFor(id);
           }
 

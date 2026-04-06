@@ -5,6 +5,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 
 import { mapGetters } from 'vuex';
 
+const csiDriverModules = import.meta.glob('@shell/edit/workload/storage/csi/*.vue', { eager: true });
+
 export default {
   components: {
     LabeledSelect, Checkbox, LabeledInput
@@ -31,15 +33,21 @@ export default {
 
   computed: {
     driverComponent() {
-      try {
-        return require(`@shell/edit/workload/storage/csi/${ this.value.csi.driver }`).default;
-      } catch {
+      const driver = this.value?.csi?.driver;
+
+      if (!driver) {
         return null;
       }
+
+      const key = Object.keys(csiDriverModules).find((k) => k.endsWith(`/${ driver }.vue`));
+
+      return key ? (csiDriverModules[key].default || csiDriverModules[key]) : null;
     },
 
     driverOpts() {
-      return require.context('@shell/edit/workload/storage/csi', true, /^.*\.vue$/).keys().map((path) => path.replace(/(\.\/)|(.vue)/g, '')).filter((file) => file !== 'index');
+      return Object.keys(csiDriverModules)
+        .map((p) => p.split('/').pop().replace('.vue', ''))
+        .filter((file) => file !== 'index');
     },
 
     ...mapGetters({ t: 'i18n/t' })

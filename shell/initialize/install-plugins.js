@@ -13,13 +13,13 @@ import globalFormatters from '@shell/plugins/global-formatters';
 import axios from '@shell/utils/axios';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
-import codeMirror from '@shell/plugins/codemirror-loader';
+import '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
 import pluginsLoader from '@shell/core/plugins-loader.js';
-import replaceAll from '@shell/plugins/replaceall';
+import '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
@@ -52,9 +52,7 @@ export async function installInjectedPlugins(app, vueApp) {
     pluginsLoader,
     axiosShell,
     intNumber,
-    codeMirror,
     dashboardClientInit,
-    replaceAll,
     plugin,
     steveCreateWorker,
     emberCookie,
@@ -126,7 +124,7 @@ function inject(key, value, context, vueApp) {
   if (window.installedPlugins[installKey]) {
     return;
   }
-  window[window.installedPlugins] = true;
+  window.installedPlugins[installKey] = true;
 
   // Call vueApp.use() to install the plugin into vm
   vueApp.use(() => {

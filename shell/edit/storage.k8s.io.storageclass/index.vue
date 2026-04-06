@@ -161,10 +161,12 @@ export default {
 
   methods: {
     getComponent(name) {
+      const modules = import.meta.glob('./provisioners/**/*.vue', { eager: true });
       const isCustom = !PROVISIONER_OPTIONS.find((o) => o.value === name);
       const provisioner = isCustom ? 'custom' : name;
+      const mod = modules[`./provisioners/${ provisioner }.vue`];
 
-      return require(`./provisioners/${ provisioner }`).default;
+      return mod?.default || null;
     },
 
     updateProvisioner(event) {

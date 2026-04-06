@@ -49,11 +49,13 @@ const src = computed(() => {
     const img = decodedIcon[0].substring(1);
     const themePrefix = theme.value === 'dark' ? 'dark/' : '';
 
-    try {
-      return requireAsset(`~shell/assets/images/content/${ themePrefix }${ img }`);
-    } catch {
-      return requireAsset(`~shell/assets/images/content/${ img }`);
+    const themed = requireAsset(`~shell/assets/images/content/${ themePrefix }${ img }`);
+
+    if (themed) {
+      return themed;
     }
+
+    return requireAsset(`~shell/assets/images/content/${ img }`);
   }
 
   // Regular URL, use it directly

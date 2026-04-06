@@ -26,10 +26,16 @@
     "@storybook/theming": "^8.4.2",
     "@storybook/vue3": "^8.4.2",
     "@storybook/vue3-webpack5": "^8.4.2",
+    "css-loader": "^7.1.4",
+    "js-yaml-loader": "^1.2.2",
+    "node-polyfill-webpack-plugin": "^4.1.0",
+    "sass-loader": "^16.0.7",
     "storybook": "^8.6.15",
     "storybook-addon-pseudo-states": "4.0.3",
     "storybook-vue3-router": "^5.0.0",
+    "style-loader": "^4.0.0",
     "typescript": "^5.5.3",
-    "vue-tsc": "^2.1.6"
+    "vue-tsc": "^2.1.6",
+    "webpack": "^5.105.2"
   }
 }

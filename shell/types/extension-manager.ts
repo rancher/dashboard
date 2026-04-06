@@ -29,5 +29,5 @@ export type ExtensionManager = {
   lastLoad: number;
   listDynamic(typeName: string): string[];
   products: any[];
-  loadProducts(loadPlugins: any[]): void;
+  loadProducts(loadPlugins?: any[]): Promise<void>;
 }
