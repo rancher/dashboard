@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils';
 import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue';
-import { _CREATE } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
 import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 jest.mock('vuex', () => ({
-  useStore:   () => ({}),
+  useStore:   () => ({ getters: { 'i18n/t': (key: string) => key } }),
   mapGetters: () => ({ t: (key: string) => key })
 }));
 jest.mock('@shell/assets/images/providers/traefik.png', () => 'traefik.png');
@@ -12,7 +12,7 @@ jest.mock('@shell/assets/images/providers/kubernetes.svg', () => 'nginx.png');
 
 describe('ingress.vue', () => {
   const defaultProps = {
-    mode:             _CREATE,
+    mode:             _EDIT,
     value:            INGRESS_NONE,
     nginxSupported:   true,
     traefikSupported: true,
@@ -76,14 +76,24 @@ describe('ingress.vue', () => {
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
   });
 
-  it('selectIngress emits correct array value when INGRESS_DUAL is selected', () => {
-    const wrapper = createWrapper({ value: TRAEFIK });
+  it('selectIngress emits [INGRESS_NGINX, TRAEFIK] string value when INGRESS_DUAL is selected and previous value was ingress-nginx', () => {
+    const wrapper = createWrapper({ value: INGRESS_NGINX, originalIngressController: INGRESS_NGINX });
     const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
 
     ingressCards.vm.$emit('select', INGRESS_DUAL);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[INGRESS_NGINX, TRAEFIK]]);
+  });
+
+  it('selectIngress emits [INGRESS_NGINX, TRAEFIK] string value when INGRESS_DUAL is selected and previous value was traefik', () => {
+    const wrapper = createWrapper({ value: TRAEFIK, originalIngressController: TRAEFIK });
+    const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+    ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
   });
 
   it('selectIngress emits string value when a single ingress is selected', () => {
