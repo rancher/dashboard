@@ -1,6 +1,6 @@
 {
   "name": "@rancher/codemirror",
-  "version": "0.3.2",
+  "version": "0.3.3-alpha.3",
   "description": "Vue 3 CodeMirror 6 component library",
   "type": "module",
   "main": "./dist/rancher-codemirror.umd.cjs",
@@ -45,12 +45,12 @@
     "@replit/codemirror-vim": "^6.0.0"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.0.0",
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^28.0.1",
     "@types/node": "^24.12.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/eslint-plugin": "^1.6.13",
-    "@stylistic/eslint-plugin": "^5.0.0",
     "@vue/eslint-config-typescript": "^14.7.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.1",
