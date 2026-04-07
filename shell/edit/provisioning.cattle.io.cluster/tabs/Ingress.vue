@@ -24,7 +24,7 @@ interface Props {
   traefikChart: string;
   userChartValues: any;
   versionInfo: any;
-  originalIngressController?: string;
+  originalIngressController?: string | string[];
 }
 const {
   mode = _CREATE,
@@ -181,13 +181,16 @@ const compatibilityMode = computed({
 
 function selectIngress(id: string) {
   if ( id === INGRESS_DUAL) {
+    let value;
+
     if (!Array.isArray(originalIngressController)) {
-      const value = originalIngressController === TRAEFIK ? [TRAEFIK, INGRESS_NGINX] : [INGRESS_NGINX, TRAEFIK];
-
-      emit('update:value', value);
-
-      preconfigureTraefik();
+      value = originalIngressController === TRAEFIK ? [TRAEFIK, INGRESS_NGINX] : [INGRESS_NGINX, TRAEFIK];
+    } else {
+      value = originalIngressController;
     }
+    emit('update:value', value);
+
+    preconfigureTraefik();
   } else {
     emit('update:value', id);
     if (id === TRAEFIK && !!isEdit.value) {

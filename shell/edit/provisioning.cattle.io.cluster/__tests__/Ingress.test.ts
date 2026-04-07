@@ -86,7 +86,7 @@ describe('ingress.vue', () => {
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[INGRESS_NGINX, TRAEFIK]]);
   });
 
-  it('selectIngress emits [INGRESS_NGINX, TRAEFIK] string value when INGRESS_DUAL is selected and previous value was traefik', () => {
+  it('selectIngress emits [TRAEFIK, INGRESS_NGINX] string value when INGRESS_DUAL is selected and previous value was traefik', () => {
     const wrapper = createWrapper({ value: TRAEFIK, originalIngressController: TRAEFIK });
     const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
 
@@ -94,6 +94,20 @@ describe('ingress.vue', () => {
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
+  });
+
+  it('selectIngress emits [TRAEFIK, INGRESS_NGINX] string value when INGRESS_DUAL is selected and  value went traefik -> nginx -> dual', () => {
+    const wrapper = createWrapper({ value: TRAEFIK, originalIngressController: TRAEFIK });
+    const ingressCards = wrapper.findComponent({ name: 'IngressCards' });
+
+    ingressCards.vm.$emit('select', INGRESS_NGINX);
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual([INGRESS_NGINX]);
+
+    ingressCards.vm.$emit('select', INGRESS_DUAL);
+
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')?.[1]).toStrictEqual([[TRAEFIK, INGRESS_NGINX]]);
   });
 
   it('selectIngress emits string value when a single ingress is selected', () => {
