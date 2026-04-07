@@ -122,7 +122,7 @@ export default {
       required: true
     },
     originalIngressController: {
-      type:     String,
+      type:     [String, Array],
       required: false,
       default:  INGRESS_NONE
     }
