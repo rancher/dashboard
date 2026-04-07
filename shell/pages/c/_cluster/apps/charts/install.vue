@@ -2035,29 +2035,33 @@ export default {
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <div class="outer-container">
-      <div class="header mb-20">
-        <div class="title">
-          <div class="top choice-banner">
-            <div class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div class="round-image">
-                  <LazyImage
-                    :src="chart ? chart.icon : ''"
-                    class="logo"
-                  />
-                </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="stepperName">
-                  {{ stepperName }}
-                </h2>
-                <span
-                  v-if="stepperSubtext"
-                  class="subtext"
-                >{{ stepperSubtext }}</span>
+      <div class="header mmt-6 mmb-6">
+        <div class="top choice-banner">
+          <div class="chart-title-container mmb-6">
+            <div class="logo-container">
+              <div class="logo-box">
+                <LazyImage
+                  :src="chart ? chart.icon : ''"
+                  class="logo"
+                />
               </div>
+            </div>
+            <div class="chart-title">
+              <h2 v-if="stepperName">
+                <router-link :to="chartLocation()">
+                  {{ stepperName }}
+                </router-link>
+              </h2>
+              <span
+                v-if="stepperSubtext"
+                class="subtext"
+              >
+                <i
+                  v-clean-tooltip="t('tableHeaders.version')"
+                  class="icon icon-version-alt"
+                />
+                {{ stepperSubtext }}
+              </span>
             </div>
           </div>
         </div>
@@ -2110,28 +2114,29 @@ export default {
     }
   }
 
-  .wizard {
-    .logo-container {
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .logo-box {
+      width: 60px;
+      height: 60px;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
+      background: #fff;
+      border-radius: var(--border-radius);
 
-      .logo-box {
-        width: 60px;
-        height: 60px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #fff;
-        border-radius: var(--border-radius);
-
-        .logo {
-          width: 48px;
-          height: 48px;
-          object-fit: contain;
-        }
+      .logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
       }
     }
+  }
+
+  .wizard {
 
     .os-label {
       position: absolute;
@@ -2287,13 +2292,13 @@ export default {
 
   .choice-banner {
 
-    flex-basis: 40%;
+    flex-basis: 100%;
     display: flex;
     align-items: center;
 
     &.top {
 
-      H2 {
+      H1, H2 {
         margin: 0px;
       }
 
@@ -2312,6 +2317,7 @@ export default {
           align-items: center;
           gap: 8px;
           color: var(--input-label);
+          margin-top: 8px;
 
           .icon-version-alt {
             font-size: 19px;
@@ -2332,17 +2338,6 @@ export default {
       }
     }
 
-    & .round-image {
-      min-width: 50px;
-      height: 50px;
-      margin: 10px 10px 10px 0;
-      border-radius: 50%;
-      overflow: hidden;
-      .logo {
-        min-width: 50px;
-        height: 50px;
-      }
-    }
   }
 }
 
