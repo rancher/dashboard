@@ -7,8 +7,9 @@ jest.mock('vuex', () => ({
   useStore:   () => ({ getters: { 'i18n/t': (key: string) => key } }),
   mapGetters: () => ({ t: (key: string) => key })
 }));
-jest.mock('@shell/assets/images/providers/traefik.png', () => 'traefik.png');
-jest.mock('@shell/assets/images/providers/kubernetes.svg', () => 'nginx.png');
+
+jest.mock('@shell/assets/images/providers/traefik.png', () => 'traefik.png', { virtual: true });
+jest.mock('@shell/assets/images/providers/kubernetes.svg', () => 'kubernetes.svg', { virtual: true });
 
 describe('ingress.vue', () => {
   const defaultProps = {
