@@ -15,7 +15,7 @@ Run:
 
 ```bash
 # Install dependencies
-yarn install
+yarn install --frozen-lockfile
 
 # For development, serve with hot reload at https://localhost:8005
 # using the endpoint for your Rancher API

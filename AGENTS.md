@@ -38,7 +38,7 @@ You are an expert Senior Software Engineer specializing in Vue.js and TypeScript
 
 ## Tools
 
-- **Install dependencies**: `yarn install`
+- **Install dependencies**: `yarn install --frozen-lockfile`
 - **Start development server**: `API=<Rancher_Backend_URL> yarn dev`
   - The `API` environment variable should point to a running Rancher server (e.g., `https://localhost`).
   - The dashboard will be available at `https://127.0.0.1:8005`.
@@ -146,9 +146,11 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 
 ## Labels
 
-- When an agentic workflow creates a github issues or pull requests it should add a label in the following format: `bot/<bot name>`
+Agentic workflows may update github issue and pull requests labels. In addition to any they manage they should also adhere to the following
+
+- When an agentic workflow creates a github issue or pull request it should add a label in the following format: `bot/<bot name>`
   - e.g. bot name is `issue grooming`, label is `bot/issue-grooming`
-- An agentic workflow can receive instructions or state via github issue or pull request labels with the following format: `bot/<bot name>/<instruction>`
+- An agentic workflow can receive instructions or state from itself or other sources via github issue or pull request labels with the following format: `bot/<bot name>/<instruction>`
   - e.g. bot name is `issue grooming`, instruction is `ready for triage`, label is `bot/issue-grooming/ready-for-triage`
 
 ## Milestone guidance

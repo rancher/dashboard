@@ -14,7 +14,7 @@ Starting with Shell version `3.0.0`, we have introduced a feature that allows de
 
 **3)** On the same branch, create on the root a file called `package.json`, with the contents copied from step 1)
 
-**4)** Install node modules by running `yarn install`
+**4)** Install node modules by running `yarn install --frozen-lockfile`
 
 
 **5)** In the root of your branch, run the following command:

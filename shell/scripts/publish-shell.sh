@@ -17,7 +17,7 @@ if [ -z "$TAG" ]; then
 fi
 
 if [ ! -d "${BASE_DIR}/node_modules" ]; then
-  echo "You need to run 'yarn install' first"
+  echo "You need to run 'yarn install --frozen-lockfile' first"
   exit 1
 fi
 
