@@ -762,21 +762,6 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
-    windowsIncompatible() {
-      if (this.chart?.windowsIncompatible) {
-        return this.t('catalog.charts.windowsIncompatible');
-      }
-      if (this.versionInfo) {
-        const incompatibleVersion = !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
-
-        if (incompatibleVersion && !this.chart.windowsIncompatible) {
-          return this.t('catalog.charts.versionWindowsIncompatible');
-        }
-      }
-
-      return null;
-    },
-
     /**
      * Check if the chart contains `systemDefaultRegistry` properties.
      * If not we shouldn't apply the setting, because if the option
@@ -1549,7 +1534,6 @@ export default {
     class="install-steps pt-20"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
-    <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1559,25 +1543,38 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
       :header-mode="action.tKey"
+      :hide-step-banner="true"
       class="wizard"
-      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
-      <template #bannerTitleImage>
-        <div>
-          <div class="logo-bg">
-            <LazyImage
-              :src="chart ? chart.icon : ''"
-              class="logo"
-            />
+      <template #bannerTitle>
+        <div class="title">
+          <div class="logo-container">
+            <div class="logo-box">
+              <LazyImage
+                :src="chart ? chart.icon : ''"
+                class="logo"
+              />
+            </div>
           </div>
-          <label
-            v-if="windowsIncompatible"
-            class="os-label"
-          >
-            {{ windowsIncompatible }}
-          </label>
+          <div class="subtitle">
+            <h2>
+              <router-link :to="chartLocation()">
+                {{ stepperName }}
+              </router-link>: {{ t(`wizard.${action.tKey}`) }}
+            </h2>
+            <span
+              v-if="stepperSubtext"
+              class="subtext"
+            >
+              <i
+                v-clean-tooltip="t('tableHeaders.version')"
+                class="icon icon-version-alt"
+              />
+              {{ stepperSubtext }}
+            </span>
+          </div>
         </div>
       </template>
       <template #basics>
@@ -2054,12 +2051,12 @@ export default {
               <!-- Title with subtext -->
               <div class="subtitle">
                 <h2 v-if="stepperName">
-                  {{ stepperName }}
+                  lplp{{ stepperName }}lplp
                 </h2>
                 <span
                   v-if="stepperSubtext"
                   class="subtext"
-                >{{ stepperSubtext }}</span>
+                >dsd{{ stepperSubtext }}dfsdf</span>
               </div>
             </div>
           </div>
@@ -2114,34 +2111,25 @@ export default {
   }
 
   .wizard {
-    .logo-bg {
-      margin-right: 10px;
-      height: $title-height;
-      width: $title-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
 
-    .logo {
-      max-height: $title-height - 2 * $padding;
-      max-width: $title-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
-    }
+      .logo-box {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #fff;
+        border-radius: var(--border-radius);
 
-    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
-    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
-    &.windowsIncompatible {
-      :deep() .header {
-        padding-bottom: 15px;
+        .logo {
+          width: 48px;
+          height: 48px;
+          object-fit: contain;
+        }
       }
     }
 
@@ -2311,19 +2299,24 @@ export default {
 
       .title{
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-evenly;
-
-        & > .subtitle {
-          margin: 0 20px;
-        }
+        gap: 24px;
       }
 
       .subtitle{
         display: flex;
         flex-direction: column;
         & .subtext {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 8px;
           color: var(--input-label);
+
+          .icon-version-alt {
+            font-size: 19px;
+          }
         }
       }
 

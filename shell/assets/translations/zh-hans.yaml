@@ -6321,7 +6321,6 @@ typeDescription:
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   branding: "管理员可以修改 Rancher 产品名称、Logo 和配色方案来全局自定义 UI 界面。"
-  chart: "除非另有说明，否则所有 Chart 都至少有一个可以安装在具有 Linux 和 Windows 节点的集群上的版本。"
   cis.cattle.io.clusterscanbenchmark: Benchmark 版本是指使用 kube-bench 运行的 Benchmark 名称，以及该 Benchmark 的有效配置参数。
   cis.cattle.io.clusterscanprofile: 配置文件指定 CIS 扫描的配置，也就是要使用的 Benchmark 版本和该 Benchmark 中要跳过的特定测试。
   cis.cattle.io.clusterscan: 扫描是用来根据定义的配置文件，在集群上触发 CIS 扫描的。扫描完成后会创建一份报告。
