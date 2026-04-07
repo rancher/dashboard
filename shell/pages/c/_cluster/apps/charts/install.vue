@@ -41,7 +41,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
