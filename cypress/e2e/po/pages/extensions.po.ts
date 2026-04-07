@@ -6,7 +6,7 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
@@ -49,6 +49,50 @@ export default class ExtensionsPagePo extends PagePo {
 
   waitForTabs() {
     return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  }
+
+  /**
+   * Returns whether the given extension tab is present.
+   */
+  checkForExtensionTab(tab: 'available' | 'installed' | 'builtin'): Cypress.Chainable<boolean> {
+    this.waitForTabs();
+
+    return this.self().then((el) => {
+      return el.find(`[data-testid="btn-${ tab }"]`).length > 0;
+    });
+  }
+
+  /**
+   * Returns whether any card under the page root has a title containing `extensionName`
+   * Resolves to false when none match; does not assert failure.
+   */
+  checkForExtensionCardWithName(extensionName: string): Cypress.Chainable<boolean> {
+    this.waitForTabs();
+
+    return this.self(MEDIUM_TIMEOUT_OPT).then((el) => {
+      const header = el.find('[data-testid="item-card-header-title"]').filter((_, titleEl) => {
+        return Cypress.$(titleEl).text().includes(extensionName);
+      });
+
+      return header.length > 0;
+    });
+  }
+
+  /**
+   * Intercepts the cluster-repo install POST, installs `extensionName` from the Available tab through
+   * the modal, asserts a 2xx response, then completes the reload banner flow.
+   */
+  installExtensionFromCatalog(extensionName: string, clusterRepoName: string, interceptAlias: string): void {
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ clusterRepoName }?action=install`).as(interceptAlias);
+
+    this.extensionTabAvailableClick();
+    this.waitForPage(null, 'available');
+    this.extensionCardInstallClick(extensionName);
+    this.installModal().checkVisible();
+    this.installModal().installButton().click();
+    cy.wait(`@${ interceptAlias }`, MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('be.oneOf', [200, 201]);
+    this.extensionReloadBanner().should('be.visible');
+    this.extensionReloadClick();
   }
 
   /**

@@ -3,6 +3,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
 import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { _CREATE } from '@shell/config/query-params';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 
@@ -171,6 +172,14 @@ export default class ClusterRepo extends SteveModel {
     const key = `catalog.repo.name."${ name }"`;
 
     return this.$rootGetters['i18n/withFallback'](key, null, name);
+  }
+
+  detailPageHeaderActionOverride(realMode) {
+    if (realMode === _CREATE) {
+      return this.t('catalog.repo.add');
+    }
+
+    return null;
   }
 
   get urlDisplay() {

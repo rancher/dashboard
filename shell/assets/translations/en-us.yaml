@@ -1379,6 +1379,7 @@ catalog:
       releaseName: Release Name
       releaseNamespace: Release Namespace
   repo:
+    add: Add Repository
     action:
       refresh: Refresh
     all: All
