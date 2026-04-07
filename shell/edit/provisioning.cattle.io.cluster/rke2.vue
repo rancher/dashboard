@@ -67,7 +67,7 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import {
-  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
+  HARVESTER, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 
@@ -292,7 +292,8 @@ export default {
       addonConfigDiffs:                         {},
       originalKubeVersion:                      null,
       isEmpty,
-      basicsValid:                              true
+      basicsValid:                              true,
+      originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
     };
   },
 
@@ -2510,6 +2511,7 @@ export default {
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
               :has-some-ipv6-pools="hasSomeIpv6Pools"
+              :original-ingress-controller="originalIngressController"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"

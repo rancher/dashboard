@@ -42,6 +42,7 @@ const { t } = useI18n(store);
       :selected="card.selected"
       variant="small"
       role="link"
+      :disabled="mode === _VIEW"
       :class="{ 'single-card': options.length === 1 }"
       :clickable="mode !== _VIEW"
       @card-click="emit('select', card.id)"
