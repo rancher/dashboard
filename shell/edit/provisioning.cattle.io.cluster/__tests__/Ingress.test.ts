@@ -8,8 +8,40 @@ jest.mock('vuex', () => ({
   mapGetters: () => ({ t: (key: string) => key })
 }));
 
-jest.mock('@shell/assets/images/providers/traefik.png', () => 'traefik.png', { virtual: true });
-jest.mock('@shell/assets/images/providers/kubernetes.svg', () => 'kubernetes.svg', { virtual: true });
+jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
+
+  INGRESS_NGINX:   'ingress-nginx',
+  TRAEFIK:         'traefik',
+  INGRESS_DUAL:    'dual',
+  INGRESS_NONE:    'none',
+  INGRESS_OPTIONS: [{
+    id:        'traefik',
+    image:     { src: '', alt: 'Traefik' },
+    header:    { title: { key: 'cluster.ingress.traefik.header' } },
+    subHeader: { label: { key: 'cluster.ingress.recommended' } },
+    content:   { key: 'cluster.ingress.traefik.content' },
+    doc:       { url: 'https://docs.rke2.io/networking/networking_services?_highlight=ingress#ingress-controller' }
+  },
+  {
+    id:        'ingress-nginx',
+    image:     { src: '', alt: 'NGINX' },
+    header:    { title: { key: 'cluster.ingress.nginx.header' } },
+    subHeader: { label: { key: 'cluster.ingress.legacy' } },
+    content:   { key: 'cluster.ingress.nginx.content' },
+    doc:       { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' }
+  },
+  {
+    id:        'dual',
+    header:    { title: { key: 'cluster.ingress.dual.header' } },
+    subHeader: { label: { key: 'cluster.ingress.migration' } },
+    content:   { key: 'cluster.ingress.dual.content' }
+  }],
+  INGRESS_MIGRATION_KB_LINK:          'mock-link',
+  INGRESS_CONTROLLER_CLASS_MIGRATION: 'rke2.cattle.io/ingress-nginx-migration',
+  INGRESS_CLASS_DEFAULT:              'rke2.cattle.io/ingress-nginx-default',
+  INGRESS_CONTROLLER_CLASS_DEFAULT:   'rke2.cattle.io/ingress-nginx-controller-default',
+  INGRESS_CLASS_MIGRATION:            'rke2.cattle.io/ingress-nginx-migration'
+}));
 
 describe('ingress.vue', () => {
   const defaultProps = {
