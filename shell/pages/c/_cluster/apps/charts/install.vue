@@ -1549,7 +1549,7 @@ export default {
       @finish="finish"
     >
       <template #bannerTitle>
-        <div class="title">
+        <div class="chart-title-container">
           <div class="logo-container">
             <div class="logo-box">
               <LazyImage
@@ -1558,12 +1558,12 @@ export default {
               />
             </div>
           </div>
-          <div class="subtitle">
-            <h2>
+          <div class="chart-title">
+            <h1>
               <router-link :to="chartLocation()">
                 {{ stepperName }}
               </router-link>: {{ t(`wizard.${action.tKey}`) }}
-            </h2>
+            </h1>
             <span
               v-if="stepperSubtext"
               class="subtext"
@@ -2051,12 +2051,12 @@ export default {
               <!-- Title with subtext -->
               <div class="subtitle">
                 <h2 v-if="stepperName">
-                  lplp{{ stepperName }}lplp
+                  {{ stepperName }}
                 </h2>
                 <span
                   v-if="stepperSubtext"
                   class="subtext"
-                >dsd{{ stepperSubtext }}dfsdf</span>
+                >{{ stepperSubtext }}</span>
               </div>
             </div>
           </div>
@@ -2280,7 +2280,7 @@ export default {
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
-  & > .title {
+  & > .chart-title-container {
     flex: 1;
     min-height: 75px;
   }
@@ -2297,21 +2297,20 @@ export default {
         margin: 0px;
       }
 
-      .title{
+      .chart-title-container {
         display: flex;
         align-items: flex-start;
         justify-content: space-evenly;
         gap: 24px;
       }
 
-      .subtitle{
+      .chart-title {
         display: flex;
         flex-direction: column;
         & .subtext {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-top: 8px;
           color: var(--input-label);
 
           .icon-version-alt {
