@@ -1,7 +1,7 @@
 import { IExtension } from '@shell/core/types';
 import {
   StandardProductName, ProductChild,
-  ProductMetadata, ProductSinglePage
+  ProductMetadata, ProductSinglePage,
 } from '@shell/core/plugin-types';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
@@ -15,7 +15,7 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | ProductMetadata | ProductSinglePage, config: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[]) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
       this.instance = new TopLevelPluginProduct(plugin, product, config);

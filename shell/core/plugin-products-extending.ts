@@ -1,5 +1,5 @@
 import { IExtension } from '@shell/core/types';
-import { ProductChild, StandardProductName, StandardProductNames } from '@shell/core/plugin-types';
+import { ProductChild, StandardProductName } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 
@@ -12,15 +12,8 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     return false;
   }
 
-  constructor(plugin: IExtension, productName: StandardProductName, config: ProductChild[]) {
+  constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[]) {
     super(config);
-
-    // Check if the string exists as a VALUE in the standard products
-    const isProductValid = Object.values(StandardProductNames).includes(productName);
-
-    if (!isProductValid) {
-      this.surfaceError('Invalid product name');
-    }
 
     // existing standard product - no need to add routes
     this.name = productName;
@@ -37,5 +30,15 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     }
 
     this.addRoutes(plugin, this.name, this.config);
+  }
+
+  apply(plugin: IExtension, store: any): void {
+    const isRegistered = store.getters['type-map/isProductRegistered'](this.name);
+
+    if (!isRegistered) {
+      this.surfaceError(`Product "${ this.name }" is not registered. You can only extend core Dashboard products or builtin extensions.`);
+    }
+
+    super.apply(plugin, store);
   }
 }

@@ -688,8 +688,8 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
-  extendProduct(product: StandardProductName, config: ProductChildGroup[]): void;
-  extendProduct(product: StandardProductName, config: ProductChildPage[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
 
   /**
    * Add a locale to the i18n store

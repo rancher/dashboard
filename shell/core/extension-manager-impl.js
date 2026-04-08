@@ -505,7 +505,11 @@ export const createExtensionManager = (context) => {
         loadPlugins = Object.values(plugins);
       }
 
-      loadPlugins.forEach((plugin) => {
+      // Ensure builtin plugins are processed before external plugins so that
+      // core + builtin products are registered first and available for extending
+      const orderedPlugins = [...loadPlugins.filter((p) => p.builtin), ...loadPlugins.filter((p) => !p.builtin)];
+
+      orderedPlugins.forEach((plugin) => {
         if (plugin.products) {
           plugin.products.forEach(async(p) => {
             const impl = await p;

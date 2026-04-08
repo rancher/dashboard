@@ -153,7 +153,7 @@ export class Plugin implements IPlugin {
     }
   }
 
-  extendProduct(product: StandardProductName, config: ProductChild[] | ProductChild, options?: ProductOptions): void {
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, options?: ProductOptions): void {
     const arrayConfig = Array.isArray(config) ? config : [config];
 
     this.productConfigs.push(new PluginProduct(this, product, arrayConfig));

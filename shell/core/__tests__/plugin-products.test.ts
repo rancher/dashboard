@@ -1,7 +1,7 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import {
   ProductMetadata, ProductSinglePage, ProductChildPage,
-  ProductChildGroup, StandardProductName, StandardProductNames
+  ProductChildGroup, StandardProductNames
 } from '@shell/core/plugin-types';
 import { IExtension } from '@shell/core/types';
 
@@ -71,8 +71,8 @@ function createMockPlugin(): IExtension {
   } as any;
 }
 
-function createMockStore(): any {
-  return {};
+function createMockStore(registeredProducts: string[] = Object.values(StandardProductNames)): any {
+  return { getters: { 'type-map/isProductRegistered': (productName: string) => registeredProducts.includes(productName) } };
 }
 
 describe('pluginProduct', () => {
@@ -180,13 +180,59 @@ describe('pluginProduct', () => {
       expect(mockPlugin.addRoute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw error when extending invalid standard product', () => {
+    it('should accept any string as product name when extending', () => {
       const mockPlugin = createMockPlugin();
-      const invalidStandardProduct = 'invalid-product';
+      const customProduct = 'custom-product';
+
+      const pluginProduct = new PluginProduct(mockPlugin, customProduct, []);
+
+      expect(pluginProduct.newProduct).toBe(false);
+    });
+
+    it('should throw error during apply when extending a product that is not registered', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore([]);
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, 'non-existent-product', []);
 
       expect(() => {
-        new PluginProduct(mockPlugin, invalidStandardProduct as StandardProductName, []);
-      }).toThrow('Invalid product name');
+        pluginProduct.apply(mockPlugin, mockStore);
+      }).toThrow('is not registered');
+    });
+
+    it('should apply successfully when extending a registered product', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore(['my-custom-builtin-product']);
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, 'my-custom-builtin-product', []);
+
+      expect(() => {
+        pluginProduct.apply(mockPlugin, mockStore);
+      }).not.toThrow();
     });
 
     it('should not register new product when extending standard product', () => {
