@@ -2989,7 +2989,7 @@ fleet:
       add: Add Selector
     tolerations:
       label: Tolerations
-      description: "List of node taints to tolerate (requires Kubernetes >= 1.6)"
+      description: "List of node taints to tolerate."
       add: Add Toleration
     priorityClassName:
       label: Priority Class Name
