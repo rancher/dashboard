@@ -71,8 +71,8 @@ function createMockPlugin(): IExtension {
   } as any;
 }
 
-function createMockStore(registeredProducts: string[] = Object.values(StandardProductNames)): any {
-  return { getters: { 'type-map/isProductRegistered': (productName: string) => registeredProducts.includes(productName) } };
+function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames)): any {
+  return { getters: { 'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined) } };
 }
 
 describe('pluginProduct', () => {
@@ -209,10 +209,10 @@ describe('pluginProduct', () => {
 
       expect(() => {
         pluginProduct.apply(mockPlugin, mockStore);
-      }).toThrow('is not registered');
+      }).toThrow('is not extendable');
     });
 
-    it('should apply successfully when extending a registered product', () => {
+    it('should apply successfully when extending an extendable product', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore(['my-custom-builtin-product']);
       const mockDSL = {
@@ -233,6 +233,39 @@ describe('pluginProduct', () => {
       expect(() => {
         pluginProduct.apply(mockPlugin, mockStore);
       }).not.toThrow();
+    });
+
+    it('should throw error during apply when extending a registered product that is not extendable', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = {
+        getters: {
+          'type-map/productByName': (productName: string) => {
+            if (productName === 'other-extension-product') {
+              return { name: productName, extendable: false };
+            }
+
+            return undefined;
+          },
+        },
+      };
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, 'other-extension-product', []);
+
+      expect(() => {
+        pluginProduct.apply(mockPlugin, mockStore);
+      }).toThrow('is not extendable');
     });
 
     it('should not register new product when extending standard product', () => {

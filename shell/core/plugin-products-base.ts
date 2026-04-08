@@ -225,6 +225,7 @@ export abstract class BasePluginProduct {
     // register the product via DSL
     product({
       showClusterSwitcher: false,
+      extendable:          false,
       ...this.product,
       category:            'global',
       to:                  defaultRoute,

@@ -271,6 +271,11 @@ export interface ProductOptions {
   showClusterSwitcher?: boolean;
 
   /**
+   * Indicates whether the product can be extended by other extensions
+   */
+  extendable?: boolean;
+
+  /**
    * Show the namespace filter in the header
    */
   showNamespaceFilter?: boolean;

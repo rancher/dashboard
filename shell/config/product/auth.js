@@ -34,6 +34,7 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',
+    extendable:          true,
   });
 
   virtualType({

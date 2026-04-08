@@ -33,10 +33,10 @@ export class ExtendingPluginProduct extends BasePluginProduct {
   }
 
   apply(plugin: IExtension, store: any): void {
-    const isRegistered = store.getters['type-map/isProductRegistered'](this.name);
+    const product = store.getters['type-map/productByName'](this.name);
 
-    if (!isRegistered) {
-      this.surfaceError(`Product "${ this.name }" is not registered. You can only extend core Dashboard products or builtin extensions.`);
+    if (!product?.extendable) {
+      this.surfaceError(`Product "${ this.name }" is not extendable. You can only extend core Dashboard products or builtin extensions.`);
     }
 
     super.apply(plugin, store);
