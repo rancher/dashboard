@@ -829,7 +829,7 @@ describe('component: rke2', () => {
       wrapper.vm.value.spec.kubernetesVersion = newVersion;
       (wrapper.vm as any).handleKubernetesChange(newVersion);
 
-      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
     });
   });
 });
