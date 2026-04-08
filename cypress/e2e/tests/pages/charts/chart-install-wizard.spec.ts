@@ -80,6 +80,10 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const chartApp = 'rancher-backup';
     const chartCrd = 'rancher-backup-crd';
 
+    beforeEach(() => {
+      cy.viewport(1280, 720);
+    });
+
     it('should persist custom registry when changing chart version', () => {
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
