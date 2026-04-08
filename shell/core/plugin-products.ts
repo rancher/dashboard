@@ -28,6 +28,18 @@ export class PluginProduct {
     }
   }
 
+  /**
+   * Convenience/bridge method: create a new top-level product from just a name string.
+   * The product will use EmptyProductPage as its default page.
+   */
+  static fromName(plugin: IExtension, productName: string): PluginProduct {
+    const instance = Object.create(PluginProduct.prototype);
+
+    instance.instance = new TopLevelPluginProduct(plugin, productName, []);
+
+    return instance;
+  }
+
   apply(plugin: IExtension, store: any): void {
     this.instance.apply(plugin, store);
   }

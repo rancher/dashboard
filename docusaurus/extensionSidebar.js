@@ -137,8 +137,20 @@ const sidebars = {
             id:   'api/overview',
           },
           items: [
-            'api/products',
+            'api/concepts',
             'api/metadata',
+            {
+              type:  'category',
+              label: 'Navigation & Pages',
+              items: [
+                'api/nav/products',
+                'api/nav/custom-page',
+                'api/nav/resource-page',
+                'api/nav/side-menu',
+                'api/nav/routing',
+                'api/nav/templates',
+              ]
+            },
             'api/actions',
             'api/cards',
             'api/panels',
@@ -158,19 +170,6 @@ const sidebars = {
               ]
             },
             'api/common',
-            {
-              type:  'category',
-              label: 'Deprecated Products, Navigation & Pages',
-              items: [
-                'api/deprecated/concepts-deprecated',
-                'api/deprecated/products-deprecated',
-                'api/deprecated/custom-page',
-                'api/deprecated/resource-page',
-                'api/deprecated/side-menu',
-                'api/deprecated/routing',
-                'api/deprecated/templates',
-              ],
-            },
           ]
         },
         {
@@ -218,6 +217,7 @@ const sidebars = {
           type:  'category',
           label: 'Advanced',
           items: [
+            'advanced/create-page-in-an-existing-product',
             'advanced/air-gapped-environments',
             // 'advanced/fix-annotations-published-extensions',
             'advanced/localization',
@@ -239,18 +239,10 @@ const sidebars = {
             id:   'usecases/overview',
           },
           items: [
-            'usecases/add-new-product',
-            'usecases/extend-existing-product',
+            'usecases/top-level-product',
+            'usecases/cluster-level-product',
             'usecases/node-driver',
-            'usecases/hosted-provider',
-            {
-              type:  'category',
-              label: 'Deprecated Products',
-              items: [
-                'usecases/deprecated/top-level-product',
-                'usecases/deprecated/cluster-level-product',
-              ],
-            },
+            'usecases/hosted-provider'
           ]
         },
         'known-issues',

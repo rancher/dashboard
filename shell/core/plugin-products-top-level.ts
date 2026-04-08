@@ -14,8 +14,16 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage, config: ProductChild[]) {
+  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[]) {
     super(config);
+
+    // Convenience/bridge method: create a basic product from just a name string
+    if (typeof product === 'string') {
+      product = {
+        name:  product,
+        label: product,
+      };
+    }
 
     let prodName = product.name;
 

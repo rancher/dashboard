@@ -1,8 +1,6 @@
-# Side menu (deprecated)
+# Side menu
 
-> Deprecated doc. The recommended flow is on the main Products page.
-
-## Defining a page as a side-menu entry (basicType) - Deprecated
+## Defining a page as a side-menu entry (basicType)
 
 With the `virtualType` and `configureType` we have learned how to configure a page for your Extension product, but that won't make it appear on the side-menu. For that you need to use the function `basicType` coming from `$extension.DSL`. As an example usage of that method, one could do the following:
 
@@ -92,7 +90,7 @@ Menu entries can also be grouped under a common "folder/group" in the side menu.
 
 > NOTE: On the example above the label of the group on the side-menu will be `my-custom-group-name`.
 
-## Side menu ordering (weightType and weightGroup) - Deprecated
+## Side menu ordering (weightType and weightGroup)
 
 How about if you wanted to change the side-menu ordering for your Extension product? That can be achieved by using the functions `weightType` and `weightGroup` coming from `$extension.DSL`. Let's then look at the following example:
 
@@ -322,7 +320,7 @@ Interpreting the code on the example, it's easy to follow the ordering defined:
 
 > NOTE: The last parameter for the `weightType` and `weightGroup` functions is a boolean that should be set to `true` at all times so that it works properly.
 
-## Customizing the Product Side-Menu Entry (deprecated)
+## Customizing the Product Side-Menu Entry
 
 When you register your Extension product, a top-level side-menu entry is automatically created for it.
 

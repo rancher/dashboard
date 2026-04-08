@@ -668,6 +668,14 @@ export interface IExtension {
   addProduct(product: ProductSinglePage): void;
 
   /**
+   * Add a product with just a name (convenience/bridge method for quick setup).
+   * Creates a basic product with an empty page component automatically.
+   * This is useful for getting started quickly - expand to the full API once you're ready to add custom pages.
+   * @param productName Simple product name - will be used as both the name and label
+   */
+  addProduct(productName: string): void;
+
+  /**
    * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
    * @deprecated Use other `addProduct` signatures instead
    * @param importFn Function that will import the module containing a product definition

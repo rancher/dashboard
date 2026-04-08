@@ -3043,4 +3043,98 @@ describe('pluginProduct', () => {
       });
     });
   });
+
+  describe('fromName convenience method', () => {
+    it('should create a new top-level product from a string name', () => {
+      const mockPlugin = createMockPlugin();
+      const pluginProduct = PluginProduct.fromName(mockPlugin, 'my-first-product');
+
+      expect(pluginProduct.newProduct).toBe(true);
+      expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledTimes(1);
+    });
+
+    it('should register a route with EmptyProductPage when created from a string name', () => {
+      const mockPlugin = createMockPlugin();
+
+      PluginProduct.fromName(mockPlugin, 'my-first-product');
+
+      expect(mockPlugin.addRoute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use the string as both name and label for the product', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const productCalls: any[] = [];
+      const mockDSL = {
+        product:             jest.fn((...args: any[]) => productCalls.push(args)),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+
+      const pluginProduct = PluginProduct.fromName(mockPlugin, 'my-first-product');
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(productCalls).toHaveLength(1);
+      expect(productCalls[0][0]).toStrictEqual(expect.objectContaining({
+        name:  'myfirstproduct',
+        label: 'my-first-product',
+      }));
+    });
+
+    it('should handle product names with dashes by removing them for the internal name', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const productCalls: any[] = [];
+      const mockDSL = {
+        product:             jest.fn((...args: any[]) => productCalls.push(args)),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+
+      const pluginProduct = PluginProduct.fromName(mockPlugin, 'test-product-name');
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(productCalls[0][0]).toStrictEqual(expect.objectContaining({ name: 'testproductname' }));
+    });
+
+    it('should handle product names without dashes', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const productCalls: any[] = [];
+      const mockDSL = {
+        product:             jest.fn((...args: any[]) => productCalls.push(args)),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+      };
+
+      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+
+      const pluginProduct = PluginProduct.fromName(mockPlugin, 'myproduct');
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(productCalls[0][0]).toStrictEqual(expect.objectContaining({ name: 'myproduct' }));
+    });
+  });
 });

@@ -135,8 +135,10 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage, config?: ProductChild[], options?: ProductOptions): void {
-    if (product?.name) {
+  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[], options?: ProductOptions): void {
+    if (typeof product === 'string') {
+      this.productConfigs.push(PluginProduct.fromName(this, product));
+    } else if (product?.name) {
       if (!config) {
         const p = product as ProductSinglePage;
 

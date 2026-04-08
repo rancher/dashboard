@@ -58,15 +58,13 @@ export default function(plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
-  // Register a product — see Product Registration docs for full config options
-  plugin.addProduct({ name: 'my-product' }, [{ name: 'my-page' }]);
-
-  // Register the custom Vuex store
+  // Load a product
+  plugin.addProduct(require('./product'));
+  
+  // => => => Add Vuex store
   plugin.addDashboardStore(extensionStore.config.namespace, extensionStore.specifics, extensionStore.config);
 }
 ```
-
-> For the full set of product registration options, see the [Product Registration](../api/products.md) page.
 
 
 Extensions can optionally define their own cluster store module by setting `isClusterStore` in the store index, eg:

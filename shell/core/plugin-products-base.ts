@@ -13,7 +13,6 @@ import {
   hasNameProperty,
   hasTypeProperty
 } from '@shell/core/plugin-products-type-guards';
-import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 
 /**
  * Base class for product registration in extensions
@@ -98,9 +97,6 @@ export abstract class BasePluginProduct {
         this.processGroupRecursively(item, this.name);
       }
     });
-
-    DSLRegistrationsPerProduct(store, this.name);
-    registeredRoutes(store, this.name);
   }
 
   /**
