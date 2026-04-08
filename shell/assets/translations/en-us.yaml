@@ -263,9 +263,7 @@ nav:
     resources: Resources
   ns:
     all: All Namespaces
-    clusterLevel: Only Cluster Resources
     namespace: "{name}"
-    namespaced: Only Namespaced Resources
     orphan: Not in a Project
     project: "Project: {name}"
     system: Only System Namespaces

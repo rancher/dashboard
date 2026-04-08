@@ -97,8 +97,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
       .should('be.visible');
   });
 
-  it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
-    // Verify that user can only select one of the first 5 options
+  it('can select only one of the top resource filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+    // Verify that user can only select one of the special filter options
 
     namespacePicker.toggle();
 
@@ -115,16 +115,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Select 'Only System Namespaces'
     namespacePicker.clickOptionByLabelAndWaitForRequest('Only System Namespaces');
     namespacePicker.isChecked('Only System Namespaces');
-    namespacePicker.checkIcon().should('have.length', 1);
-
-    // Select 'Only Namespaced Resources'
-    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Namespaced Resources');
-    namespacePicker.isChecked('Only Namespaced Resources');
-    namespacePicker.checkIcon().should('have.length', 1);
-
-    // Select 'Only Cluster Resources'
-    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Cluster Resources');
-    namespacePicker.isChecked('Only Cluster Resources');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 

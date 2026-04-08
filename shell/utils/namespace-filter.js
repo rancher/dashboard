@@ -10,8 +10,6 @@ export const NAMESPACE_FILTER_ALL_SYSTEM = `${ NAMESPACE_FILTER_ALL_PREFIX }://s
 export const NAMESPACE_FILTER_ALL_USER = `${ NAMESPACE_FILTER_ALL_PREFIX }://user`;
 export const NAMESPACE_FILTER_ALL_ORPHANS = `${ NAMESPACE_FILTER_ALL_PREFIX }://orphans`;
 export const NAMESPACE_FILTER_NAMESPACED_PREFIX = 'namespaced://';
-export const NAMESPACE_FILTER_NAMESPACED_YES = 'namespaced://true';
-export const NAMESPACE_FILTER_NAMESPACED_NO = 'namespaced://false';
 
 export const NAMESPACE_FILTER_KINDS = {
   DIVIDER:   'divider',

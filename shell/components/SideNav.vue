@@ -75,15 +75,6 @@ export default {
       }
     },
 
-    // Queue namespaceMode and namespaces
-    // Changes to namespaceMode can also change namespaces, so keep this simple and execute both in a shortened queue
-
-    namespaceMode(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
     namespaces(a, b) {
       if ( !isEqual(a, b) ) {
         this.queueUpdate();
@@ -112,7 +103,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'isExplorer', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 

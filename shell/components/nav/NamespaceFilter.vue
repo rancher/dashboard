@@ -9,8 +9,6 @@ import {
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   createNamespaceFilterKey,
   NAMESPACE_FILTER_KINDS,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
@@ -195,16 +193,6 @@ export default {
             id:    ALL_SYSTEM,
             kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.system'),
-          },
-          {
-            id:    NAMESPACED_YES,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.namespaced'),
-          },
-          {
-            id:    NAMESPACED_NO,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.clusterLevel'),
           },
         ];
 
