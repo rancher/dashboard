@@ -662,6 +662,7 @@ describe('component: rke2', () => {
             ...defaultMocks,
             $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
             $extension: { getDynamic: jest.fn(() => undefined ) },
+            $plugin:    { getDynamic: jest.fn(() => undefined ) }
           },
           stubs: defaultStubs,
         },
