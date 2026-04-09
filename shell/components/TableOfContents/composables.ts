@@ -247,7 +247,7 @@ export function useInSummary() {
     refreshComponents = () => {},
     updateComponentLabel = () => false
   } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
-  const instance = getCurrentInstance();
+  const instance = getCurrentInstance() as any; // avoid TS error TS2339
   const t = instance?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
   const component = ref<SummaryComponent | null>(null);
 
