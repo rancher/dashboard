@@ -223,24 +223,30 @@ export default {
           <slot name="extraActions" />
 
           <slot name="createButton">
-            <RcButton
+            <router-link
               v-if="hasEditComponent && _isCreatable"
-              variant="primary"
-              size="large"
-              :data-testid="componentTestid+'-create'"
-              @click="$router.push(_createLocation)"
+              :to="_createLocation"
             >
-              {{ _createButtonlabel }}
-            </RcButton>
-            <RcButton
+              <RcButton
+                variant="primary"
+                size="large"
+                :data-testid="componentTestid+'-create'"
+              >
+                {{ _createButtonlabel }}
+              </RcButton>
+            </router-link>
+            <router-link
               v-else-if="_isYamlCreatable"
-              variant="primary"
-              size="large"
-              :data-testid="componentTestid+'-create-yaml'"
-              @click="$router.push(_yamlCreateLocation)"
+              :to="_yamlCreateLocation"
             >
-              {{ t("resourceList.head.createFromYaml") }}
-            </RcButton>
+              <RcButton
+                variant="primary"
+                size="large"
+                :data-testid="componentTestid+'-create-yaml'"
+              >
+                {{ t("resourceList.head.createFromYaml") }}
+              </RcButton>
+            </router-link>
           </slot>
         </div>
       </slot>
