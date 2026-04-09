@@ -17,6 +17,8 @@
     "dist"
   ],
   "scripts": {
+    "postinstall": "yarn --cwd playground install --ignore-scripts",
+    "playground": "yarn --cwd playground dev",
     "dev": "vite",
     "build": "run-p type-check build-decl build-only",
     "build-only": "vite build",
