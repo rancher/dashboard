@@ -162,7 +162,6 @@ function getTooltip(key: string, fallback?: string): string | undefined {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      text-transform: capitalize;
       min-width: 0;
     }
 
@@ -184,7 +183,6 @@ function getTooltip(key: string, fallback?: string): string | undefined {
   }
 
   &-button {
-    text-transform: capitalize;
     min-width: 0;
     max-width: 100%;
 
