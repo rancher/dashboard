@@ -445,6 +445,7 @@ export default {
             <RcButton
               type="button"
               variant="secondary"
+              size="large"
               @click="cancel"
             >
               <t k="generic.cancel" />
@@ -460,6 +461,7 @@ export default {
                 :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)"
                 type="button"
                 variant="secondary"
+                size="large"
                 @click="back()"
               >
                 <t k="wizard.previous" />
@@ -486,6 +488,7 @@ export default {
                 :disabled="!canNext"
                 type="button"
                 variant="primary"
+                size="large"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />

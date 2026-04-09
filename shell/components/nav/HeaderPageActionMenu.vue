@@ -17,7 +17,6 @@ const pageAction = (_event: Event, action: string) => {
     :dropdown-aria-label="t('nav.actionMenu.button.label')"
     data-testid="page-actions-menu-action-button"
     button-variant="tertiary"
-    button-size="medium"
     @select="pageAction"
   />
 </template>

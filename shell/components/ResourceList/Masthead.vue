@@ -226,6 +226,7 @@ export default {
             <RcButton
               v-if="hasEditComponent && _isCreatable"
               variant="primary"
+              size="large"
               :data-testid="componentTestid+'-create'"
               @click="$router.push(_createLocation)"
             >
@@ -234,6 +235,7 @@ export default {
             <RcButton
               v-else-if="_isYamlCreatable"
               variant="primary"
+              size="large"
               :data-testid="componentTestid+'-create-yaml'"
               @click="$router.push(_yamlCreateLocation)"
             >

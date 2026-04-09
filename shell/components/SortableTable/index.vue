@@ -1125,6 +1125,7 @@ export default {
                 v-clean-tooltip="actionTooltip"
                 type="button"
                 variant="primary"
+                size="large"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"

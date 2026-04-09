@@ -93,6 +93,7 @@ export default {
         :data-testid="componentTestid + '-cancel'"
         type="button"
         variant="secondary"
+        size="large"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"
       >
         <t k="generic.cancel" />
