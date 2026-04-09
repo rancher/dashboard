@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export default {
   props: {
@@ -72,9 +73,9 @@ export default {
       const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
       try {
-        return require(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
+        return requireAsset(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
       } catch {
-        return require(`~shell/assets/images/pl/${ this.fileName }`);
+        return requireAsset(`~shell/assets/images/pl/${ this.fileName }`);
       }
     },
 
@@ -95,7 +96,7 @@ export default {
         // csp, rgs, and federal map to SUSE, but have their own custom logos
         if (this.brandBase !== this.brand) {
           try {
-            return require(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
+            return requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
           } catch { }
         }
       }
@@ -125,11 +126,11 @@ export default {
       } else {
         if (this.isDark || this.dark) {
           try {
-            return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
+            return requireAsset(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
         }
         try {
-          return require(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
+          return requireAsset(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
         } catch {}
 
         return this.defaultPathToBrandedImage;

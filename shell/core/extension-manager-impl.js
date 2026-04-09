@@ -428,7 +428,7 @@ export const createExtensionManager = (context) => {
    * Return the UI configuration for the given type and location
    */
     getUIConfig(type, uiArea) {
-      return uiConfig[type][uiArea] || [];
+      return uiConfig[type]?.[uiArea] || [];
     },
 
     /**

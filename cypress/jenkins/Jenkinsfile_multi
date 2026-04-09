@@ -1,96 +1,133 @@
 #!groovy
 
-def branch = "master"
-def test_tags = "${env.TEST_TAGS}".split(',')
-def k8s_versions = "${env.K3S_KUBERNETES_VERSIONS}".split(',')
-def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|')
-
-if (test_tags.length != k8s_versions.length) {
-    error("Number of Rancher versions (${test_tags.length}) must match number of K8s versions (${k8s_versions.length}). TEST_TAGS and K3S_KUBERNETES_VERSIONS must correspond positionally - first version pairs with first tag, second with second, etc.")
+def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
+def test_tags = "${env.TEST_TAGS}".split(',').collect { it.trim() }.findAll { it }
+def k8s_versions = "${env.K3S_KUBERNETES_VERSIONS}".split(',').collect { it.trim() }.findAll { it }
+def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|').collect { it.trim() }.findAll { it }
+def baseConfig = env.VARS_YAML_CONFIG ?: ''
+def batchSizeRaw = env.BATCH_SIZE?.trim() ?: env.MAX_CHILD_BUILDS?.trim() ?: "4"
+def estimatedRunMbRaw = env.ESTIMATED_RUN_MB?.trim() ?: "2500"
+def ramReserveMbRaw = env.RAM_RESERVE_MB?.trim() ?: "8192"
+def batchSizeCapRaw = env.BATCH_SIZE_CAP?.trim() ?: "4"
+if (!batchSizeRaw.isInteger()) {
+    error("BATCH_SIZE must be a positive integer, got '${batchSizeRaw}'.")
 }
-if ("${env.branch}" != "null" && "${env.branch}" != "") {
-  branch = "${env.branch}"
+if (!estimatedRunMbRaw.isInteger()) {
+    error("ESTIMATED_RUN_MB must be a positive integer, got '${estimatedRunMbRaw}'.")
+}
+if (!ramReserveMbRaw.isInteger()) {
+    error("RAM_RESERVE_MB must be a positive integer, got '${ramReserveMbRaw}'.")
+}
+if (!batchSizeCapRaw.isInteger()) {
+    error("BATCH_SIZE_CAP must be a positive integer, got '${batchSizeCapRaw}'.")
+}
+def batchSize = batchSizeRaw.toInteger()
+def estimatedRunMb = estimatedRunMbRaw.toInteger()
+def ramReserveMb = ramReserveMbRaw.toInteger()
+def batchSizeCap = batchSizeCapRaw.toInteger()
+def requestedFanout = test_tags.size() * all_cypress_tags.size()
+
+// Fail early on bad parameters
+if (!baseConfig.trim()) {
+    error("VARS_YAML_CONFIG is empty. Provide a valid YAML configuration.")
+}
+if (test_tags.isEmpty()) {
+    error("TEST_TAGS is empty after trimming.")
+}
+if (k8s_versions.isEmpty()) {
+    error("K3S_KUBERNETES_VERSIONS is empty after trimming.")
+}
+if (all_cypress_tags.isEmpty()) {
+    error("CYPRESS_TAGS is empty after trimming.")
+}
+if (test_tags.size() != k8s_versions.size()) {
+    error("TEST_TAGS (${test_tags.size()}) and K3S_KUBERNETES_VERSIONS (${k8s_versions.size()}) must have the same number of entries.")
+}
+if (batchSize < 1) {
+    error("BATCH_SIZE must be >= 1, got ${batchSize}.")
+}
+if (estimatedRunMb < 1) {
+    error("ESTIMATED_RUN_MB must be >= 1, got ${estimatedRunMb}.")
+}
+if (ramReserveMb < 0) {
+    error("RAM_RESERVE_MB must be >= 0, got ${ramReserveMb}.")
+}
+if (batchSizeCap < 1) {
+    error("BATCH_SIZE_CAP must be >= 1, got ${batchSizeCap}.")
+}
+['rancher_image_tag:', 'k3s_kubernetes_version:', 'cypress_tags:'].each { key ->
+    if (!baseConfig.contains(key)) {
+        error("VARS_YAML_CONFIG is missing '${key}' — required for multi-job overrides.")
+    }
 }
 
-if ("${env.CORRAL_PACKAGES_REPO}" != "null" && "${env.CORRAL_PACKAGES_REPO}" != "") {
-      corralRepo = "${env.CORRAL_PACKAGES_REPO}"
-}
-
-if ("${env.CORRAL_PACKAGES_BRANCH}" != "null" && "${env.CORRAL_PACKAGES_BRANCH}" != "") {
-      corralBranch = "${env.CORRAL_PACKAGES_BRANCH}"
+def childRuns = []
+test_tags.eachWithIndex { String rancher_version, int i ->
+    String k8s_version = k8s_versions[i]
+    for (String ct : all_cypress_tags) {
+        childRuns << [
+            rancher_version: rancher_version,
+            k8s_version:     k8s_version,
+            cypress_tags:    ct
+        ]
+    }
 }
 
 node {
-  wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm', 'defaultFg': 2, 'defaultBg':1]) {
+  ansiColor('xterm') {
     withFolderProperties {
-      paramsMap = []
-        params.each {
-          paramsMap << "$it.key=$it.value"
-      }
-        withEnv(paramsMap) {
-            stage('Checkout') {
-            deleteDir()
-            checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/${branch}"]],
-                        extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                        userRemoteConfigs: scm.userRemoteConfigs
-                    ])
+      withEnv(params.collect { "$it.key=$it.value" }) {
+        int memAvailableMb = sh(
+          script: 'awk \'/MemAvailable:/ {print int($2/1024)}\' /proc/meminfo',
+          returnStdout: true
+        ).trim().toInteger()
+        int cpuCount = sh(script: "nproc", returnStdout: true).trim().toInteger()
+
+        int ramBound = (memAvailableMb - ramReserveMb) / estimatedRunMb
+        int cpuBound = Math.max(1, cpuCount - 1)
+        int staticBound = Math.min(batchSize, batchSizeCap)
+        int dynamicBatchSize = Math.min(requestedFanout, Math.max(1, Math.min(staticBound, Math.min(ramBound, cpuBound))))
+
+        echo "Dynamic batching inputs: mem_available_mb=${memAvailableMb}, cpus=${cpuCount}, estimated_run_mb=${estimatedRunMb}, ram_reserve_mb=${ramReserveMb}, static_batch=${batchSize}, batch_cap=${batchSizeCap}, ram_bound=${ramBound}, cpu_bound=${cpuBound}"
+        echo "Fan-out plan: TEST_TAGS=${test_tags.size()}, CYPRESS_TAGS=${all_cypress_tags.size()}, requested=${requestedFanout}, effective_batch_size=${dynamicBatchSize}"
+
+        int batchNumber = 0
+        for (int offset = 0; offset < childRuns.size(); offset += dynamicBatchSize) {
+          batchNumber += 1
+          int endExclusive = Math.min(offset + dynamicBatchSize, childRuns.size())
+          def batch = new ArrayList(childRuns.subList(offset, endExclusive))
+
+          echo "Launching batch ${batchNumber}: jobs ${offset + 1}-${endExclusive} of ${childRuns.size()} (size=${batch.size()})"
+
+          def batchBranches = [:]
+          batch.eachWithIndex { runCfg, int idx ->
+            def cfg = runCfg
+            int ordinal = offset + idx + 1
+            String branchName = "child-${ordinal}-${cfg.rancher_version}-${cfg.cypress_tags}"
+
+            batchBranches[branchName] = {
+              def childConfig = baseConfig
+                  .replaceAll(/(?m)^rancher_image_tag:.*$/, "rancher_image_tag: \"${cfg.rancher_version}\"")
+                  .replaceAll(/(?m)^k3s_kubernetes_version:.*$/, "k3s_kubernetes_version: \"${cfg.k8s_version}\"")
+                  .replaceAll(/(?m)^cypress_tags:.*$/, "cypress_tags: \"${cfg.cypress_tags}\"")
+
+              echo "Launching child ${ordinal}/${childRuns.size()} — RANCHER_TAG=${cfg.rancher_version}, K8S_VERSION=${cfg.k8s_version}, CYPRESS_TAGS=${cfg.cypress_tags}"
+              def childBuild = build(job: 'ui-automation-ansible-job', parameters: [
+                  text(name: 'VARS_YAML_CONFIG', value: childConfig),
+                  string(name: 'BRANCH', value: "${BRANCH}"),
+                  string(name: 'QA_INFRA_REPO', value: "${QA_INFRA_REPO}"),
+                  string(name: 'QA_INFRA_BRANCH', value: "${QA_INFRA_BRANCH}"),
+                  string(name: 'CLEANUP', value: "${CLEANUP}"),
+                  string(name: 'SLACK_NOTIFICATION', value: "${SLACK_NOTIFICATION}"),
+                  string(name: 'ANSIBLE_VERBOSITY', value: "${ANSIBLE_VERBOSITY}")
+              ], propagate: false, wait: true)
+              echo "Child ${ordinal}/${childRuns.size()} finished: result=${childBuild.result}, url=${childBuild.absoluteUrl}"
             }
-            try {
-                stage('Run Tests') {
-                    jobs = [:]
-                    test_tags.eachWithIndex { String rancher_version, int i ->
-                        String k8s_version = k8s_versions[i]
-                        for ( String ct : all_cypress_tags ) {
-                            params = null
-                            params = [  string(name: 'JOB_TYPE', value: "${JOB_TYPE}"),
-                                        string(name: 'CORRAL_PACKAGES_BRANCH', value: "${CORRAL_PACKAGES_BRANCH}"),
-                                        string(name: 'CORRAL_PACKAGES_REPO', value: "${CORRAL_PACKAGES_REPO}"),
-                                        text(name: 'CORRAL_PACKAGE_CONFIG', value: "${CORRAL_PACKAGE_CONFIG}"),
-                                        string(name: 'CORRAL_VERSION', value: "${CORRAL_VERSION}"),
-                                        string(name: 'AWS_SSH_USER', value: "${AWS_SSH_USER}"),
-                                        string(name: 'AWS_AMI', value: "${AWS_AMI}"),
-                                        string(name: 'AWS_REGION', value: "${AWS_REGION}"),
-                                        string(name: 'AWS_SUBNET', value: "${AWS_SUBNET}"),
-                                        string(name: 'AWS_VPC', value: "${AWS_VPC}"),
-                                        string(name: 'AWS_INSTANCE_TYPE', value: "${AWS_INSTANCE_TYPE}"),
-                                        string(name: 'AWS_VOLUME_TYPE', value: "${AWS_VOLUME_TYPE}"),
-                                        string(name: 'AWS_VOLUME_IOPS', value: "${AWS_VOLUME_IOPS}"),
-                                        string(name: 'AWS_VOLUME_SIZE', value: "${AWS_VOLUME_SIZE}"),
-                                        string(name: 'AWS_ROUTE53_ZONE', value: "${AWS_ROUTE53_ZONE}"),
-                                        string(name: 'NODEJS_VERSION', value: "${NODEJS_VERSION}"),
-                                        string(name: 'DASHBOARD_REPO', value: "${DASHBOARD_REPO}"),
-                                        string(name: 'DASHBOARD_BRANCH', value: "${DASHBOARD_BRANCH}"),
-                                        string(name: 'CYPRESS_TAGS', value: ct),
-                                        string(name: 'RANCHER_HOST', value: ""),
-                                        string(name: 'RANCHER_USERNAME', value: "${RANCHER_USERNAME}"),
-                                        string(name: 'RANCHER_PASSWORD', value: "${RANCHER_PASSWORD}"),
-                                        string(name: 'K3S_KUBERNETES_VERSION', value: k8s_version),
-                                        string(name: 'CERT_MANAGER_VERSION', value: "${CERT_MANAGER_VERSION}"),
-                                        string(name: 'SERVER_COUNT', value: "${SERVER_COUNT}"),
-                                        string(name: 'AGENT_COUNT', value: "${AGENT_COUNT}"),
-                                        string(name: 'BOOTSTRAP_PASSWORD', value: "${BOOTSTRAP_PASSWORD}"),
-                                        string(name: 'BRANCH', value: "${BRANCH}"),
-                                        string(name: 'CYPRESS_VERSION', value: "${CYPRESS_VERSION}"),
-                                        string(name: 'YARN_VERSION', value: "${YARN_VERSION}"),
-                                        string(name: 'CHROME_VERSION', value: "${CHROME_VERSION}"),
-                                        string(name: 'QASE_PROJECT', value: "${QASE_PROJECT}"),
-                                        string(name: 'QASE_REPORT', value: "${QASE_REPORT}"),
-                                        string(name: 'RANCHER_IMAGE_TAG', value: rancher_version),
-                                        string(name: 'RANCHER_HELM_REPO', value: "${RANCHER_HELM_REPO}")]
-                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}, RANCHER_HELM_REPO: ${RANCHER_HELM_REPO}"
-                            build (job: 'ui-automation-job', parameters: params, propagate: false, wait: false)
-                        }
-                        
-                    }
-                }
-            } catch (err) {
-                echo "Error: " + err
-                currentBuild.result = 'FAILURE'
-                error()
-            }
+          }
+
+          parallel batchBranches
         }
+      }
     }
   }
 }

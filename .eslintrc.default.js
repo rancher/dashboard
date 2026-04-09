@@ -4,8 +4,9 @@ module.exports = {
     node:    true
   },
   globals: {
-    NodeJS: true,
-    Timer:  true
+    NodeJS:                true,
+    Timer:                 true,
+    WebpackRequireContext: true
   },
   plugins: [
     'jest',

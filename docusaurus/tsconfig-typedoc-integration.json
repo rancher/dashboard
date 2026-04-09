@@ -6,6 +6,7 @@
         "target": "es6",
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "typeRoots": ["./node_modules/@types"],
     },
     "include": [
         "../shell/apis/intf/shell.ts"

@@ -297,7 +297,8 @@ export default {
       originalKubeVersion:                      null,
       isEmpty,
       AGENT_CONFIGURATION_TYPES,
-      basicsValid:                              true
+      basicsValid:                              true,
+      originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
     };
   },
 
@@ -2522,6 +2523,7 @@ export default {
               <Tab
                 v-if="!obj.remove"
                 :key="obj.id"
+                :weight="-1 * idx"
                 :name="obj.id"
                 :label="obj.pool.name || '(Not Named)'"
                 :show-header="false"
@@ -2592,6 +2594,7 @@ export default {
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
+              :original-ingress-controller="originalIngressController"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"

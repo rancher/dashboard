@@ -56,7 +56,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().contains('Create')
+    return this.list().masthead().actions().contains('Add Repository')
       .click();
   }
 

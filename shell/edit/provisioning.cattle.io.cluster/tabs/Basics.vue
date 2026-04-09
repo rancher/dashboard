@@ -120,6 +120,11 @@ export default {
     canAzureMigrateOnEdit: {
       type:     Boolean,
       required: true
+    },
+    originalIngressController: {
+      type:     [String, Array],
+      required: false,
+      default:  INGRESS_NONE
     }
   },
 
@@ -699,6 +704,7 @@ export default {
       :traefik-chart="traefikChart"
       :user-chart-values="userChartValues"
       :version-info="versionInfo"
+      :original-ingress-controller="originalIngressController"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

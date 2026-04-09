@@ -42,12 +42,50 @@ defined at the bottom of these instructions.
 
 ---
 
+## Exclusion Rules — Skip without grooming
+
+Before applying the Grooming Decision Model to any issue, check whether it falls into an exclusion
+category. If it does, **skip it immediately — take no action, post no comment, apply no labels** —
+and log it as described below.
+
+### Excluded label check
+
+Skip the issue if it carries **any** of the following labels:
+
+- `RFD`
+- `kind/question`
+- `bot/skip-grooming`
+
+### Backport issue check
+
+Skip the issue if **any** of the following conditions are true:
+
+- The issue title matches the pattern `[backport ...]` (e.g. `[backport v2.14.1] Some title`).
+- The issue was authored by `rancher-ui-project-bot`.
+
+### Logging skipped issues
+
+Whenever an issue is skipped due to an exclusion rule, output a single line to the workflow log in
+this format so skipped issues are traceable:
+
+```
+[skip] #{issue_number} — {reason}
+```
+
+Where `{reason}` is one of:
+
+- `excluded label: {label_name}`
+- `backport issue`
+
+---
+
 ## Queue A — New issues to groom
 
 1. List all open issues in this repository that were **created in the last 24 hours**.
 2. Skip any entry that is a pull request.
-3. Skip any issue that already carries the label `bot/ready-for-triage` or `needs-info`.
-4. For each remaining issue, evaluate it against the **Grooming Decision Model** below.
+3. Skip any issue that matches the **Exclusion Rules** above; log each skipped issue.
+4. Skip any issue that already carries the label `bot/ready-for-triage` or `needs-info`.
+5. For each remaining issue, evaluate it against the **Grooming Decision Model** below.
 
    - If `is_groomed` is **true**:
      - Post a comment using this exact format:
@@ -92,13 +130,14 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
 1. List all open issues in this repository that are labeled `needs-info` **and** were updated in
    the last 24 hours.
 2. Skip any entry that is a pull request.
-3. Skip any issue whose number was already processed in Queue A during this run.
-4. For each remaining issue, retrieve its full comment list and find the **last comment posted by
+3. Skip any issue that matches the **Exclusion Rules** above; log each skipped issue.
+4. Skip any issue whose number was already processed in Queue A during this run.
+5. For each remaining issue, retrieve its full comment list and find the **last comment posted by
    the bot** (`github-actions[bot]`).
-5. Apply the **activity guard**: if the last comment on the issue (overall) was posted by the bot
+6. Apply the **activity guard**: if the last comment on the issue (overall) was posted by the bot
    AND `issue.updated_at` ≤ `last_bot_comment.created_at` + 30 minutes, skip this issue — there
    has been no meaningful user activity since the bot last commented.
-6. For issues that pass the activity guard, re-evaluate them against the **Grooming Decision
+7. For issues that pass the activity guard, re-evaluate them against the **Grooming Decision
    Model** below, treating the content of the last bot comment as the previous questions that were
    asked.
 

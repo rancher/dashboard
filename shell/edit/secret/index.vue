@@ -1,5 +1,6 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { requireAsset } from '@shell/utils/require-asset';
 import {
   SECRET_SCOPE, SECRET_QUERY_PARAMS,
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
@@ -211,7 +212,7 @@ export default {
           let bannerImage, bannerAbbrv;
 
           try {
-            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+            bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
           } catch (e) {
             bannerImage = null;
             bannerAbbrv = this.initialDisplayFor(id);

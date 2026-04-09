@@ -49,14 +49,31 @@ RANCHER_AUDIT_LOG_LEVEL=3
 
 echo "Installing k3s (with kubectl).........."
 # FIXME: cache this in gh
-curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="$K3S_VERSION" sh -
+export K3S_CHECKSUM=8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
+curl -sfL -o k3s-script https://raw.githubusercontent.com/k3s-io/k3s/v1.35.3%2Bk3s1/install.sh
+
+DOWNLOADED_CHECKSUM=$(sha256sum k3s-script | awk '{print $1}')
+if [ "$DOWNLOADED_CHECKSUM" != "${K3S_CHECKSUM}" ]; then
+  echo "Error: K3S checksum mismatch! Expected ${K3S_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
+  exit 1
+fi
+
+INSTALL_K3S_VERSION="$K3S_VERSION" sh k3s-script
 export KUBECONFIG=~/.kube/config
 mkdir ~/.kube 2> /dev/null
 sudo k3s kubectl config view --raw > "$KUBECONFIG"
 chmod 600 "$KUBECONFIG"
 
 echo "Installing helm.........."
+export HELM_CHECKSUM=38b65f882d9cae3891755bdb03becc6a01ae6f9cb24826c191f219ddfee70a5d
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+DOWNLOADED_CHECKSUM=$(sha256sum get_helm.sh | awk '{print $1}')
+if [ "$DOWNLOADED_CHECKSUM" != "${HELM_CHECKSUM}" ]; then
+  echo "Error: Helm checksum mismatch! Expected ${HELM_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
+  exit 1
+fi
+
 chmod 700 get_helm.sh
 ./get_helm.sh
 

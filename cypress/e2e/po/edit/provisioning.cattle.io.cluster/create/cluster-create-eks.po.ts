@@ -45,7 +45,7 @@ export default class ClusterManagerCreateEKSPagePo extends ClusterManagerCreateR
   }
 
   getNodeGroup() {
-    return new LabeledInputPo('[data-testid="eks-nodegroup-name"]');
+    return new LabeledInputPo(() => cy.get('[data-testid="eks-nodegroup-name"]:visible'));
   }
 
   getNodeRole() {

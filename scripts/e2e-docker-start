@@ -13,6 +13,11 @@ RANCHER_IMG_REGISTRY=
 RANCHER_IMG_NAMESPACE=rancher
 RANCHER_IMG_NAME=rancher
 
+# Host port mapping (configurable to avoid conflicts, e.g. with MCP Gateway on port 80)
+RANCHER_HOST_HTTP_PORT=${RANCHER_HOST_HTTP_PORT:-80}
+RANCHER_HOST_HTTPS_PORT=${RANCHER_HOST_HTTPS_PORT:-443}
+RANCHER_CONTAINER_NAME=${RANCHER_CONTAINER_NAME:-cypress}
+
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
 
@@ -43,19 +48,23 @@ echo "Using Rancher Container Image: ${RANCHER_IMG}"
 
 # Configure the Rancher server URL from start, similarly to how chart installations work
 # The special host.docker.internal domain only works for Docker Desktop, not plain Docker Engine on linux, so using the special IP 172.17.0.1 to access the gateway of the default bridge network
-SERVER_URL="https://172.17.0.1"
+if [ "$RANCHER_HOST_HTTPS_PORT" == "443" ]; then
+  SERVER_URL="https://172.17.0.1"
+else
+  SERVER_URL="https://172.17.0.1:${RANCHER_HOST_HTTPS_PORT}"
+fi
 
 # we are now enabling the "oidc-provider" feature flag on install because we will need it for e2e testing (not enabled by default in non-prime versions)
 # "oidc-provider" feature flag needs a system restart so it's not feasible to enable it as part of the test
 
-docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
+docker run -d --restart=unless-stopped -p ${RANCHER_HOST_HTTP_PORT}:80 -p ${RANCHER_HOST_HTTPS_PORT}:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
   -e CATTLE_SERVER_URL="${SERVER_URL}" \
   -e CATTLE_DEBUG=true \
   -e CATTLE_TRACE=true \
-  --name cypress \
+  --name ${RANCHER_CONTAINER_NAME} \
   --privileged \
   $RANCHER_IMG \
   --features=oidc-provider=true
@@ -71,7 +80,12 @@ echo "Waiting for dashboard UI to be reachable ..."
 okay=0
 
 while [ $okay -lt 30 ]; do
-  STATUS=$(curl --silent --head -k https://127.0.0.1/dashboard/ | awk '/^HTTP/{print $2}')
+  if [ "$RANCHER_HOST_HTTPS_PORT" == "443" ]; then
+    HEALTH_URL="https://127.0.0.1/dashboard/"
+  else
+    HEALTH_URL="https://127.0.0.1:${RANCHER_HOST_HTTPS_PORT}/dashboard/"
+  fi
+  STATUS=$(curl --silent --head -k $HEALTH_URL | awk '/^HTTP/{print $2}')
 
   echo "Status: $STATUS (Try: $okay)"
 
@@ -94,7 +108,7 @@ echo "Dashboard UI is ready"
 echo "Waiting for webhook to be running..."
 okay=0
 while [ $okay -lt 30 ] ; do
-  if docker exec cypress kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
+  if docker exec ${RANCHER_CONTAINER_NAME} kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
   else
     echo "Webhook not ready, checking again in 10s..."

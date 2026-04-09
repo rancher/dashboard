@@ -10,6 +10,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import { qase } from '@/cypress/support/qase';
 
 const fleetClusterListPage = new FleetClusterListPagePo();
 const fleetAppBundlesListPage = new FleetApplicationListPagePo();
@@ -81,7 +82,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 
-  it('data is populated in fleet cluster list and detail view', () => {
+  qase(9691, it('data is populated in fleet cluster list and detail view', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.list().state(clusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
@@ -120,13 +121,13 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
     const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
 
-    // check cluster labels
-    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').should('be.visible');
-
     // go to cluster details in fleet
     fleetClusterListPage.goToDetailsPage(clusterName);
     fleetClusterDetailsPage.waitForPage(null, 'applications');
     fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-applications"]');
+
+    // check cluster labels
+    fleetClusterDetailsPage.clusterLabels().contains('foo: bar').scrollIntoView().should('be.visible');
 
     // check state
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Active');
@@ -140,7 +141,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).contains('All');
     // check cluster resources
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 7).should('contain.text', '—');
-  });
+  }));
 
   it('check all tabs are available in the details view', () => {
     // testing https://github.com/rancher/dashboard/issues/11155

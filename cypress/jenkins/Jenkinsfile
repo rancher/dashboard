@@ -1,27 +1,17 @@
 #!groovy
+// Jenkinsfile — CI pipeline for Rancher Dashboard E2E tests
+//
+// Stages: Pre-Clean → Preflight → Checkout → Run Tests → Grab Results
+//   finally: Clean Test Environment → Cleanup Executor → Test Report
 
-
-def upstream = !currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
-def buildtype = upstream ? "RecurringRun" : "AdHoc"
-def branch = "master"
+def branch = "${env.BRANCH}" != 'null' && "${env.BRANCH}" != '' ? "${env.BRANCH}" : 'master'
 def testExecutionResult = null
+def testExitCode = null
 
-if ("${env.branch}" != "null" && "${env.branch}" != "") {
-  branch = "${env.branch}"
-}
-
-if ("${env.CORRAL_PACKAGES_REPO}" != "null" && "${env.CORRAL_PACKAGES_REPO}" != "") {
-      corralRepo = "${env.CORRAL_PACKAGES_REPO}"
-}
-
-if ("${env.CORRAL_PACKAGES_BRANCH}" != "null" && "${env.CORRAL_PACKAGES_BRANCH}" != "") {
-      corralBranch = "${env.CORRAL_PACKAGES_BRANCH}"
-}
-
-node {
-  wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm', 'defaultFg': 2, 'defaultBg':1]) {
+node('harvester-vpn-1') {
+  ansiColor('xterm') {
     withFolderProperties {
-      paramsMap = []
+      def paramsMap = []
       params.each {
         paramsMap << "$it.key=$it.value"
       }
@@ -37,113 +27,147 @@ node {
                         string(credentialsId: 'UI_SLACK_CHANNEL', variable: 'UI_SLACK_CHANNEL')
                         ]) {
         withEnv(paramsMap) {
+          timeout(time: 240, unit: 'MINUTES') {
             try {
+              stage('Pre-Clean') {
+                sh """#!/bin/bash
+                  set +x
+                  docker rm -f \$(docker ps -aq --filter ancestor=dashboard-test:\${EXECUTOR_NUMBER}) 2>/dev/null || true
+                  docker rm -f \$(docker ps -aq --filter ancestor=dashboard-e2e-runner:\${EXECUTOR_NUMBER}) 2>/dev/null || true
+                  docker rmi -f dashboard-test:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  docker rmi -f dashboard-e2e-runner:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                """
+              }
+              stage('Preflight') {
+                sh '''#!/bin/sh
+                  avail_kb=$(df -P "${WORKSPACE}" | awk 'NR==2 {print $4}')
+                  avail_gb=$(( avail_kb / 1024 / 1024 ))
+                  echo "[preflight] ${avail_gb}GB available on executor"
+                  if [ "${avail_gb}" -lt 5 ]; then
+                    echo "[preflight] ERROR: Less than 5GB free — aborting to protect executor"
+                    exit 1
+                  fi
+                '''
+                def tag = (env.VARS_YAML_CONFIG ?: '').find(/rancher_image_tag:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_IMAGE_TAG ?: 'unknown')
+                def cypress = (env.VARS_YAML_CONFIG ?: '').find(/cypress_tags:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.CYPRESS_TAGS ?: '')
+                def repo = (env.VARS_YAML_CONFIG ?: '').find(/rancher_helm_repo:\s*['"]?([^'"\n]+)/) { it[1] } ?: (env.RANCHER_HELM_REPO ?: 'rancher-com-rc')
+                def edition = repo.startsWith('rancher-com') || repo == 'rancher-community' ? 'community' : 'prime'
+                currentBuild.description = "${tag} · ${edition} · ${cypress}"
+              }
               stage('Checkout') {
                 deleteDir()
                 checkout([
-                            $class: 'GitSCM',
-                            branches: [[name: "*/${branch}"]],
-                            extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                            userRemoteConfigs: scm.userRemoteConfigs
-                        ])
-                dir('./corral-packages') {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/${corralBranch}"]],
-                        extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                        userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
-                    ])
-                    sh 'git --no-pager branch'
-                    def ciFilename = "dashboard-tests.yaml"
-                    def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
-                    if (ciConfigContents != null) {
-                        writeFile file: "./packages/aws/"+ciFilename, text: ciConfigContents
-                    }
-                }
+                  $class: 'GitSCM',
+                  branches: [[name: "*/${branch}"]],
+                  extensions: scm.extensions.findAll {
+                    !(it instanceof hudson.plugins.git.extensions.impl.CleanCheckout ||
+                      it instanceof hudson.plugins.git.extensions.impl.WipeWorkspace)
+                  },
+                  userRemoteConfigs: scm.userRemoteConfigs
+                ])
+                // init.sh clones qa-infra-automation at runtime
               }
               stage('Run Tests') {
-                try {
-                  sh 'cypress/jenkins/init.sh'
-                } catch (err) {
-                  echo "Error: " + err
-                  currentBuild.result = 'UNSTABLE'
-                  throw err
+                timeout(time: 180, unit: 'MINUTES') {
+                  testExitCode = sh(script: 'cypress/jenkins/init.sh', returnStatus: true)
+                  if (testExitCode != 0) {
+                    echo "init.sh exited with code ${testExitCode}"
+                  }
                 }
               }
             } catch (err) {
-              echo "Pipeline aborted early: ${err}"
-              currentBuild.result = 'UNSTABLE'
+              echo "Pipeline error: ${err}"
+              currentBuild.result = 'FAILURE'
             } finally {
               stage('Grab Results') {
-                // Safe to run even if init.sh failed (scp fails gracefully)
-                sh "cypress/jenkins/scpget.sh dashboard/results.xml || true"
-                sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html || true"
+                // init.sh copies results to workspace root; verify they exist
+                sh 'test -f results.xml && echo "results.xml found" || echo "results.xml not found"'
+                sh 'test -d html && echo "html/ report found" || echo "html/ report not found"'
               }
-              if ("${env.CLEANUP}".toLowerCase() == "true") {
-                stage('Clean Test Environment') {  
-                  sh """#!/bin/bash
-                    export PATH=\$PATH:${WORKSPACE}/bin
-                    source cypress/jenkins/utils.sh
-                    set +x
-                    corrals=\$( corral list | grep -v "NAME" | grep -v "-" | cut -d' ' -f 2 )
-                    for corral in \$corrals; do clean_corral delete \$corral; done
-                  """
+              // Always destroy infra unless CLEANUP is explicitly set to false/no/0
+              def skipCleanup = "${env.CLEANUP}".toLowerCase() in ['false', 'no', '0']
+              if (!skipCleanup) {
+                try {
+                  stage('Clean Test Environment') {
+                    timeout(time: 15, unit: 'MINUTES') {
+                      sh """#!/bin/bash
+                        set +x
+                        bash cypress/jenkins/init.sh destroy || true
+                      """
+                    }
+                  }
+                } catch (destroyErr) {
+                  echo "Destroy stage failed or timed out: ${destroyErr} — continuing with executor cleanup"
                 }
+              }
+              stage('Cleanup Executor') {
+                sh """#!/bin/bash
+                  set +x
+                  # Remove only this build's containers (label-based isolation)
+                  docker rm -f \$(docker ps -aq --filter label=jenkins_build="\${BUILD_TAG}") 2>/dev/null || true
+                  docker rmi -f dashboard-test:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  docker rmi -f dashboard-e2e-runner:\${EXECUTOR_NUMBER} 2>/dev/null || true
+                  # Wipe credentials from executor disk
+                  rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/vars.yaml" 2>/dev/null || true
+                  rm -f "${WORKSPACE}/qa-infra-automation/ansible/testing/dashboard-e2e/.env" 2>/dev/null || true
+                """
               }
               try {
                 stage('Test Report') {
-                    if (fileExists('results.xml')) {
-                        junit testResults: '**/results.xml', allowEmptyResults: true
-                        
-                        def resultsContent = readFile('results.xml').trim()
-                        if (resultsContent.contains('<failure')) {
-                            testExecutionResult = 'FAILURE'
-                        } else if (resultsContent.contains('<testcase')) {
-                            testExecutionResult = 'SUCCESS'
-                        } else {
-                            testExecutionResult = null
-                        }
-                    } else {
-                        testExecutionResult = null
-                    }
-                    publishHTML(target : [allowMissing: false,
-                      alwaysLinkToLastBuild: true,
-                      keepAll: true,
-                      // The path is relative to ${WORKSPACE}
-                      reportDir: 'html',
-                      reportFiles: 'index.html',
-                      reportName: 'html-report',
-                      reportTitles: 'Report'])
-                }
-              }
-              catch(err) {
-                echo "Error in Test Report stage: " + err
-                // Only set testExecutionResult if it's null and tests actually ran
-                // Check XML to determine if tests passed or failed, not just assume FAILURE
-                if (testExecutionResult == null && fileExists('results.xml')) {
+                  if (fileExists('results.xml')) {
+                    junit testResults: '**/results.xml', allowEmptyResults: true
+
                     def resultsContent = readFile('results.xml').trim()
-                    if (resultsContent.contains('<testcase')) {
-                        // Tests ran - check if they failed or passed
-                        if (resultsContent.contains('<failure')) {
-                            testExecutionResult = 'FAILURE'
-                        } else {
-                            testExecutionResult = 'SUCCESS'
-                        }
+                    if (resultsContent.contains('<failure')) {
+                      testExecutionResult = 'FAILURE'
+                    } else if (resultsContent.contains('<testcase')) {
+                      testExecutionResult = 'SUCCESS'
+                    } else {
+                      testExecutionResult = null
                     }
-                }
-                currentBuild.result = 'UNSTABLE'
-              }
-              
-              // test failure -> FAILURE (Slack: FAILED)
-              // pipeline/env failure -> UNSTABLE
-              if (currentBuild.result == 'UNSTABLE' || testExecutionResult == 'FAILURE') {
-                  if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
-                      withEnv(["SLACK_BUILD_STATUS=${testExecutionResult == 'FAILURE' ? 'FAILURE' : 'UNSTABLE'}"]) {
-                          sh 'cypress/jenkins/slack-notification.sh $SLACK_BUILD_STATUS'
-                      }
+                  } else {
+                    testExecutionResult = null
                   }
+                  publishHTML(target: [allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'html',
+                    reportFiles: 'index.html',
+                    reportName: 'html-report',
+                    reportTitles: 'Report'])
+                }
+              } catch (err) {
+                echo 'Error in Test Report stage: ' + err
+                if (testExecutionResult == null && fileExists('results.xml')) {
+                  def resultsContent = readFile('results.xml').trim()
+                  if (resultsContent.contains('<testcase')) {
+                    if (resultsContent.contains('<failure')) {
+                      testExecutionResult = 'FAILURE'
+                    } else {
+                      testExecutionResult = 'SUCCESS'
+                    }
+                  }
+                }
+              }
+
+              // Final build result: green = tests passed, yellow = tests failed, red = infra/pipeline error
+              if (testExecutionResult == 'SUCCESS' && currentBuild.result != 'FAILURE') {
+                currentBuild.result = 'SUCCESS'
+              } else if (testExecutionResult == 'FAILURE') {
+                currentBuild.result = 'UNSTABLE'
+              } else if (currentBuild.result != 'FAILURE') {
+                currentBuild.result = 'FAILURE'
+              }
+
+              if (currentBuild.result != 'SUCCESS') {
+                if ("${env.SLACK_NOTIFICATION}".toLowerCase() != 'false') {
+                  withEnv(["SLACK_BUILD_STATUS=${currentBuild.result}"]) {
+                    sh 'cypress/jenkins/slack-notification.sh $SLACK_BUILD_STATUS'
+                  }
+                }
               }
             }
+          }
         }
       }
     }

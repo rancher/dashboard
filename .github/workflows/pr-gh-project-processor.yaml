@@ -30,12 +30,12 @@ jobs:
           secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | APP_PEM
     - name: Generate Token
       id: generate-token
-      uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+      uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       with:
         app-id: ${{ env.APP_ID }}
         private-key: ${{ env.APP_PEM }}
     - name: Download artifact
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: pr-gh-project-event
         path: pr-gh-project-event/
@@ -45,5 +45,5 @@ jobs:
       env:
         GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         PR_PROJECT: ${{ secrets.PR_PROJECT }}
-        GITHUB_EVENT_PATH: pr-gh-project-event/event.json
+        PR_EVENT_PATH: pr-gh-project-event/event.json
       run: node .github/workflows/scripts/pr-gh-project.js

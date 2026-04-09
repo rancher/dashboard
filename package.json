@@ -27,8 +27,8 @@
     "dev": "bash -c 'source ./scripts/version && NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve'",
     "mem-dev": "bash -c 'source ./scripts/version && NODE_ENV=dev node --max-old-space-size=8192 ./node_modules/.bin/vue-cli-service serve'",
     "docker:local:start": "./scripts/local-docker-start",
-    "docker:local:stop": "docker kill cypress || true && docker rm cypress || true",
-    "docker:local:logs": "docker logs cypress > $E2E_RANCHER_LOG 2>&1",
+    "docker:local:stop": "docker kill ${RANCHER_CONTAINER_NAME:-cypress} || true && docker rm ${RANCHER_CONTAINER_NAME:-cypress} || true",
+    "docker:local:logs": "docker logs ${RANCHER_CONTAINER_NAME:-cypress} > $E2E_RANCHER_LOG 2>&1",
     "k3s:local:start": "./scripts/e2e-k3s-start $RANCHER_VERSION_E2E",
     "k3s:local:logs": "E2E_RANCHER_LOG=$E2E_RANCHER_LOG ./scripts/e2e-k3s-logs",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
@@ -53,7 +53,7 @@
     "storybook": "cd storybook && yarn storybook",
     "build-storybook": "cd storybook && yarn install --frozen-lockfile && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
     "storybook-test": "cd storybook && yarn test-storybook --stories-json ",
-    "docs:install": "cd docusaurus/ && yarn install",
+    "docs:install": "cd docusaurus/ && yarn install --frozen-lockfile",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
     "docs:serve": "cd docusaurus/ && yarn serve",
@@ -90,7 +90,6 @@
     "d3": "7.3.0",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.18",
-    "defu": "5.0.1",
     "diff2html": "3.4.24",
     "dompurify": "3.2.5",
     "element-matches": "0.1.2",
@@ -112,9 +111,9 @@
     "js-yaml-loader": "1.2.2",
     "jsdiff": "1.1.1",
     "jsonpath-plus": "10.3.0",
-    "jsrsasign": "11.0.0",
+    "jsrsasign": "11.1.1",
     "jszip": "3.10.1",
-    "lodash": "4.17.23",
+    "lodash": "4.18.1",
     "marked": "4.0.17",
     "node-polyfill-webpack-plugin": "4.1.0",
     "papaparse": "5.3.0",
@@ -142,7 +141,7 @@
     "xterm-addon-search": "0.13.0",
     "xterm-addon-web-links": "0.9.0",
     "xterm-addon-webgl": "0.16.0",
-    "yaml": "2.8.1",
+    "yaml": "2.8.3",
     "zod": "3.24.3"
   },
   "devDependencies": {
@@ -152,7 +151,7 @@
     "@babel/plugin-transform-nullish-coalescing-operator": "7.27.1",
     "@babel/preset-typescript": "7.16.7",
     "@cypress/code-coverage": "3.10.4",
-    "@cypress/grep": "3.1.5",
+    "@cypress/grep": "4.1.1",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
     "@percy/cli": "1.31.8",
@@ -223,7 +222,7 @@
     "worker-loader": "3.0.8",
     "ws": "8.18.0",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18"
+    "yarn": "1.22.22"
   },
   "resolutions": {
     "html-webpack-plugin": "5.0.0"

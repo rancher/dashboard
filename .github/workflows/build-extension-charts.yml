@@ -78,7 +78,7 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn install --frozen-lockfile
 
       - name: Parse Extension Name
         if: github.ref_type == 'tag' || inputs.is_test == 'true'
@@ -106,7 +106,7 @@ jobs:
 
       - name: Upload charts artifact
         if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: charts
           path: tmp
@@ -135,7 +135,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Download build artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: charts
 

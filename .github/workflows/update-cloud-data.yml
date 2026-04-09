@@ -21,7 +21,7 @@ jobs:
       with:
         node-version-file: '.nvmrc'
     - name: Install Node Module
-      run: yarn install
+      run: yarn install --frozen-lockfile
     - name: Update Cloud Data
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

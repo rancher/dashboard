@@ -788,6 +788,7 @@ export default defineComponent({
           <Tab
             v-for="(pool) in nodePools"
             :key="pool._id"
+            :weight="-1 * idx"
             :name="pool._id || pool.name"
             :label="pool.name || t('gke.notNamed')"
             :error="pool._minMaxValid===false || pool._nameUnique===false"

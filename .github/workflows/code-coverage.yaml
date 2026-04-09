@@ -7,7 +7,7 @@
 name: Code Coverage
 on:
   schedule:
-    - cron: '0 1 * * 6' # 1am on Saturdays
+    - cron: '0 1 * * 0' # 1am on Sundays
 
   workflow_dispatch:
 
@@ -26,7 +26,7 @@ jobs:
       - name: Run tests and collect coverage
         run: ./scripts/code-coverage
       - name: Upload code coverage folder
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: coverage
           path: ./coverage/output
