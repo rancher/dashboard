@@ -3155,7 +3155,7 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
       };
 
-      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+      jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
 
       const pluginProduct = PluginProduct.fromName(mockPlugin, 'my-first-product');
 
@@ -3183,7 +3183,7 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
       };
 
-      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+      jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
 
       const pluginProduct = PluginProduct.fromName(mockPlugin, 'test-product-name');
 
@@ -3207,7 +3207,7 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
       };
 
-      mockPlugin.DSL = jest.fn().mockReturnValue(mockDSL);
+      jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
 
       const pluginProduct = PluginProduct.fromName(mockPlugin, 'myproduct');
 
