@@ -52,7 +52,7 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ ! -d node_modules ]; then
-  echo -e "${YELLOW}node_modules folder does not exist - running yarn install --frozen-lockfile${RESET}"
+  echo -e "${YELLOW}node_modules folder does not exist - running yarn install${RESET}"
   yarn install --frozen-lockfile
 fi
 

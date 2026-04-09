@@ -31,3 +31,4 @@ To get started, follow the `Getting Started` section.
   - `shell/`: Core application logic, components, and pages.
   - `storybook/`: Component documentation source
 
+protection against unpinned package.json deps --> yarn install silently applies recent update

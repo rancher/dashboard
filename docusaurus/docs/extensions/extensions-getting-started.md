@@ -35,7 +35,7 @@ To create a `development app` with an extension targeting Rancher `v2.10` or lat
 
 ```sh
 npm init @rancher/extension@latest my-app
-cd my-app && yarn install --frozen-lockfile
+cd my-app && yarn install
 ```
 
 This command will create a new development app in a folder called `my-app` and also create you first extension package also named `my-app` (inside `/pkg` folder) populating it with the minimum files needed for your extension.
@@ -98,7 +98,7 @@ As stated before, when you generate/support multiple extensions fom the same dev
 After you've generated your development app and You can run the app with:
 
 ```sh
-yarn install --frozen-lockfile
+yarn install
 API=<Rancher Backend URL> yarn dev
 ```
 

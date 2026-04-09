@@ -37,7 +37,7 @@ Governance is the most important ingredient to creating a healthy component libr
 
 Rancher Dashboard is a monorepo that houses development for several packages, including Rancher Components. We use [Yarn Workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/) to make developing in a monorepo a little easier.
 
-Running `yarn install --frozen-lockfile` will automatically link inter-package dependencies for each package that has workspaces enabled. The only requirement for linking is that the version is the same in the linked package and the target library. For example, we want to make sure that the `@rancher/components` version matches the dependency for `@rancher/shell` to automatically link
+Running `yarn install` will automatically link inter-package dependencies for each package that has workspaces enabled. The only requirement for linking is that the version is the same in the linked package and the target library. For example, we want to make sure that the `@rancher/components` version matches the dependency for `@rancher/shell` to automatically link
 
 ### `@rancher/components package.json`
 

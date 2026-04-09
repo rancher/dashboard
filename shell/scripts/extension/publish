@@ -137,7 +137,7 @@ if [ "${IS_SHELL}" -ne 1 ]; then
 fi
 
 if ! [[ -d ${BASE_DIR}/node_modules ]]; then
-  echo -e "${YELLOW}You must run ${BOLD}yarn install --frozen-lockfile${NORMAL} before running this script${RESET}"
+  echo -e "${YELLOW}You must run ${BOLD}yarn install${NORMAL} before running this script${RESET}"
   exit 1
 fi
 
