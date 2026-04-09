@@ -109,6 +109,7 @@ watch(isValid, (val) => emit('validation-changed', val), { immediate: true });
   <Checkbox
     v-if="ingressSelection === INGRESS_DUAL"
     v-model:value="compatibilityMode"
+    :mode="mode"
     label-key="cluster.ingress.configurationOptions.compatibilityMode"
     class="mb-10"
   />
