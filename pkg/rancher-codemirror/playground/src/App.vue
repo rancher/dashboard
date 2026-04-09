@@ -171,7 +171,7 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
         <div class="preview">
           <strong>v-model preview ({{ yamlContent.length }} chars)</strong>
-          <pre>{{ yamlContent.slice(0, 200) }}{{ yamlContent.length > 200 ? '…' : '' }}</pre>
+          <pre>{{ yamlContent }}</pre>
         </div>
       </section>
 
@@ -208,7 +208,7 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
         <div class="preview">
           <strong>v-model preview ({{ jsonContent.length }} chars)</strong>
-          <pre>{{ jsonContent.slice(0, 200) }}{{ jsonContent.length > 200 ? '…' : '' }}</pre>
+          <pre>{{ jsonContent }}</pre>
         </div>
       </section>
     </main>
@@ -342,7 +342,8 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
   background: var(--nav-bg);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
-  max-height: 120px;
+  max-height: 380px;
+  height: 380px;
   overflow: auto;
 }
 
