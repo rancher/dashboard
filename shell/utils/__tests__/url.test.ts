@@ -26,14 +26,19 @@ describe('fx: addParam', () => {
   it('should handle an array with a null value', () => {
     expect(addParam('https://example.com', 'flag', [null as any])).toStrictEqual('https://example.com?flag');
   });
+
+  it('should add a param with an empty string value', () => {
+    expect(addParam('https://example.com', 'key', '')).toStrictEqual('https://example.com?key=');
+  });
+
+  it('should add a duplicate key as an additional param', () => {
+    expect(addParam('https://example.com?a=1', 'a', '2')).toStrictEqual('https://example.com?a=1&a=2');
+  });
 });
 
 describe('fx: addParams', () => {
   it('should add multiple parameters to a URL', () => {
-    const result = addParams('https://example.com', { a: '1', b: '2' });
-
-    expect(result).toContain('a=1');
-    expect(result).toContain('b=2');
+    expect(addParams('https://example.com', { a: '1', b: '2' })).toStrictEqual('https://example.com?a=1&b=2');
   });
 
   it('should return the URL unchanged if params is empty', () => {
@@ -51,32 +56,27 @@ describe('fx: addParams', () => {
 
 describe('fx: removeParam', () => {
   it('should remove a query parameter from a URL', () => {
-    const result = removeParam('https://example.com?foo=bar&baz=qux', 'foo');
-
-    expect(result).not.toContain('foo=bar');
-    expect(result).toContain('baz=qux');
+    expect(removeParam('https://example.com?foo=bar&baz=qux', 'foo')).toStrictEqual('https://example.com/?baz=qux');
   });
 
-  it('should return the URL unchanged if the param does not exist', () => {
-    const result = removeParam('https://example.com?a=1', 'nonexistent');
+  it('should return a normalized URL if the param does not exist', () => {
+    expect(removeParam('https://example.com?a=1', 'nonexistent')).toStrictEqual('https://example.com/?a=1');
+  });
 
-    expect(result).toContain('a=1');
+  it('should remove the only query parameter', () => {
+    expect(removeParam('https://example.com?only=param', 'only')).toStrictEqual('https://example.com/');
   });
 });
 
 describe('fx: parseLinkHeader', () => {
   it('should parse a single link header entry', () => {
-    const header = '<https://example.com/page2>; rel="next"';
-    const result = parseLinkHeader(header);
-
-    expect(result).toStrictEqual({ next: 'https://example.com/page2' });
+    expect(parseLinkHeader('<https://example.com/page2>; rel="next"')).toStrictEqual({ next: 'https://example.com/page2' });
   });
 
   it('should parse multiple link header entries', () => {
     const header = '<https://example.com/page2>; rel="next", <https://example.com/page1>; rel="prev"';
-    const result = parseLinkHeader(header);
 
-    expect(result).toStrictEqual({
+    expect(parseLinkHeader(header)).toStrictEqual({
       next: 'https://example.com/page2',
       prev: 'https://example.com/page1',
     });
@@ -91,58 +91,62 @@ describe('fx: parseLinkHeader', () => {
   });
 
   it('should lowercase the rel value', () => {
-    const header = '<https://example.com>; rel="Next"';
-    const result = parseLinkHeader(header);
-
-    expect(result).toStrictEqual({ next: 'https://example.com' });
+    expect(parseLinkHeader('<https://example.com>; rel="Next"')).toStrictEqual({ next: 'https://example.com' });
   });
 });
 
 describe('fx: portMatch', () => {
-  it('should return true when port is in the equals list', () => {
-    expect(portMatch([443], [443, 8443], [])).toBe(true);
-  });
-
-  it('should return false when port is not in equals or endsWith lists', () => {
-    expect(portMatch([8080], [443, 8443], ['443'])).toBe(false);
-  });
-
-  it('should return true when port string ends with the given suffix', () => {
-    expect(portMatch([8443], [], ['443'])).toBe(true);
-  });
-
-  it('should not match when port equals the suffix exactly (must be a suffix, not equal)', () => {
-    expect(portMatch([443], [], ['443'])).toBe(false);
-  });
-
-  it('should return false for an empty ports array', () => {
-    expect(portMatch([], [443], ['443'])).toBe(false);
-  });
-
-  it('should return true if any port in the array matches', () => {
-    expect(portMatch([80, 443], [443], [])).toBe(true);
+  it.each([
+    {
+      ports: [443], equals: [443, 8443], endsWith: [], expected: true, desc: 'port is in the equals list'
+    },
+    {
+      ports: [8080], equals: [443, 8443], endsWith: ['443'], expected: false, desc: 'port is not in equals or endsWith lists'
+    },
+    {
+      ports: [8443], equals: [], endsWith: ['443'], expected: true, desc: 'port string ends with the given suffix'
+    },
+    {
+      ports: [443], equals: [], endsWith: ['443'], expected: false, desc: 'port equals the suffix exactly (endsWith excludes exact match)'
+    },
+    {
+      ports: [], equals: [443], endsWith: ['443'], expected: false, desc: 'ports array is empty'
+    },
+    {
+      ports: [80, 443], equals: [443], endsWith: [], expected: true, desc: 'any port in the array matches equals'
+    },
+    {
+      ports: [18443], equals: [], endsWith: ['443'], expected: true, desc: 'multi-digit port ending with suffix'
+    },
+  ])('should return $expected when $desc', ({
+    ports, equals, endsWith, expected
+  }) => {
+    expect(portMatch(ports, equals, endsWith)).toBe(expected);
   });
 });
 
 describe('fx: isMaybeSecure', () => {
-  it('should return true for https protocol', () => {
-    expect(isMaybeSecure(80, 'https')).toBe(true);
-  });
-
-  it('should return true for HTTPS protocol (case-insensitive)', () => {
-    expect(isMaybeSecure(80, 'HTTPS')).toBe(true);
-  });
-
-  it('should return true for port 443', () => {
-    expect(isMaybeSecure(443, 'http')).toBe(true);
-  });
-
-  it('should return true for port 8443', () => {
-    expect(isMaybeSecure(8443, 'http')).toBe(true);
-  });
-
-  it('should return false for http on non-secure port', () => {
-    expect(isMaybeSecure(80, 'http')).toBe(false);
+  it.each([
+    {
+      port: 80, proto: 'https', expected: true, desc: 'https protocol'
+    },
+    {
+      port: 80, proto: 'HTTPS', expected: true, desc: 'HTTPS protocol (case-insensitive)'
+    },
+    {
+      port: 443, proto: 'http', expected: true, desc: 'port 443'
+    },
+    {
+      port: 8443, proto: 'http', expected: true, desc: 'port 8443'
+    },
+    {
+      port: 18443, proto: 'http', expected: true, desc: 'port 18443 (endsWith 443)'
+    },
+    {
+      port: 80, proto: 'http', expected: false, desc: 'http on non-secure port'
+    },
+  ])('should return $expected for $desc', ({ port, proto, expected }) => {
+    expect(isMaybeSecure(port, proto)).toBe(expected);
   });
 });
 
@@ -177,49 +181,62 @@ describe('fx: parse', () => {
   });
 
   it('should parse a URL with multiple query params', () => {
-    const result = parse('https://example.com?a=1&b=2');
+    expect(parse('https://example.com?a=1&b=2').query).toStrictEqual({ a: '1', b: '2' });
+  });
 
-    expect(result.query).toStrictEqual({ a: '1', b: '2' });
+  it('should parse a URL with user only (no password)', () => {
+    const result = parse('https://admin@example.com/');
+
+    expect(result.user).toStrictEqual('admin');
+    expect(result.password).toStrictEqual('');
+  });
+
+  it('should set empty strings for missing optional fields', () => {
+    const result = parse('https://example.com/path');
+
+    expect(result.port).toStrictEqual('');
+    expect(result.anchor).toStrictEqual('');
+    expect(result.user).toStrictEqual('');
+    expect(result.password).toStrictEqual('');
   });
 });
 
 describe('fx: stringify', () => {
   it('should reconstruct a simple URL', () => {
-    const parsed = parse('https://example.com/path');
-    const result = stringify(parsed);
-
-    expect(result).toContain('https://');
-    expect(result).toContain('example.com');
-    expect(result).toContain('/path');
+    expect(stringify(parse('https://example.com/path'))).toStrictEqual('https://example.com/path');
   });
 
   it('should include user and password when both present', () => {
-    const parsed = parse('https://user:pass@example.com/');
-    const result = stringify(parsed);
+    expect(stringify(parse('https://user:pass@example.com/'))).toStrictEqual('https://user:pass@example.com/');
+  });
 
-    expect(result).toContain('user:pass@');
+  it('should include user only when password is absent', () => {
+    expect(stringify(parse('https://admin@example.com/'))).toStrictEqual('https://admin@example.com/');
   });
 
   it('should include port when present', () => {
-    const parsed = parse('https://example.com:9090/');
-    const result = stringify(parsed);
-
-    expect(result).toContain(':9090');
+    expect(stringify(parse('https://example.com:9090/'))).toStrictEqual('https://example.com:9090/');
   });
 
   it('should include anchor when present', () => {
-    const parsed = parse('https://example.com/page#section');
-    const result = stringify(parsed);
-
-    expect(result).toContain('#section');
+    expect(stringify(parse('https://example.com/page#section'))).toStrictEqual('https://example.com/page#section');
   });
 
   it('should default path to / when path is empty', () => {
     const parsed = parse('https://example.com');
 
     parsed.path = '';
-    const result = stringify(parsed);
 
-    expect(result).toContain('example.com/');
+    expect(stringify(parsed)).toStrictEqual('https://example.com/');
+  });
+
+  it('should include query parameters', () => {
+    expect(stringify(parse('https://example.com/path?a=1&b=2'))).toStrictEqual('https://example.com/path?a=1&b=2');
+  });
+
+  it('should round-trip a complex URL', () => {
+    const url = 'https://user:pass@example.com:8080/some/path?key=value&other=test#anchor';
+
+    expect(stringify(parse(url))).toStrictEqual(url);
   });
 });
