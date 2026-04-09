@@ -20,13 +20,19 @@
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/url.ts` - ✅ DONE (PR submitted Apr 2026)
-2. `shell/utils/pagination-utils.ts` (306 lines, no tests) - complex logic
+2. `shell/utils/pagination-utils.ts` - ✅ DONE (PR submitted Apr 2026, 39 tests, pure functions)
 3. `shell/utils/fleet.ts` (328 lines, partial?) - check if fleet.test.ts covers it
 4. `shell/utils/async.ts` (34 lines) - simple, low priority
-5. `shell/utils/gc/gc.ts` - garbage collection logic, no tests
+5. `shell/utils/gc/gc.ts` - garbage collection logic, no tests, complex
 6. `shell/utils/dynamic-content/` - notification/announcement logic
 
 ## Completed Work
+
+### 2026-04-09
+- Created PR: test-assist/pagination-utils-tests branch
+  - Added 39 tests for shell/utils/pagination-utils.ts pure functions
+  - validateNsProjectFilter, validateNsProjectFilters, paginationFilterEqual, paginationFiltersEqual, paginationEqual, getStoreSettings
+  - All tests pass, lint clean. Coverage: 49.67% lines, 80.55% branches
 
 ### 2026-04-08
 - Created PR: test-assist/url-utils-tests branch
@@ -35,6 +41,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-09: Tasks 3 (implement tests for pagination-utils), 7 (monthly summary)
 - 2026-04-08: Tasks 1 (discover commands), 2 (identify opportunities), 3 (implement tests), 7 (monthly summary)
 
 ## Maintainer Priorities
