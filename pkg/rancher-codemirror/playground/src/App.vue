@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, shallowRef } from 'vue';
-import { CodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath } from '@rancher/codemirror';
+import {
+  CodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath
+} from '@rancher/codemirror';
 import type { CodeMirrorProps } from '@rancher/codemirror';
 import type { EditorView } from '@codemirror/view';
 
@@ -39,13 +41,13 @@ spec:
 
 // JSON editor state
 const jsonContent = ref(JSON.stringify({
-  name: '@rancher/codemirror',
-  version: '0.1.0',
+  name:        '@rancher/codemirror',
+  version:     '0.1.0',
   description: 'Vue 3 CodeMirror 6 component library',
-  features: ['YAML', 'JSON', 'Vim mode', 'Emacs mode', 'One Dark theme'],
-  config: {
-    lineNumbers: true,
-    foldGutter: true,
+  features:    ['YAML', 'JSON', 'Vim mode', 'Emacs mode', 'One Dark theme'],
+  config:      {
+    lineNumbers:  true,
+    foldGutter:   true,
     lineWrapping: false
   }
 }, null, 2));
@@ -73,6 +75,7 @@ const jsonEditorView = shallowRef<EditorView>();
 
 function onYamlReady(v: EditorView) {
   yamlEditorView.value = v;
+  // eslint-disable-next-line no-console
   console.log('[playground] YAML editor ready', v);
   // Imperatively auto-fold on load
   foldMatchingLines(v, /^spec:\s*$/);
@@ -81,6 +84,7 @@ function onYamlReady(v: EditorView) {
 
 function onJsonReady(v: EditorView) {
   jsonEditorView.value = v;
+  // eslint-disable-next-line no-console
   console.log('[playground] JSON editor ready', v);
 }
 
@@ -97,22 +101,35 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
         <label>
           Theme
           <select v-model="theme">
-            <option v-for="t in themeOptions" :key="t" :value="t">{{ t }}</option>
+            <option
+              v-for="t in themeOptions"
+              :key="t"
+              :value="t"
+            >{{ t }}</option>
           </select>
         </label>
 
         <label>
-          <input type="checkbox" v-model="readOnly" />
+          <input
+            v-model="readOnly"
+            type="checkbox"
+          >
           Read-only
         </label>
 
         <label>
-          <input type="checkbox" v-model="lineNumbers" />
+          <input
+            v-model="lineNumbers"
+            type="checkbox"
+          >
           Line numbers
         </label>
 
         <label>
-          <input type="checkbox" v-model="lineWrapping" />
+          <input
+            v-model="lineWrapping"
+            type="checkbox"
+          >
           Line wrapping
         </label>
       </div>
@@ -126,7 +143,11 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
           <label>
             Keymap
             <select v-model="yamlKeymap">
-              <option v-for="k in keymapOptions" :key="k" :value="k">{{ k }}</option>
+              <option
+                v-for="k in keymapOptions"
+                :key="k"
+                :value="k"
+              >{{ k }}</option>
             </select>
           </label>
         </div>
@@ -161,7 +182,11 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
           <label>
             Keymap
             <select v-model="jsonKeymap">
-              <option v-for="k in keymapOptions" :key="k" :value="k">{{ k }}</option>
+              <option
+                v-for="k in keymapOptions"
+                :key="k"
+                :value="k"
+              >{{ k }}</option>
             </select>
           </label>
         </div>
