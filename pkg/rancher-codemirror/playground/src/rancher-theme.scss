@@ -1,0 +1,10 @@
+// Import Rancher Dashboard SUSE dark theme CSS custom properties.
+// Apply theme classes to <body>: class="classic suse theme-dark"
+//
+// This makes all Rancher CSS vars (--primary, --body-bg, --border, etc.) available.
+
+@import 'base/functions';
+@import 'base/color';
+@import 'themes/modern';
+@import 'themes/dark';
+@import 'themes/suse';

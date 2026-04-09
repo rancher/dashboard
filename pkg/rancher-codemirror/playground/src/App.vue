@@ -200,8 +200,8 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
 .header {
   padding: 12px 20px;
-  background: #0f0f1a;
-  border-bottom: 1px solid #333;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 24px;
@@ -211,13 +211,13 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 .header h1 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--primary);
 }
 
 .badge {
   font-size: 0.65rem;
-  background: #312e81;
-  color: #c4b5fd;
+  background: var(--non-primary-hover);
+  color: var(--non-primary-text);
   padding: 2px 6px;
   border-radius: 4px;
   vertical-align: middle;
@@ -236,14 +236,14 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #aaa;
+  color: var(--input-label);
   cursor: pointer;
 }
 
 .controls select {
-  background: #1e1e3a;
-  color: #e0e0e0;
-  border: 1px solid #444;
+  background: var(--nav-bg);
+  color: var(--body-text);
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.8rem;
@@ -260,7 +260,7 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 .editor-panel {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #333;
+  border-right: 1px solid var(--border);
   overflow: hidden;
 }
 
@@ -270,8 +270,8 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
 .editor-header {
   padding: 8px 16px;
-  background: #13132a;
-  border-bottom: 1px solid #333;
+  background: var(--body-bg);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -280,7 +280,7 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
 .editor-header h2 {
   font-size: 0.9rem;
-  color: #7dd3fc;
+  color: var(--non-primary-text);
   font-weight: 500;
 }
 
@@ -289,13 +289,13 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--muted);
 }
 
 .editor-header select {
-  background: #1e1e3a;
-  color: #e0e0e0;
-  border: 1px solid #444;
+  background: var(--nav-bg);
+  color: var(--body-text);
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.8rem;
@@ -314,8 +314,8 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
 .preview {
   padding: 10px 16px;
-  background: #0a0a1a;
-  border-top: 1px solid #333;
+  background: var(--nav-bg);
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
   max-height: 120px;
   overflow: auto;
@@ -323,14 +323,14 @@ const themeOptions: CodeMirrorProps['theme'][] = ['none', 'one-dark'];
 
 .preview strong {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--muted);
   display: block;
   margin-bottom: 4px;
 }
 
 .preview pre {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--input-label);
   white-space: pre-wrap;
   word-break: break-all;
 }
