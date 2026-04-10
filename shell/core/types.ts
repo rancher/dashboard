@@ -271,7 +271,7 @@ export interface ProductOptions {
   showClusterSwitcher?: boolean;
 
   /**
-   * Indicates whether the product can be extended by other extensions
+   * Indicates whether UI Extensions can add pages to this product
    */
   extendable?: boolean;
 

@@ -232,7 +232,7 @@ export default {
       // If there's a root group, pull its children up to the top level
       // so that we can order them alongside group items in the nav
       const rootGroupIndex = out.findIndex((g) => g.name.toLowerCase() === 'root');
-      const rootGroup = out.find((g) => g.name.toLowerCase() === 'root');
+      const rootGroup = out[rootGroupIndex];
 
       if (rootGroup && rootGroup.children?.length) {
         out.splice(rootGroupIndex, 1);

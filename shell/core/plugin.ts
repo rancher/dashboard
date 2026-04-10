@@ -19,7 +19,6 @@ import {
   PaginationTableColumn,
   ExtensionEnvironment,
   ServerSidePaginationExtensionConfig,
-  ProductOptions,
   TableAction,
 } from './types';
 import {
@@ -135,7 +134,7 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[], options?: ProductOptions): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[]): void {
     if (typeof product === 'string') {
       this.productConfigs.push(PluginProduct.fromName(this, product));
     } else if (product?.name) {
@@ -153,7 +152,7 @@ export class Plugin implements IPlugin {
     }
   }
 
-  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, options?: ProductOptions): void {
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
     const arrayConfig = Array.isArray(config) ? config : [config];
 
     this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
