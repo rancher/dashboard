@@ -14,7 +14,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         // Allow @import 'base/functions', 'themes/modern', etc. without prefix
-        loadPaths:    [resolve(__dirname, '../../../shell/assets/styles')],
+        loadPaths:           [resolve(__dirname, '../../../shell/assets/styles')],
         // Suppress deprecation warnings originating from the dashboard's theme files
         silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'abs-percent', 'if-function']
       }
