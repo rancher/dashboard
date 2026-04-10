@@ -1,5 +1,7 @@
 import type { Extension, EditorState } from '@codemirror/state';
-import { foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree } from '@codemirror/language';
+import {
+  foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree
+} from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 import type { SyntaxNode } from '@lezer/common';
 
@@ -34,11 +36,13 @@ export const indentFoldService: Extension = foldService.of(
     for (let i = line.number + 1; i <= state.doc.lines; i++) {
       const nextLine = state.doc.line(i);
       const nextText = nextLine.text;
+
       if (nextText.trim() === '') {
         foldTo = nextLine.to;
         continue;
       }
       const nextIndent = (nextText.match(/^(\s*)/)?.[1] ?? '').length;
+
       if (nextIndent <= indent) {
         break;
       }
@@ -48,6 +52,7 @@ export const indentFoldService: Extension = foldService.of(
     if (foldTo === line.to) {
       return null;
     }
+
     return { from: line.to, to: foldTo };
   }
 );
@@ -60,12 +65,15 @@ export const bracketFoldService: Extension = foldService.of(
     const line = state.doc.lineAt(lineStart);
     const text = line.text;
 
-    const openBrackets: Record<string, string> = { '{': '}', '[': ']', '(': ')' };
+    const openBrackets: Record<string, string> = {
+      '{': '}', '[': ']', '(': ')'
+    };
     let openChar: string | null = null;
     let openPos = -1;
 
     for (let i = 0; i < text.length; i++) {
       const ch = text.charAt(i);
+
       if (ch in openBrackets) {
         openChar = ch;
         openPos = line.from + i;
@@ -82,13 +90,14 @@ export const bracketFoldService: Extension = foldService.of(
 
     for (let pos = openPos; pos < state.doc.length; pos++) {
       const ch = state.doc.sliceString(pos, pos + 1);
+
       if (ch === openChar) {
         depth++;
-      }
-      else if (ch === closeChar) {
+      } else if (ch === closeChar) {
         depth--;
         if (depth === 0) {
           const closeLine = state.doc.lineAt(pos);
+
           if (closeLine.number > line.number) {
             return { from: line.to, to: closeLine.from - 1 };
           }
@@ -104,16 +113,17 @@ export const bracketFoldService: Extension = foldService.of(
 export function buildFoldExtension(opts?: FoldOptions): Extension {
   const extensions: Extension[] = [cmFoldGutter()];
   const strategy = opts?.strategy ?? 'language';
+
   if (strategy === 'indent') {
     extensions.push(indentFoldService);
-  }
-  else if (strategy === 'bracket') {
+  } else if (strategy === 'bracket') {
     extensions.push(bracketFoldService);
   }
   // 'language' relies on the language extension's own fold service
   if (opts?.custom) {
     extensions.push(opts.custom);
   }
+
   return extensions;
 }
 
@@ -124,15 +134,18 @@ export function buildFoldExtension(opts?: FoldOptions): Extension {
 export function foldByLineMatch(pattern: RegExp): Extension {
   return foldService.of((state, lineStart) => {
     const line = state.doc.lineAt(lineStart);
+
     if (!pattern.test(line.text)) {
       return null;
     }
 
     const indent = (line.text.match(/^(\s*)/)?.[1] ?? '').length;
     let foldTo = line.to;
+
     for (let i = line.number + 1; i <= state.doc.lines; i++) {
       const nextLine = state.doc.line(i);
       const nextText = nextLine.text;
+
       if (nextText.trim() === '') {
         foldTo = nextLine.to;
         continue;
@@ -145,6 +158,7 @@ export function foldByLineMatch(pattern: RegExp): Extension {
     if (foldTo === line.to) {
       return null;
     }
+
     return { from: line.to, to: foldTo };
   });
 }
@@ -154,6 +168,7 @@ function getKeyPath(keyNode: SyntaxNode, state: EditorState): string[] {
   const path: string[] = [state.doc.sliceString(keyNode.from, keyNode.to).trim()];
   // Key → Pair → BlockMapping → Pair → BlockMapping → ...
   let cur: SyntaxNode | null = keyNode.parent; // Pair
+
   while (cur) {
     cur = cur.parent; // BlockMapping
     if (!cur) {
@@ -164,10 +179,12 @@ function getKeyPath(keyNode: SyntaxNode, state: EditorState): string[] {
       break;
     }
     const parentKey = cur.firstChild;
+
     if (parentKey?.name === 'Key') {
       path.unshift(state.doc.sliceString(parentKey.from, parentKey.to).trim());
     }
   }
+
   return path;
 }
 
@@ -184,9 +201,10 @@ export function foldByYamlPath(path: string): Extension {
     const tree = syntaxTree(state);
 
     let keyNode: SyntaxNode | null = null;
+
     tree.iterate({
       from: line.from,
-      to: line.to,
+      to:   line.to,
       enter(node) {
         if (node.name !== 'Key') {
           return;
@@ -196,6 +214,7 @@ export function foldByYamlPath(path: string): Extension {
         }
         if (getKeyPath(node.node, state).join('.') === path) {
           keyNode = node.node;
+
           return false;
         }
       }
@@ -207,9 +226,11 @@ export function foldByYamlPath(path: string): Extension {
 
     const indent = (line.text.match(/^(\s*)/)?.[1] ?? '').length;
     let foldTo = line.to;
+
     for (let i = line.number + 1; i <= state.doc.lines; i++) {
       const nextLine = state.doc.line(i);
       const nextText = nextLine.text;
+
       if (nextText.trim() === '') {
         foldTo = nextLine.to;
         continue;
@@ -222,6 +243,7 @@ export function foldByYamlPath(path: string): Extension {
     if (foldTo === line.to) {
       return null;
     }
+
     return { from: line.to, to: foldTo };
   });
 }
@@ -232,9 +254,11 @@ export function foldByYamlPath(path: string): Extension {
  */
 function commentContentIndent(text: string): number | null {
   const match = text.match(/^\s*#(.*)$/);
+
   if (!match) {
     return null;
   }
+
   return ((match[1] ?? '').match(/^(\s*)/)?.[1] ?? '').length;
 }
 
@@ -246,14 +270,17 @@ function commentContentIndent(text: string): number | null {
 export const commentFoldService: Extension = foldService.of((state, lineStart) => {
   const line = state.doc.lineAt(lineStart);
   const indent = commentContentIndent(line.text);
+
   if (indent === null) {
     return null;
   }
 
   let foldTo = line.to;
+
   for (let i = line.number + 1; i <= state.doc.lines; i++) {
     const next = state.doc.line(i);
     const nextIndent = commentContentIndent(next.text);
+
     if (nextIndent === null) {
       break;
     }
@@ -266,6 +293,7 @@ export const commentFoldService: Extension = foldService.of((state, lineStart) =
   if (foldTo === line.to) {
     return null;
   }
+
   return { from: line.to, to: foldTo };
 });
 
@@ -281,14 +309,17 @@ export function foldAllComments(view: EditorView): void {
   for (let i = 1; i <= state.doc.lines; i++) {
     const line = state.doc.line(i);
     const indent = commentContentIndent(line.text);
+
     if (indent === null) {
       continue;
     }
 
     let foldTo = line.to;
+
     for (let j = i + 1; j <= state.doc.lines; j++) {
       const next = state.doc.line(j);
       const nextIndent = commentContentIndent(next.text);
+
       if (nextIndent === null) {
         break;
       }
@@ -304,7 +335,7 @@ export function foldAllComments(view: EditorView): void {
   }
 
   if (ranges.length > 0) {
-    view.dispatch({ effects: ranges.map(r => foldEffect.of(r)) });
+    view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
   }
 }
 
@@ -315,18 +346,21 @@ export function foldAllComments(view: EditorView): void {
 export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
   const { state } = view;
   const ranges: { from: number; to: number }[] = [];
+
   for (let i = 1; i <= state.doc.lines; i++) {
     const line = state.doc.line(i);
+
     if (!pattern.test(line.text)) {
       continue;
     }
     const range = foldable(state, line.from, line.to);
+
     if (range) {
       ranges.push(range);
     }
   }
   if (ranges.length > 0) {
-    view.dispatch({ effects: ranges.map(r => foldEffect.of(r)) });
+    view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
   }
 }
 
@@ -340,6 +374,7 @@ export function foldYamlPath(view: EditorView, path: string): void {
   const tree = syntaxTree(state);
 
   let targetFrom: number | null = null;
+
   tree.iterate({
     enter(node) {
       if (targetFrom !== null) {
@@ -353,6 +388,7 @@ export function foldYamlPath(view: EditorView, path: string): void {
       }
       if (getKeyPath(node.node, state).join('.') === path) {
         targetFrom = state.doc.lineAt(node.from).from;
+
         return false;
       }
     }
@@ -363,6 +399,7 @@ export function foldYamlPath(view: EditorView, path: string): void {
   }
   const line = state.doc.lineAt(targetFrom);
   const range = foldable(state, line.from, line.to);
+
   if (range) {
     view.dispatch({ effects: foldEffect.of(range) });
   }

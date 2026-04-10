@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, onBeforeUnmount, watch } from 'vue';
+import {
+  ref, shallowRef, onMounted, onBeforeUnmount, watch
+} from 'vue';
 import type { Extension } from '@codemirror/state';
 import { EditorState, Compartment } from '@codemirror/state';
 import {
@@ -41,12 +43,16 @@ export interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
-  theme: 'none',
-  readOnly: false,
-  lineNumbers: true,
-  foldGutter: true,
-  lineWrapping: false
+  modelValue:   '',
+  language:     undefined,
+  keymap:       undefined,
+  theme:        'none',
+  readOnly:     false,
+  lineNumbers:  true,
+  foldGutter:   true,
+  lineWrapping: false,
+  extensions:   undefined,
+  foldOptions:  undefined
 });
 
 const emit = defineEmits<{
@@ -72,6 +78,7 @@ function getThemeExtension(theme?: 'one-dark' | 'none'): Extension {
   if (theme === 'one-dark') {
     return oneDark;
   }
+
   return [];
 }
 
@@ -91,14 +98,14 @@ onMounted(() => {
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const value = update.state.doc.toString();
+
       emit('update:modelValue', value);
       emit('change', value);
     }
     if (update.focusChanged) {
       if (update.view.hasFocus) {
         emit('focus', update.view);
-      }
-      else {
+      } else {
         emit('blur', update.view);
       }
     }
@@ -107,7 +114,7 @@ onMounted(() => {
   const foldExt = props.foldGutter ? buildFoldExtension(props.foldOptions) : [];
 
   const state = EditorState.create({
-    doc: props.modelValue ?? '',
+    doc:        props.modelValue ?? '',
     extensions: [
       history(),
       drawSelection(),
@@ -153,18 +160,20 @@ watch(
   () => props.modelValue,
   (newVal) => {
     const v = view.value;
+
     if (!v) {
       return;
     }
     const current = v.state.doc.toString();
+
     if (newVal === current) {
       return;
     }
 
     v.dispatch({
       changes: {
-        from: 0,
-        to: v.state.doc.length,
+        from:   0,
+        to:     v.state.doc.length,
         insert: newVal ?? ''
       }
     });
@@ -175,9 +184,7 @@ watch(
 watch(
   () => props.language,
   (lang) => {
-    view.value?.dispatch({
-      effects: languageCompartment.reconfigure(getLanguageExtension(lang))
-    });
+    view.value?.dispatch({ effects: languageCompartment.reconfigure(getLanguageExtension(lang)) });
   }
 );
 
@@ -185,9 +192,7 @@ watch(
 watch(
   () => props.keymap,
   (km) => {
-    view.value?.dispatch({
-      effects: keymapCompartment.reconfigure(getKeymapExtension(km))
-    });
+    view.value?.dispatch({ effects: keymapCompartment.reconfigure(getKeymapExtension(km)) });
   }
 );
 
@@ -195,9 +200,7 @@ watch(
 watch(
   () => props.theme,
   (theme) => {
-    view.value?.dispatch({
-      effects: themeCompartment.reconfigure(getThemeExtension(theme))
-    });
+    view.value?.dispatch({ effects: themeCompartment.reconfigure(getThemeExtension(theme)) });
   }
 );
 
@@ -205,9 +208,7 @@ watch(
 watch(
   () => props.readOnly,
   (ro) => {
-    view.value?.dispatch({
-      effects: readOnlyCompartment.reconfigure(EditorView.editable.of(!ro))
-    });
+    view.value?.dispatch({ effects: readOnlyCompartment.reconfigure(EditorView.editable.of(!ro)) });
   }
 );
 
@@ -215,9 +216,7 @@ watch(
 watch(
   () => props.lineNumbers,
   (show) => {
-    view.value?.dispatch({
-      effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show ?? true))
-    });
+    view.value?.dispatch({ effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show ?? true)) });
   }
 );
 
@@ -225,9 +224,7 @@ watch(
 watch(
   () => props.lineWrapping,
   (wrap) => {
-    view.value?.dispatch({
-      effects: lineWrappingCompartment.reconfigure(getLineWrappingExtension(wrap ?? false))
-    });
+    view.value?.dispatch({ effects: lineWrappingCompartment.reconfigure(getLineWrappingExtension(wrap ?? false)) });
   }
 );
 
@@ -235,7 +232,10 @@ defineExpose({ view });
 </script>
 
 <template>
-  <div ref="container" class="rancher-codemirror" />
+  <div
+    ref="container"
+    class="rancher-codemirror"
+  />
 </template>
 
 <style>

@@ -9,5 +9,6 @@ export function getLanguageExtension(lang?: 'yaml' | 'json'): Extension {
   if (lang === 'json') {
     return json();
   }
+
   return [];
 }
