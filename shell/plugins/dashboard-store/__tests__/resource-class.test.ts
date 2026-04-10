@@ -436,6 +436,7 @@ describe('class: Resource', () => {
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
+        rootState:   { $extension: { getPlugins: () => ({}) } },
         rootGetters: {
           'i18n/t':            (key: string) => key,
           currentCluster:      undefined,
