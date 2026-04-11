@@ -387,15 +387,6 @@ export default {
             this.mode = _CREATE;
             this.existing = null;
           }
-        } else if (this.chart) {
-          const matching = this.chart.matchingInstalledApps;
-
-          if (matching.length === 1) {
-            this.existing = matching[0];
-            this.mode = _EDIT;
-          } else {
-            this.mode = _CREATE;
-          }
         } else {
           // Regular create
 
