@@ -6339,10 +6339,7 @@ typeDescription:
   monitoring.coreos.com.prometheus: Prometheus server 是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
   monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收器。
   node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"页面管理可用节点的生命周期。
-  catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。'
-  catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。集群模板是通过 Helm Chart 部署的。'
   catalog.cattle.io.operation: 最近的操作指的是最近应用于集群的一系列 Helm 操作。
-  catalog.cattle.io.app: 已安装的应用指的是通过我们的 Chart 或 Helm CLI 安装的 Helm 3 Chart。
   logging.banzaicloud.io.clusterflow: 集群日志将被收集并投递到选定的 ClusterOutput 中。
   logging.banzaicloud.io.clusteroutput: ClusterOutput 定义了日志可以发送到哪些日志提供程序。只有部署在 Logging operator 所在的命名空间中时，ClusterOutput 才生效。
   logging.banzaicloud.io.flow: Flow 定义了要收集和过滤的日志，以及日志的输出目标。Flow 是一个命名空间资源。换言之，只有部署了该 Flow 的命名空间日志才能被该 Flow 收集。

@@ -8052,10 +8052,7 @@ typeDescription:
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
   node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecycle, if available, go to Cluster Management.
-  catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
-  catalog.cattle.io.clusterrepo.local: ' A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster. Cluster Templates are deployed via Helm charts.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
-  catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
   logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
