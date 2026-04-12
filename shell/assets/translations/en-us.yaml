@@ -1158,6 +1158,7 @@ catalog:
         edit: Edit the current version
         upgrade: Upgrade to this version
         downgrade: Downgrade to this version
+        installNew: Install as a new instance
   charts:
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item

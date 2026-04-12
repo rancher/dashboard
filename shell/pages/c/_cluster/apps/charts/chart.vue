@@ -4,19 +4,23 @@ import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import isEqual from 'lodash/isEqual';
 import {
-  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED
+  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED, NAMESPACE, NAME, NEW_APP_INSTANCE, _FLAGGED
 } from '@shell/config/query-params';
 import { DATE_FORMAT } from '@shell/store/prefs';
 import { ZERO_TIME } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compareChartVersions } from '@shell/utils/chart';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
+import { RcButtonSplit } from '@components/RcButtonSplit';
+import { RcDropdownItem } from '@components/RcDropdown';
 
 export default {
   components: {
@@ -24,9 +28,12 @@ export default {
     ChartReadme,
     LazyImage,
     Loading,
+    LabeledSelect,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    RcButton
+    RcButton,
+    RcButtonSplit,
+    RcDropdownItem
   },
 
   mixins: [
@@ -41,8 +48,9 @@ export default {
     return {
       SEARCH_QUERY,
       ZERO_TIME,
-      showLastVersions: 7,
-      showMoreVersions: false,
+      showLastVersions:       7,
+      showMoreVersions:       false,
+      selectedInstalledAppId: null,
     };
   },
 
@@ -138,6 +146,51 @@ export default {
       }
 
       return '';
+    },
+
+    /**
+     * Returns the currently selected installed app.
+     * Falls back to this.existing (set by the mixin for targeted charts or URL query params).
+     */
+    selectedInstalledApp() {
+      if (this.selectedInstalledAppId) {
+        return this.installedInstances?.find((app) => app.id === this.selectedInstalledAppId) || null;
+      }
+
+      return this.existing || null;
+    },
+
+    /**
+     * Returns the action for the current state based on the selected app and target version.
+     */
+    currentAction() {
+      const app = this.selectedInstalledApp;
+
+      if (!app) {
+        return { tKey: 'install', icon: 'plus' };
+      }
+
+      const installedVersion = app.spec?.chart?.metadata?.version;
+
+      if (installedVersion === this.targetVersion) {
+        return { tKey: 'edit', icon: 'edit' };
+      }
+
+      if (compareChartVersions(installedVersion, this.targetVersion) < 0) {
+        return { tKey: 'upgrade', icon: 'upgrade-alt' };
+      }
+
+      return { tKey: 'downgrade', icon: 'downgrade-alt' };
+    },
+
+    /**
+     * Returns options for the installed apps selector dropdown.
+     */
+    installedAppOptions() {
+      return (this.installedInstances || []).map((app) => ({
+        value: app.id,
+        label: `${ app.metadata.namespace }/${ app.metadata.name }`
+      }));
     }
 
   },
@@ -153,7 +206,40 @@ export default {
   },
 
   methods: {
-    install() {
+    /**
+     * Navigate to install page for the currently selected installed app (edit/upgrade/downgrade).
+     */
+    executeAction() {
+      const app = this.selectedInstalledApp;
+      const query = {
+        [REPO_TYPE]:  this.query.repoType,
+        [REPO]:       this.query.repoName,
+        [CHART]:      this.query.chartName,
+        [VERSION]:    this.query.versionName,
+        [DEPRECATED]: this.query.deprecated,
+      };
+
+      // If editing an existing app, include namespace and name in query
+      if (app) {
+        query[NAMESPACE] = app.metadata.namespace;
+        query[NAME] = app.metadata.name;
+      }
+
+      this.$router.push({
+        name:   'c-cluster-apps-charts-install',
+        params: {
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
+        },
+        query
+      });
+    },
+
+    /**
+     * Navigate to install page to create a new instance of this chart.
+     * Uses NEW_APP_INSTANCE flag to enable version selection in the install wizard.
+     */
+    installNewInstance() {
       this.$router.push({
         name:   'c-cluster-apps-charts-install',
         params: {
@@ -161,14 +247,24 @@ export default {
           product: this.$store.getters['productId'],
         },
         query: {
-          [REPO_TYPE]:  this.query.repoType,
-          [REPO]:       this.query.repoName,
-          [CHART]:      this.query.chartName,
-          [VERSION]:    this.query.versionName,
-          [DEPRECATED]: this.query.deprecated,
+          [REPO_TYPE]:        this.query.repoType,
+          [REPO]:             this.query.repoName,
+          [CHART]:            this.query.chartName,
+          [DEPRECATED]:       this.query.deprecated,
+          [NEW_APP_INSTANCE]: _FLAGGED,
         }
       });
     },
+
+    /**
+     * Handle installed app selection from the dropdown.
+     * Updates selectedInstalledAppId and this.existing so the page reflects the current installed app and displays the correct information for the selected instance.
+     */
+    handleInstalledAppSelect(id) {
+      this.selectedInstalledAppId = id;
+      this.existing = this.installedInstances?.find((app) => app.id === id) || null;
+    },
+
     handleHeaderItemClick(type, value) {
       const params = {
         cluster: this.$route.params.cluster,
@@ -297,17 +393,48 @@ export default {
           />
         </div>
       </div>
-      <RcButton
+      <div
         v-if="!requires.length"
-        data-testid="btn-chart-install"
-        class="btn role-primary"
-        @click.prevent="install"
+        class="header-actions"
       >
-        <i
-          :class="['icon', action.icon, 'mmr-2']"
+        <LabeledSelect
+          v-if="installedInstances.length > 1 && canInstallNew"
+          :value="selectedInstalledApp?.id"
+          :options="installedAppOptions"
+          :clearable="false"
+          class="installed-apps-selector"
+          data-testid="installed-apps-selector"
+          @update:value="handleInstalledAppSelect"
         />
-        {{ t(`catalog.chart.chartButton.action.${action.tKey}` ) }}
-      </RcButton>
+        <!-- Split button: shown when chart is installed AND can be re-installed -->
+        <RcButtonSplit
+          v-if="selectedInstalledApp && canInstallNew"
+          data-testid="btn-chart-install"
+          size="large"
+          :left-icon="currentAction.icon"
+          @click="executeAction"
+        >
+          {{ t(`catalog.chart.chartButton.action.${currentAction.tKey}` ) }}
+          <template #dropdownCollection>
+            <RcDropdownItem @click="installNewInstance">
+              <template #before>
+                <i class="icon icon-plus" />
+              </template>
+              {{ t('catalog.chart.chartButton.action.installNew') }}
+            </RcDropdownItem>
+          </template>
+        </RcButtonSplit>
+        <!-- Simple button: shown when chart is not installed OR cannot be re-installed -->
+        <RcButton
+          v-else
+          data-testid="btn-chart-install"
+          size="large"
+          :left-icon="currentAction.icon"
+          @click.prevent="executeAction"
+        >
+          {{ t(`catalog.chart.chartButton.action.${currentAction.tKey}` ) }}
+        </RcButton>
+      </div>
     </div>
 
     <div class="dashed-spacer" />
@@ -624,9 +751,16 @@ export default {
       }
     }
 
-    .btn {
+    .header-actions {
       margin-left: auto;
-      height: 40px;
+      display: flex;
+      align-items: flex-start;
+      flex-shrink: 0;
+      gap: 10px;
+
+      .installed-apps-selector {
+        min-width: 250px;
+      }
     }
 
     .description {
