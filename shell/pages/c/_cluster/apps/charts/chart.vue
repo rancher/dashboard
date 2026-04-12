@@ -402,6 +402,7 @@ export default {
           :value="selectedInstalledApp?.id"
           :options="installedAppOptions"
           :clearable="false"
+          :aria-label="t('catalog.chart.installedAppsSelector.ariaLabel')"
           class="installed-apps-selector"
           data-testid="installed-apps-selector"
           @update:value="handleInstalledAppSelect"
