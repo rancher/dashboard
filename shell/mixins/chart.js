@@ -433,12 +433,22 @@ export default {
           const isChartDetailPage = this.$route.name === 'c-cluster-apps-charts-chart';
 
           if (isChartDetailPage) {
-            const matching = this.chart?.matchingInstalledApps;
+            const matching = this.chart?.matchingInstalledApps || [];
 
-            if (matching?.length >= 1) {
-              // Populate the instance selector and default to the first installed app.
+            // Always refresh the available instances so stale values are removed.
+            this.installedInstances = [];
+
+            if (matching.length >= 1) {
+              // Populate the instance selector and preserve the current selection
+              // when it is still one of the matching installed apps.
               this.installedInstances = matching;
-              this.existing = matching[0];
+              const hasExistingMatch = this.existing?.id && matching.some((instance) => instance.id === this.existing.id);
+
+              if (!hasExistingMatch) {
+                this.existing = matching[0];
+              }
+            } else {
+              this.existing = null;
             }
           } else {
             // Regular create
