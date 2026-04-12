@@ -89,12 +89,12 @@ export default class Chart extends SteveModel {
   }
 
   /**
-   * Determines if the chart is installed by checking if exactly one matching installed app is found.
+   * Determines if the chart is installed by checking if at least one matching installed app is found.
    *
    * @returns {boolean} `true` if the chart is currently installed.
    */
   get isInstalled() {
-    return this.matchingInstalledApps.length === 1;
+    return this.matchingInstalledApps.length >= 1;
   }
 
   /**
