@@ -531,7 +531,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-conditions"]');
 
       clusterDetail.waitForPage(undefined, 'conditions');
-      clusterDetail.conditionsList().details('Ready', 1).should('include.text', 'True');
+      clusterDetail.conditionsList().details('Created', 1).should('include.text', 'True');
     });
 
     it('can navigate to Cluster Related Page', () => {

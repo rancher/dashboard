@@ -101,6 +101,14 @@ export default {
       hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
+    // Load apps in UI_PLUGIN_NAMESPACE to determine which repo an extension was installed from
+    if (this.$store.getters['management/schemaFor'](CATALOG.APP)) {
+      hash.apps = this.$store.dispatch('management/findAll', {
+        type: CATALOG.APP,
+        opt:  { namespaced: UI_PLUGIN_NAMESPACE }
+      });
+    }
+
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
       hash.repos = this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
     }
@@ -126,6 +134,12 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    // Computed to reactively update when new apps are installed
+    apps() {
+      return this.$store.getters['management/all'](CATALOG.APP)
+        .filter((app) => app.metadata?.namespace === UI_PLUGIN_NAMESPACE);
+    },
 
     charts() {
       const c = this.$store.getters['catalog/rawCharts'];
@@ -313,8 +327,8 @@ export default {
           }
         }
 
-        if (this.installing[item.name]) {
-          item.installing = this.installing[item.name];
+        if (this.installing[item.id]) {
+          item.installing = this.installing[item.id];
         }
 
         return item;
@@ -359,15 +373,23 @@ export default {
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
-        const chart = all.find((c) => c.name === p.name);
+        let chart;
+        const app = this.apps.find((a) => a.metadata.name === p.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
+        const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
 
+        // Find the chart from the original repo to avoid picking a wrong chart with the same name
+        if (originalRepoName) {
+          chart = all.find((c) => c.name === p.name && c.chart?.repoName === originalRepoName);
+        }
+
+        // If original repo was removed, don't fall back to another repo's chart (would break Available tab)
         if (chart) {
           chart.installed = true;
           chart.uiplugin = p;
           chart.installedVersion = p.version;
 
           // Can't do this here
-          chart.installing = this.installing[chart.name];
+          chart.installing = this.installing[chart.id];
 
           // Check for upgrade
           const latestInstallableVersion = chart.installableVersions?.[0];
@@ -385,20 +407,34 @@ export default {
             chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
         } else {
-          // No chart, so add a card for the plugin based on its Custom resource being present
+          // No chart available - original repo was removed or developer-loaded plugin
+          const appChartMeta = app?.spec?.chart?.metadata;
+          const appAnnotations = appChartMeta?.annotations || {};
+          let originalRepoDisplayName = null;
+
+          if (originalRepoName) {
+            originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
+          }
+
           const item = {
-            name:                p.name,
-            label:               p.name,
-            description:         p.description || '-',
-            id:                  `${ p.name }-${ p.version }`,
-            versions:            [],
-            displayVersion:      p.version,
-            displayVersionLabel: p.version || '-',
-            isDeveloper:         p.isDeveloper,
-            installed:           true,
-            installing:          false,
-            builtin:             false,
-            uiplugin:            p,
+            name:                    p.name,
+            label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || p.name,
+            description:             appChartMeta?.description || p.description || '-',
+            icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
+            id:                      `${ p.name }-${ p.version }`,
+            versions:                [],
+            displayVersion:          p.version,
+            displayVersionLabel:     p.version || '-',
+            isDeveloper:             p.isDeveloper,
+            installed:               true,
+            installedVersion:        p.version,
+            installing:              false,
+            builtin:                 false,
+            uiplugin:                p,
+            primeOnly:               appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
+            experimental:            appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:               appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
+            originalRepoNameDisplay: originalRepoDisplayName,
           };
 
           all.push(item);
@@ -422,7 +458,7 @@ export default {
 
       // Merge in the plugin load errors from help ops
       Object.keys(this.errors).forEach((e) => {
-        const chart = all.find((c) => c.name === e);
+        const chart = all.find((c) => c.id === e);
 
         if (chart) {
           chart.helmError = !!this.errors[e];
@@ -456,28 +492,50 @@ export default {
           const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
           if (op) {
+            const allWithSameName = this.available.filter((p) => p.name === plugin.name);
+            let targetPluginId;
+
+            // When multiple plugins share the same name (from different repositories),
+            // a single helm operation will trigger updates. We need to correctly identify
+            // the specific plugin that is either currently being installed/updated or is already installed
+            // so we don't accidentally mark all identically named plugins as "installing".
+            const installingPlugin = allWithSameName.find((p) => this.installing[p.id]);
+            const installedPlugin = allWithSameName.find((p) => p.installed);
+
+            if (installingPlugin) {
+              targetPluginId = installingPlugin.id;
+            } else if (installedPlugin) {
+              targetPluginId = installedPlugin.id;
+            } else {
+              targetPluginId = allWithSameName[0]?.id;
+            }
+
+            if (plugin.id !== targetPluginId) {
+              return;
+            }
+
             const active = op.metadata.state?.transitioning;
             const error = op.metadata.state?.error;
 
-            this.errors[plugin.name] = error;
+            this.errors[plugin.id] = error;
 
             if (active) {
             // Can use the status directly, apart from upgrade, which maps to update
               const status = op.status.action;
 
-              if (status === 'upgrade' && this.installing[plugin.name] === 'downgrade') {
+              if (status === 'upgrade' && this.installing[plugin.id] === 'downgrade') {
                 // Helm op is an upgrade, but we initiated a downgrade, so keep the 'downgrade' status
               } else {
-                this.updatePluginInstallStatus(plugin.name, status);
+                this.updatePluginInstallStatus(plugin.id, status);
               }
             } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             } else if (error) {
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             }
           } else {
-            this.updatePluginInstallStatus(plugin.name, false);
+            this.updatePluginInstallStatus(plugin.id, false);
           }
         });
       },
@@ -503,7 +561,11 @@ export default {
               changes++;
             }
 
-            this.updatePluginInstallStatus(plugin.name, false);
+            (this.available || []).forEach((c) => {
+              if (c.name === plugin.name) {
+                this.updatePluginInstallStatus(c.id, false);
+              }
+            });
           }
         });
 
@@ -596,6 +658,35 @@ export default {
       ev?.preventDefault?.();
       ev?.stopPropagation?.();
 
+      // Check if a plugin with the same name is already installed from a different repo
+      if (action === 'install') {
+        const installedPlugin = this.available.find((p) => p.name === plugin.name && p.installed);
+        const isInstalledFromDifferentSource = !!installedPlugin && installedPlugin.id !== plugin.id;
+
+        if (isInstalledFromDifferentSource) {
+          // Show a different dialog that prompts the user to uninstall the existing version first
+          this.$store.dispatch('management/promptModal', {
+            component:                            'UninstallExistingExtensionDialog',
+            testId:                               'uninstall-existing-extension-modal',
+            returnFocusSelector:                  `[data-testid="extension-card-${ action }-btn-${ plugin?.name }"]`,
+            returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+            componentProps:                       {
+              installedPlugin,
+              updateStatus: (pluginId, type) => {
+                this.updatePluginInstallStatus(pluginId, type);
+              },
+              closed: (res) => {
+                if (res?.uninstalled) {
+                  this.didUninstall(res.plugin);
+                }
+              }
+            }
+          });
+
+          return;
+        }
+      }
+
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
         testId:                               'install-extension-modal',
@@ -605,8 +696,8 @@ export default {
           plugin,
           action,
           initialVersion,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
             this.didInstall(res);
@@ -627,8 +718,8 @@ export default {
         returnFocusFirstIterableNodeSelector: '#extensions-main-page',
         componentProps:                       {
           plugin,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
             this.didUninstall(res);
@@ -639,7 +730,7 @@ export default {
 
     didUninstall(plugin) {
       if (plugin) {
-        this.updatePluginInstallStatus(plugin.name, 'uninstall');
+        this.updatePluginInstallStatus(plugin.id, 'uninstall');
 
         if (plugin.catalog) {
           this.refreshCharts();
@@ -666,8 +757,8 @@ export default {
       this.$refs.infoPanel.show({ ...plugin, tags });
     },
 
-    updatePluginInstallStatus(name, status) {
-      this.installing[name] = status;
+    updatePluginInstallStatus(id, status) {
+      this.installing[id] = status;
     },
 
     setMenu(event) {
@@ -850,6 +941,17 @@ export default {
     },
 
     getFooterItems(plugin) {
+      const footerItems = [];
+      const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoNameDisplay;
+
+      if (repoNameToDisplay) {
+        footerItems.push({
+          icon:        'repository-alt',
+          iconTooltip: { key: 'tableHeaders.repoName' },
+          labels:      [repoNameToDisplay]
+        });
+      }
+
       const labels = [];
 
       // "developer load" tag
@@ -873,11 +975,15 @@ export default {
         labels.push(this.t('plugins.labels.experimental'));
       }
 
-      return labels.length ? [{
-        icon:        'tag-alt',
-        iconTooltip: { key: 'generic.tags' },
-        labels,
-      }] : [];
+      if (labels.length) {
+        footerItems.push({
+          icon:        'tag-alt',
+          iconTooltip: { key: 'generic.tags' },
+          labels,
+        });
+      }
+
+      return footerItems;
     },
 
     getStatuses(plugin) {

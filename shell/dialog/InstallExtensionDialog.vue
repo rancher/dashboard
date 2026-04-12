@@ -223,7 +223,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.updateStatus(plugin.name, this.action);
+      this.updateStatus(plugin.id, this.action);
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find((v) => v.version === this.version);
@@ -370,31 +370,21 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .plugin-install-dialog {
-    padding: 10px;
+  @import '@shell/assets/styles/base/_mixins.scss';
 
-    h4 {
-      font-weight: bold;
-    }
+  .plugin-install-dialog {
+    @include extension-dialog;
 
     .dialog-panel {
-      display: flex;
-      flex-direction: column;
-      min-height: 100px;
-
       p {
-        margin-bottom: 5px;
-      }
-
-      .dialog-info {
-        flex: 1;
+        margin-bottom: 4px;
       }
 
       .toggle-advanced {
         display: flex;
         align-items: center;
         cursor: pointer;
-        margin: 10px 0;
+        margin: 8px 0;
 
         &:hover {
           text-decoration: none;
@@ -403,18 +393,7 @@ export default {
       }
 
       .version-selector {
-        margin: 0 10px 10px 10px;
         width: auto;
-      }
-    }
-
-    .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 10px;
-
-      > *:not(:last-child) {
-        margin-right: 10px;
       }
     }
   }

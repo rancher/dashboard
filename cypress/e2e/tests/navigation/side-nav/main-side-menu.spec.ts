@@ -38,8 +38,8 @@ describe('Side Menu: main', () => {
       cy.get('body').focus().type('{alt}', { release: false });
 
       // assert that icons are displayed for the key combo
-      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(0);
-      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(1);
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel('local');
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel(fakeProvClusterId);
 
       // nav to local
       pagePoFake.navToClusterMenuEntry('local');

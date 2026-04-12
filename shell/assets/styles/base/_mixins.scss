@@ -161,3 +161,34 @@
   // we need to use !important because it needs to superseed other classes that might impact outlines
   outline: 2px solid var(--primary-keyboard-focus);
 }
+
+// -------------------------------------------------------------------------------------------------
+// Extension dialog styles
+
+@mixin extension-dialog {
+  padding: 8px 16px 16px 16px;
+
+  h4 {
+    font-weight: bold;
+  }
+
+  .dialog-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 96px;
+
+    .dialog-info {
+      flex: 1;
+    }
+  }
+
+  .dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    > *:not(:last-child) {
+      margin-right: 8px;
+    }
+  }
+}

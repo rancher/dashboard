@@ -9,6 +9,7 @@ import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -622,12 +623,29 @@ export default class Workload extends WorkloadService {
 
   calcPodGauges(pods) {
     const out = { };
+    let refPods = pods;
 
-    if (!pods) {
+    if (this.metadata.associatedData) {
+      refPods = [];
+      this.metadata.associatedData.forEach((w) => {
+        if (w.gvk.kind.toLowerCase() !== POD) {
+          return;
+        }
+
+        return w.data.forEach((p) => {
+          refPods.push({
+            stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
+            stateDisplay: stateDisplayFn(p.state.name),
+          });
+        });
+      });
+    }
+
+    if (!refPods) {
       return out;
     }
 
-    pods.map((pod) => {
+    refPods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {

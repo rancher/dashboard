@@ -24,6 +24,7 @@ interface Props {
   traefikChart: string;
   userChartValues: any;
   versionInfo: any;
+  originalIngressController?: string | string[];
 }
 const {
   mode = _CREATE,
@@ -33,7 +34,8 @@ const {
   nginxSupported,
   traefikSupported,
   userChartValues,
-  versionInfo
+  versionInfo,
+  originalIngressController = INGRESS_NONE
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
@@ -179,7 +181,10 @@ const compatibilityMode = computed({
 
 function selectIngress(id: string) {
   if ( id === INGRESS_DUAL) {
-    emit('update:value', [TRAEFIK, INGRESS_NGINX]);
+    const newValue: string | string[] = !Array.isArray(originalIngressController) ? (originalIngressController === TRAEFIK ? [TRAEFIK, INGRESS_NGINX] : [INGRESS_NGINX, TRAEFIK]) : originalIngressController;
+
+    emit('update:value', newValue);
+
     preconfigureTraefik();
   } else {
     emit('update:value', id);

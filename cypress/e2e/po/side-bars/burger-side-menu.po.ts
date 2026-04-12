@@ -34,11 +34,14 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Check if cluster on a top-level side menu entry by entry index has the appropriate key combo icon
+   * Check key combo icon for a cluster by its displayed label (any order, pinned or unpinned).
    * @returns {Cypress.Chainable}
    */
-  static burgerMenuNavClusterKeyComboIconCheck(index: number): Cypress.Chainable {
-    return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] .cluster-icon-menu i`).should('have.class', 'icon-keyboard_tab');
+  static burgerMenuNavClusterKeyComboIconCheckByLabel(label: string): Cypress.Chainable {
+    return this.burgerMenuGetNavClusterByLabel(label)
+      .closest('.cluster.selector')
+      .find('.cluster-icon-menu i')
+      .should('have.class', 'icon-keyboard_tab');
   }
 
   /**

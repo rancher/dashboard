@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: TitleBar/index should match the full component snapshot 1`] = `
+<div class="title-bar">
+  <div class="top">
+    <h1 class="title">
+      <!----><a class="resource-link">RESOURCE_TYPE_LABEL: </a><span class="resource-name masthead-resource-title">RESOURCE_NAME</span><span class="badge-state bg-success badge-state"><!--v-if--><span class="msg">Active</span></span>
+    </h1>
+    <div class="actions"><button role="button" class="rc-button btn variant-primary btn-medium">
+        <!--v-if-->Deploy
+        <!--v-if-->
+      </button><button role="button" class="rc-button btn variant-secondary btn-large">
+        <!--v-if-->Rollback
+        <!--v-if-->
+      </button><button role="button" class="rc-button btn variant-primary btn-large show-configuration" data-testid="show-configuration-cta" aria-label="component.resource.detail.titleBar.ariaLabel.showConfiguration-{&quot;resource&quot;:&quot;RESOURCE_NAME&quot;}">
+        <!--v-if--><i class="icon icon-document" aria-hidden="true"></i> component.resource.detail.titleBar.showConfiguration
+        <!--v-if-->
+      </button>
+      <div class="v-popper v-popper--theme-dropdown"><button role="button" class="rc-button btn variant-multi-action btn-medium" aria-haspopup="menu" aria-expanded="false" data-testid="masthead-action-menu" aria-label="component.resource.detail.titleBar.ariaLabel.actionMenu-{&quot;resource&quot;:&quot;RESOURCE_NAME&quot;}">
+          <!--v-if--><i class="icon icon-actions"></i>
+          <!--v-if-->
+        </button></div>
+      <div class="popperContainer">
+        <!--Empty container for mounting popper content-->
+      </div>
+    </div>
+  </div>
+  <div class="bottom description text-deemphasized">A test description</div>
+  <!--v-if-->
+</div>
+`;

@@ -183,7 +183,6 @@ function getTooltip(key: string, fallback?: string): string | undefined {
   }
 
   &-button {
-    text-transform: capitalize;
     min-width: 0;
     max-width: 100%;
 

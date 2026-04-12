@@ -1,390 +1,347 @@
-#!/bin/bash
-
-set -e
+#!/usr/bin/env bash
+#
+# Thin wrapper: clones qa-infra-automation, builds the runner image,
+# generates vars.yaml from Jenkins environment, runs the playbook in a container.
+#
+# No tool installation needed — everything is inside the container image.
+#
+set -euo pipefail
 trap 'echo "FAILED at line $LINENO: $BASH_COMMAND (exit $?)"' ERR
 
-# Source shared utilities
-source cypress/jenkins/utils.sh
+# --- Paths ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JENKINS_WORKSPACE="${WORKSPACE:-$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
 
-if cat /etc/os-release | grep -iq "Alpine Linux"; then
-	apk update -q && apk add -q --no-cache gcompat g++ make
-elif command -v apt-get >/dev/null 2>&1; then
-	sudo apt-get update -qq && sudo apt-get install -y -qq make g++ >/dev/null
-fi
+QA_INFRA_REPO="${QA_INFRA_REPO:-https://github.com/rancher/qa-infra-automation.git}"
+QA_INFRA_BRANCH="${QA_INFRA_BRANCH:-main}"
+QA_INFRA_DIR="${JENKINS_WORKSPACE}/qa-infra-automation"
+PLAYBOOK_DIR="${QA_INFRA_DIR}/ansible/testing/dashboard-e2e"
+RUNNER_IMAGE="dashboard-e2e-runner:${EXECUTOR_NUMBER:-0}"
+LOCK_FD=""
 
-OS="$(uname -s)"
-case "${OS}" in
-Linux*) MACHINE=amd64 ;;
-Darwin*) MACHINE=darwin-amd64 ;;
-esac
+# Ansible verbosity: 0=normal, 1=-v, 2=-vv, etc.
+ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:-0}"
 
-case "${MACHINE}" in
-amd64*) GOLANG_PGK_SUFFIX=linux-amd64 ;;
-darwin-amd64*) GOLANG_PGK_SUFFIX=darwin-amd64 ;;
-esac
-
-GO_DL_URL="https://go.dev/dl"
-GO_DL_VERSION="${GO_DL_VERSION:-1.20.5}"
-GO_PKG_FILENAME="go${GO_DL_VERSION}.${GOLANG_PGK_SUFFIX}.tar.gz"
-GO_DL_PACKAGE="${GO_DL_URL}/${GO_PKG_FILENAME}"
-CORRAL_PATH="${WORKSPACE}/bin"
-CORRAL="${CORRAL_PATH}/corral"
-CORRAL_VERSION="${CORRAL_VERSION:-1.1.1}"
-CORRAL_DOWNLOAD_URL="https://github.com/rancherlabs/corral/releases/download/"
-CORRAL_DOWNLOAD_BIN="${CORRAL_DOWNLOAD_URL}v${CORRAL_VERSION}/corral-${CORRAL_VERSION}-${MACHINE}"
-PATH="${CORRAL_PATH}:${PATH}"
-CORRAL_PACKAGES_REPO="${CORRAL_PACKAGES_REPO:-rancherlabs/corral-packages.git}"
-CORRAL_PACKAGES_BRANCH="${CORRAL_PACKAGES_BRANCH:-main}"
-DASHBOARD_REPO="${DASHBOARD_REPO:-rancher/dashboard.git}"
-DASHBOARD_BRANCH="${DASHBOARD_BRANCH:-master}"
-GITHUB_URL="https://github.com/"
-RANCHER_TYPE="${RANCHER_TYPE:-local}"
-RANCHER_HELM_REPO="${RANCHER_HELM_REPO:-rancher-com-rc}"
-HELM_VERSION="${HELM_VERSION:-3.13.2}"
-NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
-CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
-YARN_VERSION="${YARN_VERSION:-1.22.19}"
-KUBECTL_VERSION="${KUBECTL_VERSION:-v1.29.8}"
-YQ_BIN="mikefarah/yq/releases/latest/download/yq_linux_amd64"
-
-# Generate random prefix for hostname uniqueness
-prefix_random=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | fold -w 8 | head -n 1)
-
-mkdir -p "${WORKSPACE}/bin"
-wget -q "${GITHUB_URL}${YQ_BIN}" -O "${WORKSPACE}/bin/yq"
-chmod +x "${WORKSPACE}/bin/yq"
-
-if [ -f "${CORRAL}" ]; then rm "${CORRAL}"; fi
-curl -sSL -o "${CORRAL}" "${CORRAL_DOWNLOAD_BIN}"
-chmod +x "${CORRAL}"
-
-curl -sSL -o "${GO_PKG_FILENAME}" "${GO_DL_PACKAGE}"
-tar -C "${WORKSPACE}" -xzf "${GO_PKG_FILENAME}" >/dev/null
-
-curl -sSL https://raw.githubusercontent.com/parleer/semver-bash/latest/semver -o semver
-chmod +x semver
-mv semver "${WORKSPACE}/bin"
-
-export PATH=$PATH:"${WORKSPACE}/go/bin:${WORKSPACE}/bin"
-export GOROOT="${WORKSPACE}/go"
-
-if [[ ! -d "${WORKSPACE}/.ssh" ]]; then mkdir -p "${WORKSPACE}/.ssh"; fi
-export PRIV_KEY="${WORKSPACE}/.ssh/jenkins_ecdsa"
-
-if [ -f "${PRIV_KEY}" ]; then rm "${PRIV_KEY}"; fi
-ssh-keygen -q -t ecdsa -b 521 -N "" -f "${PRIV_KEY}"
-
-echo "Initializing corral configuration..."
-clean_corral config --public_key "${PRIV_KEY}.pub" --user_id jenkins
-clean_corral config vars set corral_user_public_key "$(cat "${PRIV_KEY}".pub)"
-clean_corral config vars set corral_user_id jenkins
-clean_corral config vars set aws_ssh_user "${AWS_SSH_USER}"
-clean_corral config vars set aws_access_key "${AWS_ACCESS_KEY_ID}"
-clean_corral config vars set aws_secret_key "${AWS_SECRET_ACCESS_KEY}"
-clean_corral config vars set aws_ami "${AWS_AMI}"
-clean_corral config vars set aws_region "${AWS_REGION}"
-clean_corral config vars set aws_security_group "${AWS_SECURITY_GROUP}"
-clean_corral config vars set aws_subnet "${AWS_SUBNET}"
-clean_corral config vars set aws_vpc "${AWS_VPC}"
-clean_corral config vars set aws_volume_size "${AWS_VOLUME_SIZE}"
-clean_corral config vars set aws_volume_type "${AWS_VOLUME_TYPE}"
-clean_corral config vars set volume_type "${AWS_VOLUME_TYPE}"
-clean_corral config vars set volume_iops "${AWS_VOLUME_IOPS}"
-clean_corral config vars set azure_subscription_id "${AZURE_AKS_SUBSCRIPTION_ID}"
-clean_corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
-clean_corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
-clean_corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
-clean_corral config vars set gke_service_account "${GKE_SERVICE_ACCOUNT}"
-clean_corral config vars set percy_token "${PERCY_TOKEN}"
-clean_corral config vars set qase_automation_token "${QASE_AUTOMATION_TOKEN}"
-clean_corral config vars set qase_project "${QASE_PROJECT}"
-clean_corral config vars set qase_report "${QASE_REPORT}"
-
-# ============================================================================
-# Configure Helm repositories and resolve Rancher version
-# ============================================================================
-configure_rancher_helm() {
-	if [[ -z "${RANCHER_IMAGE_TAG}" ]]; then
-		return
-	fi
-
-	TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
-	curl -sSL -o "${TARFILE}" "https://get.helm.sh/${TARFILE}"
-	tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf "${TARFILE}"
-
-	if [[ -n "${RANCHER_HELM_REPO}" ]]; then
-		if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" ]]; then
-			RANCHER_CHART_URL=https://charts.rancher.com/server-charts/prime
-			HELM_REPO_NAME=rancher-prime
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			clean_corral config vars set rancher_image "registry.suse.com/rancher/rancher"
-			RANCHER_CHART_REPO_FOR_CORRAL="prime"
-		elif [[ "${RANCHER_HELM_REPO}" == "rancher-latest" ]]; then
-			RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/latest
-			HELM_REPO_NAME=rancher-latest
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			clean_corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
-			RANCHER_CHART_REPO_FOR_CORRAL="latest"
-		elif [[ "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
-			RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/alpha
-			HELM_REPO_NAME=rancher-alpha
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			clean_corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
-			RANCHER_CHART_REPO_FOR_CORRAL="alpha"
-		elif [[ "${RANCHER_HELM_REPO}" == "rancher-com-alpha" ]]; then
-			RANCHER_CHART_URL=https://releases.rancher.com/server-charts/alpha
-			HELM_REPO_NAME=rancher-com-alpha
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			RANCHER_CHART_REPO_FOR_CORRAL="alpha"
-		elif [[ "${RANCHER_HELM_REPO}" == "rancher-community" ]]; then
-			RANCHER_CHART_URL=https://releases.rancher.com/server-charts/stable
-			HELM_REPO_NAME=rancher-community
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			RANCHER_CHART_REPO_FOR_CORRAL="stable"
-		else
-			RANCHER_CHART_URL=https://releases.rancher.com/server-charts/latest
-			HELM_REPO_NAME=rancher-com-rc
-			helm repo add "${HELM_REPO_NAME}" "${RANCHER_CHART_URL}" >/dev/null
-			helm repo update >/dev/null
-			RANCHER_CHART_REPO_FOR_CORRAL="latest"
-		fi
-		if [[ -n "${RANCHER_CHART_REPO_FOR_CORRAL:-}" ]]; then
-			clean_corral config vars set rancher_chart_repo "${RANCHER_CHART_REPO_FOR_CORRAL}"
-		else
-			clean_corral config vars set rancher_chart_repo "${RANCHER_HELM_REPO}"
-		fi
-		url_string=$(echo "${RANCHER_CHART_URL}" | grep -o '.*server-charts')
-		clean_corral config vars set rancher_chart_url "${url_string}"
-	fi
-
-	version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
-	if [[ -n "${HELM_REPO_NAME}" ]]; then
-		if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
-			RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
-		elif [ "${RANCHER_HELM_REPO}" = "rancher-alpha" ]; then
-			RANCHER_VERSION=$(helm search repo rancher-alpha --devel --versions | grep "^rancher-alpha/rancher[[:space:]]" | grep "${version_string}" | grep -- "-alpha" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
-		elif [ "${RANCHER_HELM_REPO}" = "rancher-latest" ]; then
-			RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "^rancher-latest/rancher[[:space:]]" | grep "${version_string}" | grep -- "-rc" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
-		else
-			RANCHER_VERSION=$(helm search repo "${HELM_REPO_NAME}" --devel --versions | grep "${version_string}" | awk '{print $2}' | sort -V | tail -1 | tr -d '[:space:]')
-		fi
-		if [ -z "${RANCHER_VERSION}" ]; then
-			echo "ERROR: Could not find Rancher version for ${RANCHER_IMAGE_TAG} in ${HELM_REPO_NAME} repo."
-			exit 1
-		fi
-	fi
-
-	if [ "${RANCHER_HELM_REPO}" = "rancher-prime" ] ||
-		[ "${RANCHER_HELM_REPO}" = "rancher-latest" ] ||
-		[ "${RANCHER_HELM_REPO}" = "rancher-alpha" ]; then
-		RANCHER_IMAGE_TAG_FOR_CORRAL="v${RANCHER_VERSION}"
-		clean_corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG_FOR_CORRAL}"
-		if [[ "${RANCHER_HELM_REPO}" == "rancher-alpha" ]] || [[ "${RANCHER_HELM_REPO}" == "rancher-latest" ]]; then
-			clean_corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|stgregistry.suse.com/rancher/rancher-agent:'"${RANCHER_IMAGE_TAG_FOR_CORRAL}"', RANCHER_VERSION_TYPE|prime"]'
-		else
-			clean_corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|registry.suse.com/rancher/rancher-agent:'"${RANCHER_IMAGE_TAG_FOR_CORRAL}"', RANCHER_VERSION_TYPE|prime"]'
-		fi
-	else
-		clean_corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
-		clean_corral config vars delete rancher_image 2>/dev/null || true
-		clean_corral config vars delete env_var_map 2>/dev/null || true
-	fi
+# Clone qa-infra-automation
+clone_qa_infra() {
+  if [[ -d "${QA_INFRA_DIR}/.git" ]]; then
+    echo "[init] qa-infra-automation already present, updating..."
+    cd "${QA_INFRA_DIR}"
+    if ! git fetch origin || ! git checkout -qf "${QA_INFRA_BRANCH}" || ! git reset --hard "origin/${QA_INFRA_BRANCH}"; then
+      echo "[init] ERROR: Failed to update qa-infra-automation to branch '${QA_INFRA_BRANCH}'"
+      exit 1
+    fi
+  else
+    echo "[init] Cloning qa-infra-automation (${QA_INFRA_BRANCH})..."
+    git clone -b "${QA_INFRA_BRANCH}" "${QA_INFRA_REPO}" "${QA_INFRA_DIR}"
+  fi
+  echo "[init] qa-infra-automation (${QA_INFRA_BRANCH}) at $(git -C "${QA_INFRA_DIR}" rev-parse --short HEAD)"
 }
 
-# ============================================================================
-# Prepare corral packages and shared configuration for cluster provisioning
-# ============================================================================
-prepare_corral_packages() {
-	cd "${WORKSPACE}/corral-packages"
-
-	if [[ -n "${RANCHER_VERSION}" ]]; then
-		yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-k3s.yaml
-		yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
-		yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
-	fi
-
-	echo $'manifest:\n  name: custom-node\ndescription: custom generated node\ntemplates:\n  - aws/nodes\nvariables:\n  instance_type:\n    - t3a.xlarge' >packages/aws/custom-node.yaml
-
-	yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/k3s.yaml
-
-	clean_corral config vars set bootstrap_password "${BOOTSTRAP_PASSWORD:-password}"
-	clean_corral config vars set aws_route53_zone "${AWS_ROUTE53_ZONE}"
-	clean_corral config vars set server_count "${SERVER_COUNT:-3}"
-	clean_corral config vars set agent_count "${AGENT_COUNT:-0}"
-	clean_corral config vars delete rancher_host
-	if [[ "${JOB_TYPE}" == "recurring" ]]; then
-		RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
-	fi
-
-	K3S_KUBERNETES_VERSION="${K3S_KUBERNETES_VERSION//+/-}"
-	make -s init >/dev/null 2>&1
-	make -s build >/dev/null 2>&1
+# Build the runner image from Dockerfile.quickstart
+build_runner_image() {
+  echo "[init] Building ${RUNNER_IMAGE} image..."
+  docker build -q --no-cache -f "${PLAYBOOK_DIR}/Dockerfile.quickstart" \
+    -t "${RUNNER_IMAGE}" "${PLAYBOOK_DIR}"
 }
 
-# ============================================================================
-# Create test infrastructure: custom node and import cluster
-# ============================================================================
-create_test_clusters() {
-	clean_corral config vars set node_count 1
-	clean_corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-c"
-	clean_corral config vars delete instance_type
-	clean_corral config vars set bastion_ip ""
+# Generate vars.yaml from Jenkins environment variables
+generate_vars() {
+  local vars_file="${PLAYBOOK_DIR}/vars.yaml"
 
-	clean_corral create --skip-cleanup --recreate customnode "dist/aws-t3a.xlarge"
-	export CUSTOM_NODE_IP="$(corral vars customnode first_node_ip)"
-	export CUSTOM_NODE_KEY="$(corral vars customnode corral_private_key | base64 -w 0)"
-	clean_corral config vars set custom_node_ip "${CUSTOM_NODE_IP}"
-	clean_corral config vars set custom_node_key "${CUSTOM_NODE_KEY}"
+  if [[ -z "${VARS_YAML_CONFIG:-}" ]]; then
+    echo "[init] ERROR: VARS_YAML_CONFIG is required — configure it in the Jenkins job"
+    exit 1
+  fi
 
-	clean_corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
-	clean_corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
-	clean_corral config vars set server_count 1
-	clean_corral create --skip-cleanup --recreate importcluster "dist/aws-k3s-${K3S_KUBERNETES_VERSION}"
-	clean_corral config vars set imported_kubeconfig "$(corral vars importcluster kubeconfig)"
+  touch "${vars_file}"
+  chmod 600 "${vars_file}"
+  # Strip Windows carriage returns that corrupt YAML parsing
+  printf '%s\n' "${VARS_YAML_CONFIG}" | tr -d '\r' > "${vars_file}"
+
+  # The playbook reads AWS infra values via env lookups; export them from the config
+  # so the playbook's env-based vars pick them up.
+  for var in aws_ami aws_route53_zone aws_vpc aws_subnet aws_security_group; do
+    local val
+    val=$(grep "^${var}:" "${vars_file}" | head -1 | sed "s/^${var}:[[:space:]]*//" | sed 's/[[:space:]]*#.*//' | tr -d "\"'")
+    if [[ -n "${val}" ]]; then
+      declare -x "$(echo "${var}" | tr '[:lower:]' '[:upper:]')=${val}"
+    fi
+  done
+
+  # Inject credentials from Jenkins env that the user shouldn't put in the text area
+  yaml_escape() { echo "${1//\'/\'\'}"; }
+  {
+    echo ""
+    echo "# Credentials injected from Jenkins environment"
+    [[ -n "${QASE_AUTOMATION_TOKEN:-}" ]]    && echo "qase_token: '$(yaml_escape "${QASE_AUTOMATION_TOKEN}")'"
+    [[ -n "${PERCY_TOKEN:-}" ]]              && echo "percy_token: '$(yaml_escape "${PERCY_TOKEN}")'"
+    [[ -n "${AZURE_CLIENT_ID:-}" ]]          && echo "azure_client_id: '$(yaml_escape "${AZURE_CLIENT_ID}")'"
+    [[ -n "${AZURE_CLIENT_SECRET:-}" ]]      && echo "azure_client_secret: '$(yaml_escape "${AZURE_CLIENT_SECRET}")'"
+    [[ -n "${AZURE_AKS_SUBSCRIPTION_ID:-}" ]] && echo "azure_subscription_id: '$(yaml_escape "${AZURE_AKS_SUBSCRIPTION_ID}")'"
+    [[ -n "${GKE_SERVICE_ACCOUNT:-}" ]]      && echo "gke_service_account: '$(yaml_escape "${GKE_SERVICE_ACCOUNT}")'"
+  } >> "${vars_file}"
+
+  export PREFIX="${PREFIX:-$(od -An -tx1 -N4 /dev/urandom | tr -d ' \n')}"
+  echo "[init] prefix=${PREFIX}"
+  echo "[init] Wrote vars.yaml from VARS_YAML_CONFIG"
 }
 
-# ============================================================================
-# Create Rancher server
-# ============================================================================
-create_rancher_server() {
-	clean_corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
-	clean_corral config vars set server_count "${SERVER_COUNT:-3}"
-	clean_corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
-	clean_corral create --skip-cleanup --recreate rancher "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v/}-${CERT_MANAGER_VERSION}"
+yaml_get_scalar() {
+  local key="${1}"
+  local file="${2:-${PLAYBOOK_DIR}/vars.yaml}"
+  local line value
+
+  line=$(grep -E "^${key}:" "${file}" 2>/dev/null | head -1 || true)
+  value="${line#${key}:}"
+  value=$(echo "${value}" | sed 's/[[:space:]]*#.*$//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  value="${value%\"}"
+  value="${value#\"}"
+  value="${value%\'}"
+  value="${value#\'}"
+
+  printf '%s' "${value}"
 }
 
-# ============================================================================
-# Wait for the import cluster API server to become reachable
-# ============================================================================
-wait_for_import_cluster() {
-	local max_attempts="${1:-12}"
-	echo "Waiting for import cluster API to be reachable (max ${max_attempts} attempts)..."
-	for i in $(seq 1 "${max_attempts}"); do
-		kubectl --kubeconfig <(corral vars importcluster kubeconfig | base64 -d) get nodes &>/dev/null && return 0
-		echo "  attempt $i/${max_attempts}..."
-		sleep 10
-	done
-	echo "WARNING: import cluster API not reachable after ${max_attempts} attempts"
+is_valid_ipv4() {
+  local ip="${1}"
+  local o1 o2 o3 o4
+
+  [[ "${ip}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+  IFS='.' read -r o1 o2 o3 o4 <<< "${ip}"
+  for octet in "${o1}" "${o2}" "${o3}" "${o4}"; do
+    ((octet >= 0 && octet <= 255)) || return 1
+  done
 }
 
-# ============================================================================
-# Orchestration: provision infrastructure based on JOB_TYPE
-# ============================================================================
-if [[ "${JOB_TYPE}" == "recurring" ]]; then
-	RANCHER_TYPE="recurring"
-	configure_rancher_helm
-	prepare_corral_packages
-	create_rancher_server
+is_valid_fqdn() {
+  local host="${1}"
+  [[ ${#host} -le 253 ]] || return 1
+  [[ "${host}" =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]
+}
 
-	shopt -s nocasematch
-	if [[ "${CREATE_INITIAL_CLUSTERS}" != "no" ]]; then
-		create_test_clusters
-		wait_for_import_cluster
-	fi
-	shopt -u nocasematch
+validate_existing_host() {
+  local host="${1}"
+
+  if is_valid_ipv4 "${host}" || is_valid_fqdn "${host}"; then
+    return 0
+  fi
+
+  echo "[init] ERROR: rancher_host must be an IPv4 address or FQDN (no scheme). Got: '${host}'"
+  exit 1
+}
+
+sanitize_name_component() {
+  echo "${1}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_.-]/-/g'
+}
+
+resolve_rancher_host() {
+  if [[ -n "${RANCHER_HOST:-}" ]]; then
+    printf '%s' "${RANCHER_HOST}"
+    return 0
+  fi
+
+  if [[ -f "${PLAYBOOK_DIR}/.env" ]]; then
+    local base_url host
+    base_url=$(grep '^TEST_BASE_URL=' "${PLAYBOOK_DIR}/.env" 2>/dev/null | head -1 | cut -d'=' -f2- || true)
+    host="${base_url#https://}"
+    host="${host#http://}"
+    host="${host%%/*}"
+    if [[ -n "${host}" ]]; then
+      printf '%s' "${host}"
+      return 0
+    fi
+  fi
+
+  printf '%s' "dashboard-e2e"
+}
+
+build_cypress_container_name() {
+  local host exec_tag prefix_tag
+  host=$(sanitize_name_component "$(resolve_rancher_host)")
+  exec_tag=$(sanitize_name_component "${EXECUTOR_NUMBER:-0}")
+  prefix_tag=$(sanitize_name_component "${PREFIX:-local}")
+  printf '%s' "cypress-${exec_tag}-${prefix_tag}-${host}"
+}
+
+acquire_existing_host_lock() {
+  local host="${1}"
+  local safe_host lock_file
+
+  if ! command -v flock >/dev/null 2>&1; then
+    echo "[init] ERROR: flock is required for job_type=existing host locking"
+    exit 1
+  fi
+
+  safe_host=$(sanitize_name_component "${host}")
+  lock_file="/tmp/ui-qa-existing-${safe_host}.lock"
+  exec {LOCK_FD}> "${lock_file}"
+
+  if ! flock -n "${LOCK_FD}"; then
+    echo "[init] ERROR: rancher_host '${host}' is already in use by another run."
+    echo "[init] Lock file: ${lock_file}"
+    exit 1
+  fi
+
+  echo "[init] Acquired existing-host lock for ${host}"
+}
+
+# Run the playbook inside the runner container
+run_container() {
+  local tags="${1:-}"
+  local skip_tags="${2:-}"
+
+  local verbose_flags=()
+  if [[ "${ANSIBLE_VERBOSITY}" -gt 0 ]]; then
+    verbose_flags=("-$(printf 'v%.0s' $(seq 1 "${ANSIBLE_VERBOSITY}"))")
+  fi
+
+  local tag_args=()
+  if [[ -n "${tags}" ]]; then
+    tag_args=(--tags "${tags}")
+  fi
+
+  local skip_args=()
+  if [[ -n "${skip_tags}" ]]; then
+    skip_args=(--skip-tags "${skip_tags}")
+  fi
+
+  local vars_file="${PLAYBOOK_DIR}/vars.yaml"
+  local yaml_image_tag yaml_job_type
+  yaml_image_tag=$(grep '^rancher_image_tag:' "${vars_file}" 2>/dev/null | head -1 | sed 's/^rancher_image_tag:[[:space:]]*//' | tr -d "\"'")
+  yaml_job_type=$(grep '^job_type:' "${vars_file}" 2>/dev/null | head -1 | sed 's/^job_type:[[:space:]]*//' | tr -d "\"'")
+
+  echo "============================================================"
+  echo " Dashboard E2E Pipeline (Containerized)"
+  echo " job_type=${yaml_job_type:-recurring}"
+  echo " rancher_image_tag=${yaml_image_tag:-v2.14-head}"
+  echo "============================================================"
+
+  echo "[init] ansible-playbook args: ${verbose_flags[*]:-} ${tag_args[*]:-} ${skip_args[*]:-}"
+
+  docker run --rm -t --init \
+    --label "jenkins_build=${BUILD_TAG:-local}" \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "${PLAYBOOK_DIR}:/playbook" \
+    -v "${QA_INFRA_DIR}:/qa-infra" \
+    -e QA_INFRA_DIR=/qa-infra \
+    -e HOST_DASHBOARD_DIR="${PLAYBOOK_DIR}/dashboard" \
+    -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-}" \
+    -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-}" \
+    -e PREFIX="${PREFIX:-}" \
+    -e EXECUTOR_NUMBER="${EXECUTOR_NUMBER:-0}" \
+    -e BUILD_TAG="${BUILD_TAG:-local}" \
+    "${RUNNER_IMAGE}" \
+    "${verbose_flags[@]}" \
+    "${tag_args[@]}" \
+    "${skip_args[@]}"
+}
+
+# --- Main ---
+if [[ "${1:-}" == "destroy" ]]; then
+  clone_qa_infra
+  if ! docker image inspect "${RUNNER_IMAGE}" &>/dev/null; then
+    build_runner_image
+  fi
+
+  if [[ ! -f "${PLAYBOOK_DIR}/vars.yaml" ]]; then
+    echo "[cleanup] No vars.yaml found — nothing to destroy"
+    exit 0
+  fi
+
+  echo "[cleanup] Destroying infrastructure via playbook..."
+  run_container "cleanup,never" "" || true
+  [[ -d "${PLAYBOOK_DIR}/outputs" ]] && rm -rf "${PLAYBOOK_DIR}/outputs" 2>/dev/null || true
+  echo "[cleanup] Done."
+else
+  clone_qa_infra
+  build_runner_image
+  generate_vars
+
+  # Validate vars.yaml has required keys
+  vars_file="${PLAYBOOK_DIR}/vars.yaml"
+  yaml_job_type=""
+  yaml_rancher_host=""
+  for key in rancher_image_tag cypress_tags job_type; do
+    if ! grep -q "^${key}:" "${vars_file}"; then
+      echo "[init] ERROR: vars.yaml is missing required key '${key}'"
+      exit 1
+    fi
+  done
+
+  yaml_job_type=$(yaml_get_scalar "job_type" "${vars_file}")
+  yaml_rancher_host=$(yaml_get_scalar "rancher_host" "${vars_file}")
+  if [[ "${yaml_job_type:-recurring}" == "existing" ]]; then
+    if [[ -z "${yaml_rancher_host}" ]]; then
+      echo "[init] ERROR: rancher_host is required when job_type=existing"
+      exit 1
+    fi
+    validate_existing_host "${yaml_rancher_host}"
+    export RANCHER_HOST="${yaml_rancher_host}"
+    acquire_existing_host_lock "${yaml_rancher_host}"
+  fi
+
+  # Run playbook: provision + setup (skip test — Docker run is below for streaming)
+  run_container "" "test"
+
+  # Run Cypress in Docker directly for real-time log streaming in Jenkins
+  echo "[init] Running Cypress tests (docker)..."
+
+  if ! docker image inspect "dashboard-test:${EXECUTOR_NUMBER:-0}" &>/dev/null; then
+    echo "[init] ERROR: dashboard-test:${EXECUTOR_NUMBER:-0} image not found — playbook build may have failed"
+    exit 1
+  fi
+  if [[ ! -f "${PLAYBOOK_DIR}/.env" ]]; then
+    echo "[init] ERROR: .env not found — playbook setup may have failed"
+    exit 1
+  fi
+
+  container_name="$(build_cypress_container_name)"
+  docker rm -f "${container_name}" 2>/dev/null || true
+
+  # Kill the cypress container on abort (SIGTERM/SIGINT) to prevent zombies
+  trap 'docker rm -f "${container_name}" 2>/dev/null || true; exit 1' SIGINT SIGTERM
+
+  cypress_exit=0
+  docker run --rm -t --init \
+    --name "${container_name}" \
+    --label "jenkins_build=${BUILD_TAG:-local}" \
+    --shm-size=2g \
+    --env-file "${PLAYBOOK_DIR}/.env" \
+    -e NODE_PATH="" \
+    -v "${PLAYBOOK_DIR}/dashboard:/e2e" \
+    -w /e2e \
+    dashboard-test:${EXECUTOR_NUMBER:-0} || cypress_exit=$?
+
+  # Restore default trap after container exits
+  trap - SIGINT SIGTERM
+
+  echo "[init] Cypress exited with code ${cypress_exit}"
+
+  # Fix ownership — Docker runs as root, Jenkins needs to read/clean these files
+  chown -R "$(id -u):$(id -g)" "${PLAYBOOK_DIR}/dashboard" 2>/dev/null || true
+
+  # Copy results to workspace for Jenkins artifact collection
+  dashboard_dir="${PLAYBOOK_DIR}/dashboard"
+  copy_ok=true
+  cp "${dashboard_dir}/results.xml" "${JENKINS_WORKSPACE}/" 2>/dev/null || copy_ok=false
+  mkdir -p "${JENKINS_WORKSPACE}/html"
+  cp -r "${dashboard_dir}/cypress/reports/html/"* "${JENKINS_WORKSPACE}/html/" 2>/dev/null || copy_ok=false
+
+  # Warn only on a genuine container crash (all three must be true):
+  #   1. Artifact copy failed
+  #   2. Source results.xml doesn't exist (Cypress never finished)
+  #   3. Exit code is a known Docker crash signal, not a Cypress failure count
+  #     - 125=daemon error, 126=cannot invoke, 127=not found
+  #     - 134=SIGABRT, 137=SIGKILL/OOM, 139=SIGSEGV, 143=SIGTERM
+  crash=false
+  case "${cypress_exit}" in
+    125|126|127|134|137|139|143) crash=true ;;
+  esac
+
+  if [[ "${copy_ok}" == false && ! -f "${dashboard_dir}/results.xml" && "${crash}" == true ]]; then
+    echo "[init] WARNING: artifacts failed to copy — container likely crashed (exit ${cypress_exit})"
+  fi
+
+  exit "${cypress_exit}"
 fi
-
-if [[ "${JOB_TYPE}" == "existing" ]]; then
-	RANCHER_TYPE="existing"
-	shopt -s nocasematch
-	if [[ "${CREATE_INITIAL_CLUSTERS}" == "yes" ]]; then
-		prepare_corral_packages
-		create_test_clusters
-		wait_for_import_cluster
-	fi
-	shopt -u nocasematch
-fi
-
-export RANCHER_VERSION
-
-if semver lt "${RANCHER_VERSION}" "2.14.0" >/dev/null && [[ "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="22.14.0"; fi
-
-clean_corral config vars set rancher_type "${RANCHER_TYPE}"
-clean_corral config vars set nodejs_version "${NODEJS_VERSION}"
-clean_corral config vars set dashboard_repo "${DASHBOARD_REPO}"
-clean_corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
-
-if [[ -n "${CYPRESS_TAGS}" ]]; then
-	if [[ "${CYPRESS_TAGS}" =~ "@bypass" ]]; then
-		echo "Bypassing automatic tag additions..."
-		CYPRESS_TAGS=$(clean_tags "${CYPRESS_TAGS}")
-	else
-		# Automatically exclude @noPrime tests on Prime/Alpha/Latest environments
-		if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" || "${RANCHER_HELM_REPO}" == "rancher-latest" || "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
-			if [[ ! "${CYPRESS_TAGS}" =~ "@noPrime" ]]; then
-				CYPRESS_TAGS="${CYPRESS_TAGS}+-@noPrime"
-			fi
-		# Automatically exclude @prime tests on Community environments
-		else
-			if [[ ! "${CYPRESS_TAGS}" =~ "@prime" ]]; then
-				CYPRESS_TAGS="${CYPRESS_TAGS}+-@prime"
-			fi
-		fi
-		# Always exclude @noVai unless explicitly requested
-		if [[ ! "${CYPRESS_TAGS}" =~ "@noVai" ]]; then
-			CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
-		fi
-	fi
-	# Normalize tags for storage (handle spaces, etc.)
-	CYPRESS_TAGS=$(clean_tags "${CYPRESS_TAGS}")
-fi
-clean_corral config vars set cypress_tags "${CYPRESS_TAGS}"
-
-cat >"${WORKSPACE}/notification_values.txt" <<EOF
-RANCHER_VERSION=${RANCHER_VERSION}
-RANCHER_IMAGE_TAG=${RANCHER_IMAGE_TAG_FOR_CORRAL:-${RANCHER_IMAGE_TAG}}
-RANCHER_CHART_URL=${RANCHER_CHART_URL}
-RANCHER_HELM_REPO=${RANCHER_HELM_REPO}
-HELM_REPO_NAME=${HELM_REPO_NAME:-}
-CYPRESS_TAGS=${CYPRESS_TAGS}
-EOF
-clean_corral config vars set cypress_version "${CYPRESS_VERSION}"
-clean_corral config vars set yarn_version "${YARN_VERSION}"
-clean_corral config vars set kubectl_version "${KUBECTL_VERSION}"
-
-if [[ -n "${RANCHER_USERNAME}" ]]; then
-	clean_corral config vars set rancher_username "${RANCHER_USERNAME}"
-fi
-
-if [[ -n "${RANCHER_PASSWORD}" ]]; then
-	clean_corral config vars set rancher_password "${RANCHER_PASSWORD}"
-fi
-
-if [[ -n "${RANCHER_HOST}" ]]; then
-	clean_corral config vars set rancher_host "${RANCHER_HOST}"
-fi
-
-if [[ -n "${CHROME_VERSION}" ]]; then
-	clean_corral config vars set chrome_version "${CHROME_VERSION}"
-fi
-
-echo "Running CI tests directly on Jenkins executor..."
-
-cd "${WORKSPACE}"
-
-export NODEJS_VERSION
-export DASHBOARD_REPO
-export DASHBOARD_BRANCH
-export CYPRESS_TAGS
-export CYPRESS_VERSION
-export YARN_VERSION
-export KUBECTL_VERSION
-export RANCHER_USERNAME
-export RANCHER_PASSWORD
-export RANCHER_HOST
-export CHROME_VERSION
-export RANCHER_TYPE
-export RANCHER_IMAGE_TAG="${RANCHER_IMAGE_TAG_FOR_CORRAL:-${RANCHER_IMAGE_TAG}}"
-
-if corral vars importcluster kubeconfig >/dev/null 2>&1; then
-	export IMPORTED_KUBECONFIG=$(corral vars importcluster kubeconfig)
-fi
-
-bash "cypress/jenkins/run.sh"
-
-echo "Setup finished successfully."

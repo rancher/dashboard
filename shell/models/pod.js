@@ -4,6 +4,7 @@ import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
+import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -222,12 +223,29 @@ export default class Pod extends WorkloadService {
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
   }
 
+  /**
+   * How many times has the first container restarted
+   */
   get restartCount() {
     if (this.status.containerStatuses) {
       return this.status?.containerStatuses[0].restartCount || 0;
     }
 
     return 0;
+  }
+
+  /**
+   * How many times does native kube report this pod has restarted
+   */
+  get restartsCount() {
+    return this.metadata?.fields?.[3]?.match(POD_RESTARTS_REG_EX)?.[1] || '';
+  }
+
+  /**
+   * When does native kube think the last pod restart happen?
+   */
+  get restartsLaster() {
+    return this.metadata?.fields?.[3]?.match(POD_RESTARTS_REG_EX)?.[2] || '';
   }
 
   processSaveResponse(res) {

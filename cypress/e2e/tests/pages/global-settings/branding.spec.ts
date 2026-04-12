@@ -270,7 +270,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
-  it('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background (Dark)', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -279,22 +279,18 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.customLoginBackgroundCheckbox().hasAppropriateWidth();
     brandingPage.customLoginBackgroundCheckbox().hasAppropriateHeight();
 
-    // Upload Light Background
-    brandingPage.uploadButton('Upload Light Background')
-      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
-
-    // Upload Dark Background
+    // Upload only Dark Background
     brandingPage.uploadButton('Upload Dark Background')
       .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-dark.svg', { force: true });
 
     // Apply
-    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
 
-    // Banner Preview
+    // Only dark preview should be visible, light preview should not exist
     brandingPage.loginBackgroundPreview('dark').scrollIntoView().should('be.visible');
-    brandingPage.loginBackgroundPreview('light').scrollIntoView().should('be.visible');
+    brandingPage.loginBackgroundPreview('light').should('not.exist');
 
-    // Set dashboard theme to Dark and check login page for updated background in dark mode
+    // Set dashboard theme to Dark and check login page for updated background
     PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
@@ -313,7 +309,12 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
 
-    // Set dashboard theme to Dark and check login page for updated background in light mode
+    // Reset
+    BrandingPagePo.navTo();
+    brandingPage.customLoginBackgroundCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
+
+    // Set theme back to Light
     PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
@@ -323,7 +324,29 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(request.body.data).to.have.property('theme', '"ui-light"');
       expect(response?.body.data).to.have.property('theme', '"ui-light"');
     });
+  });
 
+  it('Login Background (Light)', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    BrandingPagePo.navTo();
+
+    // Ensure login background customization is disabled to clear any leftover dark config
+    brandingPage.customLoginBackgroundCheckbox().uncheck();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
+
+    brandingPage.customLoginBackgroundCheckbox().set();
+
+    // Upload only Light Background
+    brandingPage.uploadButton('Upload Light Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
+
+    // Apply
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+
+    // Only light preview should be visible, dark preview should not exist
+    brandingPage.loginBackgroundPreview('light').scrollIntoView().should('be.visible');
+    brandingPage.loginBackgroundPreview('dark').should('not.exist');
+
+    // Verify login page shows the light background
     cy.fixture('branding/backgrounds/login-landscape-light.svg', 'base64').then((expectedBase64) => {
       loginPage.goTo();
       loginPage.loginBackgroundImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);

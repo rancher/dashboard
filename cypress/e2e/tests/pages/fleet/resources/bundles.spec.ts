@@ -60,6 +60,9 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
 
       fleetBundlesDetailsPage.waitForPage();
 
+      // click on the Resources tab
+      fleetBundlesDetailsPage.tabs().clickTabWithName('resources');
+
       // check table headers
       const expectedHeadersDetailsViewEvents = ['State', 'Name', 'Kind', 'Cluster', 'Namespace', 'API Version'];
 

@@ -92,10 +92,8 @@ jobs:
     needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:
-      actions: write
+      actions: read
       contents: write
-      deployments: write
-      pages: write
       # permission needed for PR creation on this job
       pull-requests: write
     outputs:

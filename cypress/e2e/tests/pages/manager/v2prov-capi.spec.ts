@@ -1,5 +1,6 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { qase } from '@/cypress/support/qase';
 
 import { mockCapiMgmtCluster, mockCapiProvCluster } from '@/cypress/e2e/blueprints/manager/v2prov-capi-cluster-mocks';
 
@@ -30,13 +31,21 @@ describe('Cluster List - v2 Provisioning CAPI Clusters', { tags: ['@manager', '@
     clusterList.waitForPage();
   });
 
-  it('should not allow editing CAPI cluster configs', () => {
-    clusterList.list().actionMenu(clusterName).getMenuItem('Edit Config').should('not.exist');
-    clusterList.list().actionMenu('local').getMenuItem('Edit Config').should('exist');
-  });
+  qase(18526, it('should not allow editing CAPI cluster configs', () => {
+    const capiActionMenu = clusterList.list().actionMenu(clusterName);
 
-  it('should not report a machine provider for CAPI clusters', () => {
+    capiActionMenu.getMenuItem('Edit Config').should('not.exist');
+
+    // Close the first row action menu so its overlay does not block subsequent row actions.
+    clusterList.list().actionMenuClose(clusterName);
+    cy.get('body').find('[dropdown-menu-collection]:visible').should('have.length', 0);
+
+    clusterList.list().actionMenu('local').getMenuItem('Edit Config').should('exist');
+  }));
+
+  qase(18528, it('should not report a machine provider for CAPI clusters', () => {
     clusterList.list().provider(clusterName).should('have.text', ' RKE2');
-    clusterList.list().provider('local').should('have.text', 'Local K3s');
-  });
+
+    clusterList.list().provider('local').invoke('text').should('match', /^Local (K3s|RKE2)$/);
+  }));
 });
