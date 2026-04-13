@@ -88,7 +88,9 @@ export default defineComponent({
       vendor: getVendor(),
 
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
+      canViewProvClusters:  !!this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
       canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
       canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
@@ -116,20 +118,22 @@ export default defineComponent({
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
+          getValue:      (row: ProvCluster) => row.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
           subLabel:  this.t('landing.clusters.distro'),
-          value:     'mgmt.status.provider',
+          value:     'status.provider',
           name:      'Provider',
-          sort:      ['mgmt.status.provider'],
-          formatter: 'ClusterProvider'
+          sort:      ['status.info.machineProvider', 'status.driver'],
+          formatter: 'MgmtClusterProvider'
         },
         {
           label:    this.t('landing.clusters.kubernetesVersion'),
           subLabel: this.t('landing.clusters.architecture'),
           name:     'kubernetesVersion',
+          sort:     'status.version.info.kubernetesVersion',
+          search:   'status.version.info.kubernetesVersion'
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -148,7 +152,7 @@ export default defineComponent({
           name:         'pods',
           value:        '',
           sort:         ['status.allocatable.pods', 'status.requested.pods'],
-          formatter:    'PodsUsage',
+          formatter:    'MgmtPodsUsage',
           delayLoading: true
         },
         // {
@@ -162,17 +166,17 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          value:         `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
-          sort:          [`metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`],
-          search:        `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
+          value:         `spec.displayName`,
+          sort:          [`spec.displayName`],
+          search:        `spec.displayName`,
         },
         {
           label:     this.t('landing.clusters.provider'),
           subLabel:  this.t('landing.clusters.distro'),
-          value:     'mgmt.status.provider',
+          value:     'status.info.machineProvider',
           name:      'Provider',
-          sort:      false,
-          search:    false,
+          sort:      ['status.info.machineProvider', 'status.driver'],
+          search:    ['status.info.machineProvider', 'status.driver'],
           formatter: 'ClusterProvider'
         },
         {
@@ -202,7 +206,7 @@ export default defineComponent({
           value:        '',
           sort:         false,
           search:       false,
-          formatter:    'PodsUsage',
+          formatter:    'MgmtPodsUsage',
           delayLoading: true
         },
       ],
@@ -245,7 +249,12 @@ export default defineComponent({
     },
 
     canCreateCluster() {
-      return !!this.provClusterSchema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post');
+      // TODO: RC Question Kinara - does PCIC rbac match MCIC, for example schema collectionMethods `post`
+      return !!this.mgmtClusterSchema?.collectionMethods.find((x: string) => {
+        const verb = x.toLowerCase();
+
+        return verb === 'post' || verb === 'blocked-post';
+      });
     },
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
@@ -310,9 +319,8 @@ export default defineComponent({
 
       const promises = [];
 
-      if ( this.canViewMgmtClusters ) {
-        // This is the only one we need to block on (needed for the initial sort on mgmt name)
-        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }));
+      if ( this.canViewProvClusters ) {
+        promises.push(this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }));
       }
 
       if ( this.canViewMachine ) {
@@ -346,13 +354,13 @@ export default defineComponent({
 
       this.clusterCount = pagResult.count;
 
-      if ( this.canViewMgmtClusters ) {
+      if ( this.canViewProvClusters ) {
         const opt: ActionFindPageArgs = {
           force,
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'id',
-              value: r.mgmtClusterId
+              value: r.provClusterId
             }))),
           })
         };
@@ -360,19 +368,20 @@ export default defineComponent({
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
       }
 
-      if ( this.canViewMachine ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.metadata.name
-            }))),
-          })
-        };
+      // TODO: RC k3d cluster --> cluster.x-k8s.io.machines contains spec.clusterName?? if so get it indexed < ---------------------------- first
+      // if ( this.canViewMachine ) {
+      //   const opt: ActionFindPageArgs = {
+      //     force,
+      //     pagination: new FilterArgs({
+      //       filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+      //         field: 'spec.clusterName',
+      //         value: r.provClusterName
+      //       }))),
+      //     })
+      //   };
 
-        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
-      }
+      //   await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+      // }
 
       if ( this.canViewMgmtNodes ) {
         const opt: ActionFindPageArgs = {
@@ -380,7 +389,7 @@ export default defineComponent({
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'id',
-              value: r.mgmtClusterId,
+              value: r.id,
               exact: false,
             }))),
           })
@@ -390,13 +399,14 @@ export default defineComponent({
       }
 
       // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates ) {
+      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
         const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
-          .filter((p: any) => p.status?.clusterName)
+          .filter((p: any) => p.id)
           .map((r: any) => new PaginationFilterField({
             field: 'spec.clusterName',
-            value: r.status?.clusterName
+            value: r.id
           })));
+
         const nodePools = await this.$store.dispatch(`management/findPage`, {
           type: MANAGEMENT.NODE_POOL,
           opt:  {
@@ -787,8 +797,9 @@ export default defineComponent({
               class="col span-12"
             >
               <PaginatedResourceTable
-                v-if="provClusterSchema"
-                :schema="provClusterSchema"
+                v-if="mgmtClusterSchema"
+                :schema="mgmtClusterSchema"
+                overrideInStore="management"
                 :table-actions="false"
                 :row-actions="false"
                 key-field="id"
@@ -799,11 +810,12 @@ export default defineComponent({
                 :local-filter="filterRowsLocal"
                 :api-filter="filterRowsApi"
 
+                :fetch-secondary-resources="fetchSecondaryResources"
+                :fetch-page-secondary-resources="fetchPageSecondaryResources"
+
                 :namespaced="false"
                 :groupable="false"
                 manualRefreshButtonSize="sm"
-                :fetchSecondaryResources="fetchSecondaryResources"
-                :fetchPageSecondaryResources="fetchPageSecondaryResources"
               >
                 <template #header-left>
                   <div class="row table-heading">
@@ -870,12 +882,12 @@ export default defineComponent({
                   <td class="col-name">
                     <div class="list-cluster-name">
                       <p
-                        v-if="row.mgmt"
+                        v-if="row"
                         class="cluster-name"
                       >
                         <router-link
-                          v-if="row.mgmt.isReady && !row.hasError"
-                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                          v-if="row.isReady && !row.hasError"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.id }}"
                           role="link"
                           :aria-label="row.nameDisplay"
                         >
@@ -916,16 +928,16 @@ export default defineComponent({
                   </td>
                 </template>
                 <template #col:cpu="{row}">
-                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
-                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
+                  <td v-if="cpuAllocatable(row)">
+                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
                   </td>
                 </template>
                 <template #col:memory="{row}">
-                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row.mgmt) }}
+                  <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
+                    {{ memoryAllocatable(row) }}
                   </td>
                   <td v-else>
                     &mdash;

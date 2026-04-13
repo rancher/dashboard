@@ -12,6 +12,7 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
+import myLogger from '@shell/utils/my-logger';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -43,7 +44,7 @@ export async function handleSpoofedRequest(rootGetters, schemaStore, opt, produc
 
 export async function loadSchemas(ctx, watch = true) {
   const {
-    getters, dispatch, commit, rootGetters
+    getters, dispatch, commit, rootGetters, state
   } = ctx;
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
   const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;

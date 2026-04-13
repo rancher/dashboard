@@ -26,7 +26,7 @@ import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
   version:       1,
-  enabled:       true,
+  enabled:       false, // TODO: RC vai on... pagination
   configuration: {
     threshold: 500, results: 250, pagesPerRow: 25
   }

@@ -5,6 +5,8 @@ import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 
+// TODO: RC bug create a harvester cluster... this page doesn't show (page shown is for mgmt cluster? has machine provider in detail)
+
 export default {
   emits: ['input'],
 
@@ -25,14 +27,13 @@ export default {
   },
 
   async fetch() {
+    debugger;
     await this.value.waitForProvisioner();
 
     const hash = { clusterToken: this.value.getOrCreateToken() };
 
     const res = await allHash(hash);
 
-    this.allNodes = res.allNodes || [];
-    this.allNodePools = res.allNodePools || [];
     this.clusterToken = res.clusterToken;
   },
 
@@ -50,6 +51,7 @@ export default {
     },
 
     showRegistration() {
+      debugger;
       if ( !this.clusterToken ) {
         return false;
       }

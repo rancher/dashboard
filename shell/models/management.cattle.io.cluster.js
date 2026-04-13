@@ -1,6 +1,7 @@
-import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
+import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import {
-  NODE, FLEET, MANAGEMENT, CAPI, EXT
+  NODE, FLEET, MANAGEMENT, CAPI, EXT,
+  NORMAN
 } from '@shell/config/types';
 import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
@@ -12,11 +13,12 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
-import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { KONTAINER_TO_DRIVER, KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider } from '@shell/utils/provider';
+import { ucFirst } from '@shell/utils/string';
 
 const DEFAULT_BADGE_COLOR = '#707070';
 
@@ -98,20 +100,148 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provisioner() {
+    // TODO: RC kinara -
+    // MCIC status.driver: ''. status.provider: ''.
+    // PCIC
+    //  const allKeys = Object.keys(this.spec);
+    // //   const configKey = allKeys.find( (k) => k.endsWith('Config'));
+
+    // //   if ( configKey === 'rkeConfig') {
+    // //     return 'rke2';
+
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
 
-  get machineProvider() {
-    const kind = this.machinePools?.[0]?.provider;
-
-    if ( kind ) {
-      return kind.replace(/config$/i, '').toLowerCase();
-    } else if ( this.spec?.internal ) {
-      return 'local';
+  get provisionerDisplay() {
+    // Allow a model extension to override the display of the provisioner
+    if (this.customProvisionerHelper?.provisionerDisplay) {
+      return this.customProvisionerHelper?.provisionerDisplay(this);
     }
 
-    return null;
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ this.provisioner }"`, null, ucFirst(this.provisioner));
+  }
+
+  /**
+   * Get the custom provisioner helper for this model
+   */
+  get customProvisionerHelper() {
+    if (this.provCluster) {
+      return null;
+    }
+
+    // TODO: RC we're now always need to fetch the prov cluster....
+
+    // Find the first model extension that says it can be used for this model
+    return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this.provCluster) : false);
+  }
+
+  get provider() {
+    return this.status?.provider;
+  }
+
+  get machineProvider() {
+    return this.status?.info.machineProvider;
+  }
+
+  // get machineProvider() {
+  //   const kind = this.machinePools?.[0]?.provider;
+
+  //   if ( kind ) {
+  //     return kind.replace(/config$/i, '').toLowerCase();
+  //   } else if ( this.spec?.internal ) {
+  //     return 'local';
+  //   }
+
+  //   return null;
+  // }
+
+  get machineProviderDisplay() {
+    if (this.customProvisionerHelper?.machineProviderDisplay) {
+      return this.customProvisionerHelper?.machineProviderDisplay(this);
+    }
+
+    const provider = (this.machineProvider || '').toLowerCase();
+
+    if ( provider ) {
+      return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
+    } else {
+      return this.$rootGetters['i18n/t']('generic.unknown');
+    }
+  }
+
+  // Is the cluster a legacy (unsupported) KEV1 cluster?
+  get isKev1() {
+    return KEV1.includes(this.spec?.genericEngineConfig?.driverName);
+  }
+
+  get isImported() {
+    return this.machineProvider === 'imported';
+  }
+
+  get isCustom() {
+    debugger;
+    if ( this.isRke2 ) {
+      return !(this.provCluster?.spec?.rkeConfig?.machinePools?.length);
+    }
+
+    return false;
+  }
+
+  get isImportedK3s() {
+    return this.isImported && this.isK3s;
+  }
+
+  get isImportedRke2() {
+    return this.isImported && this.provider?.startsWith('rke2');
+  }
+
+  get isK3s() {
+    return this.status ? this.status.provider === 'k3s' : (this.kubernetesVersion || '').includes('k3s') ; // TODO: RC test
+  }
+
+  get isRke2() {
+    return !!this.provCluster?.spec?.rkeConfig;
+  }
+
+  // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
+  get isCapiHybrid() {
+    if (!this.isRke2) {
+      return false;
+    }
+
+    const machineReferences = (this.provCluster.spec?.rkeConfig?.machinePools || []).map((pool) => pool.machineConfigRef);
+
+    const capiMachines = machineReferences.find((r) => r?.apiVersion?.includes('cluster.x-k8s.io'));
+
+    return !!capiMachines;
+  }
+
+  get isHostedKubernetesProvider() {
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
+
+    return isHostedProvider(context, this.provisioner);
+  }
+
+  get isPrivateHostedProvider() {
+    if (this.isHostedKubernetesProvider && this.provisioner) {
+      switch (this.provisioner.toLowerCase()) {
+      case 'gke':
+        return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
+      case 'eks':
+        return this.mgmt.spec?.eksConfig?.privateAccess;
+      case 'aks':
+        return this.mgmt.spec?.aksConfig?.privateCluster;
+      }
+    }
+
+    return false;
   }
 
   get providerForEmberParam() {
@@ -191,11 +321,14 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get kubernetesVersionRaw() {
-    const fromStatus = this.status?.version?.gitVersion;
-    const fromSpec = this.config?.kubernetesVersion;
+    return this.status.info.kubernetesVersion;
+    // const fromStatus = this.status?.version?.kubernetesVersion;
+    // const fromSpec = this.config?.kubernetesVersion;
 
-    return fromStatus || fromSpec;
+    // return fromStatus || fromSpec;
   }
+
+  // TODO: RC test case - correct values whilst provisioning
 
   get kubernetesVersion() {
     return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.provisioning');
@@ -214,7 +347,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get providerOs() {
-    if ( this.status?.provider.endsWith('.windows')) {
+    if ( this.provider?.endsWith('.windows')) {
       return 'windows';
     }
 
@@ -257,20 +390,8 @@ export default class MgmtCluster extends SteveModel {
     return isHarvesterCluster(this);
   }
 
-  get isHostedKubernetesProvider() {
-    const context = {
-      dispatch:   this.$dispatch,
-      getters:    this.$getters,
-      axios:      this.$axios,
-      $extension: this.$extension,
-      t:          (...args) => this.t.apply(this, args),
-    };
-
-    return isHostedProvider(context, this.provisioner);
-  }
-
   get providerLogo() {
-    let provider = this.status?.provider || 'kubernetes';
+    let provider = this.provider || 'kubernetes';
 
     if (this.isHarvester) {
       provider = HARVESTER;
@@ -299,6 +420,87 @@ export default class MgmtCluster extends SteveModel {
 
   get providerNavLogo() {
     return this.providerLogo;
+  }
+
+  get pools() {
+    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter((pool) => pool.spec?.clusterName === this.provClusterName);
+
+    if (!!deployments.length) {
+      return deployments;
+    }
+
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.id); // TODO: RC validate
+  }
+
+  get nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
+  }
+
+  get nodesArchitecture() {
+    const obj = {};
+
+    this.nodes?.forEach((node) => {
+      if (!node.metadata?.state?.transitioning) {
+        const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+
+        const key = architecture || this.t('cluster.architecture.label.unknown');
+
+        obj[key] = (obj[key] || 0) + 1;
+      }
+    });
+
+    return obj;
+  }
+
+  get architecture() {
+    const keys = Object.keys(this.nodesArchitecture);
+
+    switch (keys.length) {
+    case 0:
+      return { label: this.t('generic.provisioning') };
+    case 1:
+      return { label: keys[0] };
+    default:
+      return {
+        label:   this.t('cluster.architecture.label.mixed'),
+        tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+      };
+    }
+  }
+
+  get machines() {
+    return this.$rootGetters['management/all'](CAPI.MACHINE).filter((machine) => {
+      if ( machine.metadata?.namespace !== this.provClusterNamespace ) {
+        return false;
+      }
+
+      return machine.spec?.clusterName === this.provClusterName;
+    });
+  }
+
+  get unavailableMachines() {
+    // TODO: RC test case
+    if (this.isReady) {
+      const names = this.machines.filter((machine) => {
+        return machine.status?.conditions?.find((c) => c.error && c.type === 'NodeHealthy');
+      }).map((machine) => {
+        if (machine.status?.nodeRef?.name) {
+          return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
+        }
+
+        return this.t('cluster.availabilityWarnings.machine', { name: machine.metadata.name });
+      });
+
+      return names.join('<br>');
+    }
+
+    return '';
+  }
+
+  // nodeGroups can be undefined for an EKS cluster that has just been created and has not
+  // had any node groups added to it
+  get eksNodeGroups() {
+    return this.spec?.eksConfig?.nodeGroups || [];
   }
 
   // Color to use as the underline for the icon in the app bar
@@ -450,8 +652,16 @@ export default class MgmtCluster extends SteveModel {
     }, initialAggregation);
   }
 
-  get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
+  get normanCluster() {
+    return this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.id);// TODO: RC validate
+  }
+
+  async findNormanCluster() {
+    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.id }, { root: true }); // TODO: RC validate
+  }
+
+  get provCluster() {
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.provClusterId);
   }
 
   get provClusterId() {
@@ -468,6 +678,18 @@ export default class MgmtCluster extends SteveModel {
     }
 
     return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
+  }
+
+  get provClusterNamespace() { // TODO: RC better way to determine prov cluster namespace + name?
+    const [namespace] = this.provClusterId.split('/');
+
+    return namespace;
+  }
+
+  get provClusterName() { // TODO: RC better way to determine prov cluster namespace + name?
+    const [_, name] = this.provClusterId.split('/');
+
+    return name;
   }
 
   get pinned() {
