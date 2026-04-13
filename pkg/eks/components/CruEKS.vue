@@ -347,7 +347,7 @@ export default defineComponent({
     },
 
     isImportedCluster(): boolean {
-      return this.isImport || !!this.config?.imported;
+      return this.isImport || this.value.isImported;
     },
 
     fvExtraRules(): {[key:string]: Function} {

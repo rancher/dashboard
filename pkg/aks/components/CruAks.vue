@@ -265,7 +265,7 @@ export default defineComponent({
     },
 
     isImportedCluster() {
-      return this.isImport || !!this.config?.imported;
+      return this.isImport || this.value.isImported;
     },
     /**
      * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here

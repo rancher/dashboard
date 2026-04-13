@@ -352,7 +352,7 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
 
     isImportedCluster() {
-      return this.isImport || !!this.config?.imported;
+      return this.isImport || this.value.isImported;
     },
 
     /**
