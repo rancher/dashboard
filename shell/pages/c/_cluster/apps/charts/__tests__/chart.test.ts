@@ -250,4 +250,75 @@ describe('page: Chart Detail', () => {
       expect(hasInstalled).toBe(true);
     });
   });
+
+  describe('computed: installedAppOptions', () => {
+    const makeApp = (namespace: string, name: string, upgradeStatus: string) => ({
+      id:               `${ namespace }/${ name }`,
+      metadata:         { namespace, name },
+      upgradeAvailable: upgradeStatus
+    });
+
+    it('returns empty array when no installed instances', () => {
+      const thisContext = {
+        installedInstances: [],
+        t:                  (key: string) => key
+      };
+
+      const result = (Chart.computed!.installedAppOptions as () => any[]).call(thisContext);
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('returns options without upgradeable suffix for non-upgradeable apps', () => {
+      const thisContext = {
+        installedInstances: [
+          makeApp('default', 'my-app', APP_UPGRADE_STATUS.NO_UPGRADE)
+        ],
+        t: (key: string) => key
+      };
+
+      const result = (Chart.computed!.installedAppOptions as () => any[]).call(thisContext);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toStrictEqual({
+        value: 'default/my-app',
+        label: 'default/my-app'
+      });
+    });
+
+    it('adds upgradeable suffix for apps with available upgrade', () => {
+      const thisContext = {
+        installedInstances: [
+          makeApp('cattle-system', 'rancher-app', APP_UPGRADE_STATUS.SINGLE_UPGRADE)
+        ],
+        t: (key: string) => key
+      };
+
+      const result = (Chart.computed!.installedAppOptions as () => any[]).call(thisContext);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toStrictEqual({
+        value: 'cattle-system/rancher-app',
+        label: 'cattle-system/rancher-app (generic.upgradeable)'
+      });
+    });
+
+    it('correctly labels mixed upgradeable and non-upgradeable apps', () => {
+      const thisContext = {
+        installedInstances: [
+          makeApp('default', 'app-one', APP_UPGRADE_STATUS.NO_UPGRADE),
+          makeApp('kube-system', 'app-two', APP_UPGRADE_STATUS.SINGLE_UPGRADE),
+          makeApp('monitoring', 'app-three', APP_UPGRADE_STATUS.NOT_APPLICABLE)
+        ],
+        t: (key: string) => key
+      };
+
+      const result = (Chart.computed!.installedAppOptions as () => any[]).call(thisContext);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].label).toBe('default/app-one');
+      expect(result[1].label).toBe('kube-system/app-two (generic.upgradeable)');
+      expect(result[2].label).toBe('monitoring/app-three');
+    });
+  });
 });

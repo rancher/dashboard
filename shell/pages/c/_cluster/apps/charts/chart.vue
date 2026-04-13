@@ -191,12 +191,18 @@ export default {
 
     /**
      * Returns options for the installed apps selector dropdown.
+     * Adds "(Upgradeable)" suffix to apps that have an upgrade available.
      */
     installedAppOptions() {
-      return (this.installedInstances || []).map((app) => ({
-        value: app.id,
-        label: `${ app.metadata.namespace }/${ app.metadata.name }`
-      }));
+      return (this.installedInstances || []).map((app) => {
+        const isUpgradeable = app.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+        const baseName = `${ app.metadata.namespace }/${ app.metadata.name }`;
+
+        return {
+          value: app.id,
+          label: isUpgradeable ? `${ baseName } (${ this.t('generic.upgradeable').toLowerCase() })` : baseName
+        };
+      });
     }
 
   },
