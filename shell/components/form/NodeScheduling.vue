@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import NodeAffinity from '@shell/components/form/NodeAffinity.vue';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { _VIEW } from '@shell/config/query-params';
@@ -18,6 +19,7 @@ const parseNode = (node: string | KubeNode) => typeof node === 'string' ? node :
 export default {
   components: {
     RadioGroup,
+    LabeledSelect,
     ResourceLabeledSelect,
     NodeAffinity,
   },
@@ -35,7 +37,7 @@ export default {
      */
     nodes: {
       type:    Array,
-      default: () => []
+      default: () => null
     },
 
     mode: {
@@ -218,14 +220,14 @@ export default {
       handler(nodeSelector) {
         // Harvester specific code should not live in rancher/dashboard components
         // This was brought into harvester/dashboard via https://github.com/harvester/dashboard/pull/342
-        // rancher/dashboard via https://github.com/rancher/dashboard/pull/6310
+        // and then rancher/dashboard via https://github.com/rancher/dashboard/pull/6310
         if (this.isHarvester && nodeSelector?.[HOSTNAME]) {
           this.selectNode = 'nodeSelector';
           const nodeName = nodeSelector[HOSTNAME];
 
           this.nodeName = nodeName;
 
-          const array = this.nodes.map((n) => n.value);
+          const array = this.nodes?.map((n) => n.value) || [];
 
           if (nodeName && !array.includes(nodeName)) {
             this.$store.dispatch('growl/error', {
@@ -259,7 +261,19 @@ export default {
     <template v-if="selectNode === 'nodeSelector'">
       <div class="row">
         <div class="col span-6">
+          <LabeledSelect
+            v-if="nodes"
+            v-model:value="nodeName"
+            :label="t('workload.scheduling.affinity.nodeName')"
+            :options="nodes || []"
+            :mode="mode"
+            :multiple="false"
+            :loading="loading"
+            :data-testid="'node-scheduling-nodeSelector'"
+            @update:value="update"
+          />
           <ResourceLabeledSelect
+            v-else
             v-model:value="nodeName"
             :label="t('workload.scheduling.affinity.nodeName')"
             :resource-type="NODE"

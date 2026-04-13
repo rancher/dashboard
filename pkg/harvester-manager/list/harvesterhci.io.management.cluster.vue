@@ -280,13 +280,11 @@ export default {
         if (!harvesterRepository) {
           harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
         }
-
         /**
          * Server issue
          * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
          */
         await refreshHelmRepository(this.$store, harvesterRepository.spec.gitRepo || harvesterRepository.spec.url);
-
         this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
         if (!this.harvesterInstallVersion) {
@@ -310,6 +308,7 @@ export default {
 
         installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
+        console.error('Error installing Harvester UI extension', error); // eslint-disable-line no-console
       }
 
       this.harvesterExtensionInstallError = !installed;
