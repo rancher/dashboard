@@ -813,10 +813,10 @@ export default {
       display: flex;
       align-items: flex-start;
       flex-shrink: 0;
-      gap: 10px;
+      gap: 8px;
 
       .installed-apps-selector {
-        min-width: 250px;
+        width: 340px;
       }
     }
 
