@@ -23,16 +23,22 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/inactivity.ts` - DONE locally (branch: test-assist/inactivity-utils-tests, 14 tests) - NOT pushed (safeoutputs unavailable 2026-04-12)
+1. `shell/utils/inactivity.ts` - DONE locally (branch: test-assist/inactivity-utils-tests, 18 tests, 100% stmt/fn/line, 75% branch) - NOT pushed (safeoutputs unavailable 2026-04-12 and 2026-04-13). READY TO PUSH next run.
 2. `shell/utils/url.ts` - DONE (PR #17176 open)
-3. `shell/utils/pagination-utils.ts` - started 2026-04-09 but NOT confirmed pushed; not in __tests__ dir
-4. `shell/utils/git.ts` - started 2026-04-11 but NOT pushed (safeoutputs unavailable)
+3. `shell/utils/git.ts` - has testable normalize functions; NOT pushed (safeoutputs unavailable)
+4. `shell/utils/pagination-utils.ts` - started 2026-04-09 but NOT confirmed pushed; not in __tests__ dir
 5. `shell/utils/fleet.ts` (328 lines) - fleet.test.ts exists (155 lines) but partial coverage
 6. `shell/utils/settings.ts` - getPerformanceSetting and isProviderEnabled are testable
 7. `shell/utils/gc/gc.ts` - garbage collection logic, store-heavy, complex
-8. `shell/utils/dynamic-content/` - mostly tested (has __tests__/ dir with 6 test files)
 
 ## Completed Work
+
+### 2026-04-13
+- Re-wrote 18 tests for shell/utils/inactivity.ts (100% statements/functions/lines, 75% branches)
+- Tests: parseTTLData (9 cases), getUserActivity (4), updateUserActivity (3), token lifecycle (2)
+- Lint clean, all 18 tests pass
+- BLOCKED: safeoutputs tools not available; PR not created; code committed locally only
+- Branch test-assist/inactivity-utils-tests ready to push in future run
 
 ### 2026-04-12
 - Wrote 14 tests for shell/utils/inactivity.ts (parseTTLData: cap logic, 20% calc, 3s buffer; session token lifecycle; edge cases)
@@ -53,6 +59,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-13: Task 3 (inactivity.ts 18 tests, 100% coverage) - BLOCKED on safeoutputs
 - 2026-04-12: Tasks 3 (inactivity.ts), 7 (monthly summary) - BLOCKED on safeoutputs
 - 2026-04-11: Tasks 3 (git.ts), 4 (maintain PRs) - BLOCKED on safeoutputs
 - 2026-04-09: Tasks 3 (pagination-utils), 7 (monthly summary)
@@ -60,10 +67,11 @@
 
 ## Pending (needs retry)
 
-- inactivity.ts tests: local branch test-assist/inactivity-utils-tests NOT pushed
-- git.ts tests: local branch NOT pushed
+- inactivity.ts tests: committed locally as test-assist/inactivity-utils-tests, 18 tests, READY TO PUSH
+- git.ts tests: NOT pushed (safeoutputs unavailable)
 - Monthly activity issue #17177 not updated since 2026-04-09
 - Verify if pagination-utils PR was ever created
+- safeoutputs tools have been unavailable for 3 consecutive runs (2026-04-11, 2026-04-12, 2026-04-13)
 
 ## Maintainer Priorities
 
