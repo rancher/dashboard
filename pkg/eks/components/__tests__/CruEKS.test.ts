@@ -213,7 +213,7 @@ describe('eKS provisioning form', () => {
 
   it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {
     const wrapper = mount(CruEKS, {
-      propsData: { value: {}, mode: 'edit' },
+      propsData: { value: { isImported: true }, mode: 'edit' },
       ...requiredSetup(),
       shallow:   true,
     });
@@ -259,7 +259,7 @@ describe('eKS provisioning form', () => {
 
   it('should show the registries accordion when editing an imported cluster', async() => {
     const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'edit' },
+      propsData: { value: { isImported: true }, mode: 'edit' },
       ...requiredSetup()
     });
 
