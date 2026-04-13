@@ -225,7 +225,7 @@ export function init(store) {
   ]);
 
   // Configure custom count getter for cluster count (so we don't include Harvester clusters)
-  configureType(CAPI.RANCHER_CLUSTER, {
+  configureType(CAPI.RANCHER_CLUSTER, { // TODO: RC switch to mgmt?!
     custom: {
       countGetter: markRaw((getters) => {
         const savedClusterCount = getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);

@@ -49,16 +49,13 @@ export default class Kubeconfig extends SteveModel {
    */
   get referencedClusters(): ReferencedCluster[] {
     const clusterIds = this.spec?.clusters || [];
-    const provClusters = this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER) || [];
-    const mgmtClusters = this.$rootGetters['management/all'](MANAGEMENT.CLUSTER) || [];
 
     return clusterIds.map((id: string) => {
-      const provCluster = provClusters.find((c: any) => c.mgmt?.id === id || c.status?.clusterName === id);
-      const mgmtCluster = mgmtClusters.find((c: any) => c.id === id);
-      const cluster = provCluster || mgmtCluster;
+      const mgmtCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, id);
+      const provCluster = mgmtCluster?.provCluster; // TODO: RC just for detailLocation...
 
       return {
-        label:    cluster?.nameDisplay || this.t('"ext.cattle.io.kubeconfig".deleted', { name: id }),
+        label:    mgmtCluster?.nameDisplay || this.t('"ext.cattle.io.kubeconfig".deleted', { name: id }), // TODO: RC test
         location: provCluster?.detailLocation || mgmtCluster?.detailLocation || null
       };
     });

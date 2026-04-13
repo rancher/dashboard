@@ -101,7 +101,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.mgmtClusterId === this.mgmtClusterId);
+    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.mgmtClusterId }`); // TODO: RC test
   }
 
   get doneOverride() {

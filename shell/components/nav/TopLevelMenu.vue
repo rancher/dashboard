@@ -423,6 +423,7 @@ export default {
     },
 
     async goToHarvesterCluster() {
+      // TODO: RC use byId
       const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((C) => C.id === 'fleet-local/local');
 
       try {

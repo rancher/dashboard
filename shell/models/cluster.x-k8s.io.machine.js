@@ -1,4 +1,4 @@
-import { ADDRESSES, CAPI, NODE } from '@shell/config/types';
+import { ADDRESSES, CAPI, MANAGEMENT, NODE } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
@@ -149,11 +149,12 @@ export default class CapiMachine extends SteveModel {
       return null;
     }
 
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.spec.clusterName }`);
+  }
 
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
+  get mgmtCluster() {
+    // TODO: RC confirm with kinara - is prov id ns/"name" === mgmt name
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec.clusterName); // TODO: RC test
   }
 
   get poolName() {
@@ -176,13 +177,13 @@ export default class CapiMachine extends SteveModel {
 
   get kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
-    const cluster = this.cluster?.status?.clusterName;
+    const cluster = this.mgmtCluster?.id;
 
     if ( kubeId && cluster ) {
       return {
         name:   'c-cluster-product-resource-id',
         params: {
-          cluster:  this.cluster.status.clusterName,
+          cluster, // TODO: RC test
           product:  EXPLORER,
           resource: NODE,
           id:       kubeId
@@ -194,7 +195,7 @@ export default class CapiMachine extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
+    const name = this.cluster?.nameDisplay || this.spec.clusterName; // TODO: RC test
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
   }

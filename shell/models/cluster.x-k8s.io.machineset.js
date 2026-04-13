@@ -1,18 +1,11 @@
-import { CAPI } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class CapiMachineSet extends SteveModel {
   get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
+    // TODO: RC confirm with kinara - is prov id ns/"name" === mgmt name
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec.clusterName); // TODO: RC test
   }
 
   get groupByLabel() {

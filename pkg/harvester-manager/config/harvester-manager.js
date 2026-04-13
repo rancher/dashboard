@@ -29,6 +29,7 @@ dynamicPluginLoader.register({
 
     // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
     if (clusterId) {
+      // TODO: RC For all prov cluster, find one with mgmt id xyz
       const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
       const provCluster = provClusters.find((p) => p.mgmt.id === clusterId);
 

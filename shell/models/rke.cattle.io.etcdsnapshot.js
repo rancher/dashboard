@@ -27,7 +27,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get clusterName() {
-    return this.metadata.labels[SNAPSHOT.CLUSTER_NAME];
+    return this.metadata.labels[SNAPSHOT.CLUSTER_NAME]; // This is the cluster
   }
 
   get clusterId() {
@@ -39,7 +39,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return findBy(this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER), 'metadata.name', this.clusterName);
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.clusterName }`); // TODO: RC test
   }
 
   get rke2() {

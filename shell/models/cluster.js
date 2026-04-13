@@ -64,6 +64,12 @@ export default class NormanCluster extends NormanModel {
     return `${ this.provisioningClusterNs }/${ this.provisioningClusterName }`;
   }
 
+  // TODO: RC phase 2 - harvester uses mgmt cluster instead of prov cluster as base
+  // shell/list/harvesterhci.io.management.cluster.vue
+  // pkg/harvester-manager/list/harvesterhci.io.management.cluster.vue
+  // pkg/harvester-manager/config/harvester-manager.js
+  // TODO: RC phase 3 - cluster management list is url mgmt cluster and not prov cluster (view, edit not changed)
+
   waitForProvisioning(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
       const id = this.provisioningClusterId;

@@ -401,13 +401,13 @@ export default class MgmtCluster extends SteveModel {
     return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
   }
 
-  get provClusterId() {
-    const isRKE1 = !!this.spec?.rancherKubernetesEngineConfig;
-    // Note: RKE1 provisioning cluster IDs are in a different format. For example,
-    // RKE2 cluster IDs include the name - fleet-default/cluster-name - whereas an RKE1
-    // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
+  get provCluster() {
+    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, this.provClusterId);
+  }
 
-    const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
+  get provClusterId() {
+    const verb = this.isLocal || this.isHostedKubernetesProvider ? 'to' : 'from';
+    // TODO: RC confirm with kinara - is this the best way?
     const res = findRelationship(verb, CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
 
     if (res) {
@@ -415,6 +415,12 @@ export default class MgmtCluster extends SteveModel {
     }
 
     return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
+  }
+
+  // TODO: RC confirm with kinara - PCIC are namespaced, MCIC are not. How does that work for permissions?
+
+  get provClusterNamespace() {
+    return this.provClusterId?.split('/')[0];
   }
 
   get pinned() {

@@ -151,6 +151,7 @@ export default {
     const fetches = {};
 
     if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
+      // TODO: RC .... why used
       fetches.rancherClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
 

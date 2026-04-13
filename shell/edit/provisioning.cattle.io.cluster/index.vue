@@ -82,8 +82,8 @@ export default {
   async fetch() {
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }), // TODO: RC switch to find
+      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }), // TODO: RC switch to find
     };
 
     // No need to fetch charts when editing an RKE1 cluster
