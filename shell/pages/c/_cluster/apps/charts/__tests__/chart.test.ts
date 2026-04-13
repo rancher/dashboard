@@ -1,4 +1,5 @@
 import Chart from '@shell/pages/c/_cluster/apps/charts/chart.vue';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 jest.mock('clipboard-polyfill', () => ({ writeText: () => {} }));
 
@@ -130,6 +131,123 @@ describe('page: Chart Detail', () => {
         href:  'mailto:noname@test.com',
         label: 'noname@test.com'
       });
+    });
+  });
+
+  describe('methods: computeSelectedAppStatuses', () => {
+    const defaultStatuses = [
+      {
+        icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
+      },
+      {
+        icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+      },
+      {
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: 'generic.installed (1.0.0)' }
+      }
+    ];
+
+    it('returns only deprecated status when no app is selected', () => {
+      const thisContext = {
+        selectedInstalledApp: null,
+        t:                    (key: string) => key
+      };
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, defaultStatuses);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].icon).toBe('icon-alert-alt');
+    });
+
+    it('returns empty array when no app is selected and chart is not deprecated', () => {
+      const thisContext = {
+        selectedInstalledApp: null,
+        t:                    (key: string) => key
+      };
+
+      const statusesWithoutDeprecated = [
+        {
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        },
+        {
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: 'generic.installed (1.0.0)' }
+        }
+      ];
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, statusesWithoutDeprecated);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('returns installed status with version for selected app', () => {
+      const thisContext = {
+        selectedInstalledApp: {
+          upgradeAvailable: APP_UPGRADE_STATUS.NO_UPGRADE,
+          spec:             { chart: { metadata: { version: '2.0.0' } } }
+        },
+        t: (key: string) => key
+      };
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, defaultStatuses);
+
+      const installedStatus = result.find((s: any) => s.icon === 'icon-confirmation-alt');
+
+      expect(installedStatus).toBeDefined();
+      expect(installedStatus.tooltip.text).toContain('2.0.0');
+    });
+
+    it('returns upgradeable status when selected app is upgradeable', () => {
+      const thisContext = {
+        selectedInstalledApp: {
+          upgradeAvailable: APP_UPGRADE_STATUS.SINGLE_UPGRADE,
+          spec:             { chart: { metadata: { version: '1.5.0' } } }
+        },
+        t: (key: string) => key
+      };
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, defaultStatuses);
+
+      const upgradeableStatus = result.find((s: any) => s.icon === 'icon-upgrade-alt');
+
+      expect(upgradeableStatus).toBeDefined();
+    });
+
+    it('does not include upgradeable status when selected app is not upgradeable', () => {
+      const thisContext = {
+        selectedInstalledApp: {
+          upgradeAvailable: APP_UPGRADE_STATUS.NO_UPGRADE,
+          spec:             { chart: { metadata: { version: '1.5.0' } } }
+        },
+        t: (key: string) => key
+      };
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, defaultStatuses);
+
+      const upgradeableStatus = result.find((s: any) => s.icon === 'icon-upgrade-alt');
+
+      expect(upgradeableStatus).toBeUndefined();
+    });
+
+    it('includes all relevant statuses: deprecated, upgradeable, and installed', () => {
+      const thisContext = {
+        selectedInstalledApp: {
+          upgradeAvailable: APP_UPGRADE_STATUS.SINGLE_UPGRADE,
+          spec:             { chart: { metadata: { version: '1.5.0' } } }
+        },
+        t: (key: string) => key
+      };
+
+      const result = (Chart.methods!.computeSelectedAppStatuses as (statuses: any[]) => any[]).call(thisContext, defaultStatuses);
+
+      expect(result).toHaveLength(3);
+
+      const hasDeprecated = result.some((s: any) => s.icon === 'icon-alert-alt');
+      const hasUpgradeable = result.some((s: any) => s.icon === 'icon-upgrade-alt');
+      const hasInstalled = result.some((s: any) => s.icon === 'icon-confirmation-alt');
+
+      expect(hasDeprecated).toBe(true);
+      expect(hasUpgradeable).toBe(true);
+      expect(hasInstalled).toBe(true);
     });
   });
 });

@@ -13,7 +13,7 @@ import { DATE_FORMAT } from '@shell/store/prefs';
 import { ZERO_TIME } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS, compatibleVersionsFor } from '@shell/store/catalog';
 import { compareChartVersions } from '@shell/utils/chart';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -58,9 +58,15 @@ export default {
     ...mapGetters(['currentCluster']),
 
     headerContent() {
+      const cardContent = this.chart.cardContent;
+
+      // Override statuses based on selected installed app for the detail page
+      const statuses = this.computeSelectedAppStatuses(cardContent.statuses);
+
       return {
-        ...this.chart.cardContent,
-        subHeaderItems: this.chart.cardContent.subHeaderItems.map((item, i) => i === 0 ? ({
+        ...cardContent,
+        statuses,
+        subHeaderItems: cardContent.subHeaderItems.map((item, i) => i === 0 ? ({
           icon:        'icon-version-alt',
           iconTooltip: { key: 'tableHeaders.version' },
           label:       this.query.versionName
@@ -206,6 +212,50 @@ export default {
   },
 
   methods: {
+    /**
+     * Computes statuses for the chart detail page based on the selected installed app.
+     * When an app is selected, shows instance-specific installed/upgradeable status.
+     * When no app is selected (fresh install), returns only deprecated status if applicable.
+     *
+     * @param {Array} defaultStatuses - The default statuses from chart.cardContent
+     * @returns {Array} Statuses array for the selected app context
+     */
+    computeSelectedAppStatuses(defaultStatuses) {
+      const statuses = [];
+
+      // Always include deprecated status if present
+      const deprecatedStatus = defaultStatuses.find((s) => s.icon === 'icon-alert-alt');
+
+      if (deprecatedStatus) {
+        statuses.push(deprecatedStatus);
+      }
+
+      const selectedApp = this.selectedInstalledApp;
+
+      if (!selectedApp) {
+        // No app selected - fresh install, no installed/upgradeable status
+        return statuses;
+      }
+
+      // Check if the selected app is upgradeable
+      const isUpgradeable = selectedApp.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+
+      if (isUpgradeable) {
+        statuses.push({
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        });
+      }
+
+      // Add installed status with version for the selected app
+      const installedVersion = selectedApp.spec?.chart?.metadata?.version;
+
+      statuses.push({
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ installedVersion })` }
+      });
+
+      return statuses;
+    },
+
     /**
      * Navigate to install page for the currently selected installed app (edit/upgrade/downgrade).
      */
