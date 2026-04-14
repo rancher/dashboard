@@ -202,26 +202,6 @@ export default {
         };
       });
     },
-
-    /**
-     * Returns options for the chart action dropdown (ActionMenu).
-     * Includes the current action (edit/upgrade/downgrade) and "Install as new instance".
-     */
-    chartActionOptions() {
-      return [
-        {
-          label:  this.t(`catalog.chart.chartButton.action.${ this.currentAction.tKey }`),
-          icon:   this.currentAction.icon,
-          action: 'current',
-        },
-        {
-          label:  this.t('catalog.chart.chartButton.action.installNew'),
-          icon:   'icon-plus',
-          action: 'installNew',
-        }
-      ];
-    },
-
   },
 
   watch: {
@@ -336,18 +316,6 @@ export default {
     handleInstalledAppSelect(id) {
       this.selectedInstalledAppId = id;
       this.existing = this.installedInstances?.find((app) => app.id === id) ?? null;
-    },
-
-    /**
-     * Handle chart action dropdown selection.
-     * Dispatches to appropriate action based on selected option.
-     */
-    handleChartAction(option) {
-      if (option.action === 'installNew') {
-        this.installNewInstance();
-      } else {
-        this.executeAction();
-      }
     },
 
     handleHeaderItemClick(type, value) {
@@ -492,16 +460,30 @@ export default {
           data-testid="installed-apps-selector"
           @update:value="handleInstalledAppSelect"
         />
-        <!-- Dropdown button: shown when chart is installed AND can be re-installed -->
-        <ActionMenu
+        <!-- Simple button and ActionMenu button: shown when chart is installed AND can be re-installed -->
+        <div
           v-if="selectedInstalledApp && canInstallNew"
-          data-testid="btn-chart-install"
-          button-variant="primary"
-          button-size="lg"
-          :button-aria-label="t(`catalog.chart.chartButton.action.${currentAction.tKey}`)"
-          :custom-actions="chartActionOptions"
-          @action-invoked="handleChartAction"
-        />
+          class="action-button-group"
+        >
+          <RcButton
+            data-testid="btn-chart-install"
+            size="large"
+            class="btn role-primary"
+            @click.prevent="executeAction"
+          >
+            <i
+              :class="['icon', currentAction.icon, 'mmr-2']"
+            />
+            {{ t(`catalog.chart.chartButton.action.${currentAction.tKey}` ) }}
+          </RcButton>
+          <ActionMenu
+            data-testid="btn-chart-install"
+            button-size="large"
+            button-variant="secondary"
+            :custom-actions="[{ label: t('catalog.chart.chartButton.action.installNew'), icon: 'icon-plus', action: 'installNew' }]"
+            @action-invoked="installNewInstance"
+          />
+        </div>
         <!-- Simple button: shown when chart is not installed OR cannot be re-installed -->
         <RcButton
           v-else
@@ -841,6 +823,16 @@ export default {
 
       .installed-apps-selector {
         width: 340px;
+      }
+
+      .action-button-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        :deep(.btn.variant-secondary) {
+          padding: 0px 8px;
+        }
       }
     }
 
