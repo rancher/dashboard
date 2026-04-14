@@ -30,7 +30,7 @@ import {
   AUTH_TYPE, NAMESPACE as NAMESPACE_TYPE
 } from '@shell/config/types';
 import {
-  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
+  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NEW_APP_INSTANCE, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
@@ -602,8 +602,11 @@ export default {
     },
 
     showSelectVersionOrChart() {
-      // Allow the user to choose a version if the app exists OR they've come from tools
-      return this.existing || (FROM_TOOLS in this.$route.query);
+      // Allow the user to choose a version if:
+      // - the app exists (editing/upgrading)
+      // - OR they've come from tools
+      // - OR they're installing a new instance of an already-installed chart
+      return this.existing || (FROM_TOOLS in this.$route.query) || (NEW_APP_INSTANCE in this.$route.query);
     },
 
     showNameEditor() {
