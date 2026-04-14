@@ -196,7 +196,7 @@ export default {
     installedAppOptions() {
       return (this.installedInstances || []).map((app) => {
         const isUpgradeable = app.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
-        const baseName = `${ app.metadata.namespace }/${ app.metadata.name }`;
+        const baseName = `${ app?.metadata?.namespace }/${ app?.metadata?.name }`;
 
         return {
           value: app.id,
@@ -318,7 +318,7 @@ export default {
      */
     handleInstalledAppSelect(id) {
       this.selectedInstalledAppId = id;
-      this.existing = this.installedInstances?.find((app) => app.id === id) || null;
+      this.existing = this.installedInstances?.find((app) => app.id === id) ?? null;
     },
 
     handleHeaderItemClick(type, value) {
