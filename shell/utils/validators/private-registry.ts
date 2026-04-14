@@ -10,7 +10,8 @@ interface PrivateRegistryRuleContext {
 
 export function privateRegistryRequired(ctx: PrivateRegistryRuleContext) {
   return () => {
-    const isImported = ctx.isImportedCluster ?? true;
+    // Check existence using `in` rather than direct access to avoid Vue's render-time warning
+    const isImported = 'isImportedCluster' in ctx ? !!ctx.isImportedCluster : true;
 
     if (!isImported || !ctx.privateRegistryEnabled) {
       return undefined;

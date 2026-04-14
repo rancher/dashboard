@@ -242,11 +242,10 @@ export default defineComponent({
       ] : [{
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
-      },
-      ...(this.value?.isImported ? [{
+      }, {
         path:  'privateRegistry',
         rules: ['privateRegistryRequired']
-      }] : [])],
+      }],
     };
   },
 

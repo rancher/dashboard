@@ -322,10 +322,10 @@ export default defineComponent({
           path:  'clusterIpv4Cidr',
           rules: ['clusterIpv4CidrFormat']
         },
-        ...(this.value?.isImported ? [{
+        {
           path:  'privateRegistry',
           rules: ['privateRegistryRequired']
-        }] : []),
+        },
       ],
       isAuthenticated: false,
 

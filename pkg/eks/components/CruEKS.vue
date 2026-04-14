@@ -274,10 +274,10 @@ export default defineComponent({
         path:  'nodeGroupsRequired',
         rules: ['nodeGroupsRequired']
       },
-      ...(this.value?.isImported ? [{
+      {
         path:  'privateRegistry',
         rules: ['privateRegistryRequired']
-      }] : [])
+      }
       ],
 
       loadingInstanceTypes:   false,

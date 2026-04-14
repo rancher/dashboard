@@ -16,8 +16,12 @@ describe('privateRegistryRequired', () => {
     expect(rule()).toBeUndefined();
   });
 
-  it('should default isImportedCluster to true when the property is omitted', () => {
-    const ctx = makeCtx({ isImportedCluster: undefined, privateRegistryEnabled: true });
+  it('should default isImportedCluster to true when the property is absent from the context', () => {
+    const ctx: any = {
+      t:                      jest.fn((key: string, params?: any) => (params ? `${ key }:${ JSON.stringify(params) }` : key)),
+      privateRegistryEnabled: true,
+      normanCluster:          { importedConfig: { privateRegistryURL: null } },
+    };
     const rule = privateRegistryRequired(ctx);
 
     expect(rule()).toStrictEqual('validation.required:{"key":"cluster.privateRegistry.label"}');
