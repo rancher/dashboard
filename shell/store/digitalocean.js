@@ -1,5 +1,4 @@
 import { sortBy } from '@shell/utils/sort';
-import { addParam, addParams } from '@shell/utils/url';
 
 const ENDPOINT = 'api.digitalocean.com/v2';
 
@@ -149,50 +148,29 @@ export const actions = {
     return out;
   },
 
-  async request({ dispatch }, {
-    token, credentialId, command, opt, out
+  async request(_, {
+    token, credentialId, command, opt
   }) {
     opt = opt || {};
 
-    let url = '/meta/proxy/';
+    const proxy = this.$shell?.proxy;
 
-    if ( opt.url ) {
-      url += opt.url.replace(/^https?:\/\//, '');
-    } else {
-      url += `${ ENDPOINT }/${ command }`;
-      url = addParam(url, 'per_page', opt.per_page || 1000);
-      url = addParams(url, opt.params || {});
+    if ( !proxy ) {
+      throw new Error('DigitalOcean store requires $shell.proxy to be initialized');
     }
 
-    const headers = { Accept: 'application/json' };
-
-    if ( credentialId ) {
-      headers['x-api-cattleauth-header'] = `Bearer credID=${ credentialId } passwordField=accessToken`;
-    } else if ( token ) {
-      headers['x-api-auth-header'] = `Bearer ${ token }`;
-    }
-
-    const res = await dispatch('management/request', {
-      url,
-      headers,
-      redirectUnauthorized: false,
-    }, { root: true });
-
-    if ( out ) {
-      out[command] = out[command].concat(res[command]);
-    } else {
-      out = res;
-    }
-
-    // De-pagination
-    if ( res?.links?.pages?.next ) {
-      opt.url = res.links.pages.next;
-
-      return dispatch('request', {
-        token, credentialId, command, opt, out
-      });
-    }
-
-    return out;
+    return proxy.request({
+      url:           opt.url,
+      endpoint:      ENDPOINT,
+      command,
+      params:        opt.params,
+      perPage:       opt.per_page || 1000,
+      credentialId,
+      passwordField: 'accessToken',
+      token,
+      dePaginate:    true,
+      mergeKey:      command,
+      authSigner:    'Bearer'
+    });
   },
 };

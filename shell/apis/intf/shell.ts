@@ -3,6 +3,7 @@ import { NotificationApi } from '@shell/types/notifications';
 import { ModalApi } from '@shell/apis/intf/shell-api/modal';
 import { SlideInApi } from '@shell/apis/intf/shell-api/slide-in';
 import { SystemApi } from '@shell/apis/intf/shell-api/system';
+import { ProxyApi } from '@shell/apis/intf/shell-api/proxy';
 
 export * from '@shell/types/notifications';
 export * from '@shell/apis/intf/shell-api/modal';
@@ -33,4 +34,9 @@ export interface ShellApi {
    * Provides access to the system API which providers information about the current system
    */
   get system(): SystemApi;
+
+  /**
+   * Provides access to the proxy API
+   */
+  get proxy(): ProxyApi;
 }
