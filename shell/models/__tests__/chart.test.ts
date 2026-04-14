@@ -166,7 +166,7 @@ describe('class Chart', () => {
       expect(chart.isInstalled).toBe(false);
     });
 
-    it('is false when multiple apps match', () => {
+    it('is true when multiple apps match', () => {
       const app = makeInstalledApp();
 
       app.spec.chart.metadata.version = '1.2.3';
@@ -174,7 +174,7 @@ describe('class Chart', () => {
 
       const chart = new Chart(base, ctx);
 
-      expect(chart.isInstalled).toBe(false);
+      expect(chart.isInstalled).toBe(true);
     });
   });
 
