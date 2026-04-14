@@ -130,6 +130,28 @@ export default {
   },
 
   methods: {
+    handleCardAction(payload, card) {
+      switch (payload?.action) {
+      case 'upgrade':
+        this.upgrade(card.installedApp, card.rawChart);
+        break;
+      case 'downgrade':
+        this.downgrade(card.installedApp, card.rawChart);
+        break;
+      case 'edit':
+        this.edit(card.installedApp);
+        break;
+      case 'remove':
+        this.remove(card.installedApp, payload.event);
+        break;
+      case 'install':
+        this.install(card.rawChart);
+        break;
+      default:
+        console.warn(`Unknown card action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
+    },
+
     getCardActions(card) {
       const { installedApp, rawChart } = card;
 
@@ -243,11 +265,7 @@ export default {
         :content="card.content"
         :actions="getCardActions(card)"
         :class="{ 'single-card': appChartCards.length === 1 }"
-        @upgrade="() => upgrade(card.installedApp, card.rawChart)"
-        @downgrade="() => downgrade(card.installedApp, card.rawChart)"
-        @edit="() => edit(card.installedApp)"
-        @remove="(payload) => remove(card.installedApp, payload.event)"
-        @install="() => install(card.rawChart)"
+        @action-invoked="(payload) => handleCardAction(payload, card)"
       >
         <template
           v-once
