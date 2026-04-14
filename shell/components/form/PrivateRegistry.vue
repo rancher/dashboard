@@ -6,6 +6,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 const props = defineProps<{
   value?: string | null;
+  enabled?: boolean;
   mode?: string;
   rules?: Function[];
   checkboxTestId?: string;
@@ -14,12 +15,22 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:value': [val: string | null];
+  'update:enabled': [val: boolean];
 }>();
 
 const showInput = ref(!!props.value);
 
-watch(showInput, (neu) => {
-  if (!neu) {
+watch(() => props.enabled, (neu) => {
+  if (typeof neu === 'boolean' && neu !== showInput.value) {
+    showInput.value = neu;
+  }
+});
+
+watch(showInput, (neu, old) => {
+  if (neu !== props.enabled) {
+    emit('update:enabled', neu);
+  }
+  if (!neu && old && props.value) {
     emit('update:value', null);
   }
 });
@@ -29,10 +40,6 @@ watch(() => props.value, (neu) => {
     showInput.value = true;
   }
 });
-
-const onInput = (val: string) => {
-  emit('update:value', val);
-};
 </script>
 
 <template>
@@ -53,9 +60,10 @@ const onInput = (val: string) => {
     :value="value as string"
     :mode="mode"
     :rules="rules"
+    :required="true"
     label-key="catalog.chart.registry.custom.inputLabel"
     :data-testid="inputTestId"
     :placeholder="t('catalog.chart.registry.custom.placeholder')"
-    @update:value="onInput"
+    @update:value="(val) => emit('update:value', val)"
   />
 </template>

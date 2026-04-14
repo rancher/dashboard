@@ -31,6 +31,7 @@ import AccountAccess from './AccountAccess.vue';
 import Import from './Import.vue';
 
 import EKSValidators from '../util/validators';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { formatAWSError } from '@shell/utils/error';
 
@@ -165,9 +166,10 @@ export default defineComponent({
       }
     }
 
-    if (!this.normanCluster.importedConfig) {
+    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
 
     if (!this.isImport) {
       if (!this.normanCluster.eksConfig) {
@@ -207,13 +209,14 @@ export default defineComponent({
 
     return {
       isImport,
-      cloudCredentialId: '',
-      normanCluster:     { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
-      nodeGroups:        [] as EKSNodeGroup[],
-      config:            { } as EKSConfig,
-      membershipUpdate:  {} as {newBindings: any[], removedBindings: any[], save: Function},
-      originalVersion:   '',
-      fvFormRuleSets:    isImport ? [{
+      cloudCredentialId:      '',
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
+      nodeGroups:             [] as EKSNodeGroup[],
+      config:                 { } as EKSConfig,
+      membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
+      originalVersion:        '',
+      privateRegistryEnabled: false,
+      fvFormRuleSets:         isImport ? [{
         path:  'name',
         rules: ['nameRequired'],
       },
@@ -223,8 +226,8 @@ export default defineComponent({
         rules: ['displayNameRequired'],
       },
       {
-        path:  'normanCluster.importedConfig.privateRegistryURL',
-        rules: ['registryUrl']
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ] : [{
         path:  'name',
@@ -271,10 +274,10 @@ export default defineComponent({
         path:  'nodeGroupsRequired',
         rules: ['nodeGroupsRequired']
       },
-      {
-        path:  'normanCluster.importedConfig.privateRegistryURL',
-        rules: ['registryUrl']
-      }
+      ...(this.value?.isImported ? [{
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
+      }] : [])
       ],
 
       loadingInstanceTypes:   false,
@@ -372,6 +375,7 @@ export default defineComponent({
         if (!this.config?.imported) {
           out.nodeGroupsRequired = EKSValidators.nodeGroupsRequired(this);
         }
+        out.privateRegistryRequired = privateRegistryRequired(this as any);
       }
 
       return out;
@@ -895,8 +899,9 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
           :mode="mode"
-          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
         />
       </Accordion>
     </div>

@@ -20,6 +20,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
@@ -202,9 +203,10 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
-    if (!this.normanCluster.importedConfig) {
+    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
@@ -252,12 +254,13 @@ export default defineComponent({
 
     return {
       isImport,
-      normanCluster:    { name: '', importedConfig: { privateRegistryURL: null } } as any,
-      nodePools:        [] as GKENodePool[],
-      config:           { } as GKEConfig,
-      membershipUpdate: {} as any,
-      originalVersion:  '',
-      defaultImageType: GKEImageTypes[0],
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
+      nodePools:              [] as GKENodePool[],
+      config:                 { } as GKEConfig,
+      membershipUpdate:       {} as any,
+      originalVersion:        '',
+      defaultImageType:       GKEImageTypes[0],
+      privateRegistryEnabled: false,
       supportedVersionRange,
 
       loadingMachineTypes:     false,
@@ -272,8 +275,8 @@ export default defineComponent({
         path:  'importName',
         rules: ['importNameRequired']
       }, {
-        path:  'normanCluster.importedConfig.privateRegistryURL',
-        rules: ['registryUrl']
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }] : [
         {
           path:  'diskSizeGb',
@@ -319,10 +322,10 @@ export default defineComponent({
           path:  'clusterIpv4Cidr',
           rules: ['clusterIpv4CidrFormat']
         },
-        {
-          path:  'normanCluster.importedConfig.privateRegistryURL',
-          rules: ['registryUrl']
-        },
+        ...(this.value?.isImported ? [{
+          path:  'privateRegistry',
+          rules: ['privateRegistryRequired']
+        }] : []),
       ],
       isAuthenticated: false,
 
@@ -362,10 +365,11 @@ export default defineComponent({
 
     fvExtraRules() {
       return {
-        clusterNameChars:    clusterNameChars(this),
-        clusterNameStartEnd: clusterNameStartEnd(this),
-        nameRequired:        requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
-        importNameRequired:  requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        clusterNameChars:        clusterNameChars(this),
+        clusterNameStartEnd:     clusterNameStartEnd(this),
+        nameRequired:            requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        importNameRequired:      requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        privateRegistryRequired: privateRegistryRequired(this),
 
         masterIpv4CidrBlockRequired: () => {
           if (!this.isAuthenticated) {
@@ -943,8 +947,9 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
           :mode="mode"
-          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
         />
       </Accordion>
     </div>

@@ -28,6 +28,7 @@ import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
@@ -88,6 +89,7 @@ export default defineComponent({
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
     }
+    this.privateRegistryEnabled = !!this.normanCluster?.importedConfig?.privateRegistryURL;
     if (!this.isRKE1) {
       await this.initVersionManagement();
     }
@@ -124,6 +126,7 @@ export default defineComponent({
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+      privateRegistryEnabled:                   false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -134,8 +137,8 @@ export default defineComponent({
         path:  'controlPlaneConcurrency',
         rules: ['controlPlaneConcurrencyRule']
       }, {
-        path:  'normanCluster.importedConfig.privateRegistryURL',
-        rules: ['registryUrl']
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ],
       AGENT_CONFIGURATION_TYPES,
@@ -156,6 +159,7 @@ export default defineComponent({
         clusterNameLength:           genericImportedClusterValidators.clusterNameLength(this),
         workerConcurrencyRule:       genericImportedClusterValidators.workerConcurrency(this),
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
+        privateRegistryRequired:     privateRegistryRequired(this),
       };
     },
 
@@ -415,7 +419,7 @@ export default defineComponent({
     :mode="mode"
     :can-yaml="false"
     :done-route="doneRoute"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
     @error="e=>errors=e"
     @finish="save"
@@ -598,8 +602,9 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
           :mode="mode"
-          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />

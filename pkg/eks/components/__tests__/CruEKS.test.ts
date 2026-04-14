@@ -281,6 +281,18 @@ describe('eKS provisioning form', () => {
     expect(registriesAccordion.exists()).toBe(false);
   });
 
+  it('should not show the registries accordion when editing a non-imported cluster', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: { isImported: false }, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG } as EKSConfig);
+    const registriesAccordion = wrapper.find('[data-testid="registries-accordion"]');
+
+    expect(registriesAccordion.exists()).toBe(false);
+  });
+
   it('should fetch ssh keys from the aws api and save response as list of keypair KeyNames', async() => {
     const setup = requiredSetup();
 
