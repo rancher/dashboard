@@ -209,6 +209,7 @@ export default {
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
+      :aria-label="t('kubectl-explain.title')"
       data-testid="slide-in-panel-resource-explain"
     >
       <div

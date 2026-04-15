@@ -227,7 +227,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <section
+    v-else
+    :aria-label="chart.chartNameDisplay"
+  >
     <div
       v-if="chart"
       class="chart-header"
@@ -374,6 +377,7 @@ export default {
       </div>
       <aside
         v-if="version"
+        :aria-label="t('catalog.chart.info.chartVersions.label')"
         class="chart-body__info"
       >
         <div class="chart-body__info-section">
@@ -537,7 +541,7 @@ export default {
         </div>
       </aside>
     </div>
-  </div>
+  </section>
 </template>
 
 <style lang="scss" scoped>
