@@ -130,6 +130,7 @@ generic:
   deprecated: Deprecated
   upgradeable: Upgradeable
   installed: Installed
+  installedMultiple: Installed (multiple)
   featured: Featured
   shortFeatured: Feat
   category: Category
