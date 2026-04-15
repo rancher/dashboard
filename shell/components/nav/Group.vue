@@ -259,7 +259,7 @@ export default {
         v-if="showHeader"
         class="header"
         :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
-        role="button"
+        role="navigation"
         :tabindex="fixedOpen ? -1 : 0"
         :aria-label="group.labelDisplay || group.label || ''"
         :aria-expanded="!canCollapse || isExpanded"
