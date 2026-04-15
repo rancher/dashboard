@@ -274,6 +274,25 @@ describe('class Chart', () => {
       expect(installedStatus?.tooltip?.text).toContain(installedApp.spec.chart.metadata.version);
     });
 
+    it('does not include version in installed tooltip when multiple instances exist', () => {
+      const app1 = makeInstalledApp();
+      const app2 = makeInstalledApp();
+
+      app2.spec.chart.metadata.version = '1.2.0';
+      ctx.rootGetters['cluster/all'] = () => [app1, app2];
+
+      const chart = new Chart(base, ctx);
+
+      const result = chart.cardContent as CardContent;
+
+      const installedStatus = result.statuses.find((s) => s.tooltip?.text?.startsWith('generic.installedMultiple'));
+
+      expect(installedStatus).toBeDefined();
+      expect(installedStatus?.color).toBe('success');
+      // Should not contain version number when multiple instances
+      expect(installedStatus?.tooltip?.text).toBe('generic.installedMultiple');
+    });
+
     it('includes upgradeable status when upgrade is available', () => {
       const installedApp = makeInstalledApp(APP_UPGRADE_STATUS.SINGLE_UPGRADE);
 

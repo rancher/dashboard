@@ -221,7 +221,7 @@ export default class Chart extends SteveModel {
       const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
 
       // When multiple instances, don't show version in tooltip since each may have different versions
-      let tooltipText = this.t('generic.installed');
+      let tooltipText = hasMultipleInstances ? this.t('generic.installedMultiple') : this.t('generic.installed');
 
       if (!hasMultipleInstances) {
         tooltipText = `${ tooltipText } (${ installedVersion })`;
