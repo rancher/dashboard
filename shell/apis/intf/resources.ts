@@ -2,37 +2,34 @@
 import { ClusterApi } from '@shell/apis/intf/resources-api/cluster-api';
 import { MgmtApi } from '@shell/apis/intf/resources-api/mgmt-api';
 
+export * from '@shell/apis/intf/resources-api/resources-api';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
-export { ResourceType } from '@shell/apis/intf/resources-api/resource-base';
+export {
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredMethodOptions
+} from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
 
 export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
-export {
-  GetMethodOptions, ListAllMethodOptions, ListMethodOptions, LabelSelectorMethodOptions
-} from '@shell/types/store/dashboard-store.types';
 
 /**
  * @internal
- * Available "API's" inside Resources API
+ * Top-level provider that exposes scoped resource API instances.
  *
  * @example
  * ```ts
  * import { useResources, K8S } from '@shell/apis';
- * import type { Pod, Deployment } from '@shell/types/resources';
  *
  * const resources = useResources();
  *
  * // Cluster-scoped resources (current cluster context)
- * const pods = await resources.cluster.list<Pod>(K8S.POD);
- * const deployment = await resources.cluster.get<Deployment>(K8S.DEPLOYMENT, 'my-app');
+ * const pods = await resources.cluster.findFiltered(K8S.POD);
  *
  * // Management/global resources
- * const users = await resources.mgmt.list(K8S.USER);
- * const cluster = await resources.mgmt.get(K8S.CLUSTER, 'c-abc123');
+ * const users = await resources.mgmt.findFiltered(K8S.USER);
  * ```
  */
-export interface ResourcesApi {
+export interface ResourcesApiProvider {
   /**
    * Provides access to the Cluster API which can be used for managing Kubernetes cluster resources.
    * This includes Kubernetes native resources like Pods, Deployments, Services, etc.

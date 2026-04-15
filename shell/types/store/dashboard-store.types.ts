@@ -41,31 +41,10 @@ export interface ActionFindArgs extends ActionCoreFindOptions {
    */
   headers?: object,
   /**
-   * @internal
-   * Array of namespaces to filter by (used in url path, not part of pagination params)
-   */
-  namespaced?: string[],
-  /**
-   * @internal
-   * Sort by field
-   */
-  sortBy?: string,
-  /**
-   * @internal
-   * Sort order (asc or desc)
-   */
-  sortOrder?: string,
-  /**
    * Use this to override URL instead of looking up the URL for the type/id
    */
   url?: string,
 }
-
-/**
- * @interface
- * Resources API "get" options
- */
-export type GetMethodOptions = Omit<ActionFindArgs, 'invalidatePageCache' | 'namespaced' | 'sortBy' | 'sortOrder'>;
 
 /**
  * @internal
@@ -83,6 +62,7 @@ export interface ActionFindAllArgs extends ActionCoreFindOptions {
    */
   namespaced?: string[],
   /**
+   * @internal
    * Properties that determine and control if resources should be fetched in increments
    */
   incremental?: {
@@ -125,12 +105,6 @@ export interface ActionFindAllArgs extends ActionCoreFindOptions {
    */
   saveCountAs?: string,
 }
-
-/**
- * @interface
- * Resources API "listAll" options
- */
-export type ListAllMethodOptions = Omit<ActionFindAllArgs, 'hasManualRefresh' | 'depaginate' | 'saveCountAs'>;
 
 /**
  * @internal
@@ -181,12 +155,6 @@ export interface ActionFindPageArgs extends ActionCoreFindOptions {
    */
   revision?: string
 }
-
-/**
- * @interface
- * Resources API "list" options
- */
-export type ListMethodOptions = Omit<ActionFindPageArgs, 'hasManualRefresh' | 'saveCountAs'>;
 
 /**
  * @internal
@@ -260,9 +228,3 @@ export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
  * Args used for findLabelSelector action
  */
 export type ActionFindLabelSelectorArgs = ActionFindPageArgs | ActionFindMatchingArgs;
-
-/**
- * @interface
- * Resources API "labelSelector" options
- */
-export type LabelSelectorMethodOptions = ListMethodOptions | Omit<ActionFindMatchingArgs, 'depaginate'>;

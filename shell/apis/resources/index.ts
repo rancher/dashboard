@@ -1,8 +1,8 @@
 import { Store } from 'vuex';
-import { ClusterApi, MgmtApi, ResourcesApi } from '@shell/apis/intf/resources';
+import { ClusterApi, MgmtApi, ResourcesApiProvider } from '@shell/apis/intf/resources';
 import { ResourcesApiClassImpl } from './resources-api-class';
 
-export class ResourcesApiImpl implements ResourcesApi {
+export class ResourcesApiImpl implements ResourcesApiProvider {
   private clusterApi: ClusterApi;
   private mgmtApi: MgmtApi;
 

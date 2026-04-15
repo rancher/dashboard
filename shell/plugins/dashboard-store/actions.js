@@ -660,7 +660,8 @@ export default {
     return getters.all(type);
   },
 
-  // opt:ActionFindArgs
+  // opt: @ActionFindArgs
+  // @returns @ActionFindResponse
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {

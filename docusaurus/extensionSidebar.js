@@ -137,7 +137,7 @@ const sidebars = {
         },
         {
           type:  'category',
-          label: 'Resources API',
+          label: 'Resources API (Experimental)',
           link:  {
             type: 'doc',
             id:   'resources-api',

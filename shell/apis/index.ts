@@ -3,16 +3,15 @@
 import { inject } from 'vue';
 import { ExtensionManager } from '@shell/types/extension-manager';
 import { ShellApi as ShellApiImport } from '@shell/apis/intf/shell';
-import { ResourcesApi as ResourcesApiImport } from '@shell/apis/intf/resources';
+import { ResourcesApiProvider as ResourcesApiProviderImport } from '@shell/apis/intf/resources';
 
 // Re-export the types for the APIs, so they appear in this module
 export type ShellApi = ShellApiImport;
-export type ResourcesApi = ResourcesApiImport;
+export type ResourcesApiProvider = ResourcesApiProviderImport;
 export type ExtensionManagerApi = ExtensionManager;
 
 // Re-export resource types and constants
 export * from '@shell/apis/intf/resources';
-export * from '@shell/types/resources';
 
 /**
  * Returns an object that can be used to access the registered extension manager instance.
@@ -33,10 +32,10 @@ export const useShell = (): ShellApi => {
 };
 
 /**
- * Returns an object that implements the ResourcesApi interface.
+ * Returns an object that implements the ResourcesApiProvider interface.
  * Provides type-safe access to cluster and management resources.
  *
- * @returns Returns an object that implements the ResourcesApi interface
+ * @returns Returns an object that implements the ResourcesApiProvider interface
  *
  * @example
  * ```ts
@@ -44,11 +43,11 @@ export const useShell = (): ShellApi => {
  * import type { Pod } from '@shell/types/resources';
  *
  * const resources = useResources();
- * const pods = await resources.cluster.list<Pod>(K8S.POD);
+ * const pods = await resources.cluster.findFiltered<Pod>(K8S.POD);
  * ```
  */
-export const useResources = (): ResourcesApi => {
-  return getApi<ResourcesApi>('$resources', 'useResources');
+export const useResources = (): ResourcesApiProvider => {
+  return getApi<ResourcesApiProvider>('$resources', 'useResources');
 };
 
 // =================================================================================================================

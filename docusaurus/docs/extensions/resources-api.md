@@ -2,9 +2,9 @@
 id: resources-api
 ---
 
-# Resources API
+# Resources API (Experimental)
 
-> Available from Rancher `2.15` and onwards
+> Note: This API is experimental and may change in future releases. Available from Rancher `2.15` and onwards
 
 ## What is the Resources API?
 
@@ -14,6 +14,8 @@ The API is organized into two contexts:
 
 - **Cluster Context** (`cluster`) - For cluster-scoped Kubernetes resources (Pods, Deployments, Services, etc.)
 - **Management Context** (`mgmt`) - For global Rancher resources (Users, Clusters, Settings, etc.)
+
+Both contexts implement the same base `ResourcesApi` interface, so they share the same methods (`find`, `findFiltered`, `findAll`).
 
 ## How to use the Resources API
 
@@ -27,10 +29,10 @@ import { K8S } from '@shell/apis';
 export default {
   async mounted() {
     // Cluster context
-    const pods = await this.$resources.cluster.list(K8S.POD);
+    const pods = await this.$resources.cluster.findFiltered(K8S.POD);
     
     // Management context
-    const users = await this.$resources.mgmt.list(K8S.USER);
+    const users = await this.$resources.mgmt.findFiltered(K8S.USER);
   }
 }
 ```
@@ -47,17 +49,16 @@ then just assign to a constant in the context for your component and use it:
 
 ```ts
 import { useResources, K8S } from '@shell/apis';
-import type { Pod, Deployment } from '@shell/types/resources';
 
 const resources = useResources();
 
 // Cluster context - for cluster-scoped resources
-const pods = await resources.cluster.list<Pod>(K8S.POD);
-const deployment = await resources.cluster.get<Deployment>(K8S.DEPLOYMENT, 'my-app');
+const pods = await resources.cluster.findFiltered(K8S.POD);
+const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'my-app');
 
 // Management context - for global resources
-const users = await resources.mgmt.list(K8S.USER);
-const cluster = await resources.mgmt.get(K8S.CLUSTER, 'c-abc123');
+const users = await resources.mgmt.findFiltered(K8S.USER);
+const cluster = await resources.mgmt.find(K8S.CLUSTER, 'c-abc123');
 ```
 
 ## Resource Constants
@@ -91,7 +92,7 @@ K8S.PROJECT
 For custom resources or CRDs, you can use strings directly:
 
 ```ts
-const customResources = await resources.cluster.list('mycompany.io.customresource');
+const customResources = await resources.cluster.findFiltered('mycompany.io.customresource');
 ```
 
 ## Available API's
