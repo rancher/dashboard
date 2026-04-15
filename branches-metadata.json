@@ -9,7 +9,7 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "v2.15-a5b2d1827f563747ddd896e81af8aada5d8c57e7-head"
+          "tag": "head"
         }
       },
       "rancher-rancher-repo": {
