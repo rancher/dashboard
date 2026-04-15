@@ -22,12 +22,14 @@
 - ESLint rule: describe block names must be lowercase (`jest/lowercase-name`)
 - ESLint rule: `toThrow()` requires a message/constructor (`jest/require-to-throw-message`) — use `.toThrow(Error)`
 - ESLint rule: key-spacing enforced in object literals
+- ESLint rule: `object-curly-newline` — inline single-property objects when possible to avoid warnings
 - Mock `Date.now` with `jest.spyOn(Date, 'now').mockReturnValue(timestamp)` for time-dependent tests
 - `jest.restoreAllMocks()` in `afterEach` when using `spyOn`
+- Math.floor on negative floats rounds toward -infinity (e.g. floor(-200.6) = -201)
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/git.ts` - has testable normalize functions; tests written 2026-04-11 but NOT pushed
+1. `shell/utils/git.ts` - has testable normalize functions; tests attempted 2026-04-11 but NOT committed
 2. `shell/utils/pagination-utils.ts` - started 2026-04-09; pagination-wrapper.test.ts exists but pagination-utils.test.ts not confirmed
 3. `shell/utils/fleet.ts` (328 lines) - fleet.test.ts exists (155 lines) but partial coverage
 4. `shell/utils/settings.ts` - getPerformanceSetting and isProviderEnabled are testable
@@ -35,10 +37,15 @@
 
 ## Completed Work
 
+### 2026-04-15 (this run)
+- Written 15 tests for shell/utils/inactivity.ts (100% all metrics: stmts/branches/fns/lines)
+- Tests: parseTTLData (7 cases incl. it.each table), getUserActivity (3), updateUserActivity (3), sessionToken (2)
+- Committed to branch test-assist/inactivity-utils-tests; lint clean, all 15 pass
+- BLOCKED: safeoutputs tools not in tool list (5th consecutive run); PR not created; branch is local only
+- Monthly Activity Issue #17177 NOT updated (no PR number to add)
+
 ### 2026-04-14
 - Written 20 tests for shell/utils/inactivity.ts (100% all metrics)
-- Tests: parseTTLData (9 cases incl. it.each table), getUserActivity (4), updateUserActivity (3), session token (2)
-- Committed to branch test-assist/inactivity-utils-tests; lint clean, all 20 pass
 - BLOCKED: safeoutputs tools not available (4th consecutive run); PR not created; branch is local only
 
 ### 2026-04-13
@@ -63,6 +70,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-15: Task 3 (inactivity.ts 15 tests, 100% all coverage) - BLOCKED on safeoutputs (5th consecutive)
 - 2026-04-14: Task 3 (inactivity.ts 20 tests, 100% all coverage) - BLOCKED on safeoutputs (4th consecutive)
 - 2026-04-13: Task 3 (inactivity.ts 18 tests) - BLOCKED on safeoutputs
 - 2026-04-12: Tasks 3 (inactivity.ts), 7 - BLOCKED on safeoutputs
@@ -73,12 +81,13 @@
 ## Pending (needs retry when safeoutputs available)
 
 - inactivity.ts tests: committed locally as test-assist/inactivity-utils-tests
-  - 20 tests, 100% coverage (statements, branches, functions, lines)
+  - 15 tests, 100% coverage (statements, branches, functions, lines)
   - READY TO PUSH as PR (base: master, draft, label: testing)
   - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
+  - NOTE: branches are local only; each run must recreate the branch and re-commit
 - git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
-- Monthly activity issue #17177 not updated since 2026-04-08
-- safeoutputs tools have been unavailable for 4 consecutive runs
+- Monthly activity issue #17177 last updated 2026-04-08 (needs current run entry when PR is made)
+- safeoutputs tools have been unavailable for 5 consecutive runs
 
 ## Maintainer Priorities
 
@@ -87,4 +96,4 @@ None noted yet.
 ## Monthly Activity Issue
 
 - Issue #17177: [Test Improver] Monthly Activity 2026-04 (open, last updated 2026-04-08)
-- PR #17176: [Test Improver] url.ts tests (open)
+- PR #17176: [Test Improver] url.ts tests (open, still pending review)
