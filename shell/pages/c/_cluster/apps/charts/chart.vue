@@ -227,7 +227,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <main v-else>
+  <div v-else>
     <div
       v-if="chart"
       class="chart-header"
@@ -537,7 +537,7 @@ export default {
         </div>
       </aside>
     </div>
-  </main>
+  </div>
 </template>
 
 <style lang="scss" scoped>

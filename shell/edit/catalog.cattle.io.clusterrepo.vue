@@ -67,7 +67,7 @@ export default {
       {
         id:      CLUSTER_REPO_TYPES.OCI_URL,
         header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
+        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title.logo' } },
         content: { key: 'catalog.repo.target.oci.description' },
       },
     ];
