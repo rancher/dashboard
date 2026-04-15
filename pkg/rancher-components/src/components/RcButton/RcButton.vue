@@ -53,6 +53,7 @@ const props = withDefaults(
 );
 
 const tag = computed(() => (props.to ? resolveComponent('RouterLink') : 'button'));
+const role = computed(() => (props.to ? 'link' : 'button'));
 
 const activeVariantClassName = computed(() => {
   if (props.variant === 'multiAction' || props.multiAction) {
@@ -116,6 +117,7 @@ defineExpose({ focus });
   <component
     :is="tag"
     ref="RcFocusTarget"
+    :role="role"
     :to="to"
     :class="{ ...buttonClass }"
   >
