@@ -830,20 +830,36 @@ export default {
 
   /**
    * Remove all cached entries for a resource and stop watches
+   *
+   * //
    */
-  forgetType({ commit, dispatch, state }, type, compareWatches) {
-    // Stop all known watches
-    state.started
-      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
-      .forEach((entry) => dispatch('unwatch', entry));
+  forgetType({ commit, dispatch, state }, payload) {
+    let type = payload;
+    let config = {};
 
-    // Stop all known back-off watch processes for this type
-    dispatch('resetWatchBackOff', {
-      type, compareWatches, resetStarted: false
-    });
+    if ( typeof payload === 'object' && payload !== null && payload.type ) {
+      type = payload.type;
+      config = payload;
+    }
 
-    // Remove entries from store
-    commit('forgetType', type);
+    const { compareWatches, unwatch = true, forget = true } = config;
+
+    if (unwatch) {
+      // Stop all known watches
+      state.started
+        .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
+        .forEach((entry) => dispatch('unwatch', entry));
+
+      // Stop all known back-off watch processes for this type
+      dispatch('resetWatchBackOff', {
+        type, compareWatches, resetStarted: false
+      });
+    }
+
+    if (forget) {
+      // Remove entries from store
+      commit('forgetType', type);
+    }
   },
 
   promptRemove({ commit, state }, resources ) {

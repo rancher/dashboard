@@ -36,6 +36,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
 import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
+import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 
 export default defineComponent({
   name:       'Home',
@@ -91,7 +92,7 @@ export default defineComponent({
       mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
       canViewProvClusters:  !!this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
+      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER), // TODO: RC what used for?
       canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
       canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
       canViewMgmtPools:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
@@ -118,7 +119,7 @@ export default defineComponent({
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      (row: ProvCluster) => row.nameDisplay
+          // getValue:      (row: MgmtCluster) => row.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -132,8 +133,8 @@ export default defineComponent({
           label:    this.t('landing.clusters.kubernetesVersion'),
           subLabel: this.t('landing.clusters.architecture'),
           name:     'kubernetesVersion',
-          sort:     'status.version.info.kubernetesVersion',
-          search:   'status.version.info.kubernetesVersion'
+          sort:     'status.info.kubernetesVersion',
+          search:   'status.info.kubernetesVersion'
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -173,7 +174,7 @@ export default defineComponent({
         {
           label:     this.t('landing.clusters.provider'),
           subLabel:  this.t('landing.clusters.distro'),
-          value:     'status.info.machineProvider',
+          value:     'status.info.machineProvider', // TODO: RC index
           name:      'Provider',
           sort:      ['status.info.machineProvider', 'status.driver'],
           search:    ['status.info.machineProvider', 'status.driver'],
@@ -183,8 +184,8 @@ export default defineComponent({
           label:    this.t('landing.clusters.kubernetesVersion'),
           subLabel: this.t('landing.clusters.architecture'),
           name:     'kubernetesVersion',
-          sort:     false,
-          search:   false,
+          sort:     'status.info.kubernetesVersion', // TODO: RC index
+          search:   'status.info.kubernetesVersion',
         },
         {
           label:  this.t('tableHeaders.cpu'),
@@ -365,23 +366,31 @@ export default defineComponent({
           })
         };
 
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
+        this.$store.dispatch(`management/findPage`, { type: CAPI.RANCHER_CLUSTER, opt });
       }
 
-      // TODO: RC k3d cluster --> cluster.x-k8s.io.machines contains spec.clusterName?? if so get it indexed < ---------------------------- first
-      // if ( this.canViewMachine ) {
-      //   const opt: ActionFindPageArgs = {
-      //     force,
-      //     pagination: new FilterArgs({
-      //       filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-      //         field: 'spec.clusterName',
-      //         value: r.provClusterName
-      //       }))),
-      //     })
-      //   };
+      if ( this.canViewMachine ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: { // TODO: RC Temp code, see below
+            page:                 1,
+            pageSize:             100000,
+            filters:              [],
+            sort:                 [],
+            projectsOrNamespaces: []
+          }
+          // TODO: RC cluster.x-k8s.io.machines required index on spec.clusterName??
+          // TODO: RC index
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'spec.clusterName',
+          //     value: r.provClusterName
+          //   }))),
+          // })
+        };
 
-      //   await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
-      // }
+        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+      }
 
       if ( this.canViewMgmtNodes ) {
         const opt: ActionFindPageArgs = {

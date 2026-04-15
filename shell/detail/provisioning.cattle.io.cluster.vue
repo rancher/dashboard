@@ -204,9 +204,10 @@ export default {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
     }
 
-    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
-    }
+    // TODO: RC MANAGEMENT.RKE_TEMPLATE_REVISION isn't used anywhere
+    // if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
+    //   this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+    // }
   },
 
   created() {

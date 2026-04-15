@@ -16,6 +16,7 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
+import { STEVE_AGE_COL } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -159,10 +160,10 @@ export function init(store) {
     width:     100,
   };
 
-  headers(CAPI.RANCHER_CLUSTER, [
+  headers(MANAGEMENT.CLUSTER, [
     STATE,
     {
-      name:          'name',
+      name:          'name', // TODO: RC remove dupes between versions. also in home page
       labelKey:      'tableHeaders.name',
       value:         'nameDisplay',
       sort:          ['nameSort'],
@@ -173,17 +174,16 @@ export function init(store) {
       name:     'kubernetesVersion',
       labelKey: 'tableHeaders.version',
       subLabel: 'Architecture',
-      value:    'kubernetesVersion',
-      sort:     'kubernetesVersion',
-      search:   'kubernetesVersion',
+      sort:     'status.info.kubernetesVersion',
+      search:   'status.info.kubernetesVersion'
     },
     {
       name:      'provider',
       labelKey:  'tableHeaders.provider',
       subLabel:  'Distro',
       value:     'machineProvider',
-      sort:      ['machineProvider', 'provisioner'],
-      formatter: 'ClusterProvider',
+      sort:      ['status.info.machineProvider', 'status.driver'],
+      formatter: 'MgmtClusterProvider',
     },
     MACHINE_SUMMARY,
     AGE,
@@ -193,7 +193,77 @@ export function init(store) {
       align: 'right',
       width: 65,
     },
+  ], [
+    STATE,
+    {
+      name:          'name',
+      labelKey:      'tableHeaders.name',
+      value:         'spec.displayName',
+      sort:          ['spec.displayName'],
+      search:        ['spec.displayName'],
+      formatter:     'ClusterLink',
+      canBeVariable: true,
+    },
+    {
+      name:     'kubernetesVersion',
+      labelKey: 'tableHeaders.version',
+      subLabel: 'Architecture',
+      sort:     'status.version.info.kubernetesVersion',
+      search:   'status.version.info.kubernetesVersion'
+    },
+    {
+      name:      'provider',
+      labelKey:  'tableHeaders.provider',
+      subLabel:  'Distro',
+      value:     'machineProvider',
+      sort:      ['status.info.machineProvider', 'status.driver'],
+      formatter: 'MgmtClusterProvider',
+    },
+    MACHINE_SUMMARY,
+    STEVE_AGE_COL,
+    {
+      name:  'explorer',
+      label: ' ',
+      align: 'right',
+      width: 65,
+    },
   ]);
+
+  // headers(CAPI.RANCHER_CLUSTER, [
+  //   STATE,
+  //   {
+  //     name:          'name',
+  //     labelKey:      'tableHeaders.name',
+  //     value:         'nameDisplay',
+  //     sort:          ['nameSort'],
+  //     formatter:     'ClusterLink',
+  //     canBeVariable: true,
+  //   },
+  //   {
+  //     name:     'kubernetesVersion',
+  //     labelKey: 'tableHeaders.version',
+  //     subLabel: 'Architecture',
+  //     value:    'kubernetesVersion',
+  //     sort:     'kubernetesVersion',
+  //     search:   'kubernetesVersion',
+  //   },
+  //   {
+  //     name:      'provider',
+  //     labelKey:  'tableHeaders.provider',
+  //     subLabel:  'Distro',
+  //     value:     'machineProvider',
+  //     sort:      ['machineProvider', 'provisioner'],
+  //     formatter: 'ClusterProvider',
+  //   },
+  //   MACHINE_SUMMARY,
+  //   AGE,
+  //   {
+  //     name:  'explorer',
+  //     label: ' ',
+  //     align: 'right',
+  //     width: 65,
+  //   },
+  // ]);
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,

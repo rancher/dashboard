@@ -1185,6 +1185,6 @@ export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',
   value:     'isAutoscalerEnabled',
-  sort:      ['autoscaler'],
-  formatter: 'Autoscaler',
+  sort:      ['autoscaler'], // TODO: RC doesn't exist?
+  formatter: 'Autoscaler', // TODO: RC currently accept prov cluster
 };
