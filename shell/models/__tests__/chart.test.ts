@@ -337,12 +337,12 @@ describe('class Chart', () => {
 
       const result = chart.cardContent as CardContent;
 
-      const installedStatus = result.statuses.find((s) => s.tooltip?.text?.startsWith('generic.installed'));
+      const installedStatus = result.statuses.find((s) => s.tooltip?.text?.startsWith('generic.installedMultiple'));
 
       expect(installedStatus).toBeDefined();
       expect(installedStatus?.color).toBe('success');
       // Should not contain version number when multiple instances
-      expect(installedStatus?.tooltip?.text).toBe('generic.installed');
+      expect(installedStatus?.tooltip?.text).toBe('generic.installedMultiple');
     });
 
     it('includes upgradeable status when upgrade is available', () => {
