@@ -357,6 +357,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           .should('equal', customAddonConfig);
       });
 
+      it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+        const detailPage = detailRKE2ClusterPage();
+
+        detailPage.selectTab(tabbedPo, '[data-testid="btn-log"]');
+
+        detailPage.waitForPage(undefined, 'log');
+        detailPage.logsContainer().should('be.visible');
+      });
+
       qase(1434, it('can delete cluster', () => {
         clusterList.goTo();
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);

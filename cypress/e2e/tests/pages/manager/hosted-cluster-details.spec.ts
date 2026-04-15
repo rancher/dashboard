@@ -2,6 +2,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -37,14 +38,16 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const aksDetailsPage = new ClusterManagerDetailHostedPagePo('_', AKS_CLUSTER);
+    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     clusterList.list().name('aks-mock-cluster').click();
-    aksDetailsPage.waitForPage(null, 'custom');// should load with the tab from the extension active
+    aksDetailsPage.waitForPage();
 
     aksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    aksDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
     aksDetailsPage.nodePoolTable().self().should('be.visible');
 
@@ -77,13 +80,15 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const eksDetailsPage = new ClusterManagerDetailHostedPagePo('_', EKS_CLUSTER);
+    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     clusterList.list().name('eks-mock-cluster').click();
-    eksDetailsPage.waitForPage(null, 'custom');// should load with the tab from the extension active
+    eksDetailsPage.waitForPage();
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    eksDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
     eksDetailsPage.nodePoolTable().self().should('be.visible');
 
@@ -114,13 +119,15 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const gkeDetailsPage = new ClusterManagerDetailHostedPagePo('_', GKE_CLUSTER);
+    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     clusterList.list().name('gke-mock-cluster').click();
-    gkeDetailsPage.waitForPage(null, 'custom');// should load with the tab from the extension active
+    gkeDetailsPage.waitForPage();
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
+    gkeDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
     gkeDetailsPage.nodePoolTable().self().should('be.visible');
     gkeDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
@@ -154,7 +161,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.waitForPage();
 
     clusterList.list().name('imported-mock-cluster').click();
-    importDetailsPage.waitForPage(null, 'events');
+    importDetailsPage.waitForPage();
     importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
   });
 });
