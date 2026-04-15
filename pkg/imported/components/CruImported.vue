@@ -414,7 +414,9 @@ export default defineComponent({
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :resource="value"
     :mode="mode"
     :can-yaml="false"
@@ -424,11 +426,7 @@ export default defineComponent({
     @error="e=>errors=e"
     @finish="save"
   >
-    <Loading
-      v-if="$fetchState.pending"
-      mode="relative"
-    />
-    <div v-else>
+    <div>
       <div>
         <Banner
           v-if="harvesterLocation"
