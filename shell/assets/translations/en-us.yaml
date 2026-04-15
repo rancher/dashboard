@@ -6559,6 +6559,7 @@ sortableTable:
   resetFilters: Reset
   add: Add
   tableHeader:
+    actions: Actions
     noFilter: This column cannot be filtered by
     groupBy: Group by
     show: Show
