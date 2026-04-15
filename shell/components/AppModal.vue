@@ -91,7 +91,11 @@ export default defineComponent({
     focusTrapWatcherBasedVariable: {
       type:    Boolean,
       default: undefined,
-    }
+    },
+    title: {
+      type:    String,
+      default: '',
+    },
   },
   computed: {
     modalWidth(): string {
@@ -202,6 +206,7 @@ export default defineComponent({
           :class="customClass"
           class="modal-container"
           :style="modalStyles"
+          :aria-label="title"
           role="dialog"
           aria-modal="true"
           @click.stop
