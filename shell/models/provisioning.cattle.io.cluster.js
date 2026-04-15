@@ -433,8 +433,8 @@ export default class ProvCluster extends SteveModel {
     }, `set provisioner`, timeout, interval);
   }
 
-  waitForMgmt(timeout = 60000, interval) {
-    return this.waitForTestFn(() => {
+  async waitForMgmt(timeout = 60000, interval) {
+    return this.waitForTestFn(async() => {
       // `this` instance isn't getting updated with `status.clusterName`
       // Workaround - Get fresh copy from the store
       const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
@@ -445,7 +445,7 @@ export default class ProvCluster extends SteveModel {
           // Just in case we're not generically watching all mgmt clusters and...
           // thus won't receive new mgmt cluster over socket...
           // fire and forget a request to fetch it (this won't make multiple requests if one is already running)
-          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: name });
+          await this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: name });
         }
       } catch {}
 
