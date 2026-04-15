@@ -227,7 +227,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <section
+  <region
     v-else
     :aria-label="chart.chartNameDisplay"
   >
@@ -541,7 +541,7 @@ export default {
         </div>
       </aside>
     </div>
-  </section>
+  </region>
 </template>
 
 <style lang="scss" scoped>
