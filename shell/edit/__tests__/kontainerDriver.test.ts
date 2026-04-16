@@ -1,10 +1,10 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
-import NodeDriverEdit from '@shell/edit/nodeDriver.vue';
+import KontainerDriverEdit from '@shell/edit/kontainerDriver.vue';
 import { _CREATE } from '@shell/config/query-params';
 
-describe('view: nodedriver should', () => {
+describe('view: kontainerdriver should', () => {
   const url = 'http://test.com';
   let wrapper: any;
   const requiredSetup = () => ({
@@ -20,10 +20,9 @@ describe('view: nodedriver should', () => {
           },
           dispatch: jest.fn()
         },
-        $route:  { query: { AS: '' }, name: 'your_route_name' },
+        $route:  { query: { AS: '' } },
         $router: { applyQuery: jest.fn() },
       },
-
     },
     propsData: {
       value: {
@@ -39,7 +38,7 @@ describe('view: nodedriver should', () => {
   });
 
   beforeEach(() => {
-    wrapper = mount(NodeDriverEdit, { ...requiredSetup() });
+    wrapper = mount(KontainerDriverEdit, { ...requiredSetup() });
   });
 
   afterEach(() => {
@@ -47,14 +46,14 @@ describe('view: nodedriver should', () => {
   });
 
   it('have "Create" button disabled before fields are filled in', () => {
-    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="kontainer-driver-edit-save"]').element as HTMLInputElement;
 
     expect(saveButton.disabled).toBe(true);
   });
 
   it('have "Create" button enabled when required fields are filled in', async() => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
-    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="kontainer-driver-edit-save"]').element as HTMLInputElement;
 
     urlField.setValue(url);
 
@@ -63,21 +62,36 @@ describe('view: nodedriver should', () => {
     expect(saveButton.disabled).toBe(false);
   });
 
-  it.each`
-    url                    | checksum             | expected
-    ${ '1111' }            | ${ 'aaaaaBBBBdddd' } | ${ true }
-    ${ 'http://test.com' } | ${ '!!!' }           | ${ true }
-    ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ false }
-  `('have "Create" button enabled and disabled depending on validation results', async({ url, checksum, expected }) => {
+  it('have "Create" button enabled and disabled depending on validation results', async() => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
     const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]');
-    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="kontainer-driver-edit-save"]').element as HTMLInputElement;
 
-    urlField.setValue(url);
-    checksumField.setValue(checksum);
+    const testCases = [
+      {
+        url:      '1111',
+        checksum: 'aaaaaBBBBdddd',
+        result:   true
+      },
+      {
+        url:      'http://test.com',
+        checksum: '!!!',
+        result:   true
+      },
+      {
+        url:      'http://test.com',
+        checksum: 'aaaaaBBBBdddd',
+        result:   false
+      }
+    ];
 
-    await nextTick();
+    for (const testCase of testCases) {
+      urlField.setValue(testCase.url);
+      await nextTick();
+      checksumField.setValue(testCase.checksum);
+      await nextTick();
 
-    expect(saveButton.disabled).toBe(expected);
+      expect(saveButton.disabled).toBe(testCase.result);
+    }
   });
 });
