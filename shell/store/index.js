@@ -1043,23 +1043,19 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
-    myLogger.warn('loadCluster', 5);
     // If SSP is on we won't have requested all clusters
     if (!paginateClusters({ rootGetters, state })) { // TODO: RC huh
-      myLogger.warn('loadCluster', 5.1, 'waitForHaveAll', 'mgmt cluster');
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
     // See if it really exists
     try {
-      myLogger.warn('loadCluster', 6);
       const cluster = await dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id,
         opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
       });
 
-      myLogger.warn('loadCluster', 6.1, cluster.isReady);
       if (!cluster.isReady) {
         // Treat an unready cluster the same as a missing one. This ensures that we safely take user to the home page instead of showing
         // an error page (useful if they've set the cluster as their home page and don't want to change their landing location)

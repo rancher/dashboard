@@ -1,7 +1,7 @@
 <script  lang="ts">
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable';
-import Masthead from '@shell/components/ResourceList/Masthead';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import Masthead from '@shell/components/ResourceList/Masthead.vue';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
@@ -18,10 +18,11 @@ import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilte
 import { sameContents } from '@shell/utils/array';
 import { promises } from 'node:dns';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
+import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 
 export default {
   components: {
-    Banner, PaginatedResourceTable, Masthead, BadgeState
+    Banner, PaginatedResourceTable, Masthead, MachineSummaryGraph
   },
   // mixins: [ResourceFetch],
   // props:  {
@@ -259,7 +260,7 @@ export default {
           .filter((p: any) => p.id)
           .map((r: any) => new PaginationFilterField({
             field: 'spec.clusterName',
-            value: r.id
+            value: r.provClusterName // TODO: RC is it?
           })));
 
         const nodePools = await this.$store.dispatch(`management/findPage`, {
@@ -286,6 +287,29 @@ export default {
           }
         });
       }
+
+      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: { // TODO: RC Temp code, see below
+            page:                 1,
+            pageSize:             100000,
+            filters:              [],
+            sort:                 [],
+            projectsOrNamespaces: []
+          }
+          // TODO: RC cluster.x-k8s.io.machinedeployment required index on spec.clusterName
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'spec.clusterName',
+          //     value: r.provClusterName
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE_DEPLOYMENT, opt });
+      }
+
       // TODO: RC
 
       await Promise.all(promises);
@@ -409,6 +433,10 @@ export default {
       :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
     />
 
+    <!-- // TODO: RC test multiple pages / on page change get second page's data -->
+    <!-- // TODO: RC test updates over socket -->
+    <!-- // TODO: RC test CRUD of imported, rke2 clusters -->
+
     <Masthead
       :schema="provClusterSchema"
       :resource="provClusterSchema.id"
@@ -453,6 +481,15 @@ export default {
 
       :namespaced="nonStandardNamespaces > 0"
     >
+      <template #cell:summary="{row}">
+        <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
+        <!-- Not sure how the conditional replace works... c&p from home -->
+        <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
+        <MachineSummaryGraph
+          v-else
+          :row="row"
+        />
+      </template>
       <template #col:kubernetesVersion="{row}">
         <!--  TODO: RC code duplication -->
         <td class="col-name">

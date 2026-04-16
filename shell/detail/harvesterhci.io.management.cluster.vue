@@ -27,7 +27,6 @@ export default {
   },
 
   async fetch() {
-    debugger;
     await this.value.waitForProvisioner();
 
     const hash = { clusterToken: this.value.getOrCreateToken() };
@@ -51,7 +50,6 @@ export default {
     },
 
     showRegistration() {
-      debugger;
       if ( !this.clusterToken ) {
         return false;
       }

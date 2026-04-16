@@ -96,7 +96,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canExplore() {
-    return this.mgmt?.isReady && !this.hasError;
+    return this.mgmt?.canExplore;
   }
 
   get canEdit() {
@@ -596,62 +596,31 @@ export default class ProvCluster extends SteveModel {
   }
 
   get desired() {
-    return this.pools.reduce((acc, pool) => acc + (pool.desired || 0), 0);
+    return this.mgmt?.desired || 0;
   }
 
   get pending() {
-    return this.pools.reduce((acc, pool) => acc + (pool.pending || 0), 0);
+    return this.mgmt?.pending || 0;
   }
 
   get outdated() {
-    return this.pools.reduce((acc, pool) => acc + (pool.outdated || 0), 0);
+    return this.mgmt?.outdated || 0;
   }
 
   get ready() {
-    return this.pools.reduce((acc, pool) => acc + (pool.ready || 0), 0);
+    return this.mgmt?.ready || 0;
   }
 
   get unavailable() {
-    return this.pools.reduce((acc, pool) => acc + (pool.unavailable || 0), 0);
+    return this.mgmt?.unavailable || 0;
   }
 
   get unavailableMachines() {
-    return this.mgmt?.unavailableMachines;
+    return this.mgmt?.unavailableMachines || 0;
   }
 
   get stateParts() {
-    const out = [
-      {
-        label:     'Pending',
-        color:     'bg-info',
-        textColor: 'text-info',
-        value:     this.pending,
-        sort:      1,
-      },
-      {
-        label:     'Outdated',
-        color:     'bg-warning',
-        textColor: 'text-warning',
-        value:     this.outdated,
-        sort:      2,
-      },
-      {
-        label:     'Unavailable',
-        color:     'bg-error',
-        textColor: 'text-error',
-        value:     this.unavailable,
-        sort:      3,
-      },
-      {
-        label:     'Ready',
-        color:     'bg-success',
-        textColor: 'text-success',
-        value:     this.ready,
-        sort:      4,
-      },
-    ].filter((x) => x.value > 0);
-
-    return sortBy(out, 'sort:desc');
+    return this.mgmt?.stateParts;
   }
 
   async getOrCreateToken() {

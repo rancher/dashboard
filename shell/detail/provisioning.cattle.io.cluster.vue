@@ -565,7 +565,6 @@ export default {
     },
 
     showRegistration() {
-      debugger;
       if ( !this.clusterToken ) {
         return false;
       }

@@ -230,7 +230,10 @@ export default {
           });
 
           if (matchingSubtype) {
-            this.selectType(matchingSubtype.id, false);
+            // TODO: RC this set's it to imported, which is then immediately set back to digitalocean, causes re-calc of this, repeat ad nauseam
+            // this should be fixed soon by BE (not provisioner = imported), does bug still happen given new changes?
+            // does this happen on master if we hardcode imported here?
+            // this.selectType(matchingSubtype.id, false);
           }
         }
 
