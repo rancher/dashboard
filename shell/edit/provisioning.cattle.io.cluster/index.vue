@@ -157,9 +157,24 @@ export default {
     if ( this.$route.query[SUB_TYPE]) {
       subType = this.$route.query[SUB_TYPE];
     } else if (this.value.isImported) {
+      // Default imported clusters to the generic imported subType.
+      // Imported hosted clusters (e.g. AKS, EKS, GKE) that have an extension-provided
+      // component will be overridden below to load the correct custom form.
       subType = IMPORTED;
     } else if (this.value.isLocal) {
       subType = LOCAL;
+    }
+
+    // For imported hosted clusters, check if the provisioner has a matching extension
+    // component and override the subType so the correct custom form loads instead of
+    // the generic imported configuration page.
+    if (subType === IMPORTED && this.value?.id && this.value.provisioner) {
+      const provisionerLower = this.value.provisioner.toLowerCase();
+      const hasExtension = this.extensions.some((ext) => ext.id === provisionerLower);
+
+      if (hasExtension) {
+        subType = provisionerLower;
+      }
     }
 
     // Auto-detect subType for existing clusters being edited
