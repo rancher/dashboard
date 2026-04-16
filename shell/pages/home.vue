@@ -37,6 +37,7 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
 import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
 
 export default defineComponent({
   name:       'Home',
@@ -127,7 +128,7 @@ export default defineComponent({
           value:     'status.provider',
           name:      'Provider',
           sort:      ['status.info.machineProvider', 'status.driver'],
-          formatter: 'MgmtClusterProvider'
+          formatter: 'ClusterProvider'
         },
         {
           label:    this.t('landing.clusters.kubernetesVersion'),
@@ -153,7 +154,7 @@ export default defineComponent({
           name:         'pods',
           value:        '',
           sort:         ['status.allocatable.pods', 'status.requested.pods'],
-          formatter:    'MgmtPodsUsage',
+          formatter:    'PodsUsage',
           delayLoading: true
         },
         // {
@@ -162,6 +163,7 @@ export default defineComponent({
         // }
       ],
 
+      // TODO: RC test vai on / off
       paginationHeaders: [
         STEVE_STATE_COL,
         {
@@ -207,7 +209,7 @@ export default defineComponent({
           value:        '',
           sort:         false,
           search:       false,
-          formatter:    'MgmtPodsUsage',
+          formatter:    'PodsUsage',
           delayLoading: true
         },
       ],
@@ -314,132 +316,19 @@ export default defineComponent({
      * Of type PagTableFetchSecondaryResources
      */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
-      if (opts.canPaginate) {
-        return Promise.resolve({});
-      }
-
-      const promises = [];
-
-      if ( this.canViewProvClusters ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }));
-      }
-
-      if ( this.canViewMachine ) {
-        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-      }
-
-      if ( this.canViewMgmtNodes ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
-
-      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.canViewMgmtTemplates ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-
-      return Promise.all(promises);
+      return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
     },
 
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
     }: PagTableFetchPageSecondaryResourcesOpts) {
-      if (!canPaginate || !page?.length) {
-        this.clusterCount = 0;
+      this.clusterCount = !canPaginate || !page?.length ? 0 : pagResult.count;
 
-        return;
-      }
+      const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
+        canPaginate, force, page, pagResult
+      }, { $store: this.$store });
 
-      this.clusterCount = pagResult.count;
-
-      if ( this.canViewProvClusters ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.provClusterId
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: CAPI.RANCHER_CLUSTER, opt });
-      }
-
-      if ( this.canViewMachine ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: { // TODO: RC Temp code, see below
-            page:                 1,
-            pageSize:             100000,
-            filters:              [],
-            sort:                 [],
-            projectsOrNamespaces: []
-          }
-          // TODO: RC cluster.x-k8s.io.machines required index on spec.clusterName??
-          // TODO: RC index
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',
-          //     value: r.provClusterName
-          //   }))),
-          // })
-        };
-
-        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
-      }
-
-      if ( this.canViewMgmtNodes ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.id,
-              exact: false,
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
-      }
-
-      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
-        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
-          .filter((p: any) => p.id)
-          .map((r: any) => new PaginationFilterField({
-            field: 'spec.clusterName',
-            value: r.id
-          })));
-
-        const nodePools = await this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_POOL,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: nodePoolFilters })
-          }
-        });
-
-        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
-          .filter((np: any) => !!np.nodeTemplateId)
-          .map((np: any) => new PaginationFilterField({
-            field: 'id',
-            value: np.nodeTemplateId,
-            exact: true,
-          })));
-
-        this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_TEMPLATE,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: templateOpt })
-          }
-        });
-      }
+      await Promise.all(promises);
     },
 
     /**
@@ -501,47 +390,12 @@ export default defineComponent({
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
     },
 
-    /**
-     * Filter out hidden clusters from list of all clusters
-     */
-    filterRowsLocal(rows: any[]) {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store);
+    filterRowsLocal(rows: MgmtCluster[]) {
+      return ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
     },
 
-    /**
-     * Filter out hidden clusters via api
-     */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
-      if (!pagination.filters) {
-        pagination.filters = [];
-      }
-
-      const existingFilters = pagination.filters;
-      const requiredFilters = paginationFilterClusters(this.$store, false);
-
-      for (let i = 0; i < requiredFilters.length; i++) {
-        let found = false;
-        const required = requiredFilters[i];
-
-        for (let j = 0; j < existingFilters.length; j++) {
-          const existing = existingFilters[j];
-
-          if (
-            required.fields.length === existing.fields.length &&
-            sameContents(required.fields.map((e) => e.field), existing.fields.map((e) => e.field))
-          ) {
-            Object.assign(existing, required);
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          pagination.filters.push(required);
-        }
-      }
-
-      return pagination;
+      return ManagementClusterUtils.filterRowsApi(pagination, { $store: this.$store });
     },
 
     async toggleAltClusterListDisabled(disabled: boolean) {

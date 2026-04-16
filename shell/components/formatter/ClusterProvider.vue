@@ -12,9 +12,8 @@ export default {
 <template>
   <div>
     <template v-if="row.machineProvider">
-      <span v-if="row.isHarvester && row.mgmt && row.mgmt.isReady && !row.hasError">
+      <span v-if="row.isHarvester && row.isReady && !row.hasError">
         <a
-          v-if="row.mgmt.isReady && !row.hasError"
           role="button"
           @click="row.goToHarvesterCluster()"
         >
@@ -25,14 +24,11 @@ export default {
         {{ row.machineProviderDisplay }}
       </span>
     </template>
-    <template v-else-if="row.isImported">
-      {{ t('cluster.provider.imported') }}
-    </template>
-    <template v-else-if="row.isCustom">
-      {{ t('cluster.provider.custom') }}
-    </template>
+    <!-- TODO: RC confirm imported shows as 'cluster.provider.imported' and custom as 'cluster.provider.custom' -->
+
     <div class="text-muted">
       {{ row.provisionerDisplay }}
     </div>
   </div>
 </template>
+<!-- TODO: RC test custom. imported. imported hosted. harvester, rke2/harvester, rke2/digitalocean-->

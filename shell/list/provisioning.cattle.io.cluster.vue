@@ -1,192 +1,48 @@
 <script  lang="ts">
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable.vue';
 import Masthead from '@shell/components/ResourceList/Masthead.vue';
-import { allHash } from '@shell/utils/promise';
-import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster, paginationFilterClusters } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import ResourceFetch from '@shell/mixins/resource-fetch';
-import { BadgeState } from '@components/BadgeState';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { sameContents } from '@shell/utils/array';
-import { promises } from 'node:dns';
+import { PaginationArgs } from '@shell/types/store/pagination.types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
+import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
 
 export default {
   components: {
     Banner, PaginatedResourceTable, Masthead, MachineSummaryGraph
   },
-  // mixins: [ResourceFetch],
-  // props:  {
-  //   loadIndeterminate: {
-  //     type:    Boolean,
-  //     default: false
-  //   },
-
-  //   incrementalLoadingIndicator: {
-  //     type:    Boolean,
-  //     default: false
-  //   },
-
-  //   useQueryParamsForSimpleFiltering: {
-  //     type:    Boolean,
-  //     default: false
-  //   }
-  // },
-
-  async fetch() {
-    // this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
-    // const hash = {
-    //   rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER), Yes
-    //   normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'), No
-    //   mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER), Yes
-    // };
-
-    // if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-    //   hash.etcdSnapshots = this.$fetchType(SNAPSHOT); No
-    // }
-
-    // if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-    //   hash.capiMachines = this.$fetchType(CAPI.MACHINE);
-    // }
-
-    // if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-    //   hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE);
-    // }
-
-    // if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-    //   hash.mgmtPools = this.$fetchType(MANAGEMENT.NODE_POOL);
-    // }
-
-    // if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-    //   hash.mgmtTemplates = this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
-    // }
-
-    // if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-    //   hash.machineDeployments = this.$fetchType(CAPI.MACHINE_DEPLOYMENT); No
-    // }
-
-    // // Fetch RKE template revisions so we can show when an updated template is available
-    // // This request does not need to be blocking
-    // if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-    //   this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION); No
-    // }
-
-    // const res = await allHash(hash);
-
-    // this.mgmtClusters = res.mgmtClusters;
-    // this.showRke1DeprecationWarning = this.rows.some((r) => r.isRke1);
-  },
 
   data() {
     return {
-      // schema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      // mgmtClusters:               [], no
-      // showRke1DeprecationWarning: false, no
       mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
 
-      canViewProvClusters:  this.$store.getters['management/canList'](CAPI.RANCHER_CLUSTER),
-      canViewMachine:       this.$store.getters['management/canList'](CAPI.MACHINE),
-      canViewMgmtNodes:     this.$store.getters['management/canList'](MANAGEMENT.NODE),
-      canViewMgmtPools:     this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
-      canViewMgmtTemplates: this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE),
     };
   },
 
   methods: {
-    /**
-     * Filter out hidden clusters from list of all clusters
-     */
-    filterRowsLocal(rows: any[]) { // TODO: RC common code with home
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store);
+    filterRowsLocal(rows: MgmtCluster[]) {
+      return ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
     },
 
-    /**
-     * Filter out hidden clusters via api
-     */
-    filterRowsApi(pagination: PaginationArgs): PaginationArgs { // TODO: RC common code with home
-      if (!pagination.filters) {
-        pagination.filters = [];
-      }
-
-      const existingFilters = pagination.filters;
-      const requiredFilters = paginationFilterClusters(this.$store, false);
-
-      for (let i = 0; i < requiredFilters.length; i++) {
-        let found = false;
-        const required = requiredFilters[i];
-
-        for (let j = 0; j < existingFilters.length; j++) {
-          const existing = existingFilters[j];
-
-          if (
-            required.fields.length === existing.fields.length &&
-            sameContents(required.fields.map((e) => e.field), existing.fields.map((e) => e.field))
-          ) {
-            Object.assign(existing, required);
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          pagination.filters.push(required);
-        }
-      }
-
-      return pagination;
+    filterRowsApi(pagination: PaginationArgs): PaginationArgs {
+      return ManagementClusterUtils.filterRowsApi(pagination, { $store: this.$store });
     },
 
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
-      if (opts.canPaginate) {
-        return Promise.resolve({});
+      const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
+
+      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
+        this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE_DEPLOYMENT }); // TODO: RC cross check with old fetch
       }
-
-      const promises = [
-        this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-        this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      ];
-
-      if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: SNAPSHOT }));
-      }
-
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: CAPI.MACHINE }));
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE }));
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }));
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }));
-      }
-
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-        promises.push(this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }));
-      }
-
-      // TODO: RC comment MANAGEMENT.RKE_TEMPLATE_REVISION isn't used anywhere...
-      // // Fetch RKE template revisions so we can show when an updated template is available
-      // // This request does not need to be blocking
-      // if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      //   this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
-      // }
 
       return Promise.all(promises);
     },
@@ -194,99 +50,9 @@ export default {
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
     }: PagTableFetchPageSecondaryResourcesOpts) {
-      if (!canPaginate || !page?.length) {
-        return;
-      }
-
-      const promises = [
-
-      ];
-
-      if ( this.canViewProvClusters ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.provClusterId
-            }))),
-          })
-        };
-
-        // Prov clusters
-        promises.push(this.$store.dispatch(`management/findPage`, { type: CAPI.RANCHER_CLUSTER, opt }));
-      }
-
-      if ( this.canViewMachine ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: { // TODO: RC Temp code, see below
-            page:                 1,
-            pageSize:             100000,
-            filters:              [],
-            sort:                 [],
-            projectsOrNamespaces: []
-          }
-          // TODO: RC cluster.x-k8s.io.machines required index on spec.clusterName??
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',
-          //     value: r.provClusterName
-          //   }))),
-          // })
-        };
-
-        promises.push(this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt }));
-      }
-
-      if ( this.canViewMgmtNodes ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.id,
-              exact: false,
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
-      }
-
-      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
-        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
-          .filter((p: any) => p.id)
-          .map((r: any) => new PaginationFilterField({
-            field: 'spec.clusterName',
-            value: r.provClusterName // TODO: RC is it?
-          })));
-
-        const nodePools = await this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_POOL,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: nodePoolFilters })
-          }
-        });
-
-        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
-          .filter((np: any) => !!np.nodeTemplateId)
-          .map((np: any) => new PaginationFilterField({
-            field: 'id',
-            value: np.nodeTemplateId,
-            exact: true,
-          })));
-
-        this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_TEMPLATE,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: templateOpt })
-          }
-        });
-      }
+      const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
+        canPaginate, force, page, pagResult
+      }, { $store: this.$store });
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         const opt: ActionFindPageArgs = {
@@ -317,16 +83,6 @@ export default {
   },
 
   computed: {
-    // filteredRows() {
-    //   // If Harvester feature is enabled, hide Harvester Clusters
-    //   if (this.harvesterEnabled) {
-    //     return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows, this.$store), this.$store);
-    //   }
-
-    //   // Otherwise, show Harvester clusters - these will be shown with a warning
-    //   return filterHiddenLocalCluster(this.rows, this.$store);
-    // },
-
     hiddenHarvesterCount() {
       const product = this.$store.getters['currentProduct'];
       const isExplorer = product?.name === EXPLORER;
@@ -410,11 +166,6 @@ export default {
     }
 
   },
-
-  // $loadingResources() {
-  //   // results are filtered so we wouldn't get the correct count on indicator...
-  //   return { loadIndeterminate: true };
-  // }
 
 };
 </script>

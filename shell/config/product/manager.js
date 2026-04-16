@@ -183,7 +183,7 @@ export function init(store) {
       subLabel:  'Distro',
       value:     'machineProvider',
       sort:      ['status.info.machineProvider', 'status.driver'],
-      formatter: 'MgmtClusterProvider',
+      formatter: 'ClusterProvider',
     },
     MACHINE_SUMMARY,
     AGE,
@@ -217,7 +217,7 @@ export function init(store) {
       subLabel:  'Distro',
       value:     'machineProvider',
       sort:      ['status.info.machineProvider', 'status.driver'],
-      formatter: 'MgmtClusterProvider',
+      formatter: 'ClusterProvider',
     },
     MACHINE_SUMMARY,
     STEVE_AGE_COL,
@@ -228,42 +228,6 @@ export function init(store) {
       width: 65,
     },
   ]);
-
-  // headers(CAPI.RANCHER_CLUSTER, [
-  //   STATE,
-  //   {
-  //     name:          'name',
-  //     labelKey:      'tableHeaders.name',
-  //     value:         'nameDisplay',
-  //     sort:          ['nameSort'],
-  //     formatter:     'ClusterLink',
-  //     canBeVariable: true,
-  //   },
-  //   {
-  //     name:     'kubernetesVersion',
-  //     labelKey: 'tableHeaders.version',
-  //     subLabel: 'Architecture',
-  //     value:    'kubernetesVersion',
-  //     sort:     'kubernetesVersion',
-  //     search:   'kubernetesVersion',
-  //   },
-  //   {
-  //     name:      'provider',
-  //     labelKey:  'tableHeaders.provider',
-  //     subLabel:  'Distro',
-  //     value:     'machineProvider',
-  //     sort:      ['machineProvider', 'provisioner'],
-  //     formatter: 'ClusterProvider',
-  //   },
-  //   MACHINE_SUMMARY,
-  //   AGE,
-  //   {
-  //     name:  'explorer',
-  //     label: ' ',
-  //     align: 'right',
-  //     width: 65,
-  //   },
-  // ]);
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
