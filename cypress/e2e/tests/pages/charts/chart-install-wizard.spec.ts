@@ -51,6 +51,13 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
+
+      installChartPage.chartNameLink()
+        .should('exist')
+        .and('contain.text', 'rancher-demo')
+        .and('have.attr', 'href')
+        .and('include', '/apps/charts/chart?');
+
       installChartPage.chartName().type('rancher-demo');
       installChartPage.nextPage();
       tabbedPo.allTabs().should('have.length', 4);

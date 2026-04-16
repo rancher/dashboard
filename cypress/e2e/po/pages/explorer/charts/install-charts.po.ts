@@ -60,6 +60,10 @@ export class InstallChartPage extends PagePo {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
   }
 
+  chartNameLink() {
+    return this.self().get('[data-testid="chart-install-name-link"]');
+  }
+
   chartVersionSelector(): LabeledSelectPo {
     return new LabeledSelectPo('[data-testid="chart-version-selector"]');
   }

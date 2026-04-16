@@ -1561,6 +1561,7 @@ export default {
               <router-link
                 v-if="chart"
                 :to="chartLocation()"
+                data-testid="chart-install-name-link"
               >
                 {{ stepperName }}
               </router-link>
@@ -2052,7 +2053,10 @@ export default {
             </div>
             <div class="chart-title">
               <h2 v-if="stepperName">
-                <router-link :to="chartLocation()">
+                <router-link
+                  :to="chartLocation()"
+                  data-testid="chart-install-name-link"
+                >
                   {{ stepperName }}
                 </router-link>
               </h2>
