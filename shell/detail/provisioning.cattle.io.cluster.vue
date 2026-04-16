@@ -633,7 +633,12 @@ export default {
     },
 
     showAutoScalerTab() {
+<<<<<<< HEAD
       return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+=======
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs?.autoscaler;
+      // return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
+>>>>>>> 1379e5af19 (add ability to hide autoscaler tab)
     }
   },
 

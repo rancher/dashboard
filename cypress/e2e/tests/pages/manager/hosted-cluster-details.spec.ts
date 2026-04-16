@@ -2,7 +2,6 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
-import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -38,7 +37,6 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const aksDetailsPage = new ClusterManagerDetailHostedPagePo('_', AKS_CLUSTER);
-    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -47,8 +45,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     aksDetailsPage.waitForPage();
 
     aksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
-    aksDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
+    // ensure the node pool tab is the first tab
     aksDetailsPage.nodePoolTable().self().should('be.visible');
 
     aksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
@@ -56,6 +54,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     aksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
 
     aksDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
+    aksDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
 
     // node pool table should not have a 'group by namespace' button
     aksDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
@@ -80,7 +79,6 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const eksDetailsPage = new ClusterManagerDetailHostedPagePo('_', EKS_CLUSTER);
-    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -88,8 +86,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('eks-mock-cluster').click();
     eksDetailsPage.waitForPage();
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
-    eksDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
+    // ensure the node pool tab is the first tab
     eksDetailsPage.nodePoolTable().self().should('be.visible');
 
     eksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 3);
@@ -97,6 +95,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     eksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
 
     eksDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
+    eksDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
 
     // node pool table should not have a 'group by namespace' button
     eksDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
@@ -119,7 +118,6 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterList = new ClusterManagerListPagePo();
 
     const gkeDetailsPage = new ClusterManagerDetailHostedPagePo('_', GKE_CLUSTER);
-    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -127,14 +125,15 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().name('gke-mock-cluster').click();
     gkeDetailsPage.waitForPage();
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
-    gkeDetailsPage.selectTab(tabbedPo, '[data-testid="btn-custom"]');
 
+    // ensure the node pool tab is the first tab
     gkeDetailsPage.nodePoolTable().self().should('be.visible');
     gkeDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
     gkeDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
 
     gkeDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
+    gkeDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
 
     // node pool table should not have a 'group by namespace' button
     gkeDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
@@ -150,6 +149,35 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     // check that the internal/external IPs column is rendering at least an internal IP, not -/-
     gkeDetailsPage.nodePoolTable().sortableTable().getTableCell(0, 3).contains(/\d+/);
+  });
+
+  it('should not show an autoscaler tab in GKE, AKS, or EKS cluster details', () => {
+    const clusterList = new ClusterManagerListPagePo();
+    const hostedClusters = [
+      {
+        id:   AKS_CLUSTER,
+        name: 'aks-mock-cluster'
+      },
+      {
+        id:   EKS_CLUSTER,
+        name: 'eks-mock-cluster'
+      },
+      {
+        id:   GKE_CLUSTER,
+        name: 'gke-mock-cluster'
+      }
+    ];
+
+    hostedClusters.forEach(({ id, name }) => {
+      const hostedDetailsPage = new ClusterManagerDetailHostedPagePo('_', id);
+
+      ClusterManagerListPagePo.navTo();
+      clusterList.waitForPage();
+
+      clusterList.list().name(name).click();
+      hostedDetailsPage.waitForPage();
+      hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
+    });
   });
 
   // imported cluster details should not contain a 'provisioning log' tab

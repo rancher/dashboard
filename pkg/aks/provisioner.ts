@@ -44,7 +44,7 @@ export class AKSProvisioner implements IClusterProvisioner {
       related:      true,
       events:       true,
       conditions:   true,
-      autoscaler:   false,
+      autoscaler:   false
     };
   }
 
