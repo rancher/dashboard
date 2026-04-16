@@ -16,7 +16,7 @@ export default class Kubectl extends ComponentPo {
   }
 
   closeTerminal() {
-    this.self().get('[data-testid="wm-tab-close-button"]').click();
+    this.self().get('[data-testid="wm-tab-close-button"]').first().click();
   }
 
   closeTerminalByTabName(name: string) {
@@ -32,14 +32,8 @@ export default class Kubectl extends ComponentPo {
   }
 
   terminalRow() {
-    return this.self().then(($el) => {
-      // Depending on if we could load webGL, this will change
-      if ($el.find('.xterm-cursor-layer').length > 0) {
-        return $el.find('.xterm-cursor-layer');
-      }
-
-      return $el.find('.xterm-link-layer');
-    });
+    // .xterm-helper-textarea is always present regardless of rendering mode (DOM, canvas, WebGL)
+    return this.self().find('.xterm-helper-textarea');
   }
 
   /**
@@ -48,7 +42,7 @@ export default class Kubectl extends ComponentPo {
    * @returns executeCommand for method chanining
    */
   executeCommand(command: string, wait = 3000) {
-    this.terminalRow().type(`${ this.kubeCommand } ${ command }{enter}`);
+    this.terminalRow().type(`${ this.kubeCommand } ${ command }{enter}`, { force: true });
     cy.wait(wait);
 
     return this;
@@ -56,9 +50,9 @@ export default class Kubectl extends ComponentPo {
 
   executeMultilineCommand(jsonObject: Object, wait = 3000) {
     this.terminalRow()
-      .type(`kubectl apply -f - <<EOF{enter}`)
-      .type(`${ jsyaml.dump(jsonObject) }{enter}`)
-      .type(`EOF{enter}`)
+      .type(`kubectl apply -f - <<EOF{enter}`, { force: true })
+      .type(`${ jsyaml.dump(jsonObject) }{enter}`, { force: true })
+      .type(`EOF{enter}`, { force: true })
       .wait(wait);
 
     return this;
