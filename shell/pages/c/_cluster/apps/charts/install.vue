@@ -1541,7 +1541,7 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
       :header-mode="action.tKey"
-      :hide-step-banner="true"
+      :show-step-header="false"
       class="wizard"
       @cancel="cancel"
       @finish="finish"

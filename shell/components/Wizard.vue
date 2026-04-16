@@ -108,9 +108,9 @@ export default {
       default: null
     },
 
-    hideStepBanner: {
+    showStepHeader: {
       type:    Boolean,
-      default: false
+      default: true
     },
 
     // The set of labels to display for the finish AsyncButton
@@ -335,7 +335,7 @@ export default {
               </slot>
               <!-- Step number with subtext -->
               <div
-                v-if="activeStep && showSteps && !hideStepBanner"
+                v-if="activeStep && showSteps && showStepHeader"
                 class="subtitle"
               >
                 <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
