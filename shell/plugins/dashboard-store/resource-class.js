@@ -1358,7 +1358,35 @@ export default class Resource {
     return window.$globalApp.$router;
   }
 
+  get isProdRegistrationV2TopLevelProductResoure() {
+    // this is the logic to determine if the resource is top level product or not
+    // changes c-cluster-product-resource to product-c-cluster-resource
+    // this is for the new extension product registration model
+    let currPluginName = '';
+    const plugins = this.$extension.getPlugins();
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    // the flag "topLevelProduct" only exists in the V2 product registration model
+    return plugins[currPluginName]?.topLevelProduct || false;
+  }
+
   get listLocation() {
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource`,
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: this.type,
+        }
+      };
+    }
+
     return {
       name:   `c-cluster-product-resource`,
       params: {
@@ -1375,6 +1403,20 @@ export default class Resource {
 
     const id = this.id?.replace(/.*\//, '');
 
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          resource:  this.type,
+          namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
+          id,
+        }
+      };
+    }
+
+    // normal cluster scoped resource route as we know
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
@@ -1935,6 +1977,25 @@ export default class Resource {
 
   get _glance() {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
+    let toRoute = null;
+
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      toRoute = {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
+        params: {
+          product:  this.$rootGetters['currentProduct']?.id,
+          cluster:  this.$rootGetters['currentCluster']?.id,
+          resource: this.type,
+        }
+      };
+    } else {
+      toRoute = {
+        name:     `c-cluster-product-resource-id`,
+        product:  this.$rootGetters['currentProduct']?.id,
+        cluster:  this.$rootGetters['currentCluster']?.id,
+        resource: this.type
+      };
+    }
 
     return [
       {
@@ -1958,12 +2019,7 @@ export default class Resource {
         label:         this.t('component.resource.detail.glance.namespace'),
         formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
         formatterOpts: {
-          to: {
-            name:     `c-cluster-product-resource-id`,
-            product:  this.$rootGetters['currentProduct']?.id,
-            cluster:  this.$rootGetters['currentCluster']?.id,
-            resource: this.type
-          },
+          to:      toRoute,
           row:     {},
           options: { internal: true }
         },

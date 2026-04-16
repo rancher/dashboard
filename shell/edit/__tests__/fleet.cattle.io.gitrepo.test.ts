@@ -70,6 +70,7 @@ const initGitRepo = (props: any, value?: any) => {
   }, {
     getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
     dispatch:    jest.fn(),
+    rootState:   { $extension: { getPlugins: () => ({}) } },
     rootGetters: { 'i18n/t': jest.fn() },
   });
 

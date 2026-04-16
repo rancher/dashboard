@@ -14,7 +14,7 @@ export function init(store) {
     headers
   } = DSL(store, NAME);
 
-  product({ ifHaveGroup: /^(.*\.)*compliance\.cattle\.io$/ });
+  product({ ifHaveGroup: /^(.*\.)*compliance\.cattle\.io$/, extendable: true });
 
   weightType(COMPLIANCE.CLUSTER_SCAN, 3, true);
   weightType(COMPLIANCE.CLUSTER_SCAN_PROFILE, 2, true);

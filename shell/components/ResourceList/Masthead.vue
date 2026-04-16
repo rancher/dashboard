@@ -85,7 +85,29 @@ export default {
   data() {
     const params = { ...this.$route.params };
 
-    const formRoute = { name: `${ this.$route.name }-create`, params };
+    // Determine if the current product has a topLevelProduct defined, and if so,
+    // use that for the formRoute instead of the current route's product.
+    // This allows resources from extensions (new product registration) to use the correct route for creation,
+    // which may be different from the route of the resource list.
+    let currPluginName = '';
+    let formRoute;
+    let overrideCreateLocationByExtension = false;
+    const plugins = this.$extension.getPlugins();
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$store.getters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+      // override create route for extension resource lists
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
+      overrideCreateLocationByExtension = true;
+    } else {
+      // this was the original logic before the topLevelProduct override was added
+      formRoute = { name: `${ this.$route.name }-create`, params };
+    }
 
     const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
 
@@ -96,6 +118,7 @@ export default {
     };
 
     return {
+      overrideCreateLocationByExtension,
       formRoute,
       yamlRoute,
       hasEditComponent,
@@ -149,7 +172,7 @@ export default {
     },
 
     _createLocation() {
-      return this.createLocation || this.formRoute;
+      return this.overrideCreateLocationByExtension ? this.formRoute : this.createLocation || this.formRoute;
     },
 
     _yamlCreateLocation() {
