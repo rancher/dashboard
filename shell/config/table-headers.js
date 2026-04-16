@@ -1188,3 +1188,20 @@ export const AUTOSCALER_ENABLED = {
   sort:      ['autoscaler'], // TODO: RC doesn't exist?
   formatter: 'Autoscaler', // TODO: RC currently accept prov cluster
 };
+
+export const MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'status.info.machineProvider',
+  sort:      ['status.info.machineProvider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const MGMT_CLUSTER_KUBE_VERSION = {
+  name:     'kubernetesVersion',
+  labelKey: 'tableHeaders.version',
+  subLabel: 'Architecture',
+  sort:     'status.info.kubernetesVersion',
+  search:   'status.info.kubernetesVersion'
+};

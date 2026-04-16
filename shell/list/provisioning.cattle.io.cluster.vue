@@ -145,7 +145,7 @@ export default {
       // return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
     },
 
-    headers() {
+    headers() { // TODO: RC put in data
       const headers = this.$store.getters['type-map/headersFor'](this.mgmtClusterSchema, false);
 
       if (isAutoscalerFeatureFlagEnabled(this.$store)) {

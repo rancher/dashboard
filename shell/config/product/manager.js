@@ -1,4 +1,6 @@
-import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
+import {
+  AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+} from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
@@ -16,7 +18,7 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
-import { STEVE_AGE_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -163,28 +165,15 @@ export function init(store) {
   headers(MANAGEMENT.CLUSTER, [
     STATE,
     {
-      name:          'name', // TODO: RC remove dupes between versions. also in home page
+      name:          'name',
       labelKey:      'tableHeaders.name',
       value:         'nameDisplay',
       sort:          ['nameSort'],
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
-    {
-      name:     'kubernetesVersion',
-      labelKey: 'tableHeaders.version',
-      subLabel: 'Architecture',
-      sort:     'status.info.kubernetesVersion',
-      search:   'status.info.kubernetesVersion'
-    },
-    {
-      name:      'provider',
-      labelKey:  'tableHeaders.provider',
-      subLabel:  'Distro',
-      value:     'machineProvider',
-      sort:      ['status.info.machineProvider', 'status.driver'],
-      formatter: 'ClusterProvider',
-    },
+    MGMT_CLUSTER_PROVIDER,
+    MGMT_CLUSTER_KUBE_VERSION,
     MACHINE_SUMMARY,
     AGE,
     {
@@ -204,21 +193,8 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
-    {
-      name:     'kubernetesVersion',
-      labelKey: 'tableHeaders.version',
-      subLabel: 'Architecture',
-      sort:     'status.version.info.kubernetesVersion',
-      search:   'status.version.info.kubernetesVersion'
-    },
-    {
-      name:      'provider',
-      labelKey:  'tableHeaders.provider',
-      subLabel:  'Distro',
-      value:     'machineProvider',
-      sort:      ['status.info.machineProvider', 'status.driver'],
-      formatter: 'ClusterProvider',
-    },
+    STEVE_MGMT_CLUSTER_PROVIDER,
+    STEVE_MGMT_CLUSTER_KUBE_VERSION,
     MACHINE_SUMMARY,
     STEVE_AGE_COL,
     {

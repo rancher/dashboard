@@ -12,7 +12,7 @@ import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContent
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { AGE, STATE } from '@shell/config/table-headers';
+import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
@@ -25,7 +25,7 @@ import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
-import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
@@ -120,22 +120,16 @@ export default defineComponent({
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          // getValue:      (row: MgmtCluster) => row.nameDisplay
         },
         {
-          label:     this.t('landing.clusters.provider'),
-          subLabel:  this.t('landing.clusters.distro'),
-          value:     'status.provider',
-          name:      'Provider',
-          sort:      ['status.info.machineProvider', 'status.driver'],
-          formatter: 'ClusterProvider'
+          ...MGMT_CLUSTER_PROVIDER,
+          labelKey: 'landing.clusters.provider',
+          subLabel: this.t('landing.clusters.distro'),
         },
         {
-          label:    this.t('landing.clusters.kubernetesVersion'),
+          ...MGMT_CLUSTER_KUBE_VERSION,
+          labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
-          name:     'kubernetesVersion',
-          sort:     'status.info.kubernetesVersion',
-          search:   'status.info.kubernetesVersion'
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -174,20 +168,14 @@ export default defineComponent({
           search:        `spec.displayName`,
         },
         {
-          label:     this.t('landing.clusters.provider'),
-          subLabel:  this.t('landing.clusters.distro'),
-          value:     'status.info.machineProvider', // TODO: RC index
-          name:      'Provider',
-          sort:      ['status.info.machineProvider', 'status.driver'],
-          search:    ['status.info.machineProvider', 'status.driver'],
-          formatter: 'ClusterProvider'
+          ...STEVE_MGMT_CLUSTER_PROVIDER,
+          labelKey: 'landing.clusters.provider',
+          subLabel: this.t('landing.clusters.provider'),
         },
         {
-          label:    this.t('landing.clusters.kubernetesVersion'),
+          ...STEVE_MGMT_CLUSTER_KUBE_VERSION,
+          labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
-          name:     'kubernetesVersion',
-          sort:     'status.info.kubernetesVersion', // TODO: RC index
-          search:   'status.info.kubernetesVersion',
         },
         {
           label:  this.t('tableHeaders.cpu'),
@@ -305,6 +293,7 @@ export default defineComponent({
 
   // Forget the types when we leave the page
   beforeUnmount() {
+    // TODO: RC also unmount other secondary, including prov. also applies to prov list
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);

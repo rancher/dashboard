@@ -102,3 +102,21 @@ export const STEVE_WORKLOAD_HEALTH_SCALE = {
   sort:   false,
   search: false,
 };
+
+export const STEVE_MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'tatus.info.machineProvider',
+  sort:      ['status.info.machineProvider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
+  name:     'kubernetesVersion',
+  labelKey: 'tableHeaders.version',
+  subLabel: 'Architecture',
+  sort:     'status.info.kubernetesVersion',
+  search:   'status.info.kubernetesVersion'
+};

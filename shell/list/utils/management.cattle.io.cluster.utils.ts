@@ -11,6 +11,9 @@ interface CommonConfig {
   $store: VuexStore
 }
 
+/**
+ * TODO: RC
+ */
 class ManagementClusterUtils {
   /**
      * Filter out hidden clusters from list of all clusters
@@ -56,8 +59,10 @@ class ManagementClusterUtils {
   }
 
   /**
-     * Of type PagTableFetchSecondaryResources
-     */
+   * TODO: RC
+   *
+   * Of type PagTableFetchSecondaryResources
+   */
   fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts, { $store }: CommonConfig): Promise<any>[] {
     if (opts.canPaginate) {
       return [];
@@ -89,6 +94,9 @@ class ManagementClusterUtils {
     return promises;
   }
 
+  /**
+   * TODO: RC
+   */
   async fetchPageSecondaryResources({
     canPaginate, force, page, pagResult
   }: PagTableFetchPageSecondaryResourcesOpts, { $store }: CommonConfig): Promise<Promise<any>[]> {
