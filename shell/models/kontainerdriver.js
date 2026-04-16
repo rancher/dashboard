@@ -8,6 +8,14 @@ export default class KontainerDriver extends Driver {
   get _availableActions() {
     const out = [
       {
+        action:     'activate',
+        label:      this.t('action.activate'),
+        icon:       'icon icon-play',
+        bulkable:   true,
+        bulkAction: 'activateBulk',
+        enabled:    !!this.links.update && !this.active
+      },
+      {
         action:     'deactivate',
         label:      this.t('action.deactivate'),
         icon:       'icon icon-pause',
@@ -24,6 +32,13 @@ export default class KontainerDriver extends Driver {
         label:   this.t('action.viewInApi'),
       },
       { divider: true },
+      {
+        action:   'goToEdit',
+        label:    this.t('action.edit'),
+        icon:     'icon icon-edit',
+        bulkable: false,
+        enabled:  !!this.links.update && !this.builtin,
+      },
       {
         action:     'promptRemove',
         altAction:  'remove',
@@ -55,5 +70,23 @@ export default class KontainerDriver extends Driver {
       componentProps: { drivers: resources, driverType: 'kontainerDrivers' },
       component:      'DeactivateDriverDialog'
     });
+  }
+
+  activate() {
+    return this.$dispatch('rancher/request', {
+      url:    `v3/kontainerDrivers/${ encodeURIComponent(this.id) }?action=activate`,
+      method: 'post',
+    }, { root: true }).catch((err) => {
+      this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: this.nameDisplay }), err }, { root: true });
+    });
+  }
+
+  async activateBulk(resources) {
+    await Promise.all(resources.map((resource) => this.$dispatch('rancher/request', {
+      url:    `v3/kontainerDrivers/${ encodeURIComponent(resource.id) }?action=activate`,
+      method: 'post',
+    }, { root: true }).catch((err) => {
+      this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: resource.nameDisplay }), err }, { root: true });
+    })));
   }
 }

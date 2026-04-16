@@ -417,6 +417,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/create.vue')),
         name:      'c-cluster-manager-cloudCredential-create'
       }, {
+        path:      '/c/:cluster/manager/kontainerDriver/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/kontainerDriver/create.vue')),
+        name:      'c-cluster-manager-driver-kontainerdriver-create'
+      }, {
         path:      '/c/:cluster/manager/nodeDriver/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/create.vue')),
         name:      'c-cluster-manager-driver-nodedriver-create'
@@ -436,6 +440,10 @@ export default [
         path:      '/c/:cluster/manager/cloudCredential/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/_id.vue')),
         name:      'c-cluster-manager-cloudCredential-id'
+      }, {
+        path:      '/c/:cluster/manager/kontainerDriver/:id',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/kontainerDriver/_id.vue')),
+        name:      'c-cluster-manager-driver-kontainerdriver-id'
       }, {
         path:      '/c/:cluster/manager/nodeDriver/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),

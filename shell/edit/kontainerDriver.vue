@@ -6,7 +6,7 @@ import CreateDriver from '@shell/components/CreateDriver';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {
-  name: 'NodeDriverEdit',
+  name: 'KontainerDriverEdit',
 
   components: {
     CruResource,
@@ -51,7 +51,7 @@ export default {
     :cancel-event="true"
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
-    component-testid="node-driver-edit"
+    component-testid="kontainer-driver-edit"
     @done="done"
     @error="e=>errors = e"
     @finish="save"
@@ -60,11 +60,7 @@ export default {
     <CreateDriver
       :mode="mode"
       :value="value"
-      :rules="{
-        url: fvGetAndReportPathRules('url'),
-        checksum: fvGetAndReportPathRules('checksum'),
-        whitelistDomains: fvGetAndReportPathRules('whitelistDomains')
-      }"
+      :rules="{url:fvGetAndReportPathRules('url'), checksum:fvGetAndReportPathRules('checksum'), whitelistDomains:fvGetAndReportPathRules('whitelistDomains')}"
     />
   </CruResource>
 </template>
