@@ -82,7 +82,7 @@ export default {
           const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
           const route = this.$router.resolve(validRoute);
 
-          return this.$route.fullPath.split('#')[0] === route?.fullPath;
+          return this.$route.fullPath.split('?')[0].split('#')[0] === route?.fullPath?.split('?')[0].split('#')[0];
         }
       }
 
@@ -207,7 +207,7 @@ export default {
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
-          const itemFullPath = this.$router.resolve(validItemRoute).fullPath;
+          const itemFullPath = this.$router.resolve(validItemRoute).fullPath.split('?')[0];
 
           if (matchesNavLevel || itemFullPath === withoutQuery) {
             return true;

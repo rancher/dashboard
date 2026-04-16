@@ -123,9 +123,9 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: routeMock
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: false }) },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
 
@@ -151,6 +151,23 @@ describe('component: Type', () => {
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
 
         expect(elementWithSelector.exists()).toBe(false);
+      });
+      it('should use active and exact active classes when route matches but includes query and hash', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash' }
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
+        });
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+        expect(wrapper.find(`.${ exactActiveClass }`).exists()).toBe(true);
       });
     });
 
@@ -184,7 +201,7 @@ describe('component: Type', () => {
             mocks: {
               $store: storeMock, $router: routerMock, $route: routeMock
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
 
@@ -281,7 +298,7 @@ describe('component: Type', () => {
             mocks: {
               $store: storeMock, $router: routerMock, $route: routeMock
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
 

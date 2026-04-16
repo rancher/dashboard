@@ -68,8 +68,8 @@ export default {
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.typeRoute)?.fullPath.toLowerCase();
-      const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
+      const typeFullPath = this.$router.resolve(this.typeRoute)?.fullPath.toLowerCase().split('?')[0].split('#')[0]; // Ignore the shebang when comparing routes
+      const pageFullPath = this.$route.fullPath?.toLowerCase().split('?')[0].split('#')[0];
       const routeMetaNav = this.$route.meta?.nav;
 
       // If the route explicitly declares the nav path that should be highlighted, then use that
@@ -131,18 +131,18 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate,isExactActive }"
+    v-slot="{ href, navigate }"
     custom
     :to="typeRoute"
   >
     <li
       class="child nav-type"
-      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': highlightRoute && isActive, 'router-link-exact-active': highlightRoute && isExactActive}"
+      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': highlightRoute && isActive, 'router-link-exact-active': highlightRoute && isActive}"
       @click="navigate"
       @keypress.enter="navigate"
     >
       <TabTitle
-        v-if="highlightRoute && isExactActive"
+        v-if="highlightRoute && isActive"
         :show-child="false"
       >
         {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
