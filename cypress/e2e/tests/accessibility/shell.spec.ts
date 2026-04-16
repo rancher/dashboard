@@ -416,6 +416,9 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           slideIn.checkVisible();
           slideIn.waitforContent();
 
+          // Scroll to bottom of explain panel - this helps hide any tooltip for the kubectl explain command which can interfere with accessibility checks
+          cy.get('.explain-panel').scrollTo('bottom');
+
           cy.injectAxe();
 
           cy.checkPageAccessibility();
