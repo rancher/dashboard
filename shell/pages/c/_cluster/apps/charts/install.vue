@@ -22,7 +22,6 @@ import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Wizard from '@shell/components/Wizard';
-import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import {
@@ -96,7 +95,6 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription,
     SelectOrCreateAuthSecret
   },
 
@@ -1560,9 +1558,15 @@ export default {
           </div>
           <div class="chart-title">
             <h1>
-              <router-link :to="chartLocation()">
+              <router-link
+                v-if="chart"
+                :to="chartLocation()"
+              >
                 {{ stepperName }}
-              </router-link>: {{ t(`wizard.${action.tKey}`) }}
+              </router-link>
+              <span v-else>
+                {{ stepperName }}
+              </span>: {{ t(`wizard.${action.tKey}`) }}
             </h1>
             <span
               v-if="stepperSubtext"
