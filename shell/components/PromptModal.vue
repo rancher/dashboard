@@ -79,10 +79,11 @@ export default {
      */
     modalTitle() {
       if (typeof this.modalData?.component === 'string') {
-        let name = this.modalData.component;
-
-        return name.replace(/([A-Z])/g, ' $1').trim()
+        // Insert a space before all caps and trim any leading/trailing whitespace
+        return this.modalData.component.replace(/([A-Z])/g, ' $1').trim();
       }
+
+      return '';
     }
   },
 
