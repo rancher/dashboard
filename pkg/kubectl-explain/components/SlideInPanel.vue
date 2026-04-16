@@ -270,6 +270,7 @@ export default {
             class="icon icon-sort mr-10"
             role="button"
             :aria-label="t('kubectl-explain.expandAll')"
+            data-testid="kubectl-explain-expand-all"
             tabindex="0"
             @click="toggleAll()"
             @keydown.space.enter.stop.prevent="toggleAll()"
