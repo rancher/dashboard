@@ -191,10 +191,12 @@ function _filter(map, disableAll = false) {
 function _execute(resources, action, args, opts = {}) {
   args = args || [];
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    const fn = resources[0][action.bulkAction];
+    const applyResource = action.altResource || resources[0];
+
+    const fn = applyResource[action.bulkAction];
 
     if ( fn ) {
-      return fn.call(resources[0], resources, ...args);
+      return fn.call(applyResource, resources, ...args);
     }
   }
 
@@ -203,14 +205,16 @@ function _execute(resources, action, args, opts = {}) {
   for ( const resource of resources ) {
     let fn;
 
+    const applyResource = action.altResource || resource;
+
     if (opts.alt && action.altAction) {
-      fn = resource[action.altAction];
+      fn = applyResource[action.altAction];
     } else {
-      fn = resource[action.action];
+      fn = applyResource[action.action];
     }
 
     if ( fn ) {
-      promises.push(fn.apply(resource, args));
+      promises.push(fn.apply(applyResource, args));
     }
   }
 

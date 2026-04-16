@@ -3,7 +3,7 @@ import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject } from '@shell/utils/array';
+import { insertAt, addObject, removeObject, sameContents } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -19,6 +19,7 @@ import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
+import myLogger from '@shell/utils/my-logger';
 
 const DEFAULT_BADGE_COLOR = '#707070';
 
@@ -57,6 +58,25 @@ export default class MgmtCluster extends SteveModel {
     const schema = this.$rootGetters['management/schemaFor'](EXT.KUBECONFIG);
 
     return (schema?.collectionMethods || []).includes('POST');
+  }
+
+  get availableActions() {
+    // If on the Cluster Management Cluster List use the provisioning cluster actions instead of the management cluster
+    // This resolution feels a bit hacky, however the alternative would be to create a table prop and lots of weird plumbing
+    // It's a small use case, so just doing a limited solution
+    const listLocation = this.provCluster?.listLocation;
+    const currentRoute = this.currentRoute();
+
+    const isClusterManagementListPage = listLocation?.name === currentRoute?.name && sameContents(listLocation.params, currentRoute.params);
+
+    if (isClusterManagementListPage) {
+      return this.provCluster?.availableActions.map((action) => ({
+        ...action,
+        altResource: this.provCluster, // actions work by using the row's resource with the function name. this overrides that
+      }));
+    }
+
+    return super.availableActions;
   }
 
   get _availableActions() {
@@ -180,7 +200,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get isCustom() {
-    debugger;
     if ( this.isRke2 ) {
       return !(this.provCluster?.spec?.rkeConfig?.machinePools?.length);
     }

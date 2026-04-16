@@ -197,6 +197,10 @@ export default {
         return;
       }
 
+      const promises = [
+
+      ];
+
       if ( this.canViewProvClusters ) {
         const opt: ActionFindPageArgs = {
           force,
@@ -208,7 +212,8 @@ export default {
           })
         };
 
-        this.$store.dispatch(`management/findPage`, { type: CAPI.RANCHER_CLUSTER, opt });
+        // Prov clusters
+        promises.push(this.$store.dispatch(`management/findPage`, { type: CAPI.RANCHER_CLUSTER, opt }));
       }
 
       if ( this.canViewMachine ) {
@@ -230,7 +235,7 @@ export default {
           // })
         };
 
-        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+        promises.push(this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt }));
       }
 
       if ( this.canViewMgmtNodes ) {
@@ -282,6 +287,8 @@ export default {
         });
       }
       // TODO: RC
+
+      await Promise.all(promises);
     },
   },
 
