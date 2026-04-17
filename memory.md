@@ -38,10 +38,15 @@
 
 ## Completed Work
 
-### 2026-04-16 (this run)
+### 2026-04-17 (this run)
+- Written 20 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 85.71% branches)
+- Committed to branch test-assist/inactivity-utils-tests (local only — committed as 45d4c9a)
+- BLOCKED: safeoutputs tools still not in tool list (7th consecutive run)
+- PR not created; branch is local only
+
+### 2026-04-16
 - Written 16 tests for shell/utils/inactivity.ts
 - Coverage: 100% statements/functions/lines, 85.71% branches
-- Committed to branch test-assist/inactivity-utils-tests (local only)
 - BLOCKED: safeoutputs tools still not in tool list (6th consecutive run)
 - PR not created; branch is local only
 
@@ -75,6 +80,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-17: Task 3 (inactivity.ts 20 tests) - BLOCKED on safeoutputs (7th consecutive)
 - 2026-04-16: Task 3 (inactivity.ts 16 tests) - BLOCKED on safeoutputs (6th consecutive)
 - 2026-04-15: Task 3 (inactivity.ts 15 tests, 100% all coverage) - BLOCKED on safeoutputs (5th consecutive)
 - 2026-04-14: Task 3 (inactivity.ts 20 tests, 100% all coverage) - BLOCKED on safeoutputs (4th consecutive)
@@ -86,14 +92,14 @@
 
 ## Pending (needs retry when safeoutputs available)
 
-- inactivity.ts tests: ready as branch test-assist/inactivity-utils-tests (local only, recreated each run)
-  - 16 tests, coverage: 100% statements/functions/lines, 85.71% branches
-  - READY TO PUSH as PR (base: master, draft, label: testing)
+- inactivity.ts tests: READY for PR (branch must be recreated each run - branches are local only)
+  - 20 tests, coverage: 100% statements/functions/lines, 85.71% branches
+  - All tests pass, ESLint clean
   - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
-  - NOTE: branches are local only; each run must recreate the branch and re-commit
+  - Base branch: master, draft: true, labels: ["testing"]
 - git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
 - Monthly activity issue #17177 last updated 2026-04-08 (needs update with PR info when PR is made)
-- **safeoutputs tools have been unavailable for 6 consecutive runs** (2026-04-11 through 2026-04-16)
+- **safeoutputs tools have been unavailable for 7 consecutive runs** (2026-04-11 through 2026-04-17)
 
 ## Maintainer Priorities
 
