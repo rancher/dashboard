@@ -148,7 +148,8 @@ export abstract class BaseTopLevelMenuHelper {
     return {
       id:              mgmtCluster.id,
       label:           mgmtCluster.nameDisplay,
-      ready:           mgmtCluster.isReady,
+      // Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore
+      ready:           mgmtCluster.canExplore,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
       iconColor:       mgmtCluster.iconColor,

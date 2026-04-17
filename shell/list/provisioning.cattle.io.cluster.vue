@@ -230,6 +230,7 @@ export default {
         />
       </template>
       <template #cell:explorer="{row}">
+        <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
         <router-link
           v-if="row.canExplore"
           data-testid="cluster-manager-list-explore-management"

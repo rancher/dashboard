@@ -724,8 +724,9 @@ export default defineComponent({
                         v-if="row"
                         class="cluster-name"
                       >
+                        <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
                         <router-link
-                          v-if="row.isReady && !row.hasError"
+                          v-if="row.canExplore"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.id }}"
                           role="link"
                           :aria-label="row.nameDisplay"

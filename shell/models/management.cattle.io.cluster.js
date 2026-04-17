@@ -151,7 +151,7 @@ export default class MgmtCluster extends SteveModel {
       return null;
     }
 
-    // TODO: RC we're now always need to fetch the prov cluster....
+    // TODO: RC bug - prov cluster in explorer --> group by namespace --> fails (need to not apply ns filter somehow, used correct isNamespaced for one, but not for ui)
 
     // Find the first model extension that says it can be used for this model
     return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this.provCluster) : false);
@@ -342,13 +342,11 @@ export default class MgmtCluster extends SteveModel {
 
   get kubernetesVersionRaw() {
     return this.status.info.kubernetesVersion;
-    // const fromStatus = this.status?.version?.kubernetesVersion;
+    // const fromStatus = this.status?.version?.kubernetesVersion; // TODO: RC confirm
     // const fromSpec = this.config?.kubernetesVersion;
 
     // return fromStatus || fromSpec;
   }
-
-  // TODO: RC test case - correct values whilst provisioning
 
   get kubernetesVersion() {
     return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.provisioning');
@@ -466,12 +464,6 @@ export default class MgmtCluster extends SteveModel {
 
   get ready() {
     return this.pools.reduce((acc, pool) => acc + (pool.ready || 0), 0);
-  }
-
-  log(...args) { // TODO: RC remove
-    if (this.id === 'c-m-ppmgm626') {
-      myLogger.warn(...args);
-    }
   }
 
   get stateParts() {
@@ -757,19 +749,15 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provClusterNamespace() {
-    // TODO: RC kinara is this always info.provisioningClusterRef.namespace
-    // what about metadata.annotations."objectset.rio.cattle.io/owner-namespace": "fleet-default",
-
+    // Could consider using `metadata.annotations."objectset.rio.cattle.io/owner-namespace"` instead of provClusterId from resource rels
     const [namespace] = this.provClusterId.split('/');
 
     return namespace;
   }
 
   get provClusterName() {
-    // TODO: RC kinara is this always info.provisioningClusterRef.name
-    // what about metadata.annotations."objectset.rio.cattle.io/owner-name": "rc-rke2",
-
-    const [_, name] = this.provClusterId.split('/');
+    // Could consider using `metadata.annotations."objectset.rio.cattle.io/owner-name"` instead of provClusterId from resource rels
+    const [, name] = this.provClusterId.split('/');
 
     return name;
   }
@@ -800,7 +788,6 @@ export default class MgmtCluster extends SteveModel {
 
   get hasError() {
     // TODO: RC copied over from prov
-    // TODO: RC this should be used both in Explore button and column name link
     // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
     // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
     // which is what this 'hasError' is used for.
