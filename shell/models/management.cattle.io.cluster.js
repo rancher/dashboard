@@ -316,7 +316,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get groupByLabel() {
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+    return `Namespace: ${ this.spec.fleetWorkspaceName }`;
   }
 
   get isReady() {

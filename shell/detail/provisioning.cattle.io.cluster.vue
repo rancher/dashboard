@@ -203,11 +203,6 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
     }
-
-    // TODO: RC MANAGEMENT.RKE_TEMPLATE_REVISION isn't used anywhere
-    // if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-    //   this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
-    // }
   },
 
   created() {

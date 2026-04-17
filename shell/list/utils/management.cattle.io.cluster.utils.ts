@@ -131,7 +131,7 @@ class ManagementClusterUtils {
           sort:                 [],
           projectsOrNamespaces: []
         }
-        // TODO: RC cluster.x-k8s.io.machines required index on spec.clusterName??
+        // TODO: RC add back once https://github.com/rancher/rancher/issues/54656 resolved (index on spec.clusterName)
         // pagination: new FilterArgs({
         //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
         //     field: 'spec.clusterName',

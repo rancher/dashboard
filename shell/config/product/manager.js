@@ -18,7 +18,9 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
-import { STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER } from '@shell/config/pagination-table-headers';
+import {
+  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL
+} from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -204,6 +206,22 @@ export function init(store) {
       width: 65,
     },
   ]);
+
+  configureType(MANAGEMENT.CLUSTER, {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:          'icon-folder',
+      value:         'spec.fleetWorkspaceName',
+      field:         'spec.fleetWorkspaceName',
+      hideColumn:    STEVE_NAMESPACE_COL.name,
+      tooltipKey:    'resourceTable.groupBy.namespace',
+      groupLabelKey: 'groupByLabel',
+    }],
+    listGroupsWillOverride: true,
+  });
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,

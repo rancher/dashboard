@@ -5,7 +5,10 @@ import {
   EVENT_TYPE,
   SECRET_ORIGIN,
   EVENT_FIRST_SEEN_TIME,
-  WORKLOAD_HEALTH_SCALE
+  WORKLOAD_HEALTH_SCALE,
+  MGMT_CLUSTER_PROVIDER,
+  MGMT_CLUSTER_KUBE_VERSION,
+  AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -104,19 +107,23 @@ export const STEVE_WORKLOAD_HEALTH_SCALE = {
 };
 
 export const STEVE_MGMT_CLUSTER_PROVIDER = {
-  name:      'provider',
-  labelKey:  'tableHeaders.provider',
-  subLabel:  'Distro',
-  value:     'tatus.info.machineProvider',
-  sort:      ['status.info.machineProvider', 'status.driver'],
-  search:    ['status.info.machineProvider', 'status.driver'],
-  formatter: 'ClusterProvider',
+  ...MGMT_CLUSTER_PROVIDER,
+  sort:   false,
+  search: false,
+  // sort:      ['status.info.machineProvider', 'status.driver'], index required - https://github.com/rancher/rancher/issues/54656
+  // search:    ['status.info.machineProvider', 'status.driver'], index required - https://github.com/rancher/rancher/issues/54656
 };
 
 export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
-  name:     'kubernetesVersion',
-  labelKey: 'tableHeaders.version',
-  subLabel: 'Architecture',
-  sort:     'status.info.kubernetesVersion',
-  search:   'status.info.kubernetesVersion'
+  ...MGMT_CLUSTER_KUBE_VERSION,
+  sort:   false,
+  search: false,
+  // sort:     'status.info.kubernetesVersion', index required - https://github.com/rancher/rancher/issues/54656
+  // search:   'status.info.kubernetesVersion', index required - https://github.com/rancher/rancher/issues/54656
+};
+
+export const STEVE_AUTOSCALER_ENABLED = {
+  ...AUTOSCALER_ENABLED,
+  sort:   false,
+  search: false,
 };

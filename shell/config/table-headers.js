@@ -1185,8 +1185,8 @@ export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',
   value:     'isAutoscalerEnabled',
-  sort:      ['autoscaler'], // TODO: RC doesn't exist?
-  formatter: 'Autoscaler', // TODO: RC currently accept prov cluster
+  sort:      ['isAutoscalerEnabled'],
+  formatter: 'Autoscaler',
 };
 
 export const MGMT_CLUSTER_PROVIDER = {
@@ -1195,6 +1195,7 @@ export const MGMT_CLUSTER_PROVIDER = {
   subLabel:  'Distro',
   value:     'status.info.machineProvider',
   sort:      ['status.info.machineProvider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.driver'],
   formatter: 'ClusterProvider',
 };
 

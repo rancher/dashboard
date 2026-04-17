@@ -284,7 +284,7 @@ export default {
           allNamespaces:                 this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
           selection:                     neu,
           isAllNamespaces:               this.isAllNamespaces,
-          isLocalCluster:                this.$store.getters['currentCluster'].isLocal,
+          isLocalCluster:                this.$store.getters['currentCluster']?.isLocal,
           showReservedRancherNamespaces: this.showDynamicRancherNamespaces,
           productHidesSystemNamespaces:  this.productHidesSystemNamespaces,
         });

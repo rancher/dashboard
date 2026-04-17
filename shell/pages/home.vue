@@ -20,18 +20,15 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import { paginationFilterClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
 import { STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
-import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION, getVersionData } from '@shell/config/version';
-import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 import paginationUtils from '@shell/utils/pagination-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
@@ -809,6 +806,7 @@ export default defineComponent({
               v-else
               class="col span-12"
             >
+              <!-- TODO: RC test-->
               <SingleClusterInfo />
             </div>
           </div>

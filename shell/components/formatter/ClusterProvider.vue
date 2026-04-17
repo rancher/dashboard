@@ -24,11 +24,8 @@ export default {
         {{ row.machineProviderDisplay }}
       </span>
     </template>
-    <!-- TODO: RC confirm imported shows as 'cluster.provider.imported' and custom as 'cluster.provider.custom' -->
-
     <div class="text-muted">
       {{ row.provisionerDisplay }}
     </div>
   </div>
 </template>
-<!-- TODO: RC test custom. imported. imported hosted. harvester, rke2/harvester, rke2/digitalocean-->

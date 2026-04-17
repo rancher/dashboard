@@ -1,7 +1,7 @@
 <script  lang="ts">
 import { Banner } from '@components/Banner';
 import Masthead from '@shell/components/ResourceList/Masthead.vue';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -14,6 +14,8 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
+import { STEVE_AUTOSCALER_ENABLED } from '@shell/config/pagination-table-headers';
+import myLogger from '@shell/utils/my-logger';
 
 export default {
   components: {
@@ -21,10 +23,23 @@ export default {
   },
 
   data() {
-    return {
-      mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
-      provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+    const mgmtClusterSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER);
+    const headers = this.$store.getters['type-map/headersFor'](mgmtClusterSchema, false);
+    const paginationHeaders = this.$store.getters['type-map/headersFor'](mgmtClusterSchema, true);
 
+    if (isAutoscalerFeatureFlagEnabled(this.$store)) {
+      headers.splice(-3, 0, AUTOSCALER_ENABLED);
+      paginationHeaders.splice(-3, 0, STEVE_AUTOSCALER_ENABLED);
+    }
+
+    return {
+      headers,
+      paginationHeaders,
+
+      clusterCount: 0,
+
+      mgmtClusterSchema,
+      provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
     };
   },
 
@@ -41,7 +56,7 @@ export default {
       const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
-        this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE_DEPLOYMENT }); // TODO: RC cross check with old fetch
+        this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE_DEPLOYMENT });
       }
 
       return Promise.all(promises);
@@ -50,6 +65,8 @@ export default {
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
     }: PagTableFetchPageSecondaryResourcesOpts) {
+      this.clusterCount = !canPaginate || !page?.length ? 0 : pagResult.count;
+
       const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
         canPaginate, force, page, pagResult
       }, { $store: this.$store });
@@ -57,14 +74,14 @@ export default {
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         const opt: ActionFindPageArgs = {
           force,
-          pagination: { // TODO: RC Temp code, see below
+          pagination: {
             page:                 1,
             pageSize:             100000,
             filters:              [],
             sort:                 [],
             projectsOrNamespaces: []
           }
-          // TODO: RC cluster.x-k8s.io.machinedeployment required index on spec.clusterName
+          // TODO: RC add back once https://github.com/rancher/rancher/issues/54656 resolved (index on spec.clusterName)
           // pagination: new FilterArgs({
           //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
           //     field: 'spec.clusterName',
@@ -76,8 +93,6 @@ export default {
         this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE_DEPLOYMENT, opt });
       }
 
-      // TODO: RC
-
       await Promise.all(promises);
     },
   },
@@ -87,13 +102,17 @@ export default {
       const product = this.$store.getters['currentProduct'];
       const isExplorer = product?.name === EXPLORER;
 
-      // Don't show Harvester banner message on the cluster management page or if Harvester if not enabled
+      // Don't show Harvester banner message on the cluster management page or if Harvester is not enabled
       if (!isExplorer || !this.harvesterEnabled) {
         return 0;
       }
 
-      return 0; // TODO: RC low bar ... harvester + local + others = `count`
-      // return this.rows.length - filterOnlyKubernetesClusters(this.rows, this.$store).length;
+      const allClusters = this.$store.getters['management/count']({ name: CAPI.RANCHER_CLUSTER });
+      // clusterCount is total excluding local (if not counted) and harvester (if not counted)
+      // at this point though (viewing prov clusters in explorer) we must be in the local cluster, so can exclude that exclusion
+      const nonHarvesterClusters = this.clusterCount;
+
+      return allClusters - nonHarvesterClusters;
     },
 
     createLocation() {
@@ -126,12 +145,7 @@ export default {
     },
 
     canImport() {
-      // TODO: RC Question Kinara - does PCIC rbac match MCIC, for example schema collectionMethods `post`
-      return !!this.mgmtClusterSchema?.collectionMethods.find((x: string) => {
-        const verb = x.toLowerCase();
-
-        return verb === 'post' || verb === 'blocked-post';
-      });
+      return !!this.provClusterSchema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post');
     },
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
@@ -139,31 +153,18 @@ export default {
     nonStandardNamespaces() {
       // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
       // This will be used when there's clusters from extension based provisioners
-      // We should re-visit this for scaling reasons
-      // TODO: RC count be done via counts and the spread of ns's in there for prov cluster
-      return 0;
-      // return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
-    },
 
-    headers() { // TODO: RC put in data
-      const headers = this.$store.getters['type-map/headersFor'](this.mgmtClusterSchema, false);
+      const counts = this.$store.getters['management/all'](COUNT)?.[0]?.counts || {};
+      const namespaces: { [nsName: string]: { count: number } } = counts[CAPI.RANCHER_CLUSTER]?.namespaces || counts.namespaces || {};
 
-      if (isAutoscalerFeatureFlagEnabled(this.$store)) {
-        headers.splice(-3, 0, AUTOSCALER_ENABLED); // TODO: RC columns receives mgmt cluster now
+      for (const ns in namespaces) {
+        if (ns !== 'fleet-local' && ns !== 'fleet-default' && namespaces[ns].count > 0) {
+          return true; // TODO: RC test once ff is enabled
+        }
       }
 
-      return headers;
+      return false;
     },
-
-    paginationHeaders() {
-      const headers = this.$store.getters['type-map/headersFor'](this.mgmtClusterSchema, true);
-
-      if (isAutoscalerFeatureFlagEnabled(this.$store)) {
-        headers.splice(-3, 0, AUTOSCALER_ENABLED); // TODO: RC columns receives mgmt cluster now
-      }
-
-      return headers;
-    }
 
   },
 
@@ -230,7 +231,7 @@ export default {
       :fetch-secondary-resources="fetchSecondaryResources"
       :fetch-page-secondary-resources="fetchPageSecondaryResources"
 
-      :namespaced="nonStandardNamespaces > 0"
+      :namespaced="nonStandardNamespaces"
     >
       <template #cell:summary="{row}">
         <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->

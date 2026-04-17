@@ -258,6 +258,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `status.connected` },
+      // { field: `status.info.machineProvider` },  // https://github.com/rancher/rancher/issues/54656
+      // { field: `status.driver` },  // https://github.com/rancher/rancher/issues/54656
+      // { field: `status.info.kubernetesVersion` }, // https://github.com/rancher/rancher/issues/54656
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
@@ -265,7 +268,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [NAMESPACE]: [
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' }
+      // { field: 'spec.clusterName' } // https://github.com/rancher/rancher/issues/54656
+    ],
+    [CAPI.MACHINE_DEPLOYMENT]: [
+      // { field: 'spec.clusterName' },  // https://github.com/rancher/rancher/issues/54656
     ],
     [EVENT]: [
       { field: '_type' },
@@ -367,6 +373,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     isLocalCluster,
     showReservedRancherNamespaces,
     productHidesSystemNamespaces,
+    currentProduct,
   }: {
     allNamespaces: Namespace[],
     selection: string[],
@@ -390,10 +397,18 @@ class StevePaginationUtils extends NamespaceProjectFilters {
      * Links to ns.isSystem and covers things like ns with system annotation, hardcoded list, etc
      */
     productHidesSystemNamespaces: boolean,
+    currentProduct?: any // TODO: RC
   }): {
     projectsOrNamespaces: PaginationParamProjectOrNamespace[],
     filters: PaginationParamFilter[]
   } {
+    if (!currentProduct?.showNamespaceFilter) {
+      return {
+        projectsOrNamespaces: [],
+        filters:              []
+      };
+    }
+
     // Hold up, why are we doing yet another way to convert the user's project / namespace filter to a set of something?
     // - When doing this for local pagination `getActiveNamespaces` provides a full list of applicable namespaces.
     //   Lists then filter resource locally using those namespaces
