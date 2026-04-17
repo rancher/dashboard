@@ -24,9 +24,10 @@ import { EXT_IDS } from '@shell/core/plugin';
 import { ExtensionManager } from '@shell/types/extension-manager';
 import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
+// TODO: RC create issue to remove feature
 const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
   version:       1,
-  enabled:       false, // TODO: RC vai on... pagination
+  enabled:       false,
   configuration: {
     threshold: 500, results: 250, pagesPerRow: 25
   }

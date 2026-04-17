@@ -266,7 +266,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get providerConfig() {
-    // TODO: RC maybe
     if ( this.isRke2 ) {
       return this.spec.rkeConfig;
     }
@@ -296,32 +295,6 @@ export default class ProvCluster extends SteveModel {
     }
 
     return this.mgmt?.isImported;
-
-    // TODO: RC test case
-    // 1. imported
-    // 2. imported hosted
-
-    // // imported rke2 and k3s have status.driver === rke2 and k3s respectively
-    // // Provisioned rke2 and k3s have status.driver === imported
-    // const provider = this.mgmt?.status?.provider;
-    // const driver = this.mgmt?.status?.driver;
-
-    // // The main case
-    // if (provider === 'k3s' || provider === 'rke2') {
-    //   return driver === provider;
-    // }
-    // // The 'waiting' case
-    // if (!provider && (driver === 'k3s' || driver === 'rke2')) {
-    //   return true;
-    // }
-
-    // // imported KEv2
-    // // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    // if (this.isHostedKubernetesProvider && !!this.providerConfig.imported) {
-    //   return true;
-    // }
-
-    // return this.provisioner === 'imported';
   }
 
   get isCustom() {
@@ -481,19 +454,6 @@ export default class ProvCluster extends SteveModel {
   get kubernetesVersion() {
     return this.mgmt?.kubernetesVersion;
   }
-  //   const unknown = this.$rootGetters['i18n/t']('generic.unknown');
-
-  //   if ( this.isRke2 ) {
-  //     const fromStatus = this.status?.version?.gitVersion;
-  //     const fromSpec = this.spec?.kubernetesVersion;
-
-  //     return fromStatus || fromSpec || unknown;
-  //   } else if ( this.mgmt ) {
-  //     return this.mgmt.kubernetesVersion || unknown;
-  //   } else {
-  //     return unknown;
-  //   }
-  // }
 
   get machineProvider() {
     return this.mgmt?.machineProvider?.toLowerCase();
@@ -568,7 +528,6 @@ export default class ProvCluster extends SteveModel {
 
   get nodes() {
     return this.mgmt?.nodes || [];
-    // return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.mgmtClusterId));
   }
 
   get machines() {
@@ -577,22 +536,10 @@ export default class ProvCluster extends SteveModel {
 
   get displayName() {
     return this.mgmt?.nameDisplay || null;
-    // if ( this.mgmt && !this.isRke2 ) {
-    //   return this.mgmt.spec.displayName;
-    // }
-
-    // return null;
   }
 
   get pools() {
     return this.mgmt?.pools || [];
-    // const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter((pool) => pool.spec?.clusterName === this.metadata.name);
-
-    // if (!!deployments.length) {
-    //   return deployments;
-    // }
-
-    // return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.status?.clusterName);
   }
 
   get desired() {

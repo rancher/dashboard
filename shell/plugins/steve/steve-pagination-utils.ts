@@ -397,18 +397,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
      * Links to ns.isSystem and covers things like ns with system annotation, hardcoded list, etc
      */
     productHidesSystemNamespaces: boolean,
-    currentProduct?: any // TODO: RC
   }): {
     projectsOrNamespaces: PaginationParamProjectOrNamespace[],
     filters: PaginationParamFilter[]
   } {
-    if (!currentProduct?.showNamespaceFilter) {
-      return {
-        projectsOrNamespaces: [],
-        filters:              []
-      };
-    }
-
     // Hold up, why are we doing yet another way to convert the user's project / namespace filter to a set of something?
     // - When doing this for local pagination `getActiveNamespaces` provides a full list of applicable namespaces.
     //   Lists then filter resource locally using those namespaces

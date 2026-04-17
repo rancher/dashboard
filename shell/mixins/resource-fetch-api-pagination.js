@@ -249,7 +249,7 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
-        if (!this.canPaginate || !this.isNamespaced) {
+        if (!this.canPaginate || !this.isNamespaced || !this.currentProduct?.showNamespaceFilter) {
           return;
         }
 

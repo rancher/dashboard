@@ -90,7 +90,7 @@ export default defineComponent({
       mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
       canViewProvClusters:  !!this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER), // TODO: RC what used for?
+      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
       canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
       canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
       canViewMgmtPools:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
@@ -154,7 +154,6 @@ export default defineComponent({
         // }
       ],
 
-      // TODO: RC test vai on / off
       paginationHeaders: [
         STEVE_STATE_COL,
         {
@@ -237,12 +236,7 @@ export default defineComponent({
     },
 
     canCreateCluster() {
-      // TODO: RC Question Kinara - does PCIC rbac match MCIC, for example schema collectionMethods `post`
-      return !!this.mgmtClusterSchema?.collectionMethods.find((x: string) => {
-        const verb = x.toLowerCase();
-
-        return verb === 'post' || verb === 'blocked-post';
-      });
+      return !!this.provClusterSchema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post');
     },
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
@@ -290,11 +284,7 @@ export default defineComponent({
 
   // Forget the types when we leave the page
   beforeUnmount() {
-    // TODO: RC also unmount other secondary, including prov. also applies to prov list
-    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
+    ManagementClusterUtils.forgetSecondaryResources({ $store: this.$store });
   },
 
   methods: {
@@ -763,19 +753,6 @@ export default defineComponent({
                     </div>
                   </td>
                 </template>
-                <template #col:kubernetesVersion="{row}">
-                  <td class="col-name">
-                    <span>
-                      {{ row.kubernetesVersion }}
-                    </span>
-                    <div
-                      v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
-                      class="text-muted"
-                    >
-                      {{ row.architecture.label }}
-                    </div>
-                  </td>
-                </template>
                 <template #col:cpu="{row}">
                   <td v-if="cpuAllocatable(row)">
                     {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
@@ -806,7 +783,6 @@ export default defineComponent({
               v-else
               class="col span-12"
             >
-              <!-- TODO: RC test-->
               <SingleClusterInfo />
             </div>
           </div>

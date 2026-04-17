@@ -1,7 +1,9 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import { VuexStore } from '@shell/types/store/vuex';
-import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import {
+  FilterArgs, PaginationArgs, PaginationFilterEquality, PaginationFilterField, PaginationParamFilter
+} from '@shell/types/store/pagination.types';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
@@ -12,7 +14,7 @@ interface CommonConfig {
 }
 
 /**
- * TODO: RC
+ * Utils to support listing management.cattle.io.clusters
  */
 class ManagementClusterUtils {
   /**
@@ -59,7 +61,7 @@ class ManagementClusterUtils {
   }
 
   /**
-   * TODO: RC
+   * Fetch resources used to support vai off world
    *
    * Of type PagTableFetchSecondaryResources
    */
@@ -95,7 +97,7 @@ class ManagementClusterUtils {
   }
 
   /**
-   * TODO: RC
+   * Fetch resources used to support vai on and the current page
    */
   async fetchPageSecondaryResources({
     canPaginate, force, page, pagResult
@@ -110,10 +112,13 @@ class ManagementClusterUtils {
       const opt: ActionFindPageArgs = {
         force,
         pagination: new FilterArgs({
-          filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-            field: 'id',
-            value: r.provClusterId
-          }))),
+          filters: new PaginationParamFilter({
+            fields: [{
+              value:    page.map((r: any) => r.provClusterId).join(','),
+              equality: PaginationFilterEquality.IN,
+              field:    'id',
+            }],
+          })
         })
       };
 
@@ -124,7 +129,7 @@ class ManagementClusterUtils {
     if ( $store.getters['management/canList'](CAPI.MACHINE) ) {
       const opt: ActionFindPageArgs = {
         force,
-        pagination: { // TODO: RC Temp code, see below
+        pagination: {
           page:                 1,
           pageSize:             100000,
           filters:              [],
@@ -158,42 +163,50 @@ class ManagementClusterUtils {
       $store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
     }
 
-    // TODO: RC really needed now?
+    // TODO: RC confirm with hosted providers, if not needed remove
     // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-    if ( $store.getters['management/canList'](MANAGEMENT.NODE_POOL) && $store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE)) {
-      const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
-        .filter((p: any) => p.id)
-        .map((r: any) => new PaginationFilterField({
-          field: 'spec.clusterName',
-          value: r.provClusterName // TODO: RC is it?
-        })));
+    // if ( $store.getters['management/canList'](MANAGEMENT.NODE_POOL) && $store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE)) {
+    //   const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
+    //     .filter((p: any) => p.id)
+    //     .map((r: any) => new PaginationFilterField({
+    //       field: 'spec.clusterName',
+    //       value: r.id
+    //     })));
 
-      const nodePools = await $store.dispatch(`management/findPage`, {
-        type: MANAGEMENT.NODE_POOL,
-        opt:  {
-          force,
-          pagination: new FilterArgs({ filters: nodePoolFilters })
-        }
-      });
+    //   const nodePools = await $store.dispatch(`management/findPage`, {
+    //     type: MANAGEMENT.NODE_POOL,
+    //     opt:  {
+    //       force,
+    //       pagination: new FilterArgs({ filters: nodePoolFilters })
+    //     }
+    //   });
 
-      const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
-        .filter((np: any) => !!np.nodeTemplateId)
-        .map((np: any) => new PaginationFilterField({
-          field: 'id',
-          value: np.nodeTemplateId,
-          exact: true,
-        })));
+    //   const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
+    //     .filter((np: any) => !!np.nodeTemplateId)
+    //     .map((np: any) => new PaginationFilterField({
+    //       field: 'id',
+    //       value: np.nodeTemplateId,
+    //       exact: true,
+    //     })));
 
-      $store.dispatch(`management/findPage`, {
-        type: MANAGEMENT.NODE_TEMPLATE,
-        opt:  {
-          force,
-          pagination: new FilterArgs({ filters: templateOpt })
-        }
-      });
-    }
+    //   $store.dispatch(`management/findPage`, {
+    //     type: MANAGEMENT.NODE_TEMPLATE,
+    //     opt:  {
+    //       force,
+    //       pagination: new FilterArgs({ filters: templateOpt })
+    //     }
+    //   });
+    // }
 
     return promises;
+  }
+
+  forgetSecondaryResources({ $store }: CommonConfig) {
+    $store.dispatch('management/forgetType', CAPI.RANCHER_CLUSTER);
+    $store.dispatch('management/forgetType', CAPI.MACHINE);
+    $store.dispatch('management/forgetType', MANAGEMENT.NODE);
+    $store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
+    $store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
   }
 }
 

@@ -1200,9 +1200,10 @@ export const MGMT_CLUSTER_PROVIDER = {
 };
 
 export const MGMT_CLUSTER_KUBE_VERSION = {
-  name:     'kubernetesVersion',
-  labelKey: 'tableHeaders.version',
-  subLabel: 'Architecture',
-  sort:     'status.info.kubernetesVersion',
-  search:   'status.info.kubernetesVersion'
+  name:      'kubernetesVersion',
+  labelKey:  'tableHeaders.version',
+  subLabel:  'Architecture',
+  sort:      'status.info.kubernetesVersion',
+  search:    'status.info.kubernetesVersion',
+  formatter: 'MgmtClusterKubeVersion',
 };

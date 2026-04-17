@@ -5,6 +5,7 @@ import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { NAME as MANAGER } from '@shell/config/product/manager';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
@@ -41,6 +42,11 @@ export default {
       mgmtClusterSchema,
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
     };
+  },
+
+  // Forget the types when we leave the page
+  beforeUnmount() {
+    ManagementClusterUtils.forgetSecondaryResources({ $store: this.$store });
   },
 
   methods: {
@@ -159,7 +165,7 @@ export default {
 
       for (const ns in namespaces) {
         if (ns !== 'fleet-local' && ns !== 'fleet-default' && namespaces[ns].count > 0) {
-          return true; // TODO: RC test once ff is enabled
+          return true;
         }
       }
 
@@ -173,21 +179,11 @@ export default {
 
 <template>
   <div>
-    <!-- <Banner
-      v-if="showRke1DeprecationWarning"
-      color="warning"
-      label-key="cluster.banner.rke1DeprecationMessage"
-    /> -->
-
     <Banner
       v-if="hiddenHarvesterCount"
       color="info"
       :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
     />
-
-    <!-- // TODO: RC test multiple pages / on page change get second page's data -->
-    <!-- // TODO: RC test updates over socket -->
-    <!-- // TODO: RC test CRUD of imported, rke2 clusters -->
 
     <Masthead
       :schema="provClusterSchema"
@@ -195,9 +191,6 @@ export default {
       :create-location="createLocation"
       component-testid="cluster-manager-list"
     >
-      <!-- :show-incremental-loading-indicator="incrementalLoadingIndicator"
-      :load-resources="loadResources"
-      :load-indeterminate="loadIndeterminate" -->
       <template
         v-if="canImport"
         #extraActions
@@ -212,12 +205,6 @@ export default {
       </template>
     </Masthead>
 
-    <!--
-      :table-actions="false"
-      :row-actions="false"
-      key-field="id"
-      :groupable="false"
-      -->
     <PaginatedResourceTable
       :schema="mgmtClusterSchema"
 
@@ -242,20 +229,6 @@ export default {
           :row="row"
         />
       </template>
-      <template #col:kubernetesVersion="{row}">
-        <!--  TODO: RC code duplication -->
-        <td class="col-name">
-          <span>
-            {{ row.kubernetesVersion }}
-          </span>
-          <div
-            v-clean-tooltip="{content: row.architecture?.tooltip, placement: 'left'}"
-            class="text-muted"
-          >
-            {{ row.architecture && row.architecture.label ? row.architecture.label : 'ffs2' }}
-          </div>
-        </td>
-      </template>
       <template #cell:explorer="{row}">
         <router-link
           v-if="row.canExplore"
@@ -275,62 +248,5 @@ export default {
         </button>
       </template>
     </PaginatedResourceTable>
-    <!-- :sub-rows="true" TODO: RC wut -->
-    <!-- <ResourceTable
-      :headers="headers"
-      :table-actions="true"
-      :rows="filteredRows"
-      :namespaced="nonStandardNamespaces"
-      :loading="loading"
-      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-      :data-testid="'cluster-list'"
-      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-      :sub-rows="true"
-    >-->
-    <!-- Why are state column and subrow overwritten here? -->
-    <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
-    <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
-    <!-- big enough for the performance to matter -->
-    <!--<template #cell:state="{row}">
-        <BadgeState
-          :color="row.stateBackground"
-          :label="row.stateDisplay"
-        />
-      </template>
-      <template #cell:summary="{row}">
-        <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
-      </template>
-      <template #col:kubernetesVersion="{row}">
-        <td class="col-name">
-          <span>
-            {{ row.kubernetesVersion }}
-          </span>
-          <div
-            v-clean-tooltip="{content: row.architecture?.tooltip, placement: 'left'}"
-            class="text-muted"
-          >
-            {{ row.architecture && row.architecture.label ? row.architecture.label : 'ffs2' }}
-          </div>
-        </td>
-      </template>
-      <template #cell:explorer="{row}">
-        <router-link
-          v-if="row.canExplore"
-          data-testid="cluster-manager-list-explore-management"
-          class="btn btn-sm role-secondary"
-          :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
-        >
-          {{ t('cluster.explore') }}
-        </router-link>
-        <button
-          v-else
-          data-testid="cluster-manager-list-explore"
-          :disabled="true"
-          class="btn btn-sm role-secondary"
-        >
-          {{ t('cluster.explore') }}
-        </button>
-      </template>
-    </ResourceTable> -->
   </div>
 </template>

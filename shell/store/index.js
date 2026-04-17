@@ -1044,7 +1044,7 @@ export const actions = {
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
     // If SSP is on we won't have requested all clusters
-    if (!paginateClusters({ rootGetters, state })) { // TODO: RC huh
+    if (!paginateClusters({ rootGetters, state })) {
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
