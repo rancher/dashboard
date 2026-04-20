@@ -243,6 +243,6 @@ clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
 clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
 clone_repo_test_extension_build "rancher" "ali-ui" "ali"
 clone_repo_test_extension_build "rancher" "virtual-clusters-ui" "virtual-clusters"
-clone_repo_test_extension_build "rancher" "rancher-ai-ui" "rancher-ai-ui"
+# clone_repo_test_extension_build "rancher" "rancher-ai-ui" "rancher-ai-ui"
 
 echo "All done"
