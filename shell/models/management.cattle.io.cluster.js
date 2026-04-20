@@ -151,7 +151,7 @@ export default class MgmtCluster extends SteveModel {
       return null;
     }
 
-    // TODO: RC bug - prov cluster in explorer --> group by namespace --> fails (need to not apply ns filter somehow, used correct isNamespaced for one, but not for ui)
+    // TODO: RC confirm once https://github.com/rancher/rancher/issues/54656  - prov cluster in explorer --> group by namespace --> fails given spec.fleetWorkspaceName
 
     // Find the first model extension that says it can be used for this model
     return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this.provCluster) : false);
@@ -235,7 +235,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.status ? this.status.provider === 'k3s' : (this.kubernetesVersion || '').includes('k3s') ; // TODO: RC test
+    return this.status ? this.status.provider === 'k3s' : (this.kubernetesVersion || '').includes('k3s') ;
   }
 
   get isRke2() {
@@ -359,8 +359,9 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get kubernetesVersionRaw() {
+    // TODO: RC Kinara - Confirm, why would there be no status?
     return this.status.info.kubernetesVersion;
-    // const fromStatus = this.status?.version?.kubernetesVersion; // TODO: RC confirm
+    // const fromStatus = this.status?.version?.kubernetesVersion;
     // const fromSpec = this.config?.kubernetesVersion;
 
     // return fromStatus || fromSpec;
@@ -465,7 +466,8 @@ export default class MgmtCluster extends SteveModel {
       return deployments;
     }
 
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.id); // TODO: RC validate
+    // TODO: RC validate with hosted provider
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.id);
   }
 
   get desired() {
@@ -570,7 +572,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get unavailableMachines() {
-    // TODO: RC test case
     if (this.isReady) {
       const names = this.machines.filter((machine) => {
         return machine.status?.conditions?.find((c) => c.error && c.type === 'NodeHealthy');
@@ -744,11 +745,11 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get normanCluster() {
-    return this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.id);// TODO: RC validate.
+    return this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.id);
   }
 
   async findNormanCluster() {
-    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.id }, { root: true }); // TODO: RC validate
+    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.id }, { root: true });
   }
 
   get provCluster() {
@@ -805,7 +806,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get hasError() {
-    // TODO: RC copied over from prov
+    // TODO: kinara - this was copied over from prov cluster. prov conditions vs mgmt conditions
     // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
     // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
     // which is what this 'hasError' is used for.

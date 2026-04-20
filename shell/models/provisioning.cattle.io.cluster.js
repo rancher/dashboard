@@ -457,49 +457,10 @@ export default class ProvCluster extends SteveModel {
 
   get machineProvider() {
     return this.mgmt?.machineProvider?.toLowerCase();
-    // // First check annotation - useful for clusters created by extension providers // TODO: RC HMMMM
-    // const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-    // if (fromAnnotation) {
-    //   return fromAnnotation;
-    // }
-
-    // if (this.isHarvester) {
-    //   return HARVESTER;
-    // } else if ( this.isImported || this.isCapiHybrid ) {
-    //   return null;
-    // } else if ( this.isRke2 ) {
-    //   const kind = this.spec?.rkeConfig?.machinePools?.[0]?.machineConfigRef?.kind?.toLowerCase();
-
-    //   if ( kind ) {
-    //     return kind.replace(/config$/i, '').toLowerCase();
-    //   }
-
-    //   return null;
-    // } else if ( this.mgmt?.machineProvider ) {
-    //   return this.mgmt.machineProvider.toLowerCase();
-    // }
-
-    // return null;
   }
 
   get machineProviderDisplay() {
     return this.mgmt?.machineProviderDisplay;
-    // if (this.customProvisionerHelper?.machineProviderDisplay) {
-    //   return this.customProvisionerHelper?.machineProviderDisplay(this);
-    // }
-
-    // if ( this.isImported ) {
-    //   return null;
-    // }
-
-    // const provider = (this.machineProvider || '').toLowerCase();
-
-    // if ( provider ) {
-    //   return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
-    // } else {
-    //   return this.$rootGetters['i18n/t']('generic.unknown');
-    // }
   }
 
   get machinePoolDefaults() {

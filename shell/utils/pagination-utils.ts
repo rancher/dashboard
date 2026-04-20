@@ -24,7 +24,7 @@ import { EXT_IDS } from '@shell/core/plugin';
 import { ExtensionManager } from '@shell/types/extension-manager';
 import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
-// TODO: RC create issue to remove feature
+// This feature will be removed soon - https://github.com/rancher/dashboard/issues/17323
 const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
   version:       1,
   enabled:       false,
