@@ -19,9 +19,9 @@ describe('component: Group', () => {
       },
       global: {
         mocks: {
-          $route:  { fullPath: '/test/route?query=val#hash' },
+          $route:  { path: '/test/route', fullPath: '/test/route?query=val#hash' },
           $router: {
-            resolve:   jest.fn().mockReturnValue({ fullPath: '/test/route' }),
+            resolve:   jest.fn().mockReturnValue({ path: '/test/route', fullPath: '/test/route' }),
             getRoutes: jest.fn().mockReturnValue([])
           },
           t: (key: string) => key
@@ -49,11 +49,12 @@ describe('component: Group', () => {
           $route: {
             params:   {},
             hash:     '#hash',
+            path: '/child/route',
             fullPath: '/child/route?query=val#hash',
             matched:  []
           },
           $router: {
-            resolve:   jest.fn().mockReturnValue({ fullPath: '/child/route' }),
+            resolve:   jest.fn().mockReturnValue({ path: '/child/route', fullPath: '/child/route' }),
             getRoutes: jest.fn().mockReturnValue([])
           },
           t: (key: string) => key

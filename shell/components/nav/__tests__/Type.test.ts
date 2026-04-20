@@ -28,10 +28,10 @@ describe('component: Type', () => {
     };
     const routerMock = {
       resolve: jest.fn((route) => {
-        return { fullPath: route };
+        return { fullPath: route, path: route };
       })
     };
-    const routeMock = { fullPath: 'route' };
+    const routeMock = { fullPath: 'route', path: 'route' };
 
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
@@ -104,7 +104,7 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad', path: 'bad' }
             },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
@@ -123,9 +123,9 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+              $store: storeMock, $router: routerMock, $route: routeMock
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: false }) },
           },
         });
 
@@ -160,9 +160,9 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash' }
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash', path: 'route' }
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
           },
         });
 
@@ -201,7 +201,7 @@ describe('component: Type', () => {
             mocks: {
               $store: storeMock, $router: routerMock, $route: routeMock
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
           },
         });
 
@@ -298,7 +298,7 @@ describe('component: Type', () => {
             mocks: {
               $store: storeMock, $router: routerMock, $route: routeMock
             },
-            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
           },
         });
 
