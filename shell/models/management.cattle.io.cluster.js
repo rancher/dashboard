@@ -197,7 +197,25 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get isImported() {
-    return this.machineProvider === 'imported';
+    const provider = this.status?.provider;
+    const driver = this.status?.driver;
+
+    // The main case
+    if (provider === 'k3s' || provider === 'rke2') {
+      return driver === provider;
+    }
+    // The 'waiting' case
+    if (!provider && (driver === 'k3s' || driver === 'rke2')) {
+      return true;
+    }
+
+    // imported KEv2
+    // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
+    if (this.isHostedKubernetesProvider && !!this.provCluster?.providerConfig.imported) {
+      return true;
+    }
+
+    return this.provisioner === 'imported';
   }
 
   get isCustom() {

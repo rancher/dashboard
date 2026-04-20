@@ -5,7 +5,11 @@ import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 
-// TODO: RC bug create a harvester cluster... this page doesn't show (page shown is for mgmt cluster? has machine provider in detail)
+// Couple of things wrong here
+// 1. It should be in pkg/harvester-manager extension
+// 2. It's not used when the harvester-ui extension is loaded
+// - extension has it's own detail/harvesterhci.io.management.cluster.vue which supersedes this
+// - unless harvester standalone uses it, it should not exist in the harvester-ui extension
 
 export default {
   emits: ['input'],
