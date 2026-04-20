@@ -200,7 +200,7 @@ export default {
     tagOptions() {
       const outSet = new Set();
 
-      this.allCharts.forEach((chart) => {
+      this.enabledCharts.forEach((chart) => {
         if (Array.isArray(chart.tags)) {
           chart.tags.forEach((tag) => outSet.add(tag));
         }
@@ -270,7 +270,7 @@ export default {
     categoryOptions() {
       const map = {};
 
-      for ( const chart of this.allCharts ) {
+      for ( const chart of this.enabledCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
