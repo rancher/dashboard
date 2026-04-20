@@ -16,7 +16,7 @@ SUITE=$1
 export RANCHER_IMG_VERSION="${RANCHER_IMG_VERSION:-head}"
 
 echo "--------------- Cleaning Env ---------------------"
-yarn cache clean && rm -rf node_nodules && yarn install
+yarn cache clean && rm -rf node_nodules && yarn install:ci
 rm -rf ./dist
 rm -rf ./dist_ember
 

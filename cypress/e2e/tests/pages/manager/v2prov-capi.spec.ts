@@ -1,5 +1,6 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import { qase } from '@/cypress/support/qase';
 
 import { mockCapiMgmtCluster, mockCapiProvCluster } from '@/cypress/e2e/blueprints/manager/v2prov-capi-cluster-mocks';
@@ -38,7 +39,7 @@ describe('Cluster List - v2 Provisioning CAPI Clusters', { tags: ['@manager', '@
 
     // Close the first row action menu so its overlay does not block subsequent row actions.
     clusterList.list().actionMenuClose(clusterName);
-    cy.get('body').find('[dropdown-menu-collection]:visible').should('have.length', 0);
+    ActionMenuPo.checkNoActionMenuIsVisible();
 
     clusterList.list().actionMenu('local').getMenuItem('Edit Config').should('exist');
   }));

@@ -49,7 +49,7 @@ jobs:
       comment_repo: ""
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@5a06d310cf45161bde77d070065a1e1489fc411c # v0.68.1
+        uses: github/gh-aw/actions/setup@08a903b1fb2e493a84a57577778fe5dd711f9468 # v0.58.3
         with:
           destination: /opt/gh-aw/actions
       - name: Validate context variables
@@ -229,7 +229,7 @@ jobs:
       secret_verification_result: ${{ steps.validate-secret.outputs.verification_result }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@5a06d310cf45161bde77d070065a1e1489fc411c # v0.68.1
+        uses: github/gh-aw/actions/setup@08a903b1fb2e493a84a57577778fe5dd711f9468 # v0.58.3
         with:
           destination: /opt/gh-aw/actions
       - name: Checkout repository
@@ -990,7 +990,7 @@ jobs:
       total_count: ${{ steps.missing_tool.outputs.total_count }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@5a06d310cf45161bde77d070065a1e1489fc411c # v0.68.1
+        uses: github/gh-aw/actions/setup@08a903b1fb2e493a84a57577778fe5dd711f9468 # v0.58.3
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent output artifact
@@ -1090,7 +1090,7 @@ jobs:
       process_safe_outputs_temporary_id_map: ${{ steps.process_safe_outputs.outputs.temporary_id_map }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@5a06d310cf45161bde77d070065a1e1489fc411c # v0.68.1
+        uses: github/gh-aw/actions/setup@08a903b1fb2e493a84a57577778fe5dd711f9468 # v0.58.3
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent output artifact

@@ -1445,3 +1445,29 @@ Cypress.Commands.add('applyDefaultTestTheme', () => {
       });
     });
 });
+
+/**
+ * Restores `ui-brand` to the product default: suse for Rancher Prime, modern for Community.
+ * Clears the forced `ui-light` user preference so the session matches normal defaults.
+ */
+Cypress.Commands.add('restoreProductDefaultTestTheme', () => {
+  cy.getRancherVersion().then((version: { RancherPrime?: string }) => {
+    const uiBrand = version.RancherPrime === 'true' ? 'suse' : 'modern';
+
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: uiBrand })
+      .then((response: Cypress.Response<{ value?: string }>) => {
+        Cypress.log({
+          name:    'setRancherResource',
+          message: `Rancher UI brand restored to: ${ response.body?.value || uiBrand }`
+        });
+      });
+
+    cy.setUserPreference({ theme: '' })
+      .then(() => {
+        Cypress.log({
+          name:    'setUserPreference',
+          message: 'User theme preference cleared (product default)'
+        });
+      });
+  });
+});
