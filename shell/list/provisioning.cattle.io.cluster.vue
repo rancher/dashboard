@@ -10,7 +10,7 @@ import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
@@ -59,10 +59,20 @@ export default {
     },
 
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
+      if (opts.canPaginate) {
+        return Promise.resolve();
+      }
+
       const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
+
+      // Additional requests required to support columns in this view (e.g. machines)
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE_DEPLOYMENT });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL)) {
+        this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.NODE_POOL });
       }
 
       return Promise.all(promises);
@@ -73,9 +83,15 @@ export default {
     }: PagTableFetchPageSecondaryResourcesOpts) {
       this.clusterCount = !canPaginate || !page?.length ? 0 : pagResult.count;
 
+      if (!canPaginate || !page?.length) {
+        return;
+      }
+
       const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
         canPaginate, force, page, pagResult
       }, { $store: this.$store });
+
+      // Additional requests required to support columns in this view (e.g. machines)
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         const opt: ActionFindPageArgs = {
@@ -97,6 +113,23 @@ export default {
         };
 
         this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE_DEPLOYMENT, opt });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL)) {
+        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
+          .filter((p: any) => p.id)
+          .map((r: any) => new PaginationFilterField({
+            field: 'spec.clusterName',
+            value: r.id
+          })));
+
+        promises.push(this.$store.dispatch(`management/findPage`, {
+          type: MANAGEMENT.NODE_POOL,
+          opt:  {
+            force,
+            pagination: new FilterArgs({ filters: nodePoolFilters })
+          }
+        }));
       }
 
       await Promise.all(promises);
@@ -222,8 +255,7 @@ export default {
     >
       <template #cell:summary="{row}">
         <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
-        <!-- Not sure how the conditional replace works... c&p from home -->
-        <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
+        <span v-if="!row.stateParts.length">{{ row.status.info.nodeCount || 0 }}</span>
         <MachineSummaryGraph
           v-else
           :row="row"

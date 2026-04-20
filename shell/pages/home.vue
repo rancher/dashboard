@@ -70,6 +70,30 @@ export default defineComponent({
       query: { [MODE]: _IMPORT }
     };
 
+    const cpuHeader = {
+      label:  this.t('tableHeaders.cpu'),
+      value:  '',
+      name:   'cpu',
+      sort:   ['status.allocatable.cpuRaw'],
+      search: ['status.allocatable.cpuRaw'],
+    };
+    const memoryHeader = {
+      label:  this.t('tableHeaders.memory'),
+      value:  '',
+      name:   'memory',
+      sort:   ['status.allocatable.memoryRaw'],
+      search: ['status.allocatable.memoryRaw'],
+    };
+    const podsHeader = {
+      label:        this.t('tableHeaders.pods'),
+      name:         'pods',
+      value:        '',
+      sort:         ['status.allocatable.pods', 'status.requested.pods'],
+      search:       ['status.allocatable.pods', 'status.requested.pods'],
+      formatter:    'PodsUsage',
+      delayLoading: true
+    };
+
     return {
       HIDE_HOME_PAGE_CARDS,
       // Page actions don't change on the Home Page
@@ -89,12 +113,7 @@ export default defineComponent({
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
-      canViewProvClusters:  !!this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
-      canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
-      canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
-      canViewMgmtPools:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
-      canViewMgmtTemplates: !!this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE),
+      canViewMgmtClusters: !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
       manageLocation: {
         name:   'c-cluster-product-resource',
@@ -128,31 +147,16 @@ export default defineComponent({
           labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
         },
-        {
-          label: this.t('tableHeaders.cpu'),
-          value: '',
-          name:  'cpu',
-          sort:  ['status.allocatable.cpu', 'status.available.cpu']
-        },
-        {
-          label: this.t('tableHeaders.memory'),
-          value: '',
-          name:  'memory',
-          sort:  ['status.allocatable.memory', 'status.available.memory']
-        },
-        {
-          label:        this.t('tableHeaders.pods'),
-          name:         'pods',
-          value:        '',
-          sort:         ['status.allocatable.pods', 'status.requested.pods'],
-          formatter:    'PodsUsage',
-          delayLoading: true
-        },
+        cpuHeader,
+        memoryHeader,
+        podsHeader,
         // {
         //   name:  'explorer',
         //   label:  this.t('landing.clusters.explorer')
         // }
       ],
+
+      // TODO: RC comment thought about flag to retain existing prov cluster lists, code got real crazy real quick
 
       paginationHeaders: [
         STEVE_STATE_COL,
@@ -166,36 +170,16 @@ export default defineComponent({
         {
           ...STEVE_MGMT_CLUSTER_PROVIDER,
           labelKey: 'landing.clusters.provider',
-          subLabel: this.t('landing.clusters.provider'),
+          subLabel: this.t('landing.clusters.distro'),
         },
         {
           ...STEVE_MGMT_CLUSTER_KUBE_VERSION,
           labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
         },
-        {
-          label:  this.t('tableHeaders.cpu'),
-          value:  '',
-          name:   'cpu',
-          sort:   false,
-          search: false,
-        },
-        {
-          label:  this.t('tableHeaders.memory'),
-          value:  '',
-          name:   'memory',
-          sort:   false,
-          search: false,
-        },
-        {
-          label:        this.t('tableHeaders.pods'),
-          name:         'pods',
-          value:        '',
-          sort:         false,
-          search:       false,
-          formatter:    'PodsUsage',
-          delayLoading: true
-        },
+        cpuHeader,
+        memoryHeader,
+        podsHeader,
       ],
 
       clusterCount: 0,

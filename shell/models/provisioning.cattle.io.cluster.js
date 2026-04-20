@@ -399,52 +399,14 @@ export default class ProvCluster extends SteveModel {
 
   get provisioner() {
     return this.mgmt?.provisioner;
-    // if ( this.isRke2 ) {
-    //   const allKeys = Object.keys(this.spec);
-    //   const configKey = allKeys.find( (k) => k.endsWith('Config'));
-
-    //   if ( configKey === 'rkeConfig') {
-    //     return 'rke2';
-    //   } else if ( configKey ) {
-    //     return configKey.replace(/config$/i, '');
-    //   }
-    // } else if ( this.mgmt ) {
-    //   return this.mgmt.provisioner;
-    // }
-
-    // return null;
   }
 
   get provisionerDisplay() {
     return this.mgmt?.provisionerDisplay;
-
-    // // Allow a model extension to override the display of the provisioner
-    // if (this.customProvisionerHelper?.provisionerDisplay) {
-    //   return this.customProvisionerHelper?.provisionerDisplay(this);
-    // }
-
-    // let provisioner = (this.provisioner || '').toLowerCase();
-
-    // // RKE provisioner can actually do K3s too...
-    // if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
-    //   provisioner = 'k3s';
-    // } else if ( this.isImportedK3s ) {
-    //   provisioner = 'k3s';
-    // } else if ( this.isImportedRke2 ) {
-    //   provisioner = 'rke2';
-    // } else if ((this.isImported || this.isLocal) && this.isRke1) {
-    //   provisioner = 'rke';
-    // }
-
-    // return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
   }
 
   get providerLogo() {
     return this.mgmt?.providerLogo;
-  }
-
-  get nodesArchitecture() {
-    return this.mgmt?.nodesArchitecture;
   }
 
   get architecture() {

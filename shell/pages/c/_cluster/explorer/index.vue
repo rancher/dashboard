@@ -17,7 +17,6 @@ import {
   CATALOG,
   SECRET
 } from '@shell/config/types';
-import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
@@ -220,52 +219,14 @@ export default {
     },
 
     displayProvider() {
-      const other = 'other';
-
-      let provider = this.currentCluster?.status?.provider || this.currentCluster?.status?.driver.toLowerCase() || other;
-
-      if (provider === 'rke.windows') {
-        provider = 'rkeWindows';
-      }
-
-      if (!this.$store.getters['i18n/exists'](`cluster.provider.${ provider }`)) {
-        provider = 'other';
-      }
-
-      return this.t(`cluster.provider.${ provider }`);
-    },
-
-    nodesArchitecture() {
-      const obj = {};
-
-      this.nodes?.forEach((node) => {
-        if (!node.metadata?.state?.transitioning) {
-          const architecture = node.labels?.[NODE_ARCHITECTURE];
-
-          const key = architecture || this.t('cluster.architecture.label.unknown');
-
-          obj[key] = (obj[key] || 0) + 1;
-        }
-      });
-
-      return obj;
+      return this.currentCluster?.provisionerDisplay;
     },
 
     architecture() {
-      const keys = Object.keys(this.nodesArchitecture);
-
-      switch (keys.length) {
-      case 0:
-        return { label: this.t('generic.provisioning') };
-      case 1:
-        return { label: keys[0] };
-      default:
-        return {
-          label:   this.t('cluster.architecture.label.mixed'),
-          tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-        };
-      }
+      return this.currentCluster?.architecture;
     },
+
+    // TODO: RC PR - document regression test https://github.com/rancher/dashboard/issues/10831
 
     isHarvesterCluster() {
       return this.currentCluster?.isHarvester;

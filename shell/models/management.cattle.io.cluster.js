@@ -140,7 +140,17 @@ export default class MgmtCluster extends SteveModel {
       return this.customProvisionerHelper?.provisionerDisplay(this);
     }
 
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ this.provisioner }"`, null, ucFirst(this.provisioner));
+    let provisioner = this.provisioner;
+
+    if (provisioner === 'rke.windows') {
+      provisioner = 'rkeWindows';
+    }
+
+    if (!this.$rootGetters['i18n/exists'](`cluster.provider.${ provisioner }`)) {
+      provisioner = 'other';
+    }
+
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(this.provisioner));
   }
 
   /**
@@ -542,19 +552,14 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get architecture() {
-    const keys = Object.keys(this.nodesArchitecture);
-
-    switch (keys.length) {
-    case 0:
+    if (!this.status.info.arch) {
       return { label: this.t('generic.provisioning') };
-    case 1:
-      return { label: keys[0] };
-    default:
-      return {
-        label:   this.t('cluster.architecture.label.mixed'),
-        tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-      };
     }
+    if (this.status.info.arch === 'mixed') {
+      return { label: this.t('cluster.architecture.label.mixed') };
+    }
+
+    return { label: this.status.info.arch };
   }
 
   get machines() {
@@ -757,6 +762,9 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provClusterId() {
+    // Note - there's also status.info.provisioningClusterReg, which is a link to the lifecycle owning type
+    // for v2prov this would be a provisioning.cattle.io.cluster, but for others it wouldn't be.
+
     const verb = this.isLocal || this.isHostedKubernetesProvider ? 'to' : 'from';
     const res = findRelationship(verb, CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
 

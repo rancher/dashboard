@@ -18,9 +18,7 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
-import {
-  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL
-} from '@shell/config/pagination-table-headers';
+import { STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -197,7 +195,10 @@ export function init(store) {
     },
     STEVE_MGMT_CLUSTER_PROVIDER,
     STEVE_MGMT_CLUSTER_KUBE_VERSION,
-    MACHINE_SUMMARY,
+    {
+      ...MACHINE_SUMMARY,
+      sort: 'status.info.nodeCount'
+    },
     STEVE_AGE_COL,
     {
       name:  'explorer',
