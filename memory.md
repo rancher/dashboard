@@ -39,11 +39,15 @@
 
 ## Completed Work
 
-### 2026-04-19 (this run)
-- Written 15 tests for shell/utils/inactivity.ts (100% stmts/fns/branches/lines)
-- Committed to branch test-assist/inactivity-utils-tests (local only — committed as 71aa3ce)
-- BLOCKED: safeoutputs tools still not in tool list (9th consecutive run)
+### 2026-04-20 (this run)
+- Written 18 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 85.71% branches)
+- Committed to branch test-assist/inactivity-utils-tests (local only — committed as 7108640)
+- BLOCKED: safeoutputs tools still not in tool list (10th consecutive run)
 - PR not created; branch is local only
+
+### 2026-04-19
+- Written 15 tests for shell/utils/inactivity.ts (100% stmts/fns/branches/lines)
+- BLOCKED: safeoutputs tools still not in tool list (9th consecutive run)
 
 ### 2026-04-18
 - Written 16 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 75% branches)
@@ -66,6 +70,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-20: Task 3 (inactivity.ts 18 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (10th consecutive)
 - 2026-04-19: Task 3 (inactivity.ts 15 tests, 100% all coverage) - BLOCKED on safeoutputs (9th consecutive)
 - 2026-04-18: Task 3 (inactivity.ts 16 tests) - BLOCKED on safeoutputs (8th consecutive)
 - 2026-04-17: Task 3 (inactivity.ts 20 tests) - BLOCKED on safeoutputs (7th consecutive)
@@ -81,14 +86,14 @@
 ## Pending (needs retry when safeoutputs available)
 
 - inactivity.ts tests: READY for PR (branch must be recreated each run - branches are local only)
-  - 15 tests, coverage: 100% statements/branches/functions/lines
+  - 18 tests, coverage: 100% statements/functions/lines, 85.71% branches
   - All tests pass, ESLint clean
   - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
   - Base branch: master, draft: true, labels: ["testing", "bot/test-improver"]
   - PR body: covers getSessionTokenName/setSessionTokenName, getUserActivity (dispatch/401/error), updateUserActivity (spec/save/error), parseTTLData (math/cap/edge cases)
 - git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
 - Monthly activity issue #17177 last updated 2026-04-08 (needs update with PR info when PR is made)
-- **safeoutputs tools have been unavailable for 9 consecutive runs** (2026-04-11 through 2026-04-19)
+- **safeoutputs tools have been unavailable for 10 consecutive runs** (2026-04-11 through 2026-04-20)
 
 ## Maintainer Priorities
 
