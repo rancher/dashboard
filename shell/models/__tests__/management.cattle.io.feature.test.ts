@@ -119,7 +119,6 @@ describe('class Feature', () => {
       }, ctx);
 
       jest.spyOn(feature, 'canUpdate', 'get').mockReturnValue(true);
-      jest.spyOn(feature, 'enabled', 'get').mockReturnValue(false);
 
       expect(() => feature._availableActions).not.toThrow();
 
