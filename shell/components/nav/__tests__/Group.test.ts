@@ -49,7 +49,7 @@ describe('component: Group', () => {
           $route: {
             params:   {},
             hash:     '#hash',
-            path: '/child/route',
+            path:     '/child/route',
             fullPath: '/child/route?query=val#hash',
             matched:  []
           },

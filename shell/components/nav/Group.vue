@@ -206,7 +206,7 @@ export default {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
-          
+
           // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
           const itemPath = this.$router.resolve(validItemRoute).path;
 
