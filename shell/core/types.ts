@@ -563,12 +563,24 @@ export interface DSLReturnType {
   product: (options: ProductOptions) => void;
 
   /**
-   * Create and label a group. The group will show up in navigation
-   * @param groupNane Name of the group
-   * @param label Label in navigation
+   * Remap a group name to a display name
+   * @param match String or regex to match against group names
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
    * @returns {@link void}
    */
-  mapGroup: (groupName: string, label: string) => void;
+  mapGroup: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
+
+  /**
+   * Remap a type ID to a display name
+   * @param match String or regex to match against type IDs
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
+   * @returns {@link void}
+   */
+  mapType: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
 
   /**
    * Create and configure a myriad of options for a type
@@ -576,6 +588,13 @@ export interface DSLReturnType {
    * @returns {@link void}
    */
   virtualType: (options: ConfigureVirtualTypeOptions) => void;
+
+  /**
+   * Create a fake/spoofed type that can be treated like a normal type
+   * @param obj Spoofed type configuration including schemas and getInstances
+   * @returns {@link void}
+   */
+  spoofedType: (obj: any) => void;
 
   /**
    * Side menu ordering for grouping of pages
@@ -596,18 +615,27 @@ export interface DSLReturnType {
   weightType: (input: string, weight: number, forBasic: boolean) => void;
 
   /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   * Never show the specified type in the navigation
+   * @param regexOrString String or regex to match against type names
+   * @returns {@link void}
    */
-  // componentForType: (type: string, replacementType: string)
-  // groupBy: (type: string, field: string)
-  // hideBulkActions: (type: string, field)
-  // ignoreGroup: (regexOrString)
-  // ignoreType: (regexOrString)
-  //
-  // mapType: (match, replace)
-  // moveType: (match, group)
-  // setGroupDefaultType: (input, defaultType)
-  // spoofedType: (obj)
+  ignoreType: (regexOrString: string | RegExp) => void;
+
+  /**
+   * Never show the specified group or any types in it
+   * @param regexOrString String or regex to match against group names
+   * @param cb Optional callback
+   * @returns {@link void}
+   */
+  ignoreGroup: (regexOrString: string | RegExp, cb?: Function) => void;
+
+  /**
+   * Hide bulk actions for a specific resource type
+   * @param type The type to hide bulk actions for
+   * @param field Value to set (typically true to hide)
+   * @returns {@link void}
+   */
+  hideBulkActions: (type: string, field: boolean) => void;
 
   labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
 
@@ -664,8 +692,6 @@ export interface IExtension {
    * @param name
    * @param config
    */
-  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
   addProduct(product: ProductMetadata, config: ProductChild[]): void;
 
   /**
@@ -695,8 +721,6 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
-  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
   extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
 
   /**
