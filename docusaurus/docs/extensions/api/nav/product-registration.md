@@ -374,12 +374,6 @@ Only custom pages and groups can have `children`. A resource page (an item with 
 
 A group (an item with `children`) cannot also have a `type` property. Groups are for organizing navigation — they do not display Kubernetes resources directly. Place resource pages as children of the group instead.
 
-### Group parents cannot have `component` when extending a product
-
-When using `extendProduct`, group parent items cannot specify a `component`. This is because of route matching conflicts with the existing product's routes. Place the component on a child page instead.
-
-When using `addProduct` for a new product, group parents *can* have a `component` — this renders as an overview page when the group header is clicked.
-
 ### Naming requirements
 
 - Custom pages and groups require a `name` property (unique identifier used in routes)
