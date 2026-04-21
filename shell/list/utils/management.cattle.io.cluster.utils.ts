@@ -1,12 +1,10 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import { VuexStore } from '@shell/types/store/vuex';
-import {
-  FilterArgs, PaginationArgs, PaginationFilterEquality, PaginationFilterField, PaginationParamFilter
-} from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationArgs, PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { sameContents } from '@shell/utils/array';
-import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
+import { CAPI } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 interface CommonConfig {

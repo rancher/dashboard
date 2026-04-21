@@ -43,7 +43,7 @@ export async function handleSpoofedRequest(rootGetters, schemaStore, opt, produc
 
 export async function loadSchemas(ctx, watch = true) {
   const {
-    getters, dispatch, commit, rootGetters, state
+    getters, dispatch, commit, rootGetters
   } = ctx;
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
   const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;

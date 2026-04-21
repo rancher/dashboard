@@ -129,6 +129,9 @@ export default class MgmtCluster extends SteveModel {
     // //   if ( configKey === 'rkeConfig') {
     // //     return 'rke2';
 
+    // fails unit test `should return false for a provisioned hosted cluster`
+    // TODO: RC validate once hosted clsuters validate
+
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -268,11 +271,11 @@ export default class MgmtCluster extends SteveModel {
     if (this.isHostedKubernetesProvider && this.provisioner) {
       switch (this.provisioner.toLowerCase()) {
       case 'gke':
-        return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
+        return this.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
       case 'eks':
-        return this.mgmt.spec?.eksConfig?.privateAccess;
+        return this.spec?.eksConfig?.privateAccess;
       case 'aks':
-        return this.mgmt.spec?.aksConfig?.privateCluster;
+        return this.spec?.aksConfig?.privateCluster;
       }
     }
 
