@@ -395,7 +395,7 @@ export default defineComponent({
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
+        :class="{ 'multiline-password': type === 'multiline-password' }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @update:value="onInput"
@@ -464,6 +464,10 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
+.multiline-password:not(:focus) {
+  -webkit-text-security: disc;
+}
+
 .labeled-input.view {
   input {
     text-overflow: ellipsis;

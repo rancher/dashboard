@@ -829,6 +829,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
     cy.applyDefaultTestTheme();
   });
+
   it('should display cluster manager page', () => {
     const clusterList = new ClusterManagerListPagePo();
 
@@ -843,5 +844,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', 'td.col-live-date span.live-date');
     // takes percy snapshot.
     cy.percySnapshot('cluster manager list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

@@ -105,7 +105,7 @@ export default class FleetApplication extends SteveModel {
 
     for (const tgt of this.spec.targets) {
       if (tgt.clusterName) {
-        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
+        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName) || findBy(clusters, 'nameDisplay', tgt.clusterName);
 
         if (cluster) {
           addObject(out, cluster);

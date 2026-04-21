@@ -1,6 +1,6 @@
 ## Tools
 
-- **Install dependencies**: `yarn install`
+- **Install dependencies**: `yarn install --frozen-lockfile`
 - **Start development server**: `API=<Rancher_Backend_URL> yarn dev`
   - The `API` environment variable should point to a running Rancher server (e.g., `https://localhost`).
   - The dashboard will be available at `https://127.0.0.1:8005`.

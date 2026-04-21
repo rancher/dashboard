@@ -18,6 +18,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Loading from '@shell/components/Loading.vue';
 
@@ -30,6 +31,7 @@ import AccountAccess from './AccountAccess.vue';
 import Import from './Import.vue';
 
 import EKSValidators from '../util/validators';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { formatAWSError } from '@shell/utils/error';
 
@@ -53,6 +55,7 @@ const DEFAULT__IMPORT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {},
+  importedConfig:                      { privateRegistryURL: null },
   eksConfig:                           {
     amazonCredentialSecret: '',
     displayName:            '',
@@ -109,6 +112,7 @@ export default defineComponent({
     Config,
     Networking,
     LabeledInput,
+    PrivateRegistry,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -162,6 +166,11 @@ export default defineComponent({
       }
     }
 
+    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
+    }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
+
     if (!this.isImport) {
       if (!this.normanCluster.eksConfig) {
         this.normanCluster['eksConfig'] = { ...DEFAULT_EKS_CONFIG } as any as EKSConfig;
@@ -200,13 +209,14 @@ export default defineComponent({
 
     return {
       isImport,
-      cloudCredentialId: '',
-      normanCluster:     { name: '' } as unknown as NormanCluster,
-      nodeGroups:        [] as EKSNodeGroup[],
-      config:            { } as EKSConfig,
-      membershipUpdate:  {} as {newBindings: any[], removedBindings: any[], save: Function},
-      originalVersion:   '',
-      fvFormRuleSets:    isImport ? [{
+      cloudCredentialId:      '',
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
+      nodeGroups:             [] as EKSNodeGroup[],
+      config:                 { } as EKSConfig,
+      membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
+      originalVersion:        '',
+      privateRegistryEnabled: false,
+      fvFormRuleSets:         isImport ? [{
         path:  'name',
         rules: ['nameRequired'],
       },
@@ -214,6 +224,10 @@ export default defineComponent({
       {
         path:  'displayName',
         rules: ['displayNameRequired'],
+      },
+      {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ] : [{
         path:  'name',
@@ -259,6 +273,10 @@ export default defineComponent({
       {
         path:  'nodeGroupsRequired',
         rules: ['nodeGroupsRequired']
+      },
+      {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ],
 
@@ -320,7 +338,8 @@ export default defineComponent({
           group['version'] = neu;
         }
       });
-    }
+    },
+
   },
 
   computed: {
@@ -328,6 +347,10 @@ export default defineComponent({
 
     fetchState(): {pending: boolean} {
       return this.$fetchState;
+    },
+
+    isImportedCluster(): boolean {
+      return this.isImport || this.value.isImported;
     },
 
     fvExtraRules(): {[key:string]: Function} {
@@ -352,6 +375,7 @@ export default defineComponent({
         if (!this.config?.imported) {
           out.nodeGroupsRequired = EKSValidators.nodeGroupsRequired(this);
         }
+        out.privateRegistryRequired = privateRegistryRequired(this as any);
       }
 
       return out;
@@ -865,6 +889,19 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isImportedCluster"
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
         />
       </Accordion>
     </div>

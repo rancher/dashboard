@@ -419,6 +419,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
     cy.applyDefaultTestTheme();
   });
+
   it('should display continuous delivery page git repo', () => {
     const gitRepoList = new FleetGitRepoListPagePo();
 
@@ -429,5 +430,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });
