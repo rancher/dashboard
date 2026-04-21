@@ -966,28 +966,6 @@ describe('pluginProduct', () => {
         new PluginProduct(mockPlugin, productMetadata, badConfig);
       }).toThrow('forEach');
     });
-
-    it('should throw when extending standard product and group parent has component', () => {
-      const mockPlugin = createMockPlugin();
-      const config: ProductChildGroup[] = [
-        {
-          name:      'parent-group',
-          label:     'Parent Group',
-          component: { name: 'GroupComponent' },
-          children:  [
-            {
-              name:      'child',
-              label:     'Child',
-              component: { name: 'ChildComponent' },
-            },
-          ],
-        },
-      ];
-
-      expect(() => {
-        new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
-      }).toThrow('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
-    });
   });
 
   describe('state verification', () => {
@@ -3154,6 +3132,13 @@ describe('pluginProduct', () => {
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        spoofedType:         jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3182,6 +3167,13 @@ describe('pluginProduct', () => {
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        spoofedType:         jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3206,6 +3198,13 @@ describe('pluginProduct', () => {
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        spoofedType:         jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3486,27 +3485,6 @@ describe('pluginProduct', () => {
 
         expect(groupRoute).toBeDefined();
         expect(groupRoute[0].name).toStrictEqual(expect.stringContaining('monitoring'));
-      });
-
-      it('should throw when extending a product with a group that has a component', () => {
-        const mockPlugin = createMockPlugin();
-
-        const childPage: ProductChildCustomPage = {
-          name:      'child',
-          label:     'Child',
-          component: { name: 'ChildComponent' },
-        };
-
-        const groupWithComponent: ProductChildGroup = {
-          name:      'my-group',
-          label:     'My Group',
-          component: { name: 'GroupOverview' },
-          children:  [childPage],
-        };
-
-        expect(() => {
-          new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, [groupWithComponent]);
-        }).toThrow('group parent items cannot have a component');
       });
     });
 

@@ -321,10 +321,6 @@ export abstract class BasePluginProduct {
           this.surfaceError('Group items cannot have a "type" property - only custom pages can have groups.');
         }
 
-        if (child.component && !this.isNewProduct) {
-          this.surfaceError('When extending an existing product, group parent items cannot have a component because of route matching conflicts.');
-        }
-
         let route;
 
         if (!child.component) {
