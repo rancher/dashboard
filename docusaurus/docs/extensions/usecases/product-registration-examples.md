@@ -15,11 +15,11 @@ Register a product with a single call. Useful for bootstrapping a new Extension 
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
-  plugin.addProduct('my-first-product');
+  extension.addProduct('my-first-product');
 }
 ```
 
@@ -37,9 +37,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductSinglePage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const product: ProductSinglePage = {
     name:      'status-board',
@@ -48,7 +48,7 @@ export default function(plugin: IPlugin) {
     component: () => import('./pages/StatusBoard.vue'),
   };
 
-  plugin.addProduct(product);
+  extension.addProduct(product);
 }
 ```
 
@@ -69,9 +69,9 @@ import {
   ProductChildCustomPage
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const overviewPage: ProductChildCustomPage = {
     name:      'overview',
@@ -100,7 +100,7 @@ export default function(plugin: IPlugin) {
     icon:  'gear',
   };
 
-  plugin.addProduct(product, [overviewPage, usersPage, logsPage]);
+  extension.addProduct(product, [overviewPage, usersPage, logsPage]);
 }
 ```
 
@@ -121,9 +121,9 @@ import {
   ProductChildResourcePage
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const clusterPage: ProductChildResourcePage = {
     type:   'provisioning.cattle.io.cluster',
@@ -149,7 +149,7 @@ export default function(plugin: IPlugin) {
     label: 'Cluster Tools',
   };
 
-  plugin.addProduct(product, [clusterPage, secretsPage]);
+  extension.addProduct(product, [clusterPage, secretsPage]);
 }
 ```
 
@@ -171,9 +171,9 @@ import {
   ProductChildResourcePage
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const dashboardPage: ProductChildCustomPage = {
     name:      'dashboard',
@@ -199,7 +199,7 @@ export default function(plugin: IPlugin) {
     label: 'My Platform',
   };
 
-  plugin.addProduct(product, [dashboardPage, clusterPage, settingsPage]);
+  extension.addProduct(product, [dashboardPage, clusterPage, settingsPage]);
 }
 ```
 
@@ -219,9 +219,9 @@ import {
   ProductChildGroup
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   // Standalone page (outside any group)
   const homePage: ProductChildCustomPage = {
@@ -276,7 +276,7 @@ export default function(plugin: IPlugin) {
     label: 'My Platform',
   };
 
-  plugin.addProduct(product, [homePage, monitoringGroup, adminGroup]);
+  extension.addProduct(product, [homePage, monitoringGroup, adminGroup]);
 }
 ```
 
@@ -321,9 +321,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductChildCustomPage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const customPage: ProductChildCustomPage = {
     name:      'cost-analysis',
@@ -331,7 +331,7 @@ export default function(plugin: IPlugin) {
     component: () => import('./pages/CostAnalysis.vue'),
   };
 
-  plugin.extendProduct('explorer', [customPage]);
+  extension.extendProduct('explorer', [customPage]);
 }
 ```
 
@@ -346,9 +346,9 @@ import {
   ProductChildGroup
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const costPage: ProductChildCustomPage = {
     name:      'cost-analysis',
@@ -368,7 +368,7 @@ export default function(plugin: IPlugin) {
     children: [costPage, usagePage],
   };
 
-  plugin.extendProduct('explorer', [insightsGroup]);
+  extension.extendProduct('explorer', [insightsGroup]);
 }
 ```
 
@@ -393,7 +393,7 @@ const overviewPage: ProductChildCustomPage = {
   component: () => import('./pages/Overview.vue'),
 };
 
-plugin.addProduct(product, [overviewPage]);
+extension.addProduct(product, [overviewPage]);
 ```
 
 > Note: See the [Localization documentation](../advanced/localization.md) for details on setting up translation files.

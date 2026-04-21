@@ -1,6 +1,6 @@
 # Product Registration (Experimental)
 
-> Note: This API is experimental and may change in future releases. The existing [DSL-based product registration](./products.md) remains the default and recommended approach for production Extensions.
+> Note: This API is experimental and may change in future releases.
 
 ## Overview
 
@@ -32,14 +32,14 @@ Before diving in, here are the key terms used throughout this API. If you're not
 
 ## API Reference
 
-All methods are called on the `plugin` object in your Extension's `index.ts`.
+All methods are called on the `extension` object in your Extension's `index.ts`.
 
 ### `addProduct(productName)`
 
 The simplest way to register a product. Pass a string name and the product will be registered with a default empty page.
 
 ```ts
-plugin.addProduct('my-first-product');
+extension.addProduct('my-first-product');
 ```
 
 This is a convenience/bridge method useful for getting started. You can expand to the full API signatures below once you are ready to add custom pages.
@@ -89,11 +89,11 @@ The fastest way to get a product registered. This registers a product with a def
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
-  plugin.addProduct('my-first-product');
+  extension.addProduct('my-first-product');
 }
 ```
 
@@ -107,9 +107,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductSinglePage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const product: ProductSinglePage = {
     name:      'my-dashboard',
@@ -118,7 +118,7 @@ export default function(plugin: IPlugin) {
     component: () => import('./pages/DashboardPage.vue')
   };
 
-  plugin.addProduct(product);
+  extension.addProduct(product);
 }
 ```
 
@@ -132,9 +132,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductMetadata, ProductChildCustomPage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const overviewPage: ProductChildCustomPage = {
     name:      'overview',
@@ -156,7 +156,7 @@ export default function(plugin: IPlugin) {
     icon:  'gear',
   };
 
-  plugin.addProduct(product, [overviewPage, settingsPage]);
+  extension.addProduct(product, [overviewPage, settingsPage]);
 }
 ```
 
@@ -170,9 +170,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductMetadata, ProductChildResourcePage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const clusterPage: ProductChildResourcePage = {
     type:   'provisioning.cattle.io.cluster',
@@ -196,7 +196,7 @@ export default function(plugin: IPlugin) {
     label: 'My Resources',
   };
 
-  plugin.addProduct(product, [clusterPage, nodePage]);
+  extension.addProduct(product, [clusterPage, nodePage]);
 }
 ```
 
@@ -214,9 +214,9 @@ import {
   ProductChildGroup
 } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   // Pages for the "Monitoring" group
   const alertsPage: ProductChildCustomPage = {
@@ -251,7 +251,7 @@ export default function(plugin: IPlugin) {
     label: 'My Platform',
   };
 
-  plugin.addProduct(product, [overviewPage, monitoringGroup]);
+  extension.addProduct(product, [overviewPage, monitoringGroup]);
 }
 ```
 
@@ -265,9 +265,9 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { ProductChildCustomPage } from '@shell/core/plugin-types';
 
-export default function(plugin: IPlugin) {
-  importTypes(plugin);
-  plugin.metadata = require('./package.json');
+export default function(extension: IPlugin) {
+  importTypes(extension);
+  extension.metadata = require('./package.json');
 
   const customPage: ProductChildCustomPage = {
     name:      'my-custom-view',
@@ -276,7 +276,7 @@ export default function(plugin: IPlugin) {
   };
 
   // Add a page to the Cluster Explorer product
-  plugin.extendProduct('explorer', [customPage]);
+  extension.extendProduct('explorer', [customPage]);
 }
 ```
 
