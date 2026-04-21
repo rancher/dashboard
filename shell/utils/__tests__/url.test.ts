@@ -20,11 +20,11 @@ describe('fx: addParam', () => {
   });
 
   it('should add a key-only param when value is null', () => {
-    expect(addParam('https://example.com', 'flag', null as any)).toStrictEqual('https://example.com?flag');
+    expect(addParam('https://example.com', 'flag', null)).toStrictEqual('https://example.com?flag');
   });
 
   it('should handle an array with a null value', () => {
-    expect(addParam('https://example.com', 'flag', [null as any])).toStrictEqual('https://example.com?flag');
+    expect(addParam('https://example.com', 'flag', [null])).toStrictEqual('https://example.com?flag');
   });
 
   it('should add a param with an empty string value', () => {
@@ -46,11 +46,11 @@ describe('fx: addParams', () => {
   });
 
   it('should return the URL unchanged if params is null', () => {
-    expect(addParams('https://example.com', null as any)).toStrictEqual('https://example.com');
+    expect(addParams('https://example.com', null)).toStrictEqual('https://example.com');
   });
 
   it('should return the URL unchanged if params is a non-object value', () => {
-    expect(addParams('https://example.com', 'not-an-object' as any)).toStrictEqual('https://example.com');
+    expect(addParams('https://example.com', 'not-an-object')).toStrictEqual('https://example.com');
   });
 });
 
@@ -65,6 +65,10 @@ describe('fx: removeParam', () => {
 
   it('should remove the only query parameter', () => {
     expect(removeParam('https://example.com?only=param', 'only')).toStrictEqual('https://example.com/');
+  });
+
+  it('should remove a key-only query parameter', () => {
+    expect(removeParam('https://example.com?flag', 'flag')).toStrictEqual('https://example.com/');
   });
 });
 
