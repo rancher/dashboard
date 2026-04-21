@@ -299,11 +299,6 @@ export default class ProvCluster extends SteveModel {
 
   get isCustom() {
     return this.mgmt?.isCustom;
-    // if ( this.isRke2 ) {
-    //   return !(this.spec?.rkeConfig?.machinePools?.length);
-    // }
-
-    // return false;
   }
 
   get confirmRemove() {
@@ -324,7 +319,6 @@ export default class ProvCluster extends SteveModel {
 
   get isRke2() {
     return this.mgmt?.isRke2;
-    // return !!this.spec?.rkeConfig;
   }
 
   get isRke1() {
@@ -338,15 +332,6 @@ export default class ProvCluster extends SteveModel {
   // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
   get isCapiHybrid() {
     return this.mgmt?.isCapiHybrid;
-    // if (!this.isRke2) {
-    //   return false;
-    // }
-
-    // const machineReferences = (this.spec?.rkeConfig?.machinePools || []).map((pool) => pool.machineConfigRef);
-
-    // const capiMachines = machineReferences.find((r) => r?.apiVersion?.includes('cluster.x-k8s.io'));
-
-    // return !!capiMachines;
   }
 
   get mgmtClusterId() {
@@ -760,28 +745,6 @@ export default class ProvCluster extends SteveModel {
 
   get hasError() {
     return this.mgmt ? this.mgmt.hasError : true;
-
-    // // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
-    // // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
-    // // which is what this 'hasError' is used for.
-    // // We now check if there's a ready condition after an error, which helps dictate the readiness of a cluster
-    // // Based on the findings in https://github.com/rancher/dashboard/issues/10043
-    // if (this.status?.conditions && this.status?.conditions.length) {
-    //   // if there are errors, we compare with how recent the "Ready" condition is compared to that error, otherwise we just move on
-    //   if (this.status?.conditions.some((c) => c.error === true)) {
-    //     // there's no ready condition and has an error, mark it
-    //     if (!this.status?.conditions.some((c) => c.type === 'Ready')) {
-    //       return true;
-    //     }
-
-    //     const filteredConditions = this.status?.conditions.filter((c) => c.error === true || c.type === 'Ready');
-    //     const mostRecentCondition = filteredConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
-
-    //     return mostRecentCondition.error;
-    //   }
-    // }
-
-    // return false;
   }
 
   get namespaceLocation() {

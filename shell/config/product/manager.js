@@ -174,7 +174,10 @@ export function init(store) {
     },
     MGMT_CLUSTER_PROVIDER,
     MGMT_CLUSTER_KUBE_VERSION,
-    MACHINE_SUMMARY,
+    {
+      ...MACHINE_SUMMARY,
+      sort: 'status.info.nodeCount'
+    },
     AGE,
     {
       name:  'explorer',

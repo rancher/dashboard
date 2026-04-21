@@ -12,7 +12,6 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
-import myLogger from '@shell/utils/my-logger';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';

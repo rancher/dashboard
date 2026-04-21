@@ -19,7 +19,6 @@ import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
-import myLogger from '@shell/utils/my-logger';
 import { sortBy } from '@shell/utils/sort';
 
 const DEFAULT_BADGE_COLOR = '#707070';
@@ -174,18 +173,6 @@ export default class MgmtCluster extends SteveModel {
   get machineProvider() {
     return this.status?.info.machineProvider;
   }
-
-  // get machineProvider() {
-  //   const kind = this.machinePools?.[0]?.provider;
-
-  //   if ( kind ) {
-  //     return kind.replace(/config$/i, '').toLowerCase();
-  //   } else if ( this.spec?.internal ) {
-  //     return 'local';
-  //   }
-
-  //   return null;
-  // }
 
   get machineProviderDisplay() {
     if (this.customProvisionerHelper?.machineProviderDisplay) {
