@@ -20,7 +20,7 @@ class ManagementClusterUtils {
   /**
      * Filter out hidden clusters from list of all clusters
      */
-  filterRowsLocal(rows: MgmtCluster[], { $store }: CommonConfig) {
+  filterRowsLocal(rows: MgmtCluster[], { $store }: CommonConfig): MgmtCluster[] {
     return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], $store), $store);
   }
 

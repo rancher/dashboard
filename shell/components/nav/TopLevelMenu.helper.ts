@@ -35,7 +35,18 @@ interface UpdateArgs {
 }
 
 type MgmtCluster = {
-  [key: string]: any
+  [key: string]: any,
+  id: string,
+  nameDisplay: string,
+  canExplore: boolean,
+  providerMenuLogo: string,
+  badge: string,
+  iconColor: string,
+  isLocal: boolean,
+  pinned: boolean,
+  description: string,
+  pin: () => void
+  unpin: () => void
 }
 
 type ProvCluster = {
@@ -148,7 +159,7 @@ export abstract class BaseTopLevelMenuHelper {
     return {
       id:              mgmtCluster.id,
       label:           mgmtCluster.nameDisplay,
-      // Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore
+      // Align side nav cluster, home page name link and cluster management cluster explore buttons on canExplore
       ready:           mgmtCluster.canExplore,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
@@ -489,7 +500,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const maxClustersToShow = args.unPinnedMax || 10;
 
     const search = (clusterFilter || '').toLowerCase();
-    let localCluster: MgmtCluster | null = null;
+    let localCluster: TopLevelMenuCluster | null = null;
 
     const filtered = clusters.filter((c) => {
       // If we're searching we don't care if pinned or not

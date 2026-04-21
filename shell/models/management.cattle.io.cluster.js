@@ -357,7 +357,7 @@ export default class MgmtCluster extends SteveModel {
     return this.isCondition('Ready');
   }
 
-  get config() {
+  get config() { // TODO: RC validate once provisioner is fixed
     if (!this.spec?.[`${ this.provisioner }Config`]) {
       const allKeys = Object.keys(this.spec);
       const configKey = allKeys.find( (k) => k.endsWith('Config'));
@@ -369,12 +369,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get kubernetesVersionRaw() {
-    // TODO: RC Kinara - Confirm, why would there be no status?
     return this.status.info.kubernetesVersion;
-    // const fromStatus = this.status?.version?.kubernetesVersion;
-    // const fromSpec = this.config?.kubernetesVersion;
-
-    // return fromStatus || fromSpec;
   }
 
   get kubernetesVersion() {

@@ -1205,5 +1205,5 @@ export const MGMT_CLUSTER_KUBE_VERSION = {
   subLabel:  'Architecture',
   sort:      'status.info.kubernetesVersion',
   search:    'status.info.kubernetesVersion',
-  formatter: 'MgmtClusterKubeVersion',
+  formatter: 'ClusterKubeVersion',
 };

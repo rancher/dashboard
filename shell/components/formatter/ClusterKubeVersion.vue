@@ -1,7 +1,7 @@
 <script>
 
 export default {
-  name: 'MgmtClusterKubeVersion',
+  name: 'ClusterKubeVersion',
 
   props: {
     row: {

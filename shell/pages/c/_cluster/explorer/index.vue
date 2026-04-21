@@ -226,8 +226,6 @@ export default {
       return this.currentCluster?.architecture;
     },
 
-    // TODO: RC PR - document regression test https://github.com/rancher/dashboard/issues/10831
-
     isHarvesterCluster() {
       return this.currentCluster?.isHarvester;
     },

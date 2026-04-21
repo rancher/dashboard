@@ -14,9 +14,11 @@ import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilte
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
 import { STEVE_AUTOSCALER_ENABLED } from '@shell/config/pagination-table-headers';
 import myLogger from '@shell/utils/my-logger';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 
 export default {
   components: {
@@ -50,14 +52,29 @@ export default {
   },
 
   methods: {
+    /**
+     * SSP disabled, filter all rows via...
+     */
     filterRowsLocal(rows: MgmtCluster[]) {
-      return ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
+      const filteredRows = ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
+
+      this.clusterCount = filteredRows.length;
+
+      return filteredRows;
     },
 
+    /**
+     * SSP enabled, filter all rows via...
+     */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
       return ManagementClusterUtils.filterRowsApi(pagination, { $store: this.$store });
     },
 
+    /**
+     * Fetch secondary resources on load
+     *
+     * Of type #PagTableFetchSecondaryResources
+     */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       if (opts.canPaginate) {
         return Promise.resolve();
@@ -78,6 +95,9 @@ export default {
       return Promise.all(promises);
     },
 
+    /**
+     * Fetch secondary resources on page change
+     */
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
     }: PagTableFetchPageSecondaryResourcesOpts) {
@@ -134,15 +154,44 @@ export default {
 
       await Promise.all(promises);
     },
+
+    /**
+     * Explorer world, listing PCIC, SSP disabled, filter all rows via...
+     */
+    filterProvRowsLocal(rows: ProvCluster[]) {
+      let filteredRows = [];
+
+      if (this.harvesterEnabled) {
+        // If Harvester feature is enabled, hide Harvester Clusters
+        filteredRows = filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows, this.$store), this.$store);
+      } else {
+        // Otherwise, show Harvester clusters - these will be shown with a warning
+        filteredRows = filterOnlyKubernetesClusters(rows, this.$store);
+      }
+
+      this.clusterCount = filteredRows.length;
+
+      return filteredRows;
+    },
+
+    /**
+     * Explorer world, listing PCIC, SSP enabled, filter all rows via...
+     */
+    filterProvRowsApi(pagination: PaginationArgs): PaginationArgs {
+      return this.filterRowsApi(pagination);
+    }
   },
 
   computed: {
-    hiddenHarvesterCount() {
+    isExplorer() {
       const product = this.$store.getters['currentProduct'];
-      const isExplorer = product?.name === EXPLORER;
 
+      return product?.name === EXPLORER;
+    },
+
+    hiddenHarvesterCount() {
       // Don't show Harvester banner message on the cluster management page or if Harvester is not enabled
-      if (!isExplorer || !this.harvesterEnabled) {
+      if (!this.isExplorer || !this.harvesterEnabled) {
         return 0;
       }
 
@@ -204,7 +253,6 @@ export default {
 
       return false;
     },
-
   },
 
 };
@@ -218,68 +266,78 @@ export default {
       :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
     />
 
-    <Masthead
-      :schema="provClusterSchema"
-      :resource="provClusterSchema.id"
-      :create-location="createLocation"
-      component-testid="cluster-manager-list"
-    >
-      <template
-        v-if="canImport"
-        #extraActions
+    <template v-if="isExplorer">
+      <PaginatedResourceTable
+        :schema="provClusterSchema"
+
+        :local-filter="filterProvRowsLocal"
+        :api-filter="filterProvRowsApi"
+      />
+    </template>
+    <template v-else>
+      <Masthead
+        :schema="provClusterSchema"
+        :resource="provClusterSchema.id"
+        :create-location="createLocation"
+        component-testid="cluster-manager-list"
       >
-        <router-link
-          :to="importLocation"
-          class="btn role-primary mr-10"
-          data-testid="cluster-manager-list-import"
+        <template
+          v-if="canImport"
+          #extraActions
         >
-          {{ t('cluster.importAction') }}
-        </router-link>
-      </template>
-    </Masthead>
+          <router-link
+            :to="importLocation"
+            class="btn role-primary mr-10"
+            data-testid="cluster-manager-list-import"
+          >
+            {{ t('cluster.importAction') }}
+          </router-link>
+        </template>
+      </Masthead>
 
-    <PaginatedResourceTable
-      :schema="mgmtClusterSchema"
+      <PaginatedResourceTable
+        :schema="mgmtClusterSchema"
 
-      :headers="headers"
-      :pagination-headers="paginationHeaders"
-      context="home"
+        :headers="headers"
+        :pagination-headers="paginationHeaders"
+        context="home"
 
-      :local-filter="filterRowsLocal"
-      :api-filter="filterRowsApi"
+        :local-filter="filterRowsLocal"
+        :api-filter="filterRowsApi"
 
-      :fetch-secondary-resources="fetchSecondaryResources"
-      :fetch-page-secondary-resources="fetchPageSecondaryResources"
+        :fetch-secondary-resources="fetchSecondaryResources"
+        :fetch-page-secondary-resources="fetchPageSecondaryResources"
 
-      :namespaced="nonStandardNamespaces"
-    >
-      <template #cell:summary="{row}">
-        <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
-        <span v-if="!row.stateParts.length">{{ row.status.info.nodeCount || 0 }}</span>
-        <MachineSummaryGraph
-          v-else
-          :row="row"
-        />
-      </template>
-      <template #cell:explorer="{row}">
-        <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
-        <router-link
-          v-if="row.canExplore"
-          data-testid="cluster-manager-list-explore-management"
-          class="btn btn-sm role-secondary"
-          :to="{name: 'c-cluster', params: {cluster: row.id}}"
-        >
-          {{ t('cluster.explore') }}
-        </router-link>
-        <button
-          v-else
-          data-testid="cluster-manager-list-explore"
-          :disabled="true"
-          class="btn btn-sm role-secondary"
-        >
-          {{ t('cluster.explore') }}
-        </button>
-      </template>
-    </PaginatedResourceTable>
+        :namespaced="nonStandardNamespaces"
+      >
+        <template #cell:summary="{row}">
+          <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
+          <span v-if="!row.stateParts.length">{{ row.status.info.nodeCount || 0 }}</span>
+          <MachineSummaryGraph
+            v-else
+            :row="row"
+          />
+        </template>
+        <template #cell:explorer="{row}">
+          <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
+          <router-link
+            v-if="row.canExplore"
+            data-testid="cluster-manager-list-explore-management"
+            class="btn btn-sm role-secondary"
+            :to="{name: 'c-cluster', params: {cluster: row.id}}"
+          >
+            {{ t('cluster.explore') }}
+          </router-link>
+          <button
+            v-else
+            data-testid="cluster-manager-list-explore"
+            :disabled="true"
+            class="btn btn-sm role-secondary"
+          >
+            {{ t('cluster.explore') }}
+          </button>
+        </template>
+      </PaginatedResourceTable>
+    </template>
   </div>
 </template>

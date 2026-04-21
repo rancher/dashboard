@@ -156,8 +156,6 @@ export default defineComponent({
         // }
       ],
 
-      // TODO: RC comment thought about flag to retain existing prov cluster lists, code got real crazy real quick
-
       paginationHeaders: [
         STEVE_STATE_COL,
         {
@@ -273,7 +271,7 @@ export default defineComponent({
 
   methods: {
     /**
-     * Of type PagTableFetchSecondaryResources
+     * Of type #PagTableFetchSecondaryResources
      */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
