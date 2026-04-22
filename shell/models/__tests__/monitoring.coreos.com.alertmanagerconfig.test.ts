@@ -38,88 +38,7 @@ describe('class AlertmanagerConfig', () => {
       expect(amc.spec.route.matchers).toStrictEqual([]);
     });
 
-    it('migrates legacy match/matchRe to matchers on a resource loaded from a <=108 chart', () => {
-      // Old-chart resources use the now-deprecated `match`/`matchRe` maps.
-      // The routeConfig editor only renders `matchers`, so without migration
-      // these rules would be invisible (and silently preserved) for the user.
-      const amc = build({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     {
-            receiver: 'existing',
-            match:    { severity: 'warning' },
-            matchRe:  { service: 'api-.*' },
-          },
-        },
-      });
-
-      amc.applyDefaults();
-
-      expect(amc.spec.route.match).toBeUndefined();
-      expect(amc.spec.route.matchRe).toBeUndefined();
-      expect(amc.spec.route.matchers).toStrictEqual([
-        {
-          name: 'severity', value: 'warning', matchType: '='
-        },
-        {
-          name: 'service', value: 'api-.*', matchType: '=~'
-        },
-      ]);
-    });
-
-    it('merges legacy match/matchRe with existing matchers rather than replacing them', () => {
-      const amc = build({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     {
-            receiver: 'existing',
-            matchers: [{
-              name: 'team', value: 'infra', matchType: '='
-            }],
-            match:   { severity: 'warning' },
-            matchRe: { service: 'api-.*' },
-          },
-        },
-      });
-
-      amc.applyDefaults();
-
-      expect(amc.spec.route.matchers).toStrictEqual([
-        {
-          name: 'team', value: 'infra', matchType: '='
-        },
-        {
-          name: 'severity', value: 'warning', matchType: '='
-        },
-        {
-          name: 'service', value: 'api-.*', matchType: '=~'
-        },
-      ]);
-      expect(amc.spec.route.match).toBeUndefined();
-      expect(amc.spec.route.matchRe).toBeUndefined();
-    });
-
-    it('drops empty legacy match/matchRe maps without adding spurious matchers', () => {
-      const amc = build({
-        ...base,
-        spec: {
-          receivers: [],
-          route:     {
-            groupBy: [], matchers: [], match: {}, matchRe: {}
-          },
-        },
-      });
-
-      amc.applyDefaults();
-
-      expect(amc.spec.route.match).toBeUndefined();
-      expect(amc.spec.route.matchRe).toBeUndefined();
-      expect(amc.spec.route.matchers).toStrictEqual([]);
-    });
-
-    it('preserves native matchers on a resource loaded from a 109+ chart', () => {
+    it('preserves existing matchers on load', () => {
       const matchers = [{
         name: 'severity', value: 'warning', matchType: '='
       }];
@@ -134,30 +53,6 @@ describe('class AlertmanagerConfig', () => {
       amc.applyDefaults();
 
       expect(amc.spec.route.matchers).toStrictEqual(matchers);
-      expect(amc.spec.route.match).toBeUndefined();
-      expect(amc.spec.route.matchRe).toBeUndefined();
-    });
-
-    it('is idempotent across repeated applyDefaults calls', () => {
-      const amc = build({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     {
-            receiver: 'existing',
-            match:    { severity: 'warning' },
-          },
-        },
-      });
-
-      amc.applyDefaults();
-      amc.applyDefaults();
-
-      expect(amc.spec.route.matchers).toStrictEqual([
-        {
-          name: 'severity', value: 'warning', matchType: '='
-        },
-      ]);
     });
   });
 
@@ -199,7 +94,7 @@ describe('class AlertmanagerConfig', () => {
       expect(out.spec.route.receiver).toBe('existing');
     });
 
-    it('migrates legacy match/matchRe on save (safety net for raw YAML edits)', () => {
+    it('strips match, matchRe, and a stray receivers array from route (never valid on either CRD version)', () => {
       const amc = build({ ...base });
 
       const out = amc.cleanForSave({
@@ -207,56 +102,16 @@ describe('class AlertmanagerConfig', () => {
         spec: {
           receivers: [{ name: 'existing' }],
           route:     {
-            receiver: 'existing',
-            match:    { severity: 'warning' },
-            matchRe:  { service: 'api-.*' },
+            receiver:  'existing',
+            match:     { severity: 'warning' },
+            matchRe:   { service: 'api-.*' },
+            receivers: ['rogue'],
           },
         },
       }, false);
 
       expect(out.spec.route.match).toBeUndefined();
       expect(out.spec.route.matchRe).toBeUndefined();
-      expect(out.spec.route.matchers).toStrictEqual([
-        {
-          name: 'severity', value: 'warning', matchType: '='
-        },
-        {
-          name: 'service', value: 'api-.*', matchType: '=~'
-        },
-      ]);
-    });
-
-    it('strips empty match: {} and matchRe: {} so 109+ charts accept the payload', () => {
-      const amc = build({ ...base });
-
-      const out = amc.cleanForSave({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     {
-            receiver: 'existing',
-            match:    {},
-            matchRe:  {},
-          },
-        },
-      }, false);
-
-      expect(out.spec.route.match).toBeUndefined();
-      expect(out.spec.route.matchRe).toBeUndefined();
-      expect(out.spec.route.matchers).toStrictEqual([]);
-    });
-
-    it('always strips a stray receivers array on route (never valid on either CRD version)', () => {
-      const amc = build({ ...base });
-
-      const out = amc.cleanForSave({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     { receiver: 'existing', receivers: ['rogue'] },
-        },
-      }, false);
-
       expect(out.spec.route.receivers).toBeUndefined();
       expect(out.spec.route.receiver).toBe('existing');
     });

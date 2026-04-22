@@ -10,7 +10,8 @@ export default class AlertmanagerConfig extends SteveModel {
     spec.receivers = spec.receivers || [];
 
     // Always provide a route object so the Route tab has something to bind to,
-    // even when loading a resource that was saved without `spec.route`.
+    // even when loading a resource that was saved without `spec.route`. The
+    // cleanForSave hook strips it again at submit time if no receiver is set.
     const route = { ...(spec.route || {}) };
 
     route.groupBy = route.groupBy || [];
@@ -29,9 +30,19 @@ export default class AlertmanagerConfig extends SteveModel {
     const route = val?.spec?.route;
 
     if (route) {
+      // `match`, `matchRe`, and a `receivers` array under `route` have never
+      // been part of the AlertmanagerConfig CRD schema (any prom-op version).
+      // <=108 charts silently pruned them; the 109+ validating webhook
+      // rejects them. Strip any that an older dashboard baked in or a user
+      // hand-wrote in YAML.
+      delete route.match;
+      delete route.matchRe;
+      delete route.receivers;
+
       // When a route is present its `receiver` is required and must match an
       // entry in `spec.receivers`. Until the user has defined a receiver the
-      // root route can't direct alerts anywhere, so drop it entirely
+      // root route can't direct alerts anywhere, so drop it entirely — it is
+      // optional on the CRD.
       if (!route.receiver) {
         delete val.spec.route;
       }
