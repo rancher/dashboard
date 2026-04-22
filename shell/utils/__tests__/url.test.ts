@@ -67,8 +67,8 @@ describe('fx: removeParam', () => {
     expect(removeParam('https://example.com?only=param', 'only')).toStrictEqual('https://example.com/');
   });
 
-  it('should remove a key-only query parameter', () => {
-    expect(removeParam('https://example.com?flag', 'flag')).toStrictEqual('https://example.com/');
+  it('should normalize a key-only query parameter to key= (parser treats it as empty value)', () => {
+    expect(removeParam('https://example.com?flag', 'flag')).toStrictEqual('https://example.com/?flag=');
   });
 });
 
