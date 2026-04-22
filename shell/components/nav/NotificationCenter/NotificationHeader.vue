@@ -73,7 +73,7 @@ const gotFocus = (e: Event) => {
           data-testid="notifications-center-markall-read"
           @keydown.up.down.stop.prevent="handleKeydown"
           @keydown.enter.space.stop="markAllRead(true)"
-          @click="markAllRead(false)"
+          @click.prevent="markAllRead(false)"
         >
           {{ t('notificationCenter.markAllRead') }}
         </a>
