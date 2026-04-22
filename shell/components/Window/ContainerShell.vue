@@ -240,11 +240,10 @@ export default {
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       terminal.open(this.$refs.xterm);
 
+      // if user is using Safari with webGPU disabled, webglAddon will silently fail
+      // and we do not have a way to detect that.
+      // To avoid it, default to DOM rendering for Safari browsers
       try {
-        // if user is using Safari with webGPU disabled, webglAddon will silently fail
-        // and we do not have a way to detect that.
-        // To avoid it, default to DOM rendering for Safari browsers
-
         const ua = window.navigator.userAgent.toLowerCase();
         const isSafari = ua.includes('safari') &&
            !ua.includes('crios') && // Chrome iOS
@@ -252,14 +251,15 @@ export default {
            !ua.includes('edgios') && // Edge iOS
            !ua.includes('opr'); // Opera
 
-        if (isSafari) {
-          throw new Error('Safari WebGL support is unstable');
+        if (!isSafari) {
+          this.webglAddon = new addons.webgl.WebglAddon();
+          terminal.loadAddon(this.webglAddon);
         }
-        this.webglAddon = new addons.webgl.WebglAddon();
-        terminal.loadAddon(this.webglAddon);
       } catch (e) {
         // Some browsers (Safari) don't support the webgl renderer, so don't use it.
         this.webglAddon = null;
+        this.canvasAddon = new addons.canvas.CanvasAddon();
+        terminal.loadAddon(this.canvasAddon);
       }
       this.fit();
       this.flush();
