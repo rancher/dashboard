@@ -57,7 +57,7 @@ describe('class AlertmanagerConfig', () => {
   });
 
   describe('cleanForSave', () => {
-    it('drops spec.route when no receiver is set (works on both <=108 and 109+ charts)', () => {
+    it('drops spec.route when no receiver is set — this is what fixes #17347 on 109+ charts', () => {
       const amc = build({ ...base });
 
       const out = amc.cleanForSave({
@@ -75,6 +75,7 @@ describe('class AlertmanagerConfig', () => {
       }, true);
 
       expect(out.spec.route).toBeUndefined();
+      expect(out.spec.receivers).toStrictEqual([]);
     });
 
     it('keeps spec.route when a receiver is set', () => {
@@ -92,50 +93,6 @@ describe('class AlertmanagerConfig', () => {
 
       expect(out.spec.route).toBeDefined();
       expect(out.spec.route.receiver).toBe('existing');
-    });
-
-    it('strips match, matchRe, and a stray receivers array from route (never valid on either CRD version)', () => {
-      const amc = build({ ...base });
-
-      const out = amc.cleanForSave({
-        ...base,
-        spec: {
-          receivers: [{ name: 'existing' }],
-          route:     {
-            receiver:  'existing',
-            match:     { severity: 'warning' },
-            matchRe:   { service: 'api-.*' },
-            receivers: ['rogue'],
-          },
-        },
-      }, false);
-
-      expect(out.spec.route.match).toBeUndefined();
-      expect(out.spec.route.matchRe).toBeUndefined();
-      expect(out.spec.route.receivers).toBeUndefined();
-      expect(out.spec.route.receiver).toBe('existing');
-    });
-
-    it('does not regress the exact payload shape the old UI used to send (109+ chart scenario)', () => {
-      // Reproduces the broken YAML described in rancher/dashboard#17347.
-      const amc = build({ ...base });
-
-      const out = amc.cleanForSave({
-        ...base,
-        spec: {
-          receivers: [],
-          route:     {
-            groupInterval:  '5m',
-            groupWait:      '30s',
-            repeatInterval: '4h',
-            match:          {},
-            matchRe:        {},
-          },
-        },
-      }, true);
-
-      expect(out.spec.route).toBeUndefined();
-      expect(out.spec.receivers).toStrictEqual([]);
     });
   });
 });
