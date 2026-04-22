@@ -107,18 +107,14 @@ const gotFocus = (e: Event) => {
         flex: 1;
       }
 
-      // Preserve the original <a> appearance on top of RcButton ghost variant.
-      // Inherit the header's font metrics and mirror the global anchor hover
-      // from _basic.scss so there is no visible change from <a href="#">.
       .mark-all-read {
         padding: 0;
         min-height: auto;
         font-size: inherit;
         line-height: inherit;
-        gap: 0;
         color: var(--link);
 
-        &:hover, &._hover {
+        &:hover {
           color: var(--body-text);
           text-decoration: underline;
         }
