@@ -61,22 +61,20 @@ describe('component: NotificationHeader', () => {
   });
 
   // Regression test for https://github.com/rancher/dashboard/issues/16923
-  // The anchor uses href="#" so without preventDefault the browser strips any
-  // existing URL hash fragment (e.g. #pod) when the user clicks "Mark all as
-  // read", which also breaks any extensions scoped to that fragment.
-  it('prevents default anchor navigation when clicked so the URL hash is preserved', async() => {
+  // "Mark all as read" was originally an <a href="#"> which, on click, navigated
+  // to "#" and stripped any existing URL hash fragment (e.g. #pod). Rendering it
+  // as a <button> (via RcButton) removes the default navigation behavior entirely,
+  // so the URL hash is preserved and extensions scoped via LocationConfig.hash
+  // continue to match after activation.
+  it('renders mark all read as a <button> so activating it cannot strip the URL hash', () => {
     const { store } = buildStore(2);
 
     (globalThis as any).__testStore = store;
 
     const wrapper = mount(NotificationHeader, { global: buildGlobal(store) });
-
     const markAll = wrapper.find('[data-testid="notifications-center-markall-read"]');
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
-    markAll.element.dispatchEvent(event);
-    await wrapper.vm.$nextTick();
-
-    expect(event.defaultPrevented).toBe(true);
+    expect(markAll.element.tagName).toBe('BUTTON');
+    expect(markAll.attributes('href')).toBeUndefined();
   });
 });
