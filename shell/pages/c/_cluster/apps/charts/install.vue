@@ -41,7 +41,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { WINDOWS, isRancherRepo } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -767,7 +767,15 @@ export default {
         return this.t('catalog.charts.windowsIncompatible');
       }
       if (this.versionInfo) {
-        const incompatibleVersion = !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
+        const isRancher = isRancherRepo(this.repo, this.chart);
+        const permittedOs = this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+        let incompatibleVersion = false;
+
+        if (permittedOs) {
+          incompatibleVersion = !permittedOs.includes('windows');
+        } else if (isRancher) {
+          incompatibleVersion = true;
+        }
 
         if (incompatibleVersion && !this.chart.windowsIncompatible) {
           return this.t('catalog.charts.versionWindowsIncompatible');

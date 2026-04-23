@@ -1,6 +1,6 @@
 import { CATALOG } from '@shell/config/types';
 import {
-  state, getters, actions, mutations, filterAndArrangeCharts
+  state, getters, actions, mutations, filterAndArrangeCharts, isRancherRepo, compatibleVersionsFor
 } from '../catalog';
 import { createStore } from 'vuex';
 
@@ -453,6 +453,97 @@ describe('catalog', () => {
 
         expect(result3).toBeNull();
       });
+    });
+  });
+
+  describe('isRancherRepo', () => {
+    it('should return true if chart.isRancherRepo is true', () => {
+      const chart = { isRancherRepo: true } as any;
+
+      expect(isRancherRepo(null, chart)).toBe(true);
+    });
+
+    it('should return true if repo.isRancherSource is true', () => {
+      const repo = { isRancherSource: true } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(true);
+    });
+
+    it('should return true if repo is airgapped rancher-charts', () => {
+      const repo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-charts' } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(true);
+    });
+
+    it('should return true if repo is airgapped rancher-partner-charts', () => {
+      const repo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-partner-charts' } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(true);
+    });
+
+    it('should return false if repo is a namespace-scoped rancher-charts', () => {
+      const repo = { type: CATALOG.REPO, name: 'rancher-charts' } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(false);
+    });
+
+    it('should return false for unrelated repo', () => {
+      const repo = { type: CATALOG.CLUSTER_REPO, name: 'other-repo' } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(false);
+    });
+  });
+
+  describe('compatibleVersionsFor', () => {
+    it('should allow versions if no OS constraint is provided', () => {
+      const chart = { versions: [{ version: '1.0.0' }] } as any;
+      const versions = compatibleVersionsFor(chart, undefined);
+
+      expect(versions).toHaveLength(1);
+    });
+
+    it('should allow windows nodes if permitted-os includes windows', () => {
+      const chart = {
+        versions: [{
+          version:     '1.0.0',
+          annotations: { 'catalog.cattle.io/permits-os': 'linux,windows' }
+        }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(1);
+    });
+
+    it('should block windows nodes if permitted-os does not include windows', () => {
+      const chart = {
+        versions: [{
+          version:     '1.0.0',
+          annotations: { 'catalog.cattle.io/permits-os': 'linux' }
+        }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(0);
+    });
+
+    it('should fallback to LINUX for rancher repos and block windows nodes', () => {
+      const chart = {
+        isRancherRepo: true,
+        versions:      [{ version: '1.0.0' }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(0);
+    });
+
+    it('should not fallback to LINUX for non-rancher repos and allow windows nodes', () => {
+      const chart = {
+        isRancherRepo: false,
+        versions:      [{ version: '1.0.0' }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(1);
     });
   });
 });

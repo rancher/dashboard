@@ -690,13 +690,15 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   }
 
   return versions.filter((ver) => {
-    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+    const permittedOs = ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+    const fallbackOs = chart.isRancherRepo ? LINUX : '';
+    const osPermitted = (permittedOs || fallbackOs).split(',').filter(Boolean);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
       return false;
     }
 
-    if ( !os || difference(os, osPermitted).length === 0) {
+    if ( !os || osPermitted.length === 0 || difference(os, osPermitted).length === 0) {
       return true;
     }
 
@@ -784,4 +786,18 @@ export function filterAndArrangeCharts(charts, {
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
+}
+
+/*
+ Detects if a repository is a Rancher repository.
+ Airgapped environments often use mirrored registries, meaning `isRancherSource`
+ will return false because the URL doesn't point to a *.rancher.io domain. We check the repo
+ names directly to ensure we still correctly identify these mirrored rancher repos.
+*/
+export function isRancherRepo(repo, chart) {
+  if (chart?.isRancherRepo || repo?.isRancherSource) {
+    return true;
+  }
+
+  return repo?.type === CATALOG.CLUSTER_REPO && (repo?.name === 'rancher-charts' || repo?.name === 'rancher-partner-charts');
 }
