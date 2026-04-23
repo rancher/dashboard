@@ -763,9 +763,6 @@ export default {
     },
 
     windowsIncompatible() {
-      if (this.chart?.windowsIncompatible) {
-        return this.t('catalog.charts.windowsIncompatible');
-      }
       if (this.versionInfo) {
         const isRancher = isRancherRepo(this.repo, this.chart);
         const permittedOs = this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
@@ -777,8 +774,12 @@ export default {
           incompatibleVersion = true;
         }
 
-        if (incompatibleVersion && !this.chart.windowsIncompatible) {
-          return this.t('catalog.charts.versionWindowsIncompatible');
+        if (incompatibleVersion) {
+          if (!this.chart?.windowsIncompatible) {
+            return this.t('catalog.charts.versionWindowsIncompatible');
+          }
+
+          return this.t('catalog.charts.windowsIncompatible');
         }
       }
 

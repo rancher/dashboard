@@ -557,7 +557,16 @@ function addChart(ctx, map, chart, repo) {
 
     const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
-    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+
+    const isRancherRepoFlag = isRancherRepo(repo, chart);
+    const permittedOs = chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+    let windowsIncompatible = false;
+
+    if (permittedOs) {
+      windowsIncompatible = !permittedOs.includes('windows');
+    } else if (isRancherRepoFlag) {
+      windowsIncompatible = true;
+    }
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
@@ -606,6 +615,7 @@ function addChart(ctx, map, chart, repo) {
       provides:         [],
       windowsIncompatible,
       deploysOnWindows,
+      isRancherRepo:    isRancherRepoFlag,
       tags
     });
 
