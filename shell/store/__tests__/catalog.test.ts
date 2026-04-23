@@ -527,22 +527,34 @@ describe('catalog', () => {
     });
 
     it('should fallback to LINUX for rancher repos and block windows nodes', () => {
-      const chart = {
-        isRancherRepo: true,
-        versions:      [{ version: '1.0.0' }]
+      const rancherRepo = {
+        metadata: { name: 'rancher-charts' }
       } as any;
+      const chart = {
+        versions: [{ version: '1.0.0' }]
+      } as any;
+
+      chart.isRancherRepo = (isRancherRepo as any)(rancherRepo, chart);
+
       const versions = compatibleVersionsFor(chart, 'windows');
 
+      expect(chart.isRancherRepo).toBe(true);
       expect(versions).toHaveLength(0);
     });
 
     it('should not fallback to LINUX for non-rancher repos and allow windows nodes', () => {
-      const chart = {
-        isRancherRepo: false,
-        versions:      [{ version: '1.0.0' }]
+      const nonRancherRepo = {
+        metadata: { name: 'partner-charts' }
       } as any;
+      const chart = {
+        versions: [{ version: '1.0.0' }]
+      } as any;
+
+      chart.isRancherRepo = (isRancherRepo as any)(nonRancherRepo, chart);
+
       const versions = compatibleVersionsFor(chart, 'windows');
 
+      expect(chart.isRancherRepo).toBe(false);
       expect(versions).toHaveLength(1);
     });
   });
