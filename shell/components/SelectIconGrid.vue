@@ -131,16 +131,6 @@ export default {
         class="side-label"
         :class="{'indicator': true }"
       />
-      <div v-if="r.deploysOnWindows">
-        <label class="deploys-os-label">
-          {{ t('catalog.charts.deploysOnWindows') }}
-        </label>
-      </div>
-      <div v-if="r.windowsIncompatible">
-        <label class="os-incompatible-label">
-          {{ t('catalog.charts.windowsIncompatible') }}
-        </label>
-      </div>
       <div
         v-if="get(r, sideLabelField)"
         class="side-label"
