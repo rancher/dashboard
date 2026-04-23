@@ -49,7 +49,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return resource as T;
+      return (resource as T) ?? null;
     } catch (e: unknown) {
       this.surfaceError(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`);
     }
@@ -90,7 +90,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
       const resources = await this.store.dispatch(`${ this.storeType }/findLabelSelector`, {
         type: resourceType,
         selector,
-        opt:  rest || {}
+        opt:  rest
       });
 
       return resources as T[];

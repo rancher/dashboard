@@ -199,13 +199,6 @@ h5[id^="inherited-from"] {
   margin-bottom: 0.2rem;
 }
 
-/* h4[id^="inherited-from"] + div,
-h5[id^="inherited-from"] + div {
-  background-color: transparent;
-  box-shadow: none;
-  border: 1px solid var(--ifm-color-emphasis-600);
-} */
-
 h4[id^="inherited-from"] + div pre,
 h5[id^="inherited-from"] + div pre {
   font-size: 0.8rem;
