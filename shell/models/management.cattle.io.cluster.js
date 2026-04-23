@@ -130,6 +130,7 @@ export default class MgmtCluster extends SteveModel {
 
     // fails unit test `should return false for a provisioned hosted cluster`
     // TODO: RC validate once hosted clsuters validate
+    // TODO: RC this could also break imported v2prov capi cluster
 
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';

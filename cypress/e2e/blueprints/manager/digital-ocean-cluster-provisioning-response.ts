@@ -1,23 +1,99 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
-export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloudCredName: string, machinePoolId: string):object {
+const namespace = 'fleet-default';
+
+/**
+ * Linked with clusterProvDigitalOceanSingleResponse
+ */
+export function clusterMgmtDigitalOceanSingleResponse(clusterName: string): object {
   return {
+    type:         'collection',
+    links:        { self: 'https://localhost:8005/v1/management.cattle.io.clusters' },
+    actions:      {},
+    resourceType: 'management.cattle.io.cluster',
+    revision:     CYPRESS_SAFE_RESOURCE_REVISION,
+    count:        1,
+    data:         [{
+      id:    `${ clusterName }`,
+      type:  'management.cattle.io.cluster',
+      links: {
+        log:       `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }?link=log`,
+        patch:     'blocked',
+        projects:  `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }?link=projects`,
+        remove:    'blocked',
+        schemas:   `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }?link=schemas`,
+        self:      `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }`,
+        shell:     `wss://localhost/v3/clusters/${ clusterName }?shell=true`,
+        subscribe: `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }?link=subscribe`,
+        update:    'blocked',
+        view:      `https://localhost:8005/v1/management.cattle.io.clusters/${ clusterName }`
+      },
+      action:     {},
+      apiVersion: 'management.cattle.io/v3',
+      kind:       'Cluster',
+      metadata:   {
+        annotations:       {},
+        creationTimestamp: '2024-01-05T14:44:50Z',
+        name:              `${ clusterName }`,
+        labels:            {},
+        relationships:     [{
+          toId:    `${ namespace }/${ clusterName }`,
+          toType:  'provisioning.cattle.io.cluster',
+          rel:     'applies',
+          state:   'active',
+          message: 'Resource is current'
+        }],
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
+        state:           {
+          error:         false,
+          message:       '',
+          name:          'Active',
+          transitioning: false
+        },
+        uid: '7623f2b5-1003-49c9-a21d-6cae3622a3bc',
+      },
+      spec:   { displayName: `${ clusterName }` },
+      status: {
+        driver: 'digitalocean',
+        info:   {
+          arch:                   'amd64',
+          kubernetesVersion:      'v1.35.3+rke2r3',
+          machineProvider:        'Digitalocean',
+          nodeCount:              2,
+          provisioningClusterRef: {
+            apiVersion: 'provisioning.cattle.io/v1',
+            kind:       'Cluster',
+            name:       `${ clusterName }`,
+            namespace:  `${ namespace }`
+          }
+        }
+      },
+    }],
+  };
+}
+
+/**
+ * Linked with clusterMgmtDigitalOceanSingleResponse
+ */
+export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloudCredName: string, machinePoolId: string): object {
+  return {
+    id:           `${ namespace }/${ clusterName }`,
     type:         'collection',
     links:        { self: 'https://localhost:8005/v1/provisioning.cattle.io.clusters' },
     createTypes:  { 'provisioning.cattle.io.cluster': 'https://localhost:8005/v1/provisioning.cattle.io.clusters' },
     actions:      {},
     resourceType: 'provisioning.cattle.io.cluster',
     revision:     CYPRESS_SAFE_RESOURCE_REVISION,
-    count:        9,
+    count:        1,
     data:         [
       {
-        id:    `fleet-default/${ clusterName }`,
+        id:    `${ namespace }/${ clusterName }`,
         type:  'provisioning.cattle.io.cluster',
         links: {
-          remove: `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ clusterName }`,
-          self:   `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ clusterName }`,
-          update: `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ clusterName }`,
-          view:   `https://localhost:8005/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/${ clusterName }`
+          remove: `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ clusterName }`,
+          self:   `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ clusterName }`,
+          update: `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ clusterName }`,
+          view:   `https://localhost:8005/apis/provisioning.cattle.io/v1/namespaces/${ namespace }/clusters/${ clusterName }`
         },
         apiVersion: 'provisioning.cattle.io/v1',
         kind:       'Cluster',
@@ -36,111 +112,111 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
           ],
           generation:    3,
           name:          `${ clusterName }`,
-          namespace:     'fleet-default',
+          namespace:     `${ namespace }`,
           relationships: [
             {
-              toId:    `fleet-default/r-cluster-${ clusterName }-view-p-lnjgz-creator-proje-67ac2`,
+              toId:    `${ namespace }/r-cluster-${ clusterName }-view-p-lnjgz-creator-proje-67ac2`,
               toType:  'rbac.authorization.k8s.io.rolebinding',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/crt-${ clusterName }-nodes-manage`,
+              toId:    `${ namespace }/crt-${ clusterName }-nodes-manage`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/crt-${ clusterName }-cluster-owner`,
+              toId:    `${ namespace }/crt-${ clusterName }-cluster-owner`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:   `fleet-default/${ clusterName }-managed-system-upgrad-53adc`,
+              toId:   `${ namespace }/${ clusterName }-managed-system-upgrad-53adc`,
               toType: 'management.cattle.io.managedchart',
               rel:    'owner',
               state:  'waitapplied'
             },
             {
-              toId:    `fleet-default/r-cluster-${ clusterName }-view`,
+              toId:    `${ namespace }/r-cluster-${ clusterName }-view`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/crt-${ clusterName }-nodes-view`,
+              toId:    `${ namespace }/crt-${ clusterName }-nodes-view`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/crt-${ clusterName }-cluster-admin`,
+              toId:    `${ namespace }/crt-${ clusterName }-cluster-admin`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/nc-${ clusterName }-pool1-${ machinePoolId }`,
+              toId:    `${ namespace }/nc-${ clusterName }-pool1-${ machinePoolId }`,
               toType:  'rke-machine-config.cattle.io.digitaloceanconfig',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    'c-m-fbr46mrq/c-m-fbr46mrq-fleet-default-owner',
+              toId:    `c-m-fbr46mrq/c-m-fbr46mrq-${ namespace }-owner`,
               toType:  'management.cattle.io.clusterroletemplatebinding',
               rel:     'applies',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:   `fleet-default/${ clusterName }`,
+              toId:   `${ namespace }/${ clusterName }`,
               toType: 'cluster.x-k8s.io.cluster',
               rel:    'owner',
               state:  'provisioned'
             },
             {
-              toId:   `fleet-default/${ clusterName }`,
+              toId:   `${ namespace }/${ clusterName }`,
               toType: 'fleet.cattle.io.cluster',
               rel:    'applies',
               state:  'waitcheckin'
             },
             {
-              toId:    'c-m-fbr46mrq',
+              toId:    `${ clusterName }`,
               toType:  'management.cattle.io.cluster',
               rel:     'applies',
               state:   'active',
               message: 'Resource is Ready'
             },
             {
-              toId:    `fleet-default/crt-${ clusterName }-cluster-member`,
+              toId:    `${ namespace }/crt-${ clusterName }-cluster-member`,
               toType:  'rbac.authorization.k8s.io.role',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:   `fleet-default/${ clusterName }-managed-system-agent`,
+              toId:   `${ namespace }/${ clusterName }-managed-system-agent`,
               toType: 'fleet.cattle.io.bundle',
               rel:    'owner',
               state:  'waitapplied'
             },
             {
-              toId:    `fleet-default/r-cluster-${ clusterName }-view-p-d27qf-creator-proje-e42dc`,
+              toId:    `${ namespace }/r-cluster-${ clusterName }-view-p-d27qf-creator-proje-e42dc`,
               toType:  'rbac.authorization.k8s.io.rolebinding',
               rel:     'owner',
               state:   'active',
               message: 'Resource is current'
             },
             {
-              toId:    `fleet-default/${ clusterName }-kubeconfig`,
+              toId:    `${ namespace }/${ clusterName }-kubeconfig`,
               toType:  'secret',
               rel:     'owner',
               state:   'active',
@@ -228,7 +304,7 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
         status: {
           agentDeployed:    true,
           clientSecretName: `${ clusterName }-kubeconfig`,
-          clusterName:      'c-m-fbr46mrq',
+          clusterName:      `${ clusterName }`,
           conditions:       [
             {
               error:          false,

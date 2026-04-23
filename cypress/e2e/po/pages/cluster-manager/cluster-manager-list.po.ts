@@ -6,6 +6,63 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
  * List page for management.cattle.io.cluster resources
  */
 export default class ClusterManagerListPagePo extends BaseListPagePo {
+  public static supplementListRequests(provCluster: any, mgmtCluster: any) {
+    cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
+      req.continue((res) => {
+        res.body.data.push(mgmtCluster);
+        res.send(res.body);
+      });
+    }).as('mgmtClusters');
+
+    cy.intercept({
+      method:   'GET',
+      pathname: '/v1/provisioning.cattle.io.clusters',
+    }, (req) => {
+      req.continue((res) => {
+        res.body.data.push(provCluster);
+
+        res.send(res.body);
+      });
+    }).as('provClusters');
+
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/${ provCluster.id }?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       provCluster,
+      });
+    }).as('provCluster');
+  }
+
+  public static mockListRequests(provClusterList: any, mgmtClusterList: any) {
+    cy.intercept('GET', '/v1/management.cattle.io.clusters?*', (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       mgmtClusterList,
+      });
+    }).as('mgmtClusterList');
+
+    // Why aren't we doing `/v1/provisioning.cattle.io.clusters?*`
+    // doesn't match the `/v1/provisioning.cattle.io.clusters?pagesize=100000&filter=id%20IN%20(fleet-default url
+    // doesn't match the get
+
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/${ provClusterList.data[0].id }?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       provClusterList.data[0],
+      });
+    }).as('provCluster');
+
+    cy.intercept({
+      method:   'GET',
+      pathname: '/v1/provisioning.cattle.io.clusters',
+    }, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       provClusterList,
+      });
+    }).as('provClusterList');
+  }
+
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster`;
   }
@@ -20,23 +77,6 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
 
   static navTo() {
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-  }
-
-  goToClusterListAndGetClusterDetails(clusterName: string): Cypress.Chainable<{ id: string }> {
-    let clusterDetails = [];
-
-    cy.intercept({
-      method: 'GET',
-      path:   '/v3/clusters',
-    }, (req) => {
-      req.continue((res) => {
-        clusterDetails = res.body.data;
-      });
-    }).as('request');
-
-    super.goTo();
-
-    return cy.wait('@request', { timeout: 10000 }).then(() => clusterDetails.find((c) => c.name === clusterName));
   }
 
   list(): ProvClusterListPo {

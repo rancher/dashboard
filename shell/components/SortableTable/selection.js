@@ -639,14 +639,16 @@ function _execute(resources, action, args, opts = {}, ctx) {
   for ( const resource of resources ) {
     let fn;
 
+    const applyResource = action.altResource || resource;
+
     if (opts.alt && action.altAction) {
-      fn = resource[action.altAction];
+      fn = applyResource[action.altAction];
     } else {
-      fn = resource[action.action];
+      fn = applyResource[action.action];
     }
 
     if ( fn ) {
-      promises.push(fn.apply(resource, args));
+      promises.push(fn.apply(applyResource, args));
     }
   }
 
