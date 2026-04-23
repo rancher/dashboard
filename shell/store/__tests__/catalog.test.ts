@@ -527,12 +527,8 @@ describe('catalog', () => {
     });
 
     it('should fallback to LINUX for rancher repos and block windows nodes', () => {
-      const rancherRepo = {
-        metadata: { name: 'rancher-charts' }
-      } as any;
-      const chart = {
-        versions: [{ version: '1.0.0' }]
-      } as any;
+      const rancherRepo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-charts' } as any;
+      const chart = { versions: [{ version: '1.0.0' }] } as any;
 
       chart.isRancherRepo = (isRancherRepo as any)(rancherRepo, chart);
 
@@ -543,12 +539,8 @@ describe('catalog', () => {
     });
 
     it('should not fallback to LINUX for non-rancher repos and allow windows nodes', () => {
-      const nonRancherRepo = {
-        metadata: { name: 'partner-charts' }
-      } as any;
-      const chart = {
-        versions: [{ version: '1.0.0' }]
-      } as any;
+      const nonRancherRepo = { type: CATALOG.REPO, name: 'partner-charts' } as any;
+      const chart = { versions: [{ version: '1.0.0' }] } as any;
 
       chart.isRancherRepo = (isRancherRepo as any)(nonRancherRepo, chart);
 
