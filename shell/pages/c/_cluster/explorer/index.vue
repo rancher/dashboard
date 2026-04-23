@@ -354,6 +354,7 @@ export default {
 
     metricAggregations() {
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        // This should use cluster/byId getter
         const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
 
         return node;
@@ -422,9 +423,6 @@ export default {
           resource: SECRET,
         }
       };
-    },
-    hasNodes() {
-      return this.nodes?.length > 0;
     },
     kubernetesVersion() {
       const base = this.currentCluster?.kubernetesVersionBase || '';
@@ -612,7 +610,7 @@ export default {
         <span>{{ kubernetesVersion }}</span>
       </div>
       <div
-        v-if="hasNodes"
+        v-if="architecture"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>
