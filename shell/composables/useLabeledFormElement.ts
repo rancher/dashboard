@@ -6,7 +6,7 @@ import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
   mode: string;
-  value: string | number | Record<string, any>
+  value: string | number | Record<string, any> | null
   required: boolean;
   disabled: boolean;
   rules: Array<any>;
@@ -46,7 +46,7 @@ export const labeledFormElementProps = {
     default: null
   },
   value: {
-    type:    [String, Number, Object],
+    type:    [String, Number, Object, null],
     default: ''
   },
   mode: {

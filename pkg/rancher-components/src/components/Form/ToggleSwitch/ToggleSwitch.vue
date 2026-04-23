@@ -6,7 +6,7 @@ type StateType = boolean | 'true' | 'false' | undefined;
 export default defineComponent({
   props: {
     value: {
-      type:    [Boolean, String, Number],
+      type:    [Boolean, String, Number, null],
       default: false
     },
 

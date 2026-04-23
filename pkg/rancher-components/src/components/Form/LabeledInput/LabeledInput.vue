@@ -1,5 +1,6 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, computed, watch } from 'vue';
+import { useField } from 'vee-validate';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
@@ -114,6 +115,15 @@ export default defineComponent({
     ariaLabel: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * The field name used for vee-validate integration. When provided, the
+     * component registers with a parent vee-validate form context
+     */
+    name: {
+      type:    String,
+      default: null
     }
   },
 
@@ -132,15 +142,72 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
+    // Stable fallback name so useField is always called unconditionally.
+    // When no name prop is given the field won't match any form-schema path.
+    const standaloneFieldId = `__field__${ generateRandomAlphaString(12) }`;
+    const veeFieldName = computed(() => props.name || standaloneFieldId);
+
+    // Pass existing rules to vee-validate so field-level validation still runs
+    const veeValidator = (value: unknown): boolean | string => {
+      // Return true when name is absent to avoid duplicating
+      // useLabeledFormElement validation
+      if (!props.name) {
+        return true;
+      }
+      for (const rule of props.rules as Array<(v: unknown) => string | undefined>) {
+        const msg = rule(value);
+
+        if (msg) {
+          return msg;
+        }
+      }
+
+      return true;
+    };
+
+    const {
+      errorMessage: veeError,
+      handleBlur:   veeHandleBlur,
+      validate:     veeValidate,
+      value:        veeValue,
+    } = useField<string | number | Record<string, unknown>>(
+      veeFieldName,
+      veeValidator,
+      {
+        initialValue:          props.value as string | number,
+        validateOnValueUpdate: true,
+      }
+    );
+
+    // Keep vee-validate's internal value in sync with the controlled prop value.
+    watch(() => props.value, (v) => {
+      if (veeValue.value !== v) {
+        veeValue.value = v as string | number;
+      }
+    });
+
+    const effectiveValidationMessage = computed(() => {
+      if (props.name && veeError.value) {
+        return veeError.value;
+      }
+
+      return validationMessage.value;
+    });
+
+    const effectiveStatus = computed(() => props.status);
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
       onInput,
       isDisabled,
-      validationMessage,
+      validationMessage: effectiveValidationMessage,
       requiredField,
       isCompact,
+      veeHandleBlur,
+      veeValidate,
+      effectiveStatus,
     };
   },
 
@@ -339,6 +406,11 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      // Mark the field as touched in vee-validate without relying on its
+      // 'validated-only' guard, then run validation unconditionally so
+      // errors surface on the first blur (matching useLabeledFormElement behavior).
+      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeValidate();
     },
 
     escapeHtml
@@ -353,7 +425,7 @@ export default defineComponent({
       focused,
       [mode]: true,
       disabled: isDisabled,
-      [status]: status,
+      [effectiveStatus]: effectiveStatus,
       suffix: hasSuffix,
       'has-clean-tooltip': hasTooltip,
       'compact-input': isCompact,
@@ -389,6 +461,7 @@ export default defineComponent({
         ref="value"
         v-bind="$attrs"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
@@ -410,6 +483,7 @@ export default defineComponent({
         :role="type === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
