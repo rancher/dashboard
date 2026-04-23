@@ -134,6 +134,8 @@ declare global {
       waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
+      checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
+      getClusterToolsChartCount(repoName?: string): Chainable<number>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
@@ -164,7 +166,7 @@ declare global {
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
-      setUserPreference(prefs: any);
+      setUserPreference(prefs: any, verify?: boolean, retries?: number);
 
       /**
        * update namespace filter
@@ -208,8 +210,6 @@ declare global {
       keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
-
-      iFrame(): Chainable<Element>;
 
       // Check if an element is visible to the user on the screen.
       isVisible(): Chainable<Element>;

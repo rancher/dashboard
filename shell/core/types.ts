@@ -5,7 +5,7 @@ import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import type {
   ProductMetadata, ProductSinglePage,
   StandardProductName, RouteRecordRawWithParams, ProductChildGroup,
-  ProductChildPage
+  ProductChildPage, ProductChild
 } from './plugin-types';
 
 // Cluster Provisioning types
@@ -665,6 +665,7 @@ export interface IExtension {
    */
   addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
   addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
+  addProduct(product: ProductMetadata, config: ProductChild[]): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)
@@ -695,6 +696,7 @@ export interface IExtension {
    */
   extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
   extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
 
   /**
    * Add a locale to the i18n store

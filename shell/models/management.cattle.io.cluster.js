@@ -6,13 +6,11 @@ import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
-import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
-import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
@@ -112,57 +110,6 @@ export default class MgmtCluster extends SteveModel {
     }
 
     return null;
-  }
-
-  get providerForEmberParam() {
-    // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
-    let provider;
-
-    //  provisioner is status.driver
-    const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
-
-    if ( provisioner === 'rancherKubernetesEngine') {
-      // Look for a cloud provider in one of the node templates
-      if ( this.machinePools?.[0] ) {
-        provider = this.machinePools[0]?.nodeTemplate?.spec?.driver || null;
-      } else {
-        provider = 'custom';
-      }
-    } else if ( this.driver ) {
-      provider = this.driver;
-    } else if ( provisioner && provisioner.endsWith('v2') ) {
-      provider = provisioner;
-    } else {
-      provider = 'import';
-    }
-
-    return provider;
-  }
-
-  get emberEditPath() {
-    const provider = this.providerForEmberParam;
-
-    // Avoid passing falsy values as query parameters
-    const qp = { };
-
-    if (provider) {
-      qp['provider'] = provider;
-    }
-
-    // Copied out of https://github.com/rancher/ui/blob/20f56dc54c4fc09b5f911e533cb751c13609adaf/app/models/cluster.js#L844
-    if ( provider === 'import' && isEmpty(this.eksConfig) && isEmpty(this.gkeConfig) ) {
-      qp.importProvider = 'other';
-    } else if (
-      (provider === 'amazoneks' && !isEmpty(this.eksConfig) ) ||
-       (provider === 'gke' && !isEmpty(this.gkeConfig) )
-       // || something for aks v2
-    ) {
-      qp.importProvider = KONTAINER_TO_DRIVER[provider];
-    }
-
-    const path = addParams(`/c/${ escape(this.id) }/edit`, qp);
-
-    return path;
   }
 
   get groupByLabel() {

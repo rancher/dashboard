@@ -433,10 +433,6 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/route-receiver/create.vue')),
         name:      'c-cluster-monitoring-route-receiver-create'
       }, {
-        path:      '/c/:cluster/explorer/tools/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/pages/_page.vue')),
-        name:      'c-cluster-explorer-tools-pages-page'
-      }, {
         path:      '/c/:cluster/auth/config/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/_id.vue')),
         name:      'c-cluster-auth-config-id'
@@ -452,10 +448,6 @@ export default [
         path:      '/c/:cluster/manager/nodeDriver/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),
         name:      'c-cluster-manager-driver-nodedriver-id'
-      }, {
-        path:      '/c/:cluster/manager/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/pages/_page.vue')),
-        name:      'c-cluster-manager-pages-page'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig/:alertmanagerconfigid',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/index.vue')),

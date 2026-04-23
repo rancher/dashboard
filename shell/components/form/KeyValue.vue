@@ -778,11 +778,16 @@ export default {
                     @onInput="onInputMarkdownMultiline(i, $event)"
                     @onFocus="onFocusMarkdownMultiline(i, $event)"
                   />
+                  <div
+                    v-else-if="valueConcealed"
+                    class="concealed-value conceal"
+                    data-testid="concealed-value"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
+                  />
                   <TextAreaAutoGrow
                     v-else-if="valueMultiline && row[valueName] !== undefined"
                     v-model:value="row[valueName]"
                     data-testid="value-multiline"
-                    :class="{'conceal': valueConcealed}"
                     :disabled="disabled"
                     :mode="mode"
                     :placeholder="_valuePlaceholder"
@@ -809,6 +814,7 @@ export default {
                     class="btn btn-sm role-secondary file-selector"
                     :label="t('generic.upload')"
                     :include-file-name="true"
+                    :accept="readAccept"
                     :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @selected="onValueFileSelected(i, $event)"
                   />
@@ -896,6 +902,7 @@ export default {
           class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
+          :accept="readAccept"
           data-testid="read_all_key_value_button"
           @selected="onFileSelected"
         />
@@ -939,6 +946,15 @@ export default {
       }
       &.value textarea {
         padding: 10px 10px 10px 10px;
+      }
+
+      .concealed-value {
+        padding: 10px;
+        min-height: 40px;
+        user-select: none;
+        &::before {
+          content: '••••••••••••••••••••';
+        }
       }
 
       .text-monospace:not(.conceal) {

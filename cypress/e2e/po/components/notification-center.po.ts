@@ -84,4 +84,9 @@ export default class NotificationsCenterPo extends ComponentPo {
   checkCount(count: number) {
     return this.self().find('[data-testid="notifications-center-item"]').should('have.length', count);
   }
+
+  /** Assert at least `min` notifications (exact count may vary). */
+  checkCountAtLeast(min: number) {
+    return this.self().find('[data-testid="notifications-center-item"]').should('have.length.at.least', min);
+  }
 }

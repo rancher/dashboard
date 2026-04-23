@@ -21,7 +21,6 @@ import plugin from '@shell/plugins/plugin';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
-import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
 import { initUiApis } from '@shell/apis/impl/apis';
 
@@ -57,7 +56,6 @@ export async function installInjectedPlugins(app, vueApp) {
     replaceAll,
     plugin,
     steveCreateWorker,
-    emberCookie,
     dynamicContent,
   ];
 

@@ -38,6 +38,10 @@ export default {
       type:    String,
       default: 'disabled',
     },
+    tooltipField: {
+      type:    String,
+      default: 'tooltip',
+    },
 
     asLink: {
       type:    Boolean,
@@ -104,6 +108,7 @@ export default {
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
+      v-clean-tooltip="get(r, tooltipField) || null"
       :role="asLink ? 'link' : null"
       :aria-disabled="asLink && get(r, disabledField) === true ? true : null"
       :aria-label="get(r, nameField)"

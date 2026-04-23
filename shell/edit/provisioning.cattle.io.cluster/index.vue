@@ -4,7 +4,6 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
-import EmberPage from '@shell/components/EmberPage';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
@@ -18,8 +17,8 @@ import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
+import { KONTAINER_TO_DRIVER } from '@shell/models/management.cattle.io.kontainerdriver';
 import Rke2Config from './rke2';
-import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 
 const SORT_GROUPS = {
@@ -44,7 +43,6 @@ export default {
 
   components: {
     CruResource,
-    EmberPage,
     Loading,
     Rke2Config,
     SelectIconGrid,
@@ -103,19 +101,6 @@ export default {
       hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
     }
 
-    // Not sure if needed for legacy hosted cluster?
-    if ( this.value.id && !this.value.isRke2 ) {
-      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
-      // so that the edit iframe for ember pages can go to the right place.
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_POOL)) {
-        hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_TEMPLATE)) {
-        hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-    }
-
     const res = await allHash(hash);
 
     this.nodeDrivers = res.nodeDrivers || [];
@@ -172,9 +157,48 @@ export default {
     if ( this.$route.query[SUB_TYPE]) {
       subType = this.$route.query[SUB_TYPE];
     } else if (this.value.isImported) {
+      // Default imported clusters to the generic imported subType.
+      // Imported hosted clusters (e.g. AKS, EKS, GKE) that have an extension-provided
+      // component will be overridden below to load the correct custom form.
       subType = IMPORTED;
     } else if (this.value.isLocal) {
       subType = LOCAL;
+    }
+
+    // For imported hosted clusters, check if the provisioner has a matching extension
+    // component and override the subType so the correct custom form loads instead of
+    // the generic imported configuration page.
+    if (subType === IMPORTED && this.value?.id && this.value.provisioner) {
+      const provisionerLower = this.value.provisioner.toLowerCase();
+      const hasExtension = this.extensions.some((ext) => ext.id === provisionerLower);
+
+      if (hasExtension) {
+        subType = provisionerLower;
+      }
+    }
+
+    // Auto-detect subType for existing clusters being edited
+    if ( !subType && this.value?.id ) {
+      // Check for extension annotation first
+      const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
+      if (fromAnnotation) {
+        subType = fromAnnotation;
+      } else if ( this.value.isRke2 ) {
+        // For custom RKE2 clusters
+        if ( this.value.isCustom && (this.realMode === _EDIT || (this.as === _CONFIG && this.realMode === _VIEW)) ) {
+          subType = 'custom';
+        } else if ( this.value.machineProvider ) {
+          // For RKE2/K3s clusters provisioned in Rancher, use the machine pool provisioner
+          subType = this.value.machineProvider;
+        }
+      } else if ( this.value.provisioner ) {
+        // For non-RKE2 clusters, try to match against extension-provided subtypes
+        const provisionerLower = this.value.provisioner.toLowerCase();
+
+        // This will be checked against available subtypes after they're computed
+        subType = provisionerLower;
+      }
     }
 
     this.subType = subType;
@@ -217,74 +241,6 @@ export default {
     },
     _RKE2: () => _RKE2,
 
-    emberLink() {
-      if (this.value) {
-        // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
-        if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => {
-            const typeLower = st.id.toLowerCase();
-            const provisionerLower = this.value.provisioner.toLowerCase();
-
-            // This allows extensions to provide type for edit without breaking edit for Ember kontainer providers
-            return (!!st.component && (typeLower === provisionerLower)) || (DRIVER_TO_IMPORT[typeLower] === provisionerLower);
-          });
-
-          if (matchingSubtype) {
-            this.selectType(matchingSubtype.id, false);
-          }
-        }
-
-        // subType set by the ui during cluster creation
-        // this is likely from a ui extension trying to load custom ui to edit the cluster
-        const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-        if (fromAnnotation) {
-          this.selectType(fromAnnotation, false);
-
-          return '';
-        }
-
-        // For custom RKE2 clusters, don't load an Ember page.
-        // It should be the dashboard.
-        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
-          // For admins, this.value.isCustom is used to check if it is a custom cluster.
-          // For cluster owners, this.subtype is used.
-          this.selectType('custom', false);
-
-          return '';
-        }
-        // For existing RKE2/K3s clusters provisioned in Rancher,
-        // set the subtype using the machine pool provisioner
-        // do not use an iFramed Ember page.
-        if ( this.value.isRke2 && this.value.machineProvider ) {
-          this.selectType(this.value.machineProvider, false);
-
-          return '';
-        }
-
-        if ( this.subType ) {
-          // if driver type has a custom form component, don't load an ember page
-          if (this.selectedSubType?.component) {
-            return '';
-          }
-          // For RKE1 and hosted Kubernetes Clusters, set the ember link
-          // so that we load the page rather than using RKE2 create
-          if (this.selectedSubType?.emberLink) {
-            return this.selectedSubType.emberLink;
-          }
-
-          return '';
-        }
-
-        if ( this.value.mgmt?.emberEditPath ) {
-          // Iframe an old page
-          return this.value.mgmt.emberEditPath;
-        }
-      }
-
-      return '';
-    },
-
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
     // todo nb is this info stored anywhere else..?
@@ -310,6 +266,24 @@ export default {
       return this.value.isRke2;
     },
 
+    isEmberKontainerDriver() {
+      // RKE2/K3s clusters are never legacy Ember kontainer drivers
+      if (!this.value?.id || !this.value?.provisioner || this.value.isRke2) {
+        return false;
+      }
+
+      const provisioner = this.value.provisioner.toLowerCase();
+      // Resolve the provisioner to a driver name using the KONTAINER_TO_DRIVER map
+      const resolvedName = KONTAINER_TO_DRIVER[provisioner] || provisioner;
+
+      const driver = this.kontainerDrivers.find((d) => {
+        return d.driverName === resolvedName || d.driverName === provisioner || d.id === provisioner;
+      });
+
+      // If the driver exists and is not built-in, it's a legacy ember driver
+      return !!driver && !driver.spec?.builtIn;
+    },
+
     templateOptions() {
       if ( !this.rke2Enabled ) {
         return [];
@@ -327,16 +301,14 @@ export default {
       let out = [];
 
       const templates = this.templateOptions;
-      const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active');
 
-      // Keeping this for non Rancher-managed kontainer drivers
+      // Kontainer drivers that don't have an extension-provided component are legacy Ember-based
+      // and no longer functional. Show them as disabled with an informational tooltip.
+      const emberRemovalTooltip = getters['i18n/t']('drivers.kontainer.emberRemovalTooltip');
+
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
-        if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(this.$extension, obj.driverName, 'hosted', false);
-        } else {
-          addType(this.$extension, obj.driverName, 'hosted', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
-        }
+        addType(this.$extension, obj.driverName, 'hosted', true, undefined, undefined, emberRemovalTooltip);
       });
       if (!isImport) {
         templates.forEach((chart) => {
@@ -360,7 +332,7 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(this.$extension, id, _RKE2, false, null, undefined, type);
+            addType(this.$extension, id, _RKE2, false, undefined, type);
           });
 
           addType(this.$extension, 'custom', 'custom2', false);
@@ -409,7 +381,7 @@ export default {
         out.push(subtype);
       }
 
-      function addType(plugin, id, group, disabled = false, emberLink = null, iconClass = undefined, providerConfig = undefined) {
+      function addType(plugin, id, group, disabled = false, iconClass = undefined, providerConfig = undefined, tooltip = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
@@ -439,8 +411,8 @@ export default {
           iconClass,
           group,
           disabled,
-          emberLink,
           tag,
+          tooltip,
           providerConfig
         };
 
@@ -594,12 +566,11 @@ export default {
     />
   </div>
   <div
-    v-else-if="emberLink"
-    class="embed"
+    v-else-if="isEmberKontainerDriver"
   >
-    <EmberPage
-      :force-new="true"
-      :src="emberLink"
+    <Banner
+      color="warning"
+      label-key="drivers.kontainer.emberRemovalMessage"
     />
   </div>
   <CruResource

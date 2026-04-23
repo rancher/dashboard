@@ -82,7 +82,8 @@ export default {
           const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
           const route = this.$router.resolve(validRoute);
 
-          return this.$route.fullPath.split('#')[0] === route?.fullPath;
+          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+          return this.$route.path === route?.path;
         }
       }
 
@@ -204,14 +205,14 @@ export default {
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
-          const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
-          const withoutQuery = withoutHash.split('?')[0];
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
-          const itemFullPath = this.$router.resolve(validItemRoute).fullPath;
 
-          if (matchesNavLevel || itemFullPath === withoutQuery) {
+          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+          const itemPath = this.$router.resolve(validItemRoute).path;
+
+          if (matchesNavLevel || itemPath === this.$route.path) {
             return true;
-          } else if (parentPath && itemFullPath === parentPath) {
+          } else if (parentPath && itemPath === parentPath) {
             return true;
           }
         }
