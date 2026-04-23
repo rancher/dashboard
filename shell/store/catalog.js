@@ -691,7 +691,7 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
 
   return versions.filter((ver) => {
     const permittedOs = ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
-    const fallbackOs = chart.isRancherRepo ? LINUX : '';
+    const fallbackOs = chart?.isRancherRepo === false ? '' : LINUX;
     const osPermitted = (permittedOs || fallbackOs).split(',').filter(Boolean);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
