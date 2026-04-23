@@ -1,4 +1,4 @@
-import { NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO, NAMESPACE_FILTER_ALL } from '@shell/utils/namespace-filter';
+import { NAMESPACE_FILTER_ALL } from '@shell/utils/namespace-filter';
 import { NAMESPACE } from '@shell/config/types';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
@@ -265,13 +265,6 @@ export default {
 
           // If we're showing all... and not hiding system or obscure ns then don't go through filter process
           if (!allButHidingSystemResources) {
-            return;
-          }
-        }
-
-        // Transitioning to a ns filter that doesn't affect the list should be avoided
-        if (neu.length === 1) {
-          if ([NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO].includes(neu[0])) {
             return;
           }
         }

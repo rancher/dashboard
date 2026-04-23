@@ -17,7 +17,7 @@ import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { CLUSTER as CLUSTER_PREF, LAST_NAMESPACE, NAMESPACE_FILTERS, WORKSPACE } from '@shell/store/prefs';
-import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
+import { BOTH } from '@shell/store/type-map';
 import { filterBy, findBy } from '@shell/utils/array';
 import { ApiError, ClusterNotFoundError } from '@shell/utils/error';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
@@ -25,9 +25,7 @@ import {
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
@@ -190,9 +188,7 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
     .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
   // Retrieve all the filters selected by the user
-  const filters = state.namespaceFilters.filter(
-    (filters) => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
-  );
+  const filters = state.namespaceFilters;
 
   const activeNamespaces = {
     ...getActiveNamespacesCategories(getters, allowedNamespaces, filters),
@@ -403,7 +399,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter((x) => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
+    return state.namespaceFilters.length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -434,38 +430,10 @@ export const getters = {
    * Namespace/Project filter for the current cluster
    */
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
-
-    return filters;
+    return state.namespaceFilters;
   },
 
-  namespaceMode(state, getters) {
-    const filters = state.namespaceFilters;
-    const product = getters['currentProduct'];
-
-    if ( !product?.showNamespaceFilter ) {
-      return BOTH;
-    }
-
-    // Explicitly asking
-    if ( filters.includes(NAMESPACED_YES) ) {
-      return NAMESPACED;
-    } else if ( filters.includes(NAMESPACED_NO) ) {
-      return CLUSTER_LEVEL;
-    }
-
-    const byKind = {};
-
-    for ( const filter of filters ) {
-      const type = filter.split('://', 2)[0];
-
-      byKind[type] = (byKind[type] || 0) + 1;
-    }
-
-    if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
-      return NAMESPACED;
-    }
-
+  namespaceMode() {
     return BOTH;
   },
 
@@ -663,7 +631,7 @@ export const mutations = {
    * Updates cluster specific ns settings, including the selected ns cache `activeNamespaceCache`
    */
   updateNamespaces(state, { filters, all, getters: optGetters }) {
-    state.namespaceFilters = filters.filter((x) => !!x);
+    state.namespaceFilters = filters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
 
     if ( all ) {
       state.allNamespaces = all;

@@ -628,7 +628,6 @@ export const getters = {
       // - `used` matches the data types where there are more than 0 of them in the current set of namespaces.
       // - `all` matches all types.
       // - `favorite` matches starred types.
-      // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === TYPE_MODES.BASIC;
 
@@ -653,13 +652,6 @@ export const getters = {
 
         if ( typeObj.schema && getters.isIgnored(typeObj.schema) ) {
           // Skip ignored groups & types
-          continue;
-        }
-
-        const namespaced = typeObj.namespaced;
-
-        if ( (namespaceMode === NAMESPACED && !namespaced ) || (namespaceMode === CLUSTER_LEVEL && namespaced) ) {
-          // Skip types that are not the right namespace mode
           continue;
         }
 
@@ -736,7 +728,7 @@ export const getters = {
           mode:         typeObj.mode,
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
-          namespaced,
+          namespaced:   typeObj.namespaced,
           route:        filterLocationValidParams(rootState.$router, route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
