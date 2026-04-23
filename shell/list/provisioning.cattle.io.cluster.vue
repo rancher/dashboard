@@ -307,6 +307,8 @@ export default {
         :fetch-page-secondary-resources="fetchPageSecondaryResources"
 
         :namespaced="nonStandardNamespaces"
+
+        :data-testid="'cluster-list'"
       >
         <template #cell:summary="{row}">
           <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->

@@ -3,7 +3,7 @@ import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.clu
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 /**
- * List page for provisioning.cattle.io.cluster resources
+ * List page for management.cattle.io.cluster resources
  */
 export default class ClusterManagerListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {

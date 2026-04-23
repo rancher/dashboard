@@ -8,14 +8,14 @@ import { qase } from '@/cypress/support/qase';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
-const provClusterList = new ClusterManagerListPagePo('local');
+const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
 // Reset the home page card prefs, go the home page and ensure the page is fully loaded
 function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
-  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', {
+  cy.intercept('GET', '/v1/management.cattle.io.clusters?*', {
     statusCode: 200,
     body:       {
       count: 0,
@@ -89,23 +89,25 @@ describe('Home Page', () => {
       homeClusterList.version(clusterName).invoke('text').as('versionText');
       homeClusterList.provider(clusterName).invoke('text').as('providerText');
 
-      provClusterList.goTo();
-      provClusterList.waitForPage();
+      clusterMgmtClusterList.goTo();
+      clusterMgmtClusterList.waitForPage();
 
       cy.get('@stateText').then((state) => {
-        provClusterList.list().details(clusterName, 1).should('contain.text', state);
+        clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
       });
 
-      cy.get('@nameText').then((name) => {
-        provClusterList.list().details(clusterName, 2).should('contain.text', name);
+      cy.get('@nameText').then((nameElm) => {
+        const name = (nameElm as unknown as string).trim(); // nameElm is text...
+
+        clusterMgmtClusterList.list().details(clusterName, 2).should('contain.text', name);
       });
 
       cy.get('@versionText').then((version) => {
-        provClusterList.list().details(clusterName, 3).should('contain.text', version);
+        clusterMgmtClusterList.list().details(clusterName, 4).should('contain.text', version);
       });
 
       cy.get('@providerText').then((provider) => {
-        provClusterList.list().details(clusterName, 4).should('contain.text', provider);
+        clusterMgmtClusterList.list().details(clusterName, 3).should('contain.text', provider);
       });
     }));
 
@@ -132,7 +134,7 @@ describe('Home Page', () => {
       // the next best thing is to add a description to the current local cluster
       // testing https://github.com/rancher/dashboard/issues/10441
 
-      const homePageWithLocalPagination = '/v1/provisioning.cattle.io.clusters?*';
+      const homePageWithLocalPagination = '/v1/management.cattle.io.clusters?*';
 
       // Why the long intercept url?
       // There are two requests to fetch clusters (side nav + cluster list). In theory "cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`" should intercept them both
@@ -141,7 +143,7 @@ describe('Home Page', () => {
 
       cy.intercept('GET', homePageWithLocalPagination, (req) => {
         req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+          const localIndex = res.body.data.findIndex((item: any) => item.id === 'local');
 
           if (localIndex >= 0) {
             res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
