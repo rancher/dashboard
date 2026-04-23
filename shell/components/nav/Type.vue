@@ -68,8 +68,9 @@ export default {
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.typeRoute)?.fullPath.toLowerCase();
-      const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
+      // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+      const typePath = this.$router.resolve(this.typeRoute)?.path.toLowerCase();
+      const pagePath = this.$route.path?.toLowerCase();
       const routeMetaNav = this.$route.meta?.nav;
 
       // If the route explicitly declares the nav path that should be highlighted, then use that
@@ -80,14 +81,14 @@ export default {
           .replace(':cluster', cluster)
           .replace(':product', product);
 
-        if (navPath === typeFullPath) {
+        if (navPath === typePath) {
           return true;
         }
       }
 
       if ( !this.type.exact) {
-        const typeSplit = typeFullPath.split('/');
-        const pageSplit = pageFullPath.split('/');
+        const typeSplit = typePath.split('/');
+        const pageSplit = pagePath.split('/');
 
         for (let index = 0; index < typeSplit.length; ++index) {
           if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
@@ -98,7 +99,7 @@ export default {
         return true;
       }
 
-      return typeFullPath === pageFullPath;
+      return typePath === pagePath;
     },
 
     typeRoute() {
@@ -131,7 +132,7 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate,isExactActive }"
+    v-slot="{ href, navigate, isExactActive }"
     custom
     :to="typeRoute"
   >

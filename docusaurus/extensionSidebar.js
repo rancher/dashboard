@@ -170,6 +170,11 @@ const sidebars = {
               ]
             },
             'api/common',
+            {
+              type:  'doc',
+              id:    'api/nav/product-registration',
+              label: 'Product Registration (Experimental)',
+            },
           ]
         },
         {
@@ -242,7 +247,12 @@ const sidebars = {
             'usecases/top-level-product',
             'usecases/cluster-level-product',
             'usecases/node-driver',
-            'usecases/hosted-provider'
+            'usecases/hosted-provider',
+            {
+              type:  'doc',
+              id:    'usecases/product-registration-examples',
+              label: 'Product Registration Examples (Experimental)',
+            },
           ]
         },
         'known-issues',

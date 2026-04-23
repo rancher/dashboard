@@ -67,14 +67,6 @@ Cypress.Commands.add('clearAllSessions', () => {
   cy.logout();
 });
 
-Cypress.Commands.add('iFrame', () => {
-  return cy
-    .get('[data-testid="ember-iframe"]', { log: false })
-    .its('0.contentDocument.body', { log: false })
-    .should('not.be.empty')
-    .then((body) => cy.wrap(body) as unknown as Cypress.Chainable<Element>);
-});
-
 const runTimestamp = +new Date();
 
 /**

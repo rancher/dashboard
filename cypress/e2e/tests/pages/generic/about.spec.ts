@@ -4,8 +4,8 @@ import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
 
 const aboutPage = new AboutPagePo();
 
-describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-  before(() => {
+describe('About Page', { testIsolation: 'on', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  beforeEach(() => {
     cy.login();
   });
 
@@ -16,15 +16,13 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
   });
 
   it('no Prime info when community', { tags: '@noPrime' }, () => {
-    HomePagePo.goToAndWaitForGet();
-    AboutPagePo.navTo();
+    aboutPage.goTo();
     aboutPage.waitForPage();
-
     aboutPage.rancherPrimeInfo().should('not.exist');
   });
 
   it('can navigate to Diagnostics page', () => {
-    AboutPagePo.navTo();
+    aboutPage.goTo();
     aboutPage.waitForPage();
     aboutPage.diagnosticsBtn().click();
 
@@ -33,19 +31,25 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     diagnosticsPo.waitForPage();
   });
 
-  it('can View release notes', () => {
-    AboutPagePo.navTo();
+  it('can View release notes', { tags: '@prime' }, () => {
+    aboutPage.goTo();
     aboutPage.waitForPage();
+    cy.getRancherVersion().then((version) => {
+      const isPrime = version.RancherPrime === 'true';
+      const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
+      const expectedPath = isPrime ? '/cloudnative/rancher-manager/latest/en/release-notes' : '/rancher/rancher/releases/tag/';
 
-    aboutPage.clickVersionLink('View release notes');
-    cy.origin('https://github.com/rancher/rancher', () => {
-      cy.url().should('include', 'https://github.com/rancher/rancher/releases/tag/');
+      aboutPage.clickVersionLink('View release notes');
+      cy.origin(expectedOrigin, { args: { expectedPath } }, ({ expectedPath }) => {
+        cy.url().should('include', expectedPath);
+      });
     });
   });
 
   describe('Versions', () => {
     beforeEach(() => {
       aboutPage.goTo();
+      aboutPage.waitForPage();
     });
 
     it('can see rancher version', () => {
@@ -59,28 +63,28 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
 
     it('can navigate to /rancher/rancher', () => {
       aboutPage.clickVersionLink('Rancher');
-      cy.origin('https://github.com/rancher/rancher', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/rancher');
       });
     });
 
     it('can navigate to /rancher/dashboard', () => {
       aboutPage.clickVersionLink('Dashboard');
-      cy.origin('https://github.com/rancher/dashboard', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/dashboard');
       });
     });
 
     it('can navigate to /rancher/helm', () => {
       aboutPage.clickVersionLink('Helm');
-      cy.origin('https://github.com/rancher/helm', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/helm');
       });
     });
 
     it('can navigate to /rancher/machine', () => {
       aboutPage.clickVersionLink('Machine');
-      cy.origin('https://github.com/rancher/machine', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/machine');
       });
     });
@@ -93,6 +97,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
       aboutPage.goTo();
+      aboutPage.waitForPage();
       cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
     });
 
@@ -152,7 +157,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     }
 
     beforeEach(() => {
-      cy.login();
       interceptVersionAndSetToPrime().as('rancherVersion');
     });
 

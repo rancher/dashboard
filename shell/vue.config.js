@@ -75,15 +75,6 @@ const getProxyConfig = (proxyConfig) => ({
   '/v1-*':           proxyOpts(api), // SAML, KDM, etc
   '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
   '/version':        proxyPrimeOpts(api), // Rancher Kube version endpoint
-  // These are for Ember embedding
-  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':             proxyOpts('https://127.0.0.1:8000'),
-  '/g/':             proxyOpts('https://127.0.0.1:8000'),
-  '/n/':             proxyOpts('https://127.0.0.1:8000'),
-  '/p/':             proxyOpts('https://127.0.0.1:8000'),
-  '/assets':         proxyOpts('https://127.0.0.1:8000'),
-  '/translations':   proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 });
 
 /**

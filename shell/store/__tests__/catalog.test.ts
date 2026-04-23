@@ -205,6 +205,102 @@ describe('catalog', () => {
       // Version info should be changed (it's now empty given reset)
       expect(store.state[catalogStoreName].versionInfos).toStrictEqual({ });
     });
+
+    it('repoKeys provided', async() => {
+      const store = createStore(constructStore());
+
+      // Validate initial state of store
+      expect(store.getters[`${ catalogStoreName }/rawCharts`]).toStrictEqual(initialRawCharts);
+      expect(store.getters[`${ catalogStoreName }/charts`]).toStrictEqual([]);
+
+      // Make the request targeting specific repo (we provide repo._key)
+      await store.dispatch(`${ catalogStoreName }/load`, {
+        force:    true,
+        repoKeys: [repo._key]
+      });
+
+      const rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
+      const charts = store.getters[`${ catalogStoreName }/charts`];
+
+      // We expect the old chart belonging to this repo to be wiped out
+      // and replaced entirely by the newly fetched chart.
+      expect(rawCharts[initialRawChart.id]).not.toBeDefined();
+      expect(rawCharts[expectedChartKey]).toBeDefined();
+      expect(rawCharts[expectedChartKey].id).toBe(expectedChartKey);
+      expect(rawCharts[expectedChartKey].versions[0].version).toBe(repoChart.version);
+
+      expect(charts).toHaveLength(1);
+      expect(charts[0]).toBeDefined();
+      expect(charts[0].id).toBe(expectedChartKey);
+    });
+
+    it('repoKeys provided, ignoring unrelated charts and versions', async() => {
+      // We will manually inject an unrelated chart to prove it isn't wiped out
+      const store = createStore(constructStore());
+      const unrelatedChart = {
+        id:       `namespace/unrelatedRepo/unrelatedChart`,
+        repoKey:  'unrelatedRepo',
+        type:     'namespaced',
+        name:     'unrelatedChart',
+        version:  1,
+        metadata: { name: 'unrelatedChart' }
+      };
+
+      const targetedVersionKey = `namespace/testRepo/myChart/1.0.0`;
+      const unrelatedVersionKey = `namespace/unrelatedRepo/unrelatedChart/1.0.0`;
+
+      store.state[catalogStoreName].charts = {
+        ...initialRawCharts,
+        [unrelatedChart.id]: unrelatedChart
+      };
+
+      store.state[catalogStoreName].versionInfos = {
+        [targetedVersionKey]:  { data: 'old-data' },
+        [unrelatedVersionKey]: { data: 'keep-me' }
+      };
+
+      // Make the request targeting specific repo
+      await store.dispatch(`${ catalogStoreName }/load`, {
+        force:    true,
+        repoKeys: [repo._key]
+      });
+
+      const rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
+      const versionInfos = store.state[catalogStoreName].versionInfos;
+
+      // The unrelated chart should NOT be wiped
+      expect(rawCharts[unrelatedChart.id]).toBeDefined();
+      expect(rawCharts[unrelatedChart.id].repoKey).toBe('unrelatedRepo');
+
+      // The old initialRawChart (with repoKey: repo._key) SHOULD be wiped and replaced
+      expect(rawCharts[initialRawChart.id]).not.toBeDefined();
+      expect(rawCharts[expectedChartKey]).toBeDefined();
+
+      // The targeted version info SHOULD be wiped
+      expect(versionInfos[targetedVersionKey]).not.toBeDefined();
+      // The unrelated version info should NOT be wiped
+      expect(versionInfos[unrelatedVersionKey]).toBeDefined();
+      expect(versionInfos[unrelatedVersionKey].data).toBe('keep-me');
+    });
+  });
+
+  describe('refresh', () => {
+    it('calls refresh(false) on all repos and then dispatches a reset load', async() => {
+      const mockRepo1 = { refresh: jest.fn().mockResolvedValue(true) };
+      const mockRepo2 = { refresh: jest.fn().mockResolvedValue(true) };
+
+      const getters = { repos: [mockRepo1, mockRepo2] };
+      const dispatch = jest.fn().mockResolvedValue(true);
+      const commit = jest.fn();
+
+      await actions.refresh({
+        getters, commit, dispatch
+      });
+
+      expect(mockRepo1.refresh).toHaveBeenCalledWith(false);
+      expect(mockRepo2.refresh).toHaveBeenCalledWith(false);
+      expect(dispatch).toHaveBeenCalledWith('load', { force: true, reset: true });
+    });
   });
 
   describe('filterAndArrangeCharts', () => {

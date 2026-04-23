@@ -151,11 +151,26 @@ export type ConfigureTypeConfiguration = {
 }
 
 /**
+ * Represents a Vue component or an async function that resolves to a Vue component, used for route components in product configuration
+ */
+export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
+
+/**
+ * Metadata for route generation to a product overview page
+ */
+export type OverviewPageRoutingMetadata = {
+  /** Name of the overview page */
+  name: string;
+  /** Component to render for the overview page */
+  component: VueRouteComponent;
+}
+
+/**
  * Represents a custom page with a component
  */
 export type ProductChildCustomPage = ProductChildMetadata & {
   /** Component to render for this custom page */
-  component: RouteComponent | Async<RouteComponent>;
+  component: VueRouteComponent;
   /** Optional configuration for the page */
   config?: VirtualTypeConfiguration;
 };
@@ -189,7 +204,7 @@ export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disab
  * Represents a group of child pages in a product configuration
  */
 export type ProductChildGroup = ProductChildMetadata & {
-  component?: RouteComponent | Async<RouteComponent>;
+  component?: VueRouteComponent;
   children: ProductChild[];
   /** Default child to navigate to */
   default?: string;
@@ -218,5 +233,5 @@ export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey'
  */
 export type ProductSinglePage = ProductMetadata & {
   /** Component to render for this product (single page product) */
-  component: RouteComponent | Async<RouteComponent>;
+  component: VueRouteComponent;
 };

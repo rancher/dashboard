@@ -1,6 +1,5 @@
 <script>
 import { NORMAN } from '@shell/config/types';
-import { isAdminUser } from '@shell/store/type-map';
 import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
@@ -20,17 +19,18 @@ export default {
   data() {
     return {
       allDrivers:                       null,
-      canRefreshK8sMetadata:            true,
       resource:                         NORMAN.KONTAINER_DRIVER,
       schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
       forceUpdateLiveAndDelayed:        10,
-      showDeprecationBanner:            isAdminUser(this.$store.getters),
     };
   },
   computed: {
     rows() {
       return this.allDrivers || [];
+    },
+    hasEmberUiDrivers() {
+      return this.rows.some((driver) => driver.active && driver.isEmber);
     },
   },
   methods: {
@@ -63,7 +63,6 @@ export default {
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshK8sMetadata"
           mode="refresh"
           :action-label="t('drivers.actions.refresh')"
           :waiting-label="t('drivers.actions.refresh')"
@@ -75,10 +74,9 @@ export default {
       </template>
     </Masthead>
     <Banner
-      v-if="showDeprecationBanner"
+      v-if="hasEmberUiDrivers"
       color="warning"
-      label-key="drivers.kontainer.emberDeprecationMessage"
-      data-testid="kontainer-driver-ember-deprecation-banner"
+      label-key="drivers.kontainer.emberRemovalMessage"
     />
     <ResourceTable
       :schema="schema"

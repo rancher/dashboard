@@ -69,7 +69,7 @@ export default {
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
           <i
-            v-if="scope.row.status.lockedValue !== null"
+            v-if="scope.row.status && scope.row.status.lockedValue !== null"
             class="icon icon-lock"
           />
         </div>
