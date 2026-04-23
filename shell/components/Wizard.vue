@@ -296,7 +296,7 @@ export default {
     >
       <div>
         <div class="header">
-          <div class="title">
+          <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
               v-if="showBanner"
               class="top choice-banner"

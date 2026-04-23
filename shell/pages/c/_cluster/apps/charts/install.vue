@@ -1529,7 +1529,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps pt-20"
+    class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <Wizard
@@ -2106,7 +2106,6 @@ export default {
   $slideout-width: 35%;
 
   .install-steps {
-    padding-top: 0;
     height: 0;
     position: relative;
     overflow: hidden;
