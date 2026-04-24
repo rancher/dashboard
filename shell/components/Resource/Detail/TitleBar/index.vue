@@ -178,7 +178,7 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     align-items: center;
   }
 
-  .show-configuration, &:deep() .actions button {
+  .show-configuration, &:deep() .actions > button {
     margin-left: 16px;
   }
 

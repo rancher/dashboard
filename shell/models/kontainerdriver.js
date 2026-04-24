@@ -54,6 +54,10 @@ export default class KontainerDriver extends Driver {
     return out;
   }
 
+  get isEmber() {
+    return !this.builtIn && !this.builtin;
+  }
+
   deactivate(resources = [this]) {
     this.$dispatch('promptModal', {
       componentProps: { drivers: resources, driverType: 'kontainerDrivers' },

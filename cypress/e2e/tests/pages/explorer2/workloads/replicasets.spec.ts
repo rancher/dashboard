@@ -13,6 +13,7 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
       it('should not be able to rollback a replicaset', () => {
         // list view for replicasets
         const workloadsReplicasetsListPage = new WorkloadsReplicasetsListPagePo('local');
+        const resourceSearchDialog = new ResourceSearchDialog();
 
         workloadsReplicasetsListPage.goTo();
         workloadsReplicasetsListPage.waitForPage();
@@ -25,10 +26,9 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
           .set(replicasetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
         workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
-
-        ResourceSearchDialog.goToResource('ReplicaSets');
-
         workloadsReplicasetsListPage.waitForPage();
+        resourceSearchDialog.waitForNoDialog();
+        workloadsReplicasetsListPage.waitForListReady();
 
         workloadsReplicasetsListPage.list().resourceTable().sortableTable().rowElementWithName(replicasetName)
           .should('be.visible');

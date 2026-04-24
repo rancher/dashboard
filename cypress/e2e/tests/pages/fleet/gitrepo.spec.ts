@@ -53,12 +53,17 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
     it('Can create a GitRepo', () => {
       // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -67,8 +72,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const {
         repo, branch, paths, helmRepoURLRegex
       } = gitRepoCreateRequest.spec;
-
-      headerPo.selectWorkspace(workspace);
 
       // Metadata step
       gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
@@ -419,6 +422,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
     cy.applyDefaultTestTheme();
   });
+
   it('should display continuous delivery page git repo', () => {
     const gitRepoList = new FleetGitRepoListPagePo();
 
@@ -429,5 +433,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

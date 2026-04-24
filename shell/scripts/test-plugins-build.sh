@@ -107,7 +107,7 @@ createTestComponent() {
 
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
-yarn install
+yarn install --frozen-lockfile
 export TAG="shell-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
@@ -139,7 +139,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   pushd test-app > /dev/null
 
-  yarn install
+  yarn install --frozen-lockfile
   # this is the "same" as doing a yarn dev (in a build sense)
   # it's to make sure the dev environment is running properly
   FORCE_COLOR=true yarn build | cat
@@ -165,7 +165,7 @@ pushd $BASE_DIR
 # Now try a plugin within the dashboard codebase
 echo "Validating in-tree package"
 
-yarn install
+yarn install --frozen-lockfile
 
 if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
@@ -202,7 +202,7 @@ function clone_repo_test_extension_build() {
   pushd ${BASE_DIR}/$REPO_NAME
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
-  yarn install
+  yarn install --frozen-lockfile
 
   # set registry to local verdaccio (to install new shell)
   yarn config set registry ${VERDACCIO_NPM_REGISTRY}
@@ -235,10 +235,14 @@ function clone_repo_test_extension_build() {
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
+# TODO: ISSUE #16858 - Reenable the tests as packages migrate to node version 24
 clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
-clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
+# clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
 clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
-clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
+# clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
 clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
+clone_repo_test_extension_build "rancher" "ali-ui" "ali"
+clone_repo_test_extension_build "rancher" "virtual-clusters-ui" "virtual-clusters"
+# clone_repo_test_extension_build "rancher" "rancher-ai-ui" "rancher-ai-ui"
 
 echo "All done"

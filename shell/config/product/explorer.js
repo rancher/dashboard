@@ -19,7 +19,7 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, USER_LAST_LOGIN, USER_DISABLED_IN, USER_DELETED_IN, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  DESCRIPTION, SUB_TYPE, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
   EVENT_FIRST_SEEN_TIME,
@@ -27,13 +27,15 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL,
+  STEVE_WORKLOAD_HEALTH_SCALE
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
 import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { POD_LAST_RESTART_FIELD as POD_RESTARTS_LAST_FIELD, POD_RESTART_FIELD as POD_RESTARTS_COUNT_FIELD } from '@shell/types/resources/pod';
 
 export const NAME = 'explorer';
 
@@ -58,6 +60,7 @@ export function init(store) {
     weight:              3,
     showNamespaceFilter: true,
     icon:                'compass',
+    extendable:          true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
@@ -386,11 +389,11 @@ export function init(store) {
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.DAEMON_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL]
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE]
   );
   headers(WORKLOAD_TYPES.REPLICA_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -398,7 +401,7 @@ export function init(store) {
   );
   headers(WORKLOAD_TYPES.STATEFUL_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.JOB,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -408,7 +411,7 @@ export function init(store) {
       sort:      'metadata.fields.3',
       search:    'metadata.fields.3',
       formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
-    }, STEVE_AGE_COL],
+    }, STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.CRON_JOB,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -428,7 +431,23 @@ export function init(store) {
         ...POD_IMAGES,
         sort:   false,
         search: 'spec.containers.image'
-      }, 'Ready', 'Restarts', 'IP', {
+      },
+      'Ready',
+      {
+        name:     'pod-restart',
+        labelKey: 'tableHeaders.podRestarts',
+        search:   false,
+        sort:     [POD_RESTARTS_COUNT_FIELD, POD_RESTARTS_LAST_FIELD, 'metadata.name'],
+        value:    'restartsCount',
+      }, {
+        name:     'pod-last-restart',
+        labelKey: 'tableHeaders.podLastRestart',
+        value:    'restartsLaster',
+        search:   false,
+        sort:     [POD_RESTARTS_LAST_FIELD, POD_RESTARTS_COUNT_FIELD, 'metadata.name'],
+      },
+      'IP',
+      {
         ...NODE_COL,
         search: 'spec.nodeName'
       },
@@ -544,6 +563,16 @@ export function init(store) {
     USER_DISABLED_IN,
     USER_DELETED_IN,
     AGE
+  ]);
+
+  headers(NORMAN.TOKEN, [
+    EXPIRY_STATE,
+    ACCESS_KEY,
+    DESCRIPTION,
+    SCOPE_NORMAN,
+    LAST_USED,
+    EXPIRES,
+    AGE_NORMAN
   ]);
 
   virtualType({

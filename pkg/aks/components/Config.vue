@@ -899,6 +899,7 @@ export default defineComponent({
         <Tab
           v-for="(pool, i) in nodePools"
           :key="i"
+          :weight="-1 * idx"
           :name="pool._id || pool.name"
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="!poolIsValid(pool)"

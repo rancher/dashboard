@@ -31,6 +31,7 @@ export default class PagePo extends ComponentPo {
       // If an intercept for the url already exists... use the same wait (it'll fire on that one)
       const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
 
+      cy.log('Waiting for: ', getUrls[i]);
       cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout });
     }
   }

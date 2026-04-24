@@ -137,6 +137,15 @@ export default {
         this.update();
       }
     },
+
+    allClusters(clusters: any[]) {
+      if (clusters.length) {
+        // Resolve metadata.name values to nameDisplay for UI display
+        this.selectedClusters = this.selectedClusters.map(
+          (name) => this.resolveClusterDisplayName(name)
+        );
+      }
+    },
   },
 
   computed: {
@@ -174,7 +183,7 @@ export default {
         .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x) || this.selectedClusters.includes(x.name)))
         .map((x) => ({
           label:    x.nameDisplay,
-          value:    x.metadata.name,
+          value:    x.nameDisplay,
           disabled: !this.areHarvesterHostsVisible && isHarvesterCluster(x)
         }));
     },
@@ -372,6 +381,14 @@ export default {
       }
 
       return undefined;
+    },
+
+    resolveClusterDisplayName(name: string): string {
+      const cluster = this.allClusters.find(
+        (c: any) => c.metadata.namespace === this.namespace && c.metadata.name === name
+      );
+
+      return cluster ? cluster.nameDisplay : name;
     },
 
     reset() {

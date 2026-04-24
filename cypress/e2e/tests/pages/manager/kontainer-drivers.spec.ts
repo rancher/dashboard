@@ -52,6 +52,15 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('can create new driver', () => {
+    // Clean up any existing driver with the same URL to avoid 409 conflicts
+    cy.getRancherResource('v3', 'kontainerdrivers').then((resp: Cypress.Response<any>) => {
+      const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
+
+      if (existingDriver) {
+        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id);
+      }
+    });
+
     cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
     const requestData = {
       type:   'kontainerDriver',
@@ -78,20 +87,50 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
     driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
 
+    // Verify the driver tile appears on the cluster create page.
+    // Legacy ember-based kontainer drivers are shown disabled with an informational tooltip
+    // (no functional UI remains), so we only assert the tile is present.
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
     createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'exist').invoke('index').then((index) => {
-      createCluster.selectKubeProvider(index);
-    });
-    createCluster.waitForPage('type=example');
-    createCluster.mastheadTitle().should('contain', 'example');
+    createCluster.gridElementExistanceByName('example', 'exist');
   });
 
   it('can activate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // Ensure table is fully loaded
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Explicitly ensure drivers are in Inactive state with proper API intercepts
+    driversPage.list().details(openTelekomDriver, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate').as('deactivateOpenTelekom1');
+        driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
+        const deactivateDialog = new DeactivateDriverDialogPo();
+
+        deactivateDialog.deactivate();
+        cy.wait('@deactivateOpenTelekom1');
+        driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
+      }
+    });
+
+    driversPage.list().details(oracleDriver, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracle1');
+        driversPage.list().actionMenu(oracleDriver).getMenuItem('Deactivate').click();
+        const deactivateDialog = new DeactivateDriverDialogPo();
+
+        deactivateDialog.deactivate();
+        cy.wait('@deactivateOracle1');
+        driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
+      }
+    });
+
+    // Verify both drivers are now inactive
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
@@ -105,6 +144,10 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().activate().click();
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
+    // wait for drivers to be activating
+    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Activating');
+    driversPage.list().details(oracleDriver, 1).should('contain', 'Activating');
+    // wait for drivers to be active
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
 
@@ -125,6 +168,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
 
     driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
@@ -143,6 +189,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
 
@@ -169,6 +218,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
 
@@ -195,6 +247,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
 
     driversPage.list().actionMenu(linodeDriver).getMenuItem('Activate').click();
@@ -207,6 +262,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().actionMenu(downloadUrl).getMenuItem('Edit Config').click();
     createDriverPage.downloadUrl().set(downloadUrlUpdated);
     cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
@@ -225,6 +283,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(openTelekomDriver, 1).scrollIntoView().should('contain', 'Active');
     driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
@@ -258,15 +319,24 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can delete a driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // Ensure table is fully loaded
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
       statusCode: 200,
       body:       { }
     }).as('deleteDriver');
+
+    // Scroll element into view and select with force
+    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver)
+      .scrollIntoView();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(exampleDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
-      .click();
+      .click({ force: true });
 
     driversPage.list().resourceTable().sortableTable().rowNames()
       .then((rows: any) => {
@@ -313,5 +383,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('kontainer drivers list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

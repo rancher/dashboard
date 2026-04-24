@@ -200,7 +200,7 @@ export default {
     tagOptions() {
       const outSet = new Set();
 
-      this.allCharts.forEach((chart) => {
+      this.enabledCharts.forEach((chart) => {
         if (Array.isArray(chart.tags)) {
           chart.tags.forEach((tag) => outSet.add(tag));
         }
@@ -270,7 +270,7 @@ export default {
     categoryOptions() {
       const map = {};
 
-      for ( const chart of this.allCharts ) {
+      for ( const chart of this.enabledCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
@@ -321,7 +321,7 @@ export default {
         pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
         header: {
           title:    { text: chart.chartNameDisplay },
-          statuses: this.addStatusesToCharts(chart),
+          statuses: chart.cardContent.statuses
         },
         subHeaderItems: chart.cardContent.subHeaderItems,
         image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
@@ -553,16 +553,6 @@ export default {
       }
     },
 
-    addStatusesToCharts(chart) {
-      if (this.suseAppCollectionRepo.includes(chart.repoName)) {
-        return [{
-          icon: 'icon-notify-info', color: 'info', tooltip: { key: 'catalog.charts.isFromSuseAppCoRepository' }
-        }, ...chart.cardContent.statuses];
-      }
-
-      return chart.cardContent.statuses;
-    },
-
     async closeSuseAppCollectionBanner() {
       this.showAppCollectionBanner = false;
       await this.$store.dispatch('prefs/set', { key: HIDE_SUSE_APP_COLLECTION_REPO_BANNER, value: true });
@@ -634,7 +624,6 @@ export default {
       <RichTranslation
         k="catalog.charts.appCollectionRepoMissing"
         tag="div"
-        :raw="true"
       >
         <template #repoCreate="{ content }">
           <router-link
@@ -671,10 +660,7 @@ export default {
           {{ t('catalog.charts.noCharts.title') }}
         </h1>
         <div class="empty-state-tips">
-          <RichTranslation
-            k="catalog.charts.noCharts.message"
-            :raw="true"
-          >
+          <RichTranslation k="catalog.charts.noCharts.message">
             <template #resetAllFilters="{ content }">
               <a
                 tabindex="0"
@@ -694,8 +680,7 @@ export default {
           </RichTranslation>
           <RichTranslation
             k="catalog.charts.noCharts.docsMessage"
-            tag="div"
-            :raw="true"
+            tag="span"
           >
             <template #docsUrl="{ content }">
               <a
@@ -901,7 +886,7 @@ export default {
 
 .charts-empty-state {
   width: 100%;
-  padding: 72px 120px;
+  padding: 72px 72px;
   text-align: center;
 
   .empty-state-title {

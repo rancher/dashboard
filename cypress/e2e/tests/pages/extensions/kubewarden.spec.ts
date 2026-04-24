@@ -4,10 +4,20 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
+import { qase } from '@/cypress/support/qase';
 
 const extensionName = 'kubewarden';
 const gitRepoName = 'rancher-extensions';
 let removeExtensions = false;
+
+function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
+  extensionsPo.waitForTabs();
+  extensionsPo.extensionTabInstalledClick();
+  extensionsPo.waitForPage(null, 'installed');
+  extensionsPo.extensionCardClick(extensionName);
+  extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+  extensionsPo.extensionDetailsCloseClick();
+}
 
 describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
@@ -29,34 +39,37 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     cy.login();
   });
 
-  it('Should install Kubewarden extension', () => {
+  qase(1430, it('Should install Kubewarden extension', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.waitForPage(null, 'available');
+    // Idempotent: no Installed tab → install Kubewarden from catalog (nothing installed yet).
+    // Installed tab → open it: Kubewarden card present → only assert details; absent → install
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        extensionsPo.installExtensionFromCatalog(extensionName, gitRepoName, 'kwInstall');
+        verifyKubewardenInstalledDetails(extensionsPo);
 
-    // click on install button on card
-    extensionsPo.extensionCardInstallClick(extensionName);
-    extensionsPo.installModal().checkVisible();
+        return;
+      }
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(null, 'installed');
+      extensionsPo.checkForExtensionCardWithName(extensionName).then((kubewardenCardPresent) => {
+        if (kubewardenCardPresent) {
+          extensionsPo.extensionCardClick(extensionName);
+          extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+          extensionsPo.extensionDetailsCloseClick();
+        } else {
+          extensionsPo.installExtensionFromCatalog(extensionName, gitRepoName, 'kwInstall');
+          verifyKubewardenInstalledDetails(extensionsPo);
+        }
+      });
+    });
+  }));
 
-    // click install
-    extensionsPo.installModal().installButton().click();
-
-    // check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
-
-    // make sure extension card is in the installed tab
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.extensionCardClick(extensionName);
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
-    extensionsPo.extensionDetailsCloseClick();
-  });
-
-  it('Check Apps/Charts and Apps/Repo pages for route collisions', () => {
+  qase(1429, it('Check Apps/Charts and Apps/Repo pages for route collisions', () => {
     const chartsPage: ChartsPage = new ChartsPage();
 
     chartsPage.goTo();
@@ -68,9 +81,9 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     appRepoList.goTo('local', 'apps');
     appRepoList.waitForPage();
     cy.get('h1').contains('Repositories').should('exist');
-  });
+  }));
 
-  it('Side-nav should contain Kubewarden menu item', () => {
+  qase(1431, it('Side-nav should contain Kubewarden menu item', () => {
     const kubewardenPo = new KubewardenExtensionPo();
     const productMenu = new ProductNavPo();
 
@@ -81,9 +94,9 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     kubewardenNavItem.should('exist');
     kubewardenNavItem.click();
-  });
+  }));
 
-  it('Kubewarden dashboard view should exist', () => {
+  qase(1432, it('Kubewarden dashboard view should exist', () => {
     const kubewardenPo = new KubewardenExtensionPo();
 
     kubewardenPo.goTo();
@@ -91,14 +104,15 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     cy.get('h1').contains('Kubewarden').should('exist');
     cy.get('button').contains('Install Kubewarden').should('exist');
-  });
+  }));
 
-  it('Should uninstall Kubewarden', () => {
+  qase(1433, it('Should uninstall Kubewarden', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
+    extensionsPo.waitForTabs();
     extensionsPo.extensionTabInstalledClick();
 
     // click on uninstall button on card
@@ -114,7 +128,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(extensionName);
     extensionsPo.extensionDetailsTitle().should('contain', extensionName);
-  });
+  }));
 
   after(() => {
     if ( removeExtensions ) {

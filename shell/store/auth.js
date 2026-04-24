@@ -3,7 +3,6 @@ import { MANAGEMENT, EXT } from '@shell/config/types';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
-import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
 
@@ -429,8 +428,6 @@ export const actions = {
   },
 
   uiLogout({ commit, dispatch }, options = {}) {
-    removeEmberPage();
-
     commit('loggedOut');
     dispatch('onLogout', options, { root: true });
 

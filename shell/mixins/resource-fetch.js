@@ -87,6 +87,14 @@ export default {
       type:    Function,
       default: null,
     },
+
+    /**
+     * When making a supporting HTTP request include associated resource data
+     */
+    includeAssociatedData: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -185,9 +193,10 @@ export default {
           return;
         }
         const opt = {
-          hasManualRefresh: this.hasManualRefresh,
-          pagination:       { ...this.pagination },
-          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+          hasManualRefresh:      this.hasManualRefresh,
+          pagination:            { ...this.pagination },
+          force:                 this.paginating !== null, // Fix for manual refresh (before ripped out).
+          includeAssociatedData: this.includeAssociatedData,
         };
 
         if (this.apiFilter) {

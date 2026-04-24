@@ -38,7 +38,7 @@ You are an expert Senior Software Engineer specializing in Vue.js and TypeScript
 
 ## Tools
 
-- **Install dependencies**: `yarn install`
+- **Install dependencies**: `yarn install --frozen-lockfile`
 - **Start development server**: `API=<Rancher_Backend_URL> yarn dev`
   - The `API` environment variable should point to a running Rancher server (e.g., `https://localhost`).
   - The dashboard will be available at `https://127.0.0.1:8005`.
@@ -99,6 +99,9 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - Write tests covering both happy and unhappy paths, edge cases (null values, empty strings, extremely large numbers) and error handling
 - Ensure each test case is atomic and tests only one specific assertion
 - Use `it.each` to run the same test logic against a table of different input/output pairs.
+- Prefer `shallowMount` over `mount` for component testing. This helps to isolate the component being tested and avoids issues with child component dependencies.
+- To assert the text content of a banner component, access its children directly, for example: `banner.vm.$slots.default()[0].children`.
+- For components whose props are defined by a mixin (e.g., `labeledSelect`), access the props via `component.attributes().propName` instead of `component.props().propName`. For example, `labeledSelect.attributes().mode`.
 
 ### Boundaries
 
@@ -139,6 +142,24 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - `TEST_ONLY` - Comma-separated test directories to run exclusively
 - `GREP_TAGS` - Filter tests by tags
 
+## Agentic Workflows
+
+## Labels
+
+Agentic workflows may update github issue and pull requests labels. In addition to any they manage they should also adhere to the following
+
+- When an agentic workflow creates a github issue or pull request it should add a label in the following format: `bot/<bot name>`
+  - e.g. bot name is `issue grooming`, label is `bot/issue-grooming`
+- An agentic workflow can receive instructions or state from itself or other sources via github issue or pull request labels with the following format: `bot/<bot name>/<instruction>`
+  - e.g. bot name is `issue grooming`, instruction is `ready for triage`, label is `bot/issue-grooming/ready-for-triage`
+
+## Node Dependencies
+
+Dependencies are managed via `package.json` and `yarn`
+
+- To install dependencies use `yarn install`. This will fail if dependencies and versions listed in `package.json` are out of step with the `yarn.lock` file
+- To add a dependency use `yarn run add:no-lock ...` instead of `yarn add`
+- To upgrade a dependency use `yarn run upgrade:no-lock ...` instead of `yarn upgrade`
 ## Milestone guidance
 
 - All issues must first be resolved in the `master` branch

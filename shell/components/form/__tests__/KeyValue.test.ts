@@ -177,6 +177,72 @@ describe('component: KeyValue', () => {
     expect(firstValueInput.element.value).toBe('testvalue1');
   });
 
+  describe('valueConcealed', () => {
+    it('should not render actual secret values in the DOM when valueConcealed is true', () => {
+      const secretValue = 'super-secret-api-key-12345';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: secretValue },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(true);
+      expect(wrapper.html()).not.toContain(secretValue);
+    });
+
+    it('should render a TextAreaAutoGrow with the real value when valueConcealed is false', () => {
+      const secretValue = 'visible-value';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { myKey: secretValue },
+          mode:           'view',
+          valueConcealed: false,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(false);
+
+      const multilineEl = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(multilineEl.exists()).toBe(true);
+    });
+
+    it('should have user-select none on the concealed placeholder to prevent text selection', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: 'secret' },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.classes()).toContain('concealed-value');
+    });
+  });
+
   it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
     const value = [{ key: 'testkey1', value: 'testvalue1' }];
 

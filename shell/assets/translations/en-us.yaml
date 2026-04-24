@@ -30,6 +30,7 @@ generic:
   comma: ', '
   copy: Copy
   copyToClipboard: Copy text to Clipboard
+  copyValueToClipboard: 'Copy {value} to Clipboard'
   copiedToClipboard: Text copied to Clipboard
   create: Create
   created: Created
@@ -438,7 +439,6 @@ accountAndKeys:
     notAllowed: You do not have permission to manage API Keys
     apiEndpoint: "API Endpoint:"
     copyApiEnpoint: Copy API Endpoint to clipboard
-    normanTokenDeprecation: The API Keys feature is being migrated to a new API. Any existing API Keys from the legacy API will continue to work, but new API Keys will be created using the new API.
     add:
       description:
         label: Description
@@ -464,9 +464,7 @@ accountAndKeys:
           month: Months
           year: Years
       scope: Scope
-      userPrincipal: User Principal
       noScope: No Scope
-      enabled: Token enabled
     info:
       accessKey: Access Key
       secretKey: Secret Key
@@ -475,7 +473,7 @@ accountAndKeys:
       keyCreated: A new API Key has been created
       bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
       ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
-      expiryOptionsWithNever: Since "auth-token-max-ttl-minutes" is set to <= 0, the API Key will not expire unless the "Automatically expire" option is set to "Custom" and a custom expiry time is set.
+
 addClusterMemberDialog:
   title: Add Cluster Member
 
@@ -1020,6 +1018,11 @@ asyncButton:
     waiting: Generating&hellip;
 
 backupRestoreOperator:
+  monitoring:
+    label: Monitoring
+    enableMetrics: Enable Metrics
+    enableServiceMonitor: Enable ServiceMonitor
+    serviceMonitorTooltip: Requires rancher-monitoring to be installed before this can be enabled.
   backup:
     label: Resource Set
     description: The Resource Set determines which resources the backup-restore-operator collects in a backup
@@ -1376,6 +1379,7 @@ catalog:
       releaseName: Release Name
       releaseNamespace: Release Namespace
   repo:
+    add: Add Repository
     action:
       refresh: Refresh
     all: All
@@ -1431,6 +1435,8 @@ catalog:
     refreshInterval:
       label: Refresh Interval
       placeholder: 'default: {hours}'
+    error:
+      refresh: Error refreshing repository
   tools:
     iconAlt: Icon for {app} Cluster Tool
     header: Cluster Tools
@@ -2721,8 +2727,6 @@ cluster:
     v2: RKE2/K3s
   validation:
     iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
-  capi:
-    notSupported: Managing clusters provisioned using CAPI infrastructure providers via the UI is currently limited to Rancher Turtles provisioned clusters.
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -2834,8 +2838,8 @@ providers:
 drivers:
   kontainer:
     title: Cluster Drivers
-    emberDeprecationMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and will be removed in a future release. These need to be migrated to the new <a href="https://extensions.rancher.io" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
-    refreshError: 'Error refreshing cluster drivers: {error}'
+    emberRemovalMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and has been removed in 2.15.0. If you still need one of these plugins, it will need to be migrated to the new <a href="https://extensions.rancher.io/extensions/next/provisioning/hosted-provider/overview" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
+    emberRemovalTooltip: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and has been removed in 2.15.0. If you still need this plugin, it will need to be migrated to the new UI Extensions framework.'
   node:
     title: Node Drivers
   add:
@@ -2987,7 +2991,7 @@ fleet:
       add: Add Selector
     tolerations:
       label: Tolerations
-      description: "List of node taints to tolerate (requires Kubernetes >= 1.6)"
+      description: "List of node taints to tolerate."
       add: Add Toleration
     priorityClassName:
       label: Priority Class Name
@@ -5031,6 +5035,7 @@ node:
         cpu: CPU
         memory: MEMORY
         pods: PODS
+        running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
       memoryPressure: Memory Pressure
@@ -5575,6 +5580,9 @@ plugins:
     prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
+    alreadyInstalledTitle: This extension is already installed from another source
+    alreadyInstalledPrompt: To install it from this source, you need to uninstall the existing version first and reload the page (required). Would you like to continue?
+    uninstallExisting: Uninstall existing version
   upgrade:
     label: Upgrade
     title: Upgrade extension {name}
@@ -5775,7 +5783,6 @@ projectMembers:
     createNs: Create Namespaces
     configmapsManage: Manage Config Maps
     ingressManage: Manage Ingress
-    projectcatalogsManage: Manage Project Catalogs
     projectroletemplatebindingsManage: Manage Project Members
     secretsManage: Manage Secrets
     serviceaccountsManage: Manage Service Accounts
@@ -5785,7 +5792,6 @@ projectMembers:
     configmapsView: View Config Maps
     ingressView: View Ingress
     monitoringUiView: View Monitoring
-    projectcatalogsView: View Project Catalogs
     projectroletemplatebindingsView: View Project Members
     secretsView: View Secrets
     serviceaccountsView: View Service Accounts
@@ -6857,7 +6863,6 @@ storageClass:
       tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
-  isLegacy: Legacy
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
   accessKey: Access Key
@@ -6988,6 +6993,7 @@ tableHeaders:
   progress: Progress
   podImages: Image
   podRestarts: Restarts
+  podLastRestart: Last Restart
   pods: Pods
   pod-Selector: Pod-Selector
   providers: Providers
@@ -8045,10 +8051,7 @@ typeDescription:
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
   node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecycle, if available, go to Cluster Management.
-  catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
-  catalog.cattle.io.clusterrepo.local: ' A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster. Cluster Templates are deployed via Helm charts.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
-  catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
   logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
@@ -8949,7 +8952,6 @@ performance:
     label: Server-side Pagination
     description: By default Lists will fetch all resources and paginate (create the page given sort and filter settings) locally in the browser. Server-Side Pagination moves this out from the browser to the server. This improves performance of the UI, especially in systems with lots of resources.
     applicable: "Server-side pagination applies to Resource Types"
-    featureFlag: Enabling/Disabling <i class="mr-5">"Server-side Pagination"</i> is now solely done so via the <i class="mr-5">ui-sql-cache</i>&nbsp;<a href="{ffUrl}">Feature Flag</a>
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
@@ -9174,10 +9176,6 @@ support:
       title: Innovate with Freedom
       text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.
 
-embedding:
-  retry: Retry
-  unavailable: Cluster Manager UI is not available
-
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
@@ -9363,6 +9361,7 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+          noPods: There are no pods currently present.
         jobsCard:
           title: Jobs
           ariaResourceName: jobs

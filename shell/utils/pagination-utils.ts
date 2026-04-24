@@ -299,7 +299,7 @@ class PaginationUtils {
     return isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
       this.paginationFiltersEqual(aFilter, bFilter) &&
       this.paginationFiltersEqual(aPN, bPN) &&
-      sameArrayObjects<PaginationSort>(aSort, bSort, true);
+      sameArrayObjects<PaginationSort>(aSort, bSort, false);
   }
 }
 

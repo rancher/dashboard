@@ -21,19 +21,19 @@
     "@mdx-js/react": "3.1.1",
     "clsx": "1.2.1",
     "docusaurus-lunr-search": "3.5.0",
+    "docusaurus-plugin-typedoc": "1.4.2",
     "prism-react-renderer": "2.4.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "yaml": "2.8.1",
-    "docusaurus-plugin-typedoc": "^1.4.2",
-    "typedoc": "^0.28.13",
-    "typedoc-plugin-markdown": "^4.9.0",
-    "typescript": "^5.9.2"
+    "typedoc": "0.28.18",
+    "typedoc-plugin-markdown": "4.11.0",
+    "typescript": "5.9.3",
+    "yaml": "2.8.3"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.8.1",
     "@docusaurus/types": "3.0.0",
-    "vue": "3.5.18",
+    "vue": "3.5.29",
     "vue-router": "4.5.1"
   },
   "browserslist": {
@@ -49,7 +49,8 @@
     ]
   },
   "resolutions": {
-    "cheerio": "1.0.0-rc.12"
+    "cheerio": "1.0.0-rc.12",
+    "webpack": "5.105.4"
   },
   "engines": {
     "node": ">=18.0"

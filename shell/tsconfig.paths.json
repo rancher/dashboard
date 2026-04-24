@@ -14,6 +14,7 @@
         "../shell/pkg/*"
       ],
       "@components/*": [
+        "./rancher-components/*",
         "../pkg/rancher-components/src/components/*"
       ]
     },

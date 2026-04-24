@@ -20,10 +20,6 @@ export default class KontainerDriverCreateEditPo extends PagePo {
     return new LabeledInputPo('[data-testid="driver-create-url-field"]');
   }
 
-  customUiUrl() {
-    return new LabeledInputPo('[data-testid="driver-create-uiurl-field"]');
-  }
-
   checksum() {
     return new LabeledInputPo('[data-testid="driver-create-checksum-field"]');
   }

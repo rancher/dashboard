@@ -1,7 +1,10 @@
 {
   "branches": {
     "master": {
-      "milestone": "v2.14.0",
+      "milestone": {
+        "version": "v2.15.0",
+        "codeFreeze": false
+      },
       "e2e": {
         "rancher-image": {
           "namespace": "rancher",
@@ -10,16 +13,34 @@
         }
       },
       "rancher-rancher-repo": {
-        "main": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
-            "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
-          } 
+        "branch": "main",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
+        "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
+      }
+    },
+    "release-2.14": {
+      "milestone": {
+        "version": "v2.14.1",
+        "codeFreeze": true
+      },
+      "e2e": {
+        "rancher-image": {
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.14-head"
         }
+      },
+      "rancher-rancher-repo": {
+        "branch": "release/v2.14",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.14/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.14/index.html"
       }
     },
     "release-2.13": {
-      "milestone": "v2.13.4",
+      "milestone": {
+        "version": "v2.13.5",
+        "codeFreeze": true
+      },
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",
@@ -29,16 +50,16 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.13": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.13/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.13/index.html"
-          } 
-        }
+        "branch": "release/v2.13",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.13/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.13/index.html"
       }
     },
     "release-2.12": {
-      "milestone": "v2.12.8",
+      "milestone": {
+        "version": "v2.12.9",
+        "codeFreeze": true
+      },
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",
@@ -48,16 +69,16 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.12": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
-          } 
-        }
+        "branch": "release/v2.12",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
       }
     },
     "release-2.11": {
-      "milestone": "v2.11.12",
+      "milestone": {
+        "version": "v2.11.13",
+        "codeFreeze": true
+      },
       "e2e": {
         "rancher-image": {
           "registry": "stgregistry.suse.com",
@@ -67,12 +88,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "release/v2.12": {
-          "settings": {
-            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
-            "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
-          } 
-        }
+        "branch": "release/v2.11",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
       }
     }
   }

@@ -19,9 +19,7 @@ import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
 import { uniq, removeObject } from '@shell/utils/array';
 import paginationUtils from '@shell/utils/pagination-utils';
-
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-
 import { mapGetters } from 'vuex';
 import {
   HCI,
@@ -32,7 +30,6 @@ import {
   NODE,
   STORAGE_CLASS
 } from '@shell/config/types';
-
 import { SETTING } from '@shell/config/settings';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
@@ -156,12 +153,13 @@ export default {
         }
 
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: configMapsUrl }),
-          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
-          storageClass: this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
-          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
+          namespaces:     this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:         this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps:     this.$store.dispatch('cluster/request', { url: configMapsUrl }),
+          networks:       this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          storageClass:   this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
+          settings:       this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` }),
+          cpuModelConfig: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s/harvester-system/node-cpu-model-configuration` }),
         });
 
         for (const key of Object.keys(res)) {
@@ -190,6 +188,7 @@ export default {
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
+        this.cpuModelConfigMap = res.cpuModelConfig.value?.data;
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -380,11 +379,55 @@ export default {
       vGpuDevices:        {},
       vGpusInit:          vGpus,
       vGpus,
+      cpuModelConfigMap:  null,
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    cpuModelOptions() {
+      const defaultOption = { label: this.t('generic.default'), value: '' };
+
+      if (!this.cpuModelConfigMap?.cpuModels) {
+        return [defaultOption];
+      }
+
+      let cpuModelsData;
+
+      try {
+        cpuModelsData = YAML.parse(this.cpuModelConfigMap.cpuModels);
+      } catch (e) {
+        return [defaultOption];
+      }
+
+      if (!cpuModelsData || typeof cpuModelsData !== 'object') {
+        return [defaultOption];
+      }
+
+      const options = [defaultOption];
+
+      const globalModels = cpuModelsData.globalModels || [];
+
+      globalModels.forEach((modelName) => {
+        options.push({ label: modelName, value: modelName });
+      });
+
+      const modelEntries = Object.entries(cpuModelsData.models || {});
+
+      modelEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+      modelEntries.forEach(([modelName, modelInfo]) => {
+        const readyCount = modelInfo.readyCount || 0;
+
+        options.push({
+          label: this.t('harvesterManager.cpuModel.optionLabel', { modelName, count: readyCount }),
+          value: modelName
+        });
+      });
+
+      return options;
+    },
 
     disabledEdit() {
       return this.disabled || !!(this.isEdit && this.value.id);
@@ -1287,6 +1330,15 @@ export default {
             :mode="mode"
             :disabled="disabled"
             :placeholder="t('cluster.harvester.machinePool.reservedMemory.placeholder')"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledSelect
+            v-model:value="value.cpuModel"
+            :label="t('harvesterManager.cpuModel.label')"
+            :options="cpuModelOptions"
+            :mode="mode"
+            :disabled="disabled"
           />
         </div>
       </div>

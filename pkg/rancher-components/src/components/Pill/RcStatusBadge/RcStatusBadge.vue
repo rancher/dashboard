@@ -20,17 +20,20 @@ const { backgroundColor, borderColor, textColor } = useStatusColors(status, 'out
 
 <style lang="scss" scoped>
 .rc-status-badge {
+    box-sizing: border-box;
+    height: 21px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1px 7px;
+    padding: 2px 7px;
 
     border: 1px solid transparent;
     border-radius: 30px;
 
     font-family: Lato;
     font-size: 12px;
-    line-height: 19px;
+    line-height: 17px;
 
     background-color: v-bind(backgroundColor);
     border-color: v-bind(borderColor);

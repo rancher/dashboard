@@ -1,5 +1,6 @@
 <script lang="ts">
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AsyncButton from '@shell/components/AsyncButton.vue';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -16,6 +17,7 @@ import { getVersionData } from '@shell/config/version';
 import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params';
 import { RcIconType } from '@components/RcIcon/types';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export default {
   name: 'CruCatalogRepo',
@@ -23,6 +25,7 @@ export default {
   emits: ['input'],
 
   components: {
+    AsyncButton,
     Footer,
     LabeledInput,
     NameNsDescription,
@@ -64,7 +67,7 @@ export default {
       {
         id:      CLUSTER_REPO_TYPES.OCI_URL,
         header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: require('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
+        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
         content: { key: 'catalog.repo.target.oci.description' },
       },
     ];
@@ -74,7 +77,7 @@ export default {
       clusterRepoTargets.push({
         id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
         header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        image:   { src: require('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
+        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
         content: { key: 'catalog.repo.target.suseAppCollection.description' },
       });
     }
@@ -90,6 +93,7 @@ export default {
       ociMaxRetries:       this.value.spec.exponentialBackOffValues?.maxRetries,
       getVersionData,
       isView:              this.mode === _VIEW,
+      isCreate:            this.mode === _CREATE,
       clusterRepoTargets,
       previousName:        '',
       previousDescription: '',
@@ -228,7 +232,7 @@ export default {
 <template>
   <form>
     <h2>{{ t('catalog.repo.target.label') }}</h2>
-    <div class="row mb-10">
+    <div class="row mb-20">
       <div class="col span-12 target-groups">
         <RcItemCard
           v-for="card in clusterRepoTargets"
@@ -450,7 +454,17 @@ export default {
       :errors="errors"
       @save="save"
       @done="done"
-    />
+    >
+      <template
+        v-if="isCreate"
+        #save
+      >
+        <AsyncButton
+          :action-label="t('catalog.repo.add')"
+          @click="save"
+        />
+      </template>
+    </Footer>
   </form>
 </template>
 

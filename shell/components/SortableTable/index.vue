@@ -2099,13 +2099,13 @@ export default {
 
   $header-padding: 20px;
   .sub-header-row {
-    padding: 0 0 $header-padding / 2 0;
+    padding: 0 0 calc($header-padding / 2) 0;
   }
 
   .fixed-header-actions {
     padding: 0 0 $header-padding 0;
     &.with-sub-header {
-      padding: 0 0 $header-padding / 4 0;
+      padding: 0 0 calc($header-padding / 4) 0;
     }
 
     width: 100%;

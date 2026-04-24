@@ -297,7 +297,8 @@ export default {
       originalKubeVersion:                      null,
       isEmpty,
       AGENT_CONFIGURATION_TYPES,
-      basicsValid:                              true
+      basicsValid:                              true,
+      originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
     };
   },
 
@@ -978,8 +979,7 @@ export default {
         );
       }
 
-      Object.keys(this.versionInfo).forEach((key) => delete this.versionInfo[key]); // Invalidate cache such that version info relevant to selected kube version is updated
-
+      this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
       if (this.mode === _CREATE) {
@@ -1864,11 +1864,11 @@ export default {
             versionName: entry.version,
           });
 
-          this.set(this.versionInfo, chartName, res);
+          this.versionInfo[chartName] = res;
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
-            this.set(this.userChartValues, key, {});
+            this.userChartValues[key] = {};
           }
         } catch (e) {
           console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
@@ -1940,7 +1940,7 @@ export default {
       const fromUser = this.userChartValuesTemp[name];
       const different = diff(fromChart, fromUser);
 
-      this.set(this.userChartValues, this.chartVersionKey(name), different);
+      this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
 
     initYamlEditor(name) {
@@ -2523,6 +2523,7 @@ export default {
               <Tab
                 v-if="!obj.remove"
                 :key="obj.id"
+                :weight="-1 * idx"
                 :name="obj.id"
                 :label="obj.pool.name || '(Not Named)'"
                 :show-header="false"
@@ -2593,6 +2594,7 @@ export default {
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
+              :original-ingress-controller="originalIngressController"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"

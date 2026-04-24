@@ -75,15 +75,6 @@ const getProxyConfig = (proxyConfig) => ({
   '/v1-*':           proxyOpts(api), // SAML, KDM, etc
   '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
   '/version':        proxyPrimeOpts(api), // Rancher Kube version endpoint
-  // These are for Ember embedding
-  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':             proxyOpts('https://127.0.0.1:8000'),
-  '/g/':             proxyOpts('https://127.0.0.1:8000'),
-  '/n/':             proxyOpts('https://127.0.0.1:8000'),
-  '/p/':             proxyOpts('https://127.0.0.1:8000'),
-  '/assets':         proxyOpts('https://127.0.0.1:8000'),
-  '/translations':   proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 });
 
 /**
@@ -143,7 +134,7 @@ const instrumentCode = (config) => {
   }
 };
 
-const getLoaders = (SHELL_ABS) => [
+const getLoaders = (SHELL_ABS, dir) => [
   // no fallback for pre-2013 browsers https://caniuse.com/webworkers
   {
     test:    /web-worker.[a-z-]+.js/i,
@@ -199,7 +190,8 @@ const getLoaders = (SHELL_ABS) => [
           appendTsxSuffixTo: [
             '\\.vue$'
           ],
-          configFile: path.join(SHELL_ABS, 'tsconfig.json')
+          configFile:      path.join(SHELL_ABS, 'tsconfig.json'),
+          compilerOptions: { rootDir: dir }
         }
       }
     ]
@@ -580,7 +572,7 @@ module.exports = function(dir, appConfig = {}) {
 
       config.resolve.symlinks = false;
       processShellFiles(config, SHELL_ABS);
-      config.module.rules.push(...getLoaders(SHELL_ABS));
+      config.module.rules.push(...getLoaders(SHELL_ABS, dir));
       instrumentCode(config);
       preserveWhitespace(config);
     },

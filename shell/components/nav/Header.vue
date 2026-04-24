@@ -189,10 +189,28 @@ export default {
                  (this.currentProduct && this.currentProduct.showWorkspaceSwitcher);
       // Don't show if the header is in 'simple' mode
       const notSimple = !this.simple;
-      // One of these must be enabled, otherwise t here's no component to show
-      const validFilterSettings = this.currentProduct?.showNamespaceFilter || this.currentProduct?.showWorkspaceSwitcher;
+      // One of these must be enabled, otherwise there's no component to show
+      const validFilterSettings = this.currentProduct?.showNamespaceFilter || this.showWorkspaceSwitcher;
 
       return validClusterOrProduct && notSimple && validFilterSettings;
+    },
+
+    /**
+     * The workspace switcher should be disabled on detail, edit and create pages.
+     * Only list pages should allow changing the workspace.
+     */
+    disableWorkspaceSwitcher() {
+      // Disable on detail/edit pages (route has an id param)
+      if (this.$route?.params?.id) {
+        return true;
+      }
+
+      // Disable on create pages (route names end with '-create')
+      if (this.$route?.name?.endsWith('-create')) {
+        return true;
+      }
+
+      return false;
     },
 
     featureRancherDesktop() {
@@ -201,12 +219,6 @@ export default {
 
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
-    },
-
-    prod() {
-      const name = this.rootProduct.name;
-
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
@@ -239,6 +251,30 @@ export default {
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
+
+    productLabel() {
+      const name = this.rootProduct.name;
+
+      // single products do their own thing, which is the previous default behavior as per next line
+      if (this.isSingleProduct) {
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      } else {
+        if (this.rootProduct?.label) {
+          return this.rootProduct.label;
+        }
+        if (this.rootProduct?.labelKey) {
+          return this.$store.getters['i18n/t'](this.rootProduct.labelKey);
+        }
+
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      }
+    },
+
+    // Determine if we are on a route that shows the logo instead of the product label
+    // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
+    isLogoRoute() {
+      return !this.$route.name.includes('c-cluster');
+    }
   },
 
   watch: {
@@ -518,7 +554,7 @@ export default {
           :alt="t('branding.logos.label')"
         >
         <div class="product-name">
-          {{ prod }}
+          {{ productLabel }}
         </div>
       </div>
     </div>
@@ -532,6 +568,13 @@ export default {
         class="product-name"
       >
         {{ t(isSingleProduct.productNameKey) }}
+      </div>
+
+      <div
+        v-else-if="productLabel && !isLogoRoute"
+        class="product-name"
+      >
+        {{ productLabel }}
       </div>
 
       <div
@@ -556,7 +599,10 @@ export default {
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher && showWorkspaceSwitcher" />
+        <WorkspaceSwitcher
+          v-else-if="clusterReady && showWorkspaceSwitcher"
+          :disabled="disableWorkspaceSwitcher"
+        />
       </div>
       <div
         v-if="currentCluster && !simple"

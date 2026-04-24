@@ -131,11 +131,17 @@ const isWaitingForDestroy = (storeName, store) => {
 };
 
 const waitForSettingsSchema = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING),
+    'management settings schema to be available'
+  );
 };
 
 const waitForSettings = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE),
+    'UI performance settings to be available'
+  );
 };
 
 const isAdvancedWorker = (ctx) => {
@@ -195,8 +201,20 @@ export async function createWorker(store, ctx) {
     };
   }
 
-  await waitForSettingsSchema(storeName, store);
-  await waitForSettings(storeName, store);
+  try {
+    await waitForSettingsSchema(storeName, store);
+    await waitForSettings(storeName, store);
+  } catch (e) {
+    // Clean up the mock worker and abort so callers are not permanently blocked.
+    if (store.$workers[storeName]?.destroy) {
+      store.$workers[storeName].destroy();
+    } else {
+      delete store.$workers[storeName];
+    }
+
+    return;
+  }
+
   if (store.$workers[storeName].waitingForDestroy()) {
     store.$workers[storeName].destroy();
 
@@ -382,6 +400,13 @@ const sharedActions = {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
+
+      // createWorker cleans up and returns early when schema/settings are unavailable.
+      // Guard against calling postMessage on a non-existent worker.
+      if (!this.$workers[getters.storeName]) {
+        return;
+      }
+
       const options = { parseJSON: false };
       const csrf = rootGetters['cookies/get']({ key: CSRF, options });
 

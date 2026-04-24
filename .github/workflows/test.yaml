@@ -40,7 +40,7 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -48,7 +48,7 @@ jobs:
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}/
@@ -56,7 +56,7 @@ jobs:
           retention-days: 10
           compression-level: 9
       - name: Upload e2e build ember
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
@@ -88,7 +88,7 @@ jobs:
         ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -100,14 +100,15 @@ jobs:
       #   uses: ./.github/actions/install-chrome
       #   with:
       #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v7
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v7
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -147,7 +148,7 @@ jobs:
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ always() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
@@ -161,7 +162,7 @@ jobs:
     needs: e2e-ui-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -171,14 +172,15 @@ jobs:
       #   uses: ./.github/actions/install-chrome
       #   with:
       #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v7
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v7
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -202,9 +204,10 @@ jobs:
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
+          TEST_NO_VIDEOS: true          
 
       - name: Upload report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
@@ -212,7 +215,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
       
@@ -226,20 +229,20 @@ jobs:
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
       - name: Upload unit test junit file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-unit-tests
           path: unit-test-reports/*
   i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
@@ -249,7 +252,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
@@ -259,10 +262,10 @@ jobs:
   check-i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -277,10 +280,10 @@ jobs:
   check-i18n-links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -310,7 +313,10 @@ jobs:
   #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
   #     - name: Install Codecov CLI
-  #       run : .github/workflows/scripts/install-codecov.sh
+  #       uses : .github/workflows/scripts/install-codecov.sh
+  #       with:
+  #         codecov-version:
+  #         codecov-version-checksum:
 
   #     - name: Upload tests coverage report to Codecov
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
@@ -318,10 +324,10 @@ jobs:
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
       - name: Check e2e tags
@@ -331,10 +337,10 @@ jobs:
   check-cypress-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: '.nvmrc'
       - name: Verify Cypress build
@@ -363,7 +369,7 @@ jobs:
           fi
 
           cat ./origin/origin
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         name: Upload origin artifact
         with:
           name: origin

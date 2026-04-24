@@ -8,6 +8,13 @@ export default {
   name:       'WorkspaceSwitcher',
   components: { Select },
 
+  props: {
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+
   computed: {
     ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace', 'getActiveNamespaces']),
 
@@ -94,6 +101,7 @@ export default {
       label="label"
       :options="options"
       :clearable="false"
+      :disabled="disabled"
       :reduce="(opt) => opt.value"
     />
     <!--button v-shortkey.once="['w']" class="hide" @shortkey="focus()" /-->
@@ -186,5 +194,10 @@ export default {
 
 .filter :deep() .unlabeled-select INPUT[type='search'] {
   padding: 7px;
+}
+
+.filter :deep() .unlabeled-select.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

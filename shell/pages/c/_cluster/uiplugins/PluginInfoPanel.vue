@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
+import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
@@ -36,7 +37,7 @@ export default {
       infoVersion:      undefined,
       versionInfo:      undefined,
       versionError:     undefined,
-      defaultIcon:      require('~shell/assets/images/generic-plugin.svg'),
+      defaultIcon:      genericPluginSvg,
       headerBannerSize: 0,
       isActive:         false
     };

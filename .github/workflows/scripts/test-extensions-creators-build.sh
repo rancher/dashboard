@@ -40,7 +40,7 @@ validate_tagged_extension_creator() {
   cd ${SKELETON_APP_NAME}
 
   # install dependencies
-  yarn install
+  yarn install --frozen-lockfile
 
   # test build of pkg inside skeleton app
   yarn build-pkg ${SKELETON_APP_NAME} | cat
@@ -70,7 +70,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --frozen-lockfile
 
     cat package.json
 
@@ -80,10 +80,10 @@ validate_tagged_extension_creator() {
     echo "*** Testing UPGRADE from legacy-v2 to latest ***"
     echo "*** ***************************************** ***"
 
-    echo "=> Updating node version required for last leg of upgrade path: v20"
+    echo "=> Updating node version required for last leg of upgrade path: v24"
 
-    nvm install v20
-    nvm use v20
+    nvm install v24
+    nvm use v24
 
     npm init @rancher/extension -- --migrate
 
@@ -93,7 +93,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --frozen-lockfile
 
     yarn build-pkg ${SKELETON_APP_NAME} | cat
   fi
@@ -108,7 +108,7 @@ validate_tagged_extension_creator() {
 # test creating an extension with latest shell releases + build
 validate_tagged_extension_creator "legacy-v1" "v16"
 validate_tagged_extension_creator "legacy-v2" "v16"
-validate_tagged_extension_creator "latest" "v20"
+validate_tagged_extension_creator "latest" "v24"
 
 # test update paths + build
 validate_tagged_extension_creator "legacy-v1"  "v16" "true"

@@ -9,6 +9,7 @@ import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -622,12 +623,29 @@ export default class Workload extends WorkloadService {
 
   calcPodGauges(pods) {
     const out = { };
+    let refPods = pods;
 
-    if (!pods) {
+    if (this.metadata.associatedData) {
+      refPods = [];
+      this.metadata.associatedData.forEach((w) => {
+        if (w.gvk.kind.toLowerCase() !== POD) {
+          return;
+        }
+
+        return w.data.forEach((p) => {
+          refPods.push({
+            stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
+            stateDisplay: stateDisplayFn(p.state.name),
+          });
+        });
+      });
+    }
+
+    if (!refPods) {
       return out;
     }
 
-    pods.map((pod) => {
+    refPods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -755,20 +773,26 @@ export default class Workload extends WorkloadService {
   get podsCard() {
     const supportedTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET];
 
-    if (!supportedTypes.includes(this.type) || (this.pods?.length || 0) <= 0) {
+    if (!supportedTypes.includes(this.type)) {
       return null;
     }
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
+    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+
+    if (!this.pods || (this.pods.length === 0 && !canScale)) {
+      return null;
+    }
 
     return {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
       props:     {
-        title:       this.t('component.resource.detail.card.podsCard.title'),
-        resources:   this.pods,
-        showScaling: this.canUpdate && scalingTypes.includes(this.type),
-        onIncrease:  () => this.scale(true),
-        onDecrease:  () => this.scale(false)
+        title:              this.t('component.resource.detail.card.podsCard.title'),
+        resources:          this.pods,
+        showScaling:        canScale,
+        onIncrease:         () => this.scale(true),
+        onDecrease:         () => this.scale(false),
+        noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
       }
     };
   }

@@ -98,6 +98,7 @@ export function init($extension, store) {
     weight:              100,
     to:                  harvesterClustersLocation,
     category:            'hci',
+    extendable:          true,
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });

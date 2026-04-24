@@ -76,6 +76,12 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    extensionParams: {
+      type:    Object,
+      default: null,
+    },
+
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components

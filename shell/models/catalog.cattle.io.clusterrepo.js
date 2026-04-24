@@ -3,6 +3,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
 import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { _CREATE } from '@shell/config/query-params';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 
@@ -40,26 +41,54 @@ export default class ClusterRepo extends SteveModel {
       });
 
       insertAt(out, 0, {
-        action:   'refresh',
-        label:    this.t('action.refresh'),
-        icon:     'icon icon-refresh',
-        enabled:  !!this.links.update,
-        bulkable: true,
+        action:     'refresh',
+        label:      this.t('action.refresh'),
+        icon:       'icon icon-refresh',
+        enabled:    !!this.links.update,
+        bulkable:   true,
+        bulkAction: 'refreshBulk',
       });
     }
 
     return out;
   }
 
-  async refresh() {
-    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+  /**
+   * Refreshes the repository by updating its forceUpdate annotation and waiting for it to become active.
+   * @param {boolean} dispatchLoad - Whether to dispatch the catalog/load action after refreshing. Defaults to true.
+   */
+  async refresh(dispatchLoad = true) {
+    try {
+      const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
-    this.spec.forceUpdate = now;
-    await this.save();
+      this.spec.forceUpdate = now;
+      await this.save();
 
-    await this.waitForState('active', 10000, 1000);
+      await this.waitForState('active', 10000, 1000);
 
-    this.$dispatch('catalog/load', { force: true, reset: true }, { root: true });
+      if (dispatchLoad) {
+        this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });
+      }
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.t('catalog.repo.error.refresh', {}, 'Error refreshing repository'),
+        err,
+      }, { root: true });
+    }
+  }
+
+  /**
+   * Performs a bulk refresh on multiple repositories concurrently, bypassing individual
+   * catalog loads, and dispatches a single catalog/load for all repositories once they are active.
+   * @param {ClusterRepo[]} items - Array of repository instances to refresh.
+   */
+  async refreshBulk(items) {
+    await Promise.allSettled(items.map((item) => item.refresh(false)));
+
+    this.$dispatch('catalog/load', {
+      force:    true,
+      repoKeys: items.map((item) => item._key)
+    }, { root: true });
   }
 
   async disableClusterRepo() {
@@ -171,6 +200,14 @@ export default class ClusterRepo extends SteveModel {
     const key = `catalog.repo.name."${ name }"`;
 
     return this.$rootGetters['i18n/withFallback'](key, null, name);
+  }
+
+  detailPageHeaderActionOverride(realMode) {
+    if (realMode === _CREATE) {
+      return this.t('catalog.repo.add');
+    }
+
+    return null;
   }
 
   get urlDisplay() {

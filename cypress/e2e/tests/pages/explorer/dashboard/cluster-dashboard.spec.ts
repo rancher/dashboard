@@ -376,7 +376,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
-      cy.login();
+      cy.login(); // bypass cy.session
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
       cy.get<string>('@standardUserProject').then((projectId) => {
@@ -406,6 +406,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   };
 
   describe('Cluster dashboard - Fleet agent', () => {
+    // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
+    // which log in as a standard user and may leave session cookies in an inconsistent state
+    beforeEach(() => {
+      cy.login();
+    });
+
     it('does not show fleet controller status if a 403 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
@@ -438,6 +444,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   after(function() {
+    // Ensure admin auth is restored before cleanup, as previous tests may have
+    // logged in as a different user or left the session in an inconsistent state
+    cy.login();
+
     if (removePods) {
       podNames.forEach((podName) => {
         cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);

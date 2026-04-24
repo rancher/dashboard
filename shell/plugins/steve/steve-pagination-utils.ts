@@ -15,8 +15,7 @@ import {
   INGRESS,
   WORKLOAD_TYPES,
   HPA,
-  SECRET,
-  EXT
+  SECRET
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -24,6 +23,7 @@ import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 import { parseField } from '@shell/utils/sort';
+import { POD_LAST_RESTART_FIELD, POD_RESTART_FIELD } from '@shell/types/resources/pod';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -241,6 +241,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
+      { field: POD_RESTART_FIELD },
+      { field: POD_LAST_RESTART_FIELD },
     ],
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
@@ -515,6 +517,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       }
     }
 
+    if (opt.includeAssociatedData) {
+      params.push('includeAssociatedData=true');
+    }
+
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
@@ -767,9 +773,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
           { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
           { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
-          SECRET,
-          CAPI.MACHINE_SET,
-          EXT.TOKEN
+          SECRET
         ],
         generic: false,
       }

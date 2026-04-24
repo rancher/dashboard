@@ -29,10 +29,10 @@
   },
   "dependencies": {
     "@cypress/code-coverage": "3.10.4",
-    "@cypress/grep": "3.1.5",
+    "@cypress/grep": "4.1.1",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
-    "@percy/cli": "1.30.7",
+    "@percy/cli": "1.31.8",
     "@percy/cypress": "3.1.6",
     "axe-core": "4.10.2",
     "axe-html-reporter": "2.2.11",
@@ -41,15 +41,22 @@
     "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
+    "cypress-multi-reporters": "1.6.4",
+    "cypress-qase-reporter": "3.0.0",
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
-    "sha.js": "^2.4.12"
+    "find-test-names": "1.29.19",
+    "globby": "11.1.0",
+    "junit-report-merger": "9.0.3",
+    "mocha-junit-reporter": "2.2.1",
+    "sha.js": "^2.4.12",
+    "ts-node": "10.9.2",
+    "typescript": "^5.9.3",
+    "ws": "8.18.0"
   },
-  "devDependencies": {
-    "typescript": "^5.9.3"
-  },
+  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/rancher/dashboard.git",
@@ -58,5 +65,8 @@
   "scripts": {
     "build-pkg": "./scripts/build.sh",
     "publish-pkg": "./scripts/publish.sh --npm"
+  },
+  "resolutions": {
+    "axios": "1.13.5"
   }
 }

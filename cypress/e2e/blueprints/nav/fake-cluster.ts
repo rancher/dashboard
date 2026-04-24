@@ -2479,8 +2479,17 @@ function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmt
   return fakeData;
 }
 
-export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-prov-cluster-id', fakeMgmtClusterId = 'some-mgmt-cluster-id', addEditClusterCapabilities = false): {} {
-  const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
+export function generateFakeClusterDataAndIntercepts({
+  fakeProvClusterId = 'some-prov-cluster-id',
+  fakeMgmtClusterId = 'some-mgmt-cluster-id',
+  addEditClusterCapabilities = false,
+  longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description'
+}: {
+  fakeProvClusterId?: string,
+  fakeMgmtClusterId?: string,
+  addEditClusterCapabilities?: boolean,
+  longClusterDescription?: string
+}): {} {
   const fakeNavClusterData = generateFakeNavClusterData(fakeProvClusterId, fakeMgmtClusterId, addEditClusterCapabilities);
 
   // add cluster to fleet clusters for testing https://github.com/rancher/dashboard/issues/9984
@@ -2521,6 +2530,14 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
     req.continue((res) => {
+      const localIndex = res.body.data.findIndex((item) => item.id.includes('local'));
+
+      if (localIndex >= 0) {
+        const localCluster = res.body.data[localIndex];
+
+        localCluster.spec.description = longClusterDescription;
+      }
+
       res.body.data.push(fakeNavClusterData.mgmtClusterObj);
       res.send(res.body);
     });

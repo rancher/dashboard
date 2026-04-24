@@ -28,7 +28,7 @@ export default class ClusterToolsPagePo extends PagePo {
   }
 
   featureChartCards() {
-    return cy.get('[data-testid="tools-app-chart-cards"]').find('[data-testid*="item-card-"]');
+    return cy.get('[data-testid="tools-app-chart-cards"]').find('[data-testid*="item-card-cluster"]');
   }
 
   getCardByName(name: string): RcItemCardPo {

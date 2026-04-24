@@ -84,6 +84,11 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
   saveCountAs?: string,
 
   /**
+   * When making a supporting HTTP request include associated resource data
+   */
+  includeAssociatedData?: boolean,
+
+  /**
    * The target minimum revision for the resource.
    *
    * If this is higher than the latest revision known to rancher then an error will be returned

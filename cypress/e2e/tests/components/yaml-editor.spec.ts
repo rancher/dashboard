@@ -6,12 +6,16 @@ describe('Yaml Editor', () => {
   const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
   const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
 
-  const { name, namespace } = deploymentCreateRequest.metadata;
+  let { name, namespace } = deploymentCreateRequest.metadata;
+
   const containerImage = 'nginx';
 
   beforeEach(() => {
     cy.login();
     cy.viewport(1280, 720);
+    cy.createE2EResourceName('deployment').then((uniqueName) => {
+      name = uniqueName;
+    });
 
     // Create a new deployment resource
     deploymentsCreatePage.goTo();

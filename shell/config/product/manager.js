@@ -38,6 +38,7 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     weight:              -1, // Place at the top
+    extendable:          true,
     to:                  {
       name:   'c-cluster-product-resource',
       params: {
@@ -202,7 +203,6 @@ export function init(store) {
   ]);
 
   headers(EXT.KUBECONFIG, [
-    STATE,
     {
       name:      'clusters',
       labelKey:  'tableHeaders.clusters',

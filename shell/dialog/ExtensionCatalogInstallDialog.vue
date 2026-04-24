@@ -302,7 +302,7 @@ export default {
         });
 
         if (this.extensionSvc) {
-          this.extensionUrl = `http://${ this.extensionSvc.spec.clusterIP }:${ this.extensionSvc.spec.ports[0].port }`;
+          this.extensionUrl = `http://${ this.extensionSvc.metadata.name }.${ this.extensionSvc.metadata.namespace }.svc:${ this.extensionSvc.spec.ports[0].port }`;
         } else {
           throw new Error('Error fetching extension service');
         }

@@ -1,5 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
-import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
+import TitleBar, { AdditionalActionButton } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { createStore } from 'vuex';
 import { defineComponent, h } from 'vue';
@@ -240,5 +240,49 @@ describe('component: TitleBar/index', () => {
       expect(wrapper.find('.slot-button').exists()).toBeTruthy();
       expect(wrapper.find('.slot-button').text()).toBe('Slot Button');
     });
+
+    it('should render the actions container correctly when additional-actions slot contains nested buttons', async() => {
+      const wrapper = mount(TitleBar, {
+        props:  { resourceTypeLabel, resourceName },
+        slots:  { 'additional-actions': '<div class="btn-group"><button class="nested-btn">A</button><button class="nested-btn">B</button></div>' },
+        global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
+      });
+
+      const actions = wrapper.find('.actions');
+
+      expect(actions.find('.btn-group').exists()).toBeTruthy();
+      expect(actions.findAll('.btn-group .nested-btn')).toHaveLength(2);
+    });
+  });
+
+  it('should match the full component snapshot', () => {
+    const additionalActions: AdditionalActionButton[] = [
+      {
+        label: 'Deploy', variant: 'primary', onClick: jest.fn()
+      },
+      {
+        label: 'Rollback', variant: 'secondary', size: 'large', onClick: jest.fn()
+      },
+    ];
+
+    const wrapper = mount(TitleBar, {
+      props: {
+        resource:           {},
+        resourceTypeLabel,
+        resourceName,
+        resourceTo,
+        description:        'A test description',
+        badge:              { color: 'bg-success', label: 'Active' },
+        additionalActions,
+        actionMenuResource: { resource: 'test-menu' },
+        onShowConfiguration() {},
+      },
+      global: {
+        stubs:   { 'router-link': RouterLinkStub },
+        provide: { store }
+      }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
   });
 });

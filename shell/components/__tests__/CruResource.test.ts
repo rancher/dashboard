@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
-import { _EDIT, _YAML } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 
 describe('component: CruResource', () => {
@@ -169,6 +169,40 @@ describe('component: CruResource', () => {
     await textAreaField.trigger('keydown.enter', event);
 
     expect(event.preventDefault).toHaveBeenCalledWith();
+  });
+
+  it.each([
+    [_EDIT, true],
+    [_CREATE, true],
+    [_VIEW, false],
+  ])('should render CruResourceFooter when mode is %s: %s', (mode: string, shouldRender: boolean) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode,
+        resource: {}
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const footer = wrapper.find('.cru-resource-footer');
+
+    expect(footer.exists()).toBe(shouldRender);
   });
 
   it('should not prevent default events on keypress Enter', async() => {

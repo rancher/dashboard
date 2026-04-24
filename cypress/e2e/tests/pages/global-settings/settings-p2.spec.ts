@@ -2,7 +2,7 @@ import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
-// import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
+import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import {
   settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
@@ -12,7 +12,7 @@ import {
 const settingsClusterId = '_';
 const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
-// const accountPage = new AccountPagePo();
+const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOriginal = {};
@@ -55,15 +55,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
       settingsPage.waitForUrlPathWithoutContext();
       settingsPage.settingsValue('server-url').contains(value);
 
-      // https://github.com/rancher/dashboard/issues/16726
-      // we've removed the API endpoint from the accounts page
-      // so we can't check that the updated server-url is reflected there,
-      // but we should find a way to check that the updated server-url is being used in the app somewhere
-      // // Check Account and API Keys page
-      // AccountPagePo.navTo();
-      // accountPage.waitForUrlPathWithoutContext();
-      // accountPage.isCurrentPage();
-      // cy.contains(value).should('be.visible');
+      // Check Account and API Keys page
+      AccountPagePo.navTo();
+      accountPage.waitForUrlPathWithoutContext();
+      accountPage.isCurrentPage();
+      cy.contains(value).should('be.visible');
 
       // Check reset button disabled
       SettingsPagePo.navTo();

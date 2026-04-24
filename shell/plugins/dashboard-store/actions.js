@@ -494,8 +494,9 @@ export default {
     // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
       request: {
-        namespace:  opt.namespaced,
-        pagination: opt.pagination
+        namespace:             opt.namespaced,
+        pagination:            opt.pagination,
+        includeAssociatedData: opt.includeAssociatedData,
       },
       result: {
         count:     out.count,

@@ -253,7 +253,7 @@ button {
   &.btn-small {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 15px;
+      line-height: 140%;
       font-size: 12px;
       min-height: 24px;
 
@@ -265,7 +265,7 @@ button {
   &.btn-medium {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 18px;
+      line-height: 140%;
       font-size: 14px;
       min-height: 32px;
 
@@ -277,7 +277,7 @@ button {
   &.btn-large {
     // This is the default size brought by the global button styling
     &, &:not(.btn-sm) {
-      line-height: 20px;
+      line-height: 140%;
       font-size: 16px;
       min-height: 40px;
 

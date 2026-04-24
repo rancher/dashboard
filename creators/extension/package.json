@@ -1,9 +1,10 @@
 {
   "name": "@rancher/create-extension",
   "description": "Rancher UI Extension generator",
-  "version": "3.0.8",
+  "version": "3.0.10",
   "license": "Apache-2.0",
   "author": "SUSE",
+  "repository": "https://github.com/rancher/dashboard",
   "packageManager": "yarn@4.5.0",
   "bin": {
     "create-extension": "init"
@@ -13,7 +14,7 @@
     "init"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "_requires": [
     "core-js",

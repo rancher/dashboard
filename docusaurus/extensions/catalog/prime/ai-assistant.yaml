@@ -1,0 +1,9 @@
+name: Rancher AI Assistant
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: SUSE's context-aware AI agent for Rancher Prime environment
+url: https://rancher.github.io/rancher-ai-product-docs/rancher-ai/latest/en/introduction.html
+icon: https://raw.githubusercontent.com/rancher/rancher-ai-ui/main/pkg/rancher-ai-ui/assets/extension-icon.svg
+
+
+
