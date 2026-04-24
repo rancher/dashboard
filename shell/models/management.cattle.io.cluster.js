@@ -128,8 +128,6 @@ export default class MgmtCluster extends SteveModel {
     // //   if ( configKey === 'rkeConfig') {
     // //     return 'rke2';
 
-    // fails unit test `should return false for a provisioned hosted cluster`
-    // TODO: RC validate once hosted clsuters validate
     // TODO: RC this could also break imported v2prov capi cluster
 
     // For imported K3s clusters, this.status.driver is 'k3s.'
@@ -142,7 +140,7 @@ export default class MgmtCluster extends SteveModel {
       return this.customProvisionerHelper?.provisionerDisplay(this);
     }
 
-    let provisioner = this.provisioner;
+    let provisioner = this.provisioner?.toLowerCase();
 
     if (provisioner === 'rke.windows') {
       provisioner = 'rkeWindows';
@@ -410,8 +408,7 @@ export default class MgmtCluster extends SteveModel {
       return deployments;
     }
 
-    // TODO: RC validate with hosted provider
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.id);
+    return this.machinePools;
   }
 
   get desired() {

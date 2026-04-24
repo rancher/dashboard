@@ -20,7 +20,7 @@ export default {
           {{ row.machineProviderDisplay }}
         </a>
       </span>
-      <span v-else>
+      <span v-else-if="row.machineProviderDisplay !== row.provisionerDisplay">
         {{ row.machineProviderDisplay }}
       </span>
     </template>

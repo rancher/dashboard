@@ -147,10 +147,6 @@ export default {
       fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
     }
 
-    if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
-    }
-
     const fetchOneRes = await allHash(fetchOne);
 
     this.allMachines = fetchOneRes.machines || [];
@@ -280,9 +276,11 @@ export default {
       extCustomParams: null,
       extDetailTabs:   {
         machines:     true, // in this component
+        nodes:        true, // in this component
         logs:         true, // in this component
         registration: true, // in this component
         snapshots:    true, // in this component
+        autoscaler:   true, // in this component
         related:      true, // in ResourceTabs
         events:       true, // in ResourceTabs
         conditions:   true, // in ResourceTabs
@@ -447,7 +445,7 @@ export default {
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.machines;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.nodes;
     },
 
     showSnapshots() {
@@ -624,7 +622,7 @@ export default {
     },
 
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 

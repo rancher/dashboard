@@ -126,7 +126,8 @@ describe('class ProvCluster', () => {
         clusterData: {
           isLocal:                    false,
           isHostedKubernetesProvider: true,
-          providerConfig:             { imported: true }
+          providerConfig:             { imported: true },
+          mgmt:                       { status: { provider: '', driver: 'EKS' } }
         },
         expected: true
       },
@@ -135,7 +136,8 @@ describe('class ProvCluster', () => {
         clusterData: {
           isLocal:                    false,
           isHostedKubernetesProvider: true,
-          providerConfig:             { imported: false }
+          providerConfig:             { imported: false },
+          mgmt:                       { status: { provider: '', driver: 'EKS' } }
         },
         expected: false
       },

@@ -6,7 +6,6 @@ import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 import { CAPI } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import myLogger from '@shell/utils/my-logger';
 
 interface CommonConfig {
   $store: VuexStore
