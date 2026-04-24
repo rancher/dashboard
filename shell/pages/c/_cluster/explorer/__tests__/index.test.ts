@@ -250,7 +250,7 @@ describe('page: cluster dashboard', () => {
 
       const currentCluster = options.global.mocks.$store.getters['currentCluster'];
 
-      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) : currentCluster;
+      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) : currentCluster; // eslint-disable-line jest/no-if
 
       const wrapper = shallowMount(Dashboard, options);
 

@@ -6,6 +6,7 @@ import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 import { CAPI } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
+import myLogger from '@shell/utils/my-logger';
 
 interface CommonConfig {
   $store: VuexStore
@@ -110,8 +111,16 @@ class ManagementClusterUtils {
     return promises;
   }
 
-  forgetSecondaryResources({ $store }: CommonConfig) {
-    $store.dispatch('management/forgetType', CAPI.RANCHER_CLUSTER);
+  forgetSecondaryResources({ context }: { context?: string } = {}, { $store }: CommonConfig) {
+    const canList = $store.getters['management/canList'](CAPI.RANCHER_CLUSTER);
+    const canPaginate = $store.getters['management/paginationEnabled']({
+      id: CAPI.RANCHER_CLUSTER,
+      context
+    });
+
+    if (canList && canPaginate) {
+      $store.dispatch('management/forgetType', CAPI.RANCHER_CLUSTER);
+    }
   }
 }
 

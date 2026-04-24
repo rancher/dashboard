@@ -179,6 +179,7 @@ export default defineComponent({
         memoryHeader,
         podsHeader,
       ],
+      paginationContext: 'home',
 
       clusterCount: 0,
 
@@ -266,7 +267,7 @@ export default defineComponent({
 
   // Forget the types when we leave the page
   beforeUnmount() {
-    ManagementClusterUtils.forgetSecondaryResources({ $store: this.$store });
+    ManagementClusterUtils.forgetSecondaryResources({ context: this.paginationContext }, { $store: this.$store });
   },
 
   methods: {
@@ -626,7 +627,7 @@ export default defineComponent({
                 key-field="id"
                 :headers="headers"
                 :pagination-headers="paginationHeaders"
-                context="home"
+                :context="paginationContext"
 
                 :local-filter="filterRowsLocal"
                 :api-filter="filterRowsApi"

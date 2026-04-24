@@ -18,7 +18,9 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
-import { STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL } from '@shell/config/pagination-table-headers';
+import {
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+} from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -162,6 +164,15 @@ export function init(store) {
     width:     100,
   };
 
+  const EXPLORER = {
+    name:   'explorer',
+    label:  ' ',
+    align:  'right',
+    width:  65,
+    sort:   false,
+    search: false
+  };
+
   headers(MANAGEMENT.CLUSTER, [
     STATE,
     {
@@ -179,14 +190,9 @@ export function init(store) {
       sort: 'status.info.nodeCount'
     },
     AGE,
-    {
-      name:  'explorer',
-      label: ' ',
-      align: 'right',
-      width: 65,
-    },
+    EXPLORER,
   ], [
-    STATE,
+    STEVE_STATE_COL,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',
@@ -203,12 +209,7 @@ export function init(store) {
       sort: 'status.info.nodeCount'
     },
     STEVE_AGE_COL,
-    {
-      name:  'explorer',
-      label: ' ',
-      align: 'right',
-      width: 65,
-    },
+    EXPLORER
   ]);
 
   configureType(MANAGEMENT.CLUSTER, {

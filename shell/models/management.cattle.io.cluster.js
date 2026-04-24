@@ -308,7 +308,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get kubernetesVersionRaw() {
-    return this.status.info.kubernetesVersion;
+    return this.statusInfo.kubernetesVersion;
   }
 
   get kubernetesVersion() {
@@ -486,14 +486,14 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get architecture() {
-    if (!this.status.info.arch) {
+    if (!this.statusInfo.arch) {
       return { label: this.t('generic.provisioning') };
     }
-    if (this.status.info.arch === 'mixed') {
+    if (this.statusInfo.arch === 'mixed') {
       return { label: this.t('cluster.architecture.label.mixed') };
     }
 
-    return { label: this.status.info.arch };
+    return { label: this.statusInfo.arch };
   }
 
   get machines() {
@@ -780,5 +780,20 @@ export default class MgmtCluster extends SteveModel {
     return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => {
       return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
     });
+  }
+
+  _statusInfoWarned = false;
+  get statusInfo() {
+    if (!this.status.info) {
+      if (!this._statusInfoWarned) {
+        this._statusInfoWarned = true;
+        // eslint-disable-next-line no-console
+        console.warn(`management.cattle.io.cluster '${ this.id }' is missing 'status.info'. This could mean the resource is troubled, or an extension has brought in this new model which is used in an older rancher`);
+      }
+
+      return { };
+    }
+
+    return this.status.info;
   }
 }

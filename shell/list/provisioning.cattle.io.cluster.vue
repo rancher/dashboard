@@ -39,6 +39,8 @@ export default {
 
       clusterCount: 0,
 
+      paginationContext: 'cluster-management',
+
       mgmtClusterSchema,
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
     };
@@ -46,7 +48,7 @@ export default {
 
   // Forget the types when we leave the page
   beforeUnmount() {
-    ManagementClusterUtils.forgetSecondaryResources({ $store: this.$store });
+    ManagementClusterUtils.forgetSecondaryResources({ context: this.paginationContext }, { $store: this.$store });
   },
 
   methods: {
@@ -298,7 +300,7 @@ export default {
 
         :headers="headers"
         :pagination-headers="paginationHeaders"
-        context="home"
+        :context="paginationContext"
 
         :local-filter="filterRowsLocal"
         :api-filter="filterRowsApi"
