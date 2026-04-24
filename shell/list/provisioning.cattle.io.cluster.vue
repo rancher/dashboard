@@ -14,7 +14,7 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
+import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
 import { STEVE_AUTOSCALER_ENABLED } from '@shell/config/pagination-table-headers';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 

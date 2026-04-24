@@ -34,7 +34,7 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
 import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
-import ManagementClusterUtils from '@/shell/list/utils/management.cattle.io.cluster.utils';
+import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
 
 export default defineComponent({
   name:       'Home',
