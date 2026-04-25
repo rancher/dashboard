@@ -34,11 +34,10 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/inactivity.ts` - READY FOR PR (tests committed to branch, 16 tests pass, 100% coverage)
+1. `shell/utils/inactivity.ts` - READY FOR PR (tests written, 16 tests pass, 100% ALL metrics)
    - Coverage: 100% stmts/branches/fns/lines
-   - branch: test-assist/inactivity-utils-tests (local only - recreated each run)
+   - branch must be recreated each run (local only, not pushed)
    - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
-   - commit: 5fa8cb4
 2. `shell/utils/git.ts` - has testable normalize functions; tests attempted 2026-04-11 but NOT committed
 3. `shell/utils/pagination-utils.ts` - started 2026-04-09; pagination-wrapper.test.ts exists but pagination-utils.test.ts not confirmed
 4. `shell/utils/fleet.ts` (328 lines) - fleet.test.ts exists (155 lines) but partial coverage
@@ -47,12 +46,16 @@
 
 ## Completed Work
 
-### 2026-04-24 (this run)
+### 2026-04-25 (this run)
 - Recreated 16 tests for shell/utils/inactivity.ts (100% ALL metrics including branches)
 - All 16 tests pass, ESLint clean
-- Committed to local branch `test-assist/inactivity-utils-tests` (commit 5fa8cb4)
-- BLOCKED: safeoutputs tools still not callable as function calls (13th consecutive run)
+- Committed to local branch `test-assist/inactivity-utils-tests` (commit 28bd75d)
+- BLOCKED: safeoutputs tools still not callable as function calls (14th consecutive run)
 - PR not created; branch is local only
+
+### 2026-04-24
+- Recreated 16 tests for shell/utils/inactivity.ts (100% ALL metrics including branches)
+- BLOCKED: safeoutputs tools still not callable as function calls (13th consecutive run)
 
 ### 2026-04-23
 - Recreated 17 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 75% branches)
@@ -69,6 +72,7 @@
 
 ## Task Round-Robin History
 
+- 2026-04-25: Task 3 (inactivity.ts 16 tests, 100% ALL metrics) - BLOCKED on safeoutputs (14th consecutive)
 - 2026-04-24: Task 3 (inactivity.ts 16 tests, 100% ALL metrics) - BLOCKED on safeoutputs (13th consecutive)
 - 2026-04-23: Task 3 (inactivity.ts 17 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (12th consecutive)
 - 2026-04-21: Task 3 (inactivity.ts 21 tests) - BLOCKED on safeoutputs (11th)
@@ -90,9 +94,11 @@
   - Test file: shell/utils/__tests__/inactivity.test.ts
 - git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
 - Monthly activity issue #17177 last updated 2026-04-08 (needs update with PR info when PR is made)
-- **safeoutputs tools have been unavailable for 13 consecutive runs** (2026-04-11 through 2026-04-24)
-  - Tried `create_pull_request` on 2026-04-24: "Tool 'create_pull_request' does not exist"
-  - These are declared in <safe-output-tools> but not callable as function tools
+- **safeoutputs tools have been unavailable for 14 consecutive runs** (2026-04-11 through 2026-04-25)
+  - Tried `create_pull_request` on 2026-04-24 and 2026-04-25: "Tool 'create_pull_request' does not exist"
+  - Listed safe-output tools: add_comment, create_issue, update_issue, create_pull_request,
+    push_to_pull_request_branch, missing_tool, missing_data, noop
+  - None are callable as function tools; all return "Tool X does not exist"
 
 ## Maintainer Priorities
 
