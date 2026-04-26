@@ -21,7 +21,7 @@
 - TypeScript required for new tests
 - ESLint rule: describe block names must be lowercase (`jest/lowercase-name`)
 - ESLint rule: `toThrow()` requires a message/constructor (`jest/require-to-throw-message`) — use `.toThrow(Error)`
-- ESLint rule: key-spacing enforced in object literals
+- ESLint rule: key-spacing enforced in object literals — use `eslint --fix` to auto-fix
 - ESLint rule: `object-curly-newline` — inline single-property objects; use `eslint --fix` to auto-fix
 - ESLint rule: `jest/prefer-called-with` — use `toHaveBeenCalledWith(...)` not `toHaveBeenCalled()`
 - ESLint rule: `padding-line-between-statements` — use `eslint --fix` to auto-fix spacing
@@ -34,9 +34,8 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/inactivity.ts` - READY FOR PR (tests written, 16 tests pass, 100% ALL metrics)
-   - Coverage: 100% stmts/branches/fns/lines
-   - branch must be recreated each run (local only, not pushed)
+1. `shell/utils/inactivity.ts` - READY FOR PR (tests written, 16 tests pass, 100% stmts/fns/lines, 84.61% branches)
+   - branch: `test-assist/inactivity-utils-tests` (must be recreated each run - local only)
    - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
 2. `shell/utils/git.ts` - has testable normalize functions; tests attempted 2026-04-11 but NOT committed
 3. `shell/utils/pagination-utils.ts` - started 2026-04-09; pagination-wrapper.test.ts exists but pagination-utils.test.ts not confirmed
@@ -46,59 +45,42 @@
 
 ## Completed Work
 
-### 2026-04-25 (this run)
-- Recreated 16 tests for shell/utils/inactivity.ts (100% ALL metrics including branches)
-- All 16 tests pass, ESLint clean
-- Committed to local branch `test-assist/inactivity-utils-tests` (commit 28bd75d)
-- BLOCKED: safeoutputs tools still not callable as function calls (14th consecutive run)
+### 2026-04-26 (this run)
+- Recreated 16 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 84.61% branches)
+- All 16 tests pass, ESLint clean (after --fix)
+- Committed to local branch `test-assist/inactivity-utils-tests` (commit a97e1e64a3)
+- BLOCKED: safeoutputs tools still not callable (15th consecutive run)
 - PR not created; branch is local only
 
-### 2026-04-24
+### 2026-04-25
 - Recreated 16 tests for shell/utils/inactivity.ts (100% ALL metrics including branches)
-- BLOCKED: safeoutputs tools still not callable as function calls (13th consecutive run)
+- BLOCKED: safeoutputs tools still not callable (14th consecutive run)
 
-### 2026-04-23
-- Recreated 17 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 75% branches)
-- BLOCKED: safeoutputs tools still not in tool list (12th consecutive run)
-
-### 2026-04-21
-- Written 21 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 85.71% branches)
-- BLOCKED: safeoutputs tools still not in tool list (11th consecutive run)
-
-### Previous runs (2026-04-08 through 2026-04-20)
+### 2026-04-08 through 2026-04-24
 - Repeatedly wrote inactivity.ts tests, blocked on safeoutputs
 - 2026-04-09: wrote 39 tests for pagination-utils.ts (not committed)
 - 2026-04-08: Created PR #17176 (url.ts tests), issue #17177 (Monthly Activity 2026-04)
 
 ## Task Round-Robin History
 
+- 2026-04-26: Task 3 (inactivity.ts 16 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (15th consecutive)
 - 2026-04-25: Task 3 (inactivity.ts 16 tests, 100% ALL metrics) - BLOCKED on safeoutputs (14th consecutive)
-- 2026-04-24: Task 3 (inactivity.ts 16 tests, 100% ALL metrics) - BLOCKED on safeoutputs (13th consecutive)
-- 2026-04-23: Task 3 (inactivity.ts 17 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (12th consecutive)
-- 2026-04-21: Task 3 (inactivity.ts 21 tests) - BLOCKED on safeoutputs (11th)
-- 2026-04-20: Task 3 (inactivity.ts 18 tests) - BLOCKED on safeoutputs (10th)
-- 2026-04-19 through 2026-04-14: Task 3 (inactivity.ts) - BLOCKED (4th-9th)
-- 2026-04-13: Task 3 (inactivity.ts 18 tests) - BLOCKED
-- 2026-04-12: Tasks 3, 7 - BLOCKED
-- 2026-04-11: Tasks 3 (git.ts), 4 - BLOCKED
-- 2026-04-09: Tasks 3 (pagination-utils), 7
-- 2026-04-08: Tasks 1, 2, 3 (url.ts), 7
+- 2026-04-24 and earlier: See completed work above
 
 ## Pending (needs retry when safeoutputs available)
 
 - inactivity.ts tests: READY for PR (branch must be recreated each run - branches are local only)
-  - 16 tests, coverage: 100% ALL metrics
+  - 16 tests, coverage: 100% stmts/fns/lines, 84.61% branches
   - All tests pass, ESLint clean
   - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
   - Base branch: master, draft: true, labels: ["testing", "bot/test-improver"]
   - Test file: shell/utils/__tests__/inactivity.test.ts
 - git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
 - Monthly activity issue #17177 last updated 2026-04-08 (needs update with PR info when PR is made)
-- **safeoutputs tools have been unavailable for 14 consecutive runs** (2026-04-11 through 2026-04-25)
-  - Tried `create_pull_request` on 2026-04-24 and 2026-04-25: "Tool 'create_pull_request' does not exist"
-  - Listed safe-output tools: add_comment, create_issue, update_issue, create_pull_request,
-    push_to_pull_request_branch, missing_tool, missing_data, noop
-  - None are callable as function tools; all return "Tool X does not exist"
+- **safeoutputs tools have been unavailable for 15 consecutive runs** (2026-04-11 through 2026-04-26)
+  - All safeoutputs tools return "Tool X does not exist"
+  - Available tools only include: bash, view, create, edit, grep, glob, etc.
+  - This is a systemic workflow configuration issue
 
 ## Maintainer Priorities
 
