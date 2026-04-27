@@ -297,7 +297,11 @@ export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey'
   /** Array of mapping resources to groups based on conditions/regEx */
   mapToGroup?: { condition: RegExp | string; group: string }[];
   /** Array of groups to ignore based on conditions */
-  ignoreGroups?: { groupId: string; fn: (getters: any) => boolean }[];
+  ignoreGroups?: {
+    /** String or regex to match against group names */
+    regexOrString: string | RegExp;
+    /** Optional conditional function that accepts getters and returns true if the group should be ignored */
+    fn?: (getters: any) => boolean }[];
 } & (
   /** Human-readable label for the product
    * Either label or labelKey are required */

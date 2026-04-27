@@ -624,10 +624,10 @@ export interface DSLReturnType {
   /**
    * Never show the specified group or any types in it
    * @param regexOrString String or regex to match against group names
-   * @param cb Optional callback
+   * @param fn Conditional function that accepts getters and returns true if the group should be ignored
    * @returns {@link void}
    */
-  ignoreGroup: (regexOrString: string | RegExp, cb?: Function) => void;
+  ignoreGroup: (regexOrString: string | RegExp, fn?: (getters: any) => boolean) => void;
 
   /**
    * Hide bulk actions for a specific resource type

@@ -356,7 +356,7 @@ The metadata that defines a product — its identity, icon, and product-level se
 | `showClusterSwitcher` | `boolean` | No | Show the cluster switcher in navigation |
 | `showNamespaceFilter` | `boolean` | No | Show the namespace filter in the header |
 | `mapToGroup` | `{ condition: RegExp \| string; group: string }[]` | No | Map resources to specific side-menu groups based on a regex or resource ID. See [mapToGroup](#mapping-resources-to-groups-maptogroup) |
-| `ignoreGroups` | `{ groupId: string; fn: (getters: any) => boolean }[]` | No | Conditionally hide specific side-menu groups. See [ignoreGroups](#hiding-groups-ignoregroups) |
+| `ignoreGroups` | `{ regexOrString: string \| RegExp; fn?: (getters: any) => boolean }[]` | No | Hide specific side-menu groups, unconditionally or based on a callback. See [ignoreGroups](#hiding-groups-ignoregroups) |
 
 ### `ProductSinglePage`
 
@@ -616,19 +616,23 @@ const product: ProductMetadata = {
 
 ### Hiding groups (`ignoreGroups`)
 
-Use `ignoreGroups` on the product metadata to conditionally hide specific side-menu groups. Each entry specifies a `groupId` and a function `fn` that receives the store getters and returns `true` to hide the group.
+Use `ignoreGroups` on the product metadata to hide specific side-menu groups. Each entry specifies a `regexOrString` to match group names — either an exact string or a regex pattern.
+
+The `fn` callback is optional. When provided, it receives the store getters and returns `true` to hide the group (conditional hide). When omitted, the group is always hidden (unconditional hide).
 
 ```ts
 const product: ProductMetadata = {
   name:  'my-app',
   label: 'My App',
   ignoreGroups: [
-    // Always hide the "internal" group
-    { groupId: 'internal', fn: () => true },
+    // Always hide the "internal" group (unconditional — no fn)
+    { regexOrString: 'internal' },
+    // Hide all groups matching a regex pattern (unconditional)
+    { regexOrString: /^deprecated-.*/ },
     // Conditionally hide based on a feature flag
     {
-      groupId: 'experimental',
-      fn:      (getters) => !getters['features/isEnabled']('experimental-feature'),
+      regexOrString: 'experimental',
+      fn:            (getters) => !getters['features/isEnabled']('experimental-feature'),
     },
   ],
 };

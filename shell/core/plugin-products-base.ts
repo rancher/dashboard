@@ -247,7 +247,11 @@ export abstract class BasePluginProduct {
     // process ignoreGroups entries
     if (this.product?.ignoreGroups?.length) {
       this.product.ignoreGroups.forEach((ignore) => {
-        ignoreGroup(ignore.groupId, ignore.fn);
+        if (ignore.fn) {
+          ignoreGroup(ignore.regexOrString, ignore.fn);
+        } else {
+          ignoreGroup(ignore.regexOrString);
+        }
       });
     }
 

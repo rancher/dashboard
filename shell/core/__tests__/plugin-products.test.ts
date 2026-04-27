@@ -4223,7 +4223,7 @@ describe('pluginProduct', () => {
       });
 
       describe('product-level: ignoreGroups support', () => {
-        it('should call DSL ignoreGroup for each ignoreGroups entry in product metadata', () => {
+        it('should call DSL ignoreGroup with callback when fn is provided', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
           const mockDSL = (mockPlugin.DSL as jest.Mock)();
@@ -4236,7 +4236,7 @@ describe('pluginProduct', () => {
             name:         'ignoregroups-test',
             label:        'IgnoreGroups Test',
             ignoreGroups: [
-              { groupId: 'hidden-group', fn: cbFn },
+              { regexOrString: 'hidden-group', fn: cbFn },
             ],
           };
 
@@ -4252,6 +4252,64 @@ describe('pluginProduct', () => {
 
           expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
           expect(mockDSL.ignoreGroup).toHaveBeenCalledWith('hidden-group', cbFn);
+        });
+
+        it('should call DSL ignoreGroup without callback when fn is not provided (unconditional hide)', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:         'ignoregroups-unconditional',
+            label:        'IgnoreGroups Unconditional',
+            ignoreGroups: [
+              { regexOrString: 'always-hidden' },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledWith('always-hidden');
+        });
+
+        it('should support regex patterns in ignoreGroups', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:         'ignoregroups-regex',
+            label:        'IgnoreGroups Regex',
+            ignoreGroups: [
+              { regexOrString: /^internal-.*/ },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledWith(/^internal-.*/);
         });
 
         it('should not call ignoreGroup when no ignoreGroups entries exist', () => {
