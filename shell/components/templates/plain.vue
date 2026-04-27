@@ -14,7 +14,6 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
-import WindowManager from '@shell/components/nav/WindowManager';
 import { Layout } from '@shell/types/window-manager';
 
 export default {
@@ -31,23 +30,27 @@ export default {
     SlideInPanelManager,
     AwsComplianceBanner,
     Inactivity,
-    WindowManager
   },
 
   mixins: [Brand, BrowserTabVisibility],
+
+  inject: ['notifyWmContainerReady'],
 
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name:             this.$route.name,
-      noLocaleShortcut: process.env.dev || false,
-      layout:           Layout.plain,
+      noLocaleShortcut: process.env.dev || false
     };
   },
 
   computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapGetters(['showTopLevelMenu']),
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.plain);
   },
 
   methods: {
@@ -98,7 +101,12 @@ export default {
           @shortkey="toggleNoneLocale()"
         />
       </main>
-      <WindowManager :layout="layout" />
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-plain"
+        style="display: contents;"
+      />
     </div>
 
     <FixedBanner :footer="true" />
