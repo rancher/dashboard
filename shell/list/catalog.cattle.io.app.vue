@@ -79,7 +79,7 @@ export default {
   display: inline-flex;
   align-items: center;
   border-radius: var(--border-radius);
-  padding: 2px 5px;
+  padding: 2px 4px;
 
   > div {
     overflow: hidden;
