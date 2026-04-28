@@ -71,15 +71,76 @@ export default class MyDriverMachineTemplate extends MachineTemplate {
 
 ## API Calls
 
-Rancher includes a [proxy](https://github.com/rancher/rancher/blob/release/v2.6/pkg/httpproxy/proxy.go) that can be used to make requests to third-party domains (like a cloud provider's API) without requiring that the other end supports CORS or other browser shenanigans.  Send requests to `/meta/proxy/example.com/whatever/path/you/want` and the request will be made from the Rancher server and proxied back to you.
+Rancher routes UI requests to third-party domains through its server-side `/meta/proxy` endpoint. Use the **`shell.proxy` API** (`this.$shell.proxy`) to make these requests — it handles URL construction, credential-based auth header signing, and de-pagination for you.
 
-TLS and port 443 are assumed.  Add a port after the hostname to change the port (`example.com:1234`).  For plain HTTP, first stop and consider the chain of life decisions which have led you to this point. Then if you still think you need that, use `/meta/proxy/http:/example.com:1234` (note one slash after `http:`, not two).  The hostname must be included in the whitelist defined in global settings, or in the configuration for an active node driver.  If if isn't your request will be denied.  (This prevents a malicious (non-admin) user from abusing the Rancher server as an arbitrary HTTP proxy or reach internal IPs/names that the server can reach directly but the user can't from the outside.)
+### Allow-list
 
-The rest of the path and query string are sent to the target host as you'd expect.
+API calls can only be made to hostnames registered on the proxy allow-list. The `shell.proxy` API provides two ways to check whether a domain is registered:
 
-Normal headers are copied from your request and sent to the target.  There are some exceptions for sensitive fields like the user's rancher cookies or saved basic auth creds which will not be copied.  If you send an `X-Api-Cookie-Header`, its value will be sent as the normal `Cookie` to the target.  If you send `X-API-Auth-Header`, that will be sent out as the normal `Authorization`.
+| Method | How it works | Performance |
+|---|---|---|
+| `hasProxyEndpoint(name)` | Fetches a single CR by name | preferred |
+| `isDomainAllowed(domain)` | Fetches **all** `ProxyEndpoint` CRs and scans every route entry for an exact match | May be expensive — use wisely |
 
-But normally you want to make a request using a Cloud Credential as the authorization, without knowing what the secret values in that credential are.  You ask for this by sending an `X-Api-CattleAuth-Header` header.  The value of the header specifies what credential Id to use, and a [signer](https://github.com/rancher/rancher/blob/release/v2.6/pkg/httpproxy/sign.go) which describes how that credential should be injected into the request.  Common options include `awsv4` (Amazon's complicated HMAC signatures), `bearer`, `basic`, and `digest`.  For example if you send `X-Api-CattleAuth-Header: Basic credId=someCredentialId usernameField=user passwordField=pass`, Rancher will retrieve the credential with id `someCredentialId`, read the values of the `user` and `pass` fields from it and add the header `Authorization: Basic <base64(user + ":" + pass)>` to the proxied request for you.
+It is generally preferable to create your own `ProxyEndpoint` CR with a stable, well-known name and use `hasProxyEndpoint` to check for it. Reserve `isDomainAllowed` for cases where the CR name is not under your control.
+
+```ts
+const CR_NAME = 'my-driver-endpoints';
+
+
+const exists = await this.$shell.proxy.hasProxyEndpoint(CR_NAME);
+
+if (!exists) {
+  await this.$shell.proxy.allowDomains(['api.example.com'], CR_NAME);
+}
+```
+
+### GET with a Cloud Credential
+
+```ts
+const result = await this.$shell.proxy.request({
+  endpoint:      'api.example.com/v1',
+  command:       'instances',
+  credentialId:  myCloudCredentialId,
+  authSigner:    'bearer',
+  passwordField: 'token',
+});
+```
+
+### GET with a plain token
+
+```ts
+const result = await this.$shell.proxy.request({
+  endpoint: 'api.example.com/v1',
+  command:  'images',
+  token:    myApiToken,
+});
+```
+
+### De-pagination
+
+```ts
+const all = await this.$shell.proxy.request({
+  endpoint:    'api.example.com/v1',
+  command:     'instances',
+  perPage:     200,
+  dePaginate:  true,
+  nextUrlPath: 'links.pages.next',
+  mergeKey:    'instances',
+});
+```
+
+### AWS SDK integration
+
+For providers that use the AWS JavaScript SDK (e.g. EKS, EC2), the SDK's `requestHandler` must route through the proxy. `store/aws.js` implements a custom `Handler` class that calls `this.$shell.proxy.prepareRequest()` to obtain the proxy URL and auth headers and then delegates to the SDK's `FetchHttpHandler`. Use that as a pattern for any SDK-based provider.
+
+### URL format reference
+
+The proxy accepts paths of the form `/meta/proxy/<host>/<path>`. `shell.proxy` constructs this automatically. For reference:
+
+- TLS on port 443 is the default.
+- Different port: `example.com:1234/path`.
+- Plain HTTP *(avoid where possible)*: `http:/example.com:1234/path` (one slash after `http:`).
 
 ## Store
 

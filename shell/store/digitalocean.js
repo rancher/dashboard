@@ -155,10 +155,6 @@ export const actions = {
 
     const proxy = this.$shell?.proxy;
 
-    if ( !proxy ) {
-      throw new Error('DigitalOcean store requires $shell.proxy to be initialized');
-    }
-
     return proxy.request({
       url:           opt.url,
       endpoint:      ENDPOINT,

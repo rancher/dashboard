@@ -204,7 +204,17 @@ Due to the way Dashboard resources are constructed examining the contents of one
 
 ## API Calls to Third-party Domains
 
-Rancher includes a proxy that can be used to make requests to third-party domains (like a cloud provider's API) without requiring that the other end supports CORS. Send requests to `/meta/proxy/example.com/path` and the request will be made from the Rancher server and proxied back to you.
+Rancher routes requests to third-party domains (e.g. cloud provider APIs) through its server-side `/meta/proxy` endpoint, avoiding browser CORS restrictions. Use the **`shell.proxy` API** (`this.$shell.proxy`) rather than constructing `/meta/proxy` URLs manually:
+
+```ts
+const result = await this.$shell.proxy.request({
+  endpoint: 'api.example.com/v1',
+  command:  'regions',
+  token:    myApiToken,
+});
+```
+
+See [Making API Calls](./machine-drivers.md#api-calls) for the full reference including credential-based auth and allow-list management.
 
 ## Nodes vs. Machines
 
