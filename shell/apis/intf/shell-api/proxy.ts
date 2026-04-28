@@ -56,6 +56,8 @@ export interface ProxyRequestOptions {
    * its data to sign (or annotate) the upstream request via
    * `X-Api-CattleAuth-Header`.
    *
+   * When a `token` and `authSigner` are provided the signer is prepended to the Authorization header.
+   *
    * The raw header value sent to the backend has the form:
    * `<signer> credID=<id> [passwordField=<field>] [usernameField=<field>] …`
    *
@@ -148,6 +150,11 @@ export interface ProxyRequestOptions {
    */
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+   /**
+   * Optional request payload forwarded to `management/request`.
+   * Use this for body-carrying proxy calls such as `POST`, `PUT`, and `PATCH`.
+   */
+  data?: any;
 }
 
 export interface ProxyApi {
@@ -197,4 +204,17 @@ export interface ProxyApi {
    * @returns `true` if the CR exists, `false` if it is not found.
    */
   hasProxyEndpoint(name: string): Promise<boolean>;
+
+  /**
+   * Builds the `/meta/proxy` URL and auth headers for the given options
+   * without dispatching a request.
+   *
+   * Useful when a caller needs to construct the request itself (e.g. to pass
+   * the URL and headers to a third-party HTTP client or an existing `axios`
+   * call).
+   *
+   * @param options - Proxy request options (same as `request()`).
+   * @returns An object containing the resolved `url` and `headers`.
+   */
+  prepareRequest(options: ProxyRequestOptions): { url: string; headers: Record<string, string> };
 }

@@ -1,6 +1,8 @@
 import { addParam, addParams } from '@shell/utils/url';
 import { Store } from 'vuex';
 import { ProxyApi, ProxyRequestOptions } from '@shell/apis/intf/shell';
+import { Metadata } from '@shell/types/resources/settings';
+import { MANAGEMENT } from '@shell/config/types';
 
 /**
  * Shell implementation of the `ProxyApi`.
@@ -37,13 +39,17 @@ export class ProxyApiImpl implements ProxyApi {
   public async request(options: ProxyRequestOptions): Promise<any> {
     const url = this.buildProxyUrl(options);
     const headers = this.buildHeaders(options);
-
-    const res = await this.store.dispatch('management/request', {
+    const req = {
       url,
       method:               options.method,
       headers,
       redirectUnauthorized: false,
-    }, { root: true });
+    } as any;
+
+    if (options.data) {
+      req.body = options.data;
+    }
+    const res = await this.store.dispatch('management/request', req, { root: true });
 
     if ( options.dePaginate && this.getByPath(res, options.nextUrlPath || 'links.pages.next') ) {
       const nextUrl = this.getByPath(res, options.nextUrlPath || 'links.pages.next');
@@ -95,15 +101,11 @@ export class ProxyApiImpl implements ProxyApi {
     const credentialHeader = 'x-api-cattleauth-header';
     const tokenHeader = 'x-api-auth-header';
 
-    if (options.token) {
-      const scheme = options.authSigner ?? 'Bearer';
-
-      headers[tokenHeader] = `${ scheme } ${ options.token }`;
-    }
-
     if (options.credentialId) {
+      headers[credentialHeader] = '';
+
       if (options.authSigner) {
-        headers[credentialHeader] = `${ options.authSigner } `;
+        headers[credentialHeader] += `${ options.authSigner } `;
       }
       const { credentialId, passwordField, usernameField } = options;
 
@@ -116,6 +118,10 @@ export class ProxyApiImpl implements ProxyApi {
       if (passwordField) {
         headers[credentialHeader] += `passwordField=${ passwordField } `;
       }
+    } else if (options.token) {
+      const scheme = options.authSigner ?? 'Bearer';
+
+      headers[tokenHeader] = `${ scheme } ${ options.token }`;
     }
 
     return headers;
@@ -172,10 +178,17 @@ export class ProxyApiImpl implements ProxyApi {
    * @returns The created `ProxyEndpoint` resource.
    */
   public async allowDomains(domains: string[], name?: string): Promise<any> {
+    const metadata = {} as Metadata;
+
+    if (name) {
+      metadata.name = name;
+    } else {
+      metadata.generateName = 'endpoints-';
+    }
     const resource = await this.store.dispatch('management/create', {
-      type:     'management.cattle.io.proxyendpoint',
-      metadata: { name: name || '' },
-      spec:     { routes: domains.map((domain) => ({ domain })) },
+      type: MANAGEMENT.PROXY_ENDPOINT,
+      metadata,
+      spec: { routes: domains.map((domain) => ({ domain })) },
     });
 
     return resource.save();
@@ -195,7 +208,7 @@ export class ProxyApiImpl implements ProxyApi {
    */
   public async isDomainAllowed(domain: string): Promise<boolean> {
     const endpoints: any[] = await this.store.dispatch('management/findAll', {
-      type: 'management.cattle.io.proxyendpoint',
+      type: MANAGEMENT.PROXY_ENDPOINT,
       opt:  { force: false, watch: false },
     });
 
@@ -219,7 +232,7 @@ export class ProxyApiImpl implements ProxyApi {
   public async hasProxyEndpoint(name: string): Promise<boolean> {
     try {
       await this.store.dispatch('management/find', {
-        type: 'management.cattle.io.proxyendpoint',
+        type: MANAGEMENT.PROXY_ENDPOINT,
         id:   name,
         opt:  { force: false },
       });

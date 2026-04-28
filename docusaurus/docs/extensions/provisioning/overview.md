@@ -40,8 +40,13 @@ To make API calls from the UI to a third-party domain, use the **`shell.proxy` A
 Before making requests, ensure the target hostname is registered on the proxy allow-list via a `ProxyEndpoint` CR:
 
 ```ts
-if (!await this.$shell.proxy.isDomainAllowed('api.example.com')) {
-  await this.$shell.proxy.allowDomains(['api.example.com'], 'my-extension-endpoints');
+const CR_NAME = 'my-extension-endpoints';
+
+
+const exists = await this.$shell.proxy.hasProxyEndpoint(CR_NAME);
+
+if (!exists) {
+  await this.$shell.proxy.allowDomains(['api.example.com'], CR_NAME);
 }
 ```
 

@@ -125,7 +125,7 @@ Supported `authSigner` values: `bearer`, `basic`, `digest`, `awsv4`, `arbitrary`
 
 ### Authorization with Cloud Credentials (`X-Api-CattleAuth-Header`)
 
-When your request must be authenticated using datas stored in a Rancher Cloud Credential, pass a `credentialId` instead of a raw `token`. Rancher's backend will look up the credential secret, extract the relevant fields, and sign the upstream request — the browser never sees the secret value. Arbitrary opaque secrets may be used here as well, though they must exist in the `cattle-global-data` namespace.
+When your request must be authenticated using data stored in a Rancher Cloud Credential, pass a `credentialId` instead of a raw `token`. Rancher's backend will look up the credential secret, extract the relevant fields, and sign the upstream request — the browser never sees the secret value. Arbitrary opaque secrets may be used here as well, though they must exist in the `cattle-global-data` namespace.
 
 `shell.proxy` sets the `X-Api-CattleAuth-Header` request header, which has the following space-delimited format:
 
@@ -144,7 +144,7 @@ When your request must be authenticated using datas stored in a Rancher Cloud Cr
 
 The Rancher backend parses this header, reads the named fields from the stored secret, and assembles the final `Authorization` header before forwarding the request upstream. For example, using the `bearer` signer with `passwordField: 'token'` causes Rancher to produce `Authorization: Bearer <value-of-token-field>`.
 
-* cloud credentials' sensitive data are stored in Kubernetes secrets. The keys in the secret data are prefixed with the type of the cloud credential, eg accessToken is stored as `digitaloceanCredentialConfig-accessToken`. That credential configuration prefix is stripped by the Rancher backend: $shell.proxy.request should be invoked with `passwordField: 'accessToken'` in this example.
+* cloud credentials' sensitive data are stored in Kubernetes secrets. The keys in the secret data are prefixed with the type of the cloud credential, e.g. accessToken is stored as `digitaloceanCredentialConfig-accessToken`. That credential configuration prefix is stripped by the Rancher backend: $shell.proxy.request should be invoked with `passwordField: 'accessToken'` in this example.
 
 ```ts
 // The backend looks up the Cloud Credential, reads the 'token' field, and
