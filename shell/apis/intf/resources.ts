@@ -3,6 +3,7 @@ import { ClusterApi } from '@shell/apis/intf/resources-api/cluster-api';
 import { MgmtApi } from '@shell/apis/intf/resources-api/mgmt-api';
 
 export * from '@shell/apis/intf/resources-api/resources-api';
+export * from '@shell/apis/intf/resources-api/resource-instance';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
 export {

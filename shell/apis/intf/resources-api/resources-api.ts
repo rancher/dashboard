@@ -1,5 +1,6 @@
 import { ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredMethodOptions } from './resource-base';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
+import { ResourceInstance } from './resource-instance';
 
 /**
  * Base interface for all resource API operations.
@@ -26,7 +27,7 @@ export interface ResourcesApi {
    * @param resourceType - The type of the resource to find (use **{@link K8S}** constant). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find.
    * @param options - Optional find arguments
-   * @returns The found resource item or null if not found.
+   * @returns The found resource instance or null if not found.
    *
    * @example
    * ```ts
@@ -34,13 +35,19 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    * const pod = await resources.cluster.find(K8S.POD, 'my-pod-123');
+   *
+   * // Access data directly
+   * console.log(pod.metadata.name);
+   *
+   * // Use instance operations
+   * await pod.remove();
    * ```
    */
   find<T = SteveGetResponse>(
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<T | null>;
+  ): Promise<ResourceInstance<T> | null>;
 
   /**
    * Finds resources of a specific type with filtering, pagination, and label selector support.

@@ -1,5 +1,7 @@
 import { ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredMethodOptions } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
+import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
+import { ResourceInstanceImpl } from './resource-instance-class';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 import { Store } from 'vuex';
 
@@ -41,7 +43,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<T | null> {
+  ): Promise<ResourceInstance<T> | null> {
     try {
       const resource = await this.store.dispatch(`${ this.storeType }/find`, {
         type: resourceType,
@@ -49,7 +51,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return (resource as T) ?? null;
+      if (!resource) {
+        return null;
+      }
+
+      return new ResourceInstanceImpl(resource) as unknown as ResourceInstance<T>;
     } catch (e: unknown) {
       this.surfaceError(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`);
     }
