@@ -780,7 +780,7 @@ export default {
     },
 
     isWindowsIncompatibleVersion() {
-      if (this.versionInfo) {
+      if (this.versionInfo && !this.chart?.windowsIncompatible) {
         return !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
       }
 
@@ -1634,10 +1634,12 @@ export default {
             v-if="showSelectVersionOrChart"
             class="row mb-20"
           >
-            <div class="col span-4">
-              <!-- We have a chart for the app, let the user select a new version -->
+            <!-- We have a chart for the app, let the user select a new version -->
+            <div
+              v-if="chart"
+              class="col span-4"
+            >
               <LabeledSelect
-                v-if="chart"
                 data-testid="chart-version-selector"
                 :label="t('catalog.install.version')"
                 :value="query.versionName"
@@ -1646,14 +1648,18 @@ export default {
                 @update:value="selectVersion"
               />
               <p
-                v-if="chart && isWindowsIncompatibleVersion"
+                v-if="isWindowsIncompatibleVersion"
                 class="chart-version-footnote"
               >
                 {{ t('catalog.charts.versionWindowsIncompatible') }}
               </p>
-              <!-- Can't find the chart for the app, let the user try to select one -->
+            </div>
+            <!-- Can't find the chart for the app, let the user try to select one -->
+            <div
+              v-else
+              class="col span-4"
+            >
               <LabeledSelect
-                v-else
                 :label="t('catalog.install.chart')"
                 :value="chart"
                 :options="charts"
