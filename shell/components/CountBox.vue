@@ -3,6 +3,8 @@
 export default {
   name: 'CountBox',
 
+  emits: ['click'],
+
   props: {
     name: {
       type:     String,
@@ -17,6 +19,10 @@ export default {
       required: true
     },
     compact: {
+      type:    Boolean,
+      default: false
+    },
+    clickable: {
       type:    Boolean,
       default: false
     }
@@ -34,6 +40,12 @@ export default {
   methods: {
     customizePrimaryColorOpacity(opacity) {
       return `rgba(var(${ this.primaryColorVar }), ${ opacity })`;
+    },
+
+    handleClick() {
+      if (this.clickable) {
+        this.$emit('click');
+      }
     }
   }
 };
@@ -42,7 +54,9 @@ export default {
 <template>
   <div
     class="count-container"
+    :class="{ 'clickable': clickable }"
     :style="sideStyle"
+    @click="handleClick"
   >
     <div
       class="count"
@@ -61,6 +75,12 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+    .count-container {
+      &.clickable {
+        cursor: pointer;
+      }
+    }
+
     .count {
       $padding: 10px;
 

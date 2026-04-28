@@ -96,8 +96,6 @@ describe('Fleet HelmOps', { testIsolation: 'off', tags: ['@fleet', '@adminUser']
 
       helmOpCreatePage.waitForPage();
 
-      headerPo.selectWorkspace(workspace);
-
       // Metadata step
       helmOpCreatePage.resourceDetail().createEditView().nameNsDescription()
         .name()

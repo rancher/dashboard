@@ -159,6 +159,10 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <a
+      href="#main-content"
+      class="skip-to-content btn role-primary"
+    >{{ t('nav.skipToContent') }}</a>
     <FixedBanner :header="true" />
     <AwsComplianceBanner v-if="managementReady" />
     <div
@@ -173,8 +177,10 @@ export default {
       />
       <main
         v-if="clusterAndRouteReady"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
@@ -211,8 +217,10 @@ export default {
       <!-- Ensure there's an outlet to show the error (404) page -->
       <main
         v-else-if="unmatchedRoute"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
@@ -227,3 +235,17 @@ export default {
     <Inactivity />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.skip-to-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  transform: translateY(-100%);
+
+  &:focus {
+    transform: translate(1rem, 1rem);
+  }
+}
+</style>

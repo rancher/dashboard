@@ -166,7 +166,7 @@ describe('class Chart', () => {
       expect(chart.isInstalled).toBe(false);
     });
 
-    it('is false when multiple apps match', () => {
+    it('is true when multiple apps match', () => {
       const app = makeInstalledApp();
 
       app.spec.chart.metadata.version = '1.2.3';
@@ -174,7 +174,7 @@ describe('class Chart', () => {
 
       const chart = new Chart(base, ctx);
 
-      expect(chart.isInstalled).toBe(false);
+      expect(chart.isInstalled).toBe(true);
     });
   });
 
@@ -205,6 +205,58 @@ describe('class Chart', () => {
       const chart = new Chart(base, ctx);
 
       expect(chart.upgradeable).toBe(false);
+    });
+
+    it('is true when at least one of multiple installed apps is upgradeable', () => {
+      const app1 = makeInstalledApp(APP_UPGRADE_STATUS.NO_UPGRADE);
+      const app2 = makeInstalledApp(APP_UPGRADE_STATUS.SINGLE_UPGRADE);
+
+      ctx.rootGetters['cluster/all'] = () => [app1, app2];
+
+      const chart = new Chart(base, ctx);
+
+      expect(chart.upgradeable).toBe(true);
+    });
+
+    it('is false when none of multiple installed apps are upgradeable', () => {
+      const app1 = makeInstalledApp(APP_UPGRADE_STATUS.NO_UPGRADE);
+      const app2 = makeInstalledApp(APP_UPGRADE_STATUS.NO_UPGRADE);
+
+      ctx.rootGetters['cluster/all'] = () => [app1, app2];
+
+      const chart = new Chart(base, ctx);
+
+      expect(chart.upgradeable).toBe(false);
+    });
+  });
+
+  describe('installedCount', () => {
+    it('returns 0 when no apps are installed', () => {
+      const chart = new Chart(base, ctx);
+
+      expect(chart.installedCount).toBe(0);
+    });
+
+    it('returns 1 when one app is installed', () => {
+      const installedApp = makeInstalledApp();
+
+      ctx.rootGetters['cluster/all'] = () => [installedApp];
+
+      const chart = new Chart(base, ctx);
+
+      expect(chart.installedCount).toBe(1);
+    });
+
+    it('returns correct count when multiple apps are installed', () => {
+      const app1 = makeInstalledApp();
+      const app2 = makeInstalledApp();
+      const app3 = makeInstalledApp();
+
+      ctx.rootGetters['cluster/all'] = () => [app1, app2, app3];
+
+      const chart = new Chart(base, ctx);
+
+      expect(chart.installedCount).toBe(3);
     });
   });
 
@@ -272,6 +324,25 @@ describe('class Chart', () => {
       expect(installedStatus).toBeDefined();
       expect(installedStatus?.color).toBe('success');
       expect(installedStatus?.tooltip?.text).toContain(installedApp.spec.chart.metadata.version);
+    });
+
+    it('does not include version in installed tooltip when multiple instances exist', () => {
+      const app1 = makeInstalledApp();
+      const app2 = makeInstalledApp();
+
+      app2.spec.chart.metadata.version = '1.2.0';
+      ctx.rootGetters['cluster/all'] = () => [app1, app2];
+
+      const chart = new Chart(base, ctx);
+
+      const result = chart.cardContent as CardContent;
+
+      const installedStatus = result.statuses.find((s) => s.tooltip?.text?.startsWith('generic.installedMultiple'));
+
+      expect(installedStatus).toBeDefined();
+      expect(installedStatus?.color).toBe('success');
+      // Should not contain version number when multiple instances
+      expect(installedStatus?.tooltip?.text).toBe('generic.installedMultiple');
     });
 
     it('includes upgradeable status when upgrade is available', () => {
