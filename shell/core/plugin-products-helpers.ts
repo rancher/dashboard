@@ -1,8 +1,7 @@
 import {
   RouteRecordRawWithParams, ProductChildGroup, ProductChild,
   ProductChildCustomPage, ProductChildResourcePage, ProductRegistrationRouteGenerationOptions,
-  OverviewPageRoutingMetadata, SpoofedTypeSchemaOptions,
-  SpoofedTypeSchema, ProductChildSpoofedTypePage
+  OverviewPageRoutingMetadata
 } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
@@ -121,7 +120,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES
-  generateConfigureTypeRoute(parentName: string, pageChild: ProductChildResourcePage | ProductChildSpoofedTypePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  generateConfigureTypeRoute(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     if (options.extendProduct) {
       return this.generateConfigureTypeRouteForExistingProduct(parentName, pageChild, options);
     } else {
@@ -130,7 +129,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateConfigureTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildResourcePage | ProductChildSpoofedTypePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateConfigureTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
 
     const route: RouteRecordRawWithParams = {
@@ -152,7 +151,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES - TOP LEVEL EXTENSION
-  private generateConfigureTypeRouteForNewProduct(parentName: string, pageChild: ProductChildResourcePage | ProductChildSpoofedTypePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateConfigureTypeRouteForNewProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
 
     const route: RouteRecordRawWithParams = {
@@ -256,17 +255,6 @@ class PluginProductsHelpers {
         }
       }
     ];
-  }
-
-  // SPOOFED TYPE SCHEMA
-  generateSchemaForSpoofedType(options: SpoofedTypeSchemaOptions): SpoofedTypeSchema {
-    return {
-      id:                options.type,
-      type:              'schema',
-      collectionMethods: options.collectionMethods,
-      resourceFields:    options.resourceFields || {},
-      attributes:        options.attributes || { namespaced: options.namespaced || false },
-    };
   }
 }
 

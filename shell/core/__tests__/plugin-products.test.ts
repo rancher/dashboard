@@ -2,16 +2,13 @@ import { PluginProduct } from '@shell/core/plugin-products';
 import {
   ProductMetadata, ProductSinglePage, ProductChildPage,
   ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage,
-  ProductChild, StandardProductNames, ProductChildSpoofedTypePage
+  ProductChild, StandardProductNames
 } from '@shell/core/plugin-types';
 import { IExtension } from '@shell/core/types';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
-  gatherChildrenOrdering:       jest.fn((config) => config),
-  generateSchemaForSpoofedType: jest.fn((opts) => ({
-    id: opts.type, type: 'schema', collectionMethods: opts.collectionMethods, resourceFields: opts.resourceFields || {}, attributes: opts.attributes || {}
-  })),
+  gatherChildrenOrdering:                   jest.fn((config) => config),
   generateTopLevelExtensionSimpleBaseRoute: jest.fn((name, opts) => ({
     name:      `${ name }-simple`,
     path:      opts?.omitPath ? '' : `/${ name }`,
@@ -73,7 +70,6 @@ function createMockPlugin(): IExtension {
       product:             jest.fn(),
       headers:             jest.fn(),
       hideBulkActions:     jest.fn(),
-      spoofedType:         jest.fn(),
       mapGroup:            jest.fn(),
       ignoreGroup:         jest.fn(),
       mapType:             jest.fn(),
@@ -3144,11 +3140,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3179,11 +3175,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3210,11 +3206,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -4003,11 +3999,11 @@ describe('pluginProduct', () => {
             weightType:          jest.fn(() => callOrder.push('weightType')),
             headers:             jest.fn(() => callOrder.push('headers')),
             hideBulkActions:     jest.fn(() => callOrder.push('hideBulkActions')),
-            spoofedType:         jest.fn(),
-            mapGroup:            jest.fn(),
-            ignoreGroup:         jest.fn(),
-            mapType:             jest.fn(() => callOrder.push('mapType')),
-            ignoreType:          jest.fn(() => callOrder.push('ignoreType')),
+
+            mapGroup:    jest.fn(),
+            ignoreGroup: jest.fn(),
+            mapType:     jest.fn(() => callOrder.push('mapType')),
+            ignoreType:  jest.fn(() => callOrder.push('ignoreType')),
           };
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
@@ -4038,129 +4034,6 @@ describe('pluginProduct', () => {
 
           expect(weightIndex).toBeGreaterThan(configureIndex);
           expect(callOrder[callOrder.length - 1]).toBe('weightType');
-        });
-      });
-
-      describe('spoofedType support (separate child type)', () => {
-        it('should call DSL spoofedType for a ProductChildSpoofedTypePage config item', () => {
-          const mockPlugin = createMockPlugin();
-          const mockStore = createMockStore();
-          const mockDSL = (mockPlugin.DSL as jest.Mock)();
-
-          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
-
-          const productMetadata: ProductMetadata = {
-            name:  'spoofed-test',
-            label: 'Spoofed Test',
-          };
-
-          const getInstancesMock = jest.fn().mockResolvedValue([]);
-
-          const config: ProductChildPage[] = [
-        {
-          name:         'my-spoofed',
-          label:        'My Spoofed Resource',
-          getInstances: getInstancesMock,
-        } as ProductChildSpoofedTypePage,
-          ];
-
-          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
-
-          pluginProduct.apply(mockPlugin, mockStore);
-
-          expect(mockDSL.spoofedType).toHaveBeenCalledWith(expect.objectContaining({
-            type:         'my-spoofed',
-            getInstances: getInstancesMock,
-          }));
-        });
-
-        it('should generate schema for spoofed type if none provided', () => {
-          const mockPlugin = createMockPlugin();
-          const mockStore = createMockStore();
-          const mockDSL = (mockPlugin.DSL as jest.Mock)();
-
-          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
-
-          const productMetadata: ProductMetadata = {
-            name:  'spoofed-schema-test',
-            label: 'Spoofed Schema Test',
-          };
-
-          const config: ProductChildPage[] = [
-        {
-          name:         'auto-schema',
-          label:        'Auto Schema',
-          getInstances: jest.fn().mockResolvedValue([]),
-        } as ProductChildSpoofedTypePage,
-          ];
-
-          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
-
-          pluginProduct.apply(mockPlugin, mockStore);
-
-          expect(mockDSL.spoofedType).toHaveBeenCalledWith(expect.objectContaining({ schemas: expect.arrayContaining([expect.objectContaining({ id: 'auto-schema' })]) }));
-        });
-
-        it('should not call configureType for spoofed type items', () => {
-          const mockPlugin = createMockPlugin();
-          const mockStore = createMockStore();
-          const mockDSL = (mockPlugin.DSL as jest.Mock)();
-
-          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
-
-          const productMetadata: ProductMetadata = {
-            name:  'spoofed-no-configure',
-            label: 'Spoofed No Configure',
-          };
-
-          const config: ProductChildPage[] = [
-        {
-          name:         'my-spoofed',
-          label:        'My Spoofed',
-          getInstances: jest.fn().mockResolvedValue([]),
-        } as ProductChildSpoofedTypePage,
-          ];
-
-          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
-
-          pluginProduct.apply(mockPlugin, mockStore);
-
-          expect(mockDSL.spoofedType).toHaveBeenCalledWith(expect.objectContaining({ type: 'my-spoofed' }));
-          expect(mockDSL.configureType).not.toHaveBeenCalled();
-        });
-
-        it('should call headers and hideBulkActions for spoofed types when configured', () => {
-          const mockPlugin = createMockPlugin();
-          const mockStore = createMockStore();
-          const mockDSL = (mockPlugin.DSL as jest.Mock)();
-
-          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
-
-          const productMetadata: ProductMetadata = {
-            name:  'spoofed-extras',
-            label: 'Spoofed Extras',
-          };
-
-          const testHeaders = [{ name: 'col1', label: 'Col1' }];
-
-          const config: ProductChildPage[] = [
-        {
-          name:                     'my-spoofed',
-          label:                    'My Spoofed',
-          getInstances:             jest.fn().mockResolvedValue([]),
-          headers:                  testHeaders,
-          hideBulkActions:          true,
-          overrideListResourceName: 'Nice Name',
-        } as ProductChildSpoofedTypePage,
-          ];
-
-          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
-
-          pluginProduct.apply(mockPlugin, mockStore);
-
-          expect(mockDSL.headers).toHaveBeenCalledWith('my-spoofed', testHeaders);
-          expect(mockDSL.hideBulkActions).toHaveBeenCalledWith('my-spoofed', true);
-          expect(mockDSL.mapType).toHaveBeenCalledWith('my-spoofed', 'Nice Name');
         });
       });
 
@@ -4389,98 +4262,6 @@ describe('pluginProduct', () => {
           expect(mockDSL.hideBulkActions).toHaveBeenCalledWith('custom.resource.type', true);
           expect(mockDSL.mapType).toHaveBeenCalledWith('custom.resource.type', 'Custom Name');
           expect(mockDSL.ignoreType).toHaveBeenCalledWith('custom.resource.type');
-        });
-      });
-
-      describe('real-world scenario: mixed product with group, resource page, and spoofed type', () => {
-        it('should correctly register a product with a group (custom pages), a resource page with DSL options, and a spoofed type page', () => {
-          const mockPlugin = createMockPlugin();
-          const mockStore = createMockStore();
-          const mockDSL = (mockPlugin.DSL as jest.Mock)();
-
-          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
-
-          const alertsPage: ProductChildPage = {
-            name:      'alerts',
-            label:     'Alerts',
-            component: { name: 'AlertsComponent' },
-          };
-
-          const metricsPage: ProductChildPage = {
-            name:      'metrics',
-            label:     'Metrics',
-            component: { name: 'MetricsComponent' },
-          };
-
-          const monitoringGroup: ProductChildGroup = {
-            name:      'monitoring',
-            label:     'Monitoring',
-            component: { name: 'MonitoringComponent' },
-            children:  [alertsPage, metricsPage],
-          };
-
-          const provClustersPage: ProductChildPage = {
-            type:                     'provisioning.cattle.io.cluster',
-            overrideListResourceName: 'provisioningClusters',
-            hideBulkActions:          true,
-            hideFromNav:              true,
-          };
-
-          const backupsPage: ProductChildSpoofedTypePage = {
-            name:         'backups',
-            label:        'Backups',
-            getInstances: jest.fn().mockResolvedValue([
-              {
-                id: 'backup-1', type: 'backups', name: 'Daily Backup'
-              },
-              {
-                id: 'backup-2', type: 'backups', name: 'Weekly Backup'
-              },
-            ]),
-          };
-
-          const product: ProductMetadata = {
-            name:  'my-platform',
-            label: 'My Platform',
-          };
-
-          const pluginProduct = new PluginProduct(mockPlugin, product, [monitoringGroup, provClustersPage, backupsPage]);
-
-          pluginProduct.apply(mockPlugin, mockStore);
-
-          // product registration
-          expect(mockDSL.product).toHaveBeenCalledWith(expect.objectContaining({ name: 'myplatform' }));
-
-          // group: monitoring with children alerts and metrics
-          expect(mockDSL.virtualType).toHaveBeenCalledWith(expect.objectContaining({ name: expect.stringContaining('alerts') }));
-          expect(mockDSL.virtualType).toHaveBeenCalledWith(expect.objectContaining({ name: expect.stringContaining('metrics') }));
-          expect(mockDSL.virtualType).toHaveBeenCalledWith(expect.objectContaining({
-            name:     expect.stringContaining('monitoring'),
-            exact:    true,
-            overview: true,
-          }));
-
-          // resource page: provisioning.cattle.io.cluster with DSL options
-          expect(mockDSL.configureType).toHaveBeenCalledWith('provisioning.cattle.io.cluster', expect.objectContaining({
-            isCreatable: true,
-            isEditable:  true,
-            isRemovable: true,
-            canYaml:     true,
-          }));
-          expect(mockDSL.mapType).toHaveBeenCalledWith('provisioning.cattle.io.cluster', 'provisioningClusters');
-          expect(mockDSL.hideBulkActions).toHaveBeenCalledWith('provisioning.cattle.io.cluster', true);
-          expect(mockDSL.ignoreType).toHaveBeenCalledWith('provisioning.cattle.io.cluster');
-
-          // spoofed type: backups
-          expect(mockDSL.spoofedType).toHaveBeenCalledWith(expect.objectContaining({
-            type:         'backups',
-            getInstances: backupsPage.getInstances,
-            schemas:      expect.arrayContaining([expect.objectContaining({ id: 'backups' })]),
-          }));
-
-          // spoofed type should NOT go through configureType
-          // configureType should only have been called once (for the resource page)
-          expect(mockDSL.configureType).toHaveBeenCalledTimes(1);
         });
       });
     });

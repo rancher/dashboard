@@ -29,7 +29,6 @@ Before diving in, here are the key terms used throughout this API. If you're not
 | **Product** | A top-level view in Rancher Dashboard that adds a navigation entry into the top-level slide-in menu (e.g. Fleet, Cluster Management) |
 | **Custom page** | A page inside a product that renders a Vue component you provide. Equivalent to defining a `virtualType` in the DSL approach |
 | **Resource page** | A page inside a product that displays a Kubernetes resource type using Rancher's built-in list/detail/edit views. Equivalent to defining a `configureType` in the DSL approach |
-| **Spoofed type** | A synthetic/fake resource type that behaves like a real Kubernetes resource in the UI but is defined entirely by your Extension via a `getInstances` function. Equivalent to defining a `spoofedType` in the DSL approach |
 | **Group** | A collapsible folder/group in the product's side-menu that contains pages or other groups |
 | **Single page product** | A product with no side-menu — just one full-page Vue component |
 
@@ -160,38 +159,6 @@ export default function(extension: IPlugin) {
   };
 
   extension.addProduct(product, [overviewPage, settingsPage]);
-}
-```
-
-### Product with a spoofed type
-
-A product with a spoofed type — a synthetic resource that you populate with data from your own function. Rancher Dashboard renders it using the standard list/detail views:
-
-```ts
-// ./index.ts
-import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
-import { ProductMetadata, ProductChildSpoofedTypePage } from '@shell/core/plugin-types';
-
-export default function(extension: IPlugin) {
-  importTypes(extension);
-  extension.metadata = require('./package.json');
-
-  const backupsPage: ProductChildSpoofedTypePage = {
-    name:         'backups',
-    label:        'Backups',
-    getInstances: () => Promise.resolve([
-      { id: 'backup-1', type: 'backups', name: 'Daily Backup' },
-      { id: 'backup-2', type: 'backups', name: 'Weekly Backup' },
-    ]),
-  };
-
-  const product: ProductMetadata = {
-    name:  'my-app',
-    label: 'My App',
-  };
-
-  extension.addProduct(product, [backupsPage]);
 }
 ```
 
@@ -334,7 +301,6 @@ import {
   ProductSinglePage,
   ProductChildCustomPage,
   ProductChildResourcePage,
-  ProductChildSpoofedTypePage,
   ProductChildPage,
   ProductChildGroup,
   ProductChild,
@@ -393,32 +359,6 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | `hideBulkActions` | `boolean` | No | Hide bulk action buttons (e.g. delete) for this resource type in the list view. See [Hiding bulk actions](#hiding-bulk-actions-hidebulkactions) |
 
 
-### `ProductChildSpoofedTypePage`
-
-A spoofed type is a synthetic/fake resource type that behaves like a real Kubernetes resource in the UI but is entirely defined by your Extension. You provide the instances via a function, and Rancher Dashboard renders them using the standard list/detail views. This is useful for displaying data from external APIs or computed data that doesn't correspond to an actual Kubernetes resource. 
-
-See [more detailed information](#spoofed-types) on spoofed types.
-
-| Property | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Unique identifier for the spoofed type (also used as the `type` internally) |
-| `label` | `string` | Yes* | Display label (* either `label` or `labelKey` is required) |
-| `labelKey` | `string` | Yes* | Translation key for the label |
-| `getInstances` | `() => Promise<any[]>` | Yes | Function that returns the spoofed resource instances. Each instance should have at least `id`, `type`, and `name` |
-| `type` | `string` | No | Override the type identifier (defaults to `name`) |
-| `namespaced` | `boolean` | No | Whether the spoofed type is namespaced (default: `false`) |
-| `schemas` | `any[]` | No | Custom schema definitions. If not provided, a default schema is auto-generated |
-| `collectionMethods` | `string[]` | No | HTTP methods allowed for the collection (default: `['GET']`) |
-| `resourceFields` | `any` | No | Field definitions for the spoofed resource schema |
-| `attributes` | `any` | No | Additional attributes for the spoofed resource schema |
-| `headers` | `any[]` | No | Custom table column headers for the list view. See [Table headers](#table-headers-headers) |
-| `overrideListResourceName` | `string` | No | Override the display name in the list view |
-| `hideBulkActions` | `boolean` | No | Hide bulk action buttons for this spoofed type |
-| `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `ifHaveType` | `string` | No | Only show if the specified Kubernetes resource type exists |
-| `exact` | `boolean` | No | Whether the route should match exactly |
-| `group` | `string` | No | Group name to place this spoofed type under |
-
 ### `ProductChildGroup`
 
 A collapsible folder/group in the product's side-menu that contains pages or other nested groups. Optionally, a group can have its own Vue component that renders when the group header is clicked (only for new products, not when extending).
@@ -438,10 +378,9 @@ A union type representing any page item in a product configuration. It can be on
 
 - `ProductChildCustomPage` — a custom page with a Vue component
 - `ProductChildResourcePage` — a resource page for a Kubernetes type
-- `ProductChildSpoofedTypePage` — a spoofed/synthetic resource type
 
 ```ts
-type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildSpoofedTypePage;
+type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
 ```
 
 ### `ProductChild`
@@ -456,7 +395,7 @@ type ProductChild = ProductChildGroup | ProductChildPage;
 
 ### Table headers (`headers`)
 
-Both resource pages and spoofed type pages support custom table column headers via the `headers` property. Headers control which columns appear in the resource list view, what data they display, and how they behave (sorting, searching, formatting).
+Resource pages support custom table column headers via the `headers` property. Headers control which columns appear in the resource list view, what data they display, and how they behave (sorting, searching, formatting).
 
 When you set `headers` on a page, these columns **replace** the default columns that Rancher Dashboard would normally generate for that resource type. If you don't set `headers`, Rancher Dashboard uses its default column set.
 
@@ -564,7 +503,7 @@ Formatters transform raw values into formatted display output. Rancher Dashboard
 
 ### Renaming types (`overrideListResourceName`)
 
-Use `overrideListResourceName` to override the display name for a resource type or spoofed type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
+Use `overrideListResourceName` to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
 
 ```ts
 const clusterPage: ProductChildResourcePage = {
@@ -586,7 +525,7 @@ const clusterPage: ProductChildResourcePage = {
 
 ### Hiding bulk actions (`hideBulkActions`)
 
-Set `hideBulkActions: true` on a resource page or spoofed type to hide the bulk action buttons (e.g. "Delete") from the list view toolbar. Users can still perform actions on individual resources.
+Set `hideBulkActions: true` on a resource page to hide the bulk action buttons (e.g. "Delete") from the list view toolbar. Users can still perform actions on individual resources.
 
 ```ts
 const clusterPage: ProductChildResourcePage = {
@@ -638,151 +577,16 @@ const product: ProductMetadata = {
 };
 ```
 
-### Spoofed types
-
-A spoofed type is a synthetic resource type that doesn't correspond to an actual Kubernetes resource. You define the data source via a `getInstances` function, and Rancher Dashboard renders it using the standard resource list/detail views — including the list table, detail page, and any configured actions.
-
-This is useful for:
-
-- Displaying data from external APIs (e.g. a backup service, monitoring data)
-- Showing computed or aggregated data as if it were a resource
-- Creating virtual resource views with custom data that doesn't live in Kubernetes
-
-#### How spoofed types work
-
-Under the hood, a spoofed type registers:
-
-1. A **schema** — so Rancher Dashboard recognizes the type and can render the list/detail views. If you don't provide one, a default schema is auto-generated from the `name`, `collectionMethods`, `resourceFields`, and `attributes` you provide.
-2. A **`getInstances` function** — called by Rancher Dashboard to fetch the data to display. This replaces the normal Kubernetes API call that would happen for a real resource.
-3. A **route** — so the spoofed type has a URL path and appears in the side-menu.
-
-The `type` identifier for the spoofed type defaults to the `name` you provide. This is what Rancher Dashboard uses internally to reference the spoofed type.
-
-#### Basic usage
-
-Each instance returned by `getInstances` must have at least `id`, `type`, and `name` properties. The `type` should match the spoofed type's name:
-
-```ts
-import { ProductChildSpoofedTypePage } from '@shell/core/plugin-types';
-
-const backupsPage: ProductChildSpoofedTypePage = {
-  name:         'backups',
-  label:        'Backups',
-  getInstances: () => Promise.resolve([
-    { id: 'backup-1', type: 'backups', name: 'Daily Backup' },
-    { id: 'backup-2', type: 'backups', name: 'Weekly Backup' },
-  ]),
-};
-```
-
-In a real Extension, `getInstances` would typically call an external API:
-
-```ts
-const backupsPage: ProductChildSpoofedTypePage = {
-  name:         'backups',
-  label:        'Backups',
-  getInstances: async() => {
-    const response = await fetch('https://my-api.example.com/backups');
-
-    return response.json();
-  },
-};
-```
-
-#### Schema auto-generation
-
-A schema is automatically generated for the spoofed type if you don't provide one via the `schemas` property. The auto-generated schema uses:
-
-- `id` — set to the spoofed type's `name`
-- `type` — set to `'schema'`
-- `collectionMethods` — defaults to `['GET']` (read-only). Set to `['GET', 'POST']` if you want the UI to show a "Create" button, or `['GET', 'PUT', 'DELETE']` for edit/delete support
-- `resourceFields` — defines the fields of the spoofed resource. Defaults to `{}`
-- `attributes` — additional metadata. By default includes `{ namespaced: false }`
-
-```ts
-const backupsPage: ProductChildSpoofedTypePage = {
-  name:              'backups',
-  label:             'Backups',
-  collectionMethods: ['GET', 'POST'],
-  namespaced:        true,
-  resourceFields:    {
-    name:     { type: 'string' },
-    schedule: { type: 'string' },
-    status:   { type: 'string' },
-  },
-  getInstances: () => fetchBackups(),
-};
-```
-
-If you need full control over the schema, you can provide it directly via the `schemas` array. Each schema object should have at minimum `id`, `type`, `collectionMethods`, `resourceFields`, and `attributes`:
-
-```ts
-const backupsPage: ProductChildSpoofedTypePage = {
-  name:         'backups',
-  label:        'Backups',
-  schemas:      [{
-    id:                'backups',
-    type:              'schema',
-    collectionMethods: ['GET'],
-    resourceFields:    { name: { type: 'string' } },
-    attributes:        { namespaced: false },
-  }],
-  getInstances: () => fetchBackups(),
-};
-```
-
-#### Conditional display
-
-Use `ifHaveType` to only show the spoofed type when a specific Kubernetes resource type exists in the cluster. This is useful for spoofed types that complement real resources:
-
-```ts
-const certStatusPage: ProductChildSpoofedTypePage = {
-  name:         'cert-status',
-  label:        'Certificate Status',
-  ifHaveType:   'cert-manager.io.certificate',
-  getInstances: () => fetchCertificateStatus(),
-};
-```
-
-#### Table headers and list view options
-
-Spoofed types support the same `headers`, `overrideListResourceName`, and `hideBulkActions` options as resource pages:
-
-```ts
-import { NAME, AGE } from '@shell/config/table-headers';
-
-const backupsPage: ProductChildSpoofedTypePage = {
-  name:                     'backups',
-  label:                    'Backups',
-  headers:                  [
-    NAME,
-    {
-      name:  'schedule',
-      label: 'Schedule',
-      value: 'schedule',
-      sort:  'schedule',
-    },
-    AGE,
-  ],
-  overrideListResourceName: 'Backup Jobs',
-  hideBulkActions:          true,
-  getInstances:             () => fetchBackups(),
-};
-```
-
-> Note: Spoofed types are registered via the DSL `spoofedType` method and do NOT go through `configureType`. Only one set of resource CRUD routes is added per product, and spoofed types reuse these routes.
-
 ## Rules & Constraints
 
 When defining pages and groups in your product configuration, there are some important rules to keep in mind:
 
 ### Page types are mutually exclusive
 
-A page item is either a **custom page** (has `component`), a **resource page** (has `type`), or a **spoofed type** (has `getInstances`). Do not mix these defining properties on the same item. The API uses these properties to determine what kind of page to register:
+A page item is either a **custom page** (has `component`) or a **resource page** (has `type`). Do not set both `type` and `component` on the same item. The API uses these properties to determine what kind of page to register:
 
 - `component` defined &rarr; registers a custom page (`virtualType`)
 - `type` defined &rarr; registers a resource page (`configureType`)
-- `getInstances` defined &rarr; registers a spoofed type (`spoofedType`)
 
 ### Resource pages cannot have children
 

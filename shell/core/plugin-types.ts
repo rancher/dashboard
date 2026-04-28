@@ -196,79 +196,11 @@ export type ProductChildResourcePage = {
 };
 
 /**
- * Schema definition for a spoofed type
- */
-export type SpoofedTypeSchema = {
-  /** Unique identifier for the spoofed type schema */
-  id: string;
-  /** Type name for the spoofed type schema */
-  type: string;
-  /** HTTP methods allowed for the collection of this spoofed resource */
-  collectionMethods: string[];
-  /** Fields for the spoofed resource */
-  resourceFields: any;
-  /** Additional attributes for the spoofed resource */
-  attributes: any;
-  [key: string]: any;
-};
-
-/**
- * Options for generating a spoofed type schema
- */
-export type SpoofedTypeSchemaOptions = {
-  /** Type identifier for the spoofed resource */
-  type: string;
-  /** HTTP methods allowed for the collection of this spoofed resource */
-  collectionMethods: string[];
-  /** Fields for the spoofed resource */
-  resourceFields?: any;
-  /** Additional attributes for the spoofed resource */
-  attributes?: any;
-  /** Whether the spoofed type is namespaced */
-  namespaced?: boolean;
-};
-
-/**
- * Represents a spoofed/synthetic resource type that behaves like a real resource
- */
-export type ProductChildSpoofedTypePage = ProductChildMetadata & {
-  /** Type identifier for the spoofed resource */
-  type?: string;
-  /** Whether the spoofed type is namespaced */
-  namespaced?: boolean;
-  /** Schema definitions for the spoofed type */
-  schemas?: any[];
-  /** Function that returns the spoofed instances */
-  getInstances: () => Promise<any[]>;
-  /** Optional route configuration */
-  route?: RouteRecordRawWithParams | Object;
-  /** Optional group name */
-  group?: string;
-  /** Whether the route should match exactly */
-  exact?: boolean;
-  /** Only show this spoofed type if the specified type exists */
-  ifHaveType?: string;
-  /** Verbs to use when fetching the collection of this type (defaults to ['GET']) */
-  collectionMethods?: string[];
-  /** Fields for the spoofed resource schema */
-  resourceFields?: any;
-  /** Additional attributes for the spoofed resource schema */
-  attributes?: any;
-  /** Use this to override the resource name used in the list view for this type */
-  overrideListResourceName?: string;
-  /** Whether to hide bulk actions for this resource */
-  hideBulkActions?: boolean;
-  /** Table headers for this resource type */
-  headers?: any[];
-};
-
-/**
- * Represents a page item (custom page, resource page, or spoofed type) in a product's config
+ * Represents a page item (custom page or resource page) in a product's config
  * - For custom pages: use `component` with `name` and `label`/`labelKey`
  * - For resource pages: use `type` with optional `config` and `headers`
- * - For spoofed types: use `getInstances` with `name` and `label`/`labelKey`
  */
-export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildSpoofedTypePage;
+export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
 
 /**
  * Represents a product child in the navigation

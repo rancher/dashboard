@@ -3,7 +3,7 @@ import {
   ProductChild, ProductMetadata,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
   ProductChildCustomPage, VueRouteComponent,
-  OverviewPageRoutingMetadata, ProductChildSpoofedTypePage
+  OverviewPageRoutingMetadata
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
@@ -13,7 +13,6 @@ import {
   isProductChildWithType,
   hasNameProperty,
   hasTypeProperty,
-  isProductChildSpoofed
 } from '@shell/core/plugin-products-type-guards';
 
 /**
@@ -206,9 +205,7 @@ export abstract class BasePluginProduct {
 
           if (!firstConfig.component) {
             // Group without component - route to first child
-            if (isProductChildSpoofed(entryChild)) {
-              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
-            } else if (isProductChildWithType(entryChild)) {
+            if (isProductChildWithType(entryChild)) {
               defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
             } else if (isProductChildWithComponent(entryChild)) {
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
@@ -221,9 +218,6 @@ export abstract class BasePluginProduct {
           // Group with component but no children - route to the group page itself
           defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
         }
-      } else if (isProductChildSpoofed(firstConfig)) {
-        // Spoofed type route (fake resource page)
-        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
         defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
@@ -270,51 +264,16 @@ export abstract class BasePluginProduct {
   }
 
   /**
-   * Configure spoofedType (fake resource page) / virtualType (custom page) / configureType (resource page) for a page item
+   * Configure virtualType (custom page) or configureType (resource page) for a page item
    */
   protected configurePageItem(parentName: string, item: ProductChild, groupNaming?: string): void {
     const {
-      configureType, virtualType, weightType, spoofedType,
+      configureType, virtualType, weightType,
       mapType, ignoreType, hideBulkActions, headers
     } = this.DSLMethods;
 
-    // Spoofed type page
-    if (isProductChildSpoofed(item)) {
-      const spoofedTypeConfig: ProductChildSpoofedTypePage = { ...item };
-
-      // the "type" for the spoofed type is actually generated based on the name of the item
-      spoofedTypeConfig.type = item.name;
-
-      // entry route for the spoofed type page
-      spoofedTypeConfig.route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, spoofedTypeConfig, { extendProduct: !this.isNewProduct });
-
-      // generate schema for the spoofed type if not provided - this is required to have the type show up in the UI
-      if (!spoofedTypeConfig.schemas || spoofedTypeConfig.schemas.length === 0) {
-        spoofedTypeConfig.schemas = [pluginProductsHelpers.generateSchemaForSpoofedType({
-          type:              spoofedTypeConfig.name,
-          collectionMethods: spoofedTypeConfig.collectionMethods || ['GET'],
-          namespaced:        spoofedTypeConfig.namespaced || false,
-          resourceFields:    spoofedTypeConfig.resourceFields || {},
-          attributes:        spoofedTypeConfig.attributes || { namespaced: spoofedTypeConfig.namespaced || false },
-        })];
-      }
-
-      if (spoofedTypeConfig.headers) {
-        headers(spoofedTypeConfig.type, spoofedTypeConfig.headers);
-      }
-
-      if (spoofedTypeConfig.overrideListResourceName) {
-        mapType(spoofedTypeConfig.type, spoofedTypeConfig.overrideListResourceName);
-      }
-
-      if (spoofedTypeConfig.hideBulkActions) {
-        hideBulkActions(spoofedTypeConfig.type, true);
-      }
-
-      spoofedType(spoofedTypeConfig);
-
     // Page with a "component" specified maps to a virtualType
-    } else if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
+    if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
       // Extract properties we need from the narrowed item
       const name = `${ parentName }-${ item.name }`;
       const finalName = groupNaming ? `${ parentName }-${ groupNaming }-${ item.name }` : name;
@@ -460,9 +419,7 @@ export abstract class BasePluginProduct {
         return null;
       }
 
-      if (isProductChildSpoofed(item)) {
-        return item.name;
-      } else if (typeof item === 'string') {
+      if (typeof item === 'string') {
         return item;
       } else if (hasNameProperty(item)) {
         return `${ parent }-${ item.name }`;

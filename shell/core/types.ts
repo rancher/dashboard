@@ -590,13 +590,6 @@ export interface DSLReturnType {
   virtualType: (options: ConfigureVirtualTypeOptions) => void;
 
   /**
-   * Create a fake/spoofed type that can be treated like a normal type
-   * @param obj Spoofed type configuration including schemas and getInstances
-   * @returns {@link void}
-   */
-  spoofedType: (obj: any) => void;
-
-  /**
    * Side menu ordering for grouping of pages
    * @param input Name of the group
    * @param weight Ordering to be applied for the specified group
