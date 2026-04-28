@@ -40,7 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS } from '@shell/store/catalog';
+import { WINDOWS, LINUX } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -777,6 +777,14 @@ export default {
       const global = this.versionInfo?.values?.global || {};
 
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
+    },
+
+    isWindowsIncompatibleVersion() {
+      if (this.versionInfo) {
+        return !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
+      }
+
+      return false;
     },
 
     setImagePullSecretDataTrigger() {
@@ -1637,6 +1645,12 @@ export default {
                 :selectable="version => !version.disabled"
                 @update:value="selectVersion"
               />
+              <p
+                v-if="chart && isWindowsIncompatibleVersion"
+                class="chart-version-footnote"
+              >
+                {{ t('catalog.charts.versionWindowsIncompatible') }}
+              </p>
               <!-- Can't find the chart for the app, let the user try to select one -->
               <LabeledSelect
                 v-else
@@ -2104,6 +2118,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .chart-version-footnote {
+    margin-top: 8px;
+    color: var(--input-label);
+  }
+
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
