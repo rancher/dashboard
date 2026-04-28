@@ -11,7 +11,7 @@ CYPRESS_GREP_TAGS_ARGS=""
 
 if [ -n "GREP_TAGS" ]; then
   echo "Running Cypress with grep tags: $GREP_TAGS"
-CYPRESS_GREP_TAGS_ARGS="--env grepTags=\"$GREP_TAGS\""
+  CYPRESS_GREP_TAGS_ARGS="--env grepTags=\"$GREP_TAGS\""
 else
   echo "Running Cypress without grep tags"
 fi
