@@ -101,6 +101,7 @@ export default {
     hasMultipleReadyClusters() {
       const readyCount = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready).length;
 
+      // We check allClustersCount as a fallback for environments with many clusters where only a subset (e.g. 10) is currently loaded and visible.
       return readyCount > 1 || this.allClustersCount > this.maxClustersToShow;
     },
 
