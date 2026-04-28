@@ -1,7 +1,7 @@
 import { base64Encode } from '@shell/utils/crypto';
+import { addParam, addParams } from '@shell/utils/url';
 
 const ENDPOINT = 'api.phoenixnap.com';
-const ENDPOINT_CR_NAME = 'rancher-pnap-endpoints';
 
 export const state = () => {
   return { cache: {} };
@@ -68,44 +68,62 @@ export const actions = {
     return out;
   },
 
+  // DEPRECATED: accessing /meta/proxy directly has been deprecated
   async request({ dispatch }, {
     clientId, clientSecret, credentialId, command, opt, out
   }) {
     opt = opt || {};
 
+    let url = '/meta/proxy/';
+    const body = null;
+    let method = 'GET';
+
+    if ( opt.url ) {
+      url += opt.url.replace(/^https?:\/\//, '');
+    } else {
+      url += `${ ENDPOINT }/${ command }`;
+      url = addParam(url, 'per_page', opt.per_page || 1000);
+      url = addParams(url, opt.params || {});
+    }
+
+    const headers = { Accept: 'application/json' };
+
     if ( credentialId ) {
-      // Ensure the ProxyEndpoint CR exists so ENDPOINT is on the allow-list.
-      const exists = await this.$shell.proxy.hasProxyEndpoint(ENDPOINT_CR_NAME);
-
-      if ( !exists ) {
-        await this.$shell.proxy.allowDomains([ENDPOINT], ENDPOINT_CR_NAME);
-      }
-
-      return this.$shell.proxy.request({
-        url:           opt.url,
-        endpoint:      ENDPOINT,
-        command,
-        perPage:       opt.per_page || 1000,
-        params:        opt.params,
-        credentialId,
-        authSigner:    'bearer',
-        passwordField: 'token',
-        dePaginate:    true,
-        nextUrlPath:   'links.pages.next',
-        mergeKey:      command,
-        out,
-      });
+      headers['X-API-CattleAuth-Header'] = `Bearer credID=${ credentialId } passwordField=token`;
     } else if ( clientId ) {
-      // OAuth client-credentials token fetch: POST to the PhoenixNAP auth
-      // endpoint with a Basic-encoded client ID/secret.
-      const encoded = base64Encode(`${ clientId }:${ clientSecret }`);
+      const credentials = `${ clientId }:${ clientSecret }`;
+      const encoded = base64Encode(credentials);
 
-      return this.$shell.proxy.request({
-        url:        'auth.phoenixnap.com/auth/realms/BMC/protocol/openid-connect/token/',
-        method:     'POST',
-        token:      encoded,
-        authSigner: 'Basic',
+      headers['Content-Type'] = 'application/json';
+      headers['X-API-Auth-Header'] = `Basic ${ encoded }`;
+      url = '/meta/proxy/auth.phoenixnap.com/auth/realms/BMC/protocol/openid-connect/token/';
+      // body = `grant_type:client_credentials`;
+      method = 'POST';
+    }
+
+    const res = await dispatch('management/request', {
+      url,
+      method,
+      headers,
+      data:                 body,
+      redirectUnauthorized: false,
+    }, { root: true });
+
+    if ( out ) {
+      out[command] = out[command].concat(res[command]);
+    } else {
+      out = res;
+    }
+
+    // De-pagination
+    if ( res?.links?.pages?.next ) {
+      opt.url = res.links.pages.next;
+
+      return dispatch('request', {
+        clientId, clientSecret, credentialId, command, opt, out
       });
     }
+
+    return out;
   }
 };
