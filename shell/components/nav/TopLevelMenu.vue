@@ -98,6 +98,16 @@ export default {
       return count?.summary.count;
     },
 
+    hasMultipleReadyClusters() {
+      const readyCount = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready).length;
+
+      return readyCount > 1 || this.allClustersCount > this.maxClustersToShow;
+    },
+
+    routeComboActive() {
+      return this.routeCombo && this.hasMultipleReadyClusters;
+    },
+
     // New
     search() {
       return (this.clusterFilter || '').toLowerCase();
@@ -386,7 +396,7 @@ export default {
     },
 
     clusterMenuClick(ev, cluster) {
-      if (this.routeCombo) {
+      if (this.routeComboActive) {
         ev.preventDefault();
 
         if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
@@ -446,7 +456,7 @@ export default {
         content = this.shown ? null : contentText;
 
       // if key combo is pressed, then we update the tooltip as well
-      } else if (this.routeCombo &&
+      } else if (this.routeComboActive &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
         item !== null &&
@@ -706,7 +716,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -785,7 +795,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div
