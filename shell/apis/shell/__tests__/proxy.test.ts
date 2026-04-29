@@ -265,7 +265,7 @@ describe('proxyApiImpl', () => {
       await proxyApi.allowDomains(['api.example.com', '%.amazonaws.com'], 'my-cr');
 
       expect(mockDispatch).toHaveBeenCalledWith('management/create', {
-        type:     'management.cattle.io.proxyendpoint',
+        type:     'management.cattle.io.proxyEndpoint',
         metadata: { name: 'my-cr' },
         spec:     {
           routes: [
@@ -278,14 +278,16 @@ describe('proxyApiImpl', () => {
       expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
-    it('should use an empty string name when none is supplied', async() => {
+    it('should use an generateName when none is supplied', async() => {
       const mockSave = jest.fn().mockResolvedValue({});
 
       mockDispatch.mockResolvedValue({ save: mockSave });
 
       await proxyApi.allowDomains(['api.example.com']);
 
-      expect(mockDispatch).toHaveBeenCalledWith('management/create', expect.objectContaining({ metadata: { name: '' } }));
+      expect(mockDispatch).toHaveBeenCalledWith('management/create', expect.objectContaining({
+        metadata: { generateName: 'endpoints-' }, spec: { routes: [{ domain: 'api.example.com' }] }, type: 'management.cattle.io.proxyEndpoint'
+      }));
     });
   });
 
@@ -353,7 +355,7 @@ describe('proxyApiImpl', () => {
 
       expect(result).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith('management/find', {
-        type: 'management.cattle.io.proxyendpoint',
+        type: 'management.cattle.io.proxyEndpoint',
         id:   'my-cr',
         opt:  { force: false },
       });
