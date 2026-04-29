@@ -88,7 +88,7 @@ export const actions = {
     const headers = { Accept: 'application/json' };
 
     if ( credentialId ) {
-      headers['X-API-CattleAuth-Header'] = `Bearer credID=${ credentialId } passwordField=token`;
+      headers['X-API-CattleAuth-Header'] = `Basic credID=${ credentialId } passwordField=clientSecret usernameField=clientId`;
     } else if ( clientId ) {
       const credentials = `${ clientId }:${ clientSecret }`;
       const encoded = base64Encode(credentials);
