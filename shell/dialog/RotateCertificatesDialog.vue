@@ -101,7 +101,7 @@ export default {
       const params = this.actionParams;
 
       try {
-        if (this.cluster.isDayTwoOpsEnabled && (this.cluster.isImportedRke2 || this.cluster.isImportedK3s)) {
+        if (this.cluster.isImportedWithDayTwoOps) {
           // For imported clusters with day 2 ops, create a cert rotation operation CR
           const namespace = this.cluster.mgmt?.metadata?.namespace || this.cluster.mgmt?.id;
           const resource = await this.$store.dispatch('management/create', {
