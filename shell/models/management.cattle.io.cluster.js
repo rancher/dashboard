@@ -1,10 +1,9 @@
-import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';

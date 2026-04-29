@@ -40,7 +40,7 @@ export default {
 
   computed: {
     serviceOptions() {
-      if (this.cluster.isRke2) {
+      if (this.cluster.isRke2 || this.cluster.isImportedRke2 || this.cluster.isImportedK3s) {
         const options = [
           'admin',
           'api-server',
@@ -53,7 +53,7 @@ export default {
           'kube-proxy'
         ];
 
-        if ( this.cluster.isK3s ) {
+        if ( this.cluster.isK3s || this.cluster.isImportedK3s ) {
           options.push('k3s-controller', 'k3s-server');
         } else {
           options.push('rke2-controller', 'rke2-server');
@@ -75,8 +75,8 @@ export default {
       if (this.rotateAllServices) {
         return {
           // To rotate all services, RKE1 clusters need services
-          // to be null, while RKE2 requires an empty array.
-          services:       this.cluster.isRke2 ? [] : null,
+          // to be null, while RKE2 and imported RKE2/K3s require an empty array.
+          services:       (this.cluster.isRke2 || this.cluster.isImportedRke2 || this.cluster.isImportedK3s) ? [] : null,
           caCertificates: false,
         };
       } else {
