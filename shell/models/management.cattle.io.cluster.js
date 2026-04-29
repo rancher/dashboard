@@ -2,6 +2,7 @@ import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT
 } from '@shell/config/types';
+import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
@@ -198,6 +199,50 @@ export default class MgmtCluster extends SteveModel {
 
   get isLocal() {
     return this.spec?.internal === true;
+  }
+
+  /**
+   * Whether day 2 operations are enabled for this cluster.
+   * Reads the `operation.cattle.io/enabled` annotation.
+   */
+  get isDayTwoOpsEnabled() {
+    return this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+  }
+
+  /**
+   * Enable day 2 operations by setting the `operation.cattle.io/enabled` annotation to 'true'.
+   */
+  async enableDayTwoOps() {
+    this.metadata = this.metadata || {};
+    this.metadata.annotations = this.metadata.annotations || {};
+    this.metadata.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+
+    return this.save();
+  }
+
+  /**
+   * Disable day 2 operations by setting the `operation.cattle.io/enabled` annotation to 'false'.
+   */
+  async disableDayTwoOps() {
+    this.metadata = this.metadata || {};
+    this.metadata.annotations = this.metadata.annotations || {};
+    this.metadata.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'false';
+
+    return this.save();
+  }
+
+  /**
+   * Get the ETCD config from the Rke2Config subresource (for imported RKE2 clusters).
+   */
+  get rke2EtcdConfig() {
+    return this.spec?.rke2Config?.etcd;
+  }
+
+  /**
+   * Get the ETCD config from the K3sConfig subresource (for imported K3s clusters).
+   */
+  get k3sEtcdConfig() {
+    return this.spec?.k3sConfig?.etcd;
   }
 
   get isHarvester() {

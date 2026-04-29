@@ -229,6 +229,8 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
+  enableDayTwoOps: Enable Day 2 Operations
+  disableDayTwoOps: Disable Day 2 Operations
   seeAllClusters: See all clusters
   seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
@@ -2721,6 +2723,7 @@ cluster:
     registry: Registries
     upgrade: Upgrade Strategy
     registration: Registration
+    operations: Operations
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
@@ -5946,6 +5949,22 @@ promptRotateEncryptionKey:
   warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
   error: No backup found
 
+day2Ops:
+  enable:
+    title: Enable Day 2 Operations
+    description: Enabling day 2 operations will install the system-upgrade-controller and system-agent-upgrader plan on this cluster, allowing you to perform etcd snapshots, restores, certificate rotations, and encryption key rotations.
+    warning: Day 2 operations can only be enabled on imported RKE2 or K3s clusters.
+  disable:
+    title: Disable Day 2 Operations
+    description: Disabling day 2 operations will uninstall the system-agent from downstream nodes and remove all associated scaffolding (machine-plan secrets, service accounts, RBAC) and the system-agent-upgrader plan.
+    warning: Day 2 operations cannot be disabled while an operation is currently in progress.
+  phase:
+    Pending: Pending
+    InProgress: In Progress
+    Succeeded: Succeeded
+    Failed: Failed
+    Cancelled: Cancelled
+
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
   sms: Enable SMS
@@ -8848,6 +8867,7 @@ advancedSettings:
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
+    'imported-cluster-day-2-operations-default': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, certificate rotations, encryption key rotations) enabled by default. This does not affect previously imported clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:

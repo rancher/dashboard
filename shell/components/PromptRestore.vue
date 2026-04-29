@@ -7,7 +7,7 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { CAPI, SNAPSHOT } from '@shell/config/types';
+import { CAPI, SNAPSHOT, OPERATION } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
@@ -147,15 +147,35 @@ export default {
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
-        const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
+        // For imported clusters with day 2 ops enabled, create an operation CR
+        if (cluster.isDayTwoOpsEnabled && (cluster.isImportedRke2 || cluster.isImportedK3s)) {
+          const namespace = cluster.mgmt?.metadata?.namespace || cluster.mgmt?.id;
+          const resource = await this.$store.dispatch('management/create', {
+            type:     OPERATION.ETCD_SNAPSHOT_RESTORE,
+            metadata: { namespace },
+            spec:     {
+              clusterRef: {
+                apiVersion: 'management.cattle.io/v3',
+                kind:       'Cluster',
+                name:       cluster.mgmt?.id,
+              },
+              snapshotRef:    { name: this.snapshot.name },
+              restoreRKEConfig: this.restoreMode,
+            },
+          }, { root: true });
 
-        set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-          generation:       now + 1,
-          name:             this.snapshot.name,
-          restoreRKEConfig: this.restoreMode,
-        });
+          await resource.save();
+        } else {
+          const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
-        await cluster.save();
+          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
+            generation:       now + 1,
+            name:             this.snapshot.name,
+            restoreRKEConfig: this.restoreMode,
+          });
+
+          await cluster.save();
+        }
 
         this.$store.dispatch('growl/success', {
           title:   this.t('promptRestore.notification.title'),

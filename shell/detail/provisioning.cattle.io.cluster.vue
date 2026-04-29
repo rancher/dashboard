@@ -6,7 +6,7 @@ import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT, OPERATION } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
@@ -136,6 +136,22 @@ export default {
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
+
+    // Fetch operation CRDs for clusters with day 2 ops enabled
+    if ( this.value.isDayTwoOpsEnabled ) {
+      const operationTypes = [
+        OPERATION.ETCD_SNAPSHOT,
+        OPERATION.ETCD_SNAPSHOT_RESTORE,
+        OPERATION.CERT_ROTATE,
+        OPERATION.ENCRYPTION_KEY_ROTATE,
+      ];
+
+      for (const opType of operationTypes) {
+        if (this.$store.getters['management/canList'](opType)) {
+          fetchOne[`operations_${ opType }`] = this.$store.dispatch('management/findAll', { type: opType });
+        }
+      }
     }
 
     if ( this.value.isImported || this.value.isCustom || this.value.isHostedKubernetesProvider ) {
@@ -287,6 +303,7 @@ export default {
         logs:         true, // in this component
         registration: true, // in this component
         snapshots:    true, // in this component
+        operations:   true, // in this component
         related:      true, // in ResourceTabs
         events:       true, // in ResourceTabs
         conditions:   true, // in ResourceTabs
@@ -459,9 +476,59 @@ export default {
         return false;
       } else if (this.value.isRke2) {
         return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
+      } else if (this.value.isDayTwoOpsEnabled) {
+        return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
+    },
+
+    showOperations() {
+      return this.value.isDayTwoOpsEnabled && this.extDetailTabs.operations;
+    },
+
+    clusterOperations() {
+      if (!this.value.isDayTwoOpsEnabled) {
+        return [];
+      }
+
+      const mgmtId = this.value.mgmt?.id;
+      const operationTypes = [
+        OPERATION.ETCD_SNAPSHOT,
+        OPERATION.ETCD_SNAPSHOT_RESTORE,
+        OPERATION.CERT_ROTATE,
+        OPERATION.ENCRYPTION_KEY_ROTATE,
+      ];
+
+      const allOps = [];
+
+      for (const opType of operationTypes) {
+        const resources = this.$store.getters['management/all'](opType) || [];
+
+        allOps.push(...resources.filter((op) => op.spec?.clusterRef?.name === mgmtId));
+      }
+
+      return allOps;
+    },
+
+    operationHeaders() {
+      return [
+        STATE,
+        NAME,
+        {
+          name:     'type',
+          labelKey: 'tableHeaders.type',
+          value:    'type',
+          sort:     'type',
+        },
+        {
+          name:     'phase',
+          labelKey: 'tableHeaders.phase',
+          value:    'phase',
+          sort:     'phase',
+        },
+        AGE,
+      ];
     },
 
     isRke1() {
@@ -1129,6 +1196,20 @@ export default {
                 </div>
               </template>
             </SortableTable>
+          </Tab>
+          <Tab
+            v-if="showOperations"
+            name="operations"
+            :label="t('cluster.tabs.operations')"
+            :weight="0"
+          >
+            <SortableTable
+              :headers="operationHeaders"
+              default-sort-by="age"
+              :table-actions="false"
+              :rows="clusterOperations"
+              :search="false"
+            />
           </Tab>
           <AutoscalerTab
             v-if="showAutoScalerTab"

@@ -8,6 +8,7 @@ import Select from '@shell/components/form/Select';
 
 import { get, set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { OPERATION } from '@shell/config/types';
 
 export default {
   emits: ['close'],
@@ -100,7 +101,24 @@ export default {
       const params = this.actionParams;
 
       try {
-        if (this.cluster.isRke2) {
+        if (this.cluster.isDayTwoOpsEnabled && (this.cluster.isImportedRke2 || this.cluster.isImportedK3s)) {
+          // For imported clusters with day 2 ops, create a cert rotation operation CR
+          const namespace = this.cluster.mgmt?.metadata?.namespace || this.cluster.mgmt?.id;
+          const resource = await this.$store.dispatch('management/create', {
+            type:     OPERATION.CERT_ROTATE,
+            metadata: { namespace },
+            spec:     {
+              clusterRef: {
+                apiVersion: 'management.cattle.io/v3',
+                kind:       'Cluster',
+                name:       this.cluster.mgmt?.id,
+              },
+              services: (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : [],
+            },
+          }, { root: true });
+
+          await resource.save();
+        } else if (this.cluster.isRke2) {
         // The Steve API doesn't support actions, so for RKE2 cluster cert rotation, we patch the cluster.
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 

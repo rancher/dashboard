@@ -8,6 +8,7 @@ import {
   HCI,
   MANAGEMENT,
   SNAPSHOT,
+  OPERATION,
   VIRTUAL_TYPES,
   HOSTED_PROVIDER,
   SAVED_COUNTS
@@ -73,6 +74,12 @@ export function init(store) {
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
+
+  // Day 2 operation CRDs - read-only, not user-creatable or editable
+  configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.CERT_ROTATE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
