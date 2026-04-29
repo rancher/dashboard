@@ -310,30 +310,43 @@ describe('edit: azureAD SSO logout should', () => {
   });
 
   it.each([
-    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: '', disabled: true },
-    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'not-a-url', disabled: true },
-    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false },
-    { sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: '', disabled: true },
-    { sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false },
+    {
+      sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: '', disabled: true
+    },
+    {
+      sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'not-a-url', disabled: true
+    },
+    {
+      sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false
+    },
+    {
+      sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: '', disabled: true
+    },
+    {
+      sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false
+    },
   ])('has save button disabled=$disabled when sloType=$sloType and endSessionEndpoint=$endSessionEndpoint', async(testCase) => {
     wrapper = mount(AzureAD, {
       ...requiredSetup({
-        logoutAllSupported:    true,
-        tenantId:              validTenantId,
-        applicationId:         validApplicationId,
-        applicationSecret:     validAppSecret,
-        endSessionEndpoint:    testCase.endSessionEndpoint,
+        logoutAllSupported: true,
+        tenantId:           validTenantId,
+        applicationId:      validApplicationId,
+        applicationSecret:  validAppSecret,
+        endSessionEndpoint: testCase.endSessionEndpoint,
       }),
       data() {
         return {
-          isEnabling:     true,
-          editConfig:     false,
-          model:          {
+          isEnabling: true,
+          editConfig: false,
+          model:      {
             ...mockModel,
             logoutAllSupported: true,
             tenantId:           validTenantId,
             applicationId:      validApplicationId,
             applicationSecret:  validAppSecret,
+            graphEndpoint:      validGraphEndpoint,
+            tokenEndpoint:      validTokenEndpoint,
+            authEndpoint:       validAuthEndpoint,
             endSessionEndpoint: testCase.endSessionEndpoint,
           },
           sloType:        testCase.sloType,
