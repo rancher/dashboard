@@ -207,10 +207,7 @@ export class ProxyApiImpl implements ProxyApi {
    *          `false` otherwise.
    */
   public async isDomainAllowed(domain: string): Promise<boolean> {
-    const endpoints: any[] = await this.store.dispatch('management/findAll', {
-      type: MANAGEMENT.PROXY_ENDPOINT,
-      opt:  { force: false, watch: false },
-    });
+    const endpoints: any[] = await this.store.dispatch('management/findAll', { type: MANAGEMENT.PROXY_ENDPOINT });
 
     const needle = domain.toLowerCase();
 
