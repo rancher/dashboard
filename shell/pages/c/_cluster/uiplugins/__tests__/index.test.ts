@@ -296,7 +296,8 @@ describe('page: UI plugins/Extensions', () => {
       const plugin = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] } };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].tooltip.key).toBe('generic.deprecated');
+      expect(statuses[0].tooltip.text).toBe('generic.deprecated');
+      expect(statuses[0].color).toBe('error');
     });
 
     it('should return error status for installedError', () => {
@@ -304,15 +305,17 @@ describe('page: UI plugins/Extensions', () => {
       const statuses = wrapper.vm.getStatuses(plugin);
 
       expect(statuses[0].icon).toBe('icon-alert-alt');
-      expect(statuses[0].tooltip.text).toBe('generic.error: An error occurred');
+      expect(statuses[0].color).toBe('error');
+      expect(statuses[0].tooltip.text).toBe('An error occurred');
     });
 
-    it('should return error status for incompatibilityMessage', () => {
+    it('should return warning status for incompatibilityMessage', () => {
       const plugin = { incompatibilityMessage: 'Incompatible version' };
       const statuses = wrapper.vm.getStatuses(plugin);
 
       expect(statuses[0].icon).toBe('icon-alert-alt');
-      expect(statuses[0].tooltip.text).toBe('generic.error: Incompatible version');
+      expect(statuses[0].color).toBe('error');
+      expect(statuses[0].tooltip.text).toBe('Incompatible version');
     });
 
     it('should return error status for helmError', () => {
@@ -320,15 +323,16 @@ describe('page: UI plugins/Extensions', () => {
       const statuses = wrapper.vm.getStatuses(plugin);
 
       expect(statuses[0].icon).toBe('icon-alert-alt');
-      expect(statuses[0].tooltip.text).toBe('generic.error: plugins.helmError');
+      expect(statuses[0].color).toBe('error');
+      expect(statuses[0].tooltip.text).toBe('plugins.helmError');
     });
 
-    it('should combine deprecated and other errors in tooltip', () => {
+    it('should combine deprecated and warning in tooltip, and keep error separate', () => {
       const plugin = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] }, helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
-      const warningStatus = statuses.find((status: any) => status.icon === 'icon-alert-alt');
+      const errorStatus = statuses.find((status: any) => status.color === 'error');
 
-      expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
+      expect(errorStatus.tooltip.text).toBe('generic.deprecated<br/>plugins.helmError');
     });
   });
 

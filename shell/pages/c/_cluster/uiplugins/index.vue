@@ -989,24 +989,27 @@ export default {
     getStatuses(plugin) {
       const statuses = [];
 
-      const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
+      const errorMsg = plugin.installedError || (plugin.helmError ? this.t('plugins.helmError') : null);
+      const incompatibilityMsg = plugin.incompatibilityMessage;
       const isDeprecated = uiPluginHasAnnotation(plugin?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
 
-      if (isDeprecated || errorTooltip) {
-        let tooltip;
+      const tooltipMsgs = [];
 
-        if (isDeprecated && errorTooltip) {
-          tooltip = { text: `${ this.t('generic.deprecated') }. ${ this.t('generic.error') }: ${ errorTooltip }` };
-        } else if (isDeprecated) {
-          tooltip = { key: 'generic.deprecated' };
-        } else { // errorTooltip is present
-          tooltip = { text: `${ this.t('generic.error') }: ${ errorTooltip }` };
-        }
+      if (isDeprecated) {
+        tooltipMsgs.push(this.t('generic.deprecated'));
+      }
 
+      if (errorMsg) {
+        tooltipMsgs.push(errorMsg);
+      } else if (incompatibilityMsg) {
+        tooltipMsgs.push(incompatibilityMsg);
+      }
+
+      if (tooltipMsgs.length) {
         statuses.push({
-          icon:  'icon-alert-alt',
-          color: 'error',
-          tooltip
+          icon:    'icon-alert-alt',
+          color:   'error',
+          tooltip: { text: tooltipMsgs.join('<br/>') }
         });
       }
 

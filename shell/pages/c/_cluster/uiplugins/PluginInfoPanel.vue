@@ -51,8 +51,22 @@ export default {
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
-    isDeprecated() {
-      return uiPluginHasAnnotation(this.info?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
+    errorMessage() {
+      return this.info?.installedError || (this.info?.helmError ? this.t('plugins.helmError') : null);
+    },
+
+    warningMessages() {
+      const warnings = [];
+
+      if (uiPluginHasAnnotation(this.info?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true')) {
+        warnings.push(this.t('plugins.deprecatedExtension'));
+      }
+
+      if (this.info?.incompatibilityMessage) {
+        warnings.push(this.info.incompatibilityMessage);
+      }
+
+      return warnings;
     },
 
     applyDarkModeBg() {
@@ -315,11 +329,18 @@ export default {
             class="plugin-tags-container"
           />
           <Banner
-            v-if="isDeprecated"
+            v-for="(msg, i) in warningMessages"
+            :key="i"
             color="warning"
-            class="mb-20 mt-0"
           >
-            {{ t('plugins.deprecatedExtension') }}
+            {{ msg }}
+          </Banner>
+
+          <Banner
+            v-if="errorMessage"
+            color="error"
+          >
+            {{ errorMessage }}
           </Banner>
 
           <div class="plugin-versions-container">
@@ -468,6 +489,7 @@ export default {
 
         .banner.warning {
           margin-top: 0;
+          margin-bottom: 32px;
         }
 
         .plugin-info-detail {
