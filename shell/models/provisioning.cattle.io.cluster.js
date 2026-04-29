@@ -131,8 +131,7 @@ export default class ProvCluster extends SteveModel {
 
     const canSnapshot = ready && (this.isRke2 || this.isDayTwoOpsEnabled) && this.canUpdate;
 
-    const isImportedWithDayTwoOps = (this.isImportedRke2 || this.isImportedK3s) && this.isDayTwoOpsEnabled;
-    const canDayTwoOps = canEditRKE2cluster || (isImportedWithDayTwoOps && ready);
+    const canDayTwoOps = canEditRKE2cluster || (this.isImportedWithDayTwoOps && ready);
     const isImportedRke2K3s = this.isImportedRke2 || this.isImportedK3s;
 
     const actions = [
@@ -407,6 +406,13 @@ export default class ProvCluster extends SteveModel {
     }
 
     return false;
+  }
+
+  /**
+   * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
+   */
+  get isImportedWithDayTwoOps() {
+    return (this.isImportedRke2 || this.isImportedK3s) && this.isDayTwoOpsEnabled;
   }
 
   get isK3s() {
@@ -860,7 +866,7 @@ export default class ProvCluster extends SteveModel {
         url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
         method: 'post',
       }, { root: true });
-    } else if ( this.isDayTwoOpsEnabled && (this.isImportedRke2 || this.isImportedK3s) ) {
+    } else if ( this.isImportedWithDayTwoOps ) {
       // For imported clusters with day 2 ops, create an operation CRD
       return this._createOperationCR(OPERATION.ETCD_SNAPSHOT, {
         clusterRef: {

@@ -1,12 +1,5 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
-
-const PHASE_STATE_MAP = {
-  Pending:    'info',
-  InProgress: 'info',
-  Succeeded:  'success',
-  Failed:     'error',
-  Cancelled:  'warning',
-};
+import { PHASE_STATE_MAP } from '@shell/models/operation.cattle.io.constants';
 
 export default class EtcdSnapshotOperation extends SteveModel {
   get phase() {

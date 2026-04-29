@@ -148,7 +148,7 @@ export default {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         // For imported clusters with day 2 ops enabled, create an operation CR
-        if (cluster.isDayTwoOpsEnabled && (cluster.isImportedRke2 || cluster.isImportedK3s)) {
+        if (cluster.isImportedWithDayTwoOps) {
           const namespace = cluster.mgmt?.metadata?.namespace || cluster.mgmt?.id;
           const resource = await this.$store.dispatch('management/create', {
             type:     OPERATION.ETCD_SNAPSHOT_RESTORE,
