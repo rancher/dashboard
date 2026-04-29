@@ -327,7 +327,7 @@ describe('page: UI plugins/Extensions', () => {
       expect(statuses[0].tooltip.text).toBe('plugins.helmError');
     });
 
-    it('should combine deprecated and warning in tooltip, and keep error separate', () => {
+    it('should combine deprecated and error messages in a single tooltip', () => {
       const plugin = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] }, helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
       const errorStatus = statuses.find((status: any) => status.color === 'error');
