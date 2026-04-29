@@ -38,63 +38,37 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/inactivity.ts` - READY FOR PR (14 tests pass, 100% stmts/fns/lines, 84.61% branches)
-   - branch: `test-assist/inactivity-utils-tests` (must be recreated each run - local only)
-   - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
-2. `shell/utils/git.ts` - has testable normalize functions; tests attempted 2026-04-11 but NOT committed
-3. `shell/utils/pagination-utils.ts` - started 2026-04-09; pagination-wrapper.test.ts exists but pagination-utils.test.ts not confirmed
-4. `shell/utils/fleet.ts` (328 lines) - fleet.test.ts exists (155 lines) but partial coverage
-5. `shell/utils/settings.ts` - getPerformanceSetting and isProviderEnabled are testable
-6. `shell/utils/gc/gc.ts` - garbage collection logic, store-heavy, complex
+1. `shell/utils/pagination-utils.ts` (306 lines) — complex pagination logic, no tests
+2. `shell/utils/fleet.ts` (328 lines) — fleet.test.ts exists but partial coverage
+3. `shell/utils/settings.ts` - getPerformanceSetting and isProviderEnabled are testable
+4. `shell/utils/gc/gc.ts` — garbage collection logic, store-heavy, complex
 
 ## Completed Work
 
-### 2026-04-28
-- Recreated 14 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 84.61% branches)
-- All 14 tests pass, ESLint clean
-- Committed to local branch `test-assist/inactivity-utils-tests` (commit faa27b2)
-- BLOCKED: safeoutputs tools still not callable (17th consecutive run)
-- PR not created; branch is local only
+### 2026-04-29
+- Confirmed PR #17176 (url.ts) was merged on 2026-04-22 ✅
+- Confirmed shell/utils/__tests__/inactivity.test.ts (22 tests) already in master ✅
+- Created branch `test-assist/git-utils-tests` with 13 tests for shell/utils/git.ts
+- 100% stmts/fns/lines coverage, 72% branches — all tests pass, ESLint clean
+- Submitted PR via safeoutputs (branch: test-assist/git-utils-tests)
+- Updated Monthly Activity issue #17177
 
-### 2026-04-27
-- Recreated 17 tests for shell/utils/inactivity.ts (100% stmts/fns/lines, 75% branches)
-- All 17 tests pass, ESLint clean
-- BLOCKED: safeoutputs tools still not callable (16th consecutive run)
-- PR not created; branch is local only
+### 2026-04-22
+- PR #17176 (url.ts, 38 tests) merged by nwmac ✅
 
-### 2026-04-08 through 2026-04-26
-- Repeatedly wrote inactivity.ts tests, blocked on safeoutputs
-- 2026-04-09: wrote 39 tests for pagination-utils.ts (not committed)
-- 2026-04-08: Created PR #17176 (url.ts tests), issue #17177 (Monthly Activity 2026-04)
+### 2026-04-08
+- Created PR #17176 (url.ts tests), issue #17177 (Monthly Activity 2026-04)
 
 ## Task Round-Robin History
 
-- 2026-04-28: Task 3 (inactivity.ts 14 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (17th consecutive)
-- 2026-04-27: Task 3 (inactivity.ts 17 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (16th consecutive)
-- 2026-04-26: Task 3 (inactivity.ts 16 tests, 100% stmts/fns/lines) - BLOCKED on safeoutputs (15th consecutive)
-- 2026-04-25: Task 3 (inactivity.ts 16 tests, 100% ALL metrics) - BLOCKED on safeoutputs (14th consecutive)
-- 2026-04-24 and earlier: See completed work above
+- 2026-04-29: Task 3 (git.ts 13 tests, 100% stmts/fns/lines) + Task 7 (monthly activity update)
+- 2026-04-28 and earlier: see previous entries (inactivity.ts work, blocked on safeoutputs)
 
-## Pending (needs retry when safeoutputs available)
+## Monthly Activity Issue
 
-- inactivity.ts tests: READY for PR (branch must be recreated each run - branches are local only)
-  - 14 tests, coverage: 100% stmts/fns/lines, 84.61% branches
-  - All tests pass, ESLint clean
-  - PR title: "[Test Improver] test: add unit tests for shell/utils/inactivity.ts"
-  - Base branch: master, draft: true, labels: ["testing"]
-  - Test file: shell/utils/__tests__/inactivity.test.ts
-- git.ts tests: NOT pushed (safeoutputs unavailable 2026-04-11)
-- Monthly activity issue #17177 last updated 2026-04-08 (needs update with PR info when PR is made)
-- **safeoutputs tools have been unavailable for 17 consecutive runs** (2026-04-11 through 2026-04-28)
-  - All safeoutputs tools return "Tool X does not exist"
-  - Available tools only include: bash, view, create, edit, grep, glob, etc.
-  - This is a systemic workflow configuration issue
+- Issue #17177: [Test Improver] Monthly Activity 2026-04 (open, updated 2026-04-29)
+- PR #17176: merged 2026-04-22 ✅
 
 ## Maintainer Priorities
 
 None noted yet.
-
-## Monthly Activity Issue
-
-- Issue #17177: [Test Improver] Monthly Activity 2026-04 (open, last updated 2026-04-08)
-- PR #17176: [Test Improver] url.ts tests (open, still pending review per memory)
