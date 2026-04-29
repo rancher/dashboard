@@ -3,6 +3,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import AzureAD from '@shell/edit/auth/azuread.vue';
 import { _EDIT } from '@shell/config/query-params';
+import { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -28,43 +29,44 @@ const mockModel = {
   type:     'azureADConfig',
 };
 
+const requiredSetup = (modelOverrides = {}) => ({
+  data() {
+    return {
+      isEnabling:     true,
+      editConfig:     false,
+      model:          { ...mockModel, ...modelOverrides },
+      serverSetting:  null,
+      errors:         [],
+      originalModel:  null,
+      principals:     [],
+      authConfigName: 'azuread',
+    };
+  },
+  global: {
+    mocks: {
+      $fetchState: { pending: false },
+      $store:      {
+        getters: {
+          currentStore:              () => 'current_store',
+          'current_store/schemaFor': jest.fn(),
+          'current_store/all':       jest.fn(),
+          'i18n/t':                  (val: string) => val,
+          'i18n/exists':             jest.fn(),
+        },
+        dispatch: jest.fn()
+      },
+      $route:  { query: { AS: '' }, params: { id: 'azure' } },
+      $router: { applyQuery: jest.fn() },
+    },
+  },
+  propsData: {
+    value: { applicationSecret: '' },
+    mode:  _EDIT,
+  },
+});
+
 describe('edit: azureAD should', () => {
   let wrapper: any;
-  const requiredSetup = () => ({
-    data() {
-      return {
-        isEnabling:     true,
-        editConfig:     false,
-        model:          { ...mockModel },
-        serverSetting:  null,
-        errors:         [],
-        originalModel:  null,
-        principals:     [],
-        authConfigName: 'azuread',
-      };
-    },
-    global: {
-      mocks: {
-        $fetchState: { pending: false },
-        $store:      {
-          getters: {
-            currentStore:              () => 'current_store',
-            'current_store/schemaFor': jest.fn(),
-            'current_store/all':       jest.fn(),
-            'i18n/t':                  (val: string) => val,
-            'i18n/exists':             jest.fn(),
-          },
-          dispatch: jest.fn()
-        },
-        $route:  { query: { AS: '' }, params: { id: 'azure' } },
-        $router: { applyQuery: jest.fn() },
-      },
-    },
-    propsData: {
-      value: { applicationSecret: '' },
-      mode:  _EDIT,
-    },
-  });
 
   beforeEach(() => {
     wrapper = mount(AzureAD, { ...requiredSetup() });
@@ -234,5 +236,173 @@ describe('edit: azureAD should', () => {
     await nextTick();
 
     expect(saveButton.disabled).toBe(testCase.result);
+  });
+});
+
+describe('edit: azureAD SSO logout should', () => {
+  let wrapper: any;
+
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  it('not render SLO section when logoutAllSupported is false', () => {
+    wrapper = mount(AzureAD, { ...requiredSetup({ logoutAllSupported: false }) });
+    const sloSection = wrapper.find('[data-testid="azuread-sloType"]');
+
+    expect(sloSection.exists()).toBe(false);
+  });
+
+  it('render SLO section when logoutAllSupported is true', async() => {
+    wrapper = mount(AzureAD, { ...requiredSetup({ logoutAllSupported: true }) });
+    await nextTick();
+    const sloSection = wrapper.find('[data-testid="azuread-sloType"]');
+
+    expect(sloSection.exists()).toBe(true);
+  });
+
+  it('not render endSessionEndpoint field when sloType is rancher', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.rancher,
+        };
+      },
+    });
+    await nextTick();
+    const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
+
+    expect(endSessionEndpointField.exists()).toBe(false);
+  });
+
+  it('render endSessionEndpoint field when sloType is all', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.all,
+        };
+      },
+    });
+    await nextTick();
+    const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
+
+    expect(endSessionEndpointField.exists()).toBe(true);
+  });
+
+  it('render endSessionEndpoint field when sloType is both', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.both,
+        };
+      },
+    });
+    await nextTick();
+    const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
+
+    expect(endSessionEndpointField.exists()).toBe(true);
+  });
+
+  it.each([
+    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: '', disabled: true },
+    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'not-a-url', disabled: true },
+    { sloType: SLO_OPTION_VALUES.all, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false },
+    { sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: '', disabled: true },
+    { sloType: SLO_OPTION_VALUES.both, endSessionEndpoint: 'https://login.microsoftonline.com/tenant/oauth2/v2.0/logout', disabled: false },
+  ])('has save button disabled=$disabled when sloType=$sloType and endSessionEndpoint=$endSessionEndpoint', async(testCase) => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({
+        logoutAllSupported:    true,
+        tenantId:              validTenantId,
+        applicationId:         validApplicationId,
+        applicationSecret:     validAppSecret,
+        endSessionEndpoint:    testCase.endSessionEndpoint,
+      }),
+      data() {
+        return {
+          isEnabling:     true,
+          editConfig:     false,
+          model:          {
+            ...mockModel,
+            logoutAllSupported: true,
+            tenantId:           validTenantId,
+            applicationId:      validApplicationId,
+            applicationSecret:  validAppSecret,
+            endSessionEndpoint: testCase.endSessionEndpoint,
+          },
+          sloType:        testCase.sloType,
+          serverSetting:  null,
+          errors:         [],
+          originalModel:  null,
+          principals:     [],
+          authConfigName: 'azuread',
+        };
+      },
+    });
+    await nextTick();
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+    expect(saveButton.disabled).toBe(testCase.disabled);
+  });
+
+  it('sets logoutAllEnabled=false and logoutAllForced=false when sloType changes to rancher', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.all,
+        };
+      },
+    });
+    await nextTick();
+    wrapper.vm.sloType = SLO_OPTION_VALUES.rancher;
+    await nextTick();
+
+    expect(wrapper.vm.model.logoutAllEnabled).toBe(false);
+    expect(wrapper.vm.model.logoutAllForced).toBe(false);
+    expect(wrapper.vm.model.endSessionEndpoint).toBe('');
+  });
+
+  it('sets logoutAllEnabled=true and logoutAllForced=true when sloType changes to all', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.rancher,
+        };
+      },
+    });
+    await nextTick();
+    wrapper.vm.sloType = SLO_OPTION_VALUES.all;
+    await nextTick();
+
+    expect(wrapper.vm.model.logoutAllEnabled).toBe(true);
+    expect(wrapper.vm.model.logoutAllForced).toBe(true);
+  });
+
+  it('sets logoutAllEnabled=true and logoutAllForced=false when sloType changes to both', async() => {
+    wrapper = mount(AzureAD, {
+      ...requiredSetup({ logoutAllSupported: true }),
+      data() {
+        return {
+          ...requiredSetup({ logoutAllSupported: true }).data(),
+          sloType: SLO_OPTION_VALUES.rancher,
+        };
+      },
+    });
+    await nextTick();
+    wrapper.vm.sloType = SLO_OPTION_VALUES.both;
+    await nextTick();
+
+    expect(wrapper.vm.model.logoutAllEnabled).toBe(true);
+    expect(wrapper.vm.model.logoutAllForced).toBe(false);
   });
 });
