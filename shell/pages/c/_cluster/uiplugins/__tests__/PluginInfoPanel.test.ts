@@ -1,5 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import PluginInfoPanel from '@shell/pages/c/_cluster/uiplugins/PluginInfoPanel.vue';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 jest.mock('@shell/config/uiplugins', () => ({
   ...jest.requireActual('@shell/config/uiplugins'),
@@ -97,6 +98,24 @@ describe('component: PluginInfoPanel', () => {
       const label = wrapper.vm.getVersionLabel(version);
 
       expect(label).toBe('1.0.0 (plugins.labels.current)');
+    });
+  });
+
+  describe('isDeprecated', () => {
+    beforeEach(() => {
+      wrapper = mountComponent();
+    });
+
+    it('should return true if the extension chart has the deprecated annotation', () => {
+      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] } };
+
+      expect(wrapper.vm.isDeprecated).toBe(true);
+    });
+
+    it('should return false if the extension chart does not have the deprecated annotation', () => {
+      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: 'rancher' } }] } };
+
+      expect(wrapper.vm.isDeprecated).toBe(false);
     });
   });
 });

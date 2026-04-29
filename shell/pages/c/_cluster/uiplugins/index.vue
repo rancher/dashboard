@@ -990,7 +990,7 @@ export default {
       const statuses = [];
 
       const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
-      const isDeprecated = plugin?.chart?.deprecated;
+      const isDeprecated = uiPluginHasAnnotation(plugin?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
 
       if (isDeprecated || errorTooltip) {
         let tooltip;

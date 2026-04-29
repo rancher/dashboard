@@ -7,7 +7,9 @@ import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
-import { isChartVersionHigher } from '@shell/config/uiplugins';
+import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import Banner from '@components/Banner/Banner.vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
@@ -25,6 +27,7 @@ export default {
     }
   },
   components: {
+    Banner,
     ChartReadme,
     LazyImage,
     RcButton,
@@ -47,6 +50,10 @@ export default {
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    isDeprecated() {
+      return uiPluginHasAnnotation(this.info?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
+    },
 
     applyDarkModeBg() {
       if (this.theme === 'dark') {
@@ -307,6 +314,13 @@ export default {
             :items="info.tags"
             class="plugin-tags-container"
           />
+          <Banner
+            v-if="isDeprecated"
+            color="warning"
+            class="mb-20 mt-0"
+          >
+            {{ t('plugins.deprecatedExtension') }}
+          </Banner>
 
           <div class="plugin-versions-container">
             <h3>

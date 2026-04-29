@@ -1188,9 +1188,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Search the catalogue...
-    deprecatedChartsFilter:
-      label: Show deprecated apps
+    search: Search the catalog...
     addNewRepo:
       label: Add new
       ariaLabel: Add a new repository
@@ -5453,6 +5451,7 @@ inactivity:
 # Rancher Extensions
 plugins:
   altIcon: Icon for {extension} extension card
+  deprecatedExtension: This extension is deprecated and will soon be removed from the catalog.
   incompatiblePrimeOnly: "The latest version of this extension ({ version }) needs Rancher Prime in order to be installed."
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."

@@ -538,7 +538,9 @@ function addChart(ctx, map, chart, repo) {
     certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
-  if ( chart.deprecated ) {
+  const isDeprecated = !!chart.deprecated || chart.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true';
+
+  if ( isDeprecated ) {
     sideLabel = DEPRECATED;
   } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = EXPERIMENTAL;
@@ -596,7 +598,7 @@ function addChart(ctx, map, chart, repo) {
       versions:         [],
       keywords:         chart.keywords || [],
       categories:       filterCategories(chart.keywords),
-      deprecated:       !!chart.deprecated,
+      deprecated:       isDeprecated,
       primeOnly,
       experimental,
       hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
