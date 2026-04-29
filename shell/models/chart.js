@@ -151,7 +151,7 @@ export default class Chart extends SteveModel {
     const subHeaderItems = [];
 
     if (latestVersion) {
-      const hasZeroTime = latestVersion.created === ZERO_TIME;
+      const isMissingDate = !latestVersion.created || latestVersion.created === ZERO_TIME;
 
       subHeaderItems.push({
         icon:        'icon-version-alt',
@@ -159,17 +159,13 @@ export default class Chart extends SteveModel {
         label:       latestVersion.version
       });
 
-      const lastUpdatedItem = {
-        icon:        'icon-refresh-alt',
-        iconTooltip: { key: 'tableHeaders.lastUpdated' },
-        label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY')
-      };
-
-      if (hasZeroTime) {
-        lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+      if (!isMissingDate) {
+        subHeaderItems.push({
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       day(latestVersion.created).format('MMM D, YYYY')
+        });
       }
-
-      subHeaderItems.push(lastUpdatedItem);
     }
 
     const footerItems = [

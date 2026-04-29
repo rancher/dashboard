@@ -345,18 +345,13 @@ export default {
         });
       }
     },
+    isMissingDate(date) {
+      return !date || date === ZERO_TIME;
+    },
     formatVersionDate(date) {
-      if (date === ZERO_TIME) {
-        return this.t('generic.na');
-      }
-
       return day(date).format('MMM D, YYYY');
     },
     getVersionDateTooltip(date) {
-      if (date === ZERO_TIME) {
-        return this.t('catalog.chart.info.chartVersions.missingVersionDate');
-      }
-
       const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
 
       return day(date).format(dateFormat);
@@ -602,6 +597,7 @@ export default {
               />
             </div>
             <p
+              v-if="!isMissingDate(vers.created)"
               v-clean-tooltip="{ content: getVersionDateTooltip(vers.created), placement: 'left'}"
               class="version-date"
             >

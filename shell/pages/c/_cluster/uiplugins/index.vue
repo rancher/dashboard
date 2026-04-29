@@ -896,18 +896,14 @@ export default {
         label:       plugin.displayVersionLabel,
       }];
 
-      if (plugin.created) {
-        const hasZeroTime = plugin.created === ZERO_TIME;
-        const lastUpdatedItem = {
+      const isMissingDate = !plugin.created || plugin.created === ZERO_TIME;
+
+      if (!isMissingDate) {
+        items.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
-        };
-
-        if (hasZeroTime) {
-          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
-        }
-        items.push(lastUpdatedItem);
+          label:       day(plugin.created).format('MMM D, YYYY')
+        });
       }
 
       if (plugin.installing) {
