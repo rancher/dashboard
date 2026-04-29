@@ -714,7 +714,7 @@ authConfig:
   azuread:
     tenantId:
       label: Tenant ID
-      tooltip: From the Azure AD portal
+      tooltip: From the Microsoft Entra admin center
       placeholder: A long UUID string
     applicationId:
       label: Application ID
@@ -741,17 +741,17 @@ authConfig:
       externalHelp: See the OData filter expression documentation for more information.
       externalHelpLink: https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-filter-expressions-in-odata-uris#filter-expressions
     reply:
-      info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
+      info: 'Microsoft Entra ID requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Microsoft Entra admin center. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
       ariaLabel: Copy Reply URL to clipboard
     updateEndpoint:
       button: Update Endpoint
       banner:
-        message: 'Azure AD Authentication must be updated: it is using the Azure Graph API, which will be deprecated at the end of 2022.'
+        message: 'Microsoft Entra ID Authentication must be updated: it is using the Azure AD Graph API, which was deprecated at the end of 2022.'
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Microsoft Entra ID app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Microsoft Entra ID authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     endSessionEndpoint: 
       title: End Session Endpoint
@@ -7982,7 +7982,7 @@ model:
       local: Local
       multiple: Multiple
       activedirectory: ActiveDirectory
-      azuread: AzureAD
+      azuread: Microsoft Entra ID
       github: GitHub
       githubapp: GitHub App
       keycloak: Keycloak
