@@ -487,7 +487,8 @@ export default {
         flex-direction: column;
         overflow: hidden;
 
-        .banner.warning {
+        .banner.warning,
+        .banner.error {
           margin-top: 0;
           margin-bottom: 32px;
         }
