@@ -41,7 +41,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS, isRancherRepo } from '@shell/store/catalog';
+import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -765,14 +765,8 @@ export default {
     windowsIncompatible() {
       if (this.versionInfo) {
         const isRancher = isRancherRepo(this.repo, this.chart);
-        const permittedOs = this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
-        let incompatibleVersion = false;
-
-        if (permittedOs) {
-          incompatibleVersion = !permittedOs.includes('windows');
-        } else if (isRancher) {
-          incompatibleVersion = true;
-        }
+        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
+        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
 
         if (incompatibleVersion) {
           if (!this.chart?.windowsIncompatible) {

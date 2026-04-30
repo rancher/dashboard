@@ -1,6 +1,7 @@
 import { CATALOG } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import {
-  state, getters, actions, mutations, filterAndArrangeCharts, isRancherRepo, compatibleVersionsFor
+  state, getters, actions, mutations, filterAndArrangeCharts, isRancherRepo, compatibleVersionsFor, getPermittedOSs
 } from '../catalog';
 import { createStore } from 'vuex';
 
@@ -548,6 +549,53 @@ describe('catalog', () => {
 
       expect(chart.isRancherRepo).toBe(false);
       expect(versions).toHaveLength(1);
+    });
+  });
+
+  describe('getPermittedOSs', () => {
+    it('should return explicitly permitted OSs when the annotation is present on a Rancher repo', () => {
+      const annotations = { [CATALOG_ANNOTATIONS.PERMITTED_OS]: 'linux,windows' };
+      const result = getPermittedOSs(annotations, true);
+      
+      expect(result).toHaveLength(2);
+      expect(result).toContain('linux');
+      expect(result).toContain('windows');
+    });
+
+    it('should return explicitly permitted OSs when the annotation is present on a non-Rancher repo', () => {
+      const annotations = { [CATALOG_ANNOTATIONS.PERMITTED_OS]: 'linux' };
+      const result = getPermittedOSs(annotations, false);
+      
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should fallback to linux if the annotation is missing on a Rancher repo', () => {
+      const annotations = {};
+      const result = getPermittedOSs(annotations, true);
+      
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should return an empty array (no restrictions) if the annotation is missing on a non-Rancher repo', () => {
+      const annotations = {};
+      const result = getPermittedOSs(annotations, false);
+      
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle undefined annotations safely for Rancher repos', () => {
+      const result = getPermittedOSs(undefined, true);
+      
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should handle undefined annotations safely for non-Rancher repos', () => {
+      const result = getPermittedOSs(undefined, false);
+      
+      expect(result).toHaveLength(0);
     });
   });
 });

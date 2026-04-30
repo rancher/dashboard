@@ -559,14 +559,8 @@ function addChart(ctx, map, chart, repo) {
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
 
     const isRancherRepoFlag = isRancherRepo(repo, chart);
-    const permittedOs = chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
-    let windowsIncompatible = false;
-
-    if (permittedOs) {
-      windowsIncompatible = !permittedOs.includes('windows');
-    } else if (isRancherRepoFlag) {
-      windowsIncompatible = true;
-    }
+    const permittedSystems = getPermittedOSs(chart.annotations, isRancherRepoFlag);
+    const windowsIncompatible = permittedSystems.length > 0 && !permittedSystems.includes('windows');
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
@@ -700,9 +694,7 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   }
 
   return versions.filter((ver) => {
-    const permittedOs = ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
-    const fallbackOs = chart?.isRancherRepo === false ? '' : LINUX;
-    const osPermitted = (permittedOs || fallbackOs).split(',').filter(Boolean);
+    const osPermitted = getPermittedOSs(ver?.annotations, chart?.isRancherRepo);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
       return false;
@@ -810,4 +802,17 @@ export function isRancherRepo(repo, chart) {
   }
 
   return repo?.type === CATALOG.CLUSTER_REPO && (repo?.name === 'rancher-charts' || repo?.name === 'rancher-partner-charts');
+}
+
+/**
+ * Returns an array of permitted operating systems for a given chart or version.
+ * If the chart explicitly defines permitted OSs via annotation, those are returned.
+ * Otherwise, if the chart is from a Rancher repository, it defaults to Linux.
+ * External charts with no annotations have no OS restrictions (returns empty array).
+ */
+export function getPermittedOSs(annotations, isRancher) {
+  const permittedOs = annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+  const fallbackOs = isRancher ? LINUX : '';
+
+  return (permittedOs || fallbackOs).split(',').filter(Boolean);
 }
