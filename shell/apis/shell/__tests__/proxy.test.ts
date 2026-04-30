@@ -30,7 +30,7 @@ describe('proxyApiImpl', () => {
       expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1/things`);
     });
 
-    it('should strip https:// but preserve http:/ (one slash) for plain-HTTP urls', () => {
+    it('should preserve http:/ (one slash) for plain-HTTP urls', () => {
       const { url } = proxyApi.prepareRequest({ url: new URL('http://api.example.com:1234/v1/things') });
 
       expect(url).toBe(`${ PROXY_PREFIX }http:/api.example.com:1234/v1/things`);
