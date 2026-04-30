@@ -1,5 +1,4 @@
 import { sortBy } from '@shell/utils/sort';
-import { addParam, addParams } from '@shell/utils/url';
 import { createDepaginator } from '@shell/apis/shell/proxy';
 
 const ENDPOINT = 'api.digitalocean.com/v2';
@@ -155,20 +154,20 @@ export const actions = {
   }) {
     opt = opt || {};
 
-    let urlStr = opt.url || `https://${ ENDPOINT }/${ command }`;
+    const url = new URL(opt.url || `https://${ ENDPOINT }/${ command }`);
 
-    urlStr = addParam(urlStr, 'per_page', `${ opt.per_page || 1000 }`);
+    url.searchParams.set('per_page', `${ opt.per_page || 1000 }`);
     if (opt.params) {
-      urlStr = addParams(urlStr, opt.params);
+      for (const [key, value] of Object.entries(opt.params)) {
+        url.searchParams.set(key, value);
+      }
     }
 
-    const authentication = credentialId
-      ? {
-        id:            credentialId,
-        authSigner:    'bearer',
-        passwordField: 'accessToken',
-      }
-      : { token };
+    const authentication = credentialId ? {
+      id:            credentialId,
+      authSigner:    'bearer',
+      passwordField: 'accessToken',
+    } : { token };
 
     const proxy = this.$shell?.proxy;
     const requestOptions = { url, authentication };

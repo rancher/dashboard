@@ -1,5 +1,4 @@
 import { sortBy } from '@shell/utils/sort';
-import { addParam, addParams } from '@shell/utils/url';
 import { createDepaginator } from '@shell/apis/shell/proxy';
 
 const ENDPOINT = 'api.linode.com/v4';
@@ -99,23 +98,23 @@ export const actions = {
   }) {
     opt = opt || {};
 
-    let urlStr = opt.url || `https://${ ENDPOINT }/${ command }`;
+    const url = new URL(opt.url || `https://${ ENDPOINT }/${ command }`);
 
-    urlStr = addParam(urlStr, 'per_page', `${ opt.per_page || 1000 }`);
+    url.searchParams.set('per_page', `${ opt.per_page || 1000 }`);
     if (opt.params) {
-      urlStr = addParams(urlStr, opt.params);
+      for (const [key, value] of Object.entries(opt.params)) {
+        url.searchParams.set(key, value);
+      }
     }
 
-    const authentication = credentialId
-      ? {
-        id:            credentialId,
-        authSigner:    'bearer',
-        passwordField: 'token',
-      }
-      : { token };
+    const authentication = credentialId ? {
+      id:            credentialId,
+      authSigner:    'bearer',
+      passwordField: 'token',
+    } : { token };
 
     const proxy = this.$shell.proxy;
-    const requestOptions = { url: new URL(urlStr), authentication };
+    const requestOptions = { url, authentication };
 
     return proxy.request({
       ...requestOptions,
