@@ -52,12 +52,12 @@ export class ProjectCreateEditPagePo extends BaseDetailPagePo {
     return this.self().getId('btn-add-resource');
   }
 
-  inputProjectLimit() {
-    return new LabeledInputPo(cy.get('[data-testid="projectrow-project-quota-input"]'));
+  inputProjectLimit(rowIndex = 0) {
+    return new LabeledInputPo(cy.get('[data-testid="projectrow-project-quota-input"]').eq(rowIndex));
   }
 
-  inputNamespaceDefaultLimit() {
-    return new LabeledInputPo(cy.get('[data-testid="projectrow-namespace-quota-input"]'));
+  inputNamespaceDefaultLimit(rowIndex = 0) {
+    return new LabeledInputPo(cy.get('[data-testid="projectrow-namespace-quota-input"]').eq(rowIndex));
   }
 
   tabContainerDefaultResourceLimit() {
@@ -80,12 +80,24 @@ export class ProjectCreateEditPagePo extends BaseDetailPagePo {
     return new LabeledInputPo(cy.get('[data-testid="memory-limit"]'));
   }
 
-  selectResourceType(optionIndex: number) {
-    const selectPo = new SelectPo(cy.get('[data-testid="projectrow-type-input"]'));
+  selectResourceType(optionIndex: number, rowIndex = 0) {
+    const selectPo = new SelectPo(cy.get('[data-testid="projectrow-type-input"]').eq(rowIndex));
 
     selectPo.toggle();
 
     return selectPo.clickOption(optionIndex + 1);
+  }
+
+  selectResourceTypeByLabel(label: string, rowIndex = 0) {
+    const selectPo = new SelectPo(cy.get('[data-testid="projectrow-type-input"]').eq(rowIndex));
+
+    selectPo.toggle();
+
+    return selectPo.clickOptionWithLabel(label);
+  }
+
+  inputCustomType(rowIndex = 0) {
+    return new LabeledInputPo(cy.get('[data-testid="projectrow-custom-type-input"]').eq(rowIndex));
   }
 
   bannerError(n: number) {
