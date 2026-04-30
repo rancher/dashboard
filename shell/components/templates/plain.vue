@@ -138,27 +138,6 @@ export default {
     }
   }
 
-  .wm {
-    grid-area: wm;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
-  .wm-vr {
-    grid-area: wm-vr;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
-  .wm-vl {
-    grid-area: wm-vl;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
   MAIN {
     grid-area: main;
     overflow: auto;
