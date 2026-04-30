@@ -319,6 +319,7 @@ export default {
   methods: {
     stringify,
 
+    // as the user scrolls past the CruResource Masthead, the amount of vertical space available to the table of contents changes
     computeTocContainerHeight() {
       const root = this.$el;
 
