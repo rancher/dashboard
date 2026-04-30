@@ -44,11 +44,12 @@ Use `this.$shell.proxy.request(options)` to send a proxied request. The API buil
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint:      'api.example.com/v1',
-  command:       'regions',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'bearer',
-  passwordField: 'token',
+  url:            new URL('https://api.example.com/v1/regions'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
 });
 ```
 
@@ -56,22 +57,37 @@ const result = await this.$shell.proxy.request({
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint: 'api.example.com/v1',
-  command:  'images',
-  token:    myApiToken,
+  url:            new URL('https://api.example.com/v1/images'),
+  authentication: { token: myApiToken },
 });
 ```
 
 ### Automatic de-pagination
 
+Use `createDepaginator` (imported from `@shell/apis/shell/proxy`) to follow paginated responses automatically:
+
 ```ts
+import { createDepaginator } from '@shell/apis/shell/proxy';
+
+const baseUrl = new URL('https://api.example.com/v1/instances');
+baseUrl.searchParams.set('per_page', '200');
+
+const baseOptions = {
+  url:            baseUrl,
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
+};
+
 const allItems = await this.$shell.proxy.request({
-  endpoint:    'api.example.com/v1',
-  command:     'instances',
-  perPage:     200,
-  dePaginate:  true,
-  nextUrlPath: 'links.pages.next',
-  mergeKey:    'instances',
+  ...baseOptions,
+  postProcess: createDepaginator(
+    this.$shell.proxy,
+    baseOptions,
+    { nextUrlPath: 'links.pages.next', mergeKey: 'instances' },
+  ),
 });
 ```
 
@@ -79,10 +95,9 @@ const allItems = await this.$shell.proxy.request({
 
 ```ts
 const token = await this.$shell.proxy.request({
-  url:        'auth.example.com/oauth/token',
-  method:     'POST',
-  token:      base64Credentials,
-  authSigner: 'Basic',
+  url:            new URL('https://auth.example.com/oauth/token'),
+  method:         'POST',
+  authentication: { token: base64Credentials, authSigner: 'basic' },
 });
 ```
 
@@ -103,7 +118,7 @@ Most request headers are forwarded unchanged to the upstream target. A small num
 | `X-Api-Cookie-Header` | Its value is sent to the upstream as the standard `Cookie` header. |
 | `X-API-Auth-Header` | Its value is sent to the upstream as the standard `Authorization` header. |
 
-`shell.proxy` manages both auth headers for you — you never need to set them manually. Pass `token` (and optionally `authSigner`) or `credentialId` in the request options and the correct header is constructed automatically.
+`shell.proxy` manages both auth headers for you — you never need to set them manually. Pass an `authentication` object containing either `token` (for plain-token auth) or `id` (for cloud-credential auth) and the correct header is constructed automatically.
 
 ### Plain-token authorization (`X-API-Auth-Header`)
 
@@ -112,10 +127,11 @@ When you supply a `token`, `shell.proxy` sets `X-API-Auth-Header` to `<scheme> <
 ```ts
 // Produces: X-API-Auth-Header: Bearer eyJh...
 await this.$shell.proxy.request({
-  endpoint: 'api.example.com/v1',
-  command:  'images',
-  token:    myApiToken,
-  // authSigner defaults to 'Bearer' — override as needed, e.g. 'Basic'
+  url:            new URL('https://api.example.com/v1/images'),
+  authentication: {
+    token:      myApiToken,
+    // authSigner defaults to 'Bearer' — override as needed, e.g. 'basic'
+  },
 });
 ```
 
@@ -133,10 +149,10 @@ When your request must be authenticated using data stored in a Rancher Cloud Cre
 <signer> credID=<credentialId> [usernameField=<field>] [passwordField=<field>]
 ```
 
-| Header Part |  `request()` option | Description |
+| Header Part |  `authentication` field | Description |
 |---|---|---|
 | `<signer>` | `authSigner` | How to sign the upstream request (`bearer`, `basic`, `awsv4`, etc.). |
-| `credID` | `credentialId` | ID of the Cloud Credential resource (`management.cattle.io/v3/cloudcredentials/<id>`). |
+| `credID` | `id` | ID of the Cloud Credential resource (`management.cattle.io/v3/cloudcredentials/<id>`). |
 | `usernameField` | `usernameField` | Key inside the credential secret to use as the username / access-key.* |
 | `passwordField` | `passwordField` | Key inside the credential secret to use as the password / secret-key.* |
 
@@ -150,11 +166,12 @@ The Rancher backend parses this header, reads the named fields from the stored s
 // The backend looks up the Cloud Credential, reads the 'token' field, and
 // produces: Authorization: Bearer <token-field-value>
 await this.$shell.proxy.request({
-  endpoint:      'api.example.com/v1',
-  command:       'regions',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'bearer',
-  passwordField: 'token',
+  url:            new URL('https://api.example.com/v1/regions'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
 });
 ```
 
@@ -163,12 +180,13 @@ For API-key style credentials where the upstream expects both a username and a p
 ```ts
 // The backend assembles Basic auth from the two credential fields
 await this.$shell.proxy.request({
-  endpoint:      'api.example.com/v1',
-  command:       'locations',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'basic',
-  usernameField: 'clientId',
-  passwordField: 'clientSecret',
+  url:            new URL('https://api.example.com/v1/locations'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'basic',
+    usernameField: 'clientId',
+    passwordField: 'clientSecret',
+  },
 });
 ```
 
@@ -176,11 +194,12 @@ For AWS credentials, use `awsv4` — the signer reads the access key and secret 
 
 ```ts
 await this.$shell.proxy.request({
-  endpoint:      'ec2.us-east-1.amazonaws.com',
-  command:       'DescribeRegions',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'awsv4',
-  usernameField: 'accessKey',
-  passwordField: 'secretKey',
+  url:            new URL('https://ec2.us-east-1.amazonaws.com/DescribeRegions'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'awsv4',
+    usernameField: 'accessKey',
+    passwordField: 'secretKey',
+  },
 });
 ```

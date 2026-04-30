@@ -1,3 +1,140 @@
+
+/**
+ * Cloud Credential authentication for `/meta/proxy` requests.
+ *
+ * Instructs the Rancher backend to fetch the named Cloud Credential secret,
+ * extract the relevant fields, and sign the upstream `Authorization` header.
+ * The browser never sees the credential value.
+ *
+ * The backend constructs `X-Api-CattleAuth-Header` in the form:
+ * `<signer> credID=<id> [usernameField=<field>] [passwordField=<field>]`
+ *
+ * Secret data keys are normalised before lookup: a key stored as
+ * `<configPrefix>-<key>` (e.g. `amazonec2Config-secretKey`) is matched by
+ * passing just `<key>` (e.g. `secretKey`).
+ */
+export interface ProxyAuthCloudCredential {
+  /**
+   * Rancher Cloud Credential ID, or any opaque secret in the
+   * `cattle-global-data` namespace (format: `cattle-global-data:<name>`).
+   */
+  id: string;
+
+  /**
+   * Signing strategy used to build the upstream `Authorization` header.
+   *
+   * - `bearer`    – `Authorization: Bearer <secret[passwordField]>`
+   * - `basic`     – `Authorization: Basic base64(<secret[usernameField]>:<secret[passwordField]>)`
+   * - `digest`    – HTTP Digest auth using `usernameField` and `passwordField`
+   * - `awsv4`     – AWS Signature V4 (reads `accessKey` and `secretKey` from secret)
+   * - `arbitrary` – Sets arbitrary headers supplied via `headers` (no credential lookup)
+   *
+   * Read the details of signer implementation here: https://github.com/rancher/rancher/tree/main/pkg/httpproxy
+   *
+   * If no authSigner is specified Rancher will forward the cloud credential id in the Authorization header without signing.
+   */
+  authSigner?: 'bearer' | 'awsv4' | 'basic' | 'digest' | 'arbitrary';
+
+  /**
+   * Key inside the credential secret to use as the password / bearer token.
+   * Required by: `bearer`, `basic`, `digest`.
+   */
+  passwordField?: string;
+
+  /**
+   * Key inside the credential secret to use as the username / access-key.
+   * Required by: `basic`, `digest`.
+   */
+  usernameField?: string;
+}
+
+/**
+ * Plain-token authentication for `/meta/proxy` requests.
+ *
+ * The token is forwarded as the upstream `Authorization` header via
+ * `X-API-Auth-Header: <scheme> <token>`.
+ */
+export interface ProxyAuthToken {
+  /** Raw token value sent to the upstream API. */
+  token: string;
+
+  /**
+   * Authorization scheme prefix. Defaults to `Bearer` when omitted.
+   * Use `Basic` for base64-encoded credentials, etc.
+   */
+  authSigner?: 'bearer' | 'awsv4' | 'basic' | 'digest' | 'arbitrary';
+}
+
+export interface ProxyRequestOptions {
+  /**
+   * Full upstream URL passed as a `URL` object.
+   *
+   * Examples:
+   * - `new URL('https://api.example.com/v1/regions')` →
+   *   `/meta/proxy/api.example.com/v1/regions`
+   * - `new URL('http://api.example.com:1234/path')` →
+   *   `/meta/proxy/http:/api.example.com:1234/path`
+   *
+   * TLS on port 443 is assumed. For a non-standard port include it in the
+   * `URL` host. For plain HTTP the double-slash is collapsed to one so the
+   * backend receives `/meta/proxy/http:/example.com:1234/path`.
+   *
+   * Use `URL.searchParams` to construct query strings rather than building
+   * them manually.
+   */
+  url: URL;
+
+  /**
+   * HTTP method. Defaults to `GET` when omitted.
+   */
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+  /**
+   * Additional headers merged into the outgoing request.
+   * Auth headers (`X-API-Auth-Header`, `X-Api-CattleAuth-Header`) are
+   * managed automatically via `authentication` — do not set them here.
+   */
+  headers?: Record<string, string>;
+
+  /**
+   * Value for the `Accept` header. Defaults to `application/json`.
+   */
+  accept?: string;
+
+  /**
+   * Request body for `POST`, `PUT`, and `PATCH` requests.
+   */
+  data?: any;
+
+  /**
+   * Authentication strategy. Supply either a `ProxyAuthCloudCredential`
+   * (to have Rancher sign the request from a stored secret) or a
+   * `ProxyAuthToken` (to send a raw bearer/basic token directly).
+   *
+   * Discriminated by field presence: `'id' in authentication` → cloud
+   * credential; `'token' in authentication` → plain token.
+   */
+  authentication?: ProxyAuthCloudCredential | ProxyAuthToken;
+
+  /**
+   * Optional post-processing callback invoked with the raw response before
+   * `request()` returns. Use `createDepaginator()` from
+   * `@shell/apis/shell/proxy` to handle paginated list endpoints.
+   *
+   * @example
+   * ```ts
+   * import { createDepaginator } from '@shell/apis/shell/proxy';
+   *
+   * const baseOptions = { url: 'api.example.com/v1/items', authentication };
+   * const result = await proxy.request({
+   *   ...baseOptions,
+   *   postProcess: createDepaginator(proxy, baseOptions, { mergeKey: 'items' }),
+   * });
+   * ```
+   */
+  postProcess?: (res: any) => Promise<any>;
+}
+
 /**
  * Proxy API for Rancher's server-side `/meta/proxy` endpoint.
  *
@@ -14,157 +151,16 @@
  * Notes from docs:
  * - `X-API-Auth-Header` is forwarded as `Authorization` to the upstream.
  * - `X-Api-CattleAuth-Header` can instruct Rancher to sign/authenticate
- *   upstream requests with a Cloud Credential
+ *   upstream requests with data from a Rancher Cloud Credential
  */
-export interface ProxyRequestOptions {
-  /**
-   * Full URL for the upstream request. If set, this takes precedence over
-   * `endpoint` + `command`.
-   */
-  url?: string;
-
-  /**
-   * Upstream API endpoint (without scheme), for example `api.linode.com/v4`.
-   */
-  endpoint?: string;
-
-  /**
-   * Optional command/path appended to `endpoint`.
-   */
-  command?: string;
-
-  /**
-   * Query params appended to generated endpoint URLs.
-   */
-  params?: Record<string, any>;
-
-  /**
-   * If provided, adds `per_page` to generated endpoint URLs.
-   */
-  perPage?: number;
-
-  /**
-   * Optional credential id.
-   * This can be a Rancher cloud credential custom resource OR any opaque secret in the cattle-global-data namespace
-   * format namespace:name -- namespace required despite always being 'cattle-global-data'
-   */
-  credentialId?: string;
-
-  /**
-   * Selects the signing strategy used to build the `Authorization` header when
-   * `credentialId` is provided. Rancher reads the referenced secret and uses
-   * its data to sign (or annotate) the upstream request via
-   * `X-Api-CattleAuth-Header`.
-   *
-   * When a `token` and `authSigner` are provided the signer is prepended to the Authorization header.
-   *
-   * The raw header value sent to the backend has the form:
-   * `<signer> credID=<id> [passwordField=<field>] [usernameField=<field>] …`
-   *
-   * Supported signers:
-   * - `bearer`    – Reads `secret[passwordField]` and sets
-   *                 `Authorization: Bearer <value>`.
-   *                 Requires: `credentialId`, `passwordField`.
-   * - `basic`     – Base64-encodes `secret[usernameField]:secret[passwordField]`
-   *                 and sets `Authorization: Basic <encoded>`.
-   *                 Requires: `credentialId`, `usernameField`, `passwordField`.
-   * - `digest`    – Performs HTTP Digest challenge-response auth using
-   *                 `secret[usernameField]` and `secret[passwordField]`.
-   *                 Requires: `credentialId`, `usernameField`, `passwordField`.
-   * - `awsv4`     – Signs the request with AWS Signature V4 using
-   *                 `secret['accessKey']` and `secret['secretKey']`.
-   *                 Requires: `credentialId` only.
-   * - `arbitrary` – Sets arbitrary request headers supplied via the
-   *                 `headers` field (comma-separated `Name=Value` pairs).
-   *                  Does not use information from a cloud credential.
-   *
-   * Read the details of signer implementation here: https://github.com/rancher/rancher/tree/fc7f29161513c042d69b334468684d4f691d641e/pkg/httpproxy
-   *
-   * If omitted and `credentialId` is set, Rancher will forward the raw
-   * `credentialId` value as the `Authorization` header without signing.
-   */
-  authSigner?: 'bearer' | 'awsv4' | 'basic' | 'digest' | 'arbitrary';
-
-  /**
-   * Key name inside the credential secret whose value is used as the
-   * password (or bearer token) in the generated `Authorization` header.
-   *
-   * The backend looks up `secret.data[passwordField]` after resolving the
-   * secret referenced by `credentialId`. Secret data keys that follow the
-   * pattern `<configPrefix>-<key>` (e.g. `amazonecConfig-secretKey`) are
-   * normalised to just `<key>` before the lookup.
-   *
-   * Required by: `bearer`, `basic`, `digest`.
-   */
-  passwordField?: string,
-
-  /**
-   * Key name inside the credential secret whose value is used as the
-   * username in the generated `Authorization` header.
-   *
-   * The backend looks up `secret.data[usernameField]` after resolving the
-   * secret referenced by `credentialId`. The same key-normalisation as
-   * `passwordField` applies.
-   *
-   * Required by: `basic`, `digest`.
-   */
-  usernameField?: string,
-
-  /**
-   * Optional token auth value.
-   */
-  token?: string;
-
-  /**
-   * Additional headers to merge with generated auth headers.
-   */
-  headers?: Record<string, string>;
-
-  /**
-   * Accept header value. Default: `application/json`.
-   */
-  accept?: string;
-
-  /**
-   * If true, recursively follows `next` links.
-   */
-  dePaginate?: boolean;
-
-  /**
-   * Dot-path to the next URL field. Default: `links.pages.next`.
-   */
-  nextUrlPath?: string;
-
-  /**
-   * Optional response key used to merge arrays while de-paginating.
-   */
-  mergeKey?: string;
-
-  /**
-   * Optional in-progress output used for de-pagination.
-   */
-  out?: any;
-
-  /**
-   * HTTP method for the upstream request. Defaults to `GET` when omitted.
-   */
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-
-   /**
-   * Optional request payload forwarded to `management/request`.
-   * Use this for body-carrying proxy calls such as `POST`, `PUT`, and `PATCH`.
-   */
-  data?: any;
-}
-
 export interface ProxyApi {
   /**
-   * Generic helper for requests sent through Rancher `/meta/proxy`.
+   * Sends a request through Rancher's `/meta/proxy` endpoint.
    *
-   * Supports:
-   * - standard `/meta/proxy` requests via `management/request`
-   * - auth header helpers for direct token (`X-API-Auth-Header`) or
-   *   cloud credential based auth (`X-Api-CattleAuth-Header`)
+   * Builds the proxy URL and auth headers from `options`, dispatches via
+   * `management/request`, and returns the response. If `options.postProcess`
+   * is set it is called with the response before returning, allowing callers
+   * to implement pagination or other response transforms.
    */
   request(options: ProxyRequestOptions): Promise<any>;
 
@@ -172,7 +168,7 @@ export interface ProxyApi {
    * Creates a `ProxyEndpoint` CR (`management.cattle.io/v3`) that adds the
    * given domains to the Rancher `/meta/proxy` allow-list.
    *
-   * Each entry in `urls` should be a bare hostname or a wildcard pattern
+   * Each entry in `domains` should be a bare hostname or a wildcard pattern
    * accepted by the backend (e.g. `api.example.com`, `%.amazonaws.com`).
    * Overly-broad wildcards (e.g. `*.com`) are rejected by the backend.
    *

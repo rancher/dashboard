@@ -208,9 +208,8 @@ Rancher routes requests to third-party domains (e.g. cloud provider APIs) throug
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint: 'api.example.com/v1',
-  command:  'regions',
-  token:    myApiToken,
+  url:            new URL('https://api.example.com/v1/regions'),
+  authentication: { token: myApiToken },
 });
 ```
 

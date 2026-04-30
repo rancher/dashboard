@@ -54,11 +54,12 @@ Then make requests using `proxy.request()`:
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint:      'api.example.com/v1',
-  command:       'regions',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'bearer',
-  passwordField: 'token',
+  url:            new URL('https://api.example.com/v1/regions'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
 });
 ```
 

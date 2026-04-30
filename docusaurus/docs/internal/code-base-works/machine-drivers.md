@@ -99,11 +99,12 @@ if (!exists) {
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint:      'api.example.com/v1',
-  command:       'instances',
-  credentialId:  myCloudCredentialId,
-  authSigner:    'bearer',
-  passwordField: 'token',
+  url:            new URL('https://api.example.com/v1/instances'),
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
 });
 ```
 
@@ -111,22 +112,37 @@ const result = await this.$shell.proxy.request({
 
 ```ts
 const result = await this.$shell.proxy.request({
-  endpoint: 'api.example.com/v1',
-  command:  'images',
-  token:    myApiToken,
+  url:            new URL('https://api.example.com/v1/images'),
+  authentication: { token: myApiToken },
 });
 ```
 
 ### De-pagination
 
+Use `createDepaginator` (imported from `@shell/apis/shell/proxy`) to follow paginated responses automatically:
+
 ```ts
+import { createDepaginator } from '@shell/apis/shell/proxy';
+
+const baseUrl = new URL('https://api.example.com/v1/instances');
+baseUrl.searchParams.set('per_page', '200');
+
+const baseOptions = {
+  url:            baseUrl,
+  authentication: {
+    id:            myCloudCredentialId,
+    authSigner:    'bearer',
+    passwordField: 'token',
+  },
+};
+
 const all = await this.$shell.proxy.request({
-  endpoint:    'api.example.com/v1',
-  command:     'instances',
-  perPage:     200,
-  dePaginate:  true,
-  nextUrlPath: 'links.pages.next',
-  mergeKey:    'instances',
+  ...baseOptions,
+  postProcess: createDepaginator(
+    this.$shell.proxy,
+    baseOptions,
+    { nextUrlPath: 'links.pages.next', mergeKey: 'instances' },
+  ),
 });
 ```
 

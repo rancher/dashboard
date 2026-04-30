@@ -3,7 +3,7 @@
 import {
   describe, it, expect, jest, beforeEach
 } from '@jest/globals';
-import { ProxyApiImpl } from '../proxy';
+import { ProxyApiImpl, createDepaginator } from '../proxy';
 import { Store } from 'vuex';
 
 const PROXY_PREFIX = '/meta/proxy/';
@@ -24,57 +24,27 @@ describe('proxyApiImpl', () => {
   // ---------------------------------------------------------------------------
 
   describe('prepareRequest: URL building', () => {
-    it('should prepend /meta/proxy/ to an explicit url, stripping the https scheme', () => {
-      const { url } = proxyApi.prepareRequest({ url: 'https://api.example.com/v1/things' });
+    it('should prepend /meta/proxy/ to a url, stripping the https scheme', () => {
+      const { url } = proxyApi.prepareRequest({ url: new URL('https://api.example.com/v1/things') });
 
       expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1/things`);
     });
 
-    it('should prepend /meta/proxy/ to an explicit url, stripping the http scheme', () => {
-      const { url } = proxyApi.prepareRequest({ url: 'http://api.example.com/v1/things' });
+    it('should strip https:// but preserve http:/ (one slash) for plain-HTTP urls', () => {
+      const { url } = proxyApi.prepareRequest({ url: new URL('http://api.example.com:1234/v1/things') });
 
-      expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1/things`);
+      expect(url).toBe(`${ PROXY_PREFIX }http:/api.example.com:1234/v1/things`);
     });
 
-    it('should build a URL from endpoint and command', () => {
-      const { url } = proxyApi.prepareRequest({ endpoint: 'api.example.com/v1', command: 'regions' });
+    it('should preserve query params', () => {
+      const input = new URL('https://api.example.com/v1/things');
 
-      expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1/regions`);
-    });
+      input.searchParams.set('region', 'us-east-1');
+      input.searchParams.set('page', '2');
 
-    it('should build a URL from endpoint alone when no command is given', () => {
-      const { url } = proxyApi.prepareRequest({ endpoint: 'api.example.com/v1' });
+      const { url } = proxyApi.prepareRequest({ url: input });
 
-      expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1`);
-    });
-
-    it('should append per_page when perPage is provided', () => {
-      const { url } = proxyApi.prepareRequest({
-        endpoint: 'api.example.com/v1', command: 'items', perPage: 200
-      });
-
-      expect(url).toContain('per_page=200');
-    });
-
-    it('should append extra params when params are provided', () => {
-      const { url } = proxyApi.prepareRequest({
-        endpoint: 'api.example.com/v1',
-        command:  'items',
-        params:   { region: 'us-east-1', foo: 'bar' },
-      });
-
-      expect(url).toContain('region=us-east-1');
-      expect(url).toContain('foo=bar');
-    });
-
-    it('should prefer explicit url over endpoint + command', () => {
-      const { url } = proxyApi.prepareRequest({
-        url:      'https://override.example.com/path',
-        endpoint: 'api.example.com/v1',
-        command:  'items',
-      });
-
-      expect(url).toBe(`${ PROXY_PREFIX }override.example.com/path`);
+      expect(url).toBe(`${ PROXY_PREFIX }api.example.com/v1/things?region=us-east-1&page=2`);
     });
   });
 
@@ -84,48 +54,52 @@ describe('proxyApiImpl', () => {
 
   describe('prepareRequest: header building', () => {
     it('should set Accept to application/json by default', () => {
-      const { headers } = proxyApi.prepareRequest({ endpoint: 'api.example.com' });
+      const { headers } = proxyApi.prepareRequest({ url: new URL('https://api.example.com') });
 
       expect(headers['Accept']).toBe('application/json');
     });
 
     it('should override Accept when accept option is provided', () => {
-      const { headers } = proxyApi.prepareRequest({ endpoint: 'api.example.com', accept: 'text/plain' });
+      const { headers } = proxyApi.prepareRequest({ url: new URL('https://api.example.com'), accept: 'text/plain' });
 
       expect(headers['Accept']).toBe('text/plain');
     });
 
     it('should merge caller-supplied headers', () => {
       const { headers } = proxyApi.prepareRequest({
-        endpoint: 'api.example.com',
-        headers:  { 'X-Custom': 'value' },
+        url:     new URL('https://api.example.com'),
+        headers: { 'X-Custom': 'value' },
       });
 
       expect(headers['X-Custom']).toBe('value');
     });
 
     it('should set x-api-auth-header with Bearer scheme for a token by default', () => {
-      const { headers } = proxyApi.prepareRequest({ endpoint: 'api.example.com', token: 'my-token' });
+      const { headers } = proxyApi.prepareRequest({
+        url:            new URL('https://api.example.com'),
+        authentication: { token: 'my-token' },
+      });
 
       expect(headers['x-api-auth-header']).toBe('Bearer my-token');
     });
 
     it('should use the supplied authSigner as the scheme for a token', () => {
       const { headers } = proxyApi.prepareRequest({
-        endpoint:   'api.example.com',
-        token:      'encoded==',
-        authSigner: 'Basic',
+        url:            new URL('https://api.example.com'),
+        authentication: { token: 'encoded==', authSigner: 'basic' },
       });
 
-      expect(headers['x-api-auth-header']).toBe('Basic encoded==');
+      expect(headers['x-api-auth-header']).toBe('basic encoded==');
     });
 
     it('should set x-api-cattleauth-header with signer and credID', () => {
       const { headers } = proxyApi.prepareRequest({
-        endpoint:      'api.example.com',
-        credentialId:  'cattle-global-data:my-cred',
-        authSigner:    'bearer',
-        passwordField: 'token',
+        url:            new URL('https://api.example.com'),
+        authentication: {
+          id:            'cattle-global-data:my-cred',
+          authSigner:    'bearer',
+          passwordField: 'token',
+        },
       });
 
       expect(headers['x-api-cattleauth-header']).toContain('bearer ');
@@ -135,25 +109,27 @@ describe('proxyApiImpl', () => {
 
     it('should include usernameField in x-api-cattleauth-header when provided', () => {
       const { headers } = proxyApi.prepareRequest({
-        endpoint:      'api.example.com',
-        credentialId:  'cattle-global-data:my-cred',
-        authSigner:    'basic',
-        usernameField: 'username',
-        passwordField: 'password',
+        url:            new URL('https://api.example.com'),
+        authentication: {
+          id:            'cattle-global-data:my-cred',
+          authSigner:    'basic',
+          usernameField: 'username',
+          passwordField: 'password',
+        },
       });
 
       expect(headers['x-api-cattleauth-header']).toContain('usernameField=username');
       expect(headers['x-api-cattleauth-header']).toContain('passwordField=password');
     });
 
-    it('should not set x-api-cattleauth-header when no credentialId is provided', () => {
-      const { headers } = proxyApi.prepareRequest({ endpoint: 'api.example.com' });
+    it('should not set x-api-cattleauth-header when no authentication is provided', () => {
+      const { headers } = proxyApi.prepareRequest({ url: new URL('https://api.example.com') });
 
       expect(headers['x-api-cattleauth-header']).toBeUndefined();
     });
 
-    it('should not set x-api-auth-header when no token is provided', () => {
-      const { headers } = proxyApi.prepareRequest({ endpoint: 'api.example.com' });
+    it('should not set x-api-auth-header when no authentication is provided', () => {
+      const { headers } = proxyApi.prepareRequest({ url: new URL('https://api.example.com') });
 
       expect(headers['x-api-auth-header']).toBeUndefined();
     });
@@ -167,7 +143,7 @@ describe('proxyApiImpl', () => {
     it('should dispatch management/request with the built url and headers', async() => {
       mockDispatch.mockResolvedValue({ data: [] });
 
-      await proxyApi.request({ endpoint: 'api.example.com/v1', command: 'items' });
+      await proxyApi.request({ url: new URL('https://api.example.com/v1/items') });
 
       expect(mockDispatch).toHaveBeenCalledWith(
         'management/request',
@@ -182,7 +158,7 @@ describe('proxyApiImpl', () => {
     it('should pass method through to management/request', async() => {
       mockDispatch.mockResolvedValue({});
 
-      await proxyApi.request({ url: 'https://api.example.com/token', method: 'POST' });
+      await proxyApi.request({ url: new URL('https://api.example.com/token'), method: 'POST' });
 
       expect(mockDispatch).toHaveBeenCalledWith(
         'management/request',
@@ -191,17 +167,30 @@ describe('proxyApiImpl', () => {
       );
     });
 
-    it('should return the response directly when dePaginate is false', async() => {
+    it('should return the response directly when no postProcess is set', async() => {
       const mockResponse = { items: ['a', 'b'] };
 
       mockDispatch.mockResolvedValue(mockResponse);
 
-      const result = await proxyApi.request({ endpoint: 'api.example.com', command: 'items' });
+      const result = await proxyApi.request({ url: new URL('https://api.example.com/items') });
 
       expect(result).toStrictEqual(mockResponse);
     });
 
-    it('should follow next links and merge results when dePaginate is true', async() => {
+    it('should call postProcess with the response and return its result', async() => {
+      const raw = { items: ['a'] };
+      const processed = { items: ['a', 'b'] };
+
+      mockDispatch.mockResolvedValue(raw);
+      const postProcess = jest.fn().mockResolvedValue(processed) as jest.Mock;
+
+      const result = await proxyApi.request({ url: new URL('https://api.example.com/items'), postProcess });
+
+      expect(postProcess).toHaveBeenCalledWith(raw);
+      expect(result).toStrictEqual(processed);
+    });
+
+    it('createDepaginator: should follow next links and merge results', async() => {
       const page1 = {
         items: ['a', 'b'],
         links: { pages: { next: 'https://api.example.com/v1/items?page=2' } },
@@ -215,18 +204,17 @@ describe('proxyApiImpl', () => {
         .mockResolvedValueOnce(page1)
         .mockResolvedValueOnce(page2);
 
+      const baseOptions = { url: new URL('https://api.example.com/v1/items') };
       const result = await proxyApi.request({
-        endpoint:   'api.example.com/v1',
-        command:    'items',
-        dePaginate: true,
-        mergeKey:   'items',
+        ...baseOptions,
+        postProcess: createDepaginator(proxyApi, baseOptions, { mergeKey: 'items' }),
       });
 
       expect(result.items).toStrictEqual(['a', 'b', 'c']);
       expect(mockDispatch).toHaveBeenCalledTimes(2);
     });
 
-    it('should use a custom nextUrlPath when provided', async() => {
+    it('createDepaginator: should use a custom nextUrlPath when provided', async() => {
       const page1 = {
         data:   ['x'],
         paging: { next: 'https://api.example.com/v1/things?cursor=abc' },
@@ -240,12 +228,13 @@ describe('proxyApiImpl', () => {
         .mockResolvedValueOnce(page1)
         .mockResolvedValueOnce(page2);
 
+      const baseOptions = { url: new URL('https://api.example.com/v1/things') };
       const result = await proxyApi.request({
-        endpoint:    'api.example.com/v1',
-        command:     'things',
-        dePaginate:  true,
-        nextUrlPath: 'paging.next',
-        mergeKey:    'data',
+        ...baseOptions,
+        postProcess: createDepaginator(proxyApi, baseOptions, {
+          nextUrlPath: 'paging.next',
+          mergeKey:    'data',
+        }),
       });
 
       expect(result.data).toStrictEqual(['x', 'y']);

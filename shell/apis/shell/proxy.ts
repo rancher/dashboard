@@ -1,8 +1,12 @@
-import { addParam, addParams } from '@shell/utils/url';
 import { Store } from 'vuex';
-import { ProxyApi, ProxyRequestOptions } from '@shell/apis/intf/shell';
+import { ProxyApi, ProxyAuthCloudCredential, ProxyAuthToken, ProxyRequestOptions } from '@shell/apis/intf/shell';
 import { Metadata } from '@shell/types/resources/settings';
 import { MANAGEMENT } from '@shell/config/types';
+
+/** Traverses a dot-separated path on an object, returning `undefined` if any segment is missing. */
+function getByPath(obj: any, path: string): any {
+  return path.split('.').reduce((acc: any, key: string) => acc?.[key], obj);
+}
 
 /**
  * Shell implementation of the `ProxyApi`.
@@ -49,48 +53,27 @@ export class ProxyApiImpl implements ProxyApi {
     if (options.data) {
       req.body = options.data;
     }
+
     const res = await this.store.dispatch('management/request', req, { root: true });
 
-    if ( options.dePaginate && this.getByPath(res, options.nextUrlPath || 'links.pages.next') ) {
-      const nextUrl = this.getByPath(res, options.nextUrlPath || 'links.pages.next');
-      const out = this.mergeResponse(options, res);
-
-      return this.request({
-        ...options,
-        url: nextUrl,
-        out,
-      });
+    if (options.postProcess) {
+      return options.postProcess(res);
     }
 
-    return this.mergeResponse(options, res);
+    return res;
   }
 
   /**
-   * Builds a `/meta/proxy` URL from explicit URL or endpoint + command inputs.
+   * Builds a `/meta/proxy` URL by stripping the scheme from `options.url`.
    */
   private buildProxyUrl(options: ProxyRequestOptions): string {
-    let url = '/meta/proxy/';
+    const raw = options.url.toString();
 
-    if ( options.url ) {
-      return `${ url }${ options.url.replace(/^https?:\/\//, '') }`;
-    }
-
-    const endpoint = options.endpoint || '';
-    const command = options.command || '';
-
-    url += command ? `${ endpoint }/${ command }` : endpoint;
-
-    if ( options.perPage ) {
-      url = addParam(url, 'per_page', `${ options.perPage }`);
-    }
-
-    url = addParams(url, options.params || {});
-
-    return url;
+    return `/meta/proxy/${ raw.replace(/^https:\/\//, '').replace(/^http:\/\//, 'http:/') }`;
   }
 
   /**
-   * Builds request headers, including auth headers derived from options.
+   * Builds request headers, including auth headers derived from `options.authentication`.
    */
   private buildHeaders(options: ProxyRequestOptions): Record<string, string> {
     const headers: Record<string, string> = {
@@ -98,30 +81,33 @@ export class ProxyApiImpl implements ProxyApi {
       ...(options.headers || {})
     };
 
-    const credentialHeader = 'x-api-cattleauth-header';
-    const tokenHeader = 'x-api-auth-header';
+    const auth = options.authentication;
 
-    if (options.credentialId) {
-      headers[credentialHeader] = '';
+    if (!auth) {
+      return headers;
+    }
 
-      if (options.authSigner) {
-        headers[credentialHeader] += `${ options.authSigner } `;
-      }
-      const { credentialId, passwordField, usernameField } = options;
+    if ('id' in auth) {
+      // Cloud credential — instruct Rancher to sign the request server-side
+      const {
+        id, authSigner, usernameField, passwordField
+      } = auth as ProxyAuthCloudCredential;
+      let value = authSigner ? `${ authSigner } ` : '';
 
-      if (credentialId) {
-        headers[credentialHeader] += `credID=${ credentialId } `;
-      }
+      value += `credID=${ id } `;
       if (usernameField) {
-        headers[credentialHeader] += `usernameField=${ usernameField } `;
+        value += `usernameField=${ usernameField } `;
       }
       if (passwordField) {
-        headers[credentialHeader] += `passwordField=${ passwordField } `;
+        value += `passwordField=${ passwordField } `;
       }
-    } else if (options.token) {
-      const scheme = options.authSigner ?? 'Bearer';
+      headers['x-api-cattleauth-header'] = value.trimEnd();
+    } else {
+      // Plain token — forwarded verbatim as Authorization by the proxy
+      const { token, authSigner } = auth as ProxyAuthToken;
+      const scheme = authSigner ?? 'Bearer';
 
-      headers[tokenHeader] = `${ scheme } ${ options.token }`;
+      headers['x-api-auth-header'] = `${ scheme } ${ token }`;
     }
 
     return headers;
@@ -143,25 +129,6 @@ export class ProxyApiImpl implements ProxyApi {
       url:     this.buildProxyUrl(options),
       headers: this.buildHeaders(options),
     };
-  }
-
-  /**
-   * Merges de-paginated responses when an output accumulator is provided.
-   */
-  private mergeResponse(options: ProxyRequestOptions, res: any): any {
-    if ( !options.out ) {
-      return res;
-    }
-
-    const key = options.mergeKey || options.command || Object.keys(res || {}).find((x) => Array.isArray(res[x]));
-
-    if ( key && Array.isArray(options.out[key]) && Array.isArray(res?.[key]) ) {
-      options.out[key] = options.out[key].concat(res[key]);
-
-      return options.out;
-    }
-
-    return res;
   }
 
   /**
@@ -242,11 +209,52 @@ export class ProxyApiImpl implements ProxyApi {
       throw e;
     }
   }
+}
 
-  /**
-   * Safe dot-path getter utility.
-   */
-  private getByPath(obj: any, path: string): any {
-    return path.split('.').reduce((acc: any, key: string) => acc?.[key], obj);
-  }
+/**
+ * Creates a `postProcess` callback for use with `ProxyApi.request()` that
+ * automatically follows pagination links and merges array results across pages.
+ *
+ * @param proxyApi       - The `ProxyApi` instance used to fetch subsequent pages.
+ * @param requestOptions - Base request options (without `postProcess`) reused for each page.
+ * @param opts.nextUrlPath - Dot-path to the next-page URL in the response.
+ *                           Defaults to `links.pages.next`.
+ * @param opts.mergeKey    - Response key whose array value is merged across pages.
+ *                           When omitted the first top-level array key is used.
+ *
+ * @example
+ * ```ts
+ * const baseOptions = { url: 'api.example.com/v1/items', authentication };
+ * const result = await proxy.request({
+ *   ...baseOptions,
+ *   postProcess: createDepaginator(proxy, baseOptions, { mergeKey: 'items' }),
+ * });
+ * ```
+ */
+export function createDepaginator(
+  proxyApi: ProxyApi,
+  requestOptions: Omit<ProxyRequestOptions, 'postProcess'>,
+  opts: { nextUrlPath?: string; mergeKey?: string } = {}
+): (res: any) => Promise<any> {
+  const nextPath = opts.nextUrlPath ?? 'links.pages.next';
+  const mergeKey = opts.mergeKey;
+
+  const paginate = async(res: any, accumulated?: any): Promise<any> => {
+    const key = mergeKey ?? Object.keys(res ?? {}).find((k) => Array.isArray(res[k]));
+
+    // If we have a prior page's data, concatenate this page's array into it; otherwise use this page as-is
+    const merged = (accumulated !== undefined && key && Array.isArray(accumulated[key]) && Array.isArray(res?.[key])) ? { ...res, [key]: [...accumulated[key], ...res[key]] } : res;
+
+    const nextUrl = getByPath(merged, nextPath);
+
+    if (!nextUrl) {
+      return merged;
+    }
+
+    const nextRes = await proxyApi.request({ ...requestOptions, url: new URL(nextUrl) });
+
+    return paginate(nextRes, merged);
+  };
+
+  return (res: any) => paginate(res);
 }

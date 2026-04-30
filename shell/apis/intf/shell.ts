@@ -36,7 +36,7 @@ export interface ShellApi {
   get system(): SystemApi;
 
   /**
-   * Provides access to the proxy API
+   * Provides access to the proxy API which can be used to make http requests via Rancher
    */
   get proxy(): ProxyApi;
 }

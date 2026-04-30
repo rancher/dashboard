@@ -28,11 +28,13 @@ class Handler {
     // Build proxy options: use awsv4 credential signing when a cloud credential
     // is available, otherwise forward the SDK-generated Authorization header
     // directly via x-api-auth-header.
-    const upstreamUrl = `${ httpRequest.hostname }${ httpRequest.path }`;
+    const upstreamUrl = new URL(`https://${ httpRequest.hostname }${ httpRequest.path }`);
     const proxyOptions = this.cloudCredentialId ? {
-      url:          upstreamUrl,
-      authSigner:   'awsv4',
-      credentialId: this.cloudCredentialId,
+      url:            upstreamUrl,
+      authentication: {
+        id:         this.cloudCredentialId,
+        authSigner: 'awsv4',
+      },
     } : {
       url:     upstreamUrl,
       headers: httpRequest?.headers['authorization'] ? { 'x-api-auth-header': httpRequest.headers['authorization'] } : {},

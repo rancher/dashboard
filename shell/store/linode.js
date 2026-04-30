@@ -1,4 +1,6 @@
 import { sortBy } from '@shell/utils/sort';
+import { addParam, addParams } from '@shell/utils/url';
+import { createDepaginator } from '@shell/apis/shell/proxy';
 
 const ENDPOINT = 'api.linode.com/v4';
 
@@ -92,25 +94,35 @@ export const actions = {
     return out;
   },
 
-  async request({ dispatch }, {
-    token, credentialId, command, opt, out
+  async request(_, {
+    token, credentialId, command, opt
   }) {
     opt = opt || {};
 
-    return this.$shell.proxy.request({
-      url:           opt.url,
-      endpoint:      ENDPOINT,
-      command,
-      perPage:       opt.per_page || 1000,
-      params:        opt.params,
-      credentialId,
-      authSigner:    credentialId ? 'bearer' : undefined,
-      passwordField: credentialId ? 'token' : undefined,
-      token,
-      dePaginate:    true,
-      nextUrlPath:   'links.pages.next',
-      mergeKey:      command,
-      out,
+    let urlStr = opt.url || `https://${ ENDPOINT }/${ command }`;
+
+    urlStr = addParam(urlStr, 'per_page', `${ opt.per_page || 1000 }`);
+    if (opt.params) {
+      urlStr = addParams(urlStr, opt.params);
+    }
+
+    const authentication = credentialId
+      ? {
+        id:            credentialId,
+        authSigner:    'bearer',
+        passwordField: 'token',
+      }
+      : { token };
+
+    const proxy = this.$shell.proxy;
+    const requestOptions = { url: new URL(urlStr), authentication };
+
+    return proxy.request({
+      ...requestOptions,
+      postProcess: createDepaginator(proxy, requestOptions, {
+        nextUrlPath: 'links.pages.next',
+        mergeKey:    command,
+      }),
     });
   }
 };

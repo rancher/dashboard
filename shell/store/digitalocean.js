@@ -1,4 +1,6 @@
 import { sortBy } from '@shell/utils/sort';
+import { addParam, addParams } from '@shell/utils/url';
+import { createDepaginator } from '@shell/apis/shell/proxy';
 
 const ENDPOINT = 'api.digitalocean.com/v2';
 
@@ -153,20 +155,27 @@ export const actions = {
   }) {
     opt = opt || {};
 
+    let urlStr = opt.url || `https://${ ENDPOINT }/${ command }`;
+
+    urlStr = addParam(urlStr, 'per_page', `${ opt.per_page || 1000 }`);
+    if (opt.params) {
+      urlStr = addParams(urlStr, opt.params);
+    }
+
+    const authentication = credentialId
+      ? {
+        id:            credentialId,
+        authSigner:    'bearer',
+        passwordField: 'accessToken',
+      }
+      : { token };
+
     const proxy = this.$shell?.proxy;
+    const requestOptions = { url, authentication };
 
     return proxy.request({
-      url:           opt.url,
-      endpoint:      ENDPOINT,
-      command,
-      params:        opt.params,
-      perPage:       opt.per_page || 1000,
-      credentialId,
-      passwordField: 'accessToken',
-      token,
-      dePaginate:    true,
-      mergeKey:      command,
-      authSigner:    'Bearer'
+      ...requestOptions,
+      postProcess: createDepaginator(proxy, requestOptions, { mergeKey: command }),
     });
   },
 };
