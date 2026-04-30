@@ -103,9 +103,10 @@ export default {
         return false;
       }
 
-      const readyCount = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready).length;
+      const ready = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready);
+      const readyCount = ready.length;
 
-      return readyCount > 1;
+      return readyCount > 1 || (readyCount === 1 && this.clusterId !== ready[0].id);
     },
 
     // New
