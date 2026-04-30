@@ -225,7 +225,10 @@ export default {
         return null;
       }
 
-      return this.allCharts.find((c) => c.name === this.initialChartName) || null;
+      const currentChartName = this.value.spec?.helm?.chart;
+      const chartName = currentChartName || this.initialChartName;
+
+      return this.allCharts.find((c) => c.name === chartName) || null;
     },
 
     showAuthPrompt() {
