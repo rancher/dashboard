@@ -5,11 +5,13 @@
  *
  * @example
  * ```ts
- * import { K8S } from '@shell/apis';
+ * import { useResources, K8S } from '@shell/apis';
  *
- * resources.cluster.list(K8S.POD);
- * resources.cluster.list(K8S.DEPLOYMENT);
- * resources.mgmt.list(K8S.USER);
+ * const resources = useResources();
+ *
+ * resources.cluster.find(K8S.POD, 'my-pod');
+ * resources.cluster.findAll(K8S.DEPLOYMENT);
+ * resources.mgmt.findAll(K8S.USER);
  * ```
  */
 
@@ -37,9 +39,6 @@ import {
   CSI_DRIVER,
   POD_DISRUPTION_BUDGET,
   MANAGEMENT,
-  FLEET,
-  CATALOG,
-  CAPI,
 } from '@shell/config/types';
 
 /**
@@ -124,11 +123,9 @@ export const K8S = {
   /** Kubernetes HorizontalPodAutoscaler resource - `autoscaling.horizontalpodautoscaler` */
   HPA,
 
-  // Management/Rancher resources
+  // Management/Rancher resources (public API: https://ranchermanager.docs.rancher.com/api/api-reference)
   /** Rancher User management resource - `management.cattle.io.user` */
   USER:                          MANAGEMENT.USER,
-  /** Rancher Cluster management resource - `management.cattle.io.cluster` */
-  CLUSTER:                       MANAGEMENT.CLUSTER,
   /** Rancher Project management resource - `management.cattle.io.project` */
   PROJECT:                       MANAGEMENT.PROJECT,
   /** Rancher RoleTemplate management resource - `management.cattle.io.roletemplate` */
@@ -137,48 +134,10 @@ export const K8S = {
   GLOBAL_ROLE:                   MANAGEMENT.GLOBAL_ROLE,
   /** Rancher GlobalRoleBinding management resource - `management.cattle.io.globalrolebinding` */
   GLOBAL_ROLE_BINDING:           MANAGEMENT.GLOBAL_ROLE_BINDING,
-  /** Rancher AuthConfig management resource - `management.cattle.io.authconfig` */
-  AUTH_CONFIG:                   MANAGEMENT.AUTH_CONFIG,
-  /** Rancher Setting management resource - `management.cattle.io.setting` */
-  SETTING:                       MANAGEMENT.SETTING,
-  /** Rancher Token management resource - `management.cattle.io.token` */
-  TOKEN:                         MANAGEMENT.TOKEN,
-  /** Rancher NodeDriver management resource - `management.cattle.io.nodedriver` */
-  NODE_DRIVER:                   MANAGEMENT.NODE_DRIVER,
-  /** Rancher KontainerDriver management resource - `management.cattle.io.kontainerdriver` */
-  KONTAINER_DRIVER:              MANAGEMENT.KONTAINER_DRIVER,
   /** Rancher ClusterRoleTemplateBinding management resource - `management.cattle.io.clusterroletemplatebinding` */
   CLUSTER_ROLE_TEMPLATE_BINDING: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
   /** Rancher ProjectRoleTemplateBinding management resource - `management.cattle.io.projectroletemplatebinding` */
   PROJECT_ROLE_TEMPLATE_BINDING: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-
-  // Fleet
-  /** Fleet Cluster resource - `fleet.cattle.io.cluster` */
-  FLEET_CLUSTER:       FLEET.CLUSTER,
-  /** Fleet GitRepo resource - `fleet.cattle.io.gitrepo` */
-  FLEET_GIT_REPO:      FLEET.GIT_REPO,
-  /** Fleet Bundle resource - `fleet.cattle.io.bundle` */
-  FLEET_BUNDLE:        FLEET.BUNDLE,
-  /** Fleet ClusterGroup resource - `fleet.cattle.io.clustergroup` */
-  FLEET_CLUSTER_GROUP: FLEET.CLUSTER_GROUP,
-  /** Fleet Workspace resource - `management.cattle.io.fleetworkspace` */
-  FLEET_WORKSPACE:     FLEET.WORKSPACE,
-
-  // Catalog
-  /** Catalog App resource - `catalog.cattle.io.app` */
-  APP:          CATALOG.APP,
-  /** Catalog ClusterRepo resource - `catalog.cattle.io.clusterrepo` */
-  CLUSTER_REPO: CATALOG.CLUSTER_REPO,
-
-  // Provisioning (CAPI)
-  /** Rancher Provisioning Cluster resource - `provisioning.cattle.io.cluster` */
-  RANCHER_CLUSTER:    CAPI.RANCHER_CLUSTER,
-  /** Cluster API Cluster resource - `cluster.x-k8s.io.cluster` */
-  CAPI_CLUSTER:       CAPI.CAPI_CLUSTER,
-  /** Cluster API MachineDeployment resource - `cluster.x-k8s.io.machinedeployment` */
-  MACHINE_DEPLOYMENT: CAPI.MACHINE_DEPLOYMENT,
-  /** Cluster API Machine resource - `cluster.x-k8s.io.machine` */
-  MACHINE:            CAPI.MACHINE,
 } as const;
 
 /**

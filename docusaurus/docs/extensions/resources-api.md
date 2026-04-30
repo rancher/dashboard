@@ -8,7 +8,7 @@ id: resources-api
 
 ## What is the Resources API?
 
-The Resources API is a functional API that helps extension developers to interact with Kubernetes and Rancher resources programmatically. This API provides a type-safe interface for common resource operations such as listing, retrieving, and filtering resources with full TypeScript support and autocomplete.
+The Resources API helps extension developers interact with Kubernetes and Rancher resources programmatically. This API provides a type-safe interface for common resource operations such as listing, retrieving, and filtering resources with full TypeScript support and autocomplete.
 
 The API is organized into two contexts:
 
@@ -54,11 +54,11 @@ const resources = useResources();
 
 // Cluster context - for cluster-scoped resources
 const pods = await resources.cluster.findFiltered(K8S.POD);
-const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'my-app');
+const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'default/my-app');
 
 // Management context - for global resources
 const users = await resources.mgmt.findFiltered(K8S.USER);
-const cluster = await resources.mgmt.find(K8S.CLUSTER, 'c-abc123');
+const user = await resources.mgmt.find(K8S.USER, 'u-xyz789');
 ```
 
 ## Resource Constants
@@ -83,8 +83,8 @@ K8S.DAEMON_SET
 
 // Rancher Management
 K8S.USER
-K8S.CLUSTER
 K8S.PROJECT
+K8S.GLOBAL_ROLE
 
 // And many more...
 ```

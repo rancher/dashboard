@@ -6,11 +6,15 @@ export * from '@shell/apis/intf/resources-api/resources-api';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
 export {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredMethodOptions
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions
 } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
 
 export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
+export { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+export {
+  PaginationSort, PaginationParamFilter, PaginationParamProjectOrNamespace, PaginationFilterField
+} from '@shell/types/store/pagination.types';
 
 /**
  * @internal
@@ -23,10 +27,10 @@ export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.
  * const resources = useResources();
  *
  * // Cluster-scoped resources (current cluster context)
- * const pods = await resources.cluster.findFiltered(K8S.POD);
+ * const pod = await resources.cluster.find(K8S.POD, 'default/my-pod-123');
  *
  * // Management/global resources
- * const users = await resources.mgmt.findFiltered(K8S.USER);
+ * const user = await resources.mgmt.find(K8S.USER, 'u-xyz789');
  * ```
  */
 export interface ResourcesApiProvider {

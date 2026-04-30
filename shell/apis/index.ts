@@ -40,10 +40,12 @@ export const useShell = (): ShellApi => {
  * @example
  * ```ts
  * import { useResources, K8S } from '@shell/apis';
- * import type { Pod } from '@shell/types/resources';
  *
- * const resources = useResources();
- * const pods = await resources.cluster.findFiltered<Pod>(K8S.POD);
+ * // Cluster-scoped resources (current cluster context)
+ * const pod = await resources.cluster.find(K8S.POD, 'default/my-pod-123');
+ *
+ * // Management/global resources
+ * const user = await resources.mgmt.find(K8S.USER, 'u-xyz789');
  * ```
  */
 export const useResources = (): ResourcesApiProvider => {

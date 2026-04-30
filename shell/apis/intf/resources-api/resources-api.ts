@@ -1,4 +1,6 @@
-import { ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredMethodOptions } from './resource-base';
+import {
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions
+} from './resource-base';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 
 /**
@@ -14,8 +16,7 @@ import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.
  *
  * const resources = useResources();
  *
- * const pods = await resources.cluster.findFiltered(K8S.POD);
- * const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'my-app');
+ * const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'default/my-app');
  * ```
  */
 export interface ResourcesApi {
@@ -24,7 +25,7 @@ export interface ResourcesApi {
    *
    * @template T - The type of the resource (defaults to SteveGetResponse)
    * @param resourceType - The type of the resource to find (use **{@link K8S}** constant). See also {@link ResourceType}.
-   * @param resourceId - The unique identifier of the resource to find.
+   * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
    * @returns The found resource item or null if not found.
    *
@@ -33,7 +34,12 @@ export interface ResourcesApi {
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
-   * const pod = await resources.cluster.find(K8S.POD, 'my-pod-123');
+   *
+   * // Namespaced resource - ID must be in "namespace/name" format
+   * const pod = await resources.cluster.find(K8S.POD, 'default/my-pod-123');
+   *
+   * // Cluster-scoped resource - ID is just the name
+   * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
    * ```
    */
   find<T = SteveGetResponse>(
@@ -43,15 +49,43 @@ export interface ResourcesApi {
   ): Promise<T | null>;
 
   /**
-   * Finds resources of a specific type with filtering, pagination, and label selector support.
+   * Finds resources using a label selector with server-side pagination.
    *
-   * This method covers two use cases:
-   * - **Paginated listing** — pass options with pagination settings
-   * - **Label selector matching** — pass a selector string to filter by labels
+   * Requires both `labelSelector` and `pagination` settings for server-side
+   * filtering, sorting, and pagination via the Steve API's pagination cache.
    *
    * @template T - The type of the resources (defaults to SteveListResponse)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
-   * @param options - Optional pagination and filter options
+   * @param options - Label selector and pagination options. See {@link FindFilteredPageOptions}.
+   * @returns An array of resource items or an empty array if none are found.
+   *
+   * @example
+   * ```ts
+   * import { useResources, K8S } from '@shell/apis';
+   * import { PaginationArgs } from '@shell/types/store/pagination.types';
+   *
+   * const resources = useResources();
+   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   *   labelSelector: { matchLabels: { app: 'nginx' } },
+   *   pagination:    new PaginationArgs({ page: 1, pageSize: 25 })
+   * });
+   * ```
+   */
+  findFiltered<T = SteveListResponse>(
+    resourceType: ResourceType,
+    options: FindFilteredPageOptions
+  ): Promise<T[]>;
+
+  /**
+   * Finds resources using a label selector.
+   *
+   * Filters resources by `labelSelector` (matchLabels / matchExpressions).
+   * Under the hood, the store decides whether to use paginated or non-paginated
+   * matching depending on whether server-side pagination is enabled.
+   *
+   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param options - Label selector options. See {@link FindFilteredLabelSelectorOptions}.
    * @returns An array of resource items or an empty array if none are found.
    *
    * @example
@@ -59,17 +93,14 @@ export interface ResourcesApi {
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
-   *
-   * // Paginated listing
-   * const deployments = await resources.cluster.findFiltered(K8S.DEPLOYMENT);
-   *
-   * // With label selector
-   * const pods = await resources.cluster.findFiltered(K8S.POD, { selector: 'app=nginx,env=prod' });
+   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   *   labelSelector: { matchLabels: { app: 'nginx', env: 'prod' } }
+   * });
    * ```
    */
   findFiltered<T = SteveListResponse>(
     resourceType: ResourceType,
-    options?: FindFilteredMethodOptions
+    options: FindFilteredLabelSelectorOptions
   ): Promise<T[]>;
 
   /**
