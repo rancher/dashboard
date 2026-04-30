@@ -1,5 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import {
+  computed, defineComponent, getCurrentInstance, nextTick, ref
+} from 'vue';
 import { mapGetters } from 'vuex';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 
@@ -23,14 +25,35 @@ export default defineComponent({
     }
   },
 
-  setup() {
-    const { summary } = useInSummary();
+  setup(props) {
+    const instance = getCurrentInstance();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = (instance?.proxy as any)?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
+    const label = computed(() => props.titleKey && typeof t === 'function' ? t(props.titleKey) : props.title);
 
-    return { summary };
+    const isOpen = ref(props.openInitially);
+
+    const scrollTo = () => {
+      isOpen.value = true;
+      console.log('**** accordion scrollTo called');
+      nextTick(() => {
+        const el = instance?.proxy?.$el as HTMLElement | undefined;
+
+        el?.scrollIntoView(true);
+      });
+    };
+
+    const { summary } = useInSummary({ scrollTo, label });
+
+    return {
+      summary,
+      isOpen,
+      scrollTo,
+    };
   },
 
   data() {
-    return { isOpen: this.openInitially };
+    return {};
   },
 
   computed: {
@@ -45,16 +68,6 @@ export default defineComponent({
     toggle() {
       this.isOpen = !this.isOpen;
     },
-
-    scrollTo() {
-      this.isOpen = true;
-
-      this.$nextTick(() => {
-        const el = this.$el as HTMLElement;
-
-        el.scrollIntoView(true);
-      });
-    }
   },
 });
 </script>

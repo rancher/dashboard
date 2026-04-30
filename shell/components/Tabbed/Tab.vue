@@ -1,6 +1,7 @@
 <script>
 import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
+import { computed, getCurrentInstance, inject } from 'vue';
 
 export default {
   name: 'Tab',
@@ -67,8 +68,19 @@ export default {
   },
 
   setup(props) {
+    const select = inject('select');
+    const instance = getCurrentInstance();
+    const t = instance?.proxy?.$store?.getters?.['i18n/t'];
+    const label = computed(() => {
+      if (props.labelKey && typeof t === 'function') {
+        return t(props.labelKey);
+      }
+
+      return props.label ?? props.name;
+    });
     const { count, isCountVisible } = useTabCountWatcher();
-    const { summary } = useInSummary();
+    // when a Tab is scrolled to, call its Tabbed's 'select' method to ensure the Tab is active
+    const { summary } = useInSummary({ scrollTo: () => select(props.name), label });
 
     return {
       inferredCount: count, isInferredCountVisible: isCountVisible, summary
@@ -124,12 +136,6 @@ export default {
       }
 
       return false;
-    }
-  },
-
-  methods: {
-    scrollTo() {
-      this.select(this.name);
     }
   },
 

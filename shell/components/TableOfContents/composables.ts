@@ -239,8 +239,16 @@ export function useFormSummary() {
  * When the component is mounted (including after v-if re-reveals it), it re-registers
  * into the correct scoped context. Components using inFormSummary will register themselves
  *  with the nearest ancestor containing useFormSummary
+ *
+ * @param options.scrollTo - Optional scroll handler. When provided, the ToC system calls
+ *   this function instead of the default `element.scrollIntoView` behaviour when the user
+ *   navigates to this component via the Table of Contents. Use this to perform any
+ *   additional work before scrolling (e.g. expanding an accordion, revealing a tab).
+ * @param options.label - Optional label for this component's ToC entry. Accepts a plain
+ *   string or a `ComputedRef<string>`. When provided it takes precedence over the
+ *   automatic label derived from `displayTitle`, `title`, `labelKey`, etc.
  */
-export function useInSummary() {
+export function useInSummary(options?: { scrollTo?: () => void; label?: ComputedRef<string> | string }) {
   const {
     registerComponent = () => {},
     unRegisterComponent = () => {},
@@ -251,13 +259,14 @@ export function useInSummary() {
   const t = instance?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
   const component = ref<SummaryComponent | null>(null);
 
-  // can be overwritten by a component method also named "scrollTo"
-  const scrollTo = () => {
+  // Use the caller-supplied scrollTo if provided; otherwise fall back to a plain scrollIntoView.
+  const scrollTo = options?.scrollTo ?? (() => {
     const el = instance?.proxy?.$el as ElementWithSummaryID | null | undefined;
 
     (el as HTMLElement | undefined)?.scrollIntoView(true);
-  };
+  });
 
+  // options.label will take precedence if defined
   const getComponentLabel = () => {
     const currentComponent = component.value;
 
@@ -287,7 +296,13 @@ export function useInSummary() {
   const summaryID = randomStr();
   const summary: SummaryInfo = { id: summaryID, scrollTo };
 
-  summary.label = computed(getComponentLabel);
+  if (options?.label !== undefined) {
+    // Caller supplied an explicit label — wrap a plain string in a computed so the
+    // type is always ComputedRef<string>, and skip the component-field heuristics.
+    summary.label = typeof options.label === 'string' ? computed(() => options.label as string) : options.label;
+  } else {
+    summary.label = computed(getComponentLabel);
+  }
 
   watch(summary.label, (label) => {
     const updated = updateComponentLabel(summaryID, label);

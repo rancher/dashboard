@@ -7,7 +7,7 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
 import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
@@ -170,12 +170,12 @@ export default {
     },
   },
 
-  setup() {
+  setup(props) {
     const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
-    const { summary } = useInSummary();
+    const { summary } = useInSummary({ label: computed(() => props.title ?? '') });
 
     return {
       isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary

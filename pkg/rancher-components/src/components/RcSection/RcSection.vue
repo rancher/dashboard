@@ -59,14 +59,14 @@ provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
 
-// Register this section in form summary/table-of-contents context (if provided)
-const { summary } = useInSummary();
-
 // Expose summary, name, and a display label on the component public instance so
 // TOC discovery can access component
 const displayTitle = computed(() => props.title);
 
 const name = 'RcSection';
+
+// Register this section in form summary/table-of-contents context (if provided)
+const { summary } = useInSummary({ label: displayTitle });
 
 defineExpose({
   summary, displayTitle, name
