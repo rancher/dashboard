@@ -789,7 +789,8 @@ describe('topLevelMenu', () => {
             isReady:     true
           }
         ]);
-        store.getters.clusterId = 'an-id1';
+
+        store.getters.clusterId = 'an-id1' as any;
 
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
@@ -816,7 +817,8 @@ describe('topLevelMenu', () => {
             isReady:     true
           }
         ]);
-        store.getters.clusterId = 'some-other-cluster-id';
+
+        store.getters.clusterId = 'some-other-cluster-id' as any;
 
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
