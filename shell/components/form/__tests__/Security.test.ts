@@ -79,6 +79,25 @@ describe('component: Security', () => {
       expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
 
+    // Regression: clearing runAsUser must drop the key from the emitted object.
+    // Otherwise the spec is sent with `runAsUser: ""` and the API rejects with
+    // "cannot unmarshal string ... of type int64". See issue #9601.
+    it('should omit runAsUser from the emitted value when the input is cleared', async() => {
+      const wrapper = mount(Security, {
+        props: {
+          mode: _EDIT, formType: FORM_TYPES.CONTAINER, value: { runAsUser: 33 }
+        }
+      });
+      const input = wrapper.find('[data-testid="input-security-runAsUser"]').find('input');
+
+      await input.setValue('');
+
+      const events = wrapper.emitted('update:value') ?? [];
+      const last = events[events.length - 1][0] as Record<string, unknown>;
+
+      expect(Object.prototype.hasOwnProperty.call(last, 'runAsUser')).toBe(false);
+    });
+
     it.each([
       'privileged',
       'allowPrivilegeEscalation',
@@ -138,6 +157,26 @@ describe('component: Security', () => {
       input.setValue(newValue);
 
       expect(wrapper.emitted('update:value')).toHaveLength(1);
+    });
+
+    // Regression for #9601 — see equivalent container-level test above.
+    it.each([
+      ['runAsUser', { runAsUser: 33 }],
+      ['fsGroup', { fsGroup: 100 }],
+    ])('should omit %p from the emitted value when the input is cleared', async(field, initial) => {
+      const wrapper = mount(Security, {
+        props: {
+          mode: _EDIT, formType: FORM_TYPES.POD, value: initial
+        }
+      });
+      const input = wrapper.find(`[data-testid="input-security-${ field }"]`).find('input');
+
+      await input.setValue('');
+
+      const events = wrapper.emitted('update:value') ?? [];
+      const last = events[events.length - 1][0] as Record<string, unknown>;
+
+      expect(Object.prototype.hasOwnProperty.call(last, field)).toBe(false);
     });
   });
 });

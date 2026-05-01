@@ -140,11 +140,12 @@ export default {
         this.afterPrivilegedTickedMessage = this.t('workload.container.security.privileged.afterTick.false');
       }
 
-      if (securityContext.fsGroup === '') {
+      // Drop empty values so we don't send a string for int64 fields.
+      if (securityContext.fsGroup === '' || securityContext.fsGroup === null) {
         delete securityContext.fsGroup;
       }
 
-      if (securityContext.runAsUser === '') {
+      if (securityContext.runAsUser === '' || securityContext.runAsUser === null) {
         delete securityContext.runAsUser;
       }
 
@@ -175,6 +176,7 @@ export default {
             ref="firstFocusable"
             v-model:value.number="securityContext.fsGroup"
             type="number"
+            min="0"
             :mode="mode"
             :label="t('workload.container.security.fsGroup')"
             @update:value="update"
@@ -283,6 +285,8 @@ export default {
           </legend>
           <LabeledInput
             v-model:value.number="securityContext.runAsUser"
+            type="number"
+            min="0"
             :label="t('workload.container.security.runAsUser.label')"
             :mode="mode"
             @update:value="update"
