@@ -22,13 +22,8 @@ export const isDomainWithoutProtocol = (value) => (/^(?=.{1,254}$)(?![a-z][a-z0-
 export const isLocalhost = (value) => (/^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1)/i).test(value);
 
 /**
- * Loosely validates that `value` parses as a URL with a hostname. Unlike the
- * `is-url` library, this accepts single-label hostnames such as
- * `https://rancher-ui` — these are valid in private networks (Tailscale,
- * internal DNS, /etc/hosts) and are legitimate Rancher server URLs.
- *
- * @param {string} value
- * @returns {boolean}
+ * Validates that `value` parses as a URL with a hostname, including
+ * single-label hostnames (e.g. `https://rancher-ui`) used in private networks.
  */
 export const isValidUrl = (value) => {
   if (typeof value !== 'string' || !value) {
