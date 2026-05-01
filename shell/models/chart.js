@@ -5,8 +5,9 @@ import {
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { getLatestCompatibleVersion } from '@shell/utils/chart';
+import { isMissingDate } from '@shell/utils/time';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { CATALOG, ZERO_TIME } from '@shell/config/types';
+import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import day from 'dayjs';
 
@@ -151,15 +152,13 @@ export default class Chart extends SteveModel {
     const subHeaderItems = [];
 
     if (latestVersion) {
-      const isMissingDate = !latestVersion.created || latestVersion.created === ZERO_TIME;
-
       subHeaderItems.push({
         icon:        'icon-version-alt',
         iconTooltip: { key: 'tableHeaders.version' },
         label:       latestVersion.version
       });
 
-      if (!isMissingDate) {
+      if (!isMissingDate(latestVersion.created)) {
         subHeaderItems.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },

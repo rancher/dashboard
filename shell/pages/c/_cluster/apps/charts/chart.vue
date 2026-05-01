@@ -10,7 +10,7 @@ import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED, NAMESPACE, NAME, NEW_APP_INSTANCE, _FLAGGED
 } from '@shell/config/query-params';
 import { DATE_FORMAT } from '@shell/store/prefs';
-import { ZERO_TIME } from '@shell/config/types';
+import { isMissingDate } from '@shell/utils/time';
 import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { APP_UPGRADE_STATUS, compatibleVersionsFor } from '@shell/store/catalog';
@@ -47,7 +47,6 @@ export default {
   data() {
     return {
       SEARCH_QUERY,
-      ZERO_TIME,
       showLastVersions:       7,
       showMoreVersions:       false,
       selectedInstalledAppId: null,
@@ -218,6 +217,7 @@ export default {
   },
 
   methods: {
+    isMissingDate,
     /**
      * Computes statuses for the chart detail page based on the selected installed app.
      * When an app is selected, shows instance-specific installed/upgradeable status.
@@ -344,9 +344,6 @@ export default {
           query: { [type]: queryValue },
         });
       }
-    },
-    isMissingDate(date) {
-      return !date || date === ZERO_TIME;
     },
     formatVersionDate(date) {
       return day(date).format('MMM D, YYYY');
