@@ -1,5 +1,3 @@
-import isUrl from 'is-url';
-
 // Note that these function cover specific use cases and you need to make sure it works for your use case before using them.
 // ie they would consider empty values as valid, not all endpoint formatting is enforced
 
@@ -23,4 +21,26 @@ export const isDomainWithoutProtocol = (value) => (/^(?=.{1,254}$)(?![a-z][a-z0-
 
 export const isLocalhost = (value) => (/^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1)/i).test(value);
 
-export const hasTrailingForwardSlash = (value) => isUrl(value) && value?.toLowerCase().endsWith('/');
+/**
+ * Loosely validates that `value` parses as a URL with a hostname. Unlike the
+ * `is-url` library, this accepts single-label hostnames such as
+ * `https://rancher-ui` — these are valid in private networks (Tailscale,
+ * internal DNS, /etc/hosts) and are legitimate Rancher server URLs.
+ *
+ * @param {string} value
+ * @returns {boolean}
+ */
+export const isValidUrl = (value) => {
+  if (typeof value !== 'string' || !value) {
+    return false;
+  }
+  try {
+    const url = new URL(value);
+
+    return !!url.hostname;
+  } catch {
+    return false;
+  }
+};
+
+export const hasTrailingForwardSlash = (value) => isValidUrl(value) && value?.toLowerCase().endsWith('/');
