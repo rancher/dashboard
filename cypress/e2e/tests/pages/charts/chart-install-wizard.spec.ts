@@ -25,6 +25,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
   before(() => {
     cy.login();
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     HomePagePo.goTo();
   });
 
@@ -66,5 +67,9 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       cy.deleteRancherResource('v1', 'configmaps', `${ configMapPayload.metadata.namespace }/${ configMapPayload.metadata.name }` );
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
+  });
+
+  after(() => {
+    cy.setUserPreference({ 'show-pre-release': false });
   });
 });
