@@ -45,7 +45,7 @@ import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
 import { base64Encode } from '@shell/utils/crypto';
-import { CAPI as CAPI_ANNOTATIONS, CLUSTER_BADGE } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, CLUSTER_BADGE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
 import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
@@ -69,6 +69,7 @@ import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import {
   HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+import { initializeEtcdSnapshots, isS3BackupConfigured, handleS3BackupChange } from '@shell/edit/provisioning.cattle.io.cluster/utils/etcd-snapshots';
 import { mapGetters } from 'vuex';
 
 const GOOGLE = 'google';
@@ -933,6 +934,18 @@ export default {
 
       return false;
     },
+    dayTwoOpsEnabled: {
+      get() {
+        if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== undefined) {
+          return this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+        }
+
+        return true;
+      },
+      set(newValue) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue ? 'true' : 'false';
+      }
+    },
   },
 
   watch: {
@@ -1102,22 +1115,14 @@ export default {
         this.value.spec.kubernetesVersion = this.defaultVersion;
       }
 
-      if (this.rkeConfig.etcd?.s3?.bucket) {
-        this.s3Backup = true;
-      }
+      // Initialize etcd snapshot configuration
+      this.rkeConfig.etcd = initializeEtcdSnapshots(this.rkeConfig.etcd, {
+        retentionDefault: RETENTION_DEFAULT,
+        scheduleCron:     '0 */5 * * *'
+      });
 
-      if (!this.rkeConfig.etcd) {
-        this.rkeConfig.etcd = {
-          disableSnapshots:     false,
-          s3:                   null,
-          snapshotRetention:    RETENTION_DEFAULT,
-          snapshotScheduleCron: '0 */5 * * *',
-        };
-      } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
-        const disableSnapshots = !this.rkeConfig.etcd.snapshotRetention && !this.rkeConfig.etcd.snapshotScheduleCron;
-
-        this.rkeConfig.etcd.disableSnapshots = disableSnapshots;
-      }
+      // Check if S3 backup is already configured
+      this.s3Backup = isS3BackupConfigured(this.rkeConfig.etcd);
 
       // Namespaces if required - this is mainly for custom provisioners via extensions that want
       // to allow creating their resources in a different namespace
@@ -2370,14 +2375,7 @@ export default {
     },
     handleS3BackupChanged(neu) {
       this.s3Backup = neu;
-      if (neu) {
-        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
-        if (isEmpty(this.rkeConfig.etcd?.s3)) {
-          this.rkeConfig.etcd.s3 = {};
-        }
-      } else {
-        this.rkeConfig.etcd.s3 = null;
-      }
+      handleS3BackupChange(this.rkeConfig.etcd, neu);
     },
     handleConfigEtcdExposeMetricsChanged(neu) {
       this.serverConfig['etcd-expose-metrics'] = neu;
@@ -2705,7 +2703,7 @@ export default {
             label-key="cluster.tabs.etcd"
           >
             <Etcd
-              v-model:value="localValue"
+              v-model:value="localValue.spec.rkeConfig"
               :mode="mode"
               :s3-backup="s3Backup"
               :register-before-hook="registerBeforeHook"

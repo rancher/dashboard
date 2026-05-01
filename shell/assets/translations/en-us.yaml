@@ -2625,6 +2625,9 @@ cluster:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
     etcd:
+      dayTwoOpsEnabled:
+        label: Enable Day 2 Operations
+        tooltip: This allows you to configure automatic snapshots, snapshot retention, and S3 backup options. Disabling this will disable all Day 2 etcd operations and features.
       disableSnapshots:
         label: Automatic Backups
       snapshotScheduleCron:

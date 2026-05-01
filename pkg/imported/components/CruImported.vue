@@ -30,10 +30,13 @@ import genericImportedClusterValidators from '../util/validators';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
-import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { initializeEtcdSnapshots, isS3BackupConfigured, handleS3BackupChange } from '@shell/edit/provisioning.cattle.io.cluster/utils/etcd-snapshots';
+import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -46,8 +49,10 @@ const defaultCluster = {
 export default defineComponent({
   name: 'CruImported',
 
+  emits: ['input'],
+
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
+    Basics, ACE, Loading, CruResource, Etcd, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -89,6 +94,14 @@ export default defineComponent({
       this.getVersions();
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
+      console.log('Created norman cluster', this.normanCluster);
+      const defaultDayTwoOps = await store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value;
+
+      if (!defaultDayTwoOps || defaultDayTwoOps === 'false') {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'false';
+      } else {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
+      }
     }
     this.privateRegistryEnabled = !!this.normanCluster?.importedConfig?.privateRegistryURL;
     if (!this.isRKE1) {
@@ -106,6 +119,14 @@ export default defineComponent({
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
     }
+    // Initialize etcd snapshot configuration
+    this.config.etcd = initializeEtcdSnapshots(this.config.etcd, {
+      retentionDefault: RETENTION_DEFAULT,
+      scheduleCron:     '0 */5 * * *'
+    });
+
+    // Check if S3 backup is already configured
+    this.s3Backup = isS3BackupConfigured(this.config.etcd);
   },
 
   data() {
@@ -129,6 +150,7 @@ export default defineComponent({
       needsReplace:                             false,
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
+      s3Backup:                                 false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -177,6 +199,14 @@ export default defineComponent({
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
         privateRegistryRequired:     privateRegistryRequired(this),
       };
+    },
+    dayTwoOpsEnabled: {
+      get() {
+        return this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+      },
+      set(newValue) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue ? 'true' : 'false';
+      }
     },
 
     upgradeStrategy: {
@@ -428,6 +458,10 @@ export default defineComponent({
         }
       }
     },
+    handleS3BackupChanged(neu) {
+      this.s3Backup = neu;
+      handleS3BackupChange(this.config.etcd, neu);
+    },
   }
 });
 </script>
@@ -568,6 +602,24 @@ export default defineComponent({
           :default-p-d-b="fleetAgentDefaultPDB"
           :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20 accordion"
+        title-key="cluster.tabs.etcd"
+        :open-initially="false"
+      >
+        <Etcd
+          v-model:value="config"
+          v-model:dayTwoOpsEnabled="dayTwoOpsEnabled"
+          :mode="mode"
+          :s3-backup="s3Backup"
+          :register-before-hook="registerBeforeHook"
+          :selected-version="selectedVersion"
+          @update:value="$emit('input', $event)"
+          @s3-backup-changed="handleS3BackupChanged"
+          @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
+          @etcd-validation-changed="(val)=>etcdConfigValid = val"
         />
       </Accordion>
       <Accordion

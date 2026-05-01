@@ -7,7 +7,7 @@ import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Con
 import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
-  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed', 'etcd-validation-changed'],
+  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed', 'etcd-validation-changed', 'update:dayTwoOpsEnabled'],
 
   components: {
     LabeledInput,
@@ -40,18 +40,24 @@ export default {
       type:     Function,
       required: true,
     },
-
+    dayTwoOpsEnabled: {
+      type:     Boolean,
+      required: false,
+      default:  false
+    },
   },
 
   computed: {
     etcd() {
-      return this.value.spec.rkeConfig.etcd;
+      // console.log('etcd value', this.value);
+
+      return this.value.etcd;
     },
     argsEtcdExposeMetrics() {
       return !!this.selectedVersion?.serverArgs?.['etcd-expose-metrics'];
     },
     configEtcdExposeMetrics() {
-      return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
+      return !!this.value.machineGlobalConfig['etcd-expose-metrics'];
     },
   },
   methods: {
@@ -71,6 +77,15 @@ export default {
 
 <template>
   <div>
+    <div>
+      <Checkbox
+        :value="dayTwoOpsEnabled"
+        :mode="mode"
+        label-key="'cluster.rke2.etcd.dayTwoOpsEnabled.label'"
+        :tooltip="t('cluster.rke2.etcd.dayTwoOpsEnabled.tooltip')"
+        @update:value="$emit('update:dayTwoOpsEnabled', $event)"
+      />
+    </div>
     <div class="row">
       <div class="col span-6">
         <RadioGroup
