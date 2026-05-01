@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
-import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, STEVE, VIRTUAL_TYPES } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
@@ -183,8 +183,8 @@ export default {
     },
 
     showFilter() {
-      // Hide the namespace picker on the project scope secrets list page
-      const isProjectSecretList = this.$route.params?.resource === 'projectsecret' && !this.$route.params?.id && !this.$route.name?.endsWith('-create');
+      // Hide the namespace picker on the project-scoped secrets list page
+      const isProjectSecretList = this.$route.params?.resource === VIRTUAL_TYPES.PROJECT_SECRETS && !this.$route.params?.id && !this.$route.name?.endsWith('-create');
 
       if (isProjectSecretList) {
         return false;

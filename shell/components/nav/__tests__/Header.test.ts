@@ -217,10 +217,10 @@ describe('component: Header', () => {
       expect((wrapper.vm as any).showFilter).toBe(false);
     });
 
-    it('should return false when on the project scope secrets list page', () => {
+    it('should return false when on the project-scoped secrets list page', () => {
       const wrapper = createWrapper(
         {
-          name:   'c-cluster-explorer-projectsecret',
+          name:   'c-cluster-product-resource',
           path:   '/c/local/explorer/projectsecret',
           params: { resource: 'projectsecret' },
         },
@@ -228,6 +228,32 @@ describe('component: Header', () => {
       );
 
       expect((wrapper.vm as any).showFilter).toBe(false);
+    });
+
+    it('should return true when on the project-scoped secrets detail page (has params.id)', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'c-cluster-product-resource-id',
+          path:   '/c/local/explorer/projectsecret/my-secret',
+          params: { resource: 'projectsecret', id: 'my-secret' },
+        },
+        { currentCluster: { id: 'local' }, currentProduct: { showNamespaceFilter: true } },
+      );
+
+      expect((wrapper.vm as any).showFilter).toBe(true);
+    });
+
+    it('should return true when on the project-scoped secrets create page', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'c-cluster-product-resource-create',
+          path:   '/c/local/explorer/projectsecret/create',
+          params: { resource: 'projectsecret' },
+        },
+        { currentCluster: { id: 'local' }, currentProduct: { showNamespaceFilter: true } },
+      );
+
+      expect((wrapper.vm as any).showFilter).toBe(true);
     });
 
     it('should return true when showNamespaceFilter is enabled regardless of route', () => {
