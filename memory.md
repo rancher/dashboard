@@ -37,44 +37,51 @@
 - For async util tests with `_status` errors: use `Object.assign(new Error('msg'), { _status: code })` to satisfy `prefer-promise-reject-errors` ESLint rule while keeping `_status` property accessible
 - For abstract class params (e.g. PaginationParam), use plain object cast as `unknown as PaginationParam` — avoids needing class constructors in tests
 - pagination-utils.ts exports `new PaginationUtils()` singleton; pure methods (validateNsProjectFilter, paginationEqual, etc.) need no mocks; store-dependent methods (isEnabled, isSteveCacheEnabled) need Vuex mock
+- settings.ts: `getPerformanceSetting` takes `Record<string, (arg0: string, arg1: string) => any>` as rootGetters; `isProviderEnabled` takes `ClusterProvisionerContext` (from `@shell/core/types` which re-exports from `@shell/core/types-provisioning`)
+- ClusterProvisionerContext can be mocked as `{ getters: { 'management/byId': fn }, dispatch: {}, axios: {}, $plugin: {}, $extension: {} } as unknown as ClusterProvisionerContext`
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/fleet.ts` (328 lines) — fleet.test.ts exists but partial coverage
-2. `shell/utils/settings.ts` - getPerformanceSetting and isProviderEnabled are testable
+1. `shell/utils/fleet.ts` (328 lines) — fleet.test.ts exists covering only `getTargetMode`; many methods untested (quacksLikeAHash, parseSSHUrl, resourceId, resourceType, bundleDeploymentState, resourcesFromBundleDeploymentStatus, clusterIdFromBundleDeploymentLabels, bundleIdFromBundleDeploymentLabels, getDashboardStateId, getDashboardState)
+2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled etc. require Vuex store mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc.ts` — garbage collection logic, store-heavy, complex
-4. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled etc. require Vuex store mock (follow-up to this run's PR)
 
 ## Completed Work
 
+### 2026-05-01
+- Submitted PR: 12 unit tests for shell/utils/settings.ts (branch test-assist/settings-utils-tests)
+- Coverage: 0% → 50% stmts, 33% fns, 92% branches
+- Closed April 2026 Monthly Activity issue #17177; created May 2026 issue
+
 ### 2026-04-30
-- Submitted PR: 43 unit tests for shell/utils/pagination-utils.ts (branch test-assist/pagination-utils-tests)
+- Submitted PR #17431: 43 unit tests for shell/utils/pagination-utils.ts (branch test-assist/pagination-utils-tests)
 - Coverage: 0% → 50% stmts, 44% fns, 77% branches
-- Pure methods covered: validateNsProjectFilter/s, paginationFilterEqual, paginationFiltersEqual, paginationEqual, getStoreSettings
+
+### 2026-04-30 (confirmed)
+- PR #17412 (git.ts tests) merged by nwmac ✅
 
 ### 2026-04-29
-- Confirmed PR #17176 (url.ts) was merged on 2026-04-22 ✅
-- Confirmed shell/utils/__tests__/inactivity.test.ts (22 tests) already in master ✅
 - Created branch `test-assist/git-utils-tests` with 13 tests for shell/utils/git.ts
-- 100% stmts/fns/lines coverage, 72% branches — all tests pass, ESLint clean
-- Submitted PR via safeoutputs (branch: test-assist/git-utils-tests)
+- PR #17412: 100% stmts/fns/lines coverage, 72% branches — all tests pass, ESLint clean
 
 ### 2026-04-22
 - PR #17176 (url.ts, 38 tests) merged by nwmac ✅
 
 ### 2026-04-08
-- Created PR #17176 (url.ts tests), issue #17177 (Monthly Activity 2026-04)
+- Created PR #17176 (url.ts tests)
 
 ## Task Round-Robin History
 
+- 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
 - 2026-04-30: Task 3 (pagination-utils.ts 43 tests, 50% stmts) + Task 7 (monthly activity update)
 - 2026-04-29: Task 3 (git.ts 13 tests, 100% stmts/fns/lines) + Task 7 (monthly activity update)
-- 2026-04-28 and earlier: see previous entries (inactivity.ts work, blocked on safeoutputs)
 
 ## Monthly Activity Issue
 
-- Issue #17177: [Test Improver] Monthly Activity 2026-04 (open, updated 2026-04-30)
-- PR #17176: merged 2026-04-22 ✅
+- Issue for May 2026: created 2026-05-01 (new)
+- Issue #17177: closed 2026-05-01 (was April 2026)
+- PR #17431: pagination-utils.ts — open
+- PR for settings.ts: submitted 2026-05-01, number TBD (branch test-assist/settings-utils-tests)
 
 ## Maintainer Priorities
 
