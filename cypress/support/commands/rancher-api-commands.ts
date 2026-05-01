@@ -1591,9 +1591,10 @@ Cypress.Commands.add('checkChartPresence', (repoName: string, chartKey: string) 
 });
 
 /**
- * Runs the given callback only when the chart is available in the filtered catalog index.
- * Skips the test when the chart exists in the catalog but is filtered out intentionally (e.g. based on k8s or Rancher annotations).
- * Throws when the chart is missing from the unfiltered index (publishing/sync issue).
+ * Runs `callback` when `chartKey` is present in the filtered catalog index (the list the Charts UI uses).
+ * Throws error if the chart is missing from the unfiltered index — that points to catalog publish or sync, not compatibility filtering.
+ * If the chart is in the unfiltered index but not the filtered index, skips when Cypress env `allowFilteredCatalogSkip`
+ * is enabled; otherwise throws error.
  */
 export function runTestWhenChartAvailable(
   repo: string,
@@ -1607,9 +1608,13 @@ export function runTestWhenChartAvailable(
     }
 
     if (!inFiltered) {
-      cy.log(`Skipping: chart '${ chartKey }' is intentionally hidden from the filtered catalog index`);
+      if (String(Cypress.env('allowFilteredCatalogSkip')).toLowerCase() === 'true') {
+        cy.log(`Skipping: chart '${ chartKey }' is intentionally hidden from the filtered catalog index`);
 
-      return mochaContext.skip();
+        return mochaContext.skip();
+      }
+
+      throw new Error(`Failing: chart '${ chartKey }' is not in the filtered catalog index, so it does not appear in the Charts/Tools UI for this environment.`);
     }
 
     callback();
