@@ -8784,6 +8784,7 @@ registryMirrorRewrite:
 registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
+  caBundleTooltip: 'A base64 encoded copy of the CA PEM is expected.'
   addLabel: Add Registry
   description: "Define the TLS and credential configuration for each registry hostname and mirror."
 

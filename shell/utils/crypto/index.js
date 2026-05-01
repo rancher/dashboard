@@ -8,6 +8,8 @@ import Sha1 from './browserSha1';
 const NORMAL = 'normal';
 const URL = 'url';
 
+export const PEM_HEADER = '-----BEGIN CERTIFICATE-----';
+
 export function base64Encode(string, alphabet = NORMAL) {
   let buf;
 

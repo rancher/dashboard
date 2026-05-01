@@ -3,6 +3,7 @@ import { clone } from '@shell/utils/object';
 import { _EDIT } from '@shell/config/query-params';
 import { PROV_CLUSTER } from '@shell/edit/provisioning.cattle.io.cluster/__tests__/utils/cluster';
 import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs.vue';
+import { PEM_HEADER } from '@shell/utils/crypto';
 
 describe('component: RegistryConfigs', () => {
   let wrapper: Wrapper<InstanceType<typeof RegistryConfigs> & { [key: string]: any }>;
@@ -61,6 +62,22 @@ describe('component: RegistryConfigs', () => {
       wrapper.vm.update();
 
       expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
+    });
+  });
+
+  describe('isValidFormat', () => {
+    it.each([
+      ['empty string', '', true],
+      ['base64', 'Zm9vYmFy', true],
+      ['PEM', `${ PEM_HEADER }\nfoo\n-----END CERTIFICATE-----`, true],
+      ['invalid', 'some random text', false],
+    ])('given %s format (%p), it should return %p', (_, val, expected) => {
+      wrapper = mount(
+        RegistryConfigs,
+        mountOptions
+      );
+
+      expect(wrapper.vm.isValidFormat(val)).toBe(expected);
     });
   });
 });

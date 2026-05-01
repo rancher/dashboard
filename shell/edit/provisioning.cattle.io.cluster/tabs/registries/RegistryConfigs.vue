@@ -8,7 +8,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { isBase64 } from '@shell/utils/string';
-import { base64Decode, base64Encode } from '@shell/utils/crypto';
+import { base64Decode, base64Encode, PEM_HEADER } from '@shell/utils/crypto';
 
 export default {
   emits: ['updateConfigs'],
@@ -103,7 +103,7 @@ export default {
 
         configs[h] = {
           ...entry,
-          caBundle: entry.caBundle ? base64Encode(entry.caBundle) : null
+          caBundle: entry.caBundle ? (isBase64(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
         };
 
         delete configs[h].hostname;
@@ -111,6 +111,14 @@ export default {
 
       this.value.spec.rkeConfig.registries.configs = configs;
       this.$emit('updateConfigs', configs);
+    },
+
+    isValidFormat(val) {
+      if (!val) {
+        return true;
+      }
+
+      return isBase64(val) || val.includes(PEM_HEADER);
     },
 
     wrapRegisterBeforeHook(fn, ...args) {
@@ -192,6 +200,8 @@ export default {
               type="multiline"
               label="CA Cert Bundle"
               :mode="mode"
+              :status="row.value.caBundle && !isValidFormat(row.value.caBundle) ? 'error' : undefined"
+              :tooltip="t('registryConfig.caBundleTooltip')"
             />
 
             <div>
