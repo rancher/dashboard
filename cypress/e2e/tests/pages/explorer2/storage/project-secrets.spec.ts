@@ -28,9 +28,6 @@ describe('Project Secrets', { testIsolation: 'off', tags: ['@explorer2', '@admin
   });
 
   it('creates a project-scoped secret and displays it in the list', () => {
-    namespaceFilter.toggle();
-    namespaceFilter.clickOptionByLabel('All Namespaces');
-    namespaceFilter.closeDropdown();
     const secretCreatePage = new ProjectSecretsCreateEditPo('local');
 
     projectSecretsListPage.goTo();
