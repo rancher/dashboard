@@ -217,6 +217,19 @@ describe('component: Header', () => {
       expect((wrapper.vm as any).showFilter).toBe(false);
     });
 
+    it('should return false when on the project scope secrets list page', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'c-cluster-explorer-projectsecret',
+          path:   '/c/local/explorer/projectsecret',
+          params: { resource: 'projectsecret' },
+        },
+        { currentCluster: { id: 'local' }, currentProduct: { showNamespaceFilter: true } },
+      );
+
+      expect((wrapper.vm as any).showFilter).toBe(false);
+    });
+
     it('should return true when showNamespaceFilter is enabled regardless of route', () => {
       const wrapper = createWrapper(
         {

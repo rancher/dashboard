@@ -183,6 +183,13 @@ export default {
     },
 
     showFilter() {
+      // Hide the namespace picker on the project scope secrets list page
+      const isProjectSecretList = this.$route.params?.resource === 'projectsecret' && !this.$route.params?.id && !this.$route.name?.endsWith('-create');
+
+      if (isProjectSecretList) {
+        return false;
+      }
+
       // Some products won't have a current cluster
       const validClusterOrProduct = this.currentCluster ||
                  (this.currentProduct && this.currentProduct.customNamespaceFilter) ||
