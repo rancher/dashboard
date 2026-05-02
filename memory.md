@@ -39,17 +39,23 @@
 - pagination-utils.ts exports `new PaginationUtils()` singleton; pure methods (validateNsProjectFilter, paginationEqual, etc.) need no mocks; store-dependent methods (isEnabled, isSteveCacheEnabled) need Vuex mock
 - settings.ts: `getPerformanceSetting` takes `Record<string, (arg0: string, arg1: string) => any>` as rootGetters; `isProviderEnabled` takes `ClusterProvisionerContext` (from `@shell/core/types` which re-exports from `@shell/core/types-provisioning`)
 - ClusterProvisionerContext can be mocked as `{ getters: { 'management/byId': fn }, dispatch: {}, axios: {}, $plugin: {}, $extension: {} } as unknown as ClusterProvisionerContext`
+- fleet.ts: bundleDeploymentState logic is ported from Go; all test scenarios (ready/errapplied/waitapplied/notready/outofsync/modified) verified
+- fleet.ts: resourcesFromBundleDeploymentStatus uses resourceKey(r) = `kind/namespace/name`; a resource appearing in both `resources` and `modifiedStatus` has its state updated in-place
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/fleet.ts` (328 lines) — fleet.test.ts exists covering only `getTargetMode`; many methods untested (quacksLikeAHash, parseSSHUrl, resourceId, resourceType, bundleDeploymentState, resourcesFromBundleDeploymentStatus, clusterIdFromBundleDeploymentLabels, bundleIdFromBundleDeploymentLabels, getDashboardStateId, getDashboardState)
-2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled etc. require Vuex store mock (follow-up to PR #17431)
+1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to current PR)
+2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc.ts` — garbage collection logic, store-heavy, complex
 
 ## Completed Work
 
+### 2026-05-02
+- Submitted PR: 40 unit tests for shell/utils/fleet.ts (branch test-assist/fleet-utils-tests)
+- Coverage: 52% → 80% stmts, 17% → 83% fns, 85% branches (77 total)
+
 ### 2026-05-01
-- Submitted PR: 12 unit tests for shell/utils/settings.ts (branch test-assist/settings-utils-tests)
+- Submitted PR #17451: 12 unit tests for shell/utils/settings.ts (branch test-assist/settings-utils-tests)
 - Coverage: 0% → 50% stmts, 33% fns, 92% branches
 - Closed April 2026 Monthly Activity issue #17177; created May 2026 issue
 
@@ -72,16 +78,18 @@
 
 ## Task Round-Robin History
 
+- 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
 - 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
 - 2026-04-30: Task 3 (pagination-utils.ts 43 tests, 50% stmts) + Task 7 (monthly activity update)
 - 2026-04-29: Task 3 (git.ts 13 tests, 100% stmts/fns/lines) + Task 7 (monthly activity update)
 
 ## Monthly Activity Issue
 
-- Issue for May 2026: created 2026-05-01 (new)
+- Issue for May 2026: #17452 (created 2026-05-01)
 - Issue #17177: closed 2026-05-01 (was April 2026)
 - PR #17431: pagination-utils.ts — open
-- PR for settings.ts: submitted 2026-05-01, number TBD (branch test-assist/settings-utils-tests)
+- PR #17451: settings.ts — open
+- PR for fleet.ts: submitted 2026-05-02, number TBD (branch test-assist/fleet-utils-tests)
 
 ## Maintainer Priorities
 
