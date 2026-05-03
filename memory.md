@@ -46,12 +46,18 @@
 
 1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to current PR)
 2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
-3. `shell/utils/gc/gc.ts` — garbage collection logic, store-heavy, complex
+3. `shell/utils/gc/gc-interval.ts`, `gc-route-changed.ts` — companion files to gc.ts, small and untested
 
 ## Completed Work
 
+### 2026-05-03
+- Submitted PR (branch test-assist/gc-utils-tests): 30 unit tests for shell/utils/gc/gc.ts
+- Coverage: 0% → 94.68% stmts, 0% → 100% fns, 0% → 86.56% branches
+- Key quirk: gcLastRun = null leak when uiPerfGarbageCollection missing — potential bug in gc.ts; route-change semantics: `lastRouteChange < lastAccessed` means route changed BEFORE access → keep resource
+- Uses jest.resetModules() per test for singleton isolation
+
 ### 2026-05-02
-- Submitted PR: 40 unit tests for shell/utils/fleet.ts (branch test-assist/fleet-utils-tests)
+- Submitted PR #17466: 40 unit tests for shell/utils/fleet.ts (branch test-assist/fleet-utils-tests)
 - Coverage: 52% → 80% stmts, 17% → 83% fns, 85% branches (77 total)
 
 ### 2026-05-01
@@ -78,6 +84,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-03: Task 3 (gc.ts 30 tests, 94.68% stmts, 100% fns) + Task 7 (monthly activity update)
 - 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
 - 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
 - 2026-04-30: Task 3 (pagination-utils.ts 43 tests, 50% stmts) + Task 7 (monthly activity update)
@@ -89,7 +96,8 @@
 - Issue #17177: closed 2026-05-01 (was April 2026)
 - PR #17431: pagination-utils.ts — open
 - PR #17451: settings.ts — open
-- PR for fleet.ts: submitted 2026-05-02, number TBD (branch test-assist/fleet-utils-tests)
+- PR #17466: fleet-utils-tests — open
+- PR (branch test-assist/gc-utils-tests): gc.ts 30 tests — submitted 2026-05-03, PR number TBD
 
 ## Maintainer Priorities
 
