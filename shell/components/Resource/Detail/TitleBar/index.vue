@@ -159,12 +159,11 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 
 <style lang="scss" scoped>
 .title-bar {
-  min-width: 740px;
-
   .badge-state {
     font-size: 16px;
     margin-left: 12px;
     position: relative;
+    flex: 0 0 auto;
   }
 
   .icon-document {
@@ -176,6 +175,8 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
   .actions {
     display: flex;
     align-items: center;
+    flex: 0 0 auto;
+    margin-left: 16px;
   }
 
   .show-configuration, &:deep() .actions > button {
@@ -198,15 +199,17 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     max-width: 60%;
   }
 
-  // This prevents the title from overlapping with the actions
+  // Title takes the remaining row space; min-width: 0 lets its children
+  // (resource-name) shrink so the action buttons stay visible on narrow viewports.
   .title {
-    max-width: calc(100% - 260px);
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
-  // We want the resource name to be what collaspes wh
   .resource-name {
     display: inline-block;
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     white-space: nowrap;
     overflow-x: hidden;
     overflow-y: clip;
