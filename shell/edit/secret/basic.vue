@@ -88,6 +88,7 @@ export default {
           :mode="mode"
           type="password"
           :rules="getRules('password')"
+          data-testid="secret-basic-password"
         />
       </div>
     </div>
