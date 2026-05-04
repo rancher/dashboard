@@ -40,7 +40,7 @@ import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { EVENT } from '@shell/config/types';
-import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -2073,7 +2073,7 @@ export default class Resource {
 
       if ( r.selector ) {
         // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
-        addObjects(out.selectors, {
+        addObject(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
           selector:  r.selector
@@ -2083,7 +2083,7 @@ export default class Resource {
         let namespace = r[`${ direction }Namespace`];
         let name = r[`${ direction }Id`];
 
-        if ( !namespace && name.includes('/') ) {
+        if ( !namespace && name?.includes('/') ) {
           const idx = name.indexOf('/');
 
           namespace = name.substr(0, idx);
@@ -2245,12 +2245,58 @@ export default class Resource {
     };
   }
 
+  get _resourcesCardRows() {
+    const rows = [];
+    const relationships = this.metadata?.relationships || [];
+
+    const referredToByRels = relationships.filter((r) => r.fromType && !r.selector);
+    const refersToRels = relationships.filter((r) => r.toType && !r.selector && !r.fromType);
+
+    if (referredToByRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.referredToBy'),
+        referredToByRels,
+        { hash: '#related' }
+      ));
+    }
+
+    if (refersToRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.refersTo'),
+        refersToRels,
+        { hash: '#related' }
+      ));
+    }
+
+    return rows;
+  }
+
+  get resourcesCardRows() {
+    return this._resourcesCardRows;
+  }
+
+  get resourcesCard() {
+    const rows = this.resourcesCardRows;
+
+    if (!rows.length) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     {
+        title: this.t('component.resource.detail.card.resourcesCard.title'),
+        rows
+      }
+    };
+  }
+
   get _cards() {
     // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
     return [];
   }
 
   get cards() {
-    return this._cards;
+    return [this.resourcesCard, ...this._cards].filter((c) => c);
   }
 }

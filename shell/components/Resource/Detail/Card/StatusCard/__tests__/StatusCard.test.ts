@@ -3,6 +3,7 @@ import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import Scaler from '@shell/components/Resource/Detail/Card/Scaler.vue';
+import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 describe('component: StatusCard', () => {
   const mockResource = (stateDisplay: string, stateSimpleColor: string) => ({
@@ -104,6 +105,66 @@ describe('component: StatusCard', () => {
       const wrapper = mountCard({ resources, showScaling: false });
 
       expect(wrapper.findComponent(Scaler).exists()).toBe(false);
+    });
+  });
+
+  describe('with summaryData', () => {
+    it('should render StatusBar and StatusRows from summary counts', () => {
+      const summaryData: SummaryResult = {
+        count:   5,
+        summary: [{ property: 'metadata.state.name', counts: { running: 3, error: 2 } }]
+      };
+
+      const wrapper = mountCard({ summaryData });
+
+      expect(wrapper.findComponent(StatusBar).exists()).toBe(true);
+      expect(wrapper.findAllComponents(StatusRow)).toHaveLength(2);
+    });
+
+    it('should use summaryData over resources when both are provided', () => {
+      const summaryData: SummaryResult = {
+        count:   4,
+        summary: [{ property: 'metadata.state.name', counts: { running: 3, completed: 1 } }]
+      };
+      const resources = [
+        mockResource('Running', 'text-success'),
+      ];
+
+      const wrapper = mountCard({ summaryData, resources });
+
+      expect(wrapper.findAllComponents(StatusRow)).toHaveLength(2);
+    });
+
+    it('should fall back to resources when summaryData has no summary', () => {
+      const summaryData: SummaryResult = { count: 0, summary: null };
+      const resources = [
+        mockResource('Running', 'text-success'),
+        mockResource('Error', 'text-error'),
+      ];
+
+      const wrapper = mountCard({ summaryData, resources });
+
+      expect(wrapper.findAllComponents(StatusRow)).toHaveLength(2);
+    });
+
+    it('should show noResourcesMessage when summaryData has no counts', () => {
+      const summaryData: SummaryResult = { count: 0, summary: [] };
+
+      const wrapper = mountCard({ summaryData, noResourcesMessage: 'No pods' });
+
+      expect(wrapper.findComponent(StatusBar).exists()).toBe(false);
+      expect(wrapper.find('.text-deemphasized').text()).toBe('No pods');
+    });
+
+    it('should render a single state from summary', () => {
+      const summaryData: SummaryResult = {
+        count:   2,
+        summary: [{ property: 'metadata.state.name', counts: { active: 2 } }]
+      };
+
+      const wrapper = mountCard({ summaryData });
+
+      expect(wrapper.findAllComponents(StatusRow)).toHaveLength(1);
     });
   });
 });

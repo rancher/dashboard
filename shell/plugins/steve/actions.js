@@ -10,6 +10,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
 export default {
 
@@ -218,6 +219,75 @@ export default {
       finishDeferred(key, 'reject', out);
 
       return Promise.reject(out);
+    }
+  },
+
+  /**
+   * Fetch aggregated state counts for a resource type via the Steve summary API.
+   * Requires VAI (ui-sql-cache) to be enabled; returns undefined otherwise.
+   *
+   * @param {string} type - Resource type (e.g. 'pod', 'service')
+   * @param {object} [opt] - Options object
+   *   @param {string} opt.summaryField - Field to aggregate counts by.
+   *     Must be a field indexed by the VAI cache (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
+   *   @param {string} [opt.namespaced] - Namespace to scope the request to (only applies to namespaced resource types)
+   *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, number> }[] | null } | undefined>}
+   *
+   * @example
+   * const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
+   * const result = await dispatch('fetchSummary', { type: 'pod', opt: { filters: [nsFilter] } });
+   */
+  async fetchSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
+    type = getters.normalizeType(type);
+    const schema = getters.schemaFor(type);
+
+    if (!schema) {
+      console.warn(`fetchSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    if (!paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+      console.warn(`fetchSummary: VAI is not enabled, summary API unavailable for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    if (!opt.summaryField) {
+      console.warn(`fetchSummary: summaryField is required and must be a string for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    try {
+      const url = new URL(schema.links.collection, window.location.origin);
+
+      if (schema.attributes?.namespaced && opt.namespaced) {
+        url.pathname += `/${ opt.namespaced }`;
+      }
+
+      url.searchParams.set('summary', opt.summaryField);
+      url.searchParams.append('exclude', 'metadata');
+      url.searchParams.append('exclude', 'spec');
+      url.searchParams.append('exclude', 'status');
+
+      if (opt.filters?.length) {
+        const filterParams = new URLSearchParams(stevePaginationUtils.convertPaginationParams({ schema, filters: opt.filters }));
+
+        filterParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
+
+      return {
+        count:   res.count || 0,
+        summary: res.summary || null
+      };
+    } catch (e) {
+      console.warn(`fetchSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
+
+      return undefined;
     }
   },
 

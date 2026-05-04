@@ -6,6 +6,12 @@ import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
 import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
+import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+
+export interface SummaryResult {
+  count: number;
+  summary: { property: string; counts: Record<string, number> }[] | null;
+}
 
 export function useResourceCardRow(label: string, resources: any[], stateColorKey = 'stateSimpleColor', stateDisplayKey = 'stateDisplay', to?: RouteLocationRaw): ResourceRowProps {
   const agg: any = {};
@@ -39,6 +45,122 @@ export function useResourceCardRow(label: string, resources: any[], stateColorKe
     }
 
     return left.count > right.count ? -1 : 1;
+  });
+
+  return {
+    label,
+    color:  tuples.length ? tuples[0].color : undefined,
+    counts: tuples.length ? tuples : undefined,
+    to
+  };
+}
+
+/**
+ * Builds a ResourceRowProps from summary API response data.
+ * The summary API returns state counts as { property: 'metadata.state.name', counts: { running: 2, error: 1 } }.
+ * This maps those state names to display labels and colors using the same logic as resource models.
+ */
+export function useResourceCardRowFromSummary(label: string, summaryResult: SummaryResult | null | undefined, to?: RouteLocationRaw): ResourceRowProps {
+  if (!summaryResult?.summary?.length) {
+    return {
+      label,
+      color:  undefined,
+      counts: undefined,
+      to
+    };
+  }
+
+  const stateSummary = summaryResult.summary.find((s) => s.property === 'metadata.state.name');
+
+  if (!stateSummary?.counts) {
+    return {
+      label,
+      color:  undefined,
+      counts: summaryResult.count ? [{ label: '', count: summaryResult.count }] : undefined,
+      to
+    };
+  }
+
+  interface Tuple extends Count {
+    color: StateColor;
+  }
+
+  const tuples: Tuple[] = Object.entries(stateSummary.counts).map(([state, count]) => {
+    const colorRaw = colorForStateFn(state) as string;
+    const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
+    const display = stateDisplayFn(state) as string;
+
+    return {
+      color,
+      label: display?.toLowerCase() || state,
+      count
+    };
+  });
+
+  tuples.sort((left: Tuple, right: Tuple) => {
+    if (isHigherAlert(left.color, right.color)) {
+      return -1;
+    }
+
+    if (left.color !== right.color) {
+      return 1;
+    }
+
+    if (left.count === right.count) {
+      return 0;
+    }
+
+    return left.count > right.count ? -1 : 1;
+  });
+
+  return {
+    label,
+    color:  tuples.length ? tuples[0].color : undefined,
+    counts: tuples.length ? tuples : undefined,
+    to
+  };
+}
+
+/**
+ * Builds a ResourceRowProps from relationship state data.
+ * Each relationship entry includes a `state` field (e.g. "active", "error").
+ */
+export function useResourceCardRowFromRelationships(label: string, relationships: any[], to?: RouteLocationRaw): ResourceRowProps {
+  if (!relationships.length) {
+    return {
+      label, color: undefined, counts: undefined, to
+    };
+  }
+
+  const agg: Record<string, { color: StateColor; label: string; count: number }> = {};
+
+  relationships.forEach((r: any) => {
+    const state = (r.state || 'missing').toLowerCase();
+    const colorRaw = colorForStateFn(state) as string;
+    const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
+    const display = (stateDisplayFn(state) as string)?.toLowerCase() || state;
+
+    agg[state] = agg[state] || {
+      color, label: display, count: 0
+    };
+    agg[state].count++;
+  });
+
+  interface Tuple extends Count {
+    color: StateColor;
+  }
+  const tuples: Tuple[] = Object.values(agg);
+
+  tuples.sort((left: Tuple, right: Tuple) => {
+    if (isHigherAlert(left.color, right.color)) {
+      return -1;
+    }
+
+    if (left.color !== right.color) {
+      return 1;
+    }
+
+    return left.count >= right.count ? -1 : 1;
   });
 
   return {
