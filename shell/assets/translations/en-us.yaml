@@ -734,7 +734,7 @@ authConfig:
       label: Auth Endpoint
     endSessionEndpoint:
       title: End Session Endpoint
-      tooltip: Azure AD URL used for logging a user out of their session (e.g. https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout)
+      tooltip: Azure AD URL used for logging a user out of their session (e.g. https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/logout)
     groupMembershipFilter:
       label: Group Membership Filter
       enable: Limit users by group membership
