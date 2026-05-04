@@ -159,6 +159,8 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 
 <style lang="scss" scoped>
 .title-bar {
+  min-width: 630px;
+
   .badge-state {
     font-size: 16px;
     margin-left: 12px;
