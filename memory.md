@@ -41,20 +41,25 @@
 - ClusterProvisionerContext can be mocked as `{ getters: { 'management/byId': fn }, dispatch: {}, axios: {}, $plugin: {}, $extension: {} } as unknown as ClusterProvisionerContext`
 - fleet.ts: bundleDeploymentState logic is ported from Go; all test scenarios (ready/errapplied/waitapplied/notready/outofsync/modified) verified
 - fleet.ts: resourcesFromBundleDeploymentStatus uses resourceKey(r) = `kind/namespace/name`; a resource appearing in both `resources` and `modifiedStatus` has its state updated in-place
+- gc singletons (gc-interval, gc-route-changed): use `jest.resetModules()` + `jest.mock('../gc')` in `beforeEach` for isolation; use `jest.useFakeTimers()` for interval tests
+- gc-route-changed.ts has a bug: `getResourceFromRoute` uses `match[2]` but regex only has 1 capture group → resource from `to.name` always undefined (existing behavior documented in test)
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to current PR)
 2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
-3. `shell/utils/gc/gc-interval.ts`, `gc-route-changed.ts` — companion files to gc.ts, small and untested
+3. `shell/utils/gc/gc-root-store.js` — gc store integration
 
 ## Completed Work
 
+### 2026-05-04
+- Submitted PR (branch test-assist/gc-companion-tests): 16 unit tests for gc-interval.ts and gc-route-changed.ts
+- Coverage: 0% → 100% stmts/fns/lines, 95% branches for both files
+- Notable: documented match[2] bug in gc-route-changed.ts
+
 ### 2026-05-03
-- Submitted PR (branch test-assist/gc-utils-tests): 30 unit tests for shell/utils/gc/gc.ts
+- Submitted PR #17471 (branch test-assist/gc-utils-tests): 30 unit tests for shell/utils/gc/gc.ts
 - Coverage: 0% → 94.68% stmts, 0% → 100% fns, 0% → 86.56% branches
-- Key quirk: gcLastRun = null leak when uiPerfGarbageCollection missing — potential bug in gc.ts; route-change semantics: `lastRouteChange < lastAccessed` means route changed BEFORE access → keep resource
-- Uses jest.resetModules() per test for singleton isolation
 
 ### 2026-05-02
 - Submitted PR #17466: 40 unit tests for shell/utils/fleet.ts (branch test-assist/fleet-utils-tests)
@@ -63,7 +68,7 @@
 ### 2026-05-01
 - Submitted PR #17451: 12 unit tests for shell/utils/settings.ts (branch test-assist/settings-utils-tests)
 - Coverage: 0% → 50% stmts, 33% fns, 92% branches
-- Closed April 2026 Monthly Activity issue #17177; created May 2026 issue
+- Closed April 2026 Monthly Activity issue #17177; created May 2026 issue #17452
 
 ### 2026-04-30
 - Submitted PR #17431: 43 unit tests for shell/utils/pagination-utils.ts (branch test-assist/pagination-utils-tests)
@@ -84,6 +89,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-04: Task 3 (gc-interval.ts + gc-route-changed.ts, 16 tests, 100% stmts) + Task 7 (monthly activity update)
 - 2026-05-03: Task 3 (gc.ts 30 tests, 94.68% stmts, 100% fns) + Task 7 (monthly activity update)
 - 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
 - 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
@@ -97,7 +103,8 @@
 - PR #17431: pagination-utils.ts — open
 - PR #17451: settings.ts — open
 - PR #17466: fleet-utils-tests — open
-- PR (branch test-assist/gc-utils-tests): gc.ts 30 tests — submitted 2026-05-03, PR number TBD
+- PR #17471: gc.ts — open
+- PR (branch test-assist/gc-companion-tests): gc-interval + gc-route-changed — submitted 2026-05-04, PR number TBD
 
 ## Maintainer Priorities
 
