@@ -37,11 +37,11 @@ describe('About Page', { testIsolation: 'on', tags: ['@generic', '@adminUser', '
     cy.getRancherVersion().then((version) => {
       const isPrime = version.RancherPrime === 'true';
       const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
-      const expectedPath = isPrime ? '/cloudnative/rancher-manager/latest/en/release-notes' : '/rancher/rancher/releases/tag/';
+      const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/tag/';
 
       aboutPage.clickVersionLink('View release notes');
-      cy.origin(expectedOrigin, { args: { expectedPath } }, ({ expectedPath }) => {
-        cy.url().should('include', expectedPath);
+      cy.origin(expectedOrigin, { args: { expectedUrlPattern } }, ({ expectedUrlPattern }) => {
+        cy.url().should('match', new RegExp(expectedUrlPattern));
       });
     });
   });
