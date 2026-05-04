@@ -1,6 +1,6 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, INGRESS, POD } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, parse, matches } from '@shell/utils/selector';
@@ -8,8 +8,9 @@ import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
-import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow, useResourceCardRowFromSummary } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -586,6 +587,45 @@ export default class Workload extends WorkloadService {
     return undefined;
   }
 
+  async fetchSummaries() {
+    const ns = this.metadata.namespace;
+    const summaries = {};
+    const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: ns });
+
+    const podSelectorStr = this.podSelector;
+
+    if (podSelectorStr) {
+      const filters = [nsFilter];
+
+      podSelectorStr.split(',').forEach((part) => {
+        const eqIdx = part.indexOf('=');
+
+        if (eqIdx > 0) {
+          const key = part.substring(0, eqIdx).trim();
+          const value = part.substring(eqIdx + 1).trim();
+
+          filters.push(PaginationParamFilter.createSingleField({ field: `metadata.labels.${ key }`, value }));
+        }
+      });
+
+      summaries.pods = await this.$dispatch('fetchSummary', { type: POD, opt: { summaryField: 'metadata.state.name', filters } });
+    }
+
+    summaries.services = await this.$dispatch('fetchSummary', {
+      type: SERVICE,
+      opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
+    });
+
+    summaries.ingresses = await this.$dispatch('fetchSummary', {
+      type: INGRESS,
+      opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
+    });
+
+    set(this, '_summaries', summaries);
+
+    return summaries;
+  }
+
   async unWatchPods() {
     return await this.$dispatch('unwatch', { type: POD, all: true });
   }
@@ -763,11 +803,70 @@ export default class Workload extends WorkloadService {
     });
   }
 
+  get matchingIngresses() {
+    const allIngresses = this.$rootGetters['cluster/all'](INGRESS);
+    const services = this.relatedServices;
+
+    if (!services.length) {
+      return [];
+    }
+
+    return allIngresses.filter((ingress) => {
+      try {
+        const rules = ingress.spec?.rules;
+
+        if (!rules || !Array.isArray(rules)) {
+          return false;
+        }
+
+        for (const rule of rules) {
+          const paths = rule?.http?.paths;
+
+          if (!paths || !Array.isArray(paths)) {
+            continue;
+          }
+
+          for (const pathData of paths) {
+            const targetServiceName = pathData?.backend?.service?.name;
+
+            if (!targetServiceName) {
+              continue;
+            }
+
+            for (const service of services) {
+              if (ingress.metadata?.namespace === this.metadata?.namespace && service?.metadata?.name === targetServiceName) {
+                return true;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        return false;
+      }
+
+      return false;
+    });
+  }
+
   get resourcesCardRows() {
-    return [
-      useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), this.relatedServices, undefined, undefined, '#services'),
-      ...this._resourcesCardRows,
-    ];
+    const rows = [...this._resourcesCardRows];
+    const services = this.relatedServices || [];
+    const ingresses = this.matchingIngresses || [];
+    const summaries = this._summaries;
+
+    if (ingresses.length) {
+      rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
+    } else if (summaries?.ingresses?.count) {
+      rows.unshift(useResourceCardRowFromSummary(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), summaries.ingresses, '#ingresses'));
+    }
+
+    if (services.length) {
+      rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), services, undefined, undefined, '#services'));
+    } else if (summaries?.services?.count) {
+      rows.unshift(useResourceCardRowFromSummary(this.t('component.resource.detail.card.resourcesCard.rows.services'), summaries.services, '#services'));
+    }
+
+    return rows;
   }
 
   get podsCard() {
@@ -779,8 +878,11 @@ export default class Workload extends WorkloadService {
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
     const canScale = this.canUpdate && scalingTypes.includes(this.type);
+    const summaryData = this._summaries?.pods || null;
+    const hasPods = this.pods?.length > 0;
+    const hasSummary = summaryData?.count > 0;
 
-    if (!this.pods || (this.pods.length === 0 && !canScale)) {
+    if (!hasPods && !hasSummary && !canScale) {
       return null;
     }
 
@@ -789,6 +891,7 @@ export default class Workload extends WorkloadService {
       props:     {
         title:              this.t('component.resource.detail.card.podsCard.title'),
         resources:          this.pods,
+        summaryData,
         showScaling:        canScale,
         onIncrease:         () => this.scale(true),
         onDecrease:         () => this.scale(false),
@@ -818,6 +921,7 @@ export default class Workload extends WorkloadService {
     return [
       this.podsCard,
       this.jobsCard,
+      this.resourcesCard,
       this.insightCard,
       ...this._cards
     ];

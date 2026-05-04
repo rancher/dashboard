@@ -1,4 +1,5 @@
-import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow, useResourceCardRowFromSummary, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 describe('useResourceCardRow', () => {
   describe('with default keys', () => {
@@ -138,5 +139,197 @@ describe('useResourceCardRow', () => {
       expect(result.counts![0].label).toBe('running');
       expect(result.counts![0].count).toBe(2);
     });
+  });
+});
+
+describe('useResourceCardRowFromSummary', () => {
+  it('should return empty props when summaryResult is null', () => {
+    const result = useResourceCardRowFromSummary('Services', null);
+
+    expect(result.label).toBe('Services');
+    expect(result.color).toBeUndefined();
+    expect(result.counts).toBeUndefined();
+  });
+
+  it('should return empty props when summary array is empty', () => {
+    const result = useResourceCardRowFromSummary('Services', { count: 0, summary: [] });
+
+    expect(result.color).toBeUndefined();
+    expect(result.counts).toBeUndefined();
+  });
+
+  it('should return empty props when summary is null', () => {
+    const result = useResourceCardRowFromSummary('Services', { count: 5, summary: null });
+
+    expect(result.color).toBeUndefined();
+    expect(result.counts).toBeUndefined();
+  });
+
+  it('should return a plain count when no metadata.state.name entry exists', () => {
+    const summary: SummaryResult = {
+      count:   3,
+      summary: [{ property: 'some.other.field', counts: { foo: 3 } }]
+    };
+
+    const result = useResourceCardRowFromSummary('Pods', summary);
+
+    expect(result.counts).toStrictEqual([{ label: '', count: 3 }]);
+  });
+
+  it('should map state names to colors and display labels', () => {
+    const summary: SummaryResult = {
+      count:   5,
+      summary: [{ property: 'metadata.state.name', counts: { running: 3, error: 2 } }]
+    };
+
+    const result = useResourceCardRowFromSummary('Pods', summary);
+
+    expect(result.counts).toHaveLength(2);
+    expect(result.counts).toContainEqual(expect.objectContaining({
+      label: 'running', count: 3, color: 'success'
+    }));
+    expect(result.counts).toContainEqual(expect.objectContaining({
+      label: 'error', count: 2, color: 'error'
+    }));
+  });
+
+  it('should set the highest alert color as main color', () => {
+    const summary: SummaryResult = {
+      count:   4,
+      summary: [{ property: 'metadata.state.name', counts: { active: 3, error: 1 } }]
+    };
+
+    const result = useResourceCardRowFromSummary('Services', summary);
+
+    expect(result.color).toBe('error');
+  });
+
+  it('should sort by alert level then by count', () => {
+    const summary: SummaryResult = {
+      count:   6,
+      summary: [{
+        property: 'metadata.state.name',
+        counts:   {
+          active: 3, error: 1, warning: 2
+        }
+      }]
+    };
+
+    const result = useResourceCardRowFromSummary('Pods', summary);
+
+    expect(result.counts![0].color).toBe('error');
+    expect(result.counts![1].color).toBe('warning');
+    expect(result.counts![2].color).toBe('success');
+  });
+
+  it('should pass the to parameter through', () => {
+    const to = { hash: '#pods' };
+    const result = useResourceCardRowFromSummary('Pods', null, to);
+
+    expect(result.to).toStrictEqual(to);
+  });
+
+  it('should handle a single state', () => {
+    const summary: SummaryResult = {
+      count:   2,
+      summary: [{ property: 'metadata.state.name', counts: { active: 2 } }]
+    };
+
+    const result = useResourceCardRowFromSummary('Services', summary);
+
+    expect(result.counts).toHaveLength(1);
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+      label: 'active', count: 2, color: 'success'
+    }));
+    expect(result.color).toBe('success');
+  });
+});
+
+describe('useResourceCardRowFromRelationships', () => {
+  it('should return empty props for empty relationships', () => {
+    const result = useResourceCardRowFromRelationships('Refers to', []);
+
+    expect(result.label).toBe('Refers to');
+    expect(result.color).toBeUndefined();
+    expect(result.counts).toBeUndefined();
+  });
+
+  it('should aggregate relationship states', () => {
+    const rels = [
+      { toType: 'configmap', state: 'active' },
+      { toType: 'secret', state: 'active' },
+      { toType: 'serviceaccount', state: 'error' }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts).toHaveLength(2);
+    expect(result.counts).toContainEqual(expect.objectContaining({ label: 'active', count: 2 }));
+    expect(result.counts).toContainEqual(expect.objectContaining({ label: 'error', count: 1 }));
+  });
+
+  it('should default missing state to "missing"', () => {
+    const rels = [
+      { toType: 'configmap' },
+      { toType: 'secret', state: 'active' }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts).toContainEqual(expect.objectContaining({
+      label: 'missing', count: 1, color: 'warning'
+    }));
+    expect(result.counts).toContainEqual(expect.objectContaining({
+      label: 'active', count: 1, color: 'success'
+    }));
+  });
+
+  it('should set the highest alert color as main color', () => {
+    const rels = [
+      { toType: 'configmap', state: 'active' },
+      { toType: 'secret', state: 'error' }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.color).toBe('error');
+  });
+
+  it('should sort by alert level then by count', () => {
+    const rels = [
+      { toType: 'a', state: 'active' },
+      { toType: 'b', state: 'active' },
+      { toType: 'c', state: 'active' },
+      { toType: 'd', state: 'error' },
+      { toType: 'e', state: 'warning' },
+      { toType: 'f', state: 'warning' }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts![0].color).toBe('error');
+    expect(result.counts![1].color).toBe('warning');
+    expect(result.counts![2].color).toBe('success');
+  });
+
+  it('should pass the to parameter through', () => {
+    const to = { hash: '#related' };
+    const result = useResourceCardRowFromRelationships('Refers to', [], to);
+
+    expect(result.to).toStrictEqual(to);
+  });
+
+  it('should handle all relationships having no state', () => {
+    const rels = [
+      { toType: 'configmap' },
+      { toType: 'secret' }
+    ];
+
+    const result = useResourceCardRowFromRelationships('Refers to', rels);
+
+    expect(result.counts).toHaveLength(1);
+    expect(result.counts![0]).toStrictEqual(expect.objectContaining({
+      label: 'missing', count: 2, color: 'warning'
+    }));
   });
 });
