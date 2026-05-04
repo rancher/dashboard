@@ -76,6 +76,8 @@ export default {
     if ( this.value?.graphEndpoint ) {
       this.setInitialEndpoint(this.value.graphEndpoint);
     }
+
+    await this.mixinFetch();
   },
 
   data() {
