@@ -40,7 +40,7 @@ steps:
       fetch-depth: 1
       persist-credentials: false
   - name: Setup env
-    uses: actions/setup-node@v6.3.0
+    uses: actions/setup-node@v6.4.0
     with:
       node-version-file: '.nvmrc'
   - name: Install packages

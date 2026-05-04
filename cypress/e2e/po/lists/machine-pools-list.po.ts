@@ -63,6 +63,10 @@ export default class MachinePoolsListPo extends BaseResourceList {
       .find('[data-testid="machine-progress-bar"]');
   }
 
+  progressBarElements(poolName: string, selector: string, options?: GetOptions) {
+    return this.machineProgressBar(poolName).find(selector, options);
+  }
+
   scaleDownButton(poolName: string) {
     return this.resourceTable().sortableTable().groupElementWithName(poolName)
       .find('[data-testid="scale-down-button"]');

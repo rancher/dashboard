@@ -7,7 +7,9 @@ import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
-import { isChartVersionHigher } from '@shell/config/uiplugins';
+import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import Banner from '@components/Banner/Banner.vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
@@ -25,6 +27,7 @@ export default {
     }
   },
   components: {
+    Banner,
     ChartReadme,
     LazyImage,
     RcButton,
@@ -47,6 +50,24 @@ export default {
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    errorMessage() {
+      return this.info?.installedError || (this.info?.helmError ? this.t('plugins.helmError') : null);
+    },
+
+    warningMessages() {
+      const warnings = [];
+
+      if (uiPluginHasAnnotation(this.info?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true')) {
+        warnings.push(this.t('plugins.deprecatedExtension'));
+      }
+
+      if (this.info?.incompatibilityMessage) {
+        warnings.push(this.info.incompatibilityMessage);
+      }
+
+      return warnings;
+    },
 
     applyDarkModeBg() {
       if (this.theme === 'dark') {
@@ -307,6 +328,20 @@ export default {
             :items="info.tags"
             class="plugin-tags-container"
           />
+          <Banner
+            v-for="(msg, i) in warningMessages"
+            :key="i"
+            color="warning"
+          >
+            {{ msg }}
+          </Banner>
+
+          <Banner
+            v-if="errorMessage"
+            color="error"
+          >
+            {{ errorMessage }}
+          </Banner>
 
           <div class="plugin-versions-container">
             <h3>
@@ -452,8 +487,10 @@ export default {
         flex-direction: column;
         overflow: hidden;
 
-        .banner.warning {
+        .banner.warning,
+        .banner.error {
           margin-top: 0;
+          margin-bottom: 32px;
         }
 
         .plugin-info-detail {

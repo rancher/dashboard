@@ -453,6 +453,14 @@ export default {
               :mode="mode"
             />
             <Checkbox
+              v-if="isKeycloak"
+              v-model:value="model.clientAuthenticatedSearch"
+              data-testid="input-client-authenticated-group-search"
+              :label="t('authConfig.oidc.clientAuthenticatedSearch.label')"
+              :tooltip="t('authConfig.oidc.clientAuthenticatedSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
               v-if="supportsCustomClaims"
               v-model:value="addCustomClaims"
               data-testid="input-add-custom-claims"

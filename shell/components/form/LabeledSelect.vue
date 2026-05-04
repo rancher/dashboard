@@ -1,16 +1,17 @@
 <script>
 import CompactInput from '@shell/mixins/compact-input';
-import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { calculatePosition } from '@shell/utils/select';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
+import { useLabeledSelectPagination, labeledSelectPaginationProps } from '@shell/components/form/labeled-select-utils/useLabeledSelectPagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
 import { _VIEW } from '@shell/config/query-params';
 import { useClickOutside } from '@shell/composables/useClickOutside';
+import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
+import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref } from 'vue';
 
 export default {
@@ -21,27 +22,23 @@ export default {
   components: { LabeledTooltip },
   mixins:     [
     CompactInput,
-    LabeledFormElement,
     VueSelectOverrides,
-    LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'on-focus', 'on-blur', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
 
   props: {
+    ...labeledFormElementProps,
+    ...labeledSelectPaginationProps,
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean]
+    },
     appendToBody: {
       default: true,
       type:    Boolean,
     },
     clearable: {
-      default: false,
-      type:    Boolean
-    },
-    disabled: {
-      default: false,
-      type:    Boolean
-    },
-    required: {
       default: false,
       type:    Boolean
     },
@@ -99,13 +96,17 @@ export default {
       default: null,
       type:    [String, Object]
     },
-    value: {
-      default: null,
-      type:    [String, Object, Number, Array, Boolean]
-    },
     options: {
       type:    Array,
       default: () => ([])
+    },
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
+    filterable: {
+      default: true,
+      type:    Boolean
     },
     closeOnSelect: {
       type:    Boolean,
@@ -117,7 +118,7 @@ export default {
     }
   },
 
-  setup() {
+  setup(props, { emit }) {
     const select = ref(null);
     const isOpen = ref(false);
 
@@ -125,7 +126,67 @@ export default {
       isOpen.value = false;
     });
 
-    return { isOpen, select };
+    const {
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField
+    } = useLabeledFormElement(props, emit);
+
+    const {
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+    } = useLabeledSelectPagination(props);
+
+    const {
+      isSearchable,
+      isFilterable,
+      resizeHandler: resizeHandlerFn
+    } = useLabeledSelect(props, canPaginate);
+
+    const resizeHandler = () => {
+      resizeHandlerFn(select);
+    };
+
+    return {
+      isOpen,
+      select,
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField,
+      isSearchable,
+      isFilterable,
+      resizeHandler,
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+    };
   },
 
   data() {
@@ -146,11 +207,6 @@ export default {
     hasGroupIcon() {
       // Required for option.icon. Note that we only apply if paginating as well (there might be 2 x performance issues with 2k entries. one to iterate through this list, the other with conditional class per entry in dom)
       return this.canPaginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
-    },
-
-    _options() {
-      // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
-      return this.canPaginate ? this.page : this.options;
     },
 
     filteredAttrs() {
@@ -207,11 +263,13 @@ export default {
     },
 
     onFocus() {
+      this.$emit('on-focus');
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
     },
 
     onBlur() {
+      this.$emit('on-blur');
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
     },

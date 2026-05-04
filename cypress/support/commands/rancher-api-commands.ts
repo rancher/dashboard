@@ -3,6 +3,7 @@ import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2Cluste
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { base64Encode } from '@shell/utils/crypto/index.js';
 
 // This file contains commands which makes API requests to the rancher API.
@@ -649,6 +650,30 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
   };
 
   return retry();
+});
+
+/**
+ * Wait for an intercepted request to complete with the expected status code.
+ * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
+ */
+Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: string, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
+  return cy.wait(alias).then((interception) => {
+    const statusCode = interception.response?.statusCode;
+
+    if (statusCode === successStatusCode) {
+      return cy.wrap(interception);
+    }
+
+    if (statusCode && retryStatusCodes.includes(statusCode)) {
+      return cy.wait(alias, options);
+    }
+
+    return cy.wrap(interception);
+  }).then((interception) => {
+    expect(interception.response?.statusCode).to.eq(successStatusCode);
+
+    return interception;
+  });
 });
 
 /**

@@ -6622,10 +6622,10 @@ cypress-real-events@1.14.0:
   resolved "https://registry.npmjs.org/cypress-real-events/-/cypress-real-events-1.14.0.tgz#c5495db50a2bd247f4accde983af7153566945d3"
   integrity sha512-XmI8y3OZLh6cjRroPalzzS++iv+pGCaD9G9kfIbtspgv7GVsDt30dkZvSXfgZb4rAN+3pOkMVB7e0j4oXydW7Q==
 
-cypress-terminal-report@^7.2.0:
-  version "7.3.3"
-  resolved "https://registry.npmjs.org/cypress-terminal-report/-/cypress-terminal-report-7.3.3.tgz#7ebc23559a7c2da0ca937402b1e0d88b6544a213"
-  integrity sha512-fj543YnOrA3B7gTQEOLvcnvxzmYDNpdO2IOgoY518o+x8Z3foknE4nnZLTa4kOHWD6aOMdOvGSls8moAUglMOA==
+cypress-terminal-report@7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/cypress-terminal-report/-/cypress-terminal-report-7.2.0.tgz#25ac50f50f962c93eed4956ac6076a1f00e42af8"
+  integrity sha512-5LeRy3kEY9S/qPpQRVvbaPELdjx4DVk1WCo7rKK0+O+cNZNzbNyWYlaNVHhTiHDGH1lEQFra/1L49ngtM/6whg==
   dependencies:
     chalk "^4.0.0"
     compare-versions "^6.1.1"
@@ -7763,6 +7763,7 @@ eslint-plugin-jest@24.4.0:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
+  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
@@ -10194,9 +10195,9 @@ jest-jasmine2@^27.5.1:
     pretty-format "^27.5.1"
     throat "^6.0.1"
 
-jest-junit@^16.0.0:
+jest-junit@16.0.0:
   version "16.0.0"
-  resolved "https://registry.npmjs.org/jest-junit/-/jest-junit-16.0.0.tgz#d838e8c561cf9fdd7eb54f63020777eee4136785"
+  resolved "https://registry.yarnpkg.com/jest-junit/-/jest-junit-16.0.0.tgz#d838e8c561cf9fdd7eb54f63020777eee4136785"
   integrity sha512-A94mmw6NfJab4Fg/BlvVOUXzXgF0XIH6EmTgJ5NDPp4xoKq0Kr7sErb+4Xs9nZvu58pJojz5RFGpqnZYJTrRfQ==
   dependencies:
     mkdirp "^1.0.4"

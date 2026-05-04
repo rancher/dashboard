@@ -82,7 +82,6 @@ console.log('');
  * Base Cypress configuration for Rancher Dashboard E2E tests
  */
 const baseConfig = defineConfig({
-  projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,

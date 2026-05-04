@@ -599,9 +599,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
       editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(5, 'Networking').should('not.exist');
+      editLocalClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
 
       // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
       editLocalClusterPage.versionManagementBanner().should('not.exist');

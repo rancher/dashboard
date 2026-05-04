@@ -47,7 +47,7 @@
       max: 4
     create-issue:
       title-prefix: "[Test Improver] "
-      labels: [bot/daily-test-improver]
+      labels: [bot/daily-test-improver, bot/skip-grooming]
       max: 4
     update-issue:
       target: "*"
@@ -207,7 +207,7 @@
 
   ### Task 5: Comment on Testing Issues
 
-  1. List open issues mentioning tests, coverage, or with `testing` label. Resume from memory's backlog cursor.
+  1. List open issues mentioning tests, coverage, or with `bot/daily-test-improver` label. Resume from memory's backlog cursor.
   2. For each issue (save cursor in memory): prioritize issues that have never received a Test Improver comment.
   3. If you have something insightful and actionable to say:
     - Suggest testing approaches or strategies
@@ -251,7 +251,7 @@
 
   Maintain a single open issue titled `[Test Improver] Monthly Activity {YYYY}-{MM}` as a rolling summary of all Test Improver activity for the current month.
 
-  1. Search for an open `[Test Improver] Monthly Activity` issue with label `testing`. If it's for the current month, update it. If for a previous month, close it and create a new one. Read any maintainer comments - they may contain instructions or priorities; note them in memory.
+  1. Search for an open `[Test Improver] Monthly Activity` issue with label `bot/daily-test-improver`. If it's for the current month, update it. If for a previous month, close it and create a new one. Read any maintainer comments - they may contain instructions or priorities; note them in memory.
   2. **Issue body format** - use **exactly** this structure:
 
     ```markdown

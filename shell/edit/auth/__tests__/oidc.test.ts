@@ -297,5 +297,59 @@ describe('oidc.vue', () => {
       expect(groupsClaim.exists()).toBe(false);
       expect(emailClaim.exists()).toBe(false);
     });
+
+    describe('clientAuthenticatedSearch checkbox', () => {
+      it('is not rendered for genericoidc', async() => {
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(false);
+      });
+
+      it('is not rendered for cognito', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(false);
+      });
+
+      it('is rendered for keycloakoidc', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(true);
+      });
+
+      it('defaults to falsy when not set on keycloakoidc', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBeFalsy();
+      });
+
+      it('updates model when checkbox is clicked', async() => {
+        await wrapper.setData({
+          model: {
+            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: false
+          }
+        });
+
+        const checkbox = wrapper.getComponent('[data-testid="input-client-authenticated-group-search"]');
+
+        await checkbox.find('[role="checkbox"]').trigger('click');
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+
+      it('reflects a pre-existing true value from the model', async() => {
+        await wrapper.setData({
+          model: {
+            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: true
+          }
+        });
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+    });
   });
 });
