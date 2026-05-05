@@ -103,6 +103,8 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     flex-direction: column;
 
     .row {
+      gap: 8px;
+
       &:not(:last-of-type) {
         margin-bottom: 8px;
       }
@@ -130,7 +132,7 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
 
       .label {
         width: 30%;
-        min-width: 120px;
+        min-width: min-content;
       }
 
       .status {
