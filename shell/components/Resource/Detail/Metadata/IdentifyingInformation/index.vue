@@ -112,7 +112,8 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       .full-custom-value {
         flex: 1;
         min-width: 0;
-        @include clip;
+        overflow: hidden;
+        max-height: 1lh;
       }
 
       .value {
