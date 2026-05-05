@@ -1,4 +1,7 @@
-import { compareChartVersions } from '@shell/utils/chart';
+import { compareChartVersions, getStandaloneReadmeUrl } from '@shell/utils/chart';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, DEPRECATED
+} from '@shell/config/query-params';
 
 describe('compareChartVersions', () => {
   describe('standard SemVer Comparison', () => {
@@ -91,6 +94,66 @@ describe('compareChartVersions', () => {
       expect(compareChartVersions('invalid', '1.0.0')).not.toBe(0);
       expect(compareChartVersions('a', 'b')).toBe(-1);
       expect(compareChartVersions('b', 'a')).toBe(1);
+    });
+  });
+});
+
+describe('getStandaloneReadmeUrl', () => {
+  it('builds readme route with defaults', () => {
+    const router = { resolve: jest.fn(() => ({ href: '/c/local/readme' })) };
+
+    const href = getStandaloneReadmeUrl(router as any, {
+      cluster:     'local',
+      repoType:    'cluster',
+      repoName:    'rancher-charts',
+      chartName:   'my-chart',
+      versionName: '1.2.3',
+      deprecated:  'false',
+    });
+
+    expect(href).toBe('/c/local/readme');
+    expect(router.resolve).toHaveBeenCalledWith({
+      name:   'readme',
+      params: { cluster: 'local' },
+      query:  {
+        [REPO_TYPE]:          'cluster',
+        [REPO]:               'rancher-charts',
+        [CHART]:              'my-chart',
+        [VERSION]:            '1.2.3',
+        [DEPRECATED]:         'false',
+        showAppReadme:        'true',
+        hideReadmeFirstTitle: 'true'
+      }
+    });
+  });
+
+  it('builds readme route with explicit options', () => {
+    const router = { resolve: jest.fn(() => ({ href: '/c/c-abc/readme' })) };
+
+    const href = getStandaloneReadmeUrl(router as any, {
+      cluster:              'c-abc',
+      repoType:             'cluster',
+      repoName:             'partner-charts',
+      chartName:            'other-chart',
+      versionName:          '9.9.9',
+      deprecated:           'true',
+      showAppReadme:        false,
+      hideReadmeFirstTitle: false,
+    });
+
+    expect(href).toBe('/c/c-abc/readme');
+    expect(router.resolve).toHaveBeenCalledWith({
+      name:   'readme',
+      params: { cluster: 'c-abc' },
+      query:  {
+        [REPO_TYPE]:          'cluster',
+        [REPO]:               'partner-charts',
+        [CHART]:              'other-chart',
+        [VERSION]:            '9.9.9',
+        [DEPRECATED]:         'true',
+        showAppReadme:        'false',
+        hideReadmeFirstTitle: 'false'
+      }
     });
   });
 });

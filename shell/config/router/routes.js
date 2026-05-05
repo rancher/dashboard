@@ -138,6 +138,12 @@ export default [
     component: () => interopDefault(import('@shell/components/templates/standalone.vue')),
     name:      'standalone',
     children:  [
+      {
+        path:      '/c/:cluster/readme',
+        component: () => interopDefault(import('@shell/pages/readme.vue')),
+        name:      'readme',
+        meta:      { requiresAuthentication: true }
+      },
     ]
   },
   {
