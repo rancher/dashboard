@@ -156,8 +156,10 @@ defineExpose({ focus });
   justify-content: center;
 
   // Override global .btn > .icon:not(:only-child) { margin-right: 6px } from _button.scss.
-  // RcButton uses flex gap for spacing instead. :deep() is needed to target slotted content.
-  & > :deep(.icon) {
+  // RcButton uses flex gap for spacing instead. The :not(:only-child) clause matches the global
+  // selector so we win on specificity regardless of stylesheet load order; :deep() is needed to
+  // target slotted content.
+  & > :deep(.icon:not(:only-child)) {
     margin-right: 0;
   }
 
