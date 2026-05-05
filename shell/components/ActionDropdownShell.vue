@@ -35,6 +35,7 @@ const setBulkActionOfInterest = (act: HiddenAction | null, event: 'mouseover' | 
   >
     <rc-dropdown-trigger
       class="bulk-actions-dropdown"
+      size="large"
       :disabled="disabled"
     >
       <template #before>
