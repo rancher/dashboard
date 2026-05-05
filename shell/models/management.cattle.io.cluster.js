@@ -119,17 +119,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provisioner() {
-    // TODO: RC kinara -
-    // MCIC status.driver: ''. status.provider: ''.
-    // PCIC
-    //  const allKeys = Object.keys(this.spec);
-    // //   const configKey = allKeys.find( (k) => k.endsWith('Config'));
-
-    // //   if ( configKey === 'rkeConfig') {
-    // //     return 'rke2';
-
-    // TODO: RC this could also break imported v2prov capi cluster
-
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -160,8 +149,6 @@ export default class MgmtCluster extends SteveModel {
     if (this.provCluster) {
       return null;
     }
-
-    // TODO: RC confirm once https://github.com/rancher/rancher/issues/54656  - prov cluster in explorer --> group by namespace --> fails given spec.fleetWorkspaceName
 
     // Find the first model extension that says it can be used for this model
     return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this.provCluster) : false);
@@ -294,7 +281,7 @@ export default class MgmtCluster extends SteveModel {
     return this.isCondition('Ready');
   }
 
-  get config() { // TODO: RC validate once provisioner is fixed
+  get config() { // TODO: RC Blocked provisioner fix - validate
     if (!this.spec?.[`${ this.provisioner }Config`]) {
       const allKeys = Object.keys(this.spec);
       const configKey = allKeys.find( (k) => k.endsWith('Config'));

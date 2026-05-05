@@ -116,20 +116,12 @@ export default {
       if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         const opt: ActionFindPageArgs = {
           force,
-          pagination: {
-            page:                 1,
-            pageSize:             100000,
-            filters:              [],
-            sort:                 [],
-            projectsOrNamespaces: []
-          }
-          // TODO: RC add back once https://github.com/rancher/rancher/issues/54656 resolved (index on spec.clusterName)
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',
-          //     value: r.provClusterName
-          //   }))),
-          // })
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.provClusterName
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE_DEPLOYMENT, opt });

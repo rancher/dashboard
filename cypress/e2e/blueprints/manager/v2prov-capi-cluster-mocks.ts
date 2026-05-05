@@ -214,7 +214,7 @@ export const mockCapiMgmtCluster = {
     info:      {
       arch:                   'amd64',
       kubernetesVersion:      'v1.34.3+rke2r1',
-      machineProvider:        'Digitalocean', // TODO: RC test once imported fix done, could be real bug (comes from mgmt cluster provisioner getter --> status.driver)
+      machineProvider:        'Digitalocean', // TODO: RC Blocked provisioner fix - e2e failure could be real bug (comes from mgmt cluster provisioner getter --> status.driver)
       nodeCount:              2,
       provisioningClusterRef: {
         apiVersion: 'provisioning.cattle.io/v1',

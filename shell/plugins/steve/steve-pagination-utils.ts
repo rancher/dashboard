@@ -258,9 +258,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `status.connected` },
-      // { field: `status.info.machineProvider` },  // https://github.com/rancher/rancher/issues/54656
-      // { field: `status.driver` },  // https://github.com/rancher/rancher/issues/54656
-      // { field: `status.info.kubernetesVersion` }, // https://github.com/rancher/rancher/issues/54656
+      { field: `status.info.machineProvider` },
+      { field: `status.driver` },
+      { field: `status.info.kubernetesVersion` },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
@@ -268,10 +268,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [NAMESPACE]: [
     ],
     [CAPI.MACHINE]: [
-      // { field: 'spec.clusterName' } // https://github.com/rancher/rancher/issues/54656
+      { field: 'spec.clusterName' },
     ],
     [CAPI.MACHINE_DEPLOYMENT]: [
-      // { field: 'spec.clusterName' },  // https://github.com/rancher/rancher/issues/54656
+      { field: 'spec.clusterName' },
     ],
     [EVENT]: [
       { field: '_type' },
@@ -373,7 +373,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     isLocalCluster,
     showReservedRancherNamespaces,
     productHidesSystemNamespaces,
-    currentProduct,
   }: {
     allNamespaces: Namespace[],
     selection: string[],

@@ -108,18 +108,14 @@ export const STEVE_WORKLOAD_HEALTH_SCALE = {
 
 export const STEVE_MGMT_CLUSTER_PROVIDER = {
   ...MGMT_CLUSTER_PROVIDER,
-  sort:   false,
-  search: false,
-  // sort:      ['status.info.machineProvider', 'status.driver'], index required - https://github.com/rancher/rancher/issues/54656
-  // search:    ['status.info.machineProvider', 'status.driver'], index required - https://github.com/rancher/rancher/issues/54656
+  sort:   ['status.info.machineProvider', 'status.driver'],
+  search: ['status.info.machineProvider', 'status.driver'],
 };
 
 export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   ...MGMT_CLUSTER_KUBE_VERSION,
-  sort:   false,
-  search: false,
-  // sort:     'status.info.kubernetesVersion', index required - https://github.com/rancher/rancher/issues/54656
-  // search:   'status.info.kubernetesVersion', index required - https://github.com/rancher/rancher/issues/54656
+  sort:   'status.info.kubernetesVersion',
+  search: 'status.info.kubernetesVersion',
 };
 
 export const STEVE_AUTOSCALER_ENABLED = {

@@ -627,10 +627,19 @@ function _execute(resources, action, args, opts = {}, ctx) {
   }
 
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    const fn = resources[0][action.bulkAction];
+    const findResourceFromAction = (r) => {
+      const actualAction = r.availableActions.find((aa) => aa.action === action.action);
+
+      return actualAction.altResource || r;
+    };
+
+    const applyResource = findResourceFromAction(resources[0]);
+    const fn = applyResource[action.bulkAction];
 
     if ( fn ) {
-      return fn.call(resources[0], resources, ...args);
+      const applyResources = resources.map(findResourceFromAction);
+
+      return fn.call(applyResource, applyResources, ...args);
     }
   }
 
