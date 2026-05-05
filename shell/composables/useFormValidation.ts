@@ -28,7 +28,19 @@ function createRuleResolver(
       ...extraRules,
     };
 
-    return set.rules.map((r) => (allRules[r] as Validator) || nullValidator);
+    return set.rules.map((r) => {
+      const rule = allRules[r] as Validator | undefined;
+
+      if (rule) {
+        return rule;
+      }
+
+      if (process.env.NODE_ENV !== 'production') {
+        throw new Error(`[useFormValidation] Unknown validation rule: "${ r }". Check for a typo in your ruleSets.`);
+      }
+
+      return nullValidator;
+    });
   };
 }
 
