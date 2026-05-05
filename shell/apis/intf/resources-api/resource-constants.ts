@@ -9,7 +9,7 @@
  *
  * const resources = useResources();
  *
- * resources.cluster.find(K8S.POD, 'my-pod');
+ * resources.cluster.find(K8S.POD, 'default/my-pod');
  * resources.cluster.findAll(K8S.DEPLOYMENT);
  * resources.mgmt.findAll(K8S.USER);
  * ```

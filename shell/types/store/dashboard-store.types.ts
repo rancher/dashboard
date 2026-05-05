@@ -96,7 +96,7 @@ export interface ActionFindAllArgs extends ActionCoreFindOptions {
   limit?: number,
   /**
    * @internal
-   * Iterate over all pages and return all resources.
+   * Iterate over all pages and return all resources. This is done via the native kube pagination api, not Steve
    */
   depaginate?: boolean,
   /**

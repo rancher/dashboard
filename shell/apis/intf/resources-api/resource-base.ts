@@ -56,18 +56,20 @@ export type FindFilteredLabelSelectorOptions = Omit<ActionFindMatchingArgs, 'dep
  * @example
  * ```ts
  * import { useResources, K8S } from '@shell/apis';
- * import { PaginationParamFilter, PaginationFilterField } from '@shell/types/store/pagination.types';
  *
  * const resources = useResources();
- * const pods = await resources.cluster.findFiltered(K8S.POD, {
- *   labelSelector: { matchLabels: { app: 'nginx' } },
- *   pagination: {
- *     page:     1,
- *     pageSize: 25,
- *     sort:     [{ field: 'metadata.name', asc: true }],
- *     filters:  [PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' })],
- *   }
- * });
+ *
+ * const pods1 = await resources.cluster.findFiltered(K8S.POD, {
+ *    pagination: {
+ *      page:                 1,
+ *      projectsOrNamespaces: [],
+ *      filters:              [],
+ *      sort:                 []
+ *    }
+ *  });
+ *
+ *  const pods2 = await resources.cluster.findFiltered(K8S.POD, { labelSelector: { matchLabels: { type: 'my-type' } } });
+ *
  * ```
  */
 export type FindFilteredPageOptions = FindFilteredLabelSelectorOptions & {

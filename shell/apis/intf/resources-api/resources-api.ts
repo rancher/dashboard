@@ -62,12 +62,16 @@ export interface ResourcesApi {
    * @example
    * ```ts
    * import { useResources, K8S } from '@shell/apis';
-   * import { PaginationArgs } from '@shell/types/store/pagination.types';
    *
    * const resources = useResources();
    * const pods = await resources.cluster.findFiltered(K8S.POD, {
-   *   labelSelector: { matchLabels: { app: 'nginx' } },
-   *   pagination:    new PaginationArgs({ page: 1, pageSize: 25 })
+   *   labelSelector: { matchLabels: { type: 'my-type' } },
+   *   pagination: {
+   *      page:                 1,
+   *      projectsOrNamespaces: [],
+   *      filters:              [],
+   *      sort:                 []
+   *   }
    * });
    * ```
    */
@@ -94,7 +98,7 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    * const pods = await resources.cluster.findFiltered(K8S.POD, {
-   *   labelSelector: { matchLabels: { app: 'nginx', env: 'prod' } }
+   *   labelSelector: { matchLabels: { type: 'my-type' } }
    * });
    * ```
    */
