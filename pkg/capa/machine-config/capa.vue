@@ -1,0 +1,596 @@
+<script lang="ts">
+import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import KeyValue from '@shell/components/form/KeyValue';
+import UnitInput from '@shell/components/form/UnitInput';
+import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
+import { NORMAN } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
+import { convertStringToKV, convertKVToString } from '@shell/utils/object';
+import { sortBy } from '@shell/utils/sort';
+import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
+import Networking from '../components/Networking.vue';
+
+const DEFAULT_GROUP = 'rancher-nodes';
+
+export default {
+  components: {
+    Banner, Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue, Networking,
+  },
+
+  mixins: [CreateEditView],
+
+  emits: ['validationChanged', 'update:isIpv6', 'update:isDualStack'],
+
+  props: {
+    uuid: {
+      type:     String,
+      required: true,
+    },
+
+    cluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
+    credentialId: {
+      type:     String,
+      required: true,
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
+
+    isIpv6: {
+      type:    Boolean,
+      default: false
+    },
+
+    isDualStack: {
+      type:    Boolean,
+      default: false
+    },
+
+    machinePools: {
+      type:    Array,
+      default: () => []
+    },
+
+    poolCreateMode: {
+      type:    Boolean,
+      default: true
+    },
+  },
+
+  async fetch() {
+    console.log('HERE');
+    this.errors = [];
+    if ( !this.credentialId ) {
+      return;
+    }
+
+    try {
+      if ( this.credential?.id !== this.credentialId ) {
+        this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
+      }
+    } catch (e) {
+      this.credential = null;
+    }
+
+    try {
+      const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
+
+      if ( !this.value.region ) {
+        this.value['region'] = region;
+      }
+
+      this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
+      this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
+
+      if ( !this.instanceInfo ) {
+        this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client } );
+      }
+
+      const hash = {};
+
+      if ( !this.regionInfo ) {
+        hash.regionInfo = this.ec2Client.describeRegions({});
+      }
+
+      if ( this.loadedRegionalFor !== region ) {
+        hash.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
+        hash.vpcInfo = await this.ec2Client.describeVpcs({});
+        hash.subnetInfo = await this.ec2Client.describeSubnets({});
+        hash.securityGroupInfo = await this.ec2Client.describeSecurityGroups({});
+      }
+
+      const res = await allHash(hash);
+
+      for ( const k in res ) {
+        this[k] = res[k];
+      }
+
+      try {
+        this.kmsInfo = await this.kmsClient.listKeys({});
+        this.canReadKms = true;
+      } catch (e) {
+        this.canReadKms = false;
+      }
+
+      if ( !this.value.zone ) {
+        this.value['zone'] = 'a';
+      }
+
+      if ( !this.value.instanceType ) {
+        this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
+      }
+
+      this.initTags();
+
+      if ( !this.value.securityGroup?.length ) {
+        this.value['securityGroup'] = [DEFAULT_GROUP];
+      }
+
+      if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
+        this.securityGroupMode = 'default';
+      } else {
+        this.securityGroupMode = 'custom';
+      }
+
+      this.loadedRegionalFor = region;
+    } catch (e) {
+      this.errors = exceptionToErrorsArray(formatAWSError(e));
+    }
+  },
+
+  data() {
+    return {
+      ec2Client:         null,
+      kmsClient:         null,
+      credential:        null,
+      instanceInfo:      null,
+      regionInfo:        null,
+      canReadKms:        null,
+      kmsInfo:           null,
+      tags:              null,
+      loadedRegionalFor: null,
+      zoneInfo:          null,
+      vpcInfo:           null,
+      subnetInfo:        null,
+      securityGroupInfo: null,
+      selectedNetwork:   null,
+      securityGroupMode: null,
+    };
+  },
+
+  computed: {
+    securityGroupLabels() {
+      return [
+        this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.default', { defaultGroup: DEFAULT_GROUP }),
+        this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.custom')
+      ];
+    },
+
+    isIamInstanceProfileNameRequired() {
+      return this.cluster?.cloudProvider === 'aws';
+    },
+
+    instanceOptions() {
+      let lastGroup;
+
+      const out = [];
+
+      for ( const row of this.instanceInfo ) {
+        if ( row.groupLabel !== lastGroup ) {
+          out.push({
+            kind:     'group',
+            disabled: true,
+            label:    row.groupLabel
+          });
+
+          lastGroup = row.groupLabel;
+        }
+
+        out.push({
+          label: row['label'],
+          value: row['apiName'],
+        });
+      }
+
+      return out;
+    },
+
+    regionOptions() {
+      if ( !this.regionInfo ) {
+        return [];
+      }
+
+      return this.regionInfo.Regions.map((obj) => {
+        return obj.RegionName;
+      }).sort();
+    },
+
+    zoneOptions() {
+      if ( !this.zoneInfo ) {
+        return [];
+      }
+
+      return this.zoneInfo.AvailabilityZones.map((obj) => {
+        return obj.ZoneName.substr(-1);
+      }).sort();
+    },
+
+    securityGroupOptions() {
+      if ( !this.securityGroupInfo ) {
+        return [];
+      }
+
+      const out = this.securityGroupInfo.SecurityGroups.filter((obj) => {
+        return obj.VpcId === this.value.vpcId;
+      }).map((obj) => {
+        return {
+          label:       obj.GroupName,
+          description: obj.GroupDescription,
+          value:       obj.GroupName
+        };
+      });
+
+      return sortBy(out, 'label');
+    },
+
+    kmsOptions() {
+      if ( !this.kmsInfo ) {
+        return [];
+      }
+
+      const out = this.kmsInfo.Keys.map((obj) => {
+        return obj.KeyArn;
+      }).sort();
+
+      return out;
+    },
+
+    DEFAULT_GROUP() {
+      return DEFAULT_GROUP;
+    }
+  },
+
+  watch: {
+    'credentialId'() {
+      this.$fetch();
+    },
+
+    'value.region'() {
+      this.$fetch();
+    },
+
+    'value.zone'() {
+      this.$fetch();
+    },
+
+    'securityGroupMode'(val) {
+      this.value.securityGroupReadonly = ( val !== 'default' );
+    },
+  },
+
+  methods: {
+    stringify,
+
+    initTags() {
+      this.tags = convertStringToKV(this.value.tags);
+    },
+
+    updateTags(tags) {
+      this.value['tags'] = convertKVToString(tags);
+    },
+
+    test() {
+      const errors = [];
+
+      if (!this.value.subnetId && !this.value.vpcId) {
+        errors.push(this.t('validation.required', { key: 'VPC/Subnet' }, true));
+      }
+
+      return { errors };
+    },
+  },
+};
+</script>
+
+<template>
+  <div>
+    <Loading v-if="$fetchState.pending" />
+    <template v-else>
+      <div v-if="errors.length">
+        <div
+          v-for="(err, idx) in errors"
+          :key="idx"
+        >
+          <Banner
+            color="error"
+            :label="stringify(err)"
+          />
+        </div>
+      </div>
+
+      <div v-if="loadedRegionalFor">
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="value.region"
+              :mode="mode"
+              :options="regionOptions"
+              :required="true"
+              :searchable="true"
+              :disabled="disabled"
+              :label="t('cluster.machineConfig.amazonEc2.region')"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="value.zone"
+              :mode="mode"
+              :options="zoneOptions"
+              :required="true"
+              :disabled="disabled"
+              :label="t('cluster.machineConfig.amazonEc2.zone')"
+            />
+          </div>
+        </div>
+        <div class="row mb-20">
+          <div class="col span-9">
+            <LabeledSelect
+              v-model:value="value.instanceType"
+              :mode="mode"
+              :options="instanceOptions"
+              :required="true"
+              :selectable="option => !option.disabled"
+              :searchable="true"
+              :disabled="disabled"
+              :label="t('cluster.machineConfig.amazonEc2.instanceType')"
+            >
+              <template v-slot:option="opt">
+                <template v-if="opt.kind === 'group'">
+                  <b>{{ opt.label }}</b>
+                </template>
+                <template v-else>
+                  <span class="pl-10">{{ opt.label }}</span>
+                </template>
+              </template>
+            </LabeledSelect>
+          </div>
+          <div class="col span-3">
+            <UnitInput
+              v-model:value="value.rootSize"
+              output-as="string"
+              :mode="mode"
+              :disabled="disabled"
+              :placeholder="t('cluster.machineConfig.amazonEc2.rootSize.placeholder')"
+              :label="t('cluster.machineConfig.amazonEc2.rootSize.label')"
+              :suffix="t('cluster.machineConfig.amazonEc2.rootSize.suffix')"
+            />
+          </div>
+        </div>
+
+        <!-- <Networking
+          :key="value.region"
+          v-model:enable-primary-ipv6="value.enablePrimaryIpv6"
+          v-model:ipv6-address-count="value.ipv6AddressCount"
+          v-model:ipv6-address-only="value.ipv6AddressOnly"
+          v-model:http-protocol-ipv6="value.httpProtocolIpv6"
+          v-model:vpc-id="value.vpcId"
+          v-model:subnet-id="value.subnetId"
+          :mode="mode"
+          :vpc-info="vpcInfo"
+          :subnet-info="subnetInfo"
+          :zone="value.zone"
+          :region="value.region"
+          :machine-pools="machinePools"
+          :is-ipv6="isIpv6"
+          :is-dual-stack="isDualStack"
+          :disabled="disabled"
+          :is-new="poolCreateMode"
+          @update:is-ipv6="e=>$emit('update:isIpv6', e)"
+          @update:is-dual-stack="e=>$emit('update:isDualStack', e)"
+          @validation-changed="e=>$emit('validationChanged',e)"
+        /> -->
+
+        <div class="row mt-20 mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="value.iamInstanceProfile"
+              :mode="mode"
+              :disabled="disabled"
+              :required="isIamInstanceProfileNameRequired"
+              :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
+              :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
+            />
+          </div>
+        </div>
+        <portal :to="'advanced-'+uuid">
+          <div class="row mt-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.ami"
+                :mode="mode"
+                :disabled="disabled"
+                :placeholder="t('cluster.machineConfig.amazonEc2.ami.placeholder')"
+                :label="t('cluster.machineConfig.amazonEc2.ami.label')"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.sshUser"
+                :mode="mode"
+                :label="t('cluster.machineConfig.amazonEc2.sshUser.label')"
+                :disabled="!value.ami || disabled"
+                :tooltip="t('cluster.machineConfig.amazonEc2.sshUser.tooltip')"
+                :placeholder="t('cluster.machineConfig.amazonEc2.sshUser.placeholder')"
+              />
+            </div>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-12">
+              <h3>
+                {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
+                <span
+                  v-if="!value.vpcId"
+                  class="text-muted text-small"
+                >
+                  {{ t('cluster.machineConfig.amazonEc2.securityGroup.vpcId') }}
+                </span>
+              </h3>
+              <RadioGroup
+                v-model:value="securityGroupMode"
+                name="securityGroupMode"
+                :mode="mode"
+                :disabled="!value.vpcId || disabled"
+                :labels="securityGroupLabels"
+                :options="['default','custom']"
+              />
+              <LabeledSelect
+                v-if="value.vpcId && securityGroupMode === 'custom'"
+                v-model:value="value.securityGroup"
+                :mode="mode"
+                :disabled="!value.vpcId || disabled"
+                :options="securityGroupOptions"
+                :searchable="true"
+                :multiple="true"
+                :taggable="true"
+              />
+            </div>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.volumeType"
+                :mode="mode"
+                :disabled="disabled"
+                :label="t('cluster.machineConfig.amazonEc2.volumeType.label')"
+                :placeholder="t('cluster.machineConfig.amazonEc2.volumeType.placeholder')"
+              />
+            </div>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-12">
+              <Checkbox
+                v-model:value="value.encryptEbsVolume"
+                :mode="mode"
+                :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
+              />
+              <div
+                v-if="value.encryptEbsVolume"
+                class="mt-10"
+              >
+                <LabeledSelect
+                  v-if="canReadKms"
+                  v-model:value="value.kmsKey"
+                  :mode="mode"
+                  :options="kmsOptions"
+                  :disabled="disabled"
+                  :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+                />
+                <template v-else>
+                  <LabeledInput
+                    v-model:value="value.kmsKey"
+                    :mode="mode"
+                    :disabled="disabled"
+                    :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+                  />
+                  <p class="text-muted">
+                    {{ t('cluster.machineConfig.amazonEc2.kmsKey.text') }}
+                  </p>
+                </template>
+              </div>
+            </div>
+          </div>
+          <div class="row mt-20">
+            <div class="col span-6">
+              <Checkbox
+                v-model:value="value.requestSpotInstance"
+                :mode="mode"
+                :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
+              />
+              <div
+                v-if="value.requestSpotInstance"
+                class="mt-10"
+              >
+                <UnitInput
+                  v-model:value="value.spotPrice"
+                  output-as="string"
+                  :mode="mode"
+                  :disabled="disabled"
+                  :placeholder="t('cluster.machineConfig.amazonEc2.spotPrice.placeholder')"
+                  :label="t('cluster.machineConfig.amazonEc2.spotPrice.label')"
+                  :suffix="t('cluster.machineConfig.amazonEc2.spotPrice.suffix')"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-12">
+              <div>
+                <Checkbox
+                  v-model:value="value.privateAddressOnly"
+                  :mode="mode"
+                  :disabled="disabled"
+                  :label="t('cluster.machineConfig.amazonEc2.privateAddressOnly')"
+                />
+              </div>
+              <div>
+                <Checkbox
+                  v-model:value="value.useEbsOptimizedInstance"
+                  :mode="mode"
+                  :disabled="disabled"
+                  :label="t('cluster.machineConfig.amazonEc2.useEbsOptimizedInstance')"
+                />
+              </div>
+              <div>
+                <Checkbox
+                  v-model:value="value.httpEndpoint"
+                  value-when-true="enabled"
+                  :mode="mode"
+                  :disabled="disabled"
+                  :label="t('cluster.machineConfig.amazonEc2.httpEndpoint')"
+                />
+              </div>
+              <div>
+                <Checkbox
+                  v-model:value="value.httpTokens"
+                  value-when-true="required"
+                  :mode="mode"
+                  :disabled="!value.httpEndpoint || disabled"
+                  :label="t('cluster.machineConfig.amazonEc2.httpTokens')"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-12">
+              <KeyValue
+                :value="tags"
+                :mode="mode"
+                :read-allowed="false"
+                :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
+                :add-label="t('labels.addTag')"
+                :disabled="disabled"
+                @update:value="updateTags"
+              />
+            </div>
+          </div>
+        </portal>
+      </div>
+    </template>
+  </div>
+</template>

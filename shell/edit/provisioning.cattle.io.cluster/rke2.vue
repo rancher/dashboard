@@ -524,6 +524,7 @@ export default {
     },
 
     hasMachinePools() {
+      console.log(this.provider, this.value);
       if (this.provider === 'custom' || this.provider === 'import') {
         return false;
       }
@@ -572,13 +573,20 @@ export default {
       } else {
         schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
+      console.log('Using machine config schema', schema);
 
       // If this is an extension provider then the extension can provide the schema
       const extensionSchema = this.extensionProvider?.machineConfigSchema;
 
+      // eslint-disable-next-line no-console
+      console.log('machineConfigSchema: input', this.provider, this.hasMachinePools, this.isElementalCluster, schema, typeof extensionSchema, extensionSchema?.id);
+
       if (extensionSchema) {
         // machineConfigSchema can either be the schema name (string) or the schema itself (object)
         if (typeof extensionSchema === 'object') {
+          // eslint-disable-next-line no-console
+          console.log('machineConfigSchema: using extension object schema', this.provider, extensionSchema?.id);
+
           return extensionSchema;
         }
 
@@ -586,7 +594,17 @@ export default {
         schema = extensionSchema;
       }
 
-      return this.$store.getters['management/schemaFor'](schema);
+      const resolved = this.$store.getters['management/schemaFor'](schema);
+
+      if (!resolved) {
+        // eslint-disable-next-line no-console
+        console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
+      } else {
+        // eslint-disable-next-line no-console
+        console.log('machineConfigSchema: resolved schema', this.provider, schema, resolved?.id, resolved?.attributes?.kind);
+      }
+
+      return resolved;
     },
 
     nodeTotals() {
@@ -1332,6 +1350,9 @@ export default {
     async addMachinePool(idx) {
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if (!this.machineConfigSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('addMachinePool: missing machineConfigSchema, pool creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+
         return;
       }
 

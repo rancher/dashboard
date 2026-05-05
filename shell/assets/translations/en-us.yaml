@@ -2833,6 +2833,8 @@ providers:
   hosted: 
     title: Hosted Providers
     warning: Disabling providers will make any clusters that use them uneditable
+  capi:
+    title: Cluster API Providers
 drivers:
   kontainer:
     title: Cluster Drivers

@@ -176,6 +176,7 @@ export default {
         subType = provisionerLower;
       }
     }
+    console.log(subType);
 
     // Auto-detect subType for existing clusters being edited
     if ( !subType && this.value?.id ) {
@@ -462,6 +463,8 @@ export default {
 
     localValue: {
       get() {
+        console.log(this.value);
+
         return this.value;
       },
       set(newValue) {
