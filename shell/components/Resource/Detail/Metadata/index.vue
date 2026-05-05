@@ -82,6 +82,10 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 
 <style lang="scss" scoped>
 .metadata {
+    .identifying-info {
+      overflow: hidden;
+    }
+
     .labels-and-annotations-empty {
       grid-column: span 2;
     }
