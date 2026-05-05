@@ -485,8 +485,6 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     // check table headers
     const expectedHeadersDetailsView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-    headerPo.selectWorkspace(workspace);
-
     // Select flat list
     fleetClusterDetailsPage.appBundlesList().sortableTable().groupByButtons(0).click();
 

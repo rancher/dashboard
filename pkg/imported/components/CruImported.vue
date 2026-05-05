@@ -561,7 +561,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isCreate & !isRKE1"
+        v-if="!isCreate && !isRKE1 && (!isLocal || enableNetworkPolicySupported)"
         class="mb-20 accordion"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
@@ -582,14 +582,16 @@ export default defineComponent({
             :label="t('cluster.rke2.enableNetworkPolicy.label')"
           />
         </div>
-        <h3 v-t="'cluster.tabs.ace'" />
-        <ACE
-          v-model:value="normanCluster.localClusterAuthEndpoint"
-          :mode="mode"
-          @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
-          @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
-          @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
-        />
+        <div v-if="!isLocal">
+          <h3>{{ t('cluster.tabs.ace') }}</h3>
+          <ACE
+            v-model:value="normanCluster.localClusterAuthEndpoint"
+            :mode="mode"
+            @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
+            @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
+            @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
+          />
+        </div>
       </Accordion>
       <Accordion
         v-if="!isRKE1"

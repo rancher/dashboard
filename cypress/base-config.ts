@@ -82,7 +82,6 @@ console.log('');
  * Base Cypress configuration for Rancher Dashboard E2E tests
  */
 const baseConfig = defineConfig({
-  projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
@@ -124,6 +123,7 @@ const baseConfig = defineConfig({
     azureClientSecret:        process.env.AZURE_CLIENT_SECRET,
     customNodeIp:             process.env.CUSTOM_NODE_IP,
     customNodeKey:            process.env.CUSTOM_NODE_KEY,
+    customNodeUser:           process.env.CUSTOM_NODE_USER || 'ec2-user',
     accessibility:            !!process.env.TEST_A11Y, // Are we running accessibility tests?
     a11yFolder:               path.join('.', 'cypress', 'accessibility'),
     gkeServiceAccount:        process.env.GKE_SERVICE_ACCOUNT,

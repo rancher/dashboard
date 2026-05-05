@@ -144,7 +144,7 @@ export default {
         config: {
           ...this.model,
           enabled:     true,
-          description: 'Enable AzureAD'
+          description: 'Enable Microsoft Entra ID'
         }
       };
     },

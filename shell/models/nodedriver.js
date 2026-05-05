@@ -13,6 +13,13 @@ export default class NodeDriver extends Driver {
     return 'c-cluster-manager-driver-nodedriver';
   }
 
+  get parentLocationOverride() {
+    return {
+      name:   'c-cluster-manager-driver-nodedriver',
+      params: { cluster: this.$rootGetters['clusterId'] }
+    };
+  }
+
   get _availableActions() {
     const out = [
       {

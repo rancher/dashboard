@@ -4,6 +4,7 @@ import HelmOp from '@shell/models/fleet.cattle.io.helmop';
 import HelmOpComponent from '@shell/edit/fleet.cattle.io.helmop.vue';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import { createStore } from 'vuex';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -84,6 +85,14 @@ const initHelmOp = (props: any, options = {}) => {
     props: {
       value,
       ...props
+    },
+    provide: {
+      store: createStore({
+        getters: {
+          currentStore:                   () => 'current_store',
+          'management/paginationEnabled': () => () => false
+        }
+      })
     },
     computed: mockComputed,
     global:   { mocks },

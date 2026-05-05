@@ -814,6 +814,7 @@ export default {
                     class="btn btn-sm role-secondary file-selector"
                     :label="t('generic.upload')"
                     :include-file-name="true"
+                    :accept="readAccept"
                     :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @selected="onValueFileSelected(i, $event)"
                   />
@@ -901,6 +902,7 @@ export default {
           class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
+          :accept="readAccept"
           data-testid="read_all_key_value_button"
           @selected="onFileSelected"
         />

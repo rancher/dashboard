@@ -9,8 +9,6 @@ export TEST_PASSWORD="password"
 export CATTLE_BOOTSTRAP_PASSWORD="password"
 export TEST_BASE_URL="https://127.0.0.1/dashboard"
 export API="https://127.0.0.1"
-export TEST_PROJECT_ID="rancher-dashboard"
-export TEST_DISABLE_DASHBOARD="true"
 
 SUITE=$1
 export RANCHER_IMG_VERSION="${RANCHER_IMG_VERSION:-head}"
@@ -32,15 +30,12 @@ GREP_TAGS="@adminUserSetup+@$SUITE" TEST_ONLY="setup" yarn e2e:prod
 echo "--------------- Running e2e tests ---------------------"
 GREP_TAGS="@adminUser+@$SUITE" TEST_SKIP="setup" yarn e2e:prod
 
-
-# TEST_DISABLE_DASHBOARD=true \
 # GREP_TAGS=@adminUserSetup+@$SUITE \
 # TEST_ONLY=setup \
 # TEST_USERNAME=admin \
 # CATTLE_BOOTSTRAP_PASSWORD=password \
 # TEST_BASE_URL=https://127.0.0.1/dashboard yarn e2e:prod
 
-# TEST_DISABLE_DASHBOARD=true \
 # GREP_TAGS=@adminUser+@$SUITE \
 # TEST_SKIP=setup \
 # TEST_USERNAME=admin \
