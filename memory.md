@@ -43,17 +43,25 @@
 - fleet.ts: resourcesFromBundleDeploymentStatus uses resourceKey(r) = `kind/namespace/name`; a resource appearing in both `resources` and `modifiedStatus` has its state updated in-place
 - gc singletons (gc-interval, gc-route-changed): use `jest.resetModules()` + `jest.mock('../gc')` in `beforeEach` for isolation; use `jest.useFakeTimers()` for interval tests
 - gc-route-changed.ts has a bug: `getResourceFromRoute` uses `match[2]` but regex only has 1 capture group → resource from `to.name` always undefined (existing behavior documented in test)
+- style.ts: `isHigherAlert` uses ordered array ['info','success','warning','error']; 'disabled' is NOT in this array so indexOf returns -1 — 'disabled' is never considered "higher" than any named color
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to current PR)
 2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
+4. `shell/utils/ingress.ts` — `findAndMapCerts` and `findAndMapServiceTargets` pure methods (store-dependent fetch methods need mocking)
+5. `shell/utils/perf-setting.utils.ts` — simple `isEnabled` logic for SSP/pagination interplay
 
 ## Completed Work
 
+### 2026-05-05
+- Submitted PR (branch test-assist/style-utils-tests): 43 unit tests for shell/utils/style.ts
+- Coverage: 0% → 100% stmts/branches/fns/lines
+- Notable: documented 'disabled' edge case in isHigherAlert (not in order array)
+
 ### 2026-05-04
-- Submitted PR (branch test-assist/gc-companion-tests): 16 unit tests for gc-interval.ts and gc-route-changed.ts
+- Submitted PR #17478 (branch test-assist/gc-companion-tests): 16 unit tests for gc-interval.ts and gc-route-changed.ts
 - Coverage: 0% → 100% stmts/fns/lines, 95% branches for both files
 - Notable: documented match[2] bug in gc-route-changed.ts
 
@@ -89,6 +97,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-05: Task 3 (style.ts 43 tests, 100% all) + Task 4 (PR CI check) + Task 7 (monthly activity update)
 - 2026-05-04: Task 3 (gc-interval.ts + gc-route-changed.ts, 16 tests, 100% stmts) + Task 7 (monthly activity update)
 - 2026-05-03: Task 3 (gc.ts 30 tests, 94.68% stmts, 100% fns) + Task 7 (monthly activity update)
 - 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
@@ -104,7 +113,8 @@
 - PR #17451: settings.ts — open
 - PR #17466: fleet-utils-tests — open
 - PR #17471: gc.ts — open
-- PR (branch test-assist/gc-companion-tests): gc-interval + gc-route-changed — submitted 2026-05-04, PR number TBD
+- PR #17478: gc-interval + gc-route-changed — open
+- PR (branch test-assist/style-utils-tests): style.ts — submitted 2026-05-05, PR number TBD
 
 ## Maintainer Priorities
 
