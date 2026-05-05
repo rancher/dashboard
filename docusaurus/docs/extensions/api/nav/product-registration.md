@@ -48,7 +48,7 @@ This is a convenience/bridge method useful for getting started. You can expand t
 
 ### `addProduct(product, config)`
 
-Register a product with pages and side-menu navigation.
+Register a product with pages and side-menu navigation. Can only be called **once per product name** — calling it again with the same name will throw an error.
 
 **Parameters:**
 
@@ -321,8 +321,6 @@ The metadata that defines a product — its identity, icon, and product-level se
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
 | `showClusterSwitcher` | `boolean` | No | Show the cluster switcher in navigation |
 | `showNamespaceFilter` | `boolean` | No | Show the namespace filter in the header |
-| `mapToGroup` | `{ condition: RegExp \| string; group: string }[]` | No | Map resources to specific side-menu groups based on a regex or resource ID. See [mapToGroup](#mapping-resources-to-groups-maptogroup) |
-| `ignoreGroups` | `{ regexOrString: string \| RegExp; fn?: (getters: any) => boolean }[]` | No | Hide specific side-menu groups, unconditionally or based on a callback. See [ignoreGroups](#hiding-groups-ignoregroups) |
 
 ### `ProductSinglePage`
 
@@ -334,7 +332,7 @@ A product that renders a single full-page Vue component with no side-menu. Exten
 
 ### `ProductChildCustomPage`
 
-A page inside a product that renders a Vue component you provide. Equivalent to a `virtualType` in the DSL approach.
+A page inside a product that renders a Vue component you provide. Equivalent to a `virtualType` in the legacy DSL approach.
 
 | Property | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -353,7 +351,8 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | `type` | `string` | Yes | Kubernetes resource type (e.g. `'provisioning.cattle.io.cluster'`) |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
 | `config` | `ConfigureTypeConfiguration` | No | Resource page options (creatable, editable, removable, etc.) |
-| `headers` | `any[]` | No | Custom table column headers for the list view. See [Table headers](#table-headers-headers) |
+| `headers` | `HeaderOptions[]` | No | Custom table column headers for the list view (client-side pagination). See [Table headers](#table-headers-headers) |
+| `sspHeaders` | `PaginationHeaderOptions[]` | No | Custom table column headers for the list view (server-side pagination). See [Server-side pagination headers](#server-side-pagination-headers-sspheaders) |
 | `overrideListResourceName` | `string` | No | Override the display name for this resource type in the list view. See [Renaming types](#renaming-types-overridelistresourcename) |
 | `hideFromNav` | `boolean` | No | Hide this resource type from the side-menu entirely. See [Hiding types](#hiding-types-from-navigation-hidefromnav) |
 | `hideBulkActions` | `boolean` | No | Hide bulk action buttons (e.g. delete) for this resource type in the list view. See [Hiding bulk actions](#hiding-bulk-actions-hidebulkactions) |
@@ -395,9 +394,11 @@ type ProductChild = ProductChildGroup | ProductChildPage;
 
 ### Table headers (`headers`)
 
-Resource pages support custom table column headers via the `headers` property. Headers control which columns appear in the resource list view, what data they display, and how they behave (sorting, searching, formatting).
+Resource lists use Headers to control which columns appear in the resource list view, what data they display, and how they behave (sorting, searching, formatting).
 
-When you set `headers` on a page, these columns **replace** the default columns that Rancher Dashboard would normally generate for that resource type. If you don't set `headers`, Rancher Dashboard uses its default column set.
+By default these mostly come from the resource's definition and it's `additionalPrinterColumns` field.
+
+When you set `headers` on a resource page, these columns **replace** the default columns.
 
 #### Using built-in headers
 
@@ -501,6 +502,39 @@ Formatters transform raw values into formatted display output. Rancher Dashboard
 | `width` | `number` | Fixed column width in pixels. If not set, the column auto-sizes |
 | `getValue` | `(row: any) => string \| number \| null` | Custom function to extract or compute the display value from a row. Takes precedence over `value` for display, but `value` is still used for sorting/searching |
 
+### Server-side pagination headers (`sspHeaders`)
+
+When server-side pagination is enabled for a resource type, Rancher Dashboard uses a separate set of headers optimized for paginated data. These headers follow the same format as `headers` but **do not support `getValue`** — since rows are fetched page-by-page from the server, computed client-side values are not available.
+
+Use `sspHeaders` alongside `headers` to define columns for both pagination modes:
+
+```ts
+import { NAME, STATE, AGE, NAMESPACE } from '@shell/config/table-headers';
+
+const clusterPage: ProductChildResourcePage = {
+  type:       'provisioning.cattle.io.cluster',
+  headers:    [STATE, NAME, NAMESPACE, AGE],
+  sspHeaders: [
+    { name: 'name', label: 'Name', value: 'metadata.name' },
+    { name: 'namespace', label: 'Namespace', value: 'metadata.namespace' },
+  ],
+};
+```
+
+You can also set `sspHeaders` without `headers` if you only need to customize the server-side pagination view:
+
+```ts
+const clusterPage: ProductChildResourcePage = {
+  type:       'provisioning.cattle.io.cluster',
+  sspHeaders: [
+    { name: 'name', label: 'Name', value: 'metadata.name' },
+    { name: 'status', label: 'Status', value: 'status.display' },
+  ],
+};
+```
+
+> Note: `PaginationHeaderOptions` is the same as `HeaderOptions` but without the `getValue` property. All other header properties (`name`, `label`, `value`, `sort`, `search`, `formatter`, `formatterOpts`, `width`) are supported.
+
 ### Renaming types (`overrideListResourceName`)
 
 Use `overrideListResourceName` to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
@@ -534,52 +568,23 @@ const clusterPage: ProductChildResourcePage = {
 };
 ```
 
-### Mapping resources to groups (`mapToGroup`)
-
-Use `mapToGroup` on the product metadata to automatically assign resources to specific side-menu groups based on a regex pattern or exact resource ID. This is useful when you want to organize many resource types into logical groups without manually placing each one.
-
-The `condition` can be a string (exact match on the resource ID) or a `RegExp` (pattern match).
-
-```ts
-const product: ProductMetadata = {
-  name:  'my-app',
-  label: 'My App',
-  mapToGroup: [
-    // All cert-manager resources go into the "certificates" group
-    { condition: /^cert-manager\.io\./, group: 'certificates' },
-    // A specific resource goes into the "networking" group
-    { condition: 'networking.k8s.io.ingress', group: 'networking' },
-  ],
-};
-```
-
-### Hiding groups (`ignoreGroups`)
-
-Use `ignoreGroups` on the product metadata to hide specific side-menu groups. Each entry specifies a `regexOrString` to match group names — either an exact string or a regex pattern.
-
-The `fn` callback is optional. When provided, it receives the store getters and returns `true` to hide the group (conditional hide). When omitted, the group is always hidden (unconditional hide).
-
-```ts
-const product: ProductMetadata = {
-  name:  'my-app',
-  label: 'My App',
-  ignoreGroups: [
-    // Always hide the "internal" group (unconditional — no fn)
-    { regexOrString: 'internal' },
-    // Hide all groups matching a regex pattern (unconditional)
-    { regexOrString: /^deprecated-.*/ },
-    // Conditionally hide based on a feature flag
-    {
-      regexOrString: 'experimental',
-      fn:            (getters) => !getters['features/isEnabled']('experimental-feature'),
-    },
-  ],
-};
-```
 
 ## Rules & Constraints
 
 When defining pages and groups in your product configuration, there are some important rules to keep in mind:
+
+### `addProduct` can only be called once per product
+
+Each product can only be registered once via `addProduct`. Calling `addProduct` a second time with the same product name will throw an error. If you need to add pages to an existing product, use `extendProduct` instead.
+
+```ts
+// ✅ Correct
+extension.addProduct(product, [pageA, pageB]);
+
+// ❌ Error — same product registered twice
+extension.addProduct(product, [pageA]);
+extension.addProduct(product, [pageB]); // throws
+```
 
 ### Page types are mutually exclusive
 

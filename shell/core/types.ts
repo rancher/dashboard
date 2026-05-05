@@ -553,7 +553,7 @@ export interface DSLReturnType {
    * @param headers {@link HeaderOptions[]}
    * @returns {@link void}
    */
-  headers: (type: string, headers: HeaderOptions[]) => void;
+  headers: (type: string, headers?: HeaderOptions[], paginationHeaders?: PaginationHeaderOptions[]) => void;
 
   /**
    * Create and register a new product
@@ -563,8 +563,14 @@ export interface DSLReturnType {
   product: (options: ProductOptions) => void;
 
   /**
-   * Remap a group name to a display name
-   * @param match String or regex to match against group names
+   /**
+   * Remap group display names in the side-menu navigation.
+   *
+   * Each entry matches a group's internal ID (via string or regex) and replaces its display label
+   * with a new name. This only changes how the group is labelled in the UI — it does not move
+   * resources between groups.
+   *
+   * @param match String, string for a regex or a regex object to match against group names
    * @param replace Replacement string or function for the display name
    * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
    * @param continueOnMatch If true, continue matching other rules after this one matches
@@ -574,7 +580,7 @@ export interface DSLReturnType {
 
   /**
    * Remap a type ID to a display name
-   * @param match String or regex to match against type IDs
+   * @param match String, string for a regex or a regex object to match against type IDs
    * @param replace Replacement string or function for the display name
    * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
    * @param continueOnMatch If true, continue matching other rules after this one matches
@@ -609,26 +615,35 @@ export interface DSLReturnType {
 
   /**
    * Never show the specified type in the navigation
-   * @param regexOrString String or regex to match against type names
+   * @param regexOrString String, string for a regex or a regex object to match against type names
    * @returns {@link void}
    */
   ignoreType: (regexOrString: string | RegExp) => void;
 
   /**
    * Never show the specified group or any types in it
-   * @param regexOrString String or regex to match against group names
+   * @param regexOrString String, string for a regex or a regex object to match against group names
    * @param fn Conditional function that accepts getters and returns true if the group should be ignored
    * @returns {@link void}
    */
   ignoreGroup: (regexOrString: string | RegExp, fn?: (getters: any) => boolean) => void;
 
   /**
-   * Hide bulk actions for a specific resource type
-   * @param type The type to hide bulk actions for
-   * @param field Value to set (typically true to hide)
+   * Move a resource type into a different navigation group
+   * @param match String or regex to match against resource type names
+   * @param group Target group name to move the matched types into
+   * @param weight Ordering weight for the mapping (default: 5)
    * @returns {@link void}
    */
-  hideBulkActions: (type: string, field: boolean) => void;
+  moveType: (match: string | RegExp, group: string, weight?: number) => void;
+
+  /**
+   * Control visibility of bulk actions (e.g. delete) in the list view toolbar for a specific resource type
+   * @param type The resource type to configure
+   * @param hide Whether to hide bulk actions. Set to `true` to hide them
+   * @returns {@link void}
+   */
+  hideBulkActions: (type: string, hide: boolean) => void;
 
   labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
 
@@ -685,6 +700,8 @@ export interface IExtension {
    * @param name
    * @param config
    */
+  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
+  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
   addProduct(product: ProductMetadata, config: ProductChild[]): void;
 
   /**
@@ -714,6 +731,8 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
+  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
   extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
 
   /**
