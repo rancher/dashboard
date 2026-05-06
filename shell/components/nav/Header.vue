@@ -151,6 +151,13 @@ export default {
       return !!this.currentCluster?.links?.shell;
     },
 
+    shellTooltip() {
+      if (!this.shellEnabled) {
+        return this.t('nav.shellDisabledTooltip');
+      }
+      return this.t('nav.shellShortcut', { key: this.shellShortcut });
+    },
+
     showKubeShell() {
       return !this.rootProduct?.hideKubeShell;
     },
@@ -627,7 +634,7 @@ export default {
           <button
             v-if="showKubeShell"
             id="btn-kubectl"
-            v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+            v-clean-tooltip="shellTooltip"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
             :disabled="!shellEnabled"
             type="button"

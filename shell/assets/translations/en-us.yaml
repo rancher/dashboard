@@ -219,6 +219,7 @@ nav:
   import: Import YAML
   home: Home
   shell: Kubectl Shell
+  shellDisabledTooltip: Shell access has been disabled by your cluster administrator
   shellShortcut: Kubectl Shell {key}
   support: |-
     {hasSupport, select,
