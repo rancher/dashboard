@@ -142,7 +142,7 @@ export default [
         path:      '/c/:cluster/readme',
         component: () => interopDefault(import('@shell/pages/readme.vue')),
         name:      'readme',
-        meta:      { requiresAuthentication: true }
+        meta:      { requiresAuthentication: true, standalone: true }
       },
     ]
   },

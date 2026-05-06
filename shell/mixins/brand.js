@@ -183,7 +183,8 @@ export default {
     },
     setBodyClass() {
       const body = document.getElementsByTagName('body')[0];
-      const cssClass = `overflow-hidden dashboard-body`;
+      const isStandalone = this.$route?.meta?.standalone;
+      const cssClass = isStandalone ? 'dashboard-body' : 'overflow-hidden dashboard-body';
       let bodyClass = `theme-${ this.theme } ${ cssClass }`;
 
       if ( this.brand ) {
