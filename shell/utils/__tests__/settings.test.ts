@@ -113,29 +113,28 @@ describe('isProviderEnabled', () => {
     expect(isProviderEnabled(context, 'someProvider')).toBe(true);
   });
 
-  it('returns true when provider is active', () => {
-    const providers = [{ name: 'eks', active: true }];
+  it.each([
+    {
+      provider: 'eks', providers: [{ name: 'eks', active: true }], expected: true
+    },
+    {
+      provider: 'eks', providers: [{ name: 'eks', active: false }], expected: false
+    },
+    {
+      provider: 'gke', providers: [{ name: 'eks', active: true }, { name: 'gke', active: false }, { name: 'aks', active: true }], expected: false
+    },
+    {
+      provider: 'aks', providers: [{ name: 'eks', active: true }, { name: 'gke', active: false }, { name: 'aks', active: true }], expected: true
+    },
+  ])('returns $expected for provider "$provider"', ({ provider, providers, expected }) => {
     const context = makeMockContext(JSON.stringify(providers));
 
-    expect(isProviderEnabled(context, 'eks')).toBe(true);
+    expect(isProviderEnabled(context, provider)).toBe(expected);
   });
 
-  it('returns false when provider is inactive', () => {
-    const providers = [{ name: 'eks', active: false }];
-    const context = makeMockContext(JSON.stringify(providers));
+  it('throws when setting value is invalid JSON', () => {
+    const context = makeMockContext('not-valid-json{{{');
 
-    expect(isProviderEnabled(context, 'eks')).toBe(false);
-  });
-
-  it('returns correct value when multiple providers exist', () => {
-    const providers = [
-      { name: 'eks', active: true },
-      { name: 'gke', active: false },
-      { name: 'aks', active: true },
-    ];
-    const context = makeMockContext(JSON.stringify(providers));
-
-    expect(isProviderEnabled(context, 'gke')).toBe(false);
-    expect(isProviderEnabled(context, 'aks')).toBe(true);
+    expect(() => isProviderEnabled(context, 'eks')).toThrow();
   });
 });
