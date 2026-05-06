@@ -11,7 +11,7 @@ import {
 } from '@shell/utils/namespace-filter';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationSettings } from '@shell/types/resources/settings';
-import { PaginationArgs, PaginationParam } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationFilterField, PaginationParam, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 /** Helper to build a plain PaginationParam-shaped object for testing */
 const makeParam = (param: string, equals: boolean, fields: any[]): PaginationParam => ({
@@ -19,6 +19,16 @@ const makeParam = (param: string, equals: boolean, fields: any[]): PaginationPar
   equals,
   fields,
 } as unknown as PaginationParam);
+
+/** Helper to build a PaginationArgs object with sensible defaults */
+const makeArgs = (overrides: Partial<PaginationArgs> = {}): PaginationArgs => ({
+  page:                 1,
+  pageSize:             10,
+  sort:                 [],
+  filters:              [],
+  projectsOrNamespaces: [],
+  ...overrides,
+} as unknown as PaginationArgs);
 
 describe('paginationUtils', () => {
   describe('validateNsProjectFilter', () => {
@@ -35,6 +45,9 @@ describe('paginationUtils', () => {
       ['unknown-filter', false],
       ['all://orphans', false],
       ['', false],
+      // Edge cases: prefix without a value
+      [NAMESPACE_FILTER_NS_FULL_PREFIX, true],
+      [NAMESPACE_FILTER_P_FULL_PREFIX, true],
     ])('validates "%s" as %s', (filter, expected) => {
       expect(paginationUtils.validateNsProjectFilter(filter)).toStrictEqual(expected);
     });
@@ -55,6 +68,14 @@ describe('paginationUtils', () => {
 
     it('returns false when all filters are invalid', () => {
       expect(paginationUtils.validateNsProjectFilters(['bad-a', 'bad-b'])).toStrictEqual(false);
+    });
+
+    it('returns undefined when input is undefined (optional chaining)', () => {
+      expect(paginationUtils.validateNsProjectFilters(undefined as any)).toBeUndefined();
+    });
+
+    it('returns true for a single valid filter in the array', () => {
+      expect(paginationUtils.validateNsProjectFilters([NAMESPACE_FILTER_ALL])).toStrictEqual(true);
     });
   });
 
@@ -121,6 +142,45 @@ describe('paginationUtils', () => {
 
       expect(paginationUtils.paginationFilterEqual(a, b)).toStrictEqual(false);
     });
+
+    it('handles duplicate fields correctly (position-agnostic does not double-match)', () => {
+      const a = makeParam('filter', true, [
+        { field: 'metadata.name', value: 'foo' },
+        { field: 'metadata.name', value: 'foo' },
+      ]);
+      const b = makeParam('filter', true, [
+        { field: 'metadata.name', value: 'foo' },
+        { field: 'metadata.name', value: 'bar' },
+      ]);
+
+      expect(paginationUtils.paginationFilterEqual(a, b)).toStrictEqual(false);
+    });
+
+    it('returns true with real PaginationFilterField instances', () => {
+      const fieldA = new PaginationFilterField({
+        field: 'metadata.name', value: 'test', equals: true, exact: true
+      });
+      const fieldB = new PaginationFilterField({
+        field: 'metadata.name', value: 'test', equals: true, exact: true
+      });
+      const a = makeParam('filter', true, [fieldA]);
+      const b = makeParam('filter', true, [fieldB]);
+
+      expect(paginationUtils.paginationFilterEqual(a, b)).toStrictEqual(true);
+    });
+
+    it('returns false with real PaginationFilterField instances differing in equality', () => {
+      const fieldA = new PaginationFilterField({
+        field: 'metadata.name', value: 'test', equals: true, exact: true
+      });
+      const fieldB = new PaginationFilterField({
+        field: 'metadata.name', value: 'test', equals: false, exact: true
+      });
+      const a = makeParam('filter', true, [fieldA]);
+      const b = makeParam('filter', true, [fieldB]);
+
+      expect(paginationUtils.paginationFilterEqual(a, b)).toStrictEqual(false);
+    });
   });
 
   describe('paginationFiltersEqual', () => {
@@ -159,6 +219,13 @@ describe('paginationUtils', () => {
 
       expect(paginationUtils.paginationFiltersEqual([p1, p2], [p1, p2])).toStrictEqual(true);
     });
+
+    it('is position-sensitive (same params in different order returns false)', () => {
+      const p1 = makeParam('filter', true, [{ field: 'x', value: '1' }]);
+      const p2 = makeParam('projectsornamespaces', true, [{ field: 'y', value: '2' }]);
+
+      expect(paginationUtils.paginationFiltersEqual([p1, p2], [p2, p1])).toStrictEqual(false);
+    });
   });
 
   describe('paginationEqual', () => {
@@ -166,92 +233,93 @@ describe('paginationUtils', () => {
       expect(paginationUtils.paginationEqual(undefined, undefined)).toStrictEqual(true);
     });
 
+    it('returns false when first arg is undefined and second is defined', () => {
+      const args = makeArgs();
+
+      expect(paginationUtils.paginationEqual(undefined, args)).toStrictEqual(false);
+    });
+
+    it('returns false when first arg is defined and second is undefined', () => {
+      const args = makeArgs();
+
+      expect(paginationUtils.paginationEqual(args, undefined)).toStrictEqual(false);
+    });
+
     it('returns true for identical args', () => {
-      const args = {
-        page: 1, pageSize: 10, sort: [], filters: [], projectsOrNamespaces: []
-      } as unknown as PaginationArgs;
+      const args = makeArgs();
 
       expect(paginationUtils.paginationEqual(args, { ...args })).toStrictEqual(true);
     });
 
-    it('returns false when page differs', () => {
-      const a = {
-        page: 1, pageSize: 10, sort: [], filters: [], projectsOrNamespaces: []
-      } as unknown as PaginationArgs;
-      const b = { ...a, page: 2 };
-
-      expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
-    });
-
-    it('returns false when pageSize differs', () => {
-      const a = {
-        page: 1, pageSize: 10, sort: [], filters: [], projectsOrNamespaces: []
-      } as unknown as PaginationArgs;
-      const b = { ...a, pageSize: 20 };
+    it.each([
+      ['page', { page: 2 }],
+      ['pageSize', { pageSize: 20 }],
+    ])('returns false when %s differs', (_field, override) => {
+      const a = makeArgs();
+      const b = makeArgs(override);
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
     });
 
     it('returns false when sort field differs', () => {
-      const a = {
-        page:                 1,
-        sort:                 [{ field: 'metadata.name', asc: true }],
-        filters:              [],
-        projectsOrNamespaces: [],
-      } as unknown as PaginationArgs;
-      const b = { ...a, sort: [{ field: 'metadata.namespace', asc: true }] };
+      const a = makeArgs({ sort: [{ field: 'metadata.name', asc: true }] });
+      const b = makeArgs({ sort: [{ field: 'metadata.namespace', asc: true }] });
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
     });
 
     it('returns false when sort direction differs', () => {
-      const a = {
-        page:                 1,
-        sort:                 [{ field: 'metadata.name', asc: true }],
-        filters:              [],
-        projectsOrNamespaces: [],
-      } as unknown as PaginationArgs;
-      const b = { ...a, sort: [{ field: 'metadata.name', asc: false }] };
+      const a = makeArgs({ sort: [{ field: 'metadata.name', asc: true }] });
+      const b = makeArgs({ sort: [{ field: 'metadata.name', asc: false }] });
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
     });
 
     it('sort comparison is position-sensitive (not agnostic)', () => {
-      const sort1 = [{ field: 'a', asc: true }, { field: 'b', asc: false }];
-      const sort2 = [{ field: 'b', asc: false }, { field: 'a', asc: true }];
-      const a = {
-        page:                 1,
-        sort:                 sort1,
-        filters:              [],
-        projectsOrNamespaces: [],
-      } as unknown as PaginationArgs;
-      const b = { ...a, sort: sort2 };
+      const a = makeArgs({ sort: [{ field: 'a', asc: true }, { field: 'b', asc: false }] });
+      const b = makeArgs({ sort: [{ field: 'b', asc: false }, { field: 'a', asc: true }] });
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
     });
 
+    it('returns true when sort has same entries in same order', () => {
+      const sort = [{ field: 'a', asc: true }, { field: 'b', asc: false }];
+      const a = makeArgs({ sort: [...sort] });
+      const b = makeArgs({ sort: [...sort] });
+
+      expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(true);
+    });
+
     it('returns false when filters differ', () => {
-      const a = {
-        page:                 1,
-        sort:                 [],
-        filters:              [makeParam('filter', true, []) as any],
-        projectsOrNamespaces: [],
-      } as unknown as PaginationArgs;
-      const b = { ...a, filters: [makeParam('filter', false, []) as any] };
+      const a = makeArgs({ filters: [makeParam('filter', true, []) as any] });
+      const b = makeArgs({ filters: [makeParam('filter', false, []) as any] });
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
     });
 
     it('returns false when projectsOrNamespaces differ', () => {
-      const a = {
-        page:                 1,
-        sort:                 [],
-        filters:              [],
-        projectsOrNamespaces: [makeParam('projectsornamespaces', true, []) as any],
-      } as unknown as PaginationArgs;
-      const b = { ...a, projectsOrNamespaces: [makeParam('projectsornamespaces', false, []) as any] };
+      const a = makeArgs({ projectsOrNamespaces: [makeParam('projectsornamespaces', true, []) as any] });
+      const b = makeArgs({ projectsOrNamespaces: [makeParam('projectsornamespaces', false, []) as any] });
 
       expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
+    });
+
+    it('returns false when sort count differs', () => {
+      const a = makeArgs({ sort: [{ field: 'a', asc: true }] });
+      const b = makeArgs({ sort: [{ field: 'a', asc: true }, { field: 'b', asc: false }] });
+
+      expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(false);
+    });
+
+    it('returns true when both have empty optional arrays', () => {
+      const a = makeArgs({
+        sort: [], filters: [], projectsOrNamespaces: []
+      });
+      const b = makeArgs({
+        sort: [], filters: [], projectsOrNamespaces: []
+      });
+
+      expect(paginationUtils.paginationEqual(a, b)).toStrictEqual(true);
     });
   });
 
@@ -282,6 +350,12 @@ describe('paginationUtils', () => {
       };
 
       expect(paginationUtils.getStoreSettings(settings)).toStrictEqual(customStores);
+    });
+
+    it('returns store defaults when settings is undefined (via overload)', () => {
+      const settings = undefined as unknown as PaginationSettings;
+
+      expect(paginationUtils.getStoreSettings(settings)).toStrictEqual(PAGINATION_SETTINGS_STORE_DEFAULTS);
     });
   });
 });
