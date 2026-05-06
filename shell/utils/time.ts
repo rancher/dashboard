@@ -129,6 +129,25 @@ export function elapsedTime(seconds: any) {
 }
 
 /**
+ * Converts seconds to the largest unit that applies evenly, otherwise keeps seconds
+ * @param seconds
+ * returns { units: string, value: number }
+ */
+export function secondsToLargestUnit(seconds: number) {
+  for (const x of [
+    { units: 'day', multiplier: 86400 },
+    { units: 'hour', multiplier: 3600 },
+    { units: 'min', multiplier: 60 },
+  ]) {
+    if (seconds % x.multiplier === 0) {
+      return { units: x.units, value: seconds / x.multiplier };
+    }
+  }
+
+  return { units: 'sec', value: seconds };
+}
+
+/**
  * Formats duration into days, hours, minutes and seconds components
  * @param seconds Date string to format
  * @returns Formatted duration string

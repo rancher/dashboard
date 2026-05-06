@@ -5,6 +5,7 @@ import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
+import InputWithSelect from '@shell/components/form/InputWithSelect';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -18,6 +19,18 @@ import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params';
 import { RcIconType } from '@components/RcIcon/types';
 import { requireAsset } from '@shell/utils/require-asset';
+import { secondsToLargestUnit } from '@shell/utils/time';
+
+function unitToSecondsMultiplier(unit: string) {
+  switch (unit) {
+  case 'day': return 86400;
+  case 'hour': return 3600;
+  case 'min': return 60;
+  default: return 1; // seconds
+  }
+}
+
+const defaultRefreshIntervalUnits = 'hour';
 
 export default {
   name: 'CruCatalogRepo',
@@ -34,6 +47,7 @@ export default {
     Banner,
     Checkbox,
     UnitInput,
+    InputWithSelect,
     RcItemCard,
   },
 
@@ -82,6 +96,21 @@ export default {
       });
     }
 
+    let refreshInterval = this.value?.spec?.refreshInterval || null;
+    const refreshIntervalDisabled = refreshInterval < 0;
+    let refreshIntervalUnits = defaultRefreshIntervalUnits;
+    const refreshIntervalUnitOptions = ['sec', 'min', 'hour', 'day'].map(
+      (unit) => ({ value: unit, label: this.t(`unit.${ unit }`, { count: 2 /* use plural */ }) }));
+
+    if (refreshIntervalDisabled) {
+      refreshInterval = null;
+    } else if (refreshInterval > 0) {
+      const { units, value } = secondsToLargestUnit(refreshInterval);
+
+      refreshInterval = value;
+      refreshIntervalUnits = units;
+    }
+
     return {
       CLUSTER_REPO_TYPES,
       AUTH_TYPE,
@@ -97,6 +126,10 @@ export default {
       clusterRepoTargets,
       previousName:        '',
       previousDescription: '',
+      refreshInterval,
+      refreshIntervalDisabled,
+      refreshIntervalUnits,
+      refreshIntervalUnitOptions,
     };
   },
 
@@ -108,6 +141,8 @@ export default {
       // Trigger onTargetChange to properly initialize form fields for the selected target
       this.onTargetChange(targetFromQuery);
     }
+
+    this.registerBeforeHook(this.applyRefreshIntervalOnSave);
   },
 
   computed: {
@@ -128,6 +163,20 @@ export default {
   },
 
   methods: {
+    positiveNumberValidator(val, key) {
+      // Explicit null is accepted, do not show warning after loading default value, only when we tried to be modified
+      if (val === null) {
+        return null;
+      }
+
+      const n = Number(val);
+
+      if (!Number.isFinite(n) || n <= 0) {
+        return this.t('validation.number.isPositive', { key });
+      }
+
+      return null; // valid
+    },
     onTargetChange(clusterRepoType) {
       // reset input fields when switching options
       const oldClusterRepoType = this.clusterRepoType;
@@ -174,15 +223,43 @@ export default {
 
       this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
-    updateRefreshInterval(newVal) {
-      // when user removes the value we don't send refreshInterval along with the payload
-      if (newVal === null) {
+    onRefreshIntervalInput({ selected, text }) { // InputWithSelect emits "update:value" with { selected, text }
+      if (this.refreshIntervalDisabled) {
+        return;
+      }
+
+      const units = selected;
+      let refreshInterval = text;
+
+      if (refreshInterval === '' && this.refreshInterval !== refreshInterval) {
+        // HACK: Validation treats explicit null differently, omitting the warning.
+        // This code tries to detect the manual "deletion" case, and avoid showing the warning.
+        // Note: the components converts any non-numeric input to an empty string, so we only receive text='' here
+        refreshInterval = null;
+      }
+
+      // Keep UI up-to-date
+      this.refreshInterval = refreshInterval;
+      this.refreshIntervalUnits = units;
+
+      if (refreshInterval === '' || refreshInterval === null || refreshInterval === undefined) {
         delete this.value.spec.refreshInterval;
+        this.refreshIntervalUnits = defaultRefreshIntervalUnits;
 
         return;
       }
 
-      this.value.spec.refreshInterval = newVal;
+      // Convert input to seconds
+      this.value.spec.refreshInterval = Number(refreshInterval) * unitToSecondsMultiplier(units);
+    },
+    applyRefreshIntervalOnSave() {
+      if (this.refreshIntervalDisabled || this.refreshInterval < 0) {
+        this.value.spec.refreshInterval = -1;
+      } else if (this.refreshInterval === 0) {
+        delete this.value.spec.refreshInterval;
+      }
+
+      return Promise.resolve();
     },
     resetGitRepoValues() {
       delete this.value.spec['gitRepo'];
@@ -281,7 +358,7 @@ export default {
             data-testid="clusterrepo-git-repo-input"
           />
         </div>
-        <div class="col span-3">
+        <div class="col span-2">
           <LabeledInput
             v-model:value.trim="value.spec.gitBranch"
             :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
@@ -335,19 +412,36 @@ export default {
       </div>
 
       <div
-        class="col span-3"
+        class="col span-4"
         data-testid="clusterrepo-refresh-interval"
       >
-        <UnitInput
-          v-model:value.trim="value.spec.refreshInterval"
-          :label="t('catalog.repo.refreshInterval.label')"
-          :mode="mode"
-          :min="-1"
-          :suffix="t('suffix.sec')"
-          :placeholder="t('catalog.repo.refreshInterval.placeholder', { value: value.defaultRefreshIntervalHours, units: value.defaultRefreshIntervalHours > 1 ? 'hours' : 'hour' })"
-          :tooltip="t('catalog.repo.refreshInterval.tooltip')"
-          @update:value="updateRefreshInterval($event)"
-        />
+        <div class="refresh-interval-row">
+          <div class="refresh-interval-input">
+            <InputWithSelect
+              :text-value="refreshInterval"
+              :min="1"
+              :text-rules="[(val) => positiveNumberValidator(val, 'refreshInterval')]"
+              :select-disabled="refreshInterval == null || refreshInterval === ''"
+              :select-value="refreshIntervalUnits"
+              :select-before-text="false"
+              :searchable="false"
+              :text-label="t('catalog.repo.refreshInterval.label')"
+              :mode="mode"
+              type="number"
+              :options="refreshIntervalUnitOptions"
+              :disabled="refreshIntervalDisabled || isView"
+              :placeholder="t('catalog.repo.refreshInterval.placeholder', { value: value.defaultRefreshIntervalHours })"
+              @update:value="onRefreshIntervalInput"
+            />
+          </div>
+          <div class="refresh-interval-toggle">
+            <Checkbox
+              v-model:value="refreshIntervalDisabled"
+              :mode="mode"
+              :label="t('generic.disabled')"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -477,5 +571,30 @@ export default {
   width: 100%;
   height: max-content;
   overflow: hidden;
+}
+.refresh-interval-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--gap-md);
+}
+.refresh-interval-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Increase unit selector size to make text visible */
+.refresh-interval-input :deep(.in-input) {
+  width: clamp(100px, 30%, 120px) !important; /* tweak numbers to taste */
+  min-width: 0 !important;
+  flex: 0 0 auto;
+}
+/* Ensure the text portion uses the remaining space */
+.refresh-interval-input :deep(.input-string) {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto !important;
+}
+.refresh-interval-toggle {
+  flex: 0 0 auto;
+  padding-bottom: 2px;
 }
 </style>
