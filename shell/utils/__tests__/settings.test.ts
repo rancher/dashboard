@@ -135,6 +135,6 @@ describe('isProviderEnabled', () => {
   it('throws when setting value is invalid JSON', () => {
     const context = makeMockContext('not-valid-json{{{');
 
-    expect(() => isProviderEnabled(context, 'eks')).toThrow();
+    expect(() => isProviderEnabled(context, 'eks')).toThrow('Unexpected token');
   });
 });
