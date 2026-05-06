@@ -73,6 +73,10 @@ export interface CreateResourceNameOptions {
 
 declare global {
   namespace Cypress {
+    interface RancherVersion {
+      RancherPrime?: string;
+    }
+
     interface Chainable {
       setupWebSocket: any;
       hideElementBySelector(...selectors: string[]): Chainable<void>;
@@ -124,7 +128,7 @@ declare global {
       }): Chainable;
       applyDefaultTestTheme(): Chainable<any>;
       restoreProductDefaultTestTheme(): Chainable<any>;
-      getRancherVersion(): Chainable<any>;
+      getRancherVersion(): Chainable<RancherVersion>;
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
@@ -132,11 +136,13 @@ declare global {
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
       waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
-      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number): Chainable;
+      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
       checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
       getClusterToolsChartCount(repoName?: string): Chainable<number>;
+      installChart(repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string): Chainable;
+      getChartVersions(repo: string, chartId: string): Chainable<string[]>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources

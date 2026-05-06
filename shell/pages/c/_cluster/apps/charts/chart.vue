@@ -10,11 +10,11 @@ import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED, NAMESPACE, NAME, NEW_APP_INSTANCE, _FLAGGED
 } from '@shell/config/query-params';
 import { DATE_FORMAT } from '@shell/store/prefs';
-import { ZERO_TIME } from '@shell/config/types';
+import { isMissingDate } from '@shell/utils/time';
 import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { APP_UPGRADE_STATUS, compatibleVersionsFor } from '@shell/store/catalog';
-import { compareChartVersions } from '@shell/utils/chart';
+import { compareChartVersions, getStandaloneReadmeUrl } from '@shell/utils/chart';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
@@ -47,7 +47,6 @@ export default {
   data() {
     return {
       SEARCH_QUERY,
-      ZERO_TIME,
       showLastVersions:       7,
       showMoreVersions:       false,
       selectedInstalledAppId: null,
@@ -218,6 +217,7 @@ export default {
   },
 
   methods: {
+    isMissingDate,
     /**
      * Computes statuses for the chart detail page based on the selected installed app.
      * When an app is selected, shows instance-specific installed/upgradeable status.
@@ -347,17 +347,9 @@ export default {
       }
     },
     formatVersionDate(date) {
-      if (date === ZERO_TIME) {
-        return this.t('generic.na');
-      }
-
       return day(date).format('MMM D, YYYY');
     },
     getVersionDateTooltip(date) {
-      if (date === ZERO_TIME) {
-        return this.t('catalog.chart.info.chartVersions.missingVersionDate');
-      }
-
       const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
 
       return day(date).format(dateFormat);
@@ -373,6 +365,20 @@ export default {
           [VERSION]: version,
         }
       };
+    },
+    openReadme() {
+      const url = getStandaloneReadmeUrl(this.$router, {
+        cluster:              this.$route.params.cluster,
+        repoType:             this.query.repoType,
+        repoName:             this.query.repoName,
+        chartName:            this.query.chartName,
+        versionName:          this.query.versionName || this.targetVersion,
+        deprecated:           this.query.deprecated,
+        showAppReadme:        false,
+        hideReadmeFirstTitle: false,
+      });
+
+      window.open(url, '_blank');
     }
   },
 };
@@ -544,13 +550,27 @@ export default {
     </div>
 
     <div class="chart-body">
-      <ChartReadme
+      <div
         v-if="hasReadme"
-        :version-info="versionInfo"
-        :show-app-readme="false"
-        :hide-readme-first-title="false"
-        class="chart-body__readme"
-      />
+        class="readme-wrapper"
+      >
+        <RcButton
+          v-clean-tooltip="t('catalog.chart.viewReadmeSeparately.tooltip')"
+          class="open-readme-button"
+          secondary
+          rightIcon="external-link"
+          @click="openReadme()"
+        >
+          {{ t('catalog.chart.viewReadmeSeparately.label') }}
+          <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+        </RcButton>
+        <ChartReadme
+          :version-info="versionInfo"
+          :show-app-readme="false"
+          :hide-readme-first-title="false"
+          class="chart-body__readme"
+        />
+      </div>
       <div
         v-else
         class="chart-body__readme"
@@ -603,6 +623,7 @@ export default {
               />
             </div>
             <p
+              v-if="!isMissingDate(vers.created)"
               v-clean-tooltip="{ content: getVersionDateTooltip(vers.created), placement: 'left'}"
               class="version-date"
             >
@@ -835,9 +856,31 @@ export default {
 
   .chart-body {
     display: flex;
-    &__readme {
+    .readme-wrapper {
+      position: relative;
       flex: 1;
       min-width: 400px;
+
+      .open-readme-button {
+        display: flex;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 100ms ease-in;
+        position: absolute;
+        top: 12px;
+        right: 24px;
+      }
+
+      &:hover,
+      &:focus-within {
+        .open-readme-button {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+    }
+
+    &__readme {
       padding: 12px 24px;
     }
     &__info {

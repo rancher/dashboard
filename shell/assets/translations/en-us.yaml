@@ -808,6 +808,9 @@ authConfig:
     groupSearch:
       label: Enable group search
       tooltip: Allows users with appropriate permissions to search and view all groups within the OIDC provider's realm. This can be useful for administrators who need to assign global roles to groups that they are not currently a member of.
+    clientAuthenticatedSearch:
+      label: Enable client authenticated search
+      tooltip: Use the OIDC Client Credentials to authenticate to Keycloak when searching for users or groups. This will bypass user-based RBAC within the realm
   stateBanner:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
@@ -1140,7 +1143,6 @@ catalog:
         label: Chart Versions
         showMore: Show More
         showLess: Show Less
-        missingVersionDate: No date available for this chart version
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
@@ -1154,6 +1156,9 @@ catalog:
     deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
+    viewReadmeSeparately:
+      label: View separately
+      tooltip: Open the readme in a new tab
     installedAppsSelector:
       ariaLabel: Select installed app instance
     chartButton:
@@ -1193,8 +1198,6 @@ catalog:
       label: Add new
       ariaLabel: Add a new repository
     appChartCard:
-      subHeaderItem:
-        missingVersionDate: Last updated date is not available for this chart
       footerItem:
         ariaLabel: 'Apply {filter} filter'
     statusFilterCautions:

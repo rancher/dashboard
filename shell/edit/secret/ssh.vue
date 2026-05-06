@@ -1,6 +1,9 @@
 <script>
+import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   components: { LabeledInput, FileSelector },
@@ -15,6 +18,28 @@ export default {
       type:     String,
       required: true,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'ssh-publickey',
+          rules:          ['required'],
+          translationKey: 'secret.ssh.public',
+        },
+        {
+          path:           'ssh-privatekey',
+          rules:          ['required'],
+          translationKey: 'secret.ssh.private',
+        },
+      ]
+    );
+
+    return { getRules };
   },
 
   data() {
@@ -60,10 +85,12 @@ export default {
         <LabeledInput
           v-model:value="username"
           type="multiline"
+          name="ssh-publickey"
           data-testid="ssh-public-key"
           :label="t('secret.ssh.public')"
           :mode="mode"
           required
+          :rules="getRules('ssh-publickey')"
           :placeholder="t('secret.ssh.publicPlaceholder')"
         />
         <FileSelector
@@ -76,10 +103,12 @@ export default {
         <LabeledInput
           v-model:value="password"
           type="multiline"
+          name="ssh-privatekey"
           data-testid="ssh-private-key"
           :label="t('secret.ssh.private')"
           :mode="mode"
           required
+          :rules="getRules('ssh-privatekey')"
           :placeholder="t('secret.ssh.privatePlaceholder')"
         />
         <FileSelector

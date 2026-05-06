@@ -62,6 +62,10 @@ export class ProjectSecretsCreateEditPo extends BaseDetailPagePo {
     return new LabeledInputPo('[data-testid="secret-basic-username"]');
   }
 
+  basicAuthPasswordInput() {
+    return new LabeledInputPo('[data-testid="secret-basic-password"]');
+  }
+
   saveOrCreate(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }

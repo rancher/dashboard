@@ -164,6 +164,14 @@ export default {
       }),
       type: Object,
     },
+    nameFieldName: {
+      type:    String,
+      default: null,
+    },
+    namespaceFieldName: {
+      type:    String,
+      default: null,
+    },
 
     /**
      * Inherited global identifier prefix for tests
@@ -438,6 +446,7 @@ export default {
       <LabeledInput
         ref="namespaceInput"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
@@ -464,6 +473,7 @@ export default {
       <LabeledSelect
         v-show="!createNamespace"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :clearable="true"
         :options="options"
         :disabled="namespaceReallyDisabled"
@@ -487,6 +497,7 @@ export default {
         ref="nameInput"
         key="name"
         v-model:value="name"
+        :name="nameFieldName"
         data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"

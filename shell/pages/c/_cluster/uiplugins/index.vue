@@ -5,7 +5,8 @@ import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { isMissingDate } from '@shell/utils/time';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
@@ -896,18 +897,12 @@ export default {
         label:       plugin.displayVersionLabel,
       }];
 
-      if (plugin.created) {
-        const hasZeroTime = plugin.created === ZERO_TIME;
-        const lastUpdatedItem = {
+      if (!isMissingDate(plugin.created)) {
+        items.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
-        };
-
-        if (hasZeroTime) {
-          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
-        }
-        items.push(lastUpdatedItem);
+          label:       day(plugin.created).format('MMM D, YYYY')
+        });
       }
 
       if (plugin.installing) {

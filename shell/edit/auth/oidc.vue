@@ -15,7 +15,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
-import isUrl from 'is-url';
+import { isValidUrl } from '@shell/utils/validators/setting';
 
 const PKCE_S256 = 'S256';
 
@@ -105,7 +105,7 @@ export default {
       }
 
       // make sure that if SLO options are enabled on radio group, field "endSessionEndpoint" is required
-      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && (!this.model.endSessionEndpoint || !isUrl(this.model.endSessionEndpoint))) {
+      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && (!this.model.endSessionEndpoint || !isValidUrl(this.model.endSessionEndpoint))) {
         return false;
       }
 
@@ -450,6 +450,14 @@ export default {
               data-testid="input-group-search"
               :label="t('authConfig.oidc.groupSearch.label')"
               :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
+              v-if="isKeycloak"
+              v-model:value="model.clientAuthenticatedSearch"
+              data-testid="input-client-authenticated-group-search"
+              :label="t('authConfig.oidc.clientAuthenticatedSearch.label')"
+              :tooltip="t('authConfig.oidc.clientAuthenticatedSearch.tooltip')"
               :mode="mode"
             />
             <Checkbox

@@ -1,3 +1,4 @@
+import { qase } from '@/cypress/support/qase';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerCreateRke2AmazonPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-amazon.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -51,7 +52,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
-  it('can create an RKE2 cluster using Amazon cloud provider', function() {
+  qase(5593, it('can create an RKE2 cluster using Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -134,9 +135,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
         expect(['Reconciling', 'Updating']).to.include(status);
       });
-  });
+  }));
 
-  it('can see details of cluster in cluster list', function() {
+  qase(5594, it('can see details of cluster in cluster list', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -162,9 +163,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterList.list().machines(this.rke2Ec2ClusterName).should('contain.text', '1');
     // check that the machine progress bar is 1 color
     clusterList.list().machines(this.rke2Ec2ClusterName).find('.piece').should('have.length', 1);
-  });
+  }));
 
-  it('cluster details page', function() {
+  qase(5595, it('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -180,9 +181,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
     clusterDetails.waitForPage(null, 'events');
     clusterDetails.recentEventsList().checkTableIsEmpty();
-  });
+  }));
 
-  it('can scale up a machine pool', function() {
+  qase(16750, it('can scale up a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
 
@@ -256,9 +257,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // Verify the cluster is active
     clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
-  });
+  }));
 
-  it('can scale down a machine pool', function() {
+  qase(16751, it('can scale down a machine pool', function() {
     // testing https://github.com/rancher/dashboard/issues/13285
     // Set user preference to ensure the scale down confirmation modal always appears
     cy.setUserPreference({ 'scale-pool-prompt': false });
@@ -320,9 +321,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // Verify the scale down button is now disabled (can't scale below 1)
     clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
       .should('be.disabled');
-  });
+  }));
 
-  it('can upgrade Kubernetes version', function() {
+  qase(16618, it('can upgrade Kubernetes version', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -373,9 +374,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     editClusterPage.basicsTab().kubernetesVersions().getOptions()
       .contains('li', olderK8sVersion)
       .should('have.class', 'vs__dropdown-option--disabled');
-  });
+  }));
 
-  it('can create snapshot', function() {
+  qase(5596, it('can create snapshot', function() {
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -403,9 +404,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
-  });
+  }));
 
-  it('can delete an Amazon EC2 RKE2 cluster', function() {
+  qase(5597, it('can delete an Amazon EC2 RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     cy.intercept('DELETE', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('deleteRke2Cluster');
@@ -423,9 +424,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
       expect(tableText).to.not.contain(this.rke2Ec2ClusterName);
     });
-  });
+  }));
 
-  it('validates cluster networking configuration when machines are using dual-stack networking', function() {
+  qase(18458, it('validates cluster networking configuration when machines are using dual-stack networking', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
 
     // Intercept AWS API requests
@@ -547,9 +548,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.networkTab().flannelMasq().set();
     createRKE2ClusterPage.create();
     cy.wait('@createRke2Cluster');
-  });
+  }));
 
-  it('validates cluster networking configuration when machines are using ipv6-only networking', function() {
+  qase(18459, it('validates cluster networking configuration when machines are using ipv6-only networking', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
 
     // Intercept AWS API requests
@@ -645,7 +646,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.networkTab().flannelMasq().set();
     createRKE2ClusterPage.create();
     cy.wait('@createRke2Cluster');
-  });
+  }));
 
   after('clean up', () => {
     // delete cluster: needed here in case the delete test fails
