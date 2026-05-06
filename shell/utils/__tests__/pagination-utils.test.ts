@@ -11,7 +11,7 @@ import {
 } from '@shell/utils/namespace-filter';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationSettings } from '@shell/types/resources/settings';
-import { PaginationArgs, PaginationFilterField, PaginationParam, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationFilterField, PaginationParam } from '@shell/types/store/pagination.types';
 
 /** Helper to build a plain PaginationParam-shaped object for testing */
 const makeParam = (param: string, equals: boolean, fields: any[]): PaginationParam => ({
