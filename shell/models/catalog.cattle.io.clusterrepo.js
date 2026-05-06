@@ -231,7 +231,7 @@ export default class ClusterRepo extends SteveModel {
     const value = this.spec?.refreshInterval || this.defaultRefreshInterval;
 
     if (value === -1) {
-      return 'Disabled';
+      return this.t('generic.disabled');
     }
 
     return formatDuration(value);
@@ -250,7 +250,7 @@ export default class ClusterRepo extends SteveModel {
         formatterOpts: { addSuffix: true },
       },
       {
-        label:   'Refresh Interval',
+        label:   this.t('catalog.repo.refreshInterval.label'),
         content: this.refreshInterval,
       },
     ];
