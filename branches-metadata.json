@@ -25,7 +25,6 @@
       },
       "e2e": {
         "rancher-image": {
-          "registry": "stgregistry.suse.com",
           "namespace": "rancher",
           "name": "rancher",
           "tag": "v2.14-head"
