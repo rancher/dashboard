@@ -626,13 +626,18 @@ function _execute(resources, action, args, opts = {}, ctx) {
     return action.invoke.apply(ctx, [actionOpts, resources || [], args]);
   }
 
+  /**
+   * for the given resource find it's action matching the target action. if that target action has an alt resource return it
+   */
+  const findResourceFromAction = (r) => {
+    const actualAction = r.availableActions.find((aa) => aa.action === action.action);
+
+    return actualAction.altResource || r;
+  };
+
+  // if there there are multiple resources and a bulk action, use it and pass in the resources
+  // for example cluster management cluster list Download KubeConfig
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    const findResourceFromAction = (r) => {
-      const actualAction = r.availableActions.find((aa) => aa.action === action.action);
-
-      return actualAction.altResource || r;
-    };
-
     const applyResource = findResourceFromAction(resources[0]);
     const fn = applyResource[action.bulkAction];
 
@@ -645,10 +650,12 @@ function _execute(resources, action, args, opts = {}, ctx) {
 
   const promises = [];
 
+  // if there is a single resource or no bulk action, for each resource execute it's action
+  // for example delete when only one row is selected
   for ( const resource of resources ) {
     let fn;
 
-    const applyResource = action.altResource || resource;
+    const applyResource = findResourceFromAction(resource);
 
     if (opts.alt && action.altAction) {
       fn = applyResource[action.altAction];
