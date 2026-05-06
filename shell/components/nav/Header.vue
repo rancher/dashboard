@@ -155,6 +155,7 @@ export default {
       if (!this.shellEnabled) {
         return this.t('nav.shellDisabledTooltip');
       }
+
       return this.t('nav.shellShortcut', { key: this.shellShortcut });
     },
 
