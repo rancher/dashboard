@@ -22,21 +22,20 @@ describe('gc-interval', () => {
   });
 
   describe('gcStartIntervals', () => {
-    it('does not start interval when gcEnabledSetting returns false', () => {
-      mockGc.gcEnabledSetting.mockReturnValue(false);
-      mockGc.gcEnabledInterval.mockReturnValue({ enabled: true, interval: 60 });
-
-      const ctx = { dispatch: jest.fn() };
-
-      gci.gcStartIntervals(ctx);
-
-      jest.advanceTimersByTime(120_000);
-      expect(ctx.dispatch).not.toHaveBeenCalled();
-    });
-
-    it('does not start interval when gcEnabledInterval returns enabled=false', () => {
-      mockGc.gcEnabledSetting.mockReturnValue(true);
-      mockGc.gcEnabledInterval.mockReturnValue({ enabled: false, interval: 60 });
+    it.each([
+      {
+        desc:            'gcEnabledSetting returns false',
+        enabledSetting:  false,
+        enabledInterval: { enabled: true, interval: 60 },
+      },
+      {
+        desc:            'gcEnabledInterval returns enabled=false',
+        enabledSetting:  true,
+        enabledInterval: { enabled: false, interval: 60 },
+      },
+    ])('does not start interval when $desc', ({ enabledSetting, enabledInterval }) => {
+      mockGc.gcEnabledSetting.mockReturnValue(enabledSetting);
+      mockGc.gcEnabledInterval.mockReturnValue(enabledInterval);
 
       const ctx = { dispatch: jest.fn() };
 
