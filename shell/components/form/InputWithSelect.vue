@@ -72,6 +72,11 @@ export default {
       default: false,
     },
 
+    selectDisabled: {
+      type:    Boolean,
+      default: false,
+    },
+
     textValue: {
       type:    [String, Number],
       default: '',
@@ -144,7 +149,7 @@ export default {
       :options="options"
       :searchable="false"
       :clearable="false"
-      :disabled="disabled || isView"
+      :disabled="disabled || selectDisabled || isView"
       :taggable="taggable"
       :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
@@ -160,7 +165,7 @@ export default {
       v-model:value="selected"
       :options="options"
       :searchable="searchable"
-      :disabled="disabled || isView"
+      :disabled="disabled || selectDisabled || isView"
       :clearable="false"
       class="in-input"
       :taggable="taggable"
