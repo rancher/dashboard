@@ -1,6 +1,9 @@
 import semver from 'semver';
 import { compare } from '@shell/utils/version';
 import { compatibleVersionsFor } from '@shell/store/catalog';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, DEPRECATED
+} from '@shell/config/query-params';
 
 /**
  * Compares two chart versions using SemVer logic, with special handling for Rancher's "up" build metadata.
@@ -79,4 +82,37 @@ export function getLatestCompatibleVersion(chart, workerOSs, showPrerelease) {
   const compatible = compatibleVersionsFor(chart, workerOSs, showPrerelease);
 
   return (compatible.length ? compatible[0] : chart.versions[0]) || {};
+}
+
+/**
+ * Builds the route URL for the standalone chart readme page.
+ *
+ * The helper maps chart context into query params so the readme page can fetch
+ * version info directly (instead of relying on local/session storage transfer).
+ */
+export function getStandaloneReadmeUrl(router, {
+  cluster,
+  repoType,
+  repoName,
+  chartName,
+  versionName,
+  deprecated,
+  showAppReadme = true,
+  hideReadmeFirstTitle = true,
+} = {}) {
+  const { href } = router.resolve({
+    name:   'readme',
+    params: { cluster },
+    query:  {
+      [REPO_TYPE]:          repoType,
+      [REPO]:               repoName,
+      [CHART]:              chartName,
+      [VERSION]:            versionName,
+      [DEPRECATED]:         deprecated,
+      showAppReadme:        String(showAppReadme),
+      hideReadmeFirstTitle: String(hideReadmeFirstTitle),
+    }
+  });
+
+  return href;
 }
