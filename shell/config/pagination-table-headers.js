@@ -5,7 +5,10 @@ import {
   EVENT_TYPE,
   SECRET_ORIGIN,
   EVENT_FIRST_SEEN_TIME,
-  WORKLOAD_HEALTH_SCALE
+  WORKLOAD_HEALTH_SCALE,
+  MGMT_CLUSTER_PROVIDER,
+  MGMT_CLUSTER_KUBE_VERSION,
+  AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -99,6 +102,25 @@ export const STEVE_SECRET_ORIGIN = {
 
 export const STEVE_WORKLOAD_HEALTH_SCALE = {
   ...WORKLOAD_HEALTH_SCALE,
+  sort:   false,
+  search: false,
+};
+
+export const STEVE_MGMT_CLUSTER_PROVIDER = {
+  ...MGMT_CLUSTER_PROVIDER,
+  value:  'status.info.machineProvider',
+  sort:   ['status.info.machineProvider', 'status.driver'],
+  search: ['status.info.machineProvider', 'status.driver'],
+};
+
+export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
+  ...MGMT_CLUSTER_KUBE_VERSION,
+  sort:   'status.info.kubernetesVersion',
+  search: 'status.info.kubernetesVersion',
+};
+
+export const STEVE_AUTOSCALER_ENABLED = {
+  ...AUTOSCALER_ENABLED,
   sort:   false,
   search: false,
 };

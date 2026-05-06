@@ -1185,6 +1185,25 @@ export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',
   value:     'isAutoscalerEnabled',
-  sort:      ['autoscaler'],
+  sort:      ['isAutoscalerEnabled'],
   formatter: 'Autoscaler',
+};
+
+export const MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'statusInfo.machineProvider',
+  sort:      ['statusInfo.machineProvider', 'status.driver'],
+  search:    ['statusInfo.machineProvider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const MGMT_CLUSTER_KUBE_VERSION = {
+  name:      'kubernetesVersion',
+  labelKey:  'tableHeaders.version',
+  subLabel:  'Architecture',
+  sort:      'statusInfo.kubernetesVersion',
+  search:    'statusInfo.kubernetesVersion',
+  formatter: 'ClusterKubeVersion',
 };

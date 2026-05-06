@@ -5,6 +5,12 @@ import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 
+// Couple of things wrong here
+// 1. It should be in pkg/harvester-manager extension
+// 2. It's not used when the harvester-ui extension is loaded
+// - extension has it's own detail/harvesterhci.io.management.cluster.vue which supersedes this
+// - unless harvester standalone uses it, it should not exist in the harvester-ui extension
+
 export default {
   emits: ['input'],
 
@@ -31,8 +37,6 @@ export default {
 
     const res = await allHash(hash);
 
-    this.allNodes = res.allNodes || [];
-    this.allNodePools = res.allNodePools || [];
     this.clusterToken = res.clusterToken;
   },
 

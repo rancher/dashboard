@@ -1,29 +1,36 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
+import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
     return ['GKE', 'EKS', 'AKS'].includes(provider);
   })
 }));
+
+jest.mock('@shell/utils/clipboard', () => {
+  return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
+});
+
 describe('class ProvCluster', () => {
   const gkeClusterWithPrivateEndpoint = {
     clusterName: 'test',
     provisioner: 'GKE',
     spec:        { },
-    mgmt:        { spec: { gkeConfig: { privateClusterConfig: { enablePrivateEndpoint: true } } } }
+    mgmt:        new MgmtCluster({ spec: { gkeConfig: { privateClusterConfig: { enablePrivateEndpoint: true } } } }),
   };
 
   const eksClusterWithPrivateEndpoint = {
     clusterName: 'test',
     provisioner: 'EKS',
     spec:        { },
-    mgmt:        { spec: { eksConfig: { privateAccess: true } } }
+    mgmt:        new MgmtCluster({ spec: { eksConfig: { privateAccess: true } } }),
   };
 
   const aksClusterWithPrivateEndpoint = {
     clusterName: 'test',
     provisioner: 'AKS',
     spec:        { },
-    mgmt:        { spec: { aksConfig: { privateCluster: true } } }
+    mgmt:        new MgmtCluster({ spec: { aksConfig: { privateCluster: true } } }),
   };
 
   // Related to https://github.com/rancher/dashboard/issues/9402
@@ -41,10 +48,14 @@ describe('class ProvCluster', () => {
     it.each(testCases)('should return the isHostedKubernetesProvider and isPrivateHostedProvider values properly based on the props data', (clusterData: Object, expected: Boolean) => {
       const cluster = new ProvCluster({ spec: clusterData.spec });
 
+      jest.spyOn(clusterData.mgmt, 'provCluster', 'get').mockReturnValue(
+        clusterData
+      );
+
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(
         clusterData.mgmt
       );
-      jest.spyOn(cluster, 'provisioner', 'get').mockReturnValue(
+      jest.spyOn(clusterData.mgmt, 'provisioner', 'get').mockReturnValue(
         clusterData.provisioner
       );
 
@@ -54,6 +65,7 @@ describe('class ProvCluster', () => {
       resetMocks();
     });
   });
+
   describe('isImported', () => {
     const testCases = [
       {
@@ -114,7 +126,8 @@ describe('class ProvCluster', () => {
         clusterData: {
           isLocal:                    false,
           isHostedKubernetesProvider: true,
-          providerConfig:             { imported: true }
+          providerConfig:             { imported: true },
+          mgmt:                       { status: { provider: '', driver: 'EKS' } }
         },
         expected: true
       },
@@ -123,7 +136,8 @@ describe('class ProvCluster', () => {
         clusterData: {
           isLocal:                    false,
           isHostedKubernetesProvider: true,
-          providerConfig:             { imported: false }
+          providerConfig:             { imported: false },
+          mgmt:                       { status: { provider: '', driver: 'EKS' } }
         },
         expected: false
       },
@@ -150,23 +164,27 @@ describe('class ProvCluster', () => {
     };
 
     it.each(testCases)('$description', ({ clusterData, expected }) => {
+      const mgmtCluster = new MgmtCluster(clusterData.mgmt || {});
       const cluster = new ProvCluster({});
 
       // Mock getters
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(
-        clusterData.mgmt
+        mgmtCluster
+      );
+      jest.spyOn(mgmtCluster, 'provCluster', 'get').mockReturnValue(
+        cluster
       );
       if (clusterData.isLocal !== undefined) {
-        jest.spyOn(cluster, 'isLocal', 'get').mockReturnValue(clusterData.isLocal);
+        jest.spyOn(mgmtCluster, 'isLocal', 'get').mockReturnValue(clusterData.isLocal);
       }
       if (clusterData.isHostedKubernetesProvider !== undefined) {
-        jest.spyOn(cluster, 'isHostedKubernetesProvider', 'get').mockReturnValue(clusterData.isHostedKubernetesProvider);
+        jest.spyOn(mgmtCluster, 'isHostedKubernetesProvider', 'get').mockReturnValue(clusterData.isHostedKubernetesProvider);
       }
       if (clusterData.providerConfig !== undefined) {
         jest.spyOn(cluster, 'providerConfig', 'get').mockReturnValue(clusterData.providerConfig);
       }
       if (clusterData.provisioner !== undefined) {
-        jest.spyOn(cluster, 'provisioner', 'get').mockReturnValue(clusterData.provisioner);
+        jest.spyOn(mgmtCluster, 'provisioner', 'get').mockReturnValue(clusterData.provisioner);
       }
 
       expect(cluster.isImported).toBe(expected);
@@ -268,7 +286,10 @@ describe('class ProvCluster', () => {
 
     it.each(testCases)('should return the hasError value properly based on the "status.conditions" props data for testcase %p', (testName: string, conditions: Array, expected: Boolean) => {
       const ctx = { rootGetters: { 'management/byId': jest.fn() } };
-      const cluster = new ProvCluster({ status: { conditions } }, ctx);
+      const mgmtCluster = new MgmtCluster({ status: { conditions } }, ctx);
+      const cluster = new ProvCluster({}, ctx);
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
 
       expect(cluster.hasError).toBe(expected);
       resetMocks();

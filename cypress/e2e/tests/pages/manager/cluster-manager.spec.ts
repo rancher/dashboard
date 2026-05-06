@@ -824,6 +824,7 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
     });
   });
 });
+
 describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
   before(() => {
     cy.login();

@@ -110,28 +110,28 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'x33-cwf5-name',
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'x34-cwf5-name',
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'local-name',
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true
+                canExplore:  true
               },
             ])
           }
@@ -156,28 +156,28 @@ describe('topLevelMenu', () => {
         id:          'an-id1',
         mgmt:        { id: 'an-id1' },
         nameDisplay: 'c-cluster',
-        isReady:     true
+        canExplore:  true
       },
       {
         name:        'x33-cwf5-name',
         id:          'an-id2',
         mgmt:        { id: 'an-id2' },
         nameDisplay: 'a-cluster',
-        isReady:     false
+        canExplore:  false
       },
       {
         name:        'x34-cwf5-name',
         id:          'an-id3',
         mgmt:        { id: 'an-id3' },
         nameDisplay: 'b-cluster',
-        isReady:     true
+        canExplore:  true
       },
       {
         name:        'local-name',
         id:          'local',
         mgmt:        { id: 'local' },
         nameDisplay: 'local',
-        isReady:     true,
+        canExplore:  true,
         isLocal:     true,
       },
     ];
@@ -195,9 +195,9 @@ describe('topLevelMenu', () => {
     await waitForIt();
 
     expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
     expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
     expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
@@ -212,7 +212,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -220,7 +220,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -228,7 +228,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -236,7 +236,7 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
             ])
@@ -271,7 +271,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -279,7 +279,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -287,7 +287,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     false,
+                canExplore:  false,
                 pinned:      true
               },
               {
@@ -295,7 +295,7 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
             ])
@@ -328,7 +328,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id1' },
                 description: 'some-description1',
                 nameDisplay: 'some-label',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               // pinned NOT ready cluster
@@ -347,7 +347,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id3' },
                 description: 'some-description3',
                 nameDisplay: 'some-label',
-                isReady:     true
+                canExplore:  true
               },
               // unpinned NOT ready cluster
               {
@@ -392,7 +392,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id1' },
                 description: 'some-description1',
                 nameDisplay: 'some-label',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               // pinned NOT ready cluster
@@ -411,7 +411,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id3' },
                 description: 'some-description3',
                 nameDisplay: 'some-label',
-                isReady:     true
+                canExplore:  true
               },
               // unpinned NOT ready cluster
               {
