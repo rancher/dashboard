@@ -115,11 +115,20 @@ const actionInvoked = () => {
 
   .display {
     display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+
+    a {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
   }
 
   .rc-status-indicator {
+      flex-shrink: 0;
       margin-right: 12px;
-      margin-top: 4px;
       height: initial;
       line-height: initial;
   }

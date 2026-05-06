@@ -105,6 +105,10 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     .row {
       gap: 8px;
 
+      &::before, &::after {
+        display: none;
+      }
+
       &:not(:last-of-type) {
         margin-bottom: 8px;
       }
@@ -112,8 +116,10 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       .full-custom-value {
         flex: 1;
         min-width: 0;
-        overflow: hidden;
-        max-height: 1lh;
+
+        :deep(.popover-card-target) {
+          width: 100%;
+        }
       }
 
       .value {
