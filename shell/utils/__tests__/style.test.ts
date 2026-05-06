@@ -54,50 +54,43 @@ describe('isHigherAlert', () => {
     ['error', 'error', false],
     ['warning', 'warning', false],
     ['info', 'info', false],
+    ['disabled', 'info', false],
+    ['disabled', 'error', false],
+    ['info', 'disabled', true],
+    ['error', 'disabled', true],
   ] as [StateColor, StateColor, boolean][])('%s vs %s → %s', (a, b, expected) => {
     expect(isHigherAlert(a, b)).toBe(expected);
-  });
-
-  it('returns false when a is disabled (not in alert order)', () => {
-    expect(isHigherAlert('disabled', 'info')).toBe(false);
-    expect(isHigherAlert('disabled', 'error')).toBe(false);
-  });
-
-  it('returns true when b is disabled and a is in the alert order', () => {
-    expect(isHigherAlert('info', 'disabled')).toBe(true);
-    expect(isHigherAlert('error', 'disabled')).toBe(true);
   });
 });
 
 describe('getHighestAlertColor', () => {
-  it('returns info for an empty array', () => {
-    expect(getHighestAlertColor([])).toBe('info');
-  });
-
-  it('returns the only color when array has one element', () => {
-    expect(getHighestAlertColor(['error'])).toBe('error');
-    expect(getHighestAlertColor(['warning'])).toBe('warning');
-  });
-
-  it('returns error when it is present among mixed levels', () => {
-    expect(getHighestAlertColor(['info', 'warning', 'error', 'success'])).toBe('error');
-  });
-
-  it('returns warning when no error is present', () => {
-    expect(getHighestAlertColor(['info', 'success', 'warning'])).toBe('warning');
-  });
-
-  it('returns success when only info and success are present', () => {
-    expect(getHighestAlertColor(['info', 'success'])).toBe('success');
-  });
-
-  it('returns info when all colors are info', () => {
-    expect(getHighestAlertColor(['info', 'info', 'info'])).toBe('info');
-  });
-
-  it('returns info (default) when all colors are disabled', () => {
-    // disabled is not in the alert order; default stays info
-    expect(getHighestAlertColor(['disabled', 'disabled'])).toBe('info');
+  it.each([
+    {
+      desc: 'info for an empty array', colors: [], expected: 'info'
+    },
+    {
+      desc: 'error when single error element', colors: ['error'], expected: 'error'
+    },
+    {
+      desc: 'warning when single warning element', colors: ['warning'], expected: 'warning'
+    },
+    {
+      desc: 'error when present among mixed levels', colors: ['info', 'warning', 'error', 'success'], expected: 'error'
+    },
+    {
+      desc: 'warning when no error is present', colors: ['info', 'success', 'warning'], expected: 'warning'
+    },
+    {
+      desc: 'success when only info and success are present', colors: ['info', 'success'], expected: 'success'
+    },
+    {
+      desc: 'info when all colors are info', colors: ['info', 'info', 'info'], expected: 'info'
+    },
+    {
+      desc: 'info (default) when all colors are disabled', colors: ['disabled', 'disabled'], expected: 'info'
+    },
+  ])('returns $desc', ({ colors, expected }) => {
+    expect(getHighestAlertColor(colors as StateColor[])).toBe(expected);
   });
 });
 
@@ -106,45 +99,44 @@ describe('isTruncated', () => {
     expect(isTruncated(null)).toBe(false);
   });
 
-  it('returns false when text fits within element bounds', () => {
-    const el = {
-      scrollWidth: 100, clientWidth: 200, scrollHeight: 20, clientHeight: 20
-    } as HTMLElement;
-
-    expect(isTruncated(el)).toBe(false);
-  });
-
-  it('returns true when text is horizontally truncated', () => {
-    const el = {
-      scrollWidth: 300, clientWidth: 200, scrollHeight: 20, clientHeight: 20
-    } as HTMLElement;
-
-    expect(isTruncated(el)).toBe(true);
-  });
-
-  it('returns true when text is vertically truncated', () => {
-    const el = {
-      scrollWidth: 100, clientWidth: 100, scrollHeight: 50, clientHeight: 40
-    } as HTMLElement;
-
-    expect(isTruncated(el)).toBe(true);
-  });
-
-  it('handles single-pixel vertical overflow as not truncated', () => {
-    // The check is scrollHeight - clientHeight > 1, so exactly 1px difference is not truncated
-    const el = {
-      scrollWidth: 100, clientWidth: 100, scrollHeight: 21, clientHeight: 20
-    } as HTMLElement;
-
-    expect(isTruncated(el)).toBe(false);
-  });
-
-  it('handles 2+ pixel vertical overflow as truncated', () => {
-    const el = {
-      scrollWidth: 100, clientWidth: 100, scrollHeight: 22, clientHeight: 20
-    } as HTMLElement;
-
-    expect(isTruncated(el)).toBe(true);
+  it.each([
+    {
+      desc: 'false when text fits within element bounds',
+      el:   {
+        scrollWidth: 100, clientWidth: 200, scrollHeight: 20, clientHeight: 20
+      },
+      expected: false,
+    },
+    {
+      desc: 'true when text is horizontally truncated',
+      el:   {
+        scrollWidth: 300, clientWidth: 200, scrollHeight: 20, clientHeight: 20
+      },
+      expected: true,
+    },
+    {
+      desc: 'true when text is vertically truncated',
+      el:   {
+        scrollWidth: 100, clientWidth: 100, scrollHeight: 50, clientHeight: 40
+      },
+      expected: true,
+    },
+    {
+      desc: 'false for single-pixel vertical overflow (1px tolerance)',
+      el:   {
+        scrollWidth: 100, clientWidth: 100, scrollHeight: 21, clientHeight: 20
+      },
+      expected: false,
+    },
+    {
+      desc: 'true for 2+ pixel vertical overflow',
+      el:   {
+        scrollWidth: 100, clientWidth: 100, scrollHeight: 22, clientHeight: 20
+      },
+      expected: true,
+    },
+  ])('returns $desc', ({ el, expected }) => {
+    expect(isTruncated(el as HTMLElement)).toBe(expected);
   });
 });
 
