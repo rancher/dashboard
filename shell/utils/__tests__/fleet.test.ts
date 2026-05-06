@@ -159,16 +159,32 @@ describe('fx: util.getTargetMode', () => {
 
 describe('fleet: quacksLikeAHash', () => {
   it.each([
-    ['40-char lowercase hex string', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', true],
-    ['40-char uppercase hex string', 'A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2', true],
-    ['64-char sha256 hex string', 'a'.repeat(64), true],
-    ['39-char hex string (too short)', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1', false],
-    ['non-hex characters', 'z1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', false],
-    ['empty string', '', false],
-    ['semantic version string', 'v1.2.3', false],
-    ['branch name', 'main', false],
-  ])('%s', (_desc, input, expected) => {
-    expect(FleetUtils.quacksLikeAHash(input)).toBe(expected);
+    {
+      desc: '40-char lowercase hex string', input: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', expected: true
+    },
+    {
+      desc: '40-char uppercase hex string', input: 'A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2', expected: true
+    },
+    {
+      desc: '64-char sha256 hex string', input: 'a'.repeat(64), expected: true
+    },
+    {
+      desc: '39-char hex string (too short)', input: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1', expected: false
+    },
+    {
+      desc: 'non-hex characters', input: 'z1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', expected: false
+    },
+    {
+      desc: 'empty string', input: '', expected: false
+    },
+    {
+      desc: 'semantic version string', input: 'v1.2.3', expected: false
+    },
+    {
+      desc: 'branch name', input: 'main', expected: false
+    },
+  ])('$desc', ({ input, expected }) => {
+    expect(FleetUtils.quacksLikeAHash(input as string)).toBe(expected);
   });
 });
 
@@ -193,48 +209,65 @@ describe('fleet: parseSSHUrl', () => {
 });
 
 describe('fleet: resourceId', () => {
-  it('returns namespace/name when namespace is present', () => {
-    expect(FleetUtils.resourceId({
-      kind: 'Pod', apiVersion: 'v1', namespace: 'default', name: 'my-pod'
-    })).toBe('default/my-pod');
-  });
-
-  it('returns only name when namespace is absent', () => {
-    expect(FleetUtils.resourceId({
-      kind: 'ClusterRole', apiVersion: 'rbac.authorization.k8s.io/v1', name: 'my-role'
-    })).toBe('my-role');
-  });
-
-  it('returns only name when namespace is empty string', () => {
-    expect(FleetUtils.resourceId({
-      kind: 'Pod', apiVersion: 'v1', namespace: '', name: 'my-pod'
-    })).toBe('my-pod');
+  it.each([
+    {
+      desc:     'namespace/name when namespace is present',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', namespace: 'default', name: 'my-pod'
+      },
+      expected: 'default/my-pod'
+    },
+    {
+      desc:     'only name when namespace is absent',
+      resource: {
+        kind: 'ClusterRole', apiVersion: 'rbac.authorization.k8s.io/v1', name: 'my-role'
+      },
+      expected: 'my-role'
+    },
+    {
+      desc:     'only name when namespace is empty string',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', namespace: '', name: 'my-pod'
+      },
+      expected: 'my-pod'
+    },
+  ])('returns $desc', ({ resource, expected }) => {
+    expect(FleetUtils.resourceId(resource)).toBe(expected);
   });
 });
 
 describe('fleet: resourceType', () => {
-  it('returns lowercase kind when apiVersion is v1', () => {
-    expect(FleetUtils.resourceType({
-      kind: 'Pod', apiVersion: 'v1', name: 'p', state: 'ready'
-    })).toBe('pod');
-  });
-
-  it('returns lowercase kind when apiVersion is absent', () => {
-    expect(FleetUtils.resourceType({
-      kind: 'Pod', apiVersion: '', name: 'p', state: 'ready'
-    })).toBe('pod');
-  });
-
-  it('prefixes group from apiVersion for non-core resources', () => {
-    expect(FleetUtils.resourceType({
-      kind: 'Deployment', apiVersion: 'apps/v1', name: 'd', state: 'ready'
-    })).toBe('apps.deployment');
-  });
-
-  it('uses only first segment of apiVersion as group', () => {
-    expect(FleetUtils.resourceType({
-      kind: 'Certificate', apiVersion: 'cert-manager.io/v1', name: 'c', state: 'ready'
-    })).toBe('cert-manager.io.certificate');
+  it.each([
+    {
+      desc:     'lowercase kind when apiVersion is v1',
+      resource: {
+        kind: 'Pod', apiVersion: 'v1', name: 'p', state: 'ready'
+      },
+      expected: 'pod'
+    },
+    {
+      desc:     'lowercase kind when apiVersion is absent',
+      resource: {
+        kind: 'Pod', apiVersion: '', name: 'p', state: 'ready'
+      },
+      expected: 'pod'
+    },
+    {
+      desc:     'group prefix for non-core resources',
+      resource: {
+        kind: 'Deployment', apiVersion: 'apps/v1', name: 'd', state: 'ready'
+      },
+      expected: 'apps.deployment'
+    },
+    {
+      desc:     'first segment of apiVersion as group',
+      resource: {
+        kind: 'Certificate', apiVersion: 'cert-manager.io/v1', name: 'c', state: 'ready'
+      },
+      expected: 'cert-manager.io.certificate'
+    },
+  ])('returns $desc', ({ resource, expected }) => {
+    expect(FleetUtils.resourceType(resource)).toBe(expected);
   });
 });
 
@@ -428,16 +461,18 @@ describe('fleet: bundleIdFromBundleDeploymentLabels', () => {
 });
 
 describe('fleet: getDashboardStateId', () => {
-  it('strips "text-" prefix from stateColor', () => {
-    expect(FleetUtils.getDashboardStateId({ stateColor: 'text-error' })).toBe('error');
-  });
-
-  it('returns "warning" when stateColor is falsy', () => {
-    expect(FleetUtils.getDashboardStateId({ stateColor: '' })).toBe('warning');
-  });
-
-  it('returns stateColor unchanged when no "text-" prefix', () => {
-    expect(FleetUtils.getDashboardStateId({ stateColor: 'success' })).toBe('success');
+  it.each([
+    {
+      desc: 'strips "text-" prefix from stateColor', stateColor: 'text-error', expected: 'error'
+    },
+    {
+      desc: 'returns "warning" when stateColor is falsy', stateColor: '', expected: 'warning'
+    },
+    {
+      desc: 'returns stateColor unchanged when no "text-" prefix', stateColor: 'success', expected: 'success'
+    },
+  ])('$desc', ({ stateColor, expected }) => {
+    expect(FleetUtils.getDashboardStateId({ stateColor })).toBe(expected);
   });
 });
 
