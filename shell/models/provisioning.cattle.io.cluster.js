@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER,
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
   EVENT
 } from '@shell/config/types';
@@ -234,15 +234,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   async goToHarvesterCluster() {
-    const harvesterCluster = await this.$dispatch('create', {
-      ...this,
-      type: HCI.CLUSTER
-    });
-
-    try {
-      await harvesterCluster.goToCluster();
-    } catch {
-    }
+    return this.mgmt?.goToHarvesterCluster();
   }
 
   get canDelete() {

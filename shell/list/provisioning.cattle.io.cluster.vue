@@ -230,9 +230,16 @@ export default {
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
 
-    nonStandardNamespaces() {
-      // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
-      // This will be used when there's clusters from extension based provisioners
+    nonStandardWorkspace() {
+      // Show the workspace grouping option if there's clusters with workspaces other than 'fleet-default' or 'fleet-local'
+
+      // Note - This _just_ looks at namespaces, which are normally 1-1 with namespaces and also cover cases where clusters aren't in namespaces
+      // The only exception is for v2prov clusters that were moved workspace after enabling `provisioningv2-fleet-workspace-back-population`
+      // If we need to fully support this we can either
+      // 1. always show grouping
+      // 2. use a summary request to determine to show it
+      //    a. on visit to list and vai on (lets keep it simple) make a request to /v1/management.cattle.io.clusters?summary=spec.fleetWorkspaceName (plus whatever new parm to avoid return of `data` field)
+      //    b. check for values other than fleet-local and fleet-default in the response
 
       const counts = this.$store.getters['management/all'](COUNT)?.[0]?.counts || {};
       const namespaces: { [nsName: string]: { count: number } } = counts[CAPI.RANCHER_CLUSTER]?.namespaces || counts.namespaces || {};
@@ -300,13 +307,14 @@ export default {
         :fetch-secondary-resources="fetchSecondaryResources"
         :fetch-page-secondary-resources="fetchPageSecondaryResources"
 
-        :namespaced="nonStandardNamespaces"
+        :groupable="nonStandardWorkspace"
+        :namespaced="true"
 
         :data-testid="'cluster-list'"
       >
         <template #cell:summary="{row}">
           <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
-          <span v-if="!row.stateParts.length">{{ row.status.info.nodeCount || 0 }}</span>
+          <span v-if="!row.stateParts.length">{{ row.statusInfo.nodeCount || 0 }}</span>
           <MachineSummaryGraph
             v-else
             :row="row"

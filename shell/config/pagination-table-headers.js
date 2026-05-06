@@ -108,6 +108,7 @@ export const STEVE_WORKLOAD_HEALTH_SCALE = {
 
 export const STEVE_MGMT_CLUSTER_PROVIDER = {
   ...MGMT_CLUSTER_PROVIDER,
+  value:  'status.info.machineProvider',
   sort:   ['status.info.machineProvider', 'status.driver'],
   search: ['status.info.machineProvider', 'status.driver'],
 };

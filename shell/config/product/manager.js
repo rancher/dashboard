@@ -187,7 +187,7 @@ export function init(store) {
     MGMT_CLUSTER_KUBE_VERSION,
     {
       ...MACHINE_SUMMARY,
-      sort: 'status.info.nodeCount'
+      sort: 'statusInfo.nodeCount'
     },
     AGE,
     EXPLORER,
@@ -219,10 +219,11 @@ export function init(store) {
       value:      'none',
     }, {
       icon:          'icon-folder',
+      // Given management.cattle.io.cluster is not namespaced we group by fleet workspace
       value:         'spec.fleetWorkspaceName',
       field:         'spec.fleetWorkspaceName',
       hideColumn:    STEVE_NAMESPACE_COL.name,
-      tooltipKey:    'resourceTable.groupBy.namespace',
+      tooltipKey:    'resourceTable.groupBy.workspace',
       groupLabelKey: 'groupByLabel',
     }],
     listGroupsWillOverride: true,

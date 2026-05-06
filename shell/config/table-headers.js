@@ -1193,9 +1193,9 @@ export const MGMT_CLUSTER_PROVIDER = {
   name:      'provider',
   labelKey:  'tableHeaders.provider',
   subLabel:  'Distro',
-  value:     'status.info.machineProvider',
-  sort:      ['status.info.machineProvider', 'status.driver'],
-  search:    ['status.info.machineProvider', 'status.driver'],
+  value:     'statusInfo.machineProvider',
+  sort:      ['statusInfo.machineProvider', 'status.driver'],
+  search:    ['statusInfo.machineProvider', 'status.driver'],
   formatter: 'ClusterProvider',
 };
 
@@ -1203,7 +1203,7 @@ export const MGMT_CLUSTER_KUBE_VERSION = {
   name:      'kubernetesVersion',
   labelKey:  'tableHeaders.version',
   subLabel:  'Architecture',
-  sort:      'status.info.kubernetesVersion',
-  search:    'status.info.kubernetesVersion',
+  sort:      'statusInfo.kubernetesVersion',
+  search:    'statusInfo.kubernetesVersion',
   formatter: 'ClusterKubeVersion',
 };

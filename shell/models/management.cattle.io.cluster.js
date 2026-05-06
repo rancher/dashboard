@@ -1,7 +1,8 @@
 import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
-  NORMAN
+  NORMAN,
+  HCI
 } from '@shell/config/types';
 import { insertAt, addObject, removeObject, sameContents } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
@@ -268,7 +269,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get groupByLabel() {
-    return `Namespace: ${ this.spec.fleetWorkspaceName }`;
+    return `Workspace: ${ this.spec.fleetWorkspaceName }`;
   }
 
   get isReady() {
@@ -281,7 +282,7 @@ export default class MgmtCluster extends SteveModel {
     return this.isCondition('Ready');
   }
 
-  get config() { // TODO: RC Blocked provisioner fix - validate
+  get config() {
     if (!this.spec?.[`${ this.provisioner }Config`]) {
       const allKeys = Object.keys(this.spec);
       const configKey = allKeys.find( (k) => k.endsWith('Config'));
@@ -571,8 +572,8 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get availableCpu() {
-    const reserved = parseSi(this.status.requested?.cpu);
-    const allocatable = parseSi(this.status.allocatable?.cpu);
+    const reserved = parseSi(this.status?.requested?.cpu);
+    const allocatable = parseSi(this.status?.allocatable?.cpu);
 
     if ( allocatable > 0 && reserved >= 0 ) {
       return Math.max(0, allocatable - reserved);
@@ -582,8 +583,8 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get availableMemory() {
-    const reserved = parseSi(this.status.requested?.memory);
-    const allocatable = parseSi(this.status.allocatable?.memory);
+    const reserved = parseSi(this.status?.requested?.memory);
+    const allocatable = parseSi(this.status?.allocatable?.memory);
 
     if ( allocatable > 0 && reserved >= 0 ) {
       return Math.max(0, allocatable - reserved);
@@ -779,5 +780,17 @@ export default class MgmtCluster extends SteveModel {
     }
 
     return this.status.info;
+  }
+
+  async goToHarvesterCluster() {
+    const harvesterCluster = await this.$dispatch('create', {
+      ...this.provCluster,
+      type: HCI.CLUSTER
+    });
+
+    try {
+      await harvesterCluster.goToCluster();
+    } catch {
+    }
   }
 }
