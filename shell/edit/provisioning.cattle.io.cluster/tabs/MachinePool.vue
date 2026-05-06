@@ -113,7 +113,7 @@ export default {
           }
 
           const otherPools = (this.machinePools || []).filter((p) => !p.remove && p !== this.value);
-          const isDuplicate = otherPools.some((p) => p.pool.name === name);
+          const isDuplicate = otherPools.some((p) => p.pool.name?.toLowerCase() === name.toLowerCase());
 
           return isDuplicate ? this.t('cluster.machinePool.name.unique') : undefined;
         }
