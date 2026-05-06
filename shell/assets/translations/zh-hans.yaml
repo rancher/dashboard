@@ -556,6 +556,7 @@ authConfig:
       realm: Keycloak Realm
     issuer: 发行者
     authEndpoint: Auth 端点
+    adminEndpoint: Administration API 端点
     cert:
       label: 证书
       placeholder: 粘贴证书，以-----BEGIN CERTIFICATE----- 开始。
