@@ -101,38 +101,36 @@ describe('gc', () => {
   // ─── gcEnabledForStore ─────────────────────────────────────────────────────
 
   describe('gcEnabledForStore', () => {
-    it('returns true when state.config.supportsGc is true', () => {
-      expect(gc.gcEnabledForStore({ config: { supportsGc: true } })).toBe(true);
-    });
-
-    it('returns false when state.config.supportsGc is false', () => {
-      expect(gc.gcEnabledForStore({ config: { supportsGc: false } })).toBe(false);
-    });
-
-    it('returns undefined when state is undefined', () => {
-      expect(gc.gcEnabledForStore(undefined)).toBeUndefined();
+    it.each([
+      {
+        desc: 'true when supportsGc is true', state: { config: { supportsGc: true } }, expected: true
+      },
+      {
+        desc: 'false when supportsGc is false', state: { config: { supportsGc: false } }, expected: false
+      },
+      {
+        desc: 'undefined when state is undefined', state: undefined, expected: undefined
+      },
+    ])('returns $desc', ({ state, expected }) => {
+      expect(gc.gcEnabledForStore(state)).toBe(expected);
     });
   });
 
   // ─── gcEnabledForType ──────────────────────────────────────────────────────
 
   describe('gcEnabledForType', () => {
-    it('returns false when type is empty string', () => {
-      const ctx = { getters: { gcIgnoreTypes: {} } };
-
-      expect(gc.gcEnabledForType(ctx, '')).toBe(false);
-    });
-
-    it('returns false when type is present in gcIgnoreTypes', () => {
-      const ctx = { getters: { gcIgnoreTypes: { pods: true } } };
-
-      expect(gc.gcEnabledForType(ctx, 'pods')).toBe(false);
-    });
-
-    it('returns true when type is non-empty and not in gcIgnoreTypes', () => {
-      const ctx = { getters: { gcIgnoreTypes: {} } };
-
-      expect(gc.gcEnabledForType(ctx, 'deployments')).toBe(true);
+    it.each([
+      {
+        desc: 'false when type is empty string', gcIgnoreTypes: {}, type: '', expected: false
+      },
+      {
+        desc: 'false when type is in gcIgnoreTypes', gcIgnoreTypes: { pods: true }, type: 'pods', expected: false
+      },
+      {
+        desc: 'true when type is non-empty and not ignored', gcIgnoreTypes: {}, type: 'deployments', expected: true
+      },
+    ])('returns $desc', ({ gcIgnoreTypes, type, expected }) => {
+      expect(gc.gcEnabledForType({ getters: { gcIgnoreTypes } }, type)).toBe(expected);
     });
   });
 
@@ -161,20 +159,21 @@ describe('gc', () => {
   // ─── gcEnabledAll ──────────────────────────────────────────────────────────
 
   describe('gcEnabledAll', () => {
-    it('returns true when store, setting, and type checks all pass', () => {
-      expect(gc.gcEnabledAll(makeCtx(), 'deployments')).toBe(true);
-    });
-
-    it('returns false when store does not support GC', () => {
-      expect(gc.gcEnabledAll(makeCtx({ supportsGc: false }), 'deployments')).toBe(false);
-    });
-
-    it('returns false when GC is disabled in settings', () => {
-      expect(gc.gcEnabledAll(makeCtx({ prefs: { enabled: false } }), 'deployments')).toBe(false);
-    });
-
-    it('returns false when type is in gcIgnoreTypes', () => {
-      expect(gc.gcEnabledAll(makeCtx({ gcIgnoreTypes: { schema: true } }), 'schema')).toBe(false);
+    it.each([
+      {
+        desc: 'true when all checks pass', options: {}, type: 'deployments', expected: true
+      },
+      {
+        desc: 'false when store does not support GC', options: { supportsGc: false }, type: 'deployments', expected: false
+      },
+      {
+        desc: 'false when GC is disabled in settings', options: { prefs: { enabled: false } }, type: 'deployments', expected: false
+      },
+      {
+        desc: 'false when type is in gcIgnoreTypes', options: { gcIgnoreTypes: { schema: true } }, type: 'schema', expected: false
+      },
+    ])('returns $desc', ({ options, type, expected }) => {
+      expect(gc.gcEnabledAll(makeCtx(options), type)).toBe(expected);
     });
   });
 
