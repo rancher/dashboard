@@ -1441,7 +1441,6 @@ catalog:
     refreshInterval:
       label: Refresh Interval
       placeholder: 'default: {value}'
-      tooltip: Using any negative value disables periodic updates
     error:
       refresh: Error refreshing repository
   tools:
