@@ -2518,7 +2518,7 @@ export default {
           >
             <template
               v-for="(obj, idx) in machinePools"
-              :key="idx"
+              :key="obj.id"
             >
               <Tab
                 v-if="!obj.remove"
