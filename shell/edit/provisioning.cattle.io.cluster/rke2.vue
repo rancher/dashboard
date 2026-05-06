@@ -172,7 +172,7 @@ export default {
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
 
-      this.set(this.userChartValues, key, value);
+      this.userChartValues[key] = value;
     });
     this.setAgentConfiguration();
   },
