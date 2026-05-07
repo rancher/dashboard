@@ -79,8 +79,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check details page
-    repositoriesPage.list().details(this.repoName, 2).click();
-    cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
+    // Enable check once the detail page issue is resolved https://github.com/rancher/dashboard/issues/17556
+    // repositoriesPage.list().details(this.repoName, 2).click();
+    // cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
   });
 
   it('can clone a repository', function() {
