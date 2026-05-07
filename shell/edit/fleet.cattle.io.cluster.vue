@@ -32,14 +32,19 @@ export default {
   },
 
   async fetch() {
-    const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.labels[FLEET.CLUSTER_NAME] });
-    const nc = await this.$store.dispatch(`rancher/clone`, { resource: norman });
+    // Check if NORMAN.CLUSTER schema exists (it won't when MCM is disabled)
+    const normanSchema = this.$store.getters['rancher/schemaFor'](NORMAN.CLUSTER, false, false);
 
-    if ( !nc.metadata ) {
-      nc.metadata = {};
+    if (normanSchema) {
+      const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.labels[FLEET.CLUSTER_NAME] });
+      const nc = await this.$store.dispatch(`rancher/clone`, { resource: norman });
+
+      if ( !nc.metadata ) {
+        nc.metadata = {};
+      }
+
+      this.normanCluster = nc;
     }
-
-    this.normanCluster = nc;
   },
 
   data() {
@@ -59,10 +64,13 @@ export default {
 
         await this.value.save();
 
-        await this.normanCluster.save();
+        // Only save norman cluster if it was loaded (MCM enabled)
+        if (this.normanCluster) {
+          await this.normanCluster.save();
 
-        // Changes (such as labels or annotations fields) to normanCluster are reflected in the fleet cluster via Rancher services, so wait for that to occur
-        await this.waitForFleetClusterLastRevision();
+          // Changes (such as labels or annotations fields) to normanCluster are reflected in the fleet cluster via Rancher services, so wait for that to occur
+          await this.waitForFleetClusterLastRevision();
+        }
 
         this.done();
         buttonDone(true);

@@ -38,7 +38,12 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
+    // Check if NORMAN.CLUSTER schema exists (it won't when MCM is disabled)
+    const normanSchema = this.$store.getters['rancher/schemaFor'](NORMAN.CLUSTER, false, false);
+
+    if (normanSchema) {
+      await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
+    }
     this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     this.moveTo = this.workspace;
     this.loaded = true;
@@ -73,7 +78,14 @@ export default {
       this.errors = [];
 
       for ( const fleetCluster of this.toAssign ) {
-        const c = await this.$store.dispatch(`rancher/clone`, { resource: fleetCluster.norman });
+        // Skip if norman cluster is not available (MCM disabled)
+        const norman = await fleetCluster.norman;
+
+        if (!norman) {
+          continue;
+        }
+
+        const c = await this.$store.dispatch(`rancher/clone`, { resource: norman });
 
         if ( !c ) {
           continue;
