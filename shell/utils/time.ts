@@ -134,6 +134,10 @@ export function elapsedTime(seconds: any) {
  * returns { units: string, value: number }
  */
 export function secondsToLargestUnit(seconds: number) {
+  if (seconds <= 0) {
+    return { units: 'sec', value: seconds };
+  }
+
   for (const x of [
     { units: 'day', multiplier: 86400 },
     { units: 'hour', multiplier: 3600 },
