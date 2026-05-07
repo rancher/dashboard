@@ -87,6 +87,19 @@ const certManagerOfficialMatchingChart2 = {
   }]
 };
 
+// Simulates the chart data fetched from the repository where the home URL has changed in newer versions
+// AND the older installed version has been dropped/replaced from the repository index.
+const certManagerOfficialMatchingChartNewHomeOnly = {
+  name:     chartName,
+  repoName: certManagerOfficial.repoName,
+  versions: [{
+    version:     latestVersion,
+    home:        certManagerOfficial.home,
+    repoName:    certManagerOfficial.repoName,
+    annotations: {},
+  }]
+};
+
 const installedCertManagerAppCoFromRancherUI = {
   metadata: {
     annotations: { [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: appCo.repoName },
@@ -130,7 +143,8 @@ describe('class CatalogApp', () => {
       [installedCertManagerOfficialFromRancherUI, [], APP_UPGRADE_STATUS.NO_UPGRADE],
       [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
       [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1, appCoMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
-      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1, certManagerOfficialMatchingChart2], APP_UPGRADE_STATUS.MULTIPLE_UPGRADES]
+      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1, certManagerOfficialMatchingChart2], APP_UPGRADE_STATUS.MULTIPLE_UPGRADES],
+      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChartNewHomeOnly], APP_UPGRADE_STATUS.SINGLE_UPGRADE]
     ];
 
     it.each(testCases)('should return the correct upgrade status', (installedChart: Object, matchingCharts: any, expected: any) => {
