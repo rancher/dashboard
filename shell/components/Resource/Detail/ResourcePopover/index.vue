@@ -118,6 +118,7 @@ const actionInvoked = () => {
     align-items: center;
     max-width: 100%;
 
+    // Truncate the link text instead of wrapping to a second line
     a {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -127,6 +128,7 @@ const actionInvoked = () => {
   }
 
   .rc-status-indicator {
+      // Keep the status dot from collapsing when the link text is long
       flex-shrink: 0;
       margin-right: 12px;
       height: initial;

@@ -159,7 +159,7 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 
 <style lang="scss" scoped>
 .title-bar {
-  min-width: 630px;
+  min-width: $resource-detail-min-width;
 
   .badge-state {
     font-size: 16px;

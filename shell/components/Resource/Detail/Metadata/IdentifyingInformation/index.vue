@@ -105,6 +105,7 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     .row {
       gap: 8px;
 
+      // Hide clearfix pseudo-elements inherited from the global .row class
       &::before, &::after {
         display: none;
       }
@@ -117,6 +118,8 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
         flex: 1;
         min-width: 0;
 
+        // Override inline-block on .popover-card-target so it respects the
+        // parent's width constraint instead of sizing to its content
         :deep(.popover-card-target) {
           width: 100%;
         }

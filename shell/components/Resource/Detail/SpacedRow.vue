@@ -11,6 +11,7 @@
   grid-auto-flow: dense;
   grid-gap: 24px;
   justify-content: space-evenly;
-  min-width: 630px;
+  // Match the title bar floor so sections scroll together
+  min-width: $resource-detail-min-width;
 }
 </style>
