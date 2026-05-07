@@ -435,8 +435,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     createRKE2ClusterPage.waitForUrlPathWithoutContext();
 
     createRKE2ClusterPage.selectCustom(0);
-    // Wait for addon tabs to load (chart data is fetched asynchronously)
-    cy.get('[data-testid="btn-rke2-calico"]', { timeout: 30000 }).should('be.visible').click();
+    // Addon tabs depend on async chart data fetching which may take longer than default timeout in CI
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]', { timeout: 30000 });
     cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
 
     const settingsPageBlank = new SettingsPagePo();

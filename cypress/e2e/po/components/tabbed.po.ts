@@ -9,7 +9,11 @@ export default class TabbedPo extends ComponentPo {
     return this.self().find(`li:nth-child(${ optionIndex }) a`).click();
   }
 
-  clickTabWithSelector(selector: string) {
+  clickTabWithSelector(selector: string, options?: { timeout?: number }) {
+    if (options?.timeout) {
+      return this.self().find(`${ selector }`, { timeout: options.timeout }).click();
+    }
+
     return this.self().find(`${ selector }`).click();
   }
 
