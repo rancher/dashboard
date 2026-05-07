@@ -210,12 +210,12 @@ export default class ExtensionsPagePo extends PagePo {
     return this.clickAction(extensionTitle, 'Uninstall');
   }
 
-  extensionCardHeaderStatusIcons(extensionTitle: string, index: number): Cypress.Chainable {
-    return this.extensionCard(extensionTitle).self().find(`[data-testid="item-card-header-status-${ index }"]`);
+  extensionCardHeaderStatusIcons(extensionTitle: string, selector: 'upgrade' | 'confirmation' | 'alert'): Cypress.Chainable {
+    return this.extensionCard(extensionTitle).self().find(`[data-testid="item-card-header-statuses-status"] .icon-${ selector }-alt`);
   }
 
-  extensionCardHeaderStatusTooltip(extensionTitle: string, index: number): TooltipPo {
-    return new TooltipPo(this.extensionCardHeaderStatusIcons(extensionTitle, index));
+  extensionCardHeaderStatusTooltip(extensionTitle: string, selector: 'upgrade' | 'confirmation' | 'alert'): TooltipPo {
+    return new TooltipPo(this.extensionCardHeaderStatusIcons(extensionTitle, selector));
   }
 
   // ------------------ extension install modal ------------------
