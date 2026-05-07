@@ -35,18 +35,20 @@ defineExpose({ focus });
     @keydown.enter.space="handleKeydown"
     @click="showMenu(true)"
   >
-    <template #before>
-      <slot name="before">
-        <!-- Empty Content -->
-      </slot>
+    <template
+      v-if="$slots.before"
+      #before
+    >
+      <slot name="before" />
     </template>
     <slot name="default">
       <!--Empty slot content-->
     </slot>
-    <template #after>
-      <slot name="after">
-        <!-- Empty Content -->
-      </slot>
+    <template
+      v-if="$slots.after"
+      #after
+    >
+      <slot name="after" />
     </template>
   </RcButton>
 </template>

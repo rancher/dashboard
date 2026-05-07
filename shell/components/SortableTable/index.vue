@@ -26,6 +26,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
@@ -65,6 +66,7 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     ActionDropdownShell,
+    RcButton,
   },
 
   mixins: [
@@ -1116,17 +1118,17 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
-              <button
+              <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                variant="primary"
+                size="large"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
-                role="button"
                 :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
@@ -1138,7 +1140,7 @@ export default {
                   :class="act.icon"
                 />
                 <span v-clean-html="act.label" />
-              </button>
+              </RcButton>
               <template v-if="featureDropdownMenu">
                 <ActionDropdownShell
                   :disabled="!selectedRows.length"
@@ -2154,11 +2156,6 @@ export default {
         }
       }
 
-      .bulk-action  {
-        .icon {
-          vertical-align: -10%;
-        }
-      }
     }
 
     .middle {

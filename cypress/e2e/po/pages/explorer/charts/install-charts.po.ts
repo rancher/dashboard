@@ -23,7 +23,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('.controls-steps .btn.variant-primary');
 
     btn.click(true);
 
