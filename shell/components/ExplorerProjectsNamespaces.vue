@@ -296,6 +296,7 @@ export default {
     },
     showCreateNsButton() {
       const canCreateNamespace = this.schema?.collectionMethods?.includes('POST');
+
       return this.groupPreference !== 'namespace' && canCreateNamespace;
     },
     projectGroupBy() {
