@@ -573,4 +573,75 @@ describe('component: FleetClusters', () => {
       expect(additionalSubRow.exists()).toBe(false);
     });
   });
+
+  describe('labels visibility regardless of error state', () => {
+    it('should pass sub-rows prop as true to ResourceTable so labels always render', () => {
+      const wrapper = createWrapper();
+
+      // sub-rows=true ensures SortableTable.showSubRow() returns true,
+      // which makes the #additional-sub-row slot render regardless of stateDescription.
+      // Without this, labels only appear when there is an error (stateDescription).
+      const resourceTableStub = wrapper.findComponent('.resource-table') as any;
+
+      expect(resourceTableStub.props('subRows')).toBe(true);
+    });
+
+    it('should render labels when cluster has no stateDescription (no error)', () => {
+      const rows = [{
+        customLabels:        ['env:prod', 'team:backend'],
+        displayCustomLabels: false,
+        stateDescription:    undefined,
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(2);
+      expect(tags[0].text()).toBe('env:prod');
+      expect(tags[1].text()).toBe('team:backend');
+    });
+
+    it('should render labels when cluster has a stateDescription (error)', () => {
+      const rows = [{
+        customLabels:        ['env:prod', 'team:backend'],
+        displayCustomLabels: false,
+        stateDescription:    'Something went wrong',
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(2);
+      expect(tags[0].text()).toBe('env:prod');
+      expect(tags[1].text()).toBe('team:backend');
+    });
+
+    it('should render labels when stateDescription is empty string', () => {
+      const rows = [{
+        customLabels:        ['env:staging'],
+        displayCustomLabels: false,
+        stateDescription:    '',
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].text()).toBe('env:staging');
+    });
+
+    it('should render labels when stateDescription is null', () => {
+      const rows = [{
+        customLabels:        ['region:eu-west'],
+        displayCustomLabels: false,
+        stateDescription:    null,
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].text()).toBe('region:eu-west');
+    });
+  });
 });
