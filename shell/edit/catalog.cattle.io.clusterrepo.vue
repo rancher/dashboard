@@ -110,6 +110,7 @@ export default {
       refreshInterval = value;
       refreshIntervalUnits = units;
     }
+    const refreshIntervalUpdatesEnabled = !refreshIntervalDisabled;
 
     return {
       CLUSTER_REPO_TYPES,
@@ -127,7 +128,7 @@ export default {
       previousName:        '',
       previousDescription: '',
       refreshInterval,
-      refreshIntervalDisabled,
+      refreshIntervalUpdatesEnabled,
       refreshIntervalUnits,
       refreshIntervalUnitOptions,
     };
@@ -224,7 +225,7 @@ export default {
       this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
     onRefreshIntervalInput({ selected, text }) { // InputWithSelect emits "update:value" with { selected, text }
-      if (this.refreshIntervalDisabled) {
+      if (!this.refreshIntervalUpdatesEnabled) {
         return;
       }
 
@@ -253,7 +254,7 @@ export default {
       this.value.spec.refreshInterval = Number(refreshInterval) * unitToSecondsMultiplier(units);
     },
     applyRefreshIntervalOnSave() {
-      if (this.refreshIntervalDisabled || this.refreshInterval < 0) {
+      if (!this.refreshIntervalUpdatesEnabled || this.refreshInterval < 0) {
         this.value.spec.refreshInterval = -1;
       } else if (this.refreshInterval === 0) {
         delete this.value.spec.refreshInterval;
@@ -429,16 +430,16 @@ export default {
               :mode="mode"
               type="number"
               :options="refreshIntervalUnitOptions"
-              :disabled="refreshIntervalDisabled || isView"
+              :disabled="!refreshIntervalUpdatesEnabled || isView"
               :placeholder="t('catalog.repo.refreshInterval.placeholder', { value: value.defaultRefreshIntervalHours })"
               @update:value="onRefreshIntervalInput"
             />
           </div>
           <div class="refresh-interval-toggle">
             <Checkbox
-              v-model:value="refreshIntervalDisabled"
+              v-model:value="refreshIntervalUpdatesEnabled"
               :mode="mode"
-              :label="t('generic.disabled')"
+              :label="t('generic.enabled')"
             />
           </div>
         </div>
