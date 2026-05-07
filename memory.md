@@ -46,19 +46,24 @@
 - style.ts: `isHigherAlert` uses ordered array ['info','success','warning','error']; 'disabled' is NOT in this array so indexOf returns -1 — 'disabled' is never considered "higher" than any named color
 - perf-setting.utils.ts: exports two singletons (incrementalLoadingUtils, manualRefreshUtils); isEnabled = `!paginationEnabled && perfSettings[this.setting].enabled`; SSP (pagination) takes precedence when enabled
 - ingress.ts: IngressDetailEditHelper class; findAndMapCerts and findAndMapServiceTargets are pure methods; fetchServices/fetchSecrets need Vuex store mock (skip for unit tests); constructor takes $store and namespace but pure methods don't use them
+- units.js: `parseSi('1m', {allowFractional:false})` returns 1_000_000 (Mega) because 'm'.toUpperCase()==='M' is in UNITS — falls through to multiply path; `createMemoryValues('0','0').units` returns 'iB' (UNITS[0]='' + suffix='iB')
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to current PR)
+1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to PR #17466)
 2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
-4. `shell/utils/ingress.ts` — `fetchServices`/`fetchSecrets` store-dependent methods (follow-up to new PR)
-5. Additional utils with no coverage — explore shell/utils/ for untested pure functions
+4. `shell/utils/ingress.ts` — `fetchServices`/`fetchSecrets` store-dependent methods (follow-up to #17518)
+5. Additional utils with no coverage — `duration.js`, `parse-externalid.js`, `custom-validators.js`
 
 ## Completed Work
 
+### 2026-05-07
+- Submitted PR (branch test-assist/units-utils-tests): 57 unit tests for shell/utils/units.js
+- Coverage: 0% → 90.15% stmts, 0% → 90.47% branches, 0% → 100% functions
+
 ### 2026-05-06
-- Submitted PR (branch test-assist/perf-ingress-utils-tests): 21 unit tests for shell/utils/perf-setting.utils.ts and shell/utils/ingress.ts pure methods
+- Submitted PR #17518 (branch test-assist/perf-ingress-utils-tests): 21 unit tests for shell/utils/perf-setting.utils.ts and shell/utils/ingress.ts pure methods
 - Coverage: 0% → 100% stmts/branches/fns/lines for perf-setting.utils.ts; 0% → 100% branches for ingress.ts pure methods
 
 ### 2026-05-05
@@ -103,6 +108,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-07: Task 3 (units.js 57 tests, 90.15% stmts) + Task 4 (PR CI check: #17431/#17499 all green) + Task 7 (monthly activity update)
 - 2026-05-06: Task 3 (perf-setting.utils + ingress.ts pure methods, 21 tests) + Task 4 (PR CI check: all passing) + Task 7 (monthly activity update)
 - 2026-05-05: Task 3 (style.ts 43 tests, 100% all) + Task 4 (PR CI check) + Task 7 (monthly activity update)
 - 2026-05-04: Task 3 (gc-interval.ts + gc-route-changed.ts, 16 tests, 100% stmts) + Task 7 (monthly activity update)
@@ -122,7 +128,8 @@
 - PR #17471: gc.ts — open
 - PR #17478: gc-interval + gc-route-changed — open
 - PR #17499: style.ts — open
-- PR (branch test-assist/perf-ingress-utils-tests): perf-setting.utils + ingress pure methods — submitted 2026-05-06, PR number TBD
+- PR #17518: perf-setting.utils + ingress pure methods — open
+- PR (branch test-assist/units-utils-tests): units.js — submitted 2026-05-07, PR number TBD
 
 ## Maintainer Priorities
 
