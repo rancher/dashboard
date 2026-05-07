@@ -63,7 +63,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
@@ -121,7 +122,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
