@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
@@ -83,8 +84,16 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
   }
 
-  refreshIntervalInput() {
-    return new UnitInputPo('[data-testid="clusterrepo-refresh-interval"]');
+  refreshIntervalInput() : LabeledInputPo {
+    return LabeledInputPo.byLabel(this.self(), 'Refresh Interval');
+  }
+
+  refreshIntervalUnits() : LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="clusterrepo-refresh-interval"]');
+  }
+
+  refreshIntervalEnabled() : CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="clusterrepo-refresh-interval"]');
   }
 
   saveAndWaitForRequests(method: string, url: string) {

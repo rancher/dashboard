@@ -82,13 +82,39 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
   });
 
+  it('can modify refresh interval', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
+    repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
+    repositoriesPage.createEditRepositories().refreshIntervalEnabled().isChecked();
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(20);
+    repositoriesPage.createEditRepositories().refreshIntervalUnits().toggle();
+    repositoriesPage.createEditRepositories().refreshIntervalUnits().clickOptionWithLabel('mins');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).then((req) => {
+      expect(req.request.body.spec.refreshInterval).to.eq(20 * 60);
+    });
+    repositoriesPage.waitForPage();
+
+    // The interval should not trigger a refresh
+    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 2).click();
+    cy.contains('label', 'Refresh Interval')
+      .siblings('.value')
+      .should('contain.text', '20m');
+  });
+
   it('can disable automatic updates', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
-    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue('-1');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`);
+    repositoriesPage.createEditRepositories().refreshIntervalEnabled().isChecked();
+    repositoriesPage.createEditRepositories().refreshIntervalEnabled().uncheck();
+    repositoriesPage.createEditRepositories().refreshIntervalInput().isDisabled();
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).then((req) => {
+      expect(req.request.body.spec.refreshInterval).to.eq(-1);
+    });
     repositoriesPage.waitForPage();
 
     // The interval should not trigger a refresh
@@ -261,7 +287,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
