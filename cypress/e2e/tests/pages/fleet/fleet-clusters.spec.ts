@@ -519,4 +519,8 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     // takes percy snapshot.
     cy.percySnapshot('fleet clusters list page');
   });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
+  });
 });

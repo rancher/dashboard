@@ -326,6 +326,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.kind).to.equal('Cluster');
         });
       });
+      it('preserves custom addon config values after saving cluster config', () => {
+        const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
+        const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .set(customAddonConfig);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .value()
+          .should('equal', customAddonConfig);
+      });
 
       it('can delete cluster', () => {
         clusterList.goTo();
@@ -829,6 +858,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
     cy.applyDefaultTestTheme();
   });
+
   it('should display cluster manager page', () => {
     const clusterList = new ClusterManagerListPagePo();
 
@@ -843,5 +873,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', 'td.col-live-date span.live-date');
     // takes percy snapshot.
     cy.percySnapshot('cluster manager list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

@@ -372,8 +372,20 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Reset
     brandingPage.customFaviconCheckbox().set();
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon', 200);
-    cy.get('head link[rel="shortcut icon"]').then((el) => {
-      expect(el).attr('href').to.include('/favicon.png');
+
+    // Prime builds use SUSE brand favicon, community builds use default favicon.png
+    cy.getRancherVersion().then((version) => {
+      if (version.RancherPrime === 'true') {
+        cy.fixture('global/favicons/prime-favicon.png', 'base64').then((expectedBase64) => {
+          cy.get('head link[rel="shortcut icon"]').then((el) => {
+            expect(el).attr('href').to.include(`data:image/png;base64,${ expectedBase64 }`);
+          });
+        });
+      } else {
+        cy.get('head link[rel="shortcut icon"]').then((el) => {
+          expect(el).attr('href').to.include('/favicon.png');
+        });
+      }
     });
   });
 

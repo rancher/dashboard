@@ -3,6 +3,7 @@ import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2Cluste
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { base64Encode } from '@shell/utils/crypto/index.js';
 
 // This file contains commands which makes API requests to the rancher API.
@@ -647,6 +648,30 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
 });
 
 /**
+ * Wait for an intercepted request to complete with the expected status code.
+ * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
+ */
+Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: string, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
+  return cy.wait(alias).then((interception) => {
+    const statusCode = interception.response?.statusCode;
+
+    if (statusCode === successStatusCode) {
+      return cy.wrap(interception);
+    }
+
+    if (statusCode && retryStatusCodes.includes(statusCode)) {
+      return cy.wait(alias, options);
+    }
+
+    return cy.wrap(interception);
+  }).then((interception) => {
+    expect(interception.response?.statusCode).to.eq(successStatusCode);
+
+    return interception;
+  });
+});
+
+/**
  * Wait for repository to be downloaded and ready
  */
 Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourceId, retries = 20) => {
@@ -661,12 +686,17 @@ Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourc
 /**
  * Wait for repository to be state
  */
-Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20) => {
+Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20, failOnStatusCode = false) => {
   return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
+    // The resource may not exist yet (404) right after creation or update, so we should return false to retry instead of failing immediately
+    if (resp.status === 404) {
+      return false;
+    }
+
     const state = resp.body.metadata?.state;
 
     return state && state.transitioning === false && state.name === resourceState;
-  }, retries);
+  }, retries, { failOnStatusCode });
 });
 
 /**
@@ -1461,6 +1491,32 @@ Cypress.Commands.add('applyDefaultTestTheme', () => {
     });
 });
 
+/**
+ * Restores `ui-brand` to the product default: suse for Rancher Prime, modern for Community.
+ * Clears the forced `ui-light` user preference so the session matches normal defaults.
+ */
+Cypress.Commands.add('restoreProductDefaultTestTheme', () => {
+  cy.getRancherVersion().then((version: { RancherPrime?: string }) => {
+    const uiBrand = version.RancherPrime === 'true' ? 'suse' : 'modern';
+
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: uiBrand })
+      .then((response: Cypress.Response<{ value?: string }>) => {
+        Cypress.log({
+          name:    'setRancherResource',
+          message: `Rancher UI brand restored to: ${ response.body?.value || uiBrand }`
+        });
+      });
+
+    cy.setUserPreference({ theme: '' })
+      .then(() => {
+        Cypress.log({
+          name:    'setUserPreference',
+          message: 'User theme preference cleared (product default)'
+        });
+      });
+  });
+});
+
 const CATALOG_TYPE = 'catalog.cattle.io/type';
 const CLUSTER_TOOL = 'cluster-tool';
 const EXPERIMENTAL = 'catalog.cattle.io/experimental';
@@ -1540,9 +1596,63 @@ Cypress.Commands.add('checkChartPresence', (repoName: string, chartKey: string) 
 });
 
 /**
- * Runs the given callback only when the chart is available in the filtered catalog index.
- * Skips the test when the chart exists in the catalog but is filtered out intentionally (e.g. based on k8s or Rancher annotations).
- * Throws when the chart is missing from the unfiltered index (publishing/sync issue).
+ * Get the list of available versions for a chart from the filtered catalog index for a given repo.
+ * Versions are returned in the order Rancher reports them (newest first).
+ * Callers can pick whichever version they need (e.g. `versions[0]` for latest).
+ */
+Cypress.Commands.add('getChartVersions', (repo: string, chartId: string) => {
+  const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repo }`;
+
+  const headers = {
+    'x-api-csrf': token.value,
+    Accept:       'application/json',
+  };
+
+  return cy.request({
+    method: 'GET',
+    url:    `${ baseUrl }?link=index`,
+    headers,
+  }).then((resp) => {
+    const versions = resp.body?.entries?.[chartId];
+
+    return versions.map((v: any) => v.version as string);
+  });
+});
+
+/**
+ * Install a Helm chart via the Rancher API (bypassing the install wizard UI).
+ * Useful for test setup where the install flow itself is not under test.
+ */
+Cypress.Commands.add('installChart', (repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string) => {
+  return cy.createRancherResource('v1', `catalog.cattle.io.clusterrepos/${ repo }?action=install`, {
+    charts: [
+      {
+        chartName:   chartId,
+        version:     chartVersion,
+        releaseName: chartId,
+        description: chartName,
+        annotations: {
+          'catalog.cattle.io/ui-source-repo-type': 'cluster',
+          'catalog.cattle.io/ui-source-repo':      repo
+        },
+        values: {}
+      }
+    ],
+    noHooks:                  false,
+    timeout:                  '1000s',
+    wait:                     true,
+    namespace,
+    projectId:                '',
+    disableOpenAPIValidation: false,
+    skipCRDs:                 false,
+  });
+});
+
+/**
+ * Runs `callback` when `chartKey` is present in the filtered catalog index (the list the Charts UI uses).
+ * Throws error if the chart is missing from the unfiltered index — that points to catalog publish or sync, not compatibility filtering.
+ * If the chart is in the unfiltered index but not the filtered index, skips when Cypress env `allowFilteredCatalogSkip`
+ * is enabled; otherwise throws error.
  */
 export function runTestWhenChartAvailable(
   repo: string,
@@ -1556,9 +1666,13 @@ export function runTestWhenChartAvailable(
     }
 
     if (!inFiltered) {
-      cy.log(`Skipping: chart '${ chartKey }' is intentionally hidden from the filtered catalog index`);
+      if (String(Cypress.env('allowFilteredCatalogSkip')).toLowerCase() === 'true') {
+        cy.log(`Skipping: chart '${ chartKey }' is intentionally hidden from the filtered catalog index`);
 
-      return mochaContext.skip();
+        return mochaContext.skip();
+      }
+
+      throw new Error(`Failing: chart '${ chartKey }' is not in the filtered catalog index, so it does not appear in the Charts/Tools UI for this environment.`);
     }
 
     callback();
