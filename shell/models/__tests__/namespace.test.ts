@@ -231,8 +231,12 @@ describe('class Namespace', () => {
       Object.defineProperty(namespace, 'isProdRegistrationV2TopLevelProductResoure', { get: () => false });
     };
 
-    it('should route to local cluster explorer when in manager product', () => {
+    it('should route to local cluster explorer when in manager product with local cluster access', () => {
       const namespace = new Namespace({});
+
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
+      sideNavService.helper.clustersOthers.length = 0;
 
       mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
 
@@ -240,6 +244,20 @@ describe('class Namespace', () => {
 
       expect(loc.params.cluster).toBe(LOCAL_CLUSTER);
       expect(loc.params.product).toBe(EXPLORER);
+    });
+
+    it('should keep manager route when in manager product without local cluster access', () => {
+      const namespace = new Namespace({});
+
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersOthers.length = 0;
+
+      mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
+
+      const loc = namespace._detailLocation;
+
+      expect(loc.params.cluster).toBe('_');
+      expect(loc.params.product).toBe(MANAGER);
     });
 
     it('should use current cluster and product when not in manager product', () => {
