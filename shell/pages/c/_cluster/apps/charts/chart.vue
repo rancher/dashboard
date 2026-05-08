@@ -306,6 +306,7 @@ export default {
           [REPO_TYPE]:        this.query.repoType,
           [REPO]:             this.query.repoName,
           [CHART]:            this.query.chartName,
+          [VERSION]:          this.query.versionName,
           [DEPRECATED]:       this.query.deprecated,
           [NEW_APP_INSTANCE]: _FLAGGED,
         }
@@ -834,7 +835,7 @@ export default {
       display: flex;
       align-items: flex-start;
       flex-shrink: 0;
-      gap: 8px;
+      gap: 16px;
 
       .installed-apps-selector {
         width: 340px;
