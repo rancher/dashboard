@@ -305,6 +305,7 @@ export default {
           :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
+          :require-dirty="false"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
           data-testid="machine-pool-name-input"
         />
