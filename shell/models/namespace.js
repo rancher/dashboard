@@ -2,7 +2,7 @@ import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import {
   PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
 } from '@shell/config/labels-annotations';
-import { ISTIO, MANAGEMENT } from '@shell/config/types';
+import { ISTIO, MANAGEMENT, LOCAL_CLUSTER } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
 import { insertAt, isArray } from '@shell/utils/array';
@@ -188,12 +188,21 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    const listLocation = { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource' };
+    // In Cluster Management, namespaces belong to the local cluster's explorer
+    const productId = this.$rootGetters['productId'];
+    const isManagerProduct = productId === 'manager';
+    const cluster = isManagerProduct ? LOCAL_CLUSTER : this.$rootGetters['clusterId'];
+    const product = isManagerProduct ? 'explorer' : productId;
+
+    const listLocation = {
+      name:   this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource',
+      params: { cluster, product },
+    };
 
     // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       listLocation.name = `${ HARVESTER }-${ listLocation.name }`.replace('-product', '');
-      listLocation.params = { resource: 'namespace' };
+      listLocation.params = { ...listLocation.params, resource: 'namespace' };
     }
 
     return listLocation;
@@ -283,6 +292,21 @@ export default class Namespace extends SteveModel {
 
     if (namespaceIndex > -1) {
       glance.splice(namespaceIndex, 1, this.projectGlance);
+    }
+
+    // In Cluster Management, the type link points to the local cluster's explorer.
+    // If the user cannot access the local cluster, show type as plain text.
+    const productId = this.$rootGetters['productId'];
+
+    if (productId === 'manager') {
+      const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+      const typeIndex = glance.findIndex((item) => item.name === 'type');
+
+      if (!localCluster && typeIndex > -1) {
+        glance[typeIndex] = {
+          ...glance[typeIndex], formatter: undefined, formatterOpts: undefined
+        };
+      }
     }
 
     // projectGlance could be undefined

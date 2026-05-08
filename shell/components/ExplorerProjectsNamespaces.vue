@@ -155,7 +155,7 @@ export default {
       return uniq(ids);
     },
     clusterProjects() {
-      const clusterId = this.currentCluster.id;
+      const clusterId = this.currentCluster?.id;
 
       // Get the list of projects from the store so that the list
       // is updated if a new project is created or removed.
@@ -274,7 +274,7 @@ export default {
     },
 
     canSeeProjectlessNamespaces() {
-      return this.currentCluster.canUpdate;
+      return this.currentCluster?.canUpdate;
     },
 
     showMockNotInProjectGroup() {
