@@ -120,14 +120,14 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provisioner() {
-    // For imported K3s clusters, this.status.driver is 'k3s.'
-    if (this.status?.driver) {
-      return this.status.driver;
-    }
-
     // Sometimes the driver will be empty (like unconnected custom rke2 clusters), so fall back on the new and improved status.provider
     if (this.status?.provider) {
       return this.status.provider;
+    }
+
+    // For imported K3s clusters, this.status.driver is 'k3s.'
+    if (this.status?.driver) {
+      return this.status.driver;
     }
 
     return 'imported';
