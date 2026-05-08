@@ -110,6 +110,10 @@ const focus = () => {
   RcFocusTarget?.value?.focus();
 };
 
+const handleSpace = (event: KeyboardEvent) => {
+  (event.target as HTMLElement).click();
+};
+
 defineExpose({ focus });
 </script>
 
@@ -120,6 +124,7 @@ defineExpose({ focus });
     :role="role"
     :to="to"
     :class="{ ...buttonClass }"
+    @keydown.space.prevent="handleSpace"
   >
     <slot
       v-if="$slots.before || props.leftIcon"

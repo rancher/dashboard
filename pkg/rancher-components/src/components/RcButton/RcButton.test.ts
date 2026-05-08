@@ -139,6 +139,33 @@ describe('rcButton.vue', () => {
     });
   });
 
+  describe('space key navigation', () => {
+    it('triggers click when Space is pressed on a link button', async() => {
+      const to = { name: 'some-route' };
+      const wrapper = mount(RcButton, {
+        props:  { to },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      const link = wrapper.findComponent(RouterLinkStub);
+      const clickSpy = jest.spyOn(link.element, 'click');
+
+      await link.trigger('keydown', { key: ' ' });
+
+      expect(clickSpy).toHaveBeenCalledWith();
+    });
+
+    it('triggers click when Space is pressed on a regular button', async() => {
+      const wrapper = mount(RcButton);
+      const button = wrapper.find('button');
+      const clickSpy = jest.spyOn(button.element, 'click');
+
+      await button.trigger('keydown', { key: ' ' });
+
+      expect(clickSpy).toHaveBeenCalledWith();
+    });
+  });
+
   describe('to prop', () => {
     it('renders as a <button> when no "to" prop is provided', () => {
       const wrapper = mount(RcButton);
