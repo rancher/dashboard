@@ -367,7 +367,7 @@ export default class ProvCluster extends SteveModel {
       } catch {}
 
       return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: MANAGEMENT.CLUSTER, name }), timeout, interval);
   }
 
   get provisioner() {

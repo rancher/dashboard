@@ -553,16 +553,26 @@ const sharedActions = {
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true, registerType = false
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      if (registerType) {
+        commit('registerType', type);
+      } else {
+        // We're going to ignore these anyway in queueChanges, so just ignore them earlier
+        // Interestingly there's quite a few (on cluster create screens theres token, cluster, project, projectRoleTemplateBinding, etc)
+        return;
+      }
+    }
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
