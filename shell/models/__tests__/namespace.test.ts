@@ -213,7 +213,35 @@ describe('class Namespace', () => {
     });
   });
 
-  it.todo('should return _detailLocation with a name');
+  describe('handling _detailLocation', () => {
+    const mockDetailLocation = (namespace: any, overrides: Record<string, any>) => {
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue(overrides);
+      jest.spyOn(namespace, '$getters', 'get').mockReturnValue({ schemaFor: () => ({ attributes: { namespaced: false } }) });
+      Object.defineProperty(namespace, 'isProdRegistrationV2TopLevelProductResoure', { get: () => false });
+    };
+
+    it('should route to local cluster explorer when in manager product', () => {
+      const namespace = new Namespace({});
+
+      mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
+
+      const loc = namespace._detailLocation;
+
+      expect(loc.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(loc.params.product).toBe(EXPLORER);
+    });
+
+    it('should use current cluster and product when not in manager product', () => {
+      const namespace = new Namespace({});
+
+      mockDetailLocation(namespace, { productId: EXPLORER, clusterId: 'c-abc' });
+
+      const loc = namespace._detailLocation;
+
+      expect(loc.params.cluster).toBe('c-abc');
+      expect(loc.params.product).toBe(EXPLORER);
+    });
+  });
   it.todo('should return the resourceQuota');
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');

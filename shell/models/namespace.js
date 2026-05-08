@@ -213,6 +213,14 @@ export default class Namespace extends SteveModel {
   get _detailLocation() {
     const _detailLocation = super._detailLocation;
 
+    // In Cluster Management, namespace details belong to the local cluster's explorer
+    const productId = this.$rootGetters['productId'];
+
+    if (productId === MANAGER) {
+      _detailLocation.params.cluster = LOCAL_CLUSTER;
+      _detailLocation.params.product = EXPLORER;
+    }
+
     return _detailLocation;
   }
 
