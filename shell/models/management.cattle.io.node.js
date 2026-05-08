@@ -1,14 +1,11 @@
 import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
-import {
-  ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN
-} from '@shell/config/types';
+import { ADDRESSES, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
 import { downloadUrl } from '@shell/utils/download';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
-import myLogger from '@shell/utils/my-logger';
 
 const RKE1_ALLOWED_ACTIONS = [
   'goToViewYaml',
