@@ -290,7 +290,9 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     configureType(match, options) {
-      store.commit(`${ module }/configureType`, { ...options, match });
+      store.commit(`${ module }/configureType`, {
+        ...options, match, product
+      });
     },
 
     componentForType(match, replace) {
@@ -412,7 +414,7 @@ export const state = function() {
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
-    typeOptions:             [],
+    typeOptions:             {},
     groupBy:                 {},
     headers:                 {},
     paginationHeaders:       {},
@@ -557,7 +559,9 @@ export const getters = {
       }
 
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
-      const found = state.typeOptions.find((entry) => {
+      const currentProduct = rootGetters['productId'];
+      const productTypeOptions = state.typeOptions[currentProduct] || [];
+      const found = productTypeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
 
         return re.test(type);
@@ -1522,6 +1526,10 @@ export const mutations = {
       delete state.virtualTypes[product];
     }
 
+    if (state.typeOptions[product]) {
+      delete state.typeOptions[product];
+    }
+
     if (state.basicTypes[product]) {
       // Remove table header configuration
       Object.keys(state.basicTypes[product]).forEach((type) => {
@@ -1784,20 +1792,35 @@ export const mutations = {
   },
 
   configureType(state, options) {
-    const match = regexToString(ensureRegex(options.match));
+    const { product, ...typeOptions } = options;
 
-    const idx = state.typeOptions.findIndex((obj) => obj.match === match);
-    let obj = { ...options, match };
+    if (!product) {
+      // eslint-disable-next-line no-console
+      console.error('configureType called without product parameter');
+
+      return;
+    }
+
+    const match = regexToString(ensureRegex(typeOptions.match));
+
+    // Initialize product's typeOptions array if needed
+    if (!state.typeOptions[product]) {
+      state.typeOptions[product] = [];
+    }
+
+    const productTypeOptions = state.typeOptions[product];
+    const idx = productTypeOptions.findIndex((obj) => obj.match === match);
+    let obj = { ...typeOptions, match };
 
     if ( idx >= 0 ) {
       // Merge the custom data object - multiple configures will update existing rather than overwrite
-      obj.custom = Object.assign(state.typeOptions[idx].custom || {}, obj.custom || {});
-      obj = Object.assign(state.typeOptions[idx], obj);
-      state.typeOptions.splice(idx, 1, obj);
+      obj.custom = Object.assign(productTypeOptions[idx].custom || {}, obj.custom || {});
+      obj = Object.assign(productTypeOptions[idx], obj);
+      productTypeOptions.splice(idx, 1, obj);
     } else {
-      const obj = Object.assign({}, options, { match });
+      const obj = Object.assign({}, typeOptions, { match });
 
-      state.typeOptions.push(obj);
+      productTypeOptions.push(obj);
     }
   },
 

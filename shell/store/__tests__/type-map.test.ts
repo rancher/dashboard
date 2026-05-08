@@ -1,6 +1,6 @@
 /* eslint-disable jest/max-nested-describe */
 
-import { TYPE_MODES, getters } from '../type-map';
+import { TYPE_MODES, getters, mutations } from '../type-map';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
   COUNT,
@@ -1339,6 +1339,172 @@ describe('type-map', () => {
       expect(getters.groupLabel(state)(undefined)).toBeUndefined();
       // Non-existent group returns undefined
       expect(getters.groupLabel(state)('nonexistent')).toBeUndefined();
+    });
+  });
+
+  describe('configureType - product scoping', () => {
+    describe('mutations.configureType', () => {
+      it('should scope typeOptions by product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'product-1-route' }
+        });
+
+        mutations.configureType(state, {
+          product:     'explorer',
+          match:       'pod',
+          customRoute: { name: 'explorer-route' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(1);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('product-1-route');
+        expect(state.typeOptions['explorer']).toHaveLength(1);
+        expect(state.typeOptions['explorer'][0].customRoute.name).toBe('explorer-route');
+      });
+
+      it('should merge multiple configures for same type in same product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          isCreatable: false
+        });
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'custom' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(1);
+        expect(state.typeOptions['product-1'][0].isCreatable).toBe(false);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('custom');
+      });
+
+      it('should merge custom data objects when configuring same type multiple times', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product: 'product-1',
+          match:   'pod',
+          custom:  { setting1: 'value1' }
+        });
+
+        mutations.configureType(state, {
+          product: 'product-1',
+          match:   'pod',
+          custom:  { setting2: 'value2' }
+        });
+
+        expect(state.typeOptions['product-1'][0].custom).toStrictEqual({
+          setting1: 'value1',
+          setting2: 'value2'
+        });
+      });
+
+      it('should log error when product parameter is missing', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          match:       'pod',
+          customRoute: { name: 'route' }
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith('configureType called without product parameter');
+        expect(state.typeOptions).toStrictEqual({});
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should allow different types in same product', () => {
+        const state = { typeOptions: {} } as any;
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'pod',
+          customRoute: { name: 'pod-route' }
+        });
+
+        mutations.configureType(state, {
+          product:     'product-1',
+          match:       'deployment',
+          customRoute: { name: 'deployment-route' }
+        });
+
+        expect(state.typeOptions['product-1']).toHaveLength(2);
+        expect(state.typeOptions['product-1'][0].customRoute.name).toBe('pod-route');
+        expect(state.typeOptions['product-1'][1].customRoute.name).toBe('deployment-route');
+      });
+    });
+
+    describe('getters.optionsFor - product filtering', () => {
+      it('should return product-scoped options', () => {
+        const state = {
+          typeOptions: {
+            'product-1': [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+            explorer:    [{ match: 'pod', customRoute: { name: 'explorer-route' } }]
+          }
+        } as any;
+
+        const rootGetters = { productId: 'product-1' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.customRoute.name).toBe('product-1-route');
+      });
+
+      it('should return defaults when type not configured in current product', () => {
+        const state = { typeOptions: { explorer: [{ match: 'pod', customRoute: { name: 'explorer-route' } }] } } as any;
+
+        const rootGetters = { productId: 'product-1' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.customRoute).toBeUndefined();
+        expect(opts.isCreatable).toBe(true); // default value
+      });
+
+      it('should handle missing product gracefully', () => {
+        const state = { typeOptions: {} } as any;
+        const rootGetters = { productId: 'nonexistent' };
+
+        const optionsFn = getters.optionsFor(state, {}, {}, rootGetters);
+        const opts = optionsFn('pod', false);
+
+        expect(opts.isCreatable).toBe(true); // defaults
+        expect(opts.customRoute).toBeUndefined();
+      });
+
+      it('should not apply explorer product config to other products', () => {
+        const state = {
+          typeOptions: {
+            explorer:    [{ match: 'pod', customRoute: { name: 'explorer-pod-route' } }],
+            'product-1': [{ match: 'pod', customRoute: { name: 'product-1-pod-route' } }]
+          }
+        } as any;
+
+        // Check explorer product
+        const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+
+        expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-pod-route');
+
+        // Check other product
+        const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        expect(product1Options('pod', false).customRoute.name).toBe('product-1-pod-route');
+
+        // Check unconfigured product
+        const product2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+
+        expect(product2Options('pod', false).customRoute).toBeUndefined();
+      });
     });
   });
 });
