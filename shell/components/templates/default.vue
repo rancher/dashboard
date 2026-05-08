@@ -140,10 +140,6 @@ export default {
       debugger;
     },
 
-    skipToMainContent() {
-      document.getElementById('main-content')?.focus();
-    },
-
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
@@ -171,7 +167,7 @@ export default {
     <rc-button
       size="large"
       class="skip-to-content"
-      @click="skipToMainContent"
+      :to="{ hash: '#main-content' }"
     >
       {{ t('nav.skipToContent') }}
     </rc-button>

@@ -9,6 +9,23 @@ export const routerOptions = {
   base:     process.env.routerBase || '/',
   routes:   Routes,
   fallback: false,
+  scrollBehavior(to, from, savedPosition) {
+    // Returning the savedPosition will result in a native-like behavior when
+    // navigating with back/forward buttons
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    // Simulate the "scroll to anchor" behavior when the hash changes.
+    // For example, the skip to content link
+    if (to.hash) {
+      const el = document.getElementById(to.hash.slice(1));
+
+      el?.focus();
+
+      return { el: to.hash };
+    }
+  },
 };
 
 export function extendRouter(config, context) {
