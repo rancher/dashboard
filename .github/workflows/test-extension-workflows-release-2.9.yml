@@ -63,6 +63,9 @@ jobs:
   test-release-shell-pkg-release-2-dot-9:
     needs: retrieve-tags-release-2-dot-9
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@dc3bbc9b9be666bea95f9e766147a4238c0c9a12 # v2.9.12
+    permissions:
+      id-token: write
+      contents: read
     with:
       is_test:  'true'
       test_branch:  'release-2.9'
@@ -70,6 +73,9 @@ jobs:
   test-release-creators-pkg-release-2-dot-9:
     needs: retrieve-tags-release-2-dot-9
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@dc3bbc9b9be666bea95f9e766147a4238c0c9a12 # v2.9.12
+    permissions:
+      id-token: write
+      contents: read
     with:
       is_test: 'true'
       test_branch: 'release-2.9'
