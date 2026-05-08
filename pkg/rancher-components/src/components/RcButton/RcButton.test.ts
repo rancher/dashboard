@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, RouterLinkStub } from '@vue/test-utils';
 import RcButton from './RcButton.vue';
 
 describe('rcButton.vue', () => {
@@ -136,6 +136,42 @@ describe('rcButton.vue', () => {
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-ghost');
+    });
+  });
+
+  describe('to prop', () => {
+    it('renders as a <button> when no "to" prop is provided', () => {
+      const wrapper = mount(RcButton);
+
+      expect(wrapper.find('button').exists()).toBe(true);
+      expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false);
+    });
+
+    it('renders as a RouterLink when "to" prop is provided', () => {
+      const to = { name: 'some-route' };
+      const wrapper = mount(RcButton, {
+        props:  { to },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      const link = wrapper.findComponent(RouterLinkStub);
+
+      expect(link.exists()).toBe(true);
+      expect(wrapper.find('button').exists()).toBe(false);
+      expect(link.props('to')).toStrictEqual(to);
+    });
+
+    it('applies button classes when rendered as a RouterLink', () => {
+      const wrapper = mount(RcButton, {
+        props:  { to: '/foo', variant: 'secondary' },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      const link = wrapper.findComponent(RouterLinkStub);
+
+      expect(link.classes()).toContain('rc-button');
+      expect(link.classes()).toContain('btn');
+      expect(link.classes()).toContain('variant-secondary');
     });
   });
 });

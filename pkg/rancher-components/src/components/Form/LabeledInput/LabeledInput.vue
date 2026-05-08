@@ -1,6 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject, computed, watch } from 'vue';
-import { useField } from 'vee-validate';
+import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
@@ -9,6 +8,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -142,56 +142,11 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
-    // Stable fallback name so useField is always called unconditionally.
-    // When no name prop is given the field won't match any form-schema path.
-    const standaloneFieldId = `__field__${ generateRandomAlphaString(12) }`;
-    const veeFieldName = computed(() => props.name || standaloneFieldId);
-
-    // Pass existing rules to vee-validate so field-level validation still runs
-    const veeValidator = (value: unknown): boolean | string => {
-      // Return true when name is absent to avoid duplicating
-      // useLabeledFormElement validation
-      if (!props.name) {
-        return true;
-      }
-      for (const rule of props.rules as Array<(v: unknown) => string | undefined>) {
-        const msg = rule(value);
-
-        if (msg) {
-          return msg;
-        }
-      }
-
-      return true;
-    };
-
-    const {
-      errorMessage: veeError,
-      handleBlur:   veeHandleBlur,
-      validate:     veeValidate,
-      value:        veeValue,
-    } = useField<string | number | Record<string, unknown>>(
-      veeFieldName,
-      veeValidator,
-      {
-        initialValue:          props.value as string | number,
-        validateOnValueUpdate: true,
-      }
-    );
-
-    // Keep vee-validate's internal value in sync with the controlled prop value.
-    watch(() => props.value, (v) => {
-      if (veeValue.value !== v) {
-        veeValue.value = v as string | number;
-      }
-    });
-
-    const effectiveValidationMessage = computed(() => {
-      if (props.name && veeError.value) {
-        return veeError.value;
-      }
-
-      return validationMessage.value;
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
     });
 
     const effectiveStatus = computed(() => props.status);

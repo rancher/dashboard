@@ -1,5 +1,6 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import { HarvesterClusterDetailsPo, HarvesterClusterPagePo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
+// import { HarvesterClusterDetailsPo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
+import { HarvesterClusterPagePo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
@@ -9,7 +10,7 @@ const extensionsPo = new ExtensionsPagePo();
 const harvesterPo = new HarvesterClusterPagePo();
 const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
-let harvesterClusterName = '';
+// let harvesterClusterName = '';
 const harvesterTitle = 'Harvester';
 
 // Cluster chart repository that supplies the Harvester UI extension (repo id, Git URL, branch)—differs for Community vs Prime.
@@ -57,82 +58,83 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.getRancherVersion().then((version) => {
       cy.wrap(version, { log: false }).as('rancherVersion');
     });
-    cy.createE2EResourceName('harvesterclustername').then((name) => {
-      harvesterClusterName = name;
-    });
+    // cy.createE2EResourceName('harvesterclustername').then((name) => {
+    //   harvesterClusterName = name;
+    // });
   });
 
-  qase(7020, it('can auto install harvester and begin process of importing a harvester cluster', () => {
-    cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
-      const catalog = harvesterExtensionCatalog(version);
-      const chartRepo = catalog.repo;
+  // Re-enable once dashboard issue https://github.com/rancher/dashboard/issues/17543 is resolved
+  // qase(7020, it('can auto install harvester and begin process of importing a harvester cluster', () => {
+  //   cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {
+  //     const catalog = harvesterExtensionCatalog(version);
+  //     const chartRepo = catalog.repo;
 
-      cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createChart');
-      cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }`).as('updateChart');
-      cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
-      cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
+  //     cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createChart');
+  //     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }`).as('updateChart');
+  //     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ chartRepo }?action=install`).as('installHarvesterExtension');
+  //     cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
-      // verify install button and message displays
-      harvesterPo.goTo();
-      harvesterPo.waitForPage();
-      harvesterPo.updateOrInstallButton().checkVisible();
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
+  //     // verify install button and message displays
+  //     harvesterPo.goTo();
+  //     harvesterPo.waitForPage();
+  //     harvesterPo.updateOrInstallButton().checkVisible();
+  //     harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not installed');
 
-      // install harvester extension
-      harvesterPo.updateOrInstallButton().click();
-      cy.wait('@createChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
-      cy.wait('@updateChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT);
-      harvesterPo.waitForPage();
-      cy.wait('@updateChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
+  //     // install harvester extension
+  //     harvesterPo.updateOrInstallButton().click();
+  //     cy.wait('@createChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
+  //     cy.wait('@updateChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+  //     cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT);
+  //     harvesterPo.waitForPage();
+  //     cy.wait('@updateChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+  //     harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
 
-      // verify harvester extension added to extensions page
-      extensionsPo.goTo();
-      extensionsPo.waitForTabs();
-      extensionsPo.waitForPage(null, 'installed');
-      extensionsPo.extensionCard(harvesterTitle).checkVisible();
+  //     // verify harvester extension added to extensions page
+  //     extensionsPo.goTo();
+  //     extensionsPo.waitForTabs();
+  //     extensionsPo.waitForPage(null, 'installed');
+  //     extensionsPo.extensionCard(harvesterTitle).checkVisible();
 
-      // verify harvester repo is added to repos list page
-      appRepoList.goTo(undefined, 'manager');
-      appRepoList.waitForPage();
-      appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
-      appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
+  //     // verify harvester repo is added to repos list page
+  //     appRepoList.goTo(undefined, 'manager');
+  //     appRepoList.waitForPage();
+  //     appRepoList.sortableTable().rowElementWithName(chartRepo).should('be.visible');
+  //     appRepoList.list().state(chartRepo).contains('Active', LONG_TIMEOUT_OPT);
 
-      // begin process of importing harvester cluster
-      harvesterPo.goTo();
-      harvesterPo.waitForPage();
-      cy.wait('@updateChart', LONG_TIMEOUT_OPT);
-      harvesterPo.importHarvesterClusterButton().click();
-      harvesterPo.createHarvesterClusterForm().waitForPage(null, 'memberRoles');
-      harvesterPo.createHarvesterClusterForm().title().should('contain', 'Harvester Cluster:');
-      harvesterPo.createHarvesterClusterForm().nameNsDescription().name().set(harvesterClusterName);
-      harvesterPo.createHarvesterClusterForm().nameNsDescription().description().set(`${ harvesterClusterName }-desc`);
-      harvesterPo.createHarvesterClusterForm().resourceDetail().createEditView().create();
-      cy.wait('@createHarvesterCluster').then(({ response }) => {
-        expect(response?.statusCode).to.eq(201);
+  //     // begin process of importing harvester cluster
+  //     harvesterPo.goTo();
+  //     harvesterPo.waitForPage();
+  //     cy.wait('@updateChart', LONG_TIMEOUT_OPT);
+  //     harvesterPo.importHarvesterClusterButton().click();
+  //     harvesterPo.createHarvesterClusterForm().waitForPage(null, 'memberRoles');
+  //     harvesterPo.createHarvesterClusterForm().title().should('contain', 'Harvester Cluster:');
+  //     harvesterPo.createHarvesterClusterForm().nameNsDescription().name().set(harvesterClusterName);
+  //     harvesterPo.createHarvesterClusterForm().nameNsDescription().description().set(`${ harvesterClusterName }-desc`);
+  //     harvesterPo.createHarvesterClusterForm().resourceDetail().createEditView().create();
+  //     cy.wait('@createHarvesterCluster').then(({ response }) => {
+  //       expect(response?.statusCode).to.eq(201);
 
-        const harvesterClusterId = response.body.id;
-        const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterId);
+  //       const harvesterClusterId = response.body.id;
+  //       const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterId);
 
-        harvesterDetails.waitForPage(null, 'registration');
-        harvesterDetails.title().should('contain', harvesterClusterName);
+  //       harvesterDetails.waitForPage(null, 'registration');
+  //       harvesterDetails.title().should('contain', harvesterClusterName);
 
-        // navigate to harvester list page and verify the logo and tagline do not display after cluster created
-        HarvesterClusterPagePo.navTo();
-        harvesterPo.waitForPage();
-        harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
-          .checkVisible();
-        harvesterPo.harvesterLogo().should('not.exist');
-        harvesterPo.harvesterTagline().should('not.exist');
+  //       // navigate to harvester list page and verify the logo and tagline do not display after cluster created
+  //       HarvesterClusterPagePo.navTo();
+  //       harvesterPo.waitForPage();
+  //       harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
+  //         .checkVisible();
+  //       harvesterPo.harvesterLogo().should('not.exist');
+  //       harvesterPo.harvesterTagline().should('not.exist');
 
-        // #14285: Should be able to edit cluster here
-        harvesterPo.list().actionMenu(harvesterClusterName).getMenuItem('Edit Config').should('exist');
-        // delete cluster
-        cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`);
-      });
-    });
-  }));
+  //       // #14285: Should be able to edit cluster here
+  //       harvesterPo.list().actionMenu(harvesterClusterName).getMenuItem('Edit Config').should('exist');
+  //       // delete cluster
+  //       cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`);
+  //     });
+  //   });
+  // }));
 
   qase(7021, it('missing repo message should display when repo does NOT exist', () => {
     cy.get<Cypress.RancherVersion>('@rancherVersion').then((version) => {

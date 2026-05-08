@@ -385,6 +385,7 @@ export default {
                   v-for="btn in panelActions"
                   :key="btn.action"
                   class="mmr-3 mmb-3"
+                  size="large"
                   :variant="btn.role"
                   @click="onButtonClick(btn)"
                 >

@@ -1,5 +1,8 @@
 import Chart from '@shell/pages/c/_cluster/apps/charts/chart.vue';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, DEPRECATED
+} from '@shell/config/query-params';
 
 jest.mock('clipboard-polyfill', () => ({ writeText: () => {} }));
 
@@ -319,6 +322,79 @@ describe('page: Chart Detail', () => {
       expect(result[0].label).toBe('default/app-one');
       expect(result[1].label).toBe('kube-system/app-two (generic.upgradeable)');
       expect(result[2].label).toBe('monitoring/app-three');
+    });
+  });
+
+  describe('methods: openReadme', () => {
+    it('opens standalone readme URL with chart context and without theme query', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      const resolve = jest.fn(() => ({ href: '/c/local/readme?x=y' }));
+      const thisContext = {
+        $router: { resolve },
+        $route:  { params: { cluster: 'local' } },
+        query:   {
+          repoType:    'cluster',
+          repoName:    'rancher-charts',
+          chartName:   'test-chart',
+          versionName: '',
+          deprecated:  'false',
+        },
+        targetVersion: '1.2.3'
+      };
+
+      (Chart.methods!.openReadme as () => void).call(thisContext);
+
+      expect(resolve).toHaveBeenCalledWith({
+        name:   'readme',
+        params: { cluster: 'local' },
+        query:  {
+          [REPO_TYPE]:          'cluster',
+          [REPO]:               'rancher-charts',
+          [CHART]:              'test-chart',
+          [VERSION]:            '1.2.3',
+          [DEPRECATED]:         'false',
+          showAppReadme:        'false',
+          hideReadmeFirstTitle: 'false',
+        }
+      });
+      expect(openSpy).toHaveBeenCalledWith('/c/local/readme?x=y', '_blank');
+      openSpy.mockRestore();
+    });
+  });
+
+  describe('methods: installNewInstance', () => {
+    it('should navigate to install page with correct query parameters', () => {
+      const mockRouterPush = jest.fn();
+      const thisContext = {
+        $router: { push: mockRouterPush },
+        $route:  { params: { cluster: 'local' } },
+        $store:  { getters: { productId: 'explorer' } },
+        query:   {
+          repoType:    'cluster',
+          repoName:    'rancher-charts',
+          chartName:   'my-chart',
+          versionName: '1.2.3',
+          deprecated:  'false'
+        }
+      };
+
+      (Chart.methods!.installNewInstance as () => void).call(thisContext);
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-apps-charts-install',
+        params: {
+          cluster: 'local',
+          product: 'explorer',
+        },
+        query: {
+          'repo-type':    'cluster',
+          repo:           'rancher-charts',
+          chart:          'my-chart',
+          version:        '1.2.3',
+          deprecated:     'false',
+          'new-instance': null
+        }
+      });
     });
   });
 });

@@ -343,7 +343,7 @@ describe('steve: subscribe', () => {
 
         // call watch
         actions.watch({
-          state, dispatch, getters, rootGetters
+          state, dispatch, getters, rootGetters, commit
         }, {
           ...obj,
           revision,
@@ -488,6 +488,7 @@ describe('steve: subscribe', () => {
         const state = {
           started:         [],
           inError:         {},
+          queue:           [],
           listenerManager: new SteveWatchEventListenerManager()
         };
         const _getters = {

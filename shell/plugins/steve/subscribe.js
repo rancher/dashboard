@@ -553,7 +553,7 @@ const sharedActions = {
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
@@ -620,6 +620,9 @@ const sharedActions = {
         if (debounceMs) {
           msg.debounceMs = debounceMs;
         }
+
+        // Anything in the queue will pollute the result set, so clear (and print to console so we know it's working)
+        commit('clearFromQueue', { type, log: true });
       }
     }
 
@@ -1556,10 +1559,20 @@ const defaultMutations = {
     state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
-  clearFromQueue(state, type) {
+  clearFromQueue(state, args) {
+    const safeArgs = typeof args === 'object' ? args : { type: args };
+    const { type, log } = safeArgs;
+
     // Remove anything in the queue that is a resource update for the given type
     state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
+      const keep = item.body?.type !== type;
+
+      if (!keep && log) {
+        // eslint-disable-next-line no-console
+        console.info(`Clearing queued item of type \`${ type }\` from queue`, item);
+      }
+
+      return keep;
     });
   },
 };

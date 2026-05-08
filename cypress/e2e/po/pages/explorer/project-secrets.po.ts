@@ -27,7 +27,7 @@ export class ProjectSecretsListPagePo extends BaseListPagePo {
   }
 
   createButtonTitle() {
-    return this.createButton().invoke('text');
+    return this.createButton().invoke('text').invoke('trim');
   }
 }
 
@@ -60,6 +60,10 @@ export class ProjectSecretsCreateEditPo extends BaseDetailPagePo {
 
   basicAuthUsernameInput() {
     return new LabeledInputPo('[data-testid="secret-basic-username"]');
+  }
+
+  basicAuthPasswordInput() {
+    return new LabeledInputPo('[data-testid="secret-basic-password"]');
   }
 
   saveOrCreate(): AsyncButtonPo {

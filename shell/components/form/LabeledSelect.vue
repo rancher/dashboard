@@ -12,7 +12,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
-import { ref } from 'vue';
+import { ref, toRef } from 'vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 export default {
   name: 'LabeledSelect',
@@ -115,6 +116,11 @@ export default {
     noOptionsLabelKey: {
       type:    String,
       default: 'labelSelect.noOptions.empty'
+    },
+
+    name: {
+      type:    String,
+      default: null
     }
   },
 
@@ -161,6 +167,13 @@ export default {
       resizeHandlerFn(select);
     };
 
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
     return {
       isOpen,
       select,
@@ -172,7 +185,7 @@ export default {
       onFocusLabeled,
       onBlurLabeled,
       isDisabled,
-      validationMessage,
+      validationMessage: effectiveValidationMessage,
       requiredField,
       isSearchable,
       isFilterable,
@@ -186,6 +199,8 @@ export default {
       paginating,
       loadMore,
       setPaginationFilter,
+      veeHandleBlur,
+      veeValidate,
     };
   },
 
@@ -221,7 +236,7 @@ export default {
     // update placeholder text to inform user they can add their own opts when none are found
     showTagPrompts() {
       return !this.options.length && this.$attrs.taggable && this.isSearchable;
-    }
+    },
   },
 
   methods: {
@@ -272,6 +287,8 @@ export default {
       this.$emit('on-blur');
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
+      this.veeHandleBlur(undefined, false);
+      this.veeValidate();
     },
 
     onOpen() {
