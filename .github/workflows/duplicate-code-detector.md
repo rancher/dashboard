@@ -24,6 +24,9 @@ safe-outputs:
     labels: [bot/duplicate-code-detector, bot/skip-grooming]
     group: true
     max: 3
+tools:
+  github:
+    min-integrity: none
 timeout-minutes: 15
 strict: true
 ---

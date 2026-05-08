@@ -39,6 +39,7 @@ tools:
   web-fetch:
   github:
     toolsets: [all]
+    min-integrity: none
 
 timeout-minutes: 60
 

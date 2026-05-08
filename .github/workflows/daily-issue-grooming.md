@@ -25,6 +25,7 @@ tools:
   github:
     toolsets:
       - default
+    min-integrity: none
 
 safe-outputs:
   add-comment:

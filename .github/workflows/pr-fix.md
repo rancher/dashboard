@@ -35,6 +35,8 @@ safe-outputs:
 tools:
   web-fetch:
   bash: true
+  github:
+    min-integrity: none
 
 timeout-minutes: 20
 

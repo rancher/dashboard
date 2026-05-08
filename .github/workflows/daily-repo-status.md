@@ -31,6 +31,7 @@ tools:
     # reading issues, pull requests and comments from 3rd-parties
     # If in a private repo this has no particular effect.
     lockdown: false
+    min-integrity: none
 
 safe-outputs:
   mentions: false
