@@ -10,119 +10,207 @@ import {
 } from '@shell/utils/units';
 
 describe('units', () => {
-  describe('uNITS / FRACTIONAL constants', () => {
-    it('uNITS contains SI prefixes', () => {
+  describe('exported constants', () => {
+    it('exports expected UNITS prefixes', () => {
       expect(UNITS).toStrictEqual(['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']);
     });
 
-    it('fRACTIONAL contains fractional SI prefixes', () => {
+    it('exports expected FRACTIONAL prefixes', () => {
       expect(FRACTIONAL).toStrictEqual(['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']);
     });
   });
 
   describe('exponentNeeded', () => {
-    it('returns 0 for value below increment', () => {
-      expect(exponentNeeded(999)).toStrictEqual(0);
-    });
-
-    it('returns 1 for value equal to increment', () => {
-      expect(exponentNeeded(1000)).toStrictEqual(1);
-    });
-
-    it('returns 2 for value 1_000_000', () => {
-      expect(exponentNeeded(1_000_000)).toStrictEqual(2);
-    });
-
-    it('returns 3 for value 1_000_000_000', () => {
-      expect(exponentNeeded(1_000_000_000)).toStrictEqual(3);
-    });
-
-    it('uses custom increment when provided', () => {
-      expect(exponentNeeded(1024, 1024)).toStrictEqual(1);
-    });
-
-    it('returns 0 for value 0', () => {
-      expect(exponentNeeded(0)).toStrictEqual(0);
-    });
-
-    it('returns 0 for value 1', () => {
-      expect(exponentNeeded(1)).toStrictEqual(0);
+    it.each([
+      {
+        desc:     'returns 0 for value below increment',
+        value:    999,
+        expected: 0,
+      },
+      {
+        desc:     'returns 1 for value equal to increment',
+        value:    1000,
+        expected: 1,
+      },
+      {
+        desc:     'returns 2 for value 1_000_000',
+        value:    1_000_000,
+        expected: 2,
+      },
+      {
+        desc:     'returns 3 for value 1_000_000_000',
+        value:    1_000_000_000,
+        expected: 3,
+      },
+      {
+        desc:      'uses custom increment when provided',
+        value:     1024,
+        increment: 1024,
+        expected:  1,
+      },
+      {
+        desc:     'returns 0 for value 0',
+        value:    0,
+        expected: 0,
+      },
+      {
+        desc:     'returns 0 for value 1',
+        value:    1,
+        expected: 0,
+      },
+    ])('$desc', ({ value, increment, expected }) => {
+      expect(exponentNeeded(value, increment)).toStrictEqual(expected);
     });
   });
 
   describe('formatSi', () => {
     describe('default options (increment=1000)', () => {
       it.each([
-        [0, '0 '],
-        [999, '999 '],
-        [1000, '1 K'],
-        [1500, '1.5 K'],
-        [1_000_000, '1 M'],
-        [1_500_000, '1.5 M'],
-        [1_000_000_000, '1 G'],
-        [1_000_000_000_000, '1 T'],
-      ])('formats %d correctly', (input, expected) => {
+        {
+          desc:     'formats 0',
+          input:    0,
+          expected: '0 ',
+        },
+        {
+          desc:     'formats 999',
+          input:    999,
+          expected: '999 ',
+        },
+        {
+          desc:     'formats 1000 as 1 K',
+          input:    1000,
+          expected: '1 K',
+        },
+        {
+          desc:     'formats 1500 as 1.5 K',
+          input:    1500,
+          expected: '1.5 K',
+        },
+        {
+          desc:     'formats 1_000_000 as 1 M',
+          input:    1_000_000,
+          expected: '1 M',
+        },
+        {
+          desc:     'formats 1_500_000 as 1.5 M',
+          input:    1_500_000,
+          expected: '1.5 M',
+        },
+        {
+          desc:     'formats 1_000_000_000 as 1 G',
+          input:    1_000_000_000,
+          expected: '1 G',
+        },
+        {
+          desc:     'formats 1_000_000_000_000 as 1 T',
+          input:    1_000_000_000_000,
+          expected: '1 T',
+        },
+        {
+          desc:     'formats with 2 decimal precision for values < 10',
+          input:    1234,
+          expected: '1.23 K',
+        },
+      ])('$desc', ({ input, expected }) => {
         expect(formatSi(input)).toStrictEqual(expected);
-      });
-
-      it('formats value with 2 decimal precision for values < 10', () => {
-        expect(formatSi(1234)).toStrictEqual('1.23 K');
       });
     });
 
     describe('suffix options', () => {
-      it('appends suffix', () => {
-        expect(formatSi(1000, { suffix: 'B' })).toStrictEqual('1 KB');
-      });
-
-      it('uses firstSuffix for exponent 0', () => {
-        expect(formatSi(500, { suffix: 'B', firstSuffix: 'B' })).toStrictEqual('500 B');
-      });
-
-      it('does not use firstSuffix when exponent > 0', () => {
-        expect(formatSi(1000, { suffix: 'B', firstSuffix: 'B' })).toStrictEqual('1 KB');
-      });
-
-      it('omits suffix space when addSuffixSpace=false', () => {
-        expect(formatSi(1000, { addSuffixSpace: false, suffix: 'B' })).toStrictEqual('1KB');
-      });
-
-      it('omits suffix entirely when addSuffix=false', () => {
-        expect(formatSi(1000, { addSuffix: false })).toStrictEqual('1');
+      it.each([
+        {
+          desc:     'appends suffix',
+          input:    1000,
+          options:  { suffix: 'B' },
+          expected: '1 KB',
+        },
+        {
+          desc:     'uses firstSuffix for exponent 0',
+          input:    500,
+          options:  { suffix: 'B', firstSuffix: 'B' },
+          expected: '500 B',
+        },
+        {
+          desc:     'does not use firstSuffix when exponent > 0',
+          input:    1000,
+          options:  { suffix: 'B', firstSuffix: 'B' },
+          expected: '1 KB',
+        },
+        {
+          desc:     'omits suffix space when addSuffixSpace=false',
+          input:    1000,
+          options:  { addSuffixSpace: false, suffix: 'B' },
+          expected: '1KB',
+        },
+        {
+          desc:     'omits suffix entirely when addSuffix=false',
+          input:    1000,
+          options:  { addSuffix: false },
+          expected: '1',
+        },
+      ])('$desc', ({ input, options, expected }) => {
+        expect(formatSi(input, options)).toStrictEqual(expected);
       });
     });
 
     describe('increment=1024', () => {
-      it('formats 1024 as 1 K', () => {
-        expect(formatSi(1024, {
-          increment: 1024, suffix: 'iB', firstSuffix: 'B'
-        })).toStrictEqual('1 KiB');
-      });
-
-      it('formats 1048576 as 1 M', () => {
-        expect(formatSi(1048576, { increment: 1024, suffix: 'iB' })).toStrictEqual('1 MiB');
+      it.each([
+        {
+          desc:    'formats 1024 as 1 KiB',
+          input:   1024,
+          options: {
+            increment:   1024,
+            suffix:      'iB',
+            firstSuffix: 'B',
+          },
+          expected: '1 KiB',
+        },
+        {
+          desc:     'formats 1048576 as 1 MiB',
+          input:    1048576,
+          options:  { increment: 1024, suffix: 'iB' },
+          expected: '1 MiB',
+        },
+      ])('$desc', ({ input, options, expected }) => {
+        expect(formatSi(input, options)).toStrictEqual(expected);
       });
     });
 
     describe('minExponent / maxExponent', () => {
-      it('respects minExponent to force higher unit', () => {
-        // minExponent=1 forces into K range
-        expect(formatSi(500, { minExponent: 1, addSuffix: false })).toStrictEqual('0.5');
-      });
-
-      it('respects maxExponent to cap scaling', () => {
-        // maxExponent=1 caps at K, so 1_000_000 stays as 1000 K
-        expect(formatSi(1_000_000, { maxExponent: 1, addSuffix: false })).toStrictEqual('1000');
+      it.each([
+        {
+          desc:     'respects minExponent to force higher unit',
+          input:    500,
+          options:  { minExponent: 1, addSuffix: false },
+          expected: '0.5',
+        },
+        {
+          desc:     'respects maxExponent to cap scaling',
+          input:    1_000_000,
+          options:  { maxExponent: 1, addSuffix: false },
+          expected: '1000',
+        },
+      ])('$desc', ({ input, options, expected }) => {
+        expect(formatSi(input, options)).toStrictEqual(expected);
       });
     });
 
     describe('maxPrecision', () => {
-      it('uses integer for maxPrecision=0 on small values', () => {
-        expect(formatSi(1500, { maxPrecision: 0 })).toStrictEqual('2 K');
-      });
-
-      it('uses 1 decimal for maxPrecision=1', () => {
-        expect(formatSi(1500, { maxPrecision: 1 })).toStrictEqual('1.5 K');
+      it.each([
+        {
+          desc:     'uses integer for maxPrecision=0',
+          input:    1500,
+          options:  { maxPrecision: 0 },
+          expected: '2 K',
+        },
+        {
+          desc:     'uses 1 decimal for maxPrecision=1',
+          input:    1500,
+          options:  { maxPrecision: 1 },
+          expected: '1.5 K',
+        },
+      ])('$desc', ({ input, options, expected }) => {
+        expect(formatSi(input, options)).toStrictEqual(expected);
       });
     });
 
@@ -151,49 +239,79 @@ describe('units', () => {
 
   describe('parseSi', () => {
     it.each([
-      ['1K', 1000],
-      ['1M', 1_000_000],
-      ['1G', 1_000_000_000],
-      ['1T', 1_000_000_000_000],
-    ])('parses %s to %d (default increment=1000)', (input, expected) => {
+      {
+        desc:     'parses 1K to 1000',
+        input:    '1K',
+        expected: 1000,
+      },
+      {
+        desc:     'parses 1M to 1_000_000',
+        input:    '1M',
+        expected: 1_000_000,
+      },
+      {
+        desc:     'parses 1G to 1_000_000_000',
+        input:    '1G',
+        expected: 1_000_000_000,
+      },
+      {
+        desc:     'parses 1T to 1_000_000_000_000',
+        input:    '1T',
+        expected: 1_000_000_000_000,
+      },
+      {
+        desc:     'parses plain number string',
+        input:    '500',
+        expected: 500,
+      },
+      {
+        desc:     'parses decimal number string',
+        input:    '1.5K',
+        expected: 1500,
+      },
+      {
+        desc:     'parses KiB with increment=1024',
+        input:    '1Ki',
+        expected: 1024,
+      },
+      {
+        desc:     'parses MiB with increment=1024',
+        input:    '1Mi',
+        expected: 1048576,
+      },
+      {
+        desc:     'strips commas from numeric strings',
+        input:    '1,000',
+        expected: 1000,
+      },
+      {
+        desc:     'ignores unrecognized unit suffix',
+        input:    '100X',
+        expected: 100,
+      },
+    ])('$desc', ({ input, expected }) => {
       expect(parseSi(input)).toStrictEqual(expected);
     });
 
-    it('parses plain number string', () => {
-      expect(parseSi('500')).toStrictEqual(500);
-    });
-
-    it('parses decimal number string', () => {
-      expect(parseSi('1.5K')).toStrictEqual(1500);
-    });
-
-    it('parses KiB with increment=1024', () => {
-      expect(parseSi('1Ki')).toStrictEqual(1024);
-    });
-
-    it('parses MiB with increment=1024', () => {
-      expect(parseSi('1Mi')).toStrictEqual(1048576);
-    });
-
-    it('returns NaN for empty string', () => {
-      expect(parseSi('')).toStrictEqual(NaN);
-    });
-
-    it('returns NaN for null/undefined', () => {
-      expect(parseSi(null as any)).toStrictEqual(NaN);
-      expect(parseSi(undefined as any)).toStrictEqual(NaN);
-    });
-
-    it('returns NaN for non-string input', () => {
-      expect(parseSi(123 as any)).toStrictEqual(NaN);
-    });
-
-    it('strips commas from numeric strings', () => {
-      expect(parseSi('1,000')).toStrictEqual(1000);
-    });
-
-    it('ignores unrecognized unit suffix', () => {
-      expect(parseSi('100X')).toStrictEqual(100);
+    it.each([
+      {
+        desc:  'empty string',
+        input: '',
+      },
+      {
+        desc:  'null',
+        input: null as any,
+      },
+      {
+        desc:  'undefined',
+        input: undefined as any,
+      },
+      {
+        desc:  'non-string input',
+        input: 123 as any,
+      },
+    ])('returns NaN for $desc', ({ input }) => {
+      expect(parseSi(input)).toStrictEqual(NaN);
     });
 
     it('parses fractional milli unit (m)', () => {
@@ -219,33 +337,34 @@ describe('units', () => {
   });
 
   describe('createMemoryFormat', () => {
-    it('returns format with exponent locked for given value', () => {
-      const fmt = createMemoryFormat(1024);
+    it.each([
+      {
+        desc:     'locks exponent for 1 KiB',
+        value:    1024,
+        expected: 1,
+      },
+      {
+        desc:     'sets GiB exponent for 1 GiB',
+        value:    1024 * 1024 * 1024,
+        expected: 3,
+      },
+      {
+        desc:     'sets byte exponent for 0',
+        value:    0,
+        expected: 0,
+      },
+    ])('$desc', ({ value, expected }) => {
+      const fmt = createMemoryFormat(value);
 
-      expect(fmt.maxExponent).toStrictEqual(1);
-      expect(fmt.minExponent).toStrictEqual(1);
-      expect(fmt.increment).toStrictEqual(1024);
-      expect(fmt.suffix).toStrictEqual('iB');
-    });
-
-    it('sets GiB exponent for 1 GiB', () => {
-      const fmt = createMemoryFormat(1024 * 1024 * 1024);
-
-      expect(fmt.maxExponent).toStrictEqual(3);
-      expect(fmt.minExponent).toStrictEqual(3);
-    });
-
-    it('sets byte exponent for 0', () => {
-      const fmt = createMemoryFormat(0);
-
-      expect(fmt.maxExponent).toStrictEqual(0);
-      expect(fmt.minExponent).toStrictEqual(0);
+      expect(fmt.maxExponent).toStrictEqual(expected);
+      expect(fmt.minExponent).toStrictEqual(expected);
     });
 
     it('includes all MEMORY_PARSE_RULES format properties', () => {
       const base = MEMORY_PARSE_RULES.memory.format;
-      const fmt = createMemoryFormat(0);
+      const fmt = createMemoryFormat(1024);
 
+      expect(fmt.increment).toStrictEqual(base.increment);
       expect(fmt.addSuffix).toStrictEqual(base.addSuffix);
       expect(fmt.firstSuffix).toStrictEqual(base.firstSuffix);
       expect(fmt.suffix).toStrictEqual(base.suffix);
@@ -276,6 +395,7 @@ describe('units', () => {
 
       expect(result.total).toStrictEqual(0);
       expect(result.useful).toStrictEqual(0);
+      expect(result.units).toStrictEqual('iB');
     });
 
     it('accepts numeric strings with Si notation', () => {
@@ -283,6 +403,7 @@ describe('units', () => {
 
       expect(result.units).toStrictEqual('KiB');
       expect(result.total).toStrictEqual(1);
+      expect(result.useful).toStrictEqual(0.5);
     });
 
     it('rounds to 2 decimal places', () => {
