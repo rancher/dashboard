@@ -76,7 +76,7 @@ jobs:
       tag: ${{ needs.retrieve-tags-release-2-dot-8.outputs.CREATORS_TAG }}
 
   slack-message:
-    if: ${{ always() }}
+    if: ${{ always() && github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     needs: [retrieve-tags-release-2-dot-8, test-build-extension-charts-release-2-dot-8, test-build-extension-catalog-release-2-dot-8, test-release-shell-pkg-release-2-dot-8, test-release-creators-pkg-release-2-dot-8]
     steps: 

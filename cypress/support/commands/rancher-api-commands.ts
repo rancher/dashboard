@@ -691,12 +691,17 @@ Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourc
 /**
  * Wait for repository to be state
  */
-Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20) => {
+Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20, failOnStatusCode = false) => {
   return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
+    // The resource may not exist yet (404) right after creation or update, so we should return false to retry instead of failing immediately
+    if (resp.status === 404) {
+      return false;
+    }
+
     const state = resp.body.metadata?.state;
 
     return state && state.transitioning === false && state.name === resourceState;
-  }, retries);
+  }, retries, { failOnStatusCode });
 });
 
 /**
@@ -1592,6 +1597,59 @@ Cypress.Commands.add('checkChartPresence', (repoName: string, chartKey: string) 
 
       return { inFiltered, inUnfiltered };
     });
+  });
+});
+
+/**
+ * Get the list of available versions for a chart from the filtered catalog index for a given repo.
+ * Versions are returned in the order Rancher reports them (newest first).
+ * Callers can pick whichever version they need (e.g. `versions[0]` for latest).
+ */
+Cypress.Commands.add('getChartVersions', (repo: string, chartId: string) => {
+  const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repo }`;
+
+  const headers = {
+    'x-api-csrf': token.value,
+    Accept:       'application/json',
+  };
+
+  return cy.request({
+    method: 'GET',
+    url:    `${ baseUrl }?link=index`,
+    headers,
+  }).then((resp) => {
+    const versions = resp.body?.entries?.[chartId];
+
+    return versions.map((v: any) => v.version as string);
+  });
+});
+
+/**
+ * Install a Helm chart via the Rancher API (bypassing the install wizard UI).
+ * Useful for test setup where the install flow itself is not under test.
+ */
+Cypress.Commands.add('installChart', (repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string) => {
+  return cy.createRancherResource('v1', `catalog.cattle.io.clusterrepos/${ repo }?action=install`, {
+    charts: [
+      {
+        chartName:   chartId,
+        version:     chartVersion,
+        releaseName: chartId,
+        description: chartName,
+        annotations: {
+          'catalog.cattle.io/ui-source-repo-type': 'cluster',
+          'catalog.cattle.io/ui-source-repo':      repo
+        },
+        values: {}
+      }
+    ],
+    noHooks:                  false,
+    timeout:                  '1000s',
+    wait:                     true,
+    namespace,
+    projectId:                '',
+    disableOpenAPIValidation: false,
+    skipCRDs:                 false,
   });
 });
 

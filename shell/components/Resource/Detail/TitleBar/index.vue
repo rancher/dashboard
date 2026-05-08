@@ -167,12 +167,6 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     position: relative;
   }
 
-  .icon-document {
-    width: 15px;
-    font-size: 16px;
-    margin-right: 10px;
-  }
-
   .actions {
     display: flex;
     align-items: center;
