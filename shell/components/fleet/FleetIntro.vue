@@ -1,9 +1,12 @@
 <script>
+import { RcButton } from '@components/RcButton';
 import { NAME } from '@shell/config/product/fleet';
 
 export default {
 
   name: 'FleetIntro',
+
+  components: { RcButton },
 
   props: {
     schema: {
@@ -63,12 +66,13 @@ export default {
       v-if="canCreate"
       class="actions"
     >
-      <router-link
+      <rc-button
+        size="large"
+        variant="secondary"
         :to="to"
-        class="btn role-secondary"
       >
         {{ t(`fleet.${ labelKey }.intro.add`) }}
-      </router-link>
+      </rc-button>
     </div>
   </div>
 </template>

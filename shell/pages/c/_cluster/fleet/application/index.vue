@@ -4,6 +4,7 @@ import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth'
 import Masthead from '@shell/components/ResourceList/Masthead';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import FleetApplications from '@shell/components/fleet/FleetApplications';
+import { RcButton } from '@components/RcButton';
 
 const schema = {
   id:   FLEET.APPLICATION,
@@ -16,6 +17,7 @@ export default {
     Masthead,
     FleetNoWorkspaces,
     FleetApplications,
+    RcButton,
   },
 
   props: {
@@ -117,12 +119,12 @@ export default {
       :type-display="t('fleet.application.pageTitle')"
     >
       <template #createButton>
-        <router-link
+        <rc-button
+          size="large"
           :to="createLocation"
-          class="btn role-primary"
         >
           {{ t('fleet.application.actions.create') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
     <FleetApplications

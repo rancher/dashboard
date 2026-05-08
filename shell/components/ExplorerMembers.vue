@@ -12,6 +12,7 @@ import { mapGetters } from 'vuex';
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { RcButton } from '@components/RcButton';
 
 /**
  * Explorer members page.
@@ -26,7 +27,8 @@ export default {
     ResourceTable,
     Tabbed,
     Tab,
-    SortableTable
+    SortableTable,
+    RcButton,
   },
 
   props: {
@@ -308,12 +310,13 @@ export default {
           v-if="canEditClusterMembers"
           class="row mb-10 cluster-add"
         >
-          <router-link
+          <rc-button
+            size="large"
+            class="pull-right"
             :to="createLocation"
-            class="btn role-primary pull-right"
           >
             {{ t('members.createActionLabel') }}
-          </router-link>
+          </rc-button>
         </div>
         <ResourceTable
           :schema="schema"

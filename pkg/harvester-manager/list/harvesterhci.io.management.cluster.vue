@@ -28,6 +28,7 @@ import {
   waitForUIPackage,
 } from '@shell/utils/uiplugins';
 import { isRancherPrime, getVersionData } from '@shell/config/version';
+import { RcButton } from '@components/RcButton';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
@@ -38,7 +39,8 @@ export default {
     ResourceTable,
     Masthead,
     TypeDescription,
-    Loading
+    Loading,
+    RcButton,
   },
 
   props: {
@@ -405,12 +407,12 @@ export default {
           v-if="canCreateCluster"
           #extraActions
         >
-          <router-link
+          <rc-button
+            size="large"
             :to="importLocation"
-            class="btn role-primary"
           >
             {{ t('cluster.importAction') }}
-          </router-link>
+          </rc-button>
         </template>
       </Masthead>
       <ResourceTable

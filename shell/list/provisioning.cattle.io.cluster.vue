@@ -12,10 +12,15 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead, BadgeState
+    Banner,
+    ResourceTable,
+    Masthead,
+    BadgeState,
+    RcButton,
   },
   mixins: [ResourceFetch],
   props:  {
@@ -202,13 +207,14 @@ export default {
         v-if="canImport"
         #extraActions
       >
-        <router-link
+        <rc-button
+          size="large"
+          class="mr-10"
           :to="importLocation"
-          class="btn role-primary mr-10"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
     <ResourceTable
@@ -248,14 +254,14 @@ export default {
         </td>
       </template>
       <template #cell:explorer="{row}">
-        <router-link
+        <rc-button
           v-if="row.canExplore"
+          variant="secondary"
           data-testid="cluster-manager-list-explore-management"
-          class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >
           {{ t('cluster.explore') }}
-        </router-link>
+        </rc-button>
         <button
           v-else
           data-testid="cluster-manager-list-explore"
