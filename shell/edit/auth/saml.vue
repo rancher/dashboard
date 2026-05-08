@@ -12,6 +12,7 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import { RcButton } from '@components/RcButton';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -47,7 +48,8 @@ export default {
     FileSelector,
     config,
     AuthBanner,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcButton,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -193,13 +195,17 @@ export default {
               >
                 <div>{{ t('authConfig.saml.search.on') }}</div>
                 <div>
-                  <a
-                    class="toggle-btn"
+                  <rc-button
+                    variant="link"
                     @click="showLdapDetails = !showLdapDetails"
                   >
-                    <template v-if="showLdapDetails">{{ t('authConfig.saml.search.hide') }}</template>
-                    <template v-else>{{ t('authConfig.saml.search.show') }}</template>
-                  </a>
+                    <template v-if="showLdapDetails">
+                      {{ t('authConfig.saml.search.hide') }}
+                    </template>
+                    <template v-else>
+                      {{ t('authConfig.saml.search.show') }}
+                    </template>
+                  </rc-button>
                 </div>
               </div>
             </Banner>
@@ -422,11 +428,6 @@ export default {
 
     > :first-child {
       flex: 1;
-    }
-
-    .toggle-btn {
-      cursor: pointer;
-      user-select: none;
     }
   }
 </style>
