@@ -568,6 +568,8 @@ const clusterPage: ProductChildResourcePage = {
 };
 ```
 
+> **Known limitation:** Some built-in resource types in Rancher Dashboard have custom list views that explicitly control bulk action visibility. For those types, `hideBulkActions` may have no effect. This may apply to a small number of resource types. If you notice that bulk actions are still showing after setting `hideBulkActions: true`, the resource type likely has a custom list view that overrides this setting. See [#17426](https://github.com/rancher/dashboard/issues/17426) for more details.
+
 
 ## Rules & Constraints
 

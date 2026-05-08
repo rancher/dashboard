@@ -270,83 +270,82 @@ export default {
       :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
     />
 
-    <template v-if="isExplorer">
-      <PaginatedResourceTable
-        :schema="provClusterSchema"
-
-        :local-filter="filterProvRowsLocal"
-        :api-filter="filterProvRowsApi"
-      />
-    </template>
-    <template v-else>
-      <Masthead
-        :schema="provClusterSchema"
-        :resource="provClusterSchema.id"
-        :create-location="createLocation"
-        component-testid="cluster-manager-list"
+    <Masthead
+      :schema="schema"
+      :resource="resource"
+      :create-location="createLocation"
+      component-testid="cluster-manager-list"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
+    >
+      <template
+        v-if="canImport"
+        #extraActions
       >
-        <template
-          v-if="canImport"
-          #extraActions
+        <router-link
+          :to="importLocation"
+          class="btn role-primary mr-10"
+          data-testid="cluster-manager-list-import"
         >
-          <router-link
-            :to="importLocation"
-            class="btn role-primary mr-10"
-            data-testid="cluster-manager-list-import"
+          {{ t('cluster.importAction') }}
+        </router-link>
+      </template>
+    </Masthead>
+    <ResourceTable
+      :headers="headers"
+      :table-actions="true"
+      :rows="filteredRows"
+      :namespaced="nonStandardNamespaces"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :data-testid="'cluster-list'"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    >
+      <!-- Why are state column and subrow overwritten here? -->
+      <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
+      <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
+      <!-- big enough for the performance to matter -->
+      <template #cell:state="{row}">
+        <BadgeState
+          :color="row.stateBackground"
+          :label="row.stateDisplay"
+        />
+      </template>
+      <template #cell:summary="{row}">
+        <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
+      </template>
+      <template #col:kubernetesVersion="{row}">
+        <td class="col-name">
+          <span>
+            {{ row.kubernetesVersion }}
+          </span>
+          <div
+            v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+            class="text-muted"
           >
-            {{ t('cluster.importAction') }}
-          </router-link>
-        </template>
-      </Masthead>
-
-      <PaginatedResourceTable
-        :schema="mgmtClusterSchema"
-
-        :headers="headers"
-        :pagination-headers="paginationHeaders"
-        :context="paginationContext"
-
-        :use-query-params-for-simple-filtering="true"
-
-        :local-filter="filterRowsLocal"
-        :api-filter="filterRowsApi"
-
-        :fetch-secondary-resources="fetchSecondaryResources"
-        :fetch-page-secondary-resources="fetchPageSecondaryResources"
-
-        :groupable="nonStandardWorkspace"
-        :namespaced="true"
-
-        :data-testid="'cluster-list'"
-      >
-        <template #cell:summary="{row}">
-          <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
-          <span v-if="!row.stateParts.length">{{ row.statusInfo.nodeCount || 0 }}</span>
-          <MachineSummaryGraph
-            v-else
-            :row="row"
-          />
-        </template>
-        <template #cell:explorer="{row}">
-          <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
-          <router-link
-            v-if="row.canExplore"
-            data-testid="cluster-manager-list-explore-management"
-            class="btn btn-sm role-secondary"
-            :to="{name: 'c-cluster', params: {cluster: row.id}}"
-          >
-            {{ t('cluster.explore') }}
-          </router-link>
-          <button
-            v-else
-            data-testid="cluster-manager-list-explore"
-            :disabled="true"
-            class="btn btn-sm role-secondary"
-          >
-            {{ t('cluster.explore') }}
-          </button>
-        </template>
-      </PaginatedResourceTable>
-    </template>
+            {{ row.architecture.label }}
+          </div>
+        </td>
+      </template>
+      <template #cell:explorer="{row}">
+        <router-link
+          v-if="row.canExplore"
+          data-testid="cluster-manager-list-explore-management"
+          class="btn btn-sm role-secondary"
+          :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
+        >
+          {{ t('cluster.explore') }}
+        </router-link>
+        <button
+          v-else
+          data-testid="cluster-manager-list-explore"
+          :disabled="true"
+          class="btn btn-sm role-secondary"
+        >
+          {{ t('cluster.explore') }}
+        </button>
+      </template>
+    </ResourceTable>
   </div>
 </template>
