@@ -43,8 +43,9 @@ export abstract class BasePluginProduct {
   /**
    * Helper to throw errors during product registration
    */
-  protected surfaceError(message: string): void {
-    throw new Error(`Extensions - product "${ this.name }" registration error ::: ${ message }`);
+  protected surfaceError(message: string, e?: any): never {
+    console.error(`Extensions - product "${ this.name }" registration error ::: ${ message }`); // eslint-disable-line no-console
+    throw new Error(`Extensions - product "${ this.name }" registration error ::: ${ message }`, { cause: e });
   }
 
   /**
