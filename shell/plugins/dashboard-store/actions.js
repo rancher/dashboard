@@ -697,10 +697,22 @@ export default {
       }
     }
 
+    const havePage = getters.havePage(type);
+
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
     const res = await dispatch('request', { opt, type });
+
+    if (!havePage && getters.havePage(type)) {
+      // There may be a super edge case where list --> detail (whilst loading) --> list navigation causes the list's rows to disappear
+      // Somehow the `findPage` from the list page returns before the `find`. The `find` then clears the page state in the cache.
+      // If this has happened silently return (we don't care about result)
+      // https://github.com/rancher/dashboard/issues/17524
+      console.warn(`Prevented \`find\` action from polluting cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
+
+      return;
+    }
 
     if (!opt.transient) {
       await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
