@@ -3,81 +3,86 @@ import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const chartsPage = new ChartsPage();
+const chartPage = new ChartPage();
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
 
     cy.login();
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     chartsPage.goTo();
     chartsPage.waitForPage();
   });
 
-  it('Charts have expected icons', () => {
-    chartsPage.resetAllFilters();
-    chartsPage.checkChartGenericIcon('Alerting Driver', false);
-    chartsPage.checkChartGenericIcon('Rancher Compliance', false);
-    chartsPage.checkChartGenericIcon('Logging', false);
+  it('Charts have expected icons', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-alerting-drivers', this, () => {
+      chartsPage.resetAllFilters();
+      chartsPage.checkChartGenericIcon('Alerting Driver', false);
+      chartsPage.checkChartGenericIcon('Rancher Compliance', false);
+      chartsPage.checkChartGenericIcon('Logging', false);
+    });
   });
 
-  it('should call fetch when route query changes with valid parameters', () => {
-    const chartName = 'Logging';
+  it('should call fetch when route query changes with valid parameters', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      const chartName = 'Logging';
 
-    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
-    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+      cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getChartByName(chartName)
-      .checkExists()
-      .scrollIntoView()
-      .should('be.visible')
-      .click();
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName);
 
-    const chartPage = new ChartPage();
+      // Set up intercept for the network request triggered by $fetch
+      cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
-    chartPage.waitForPage();
+      // Select the first active version link when there is more than one version
+      chartPage.versions().its('length').then((length) => {
+        if (length > 1) {
+          chartPage.versionLinks()
+            .first()
+            .then((firstVersion) => {
+              chartPage.selectVersion(firstVersion.text());
 
-    // Set up intercept for the network request triggered by $fetch
-    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
-
-    // Select the first active version link
-    chartPage.versionLinks()
-      .first()
-      .then((firstVersion) => {
-        chartPage.selectVersion(firstVersion.text());
-
-        cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+              cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+            });
+        }
       });
+    });
   });
 
-  it('should not call fetch when navigating back to charts page', () => {
-    const chartName = 'Logging';
+  it('should not call fetch when navigating back to charts page', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      const chartName = 'Logging';
 
-    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
-    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+      cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+      cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getChartByName(chartName)
-      .checkExists()
-      .scrollIntoView()
-      .should('be.visible')
-      .click();
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName);
 
-    const chartPage = new ChartPage();
+      // Navigate back to the charts page
+      cy.go('back');
+      chartsPage.waitForPage();
 
-    chartPage.waitForPage();
+      // Set up intercept after navigating back
+      cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterBack');
 
-    // Navigate back to the charts page
-    cy.go('back');
-    chartsPage.waitForPage();
-
-    // Set up intercept after navigating back
-    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterBack');
-
-    cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
+      cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
+    });
   });
 
   it('A disabled repo should NOT be listed on the list of repository filters', () => {
+    const CHART = {
+      name: 'Partners',
+      id:   'rancher-partner-charts',
+    };
+
     // go to repository page and disable a repo
     const appRepoList = new ReposListPagePo('local', 'apps');
 
@@ -91,7 +96,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // check enabled repos are listed but the disabled repo is not
     chartsPage.getFilterOptionByName('Rancher').checkExists();
     chartsPage.getFilterOptionByName('RKE2').checkExists();
-    chartsPage.getAllOptionsByGroupName('Repository').contains('Partners')
+    chartsPage.getAllOptionsByGroupName('Repository').contains(CHART.name)
       .should('not.exist');
 
     // re-enable the disabled repo
@@ -99,6 +104,9 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Enable').click();
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', CHART.id);
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', CHART.id);
+    appRepoList.list().state(CHART.name).should('contain', 'Active');
   });
 
   it('should display empty state properly', () => {
@@ -115,62 +123,63 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
   });
+
+  after(() => {
+    cy.setUserPreference({ 'show-pre-release': false });
+  });
 });
 
 describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
   const chartName = 'Logging';
-  let chartPage: ChartPage;
-
-  before(() => {
-    cy.login();
-    cy.setUserPreference({ 'show-pre-release': true }); // Show pre-release versions
-  });
 
   beforeEach(() => {
     cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
 
     cy.login();
-    chartsPage.goTo();
-    chartsPage.waitForPage();
-
-    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
-    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
-
-    chartsPage.getChartByName(chartName)
-      .checkExists()
-      .scrollIntoView()
-      .should('be.visible')
-      .click();
-
-    chartPage = new ChartPage();
-    chartPage.waitForPage();
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions
+    HomePagePo.goTo();
   });
 
-  it('should navigate to the correct repository page', () => {
-    chartPage.repoLink().click();
-    cy.url().should('include', '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-charts');
+  it('should navigate to the correct repository page', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName);
+
+      chartPage.repoLink().click();
+      cy.url().should('include', '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-charts');
+    });
   });
 
-  it('should navigate to the charts list with the correct filters when a keyword is clicked', () => {
-    chartPage.keywords().first().click();
-    chartsPage.waitForPage();
-    cy.url().should('include', 'q=logging');
+  it('should navigate to the charts list with the correct filters when a keyword is clicked', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName);
+
+      chartPage.keywords().first().click();
+      chartsPage.waitForPage();
+      cy.url().should('include', 'q=logging');
+    });
   });
 
-  it('should show more versions when the button is clicked (when there are more than 7 versions)', () => {
-    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', 'rancher-charts?link=index').then((res: any) => {
-      const entries = res.body.entries;
-      const rancherLoggingVersions = entries['rancher-logging'];
-      const totalCount = rancherLoggingVersions.length;
+  it('should show more versions when the button is clicked (when there are more than 7 versions)', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName);
 
-      if (totalCount > 7) {
-        chartPage.versions().should('have.length', 7);
-        chartPage.showMoreVersions().should('be.visible').click();
-        chartPage.versions().should('have.length', totalCount);
-      } else {
-        chartPage.versions().should('have.length', totalCount);
-        chartPage.showMoreVersions().should('not.exist');
-      }
+      cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', 'rancher-charts?link=index').then((res: any) => {
+        const entries = res.body.entries;
+        const rancherLoggingVersions = entries['rancher-logging'];
+        const totalCount = rancherLoggingVersions.length;
+
+        if (totalCount > 7) {
+          chartPage.versions().should('have.length', 7);
+          chartPage.showMoreVersions().should('be.visible').click();
+          chartPage.versions().should('have.length', totalCount);
+        } else {
+          chartPage.versions().should('have.length', totalCount);
+          chartPage.showMoreVersions().should('not.exist');
+        }
+      });
     });
   });
 

@@ -171,7 +171,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           // The test validate the warning when selecting none, but now this get back to calico.
           // A CNI is mandatory to get the cluster active otherwise manual intervention is needed or
           // the use of a cloud provider but that's not in scope.
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico', 'ingress-controller': 'ingress-nginx' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -216,6 +216,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.wait('@createRequest').then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
           expect(isMatch(intercept.request.body, request)).to.equal(true);
+          expect(['ingress-nginx', 'traefik']).to.include(intercept.request.body.spec?.rkeConfig?.machineGlobalConfig?.['ingress-controller']);
         });
 
         detailRKE2ClusterPage().waitForPage(undefined, 'registration');
@@ -363,6 +364,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
           expect(obj.kind).to.equal('Cluster');
         });
+      });
+      it('preserves custom addon config values after saving cluster config', () => {
+        const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
+        const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .set(customAddonConfig);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .value()
+          .should('equal', customAddonConfig);
       });
 
       it('can delete cluster', () => {

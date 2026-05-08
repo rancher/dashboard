@@ -51,6 +51,10 @@ export class InstallChartPage extends PagePo {
     return this;
   }
 
+  footerControls() {
+    return cy.get('#wizard-footer-controls');
+  }
+
   chartName() {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
   }
