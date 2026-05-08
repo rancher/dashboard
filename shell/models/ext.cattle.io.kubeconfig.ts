@@ -1,4 +1,4 @@
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { Location } from 'vue-router';
 
@@ -52,10 +52,10 @@ export default class Kubeconfig extends SteveModel {
 
     return clusterIds.map((id: string) => {
       const mgmtCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, id);
-      const provCluster = mgmtCluster?.provCluster; // TODO: RC just for detailLocation...
+      const provCluster = mgmtCluster?.provCluster;
 
       return {
-        label:    mgmtCluster?.nameDisplay || this.t('"ext.cattle.io.kubeconfig".deleted', { name: id }), // TODO: RC test
+        label:    mgmtCluster?.nameDisplay || this.t('"ext.cattle.io.kubeconfig".deleted', { name: id }),
         location: provCluster?.detailLocation || mgmtCluster?.detailLocation || null
       };
     });

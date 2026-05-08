@@ -8,6 +8,7 @@ import { downloadUrl } from '@shell/utils/download';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
+import myLogger from '@shell/utils/my-logger';
 
 const RKE1_ALLOWED_ACTIONS = [
   'goToViewYaml',
@@ -24,6 +25,10 @@ export default class MgmtNode extends HybridModel {
 
   get kubeNodeName() {
     return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
+  }
+
+  get mgmtCluster() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId);
   }
 
   get mgmtClusterId() {
@@ -101,7 +106,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.mgmtClusterId }`); // TODO: RC test
+    return this.mgmtCluster.provCluster;
   }
 
   get doneOverride() {

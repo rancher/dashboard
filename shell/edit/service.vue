@@ -203,11 +203,9 @@ export default {
     },
 
     provisioningCluster() {
-      // TODO: RC change to byId
-      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
-
-      return out;
+      return this.currentCluster.provCluster;
     },
+
     errorMessages() {
       if (!this.serviceType) {
         return [];
@@ -274,8 +272,9 @@ export default {
         const hash = {};
 
         if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
-          hash.provClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }); // TODO: RC why fetch all
+          hash.provClusters = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
         }
+
         if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
           hash.harvesterConfigs = this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG });
         }

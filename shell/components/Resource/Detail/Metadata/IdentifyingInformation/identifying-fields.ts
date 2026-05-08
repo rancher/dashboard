@@ -133,7 +133,7 @@ export const useSecretCluster = (resource: any): ComputedRef<Row> | undefined =>
 
   return computed(() => {
     return {
-      label: store.getters['type-map/labelFor']({ id: CAPI.RANCHER_CLUSTER }), // TODO: RC switch to mgmt cluster
+      label: store.getters['type-map/labelFor']({ id: CAPI.RANCHER_CLUSTER }),
       value: resourceValue.projectCluster?.nameDisplay,
     };
   });

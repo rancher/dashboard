@@ -2,6 +2,7 @@ import { CAPI, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
+import myLogger from '@shell/utils/my-logger';
 
 const RKE1_ALLOWED_ACTIONS = [
   'goToViewYaml',
@@ -45,7 +46,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.spec.clusterName }`); // TODO: RC test
+    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.spec.clusterName }`);
   }
 
   get doneOverride() {

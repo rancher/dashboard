@@ -12,7 +12,7 @@ export default {
   mixins:     [CreateEditView],
 
   async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }); // TODO RC add to phase
   },
 
   data() {

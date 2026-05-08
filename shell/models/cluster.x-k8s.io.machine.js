@@ -1,12 +1,11 @@
-import { ADDRESSES, CAPI, MANAGEMENT, NODE } from '@shell/config/types';
+import { ADDRESSES, CAPI, NODE } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
 
 /**
  * Prevent scaling down control plane or etcd machines to zero
@@ -53,7 +52,8 @@ export function notOnlyOfRole(current, all) {
 
   return false;
 }
-export default class CapiMachine extends SteveModel {
+
+export default class CapiMachine extends CapiMachineRoot {
   get _availableActions() {
     const out = super._availableActions;
 
@@ -144,19 +144,6 @@ export default class CapiMachine extends SteveModel {
     return await this.$dispatch('find', { type: kind, id });
   }
 
-  get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.spec.clusterName }`);
-  }
-
-  get mgmtCluster() {
-    // TODO: RC confirm with kinara - is prov id ns/"name" === mgmt name
-    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec.clusterName); // TODO: RC test
-  }
-
   get poolName() {
     return this.metadata?.labels?.[ CAPI_LABELS.DEPLOYMENT_NAME ] || '';
   }
@@ -177,13 +164,13 @@ export default class CapiMachine extends SteveModel {
 
   get kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
-    const cluster = this.mgmtCluster?.id;
+    const cluster = this.cluster?.status?.clusterName;
 
     if ( kubeId && cluster ) {
       return {
         name:   'c-cluster-product-resource-id',
         params: {
-          cluster, // TODO: RC test
+          cluster,
           product:  EXPLORER,
           resource: NODE,
           id:       kubeId
@@ -192,12 +179,6 @@ export default class CapiMachine extends SteveModel {
     }
 
     return kubeId;
-  }
-
-  get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName; // TODO: RC test
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
   }
 
   get labels() {

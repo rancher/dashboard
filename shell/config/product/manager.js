@@ -231,7 +231,13 @@ export function init(store) {
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
-    NAME_COL,
+    NAME_COL, {
+      name:     'cluster',
+      labelKey: 'tableHeaders.cluster',
+      value:    'clusterName',
+      getValue: (row) => row.clusterName,
+      sort:     ['clusterName'],
+    },
     MACHINE_SUMMARY,
     AGE
   ]);
@@ -259,7 +265,7 @@ export function init(store) {
   ]);
 
   // Configure custom count getter for cluster count (so we don't include Harvester clusters)
-  configureType(CAPI.RANCHER_CLUSTER, { // TODO: RC switch to mgmt?!
+  configureType(CAPI.RANCHER_CLUSTER, {
     custom: {
       countGetter: markRaw((getters) => {
         const savedClusterCount = getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
@@ -270,4 +276,24 @@ export function init(store) {
       })
     }
   });
+
+  const clusterGroupConfig = {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:          'icon-folder',
+      value:         'clusterName',
+      field:         'clusterName',
+      hideColumn:    'cluster',
+      tooltipKey:    'resourceTable.groupBy.cluster',
+      groupLabelKey: 'groupByLabel',
+    }],
+    listGroupsWillOverride: true,
+  };
+
+  configureType(CAPI.MACHINE_DEPLOYMENT, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE_SET, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE, { ...clusterGroupConfig });
 }

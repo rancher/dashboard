@@ -261,6 +261,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.info.machineProvider` },
       { field: `status.driver` },
       { field: `status.info.kubernetesVersion` },
+      { field: `spec.fleetWorkspaceName` },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },

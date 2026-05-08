@@ -1,7 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 import { SNAPSHOT } from '@shell/config/labels-annotations';
 import { CAPI } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
@@ -27,7 +26,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get clusterName() {
-    return this.metadata.labels[SNAPSHOT.CLUSTER_NAME]; // This is the cluster
+    return this.metadata.labels[SNAPSHOT.CLUSTER_NAME];
   }
 
   get clusterId() {
@@ -39,7 +38,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.clusterName }`); // TODO: RC test
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.clusterName }`);
   }
 
   get rke2() {

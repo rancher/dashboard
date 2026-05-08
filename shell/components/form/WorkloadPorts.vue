@@ -130,14 +130,11 @@ export default {
       const version = this.provisioningCluster?.kubernetesVersion;
 
       if (this.provisioningCluster?.isRke2) {
+        // why not use the prov cluster provisioner (which is now the mgmt cluster provisioner)
         const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
         const agentConfig = (machineSelectorConfig[0] || {}).config;
 
         cloudProvider = agentConfig?.['cloud-provider-name'];
-      } else if (this.provisioningCluster?.isRke1) {
-        const currentCluster = this.$store.getters['currentCluster'];
-
-        cloudProvider = currentCluster?.spec?.rancherKubernetesEngineConfig?.cloudProvider?.name;
       }
 
       return cloudProvider === HARVESTER &&
@@ -145,12 +142,7 @@ export default {
     },
 
     provisioningCluster() {
-      // TODO: RC where used, do we have the prov cluster
-      // const provCluster = await this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
-      // OLD const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
-      const out = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.currentCluster.provClusterId);
-
-      return out;
+      return this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.currentCluster.provClusterId);
     },
   },
 

@@ -151,8 +151,8 @@ export default {
     const fetches = {};
 
     if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
-      // TODO: RC .... why used
-      fetches.rancherClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+      // I could only find this used in one place - shell/components/form/WorkloadPorts.vue provisioningCluster
+      fetches.rancherCluster = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
     }
 
     if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {

@@ -227,7 +227,7 @@ export default {
     },
 
     isHarvesterCluster() {
-      return this.currentCluster?.isHarvester;
+      return true;// this.currentCluster?.isHarvester;
     },
 
     isRKE() {
@@ -541,7 +541,6 @@ export default {
 
     async goToHarvesterCluster() {
       try {
-        // TODO: RC test
         const provCluster = await this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
 
         await provCluster.goToHarvesterCluster();
