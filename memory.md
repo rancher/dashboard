@@ -25,6 +25,8 @@
 - ESLint rule: `object-curly-newline` — inline single-property objects; use `eslint --fix` to auto-fix
 - ESLint rule: `jest/prefer-called-with` — use `toHaveBeenCalledWith(...)` not `toHaveBeenCalled()`
 - ESLint rule: `padding-line-between-statements` — use `eslint --fix` to auto-fix spacing
+- ESLint rule: `jest/prefer-to-be-null` — use `toBeNull()` not `toStrictEqual(null)`
+- ESLint rule: `jest/prefer-to-be-undefined` — use `toBeUndefined()` not `toStrictEqual(undefined)`
 - Mock `Date.now` with `jest.spyOn(Date, 'now').mockReturnValue(timestamp)` for time-dependent tests
 - `jest.restoreAllMocks()` in `afterEach` (or `beforeEach`) when using `spyOn`
 - Math.floor on negative floats rounds toward -infinity (e.g. floor(-200.6) = -201)
@@ -47,19 +49,27 @@
 - perf-setting.utils.ts: exports two singletons (incrementalLoadingUtils, manualRefreshUtils); isEnabled = `!paginationEnabled && perfSettings[this.setting].enabled`; SSP (pagination) takes precedence when enabled
 - ingress.ts: IngressDetailEditHelper class; findAndMapCerts and findAndMapServiceTargets are pure methods; fetchServices/fetchSecrets need Vuex store mock (skip for unit tests); constructor takes $store and namespace but pure methods don't use them
 - units.js: `parseSi('1m', {allowFractional:false})` returns 1_000_000 (Mega) because 'm'.toUpperCase()==='M' is in UNITS — falls through to multiply path; `createMemoryValues('0','0').units` returns 'iB' (UNITS[0]='' + suffix='iB')
+- parse-externalid.js: EXTERNAL_ID.KIND_CATALOG is undefined in that file's EXTERNAL_ID object → old-style parse returns kind=undefined (bug); default-library-group for catalog is dead code
+- parse-externalid.js: parseHelmExternalId expects format `kind:///key=val&key=val` (3 slashes, no ?, keys parsed as nm=vl pairs)
+- duration.js: `toMilliseconds('0')` returns 0 (regex matches but all groups undefined); `toSeconds` uses Math.floor so sub-second inputs return 0
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — `detailLocation`, `getResourcesDefaultState`, `getBundlesDefaultState` (follow-up to PR #17466)
-2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex store mock (follow-up to PR #17431)
+2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — `fetchServices`/`fetchSecrets` store-dependent methods (follow-up to #17518)
-5. Additional utils with no coverage — `duration.js`, `parse-externalid.js`, `custom-validators.js`
+5. Additional utils — `promise.js`, `socket.js`, validators sub-modules
 
 ## Completed Work
 
+### 2026-05-08
+- Submitted PR (branch test-assist/duration-externalid-utils-tests): 39 unit tests for shell/utils/duration.js and shell/utils/parse-externalid.js
+- Coverage: duration.js 0% → 100%; parse-externalid.js 0% → 97.84% stmts, 94.73% branches, 100% fns
+- All 8 previously open PRs merged today by marcelofukumoto ✅
+
 ### 2026-05-07
-- Submitted PR (branch test-assist/units-utils-tests): 57 unit tests for shell/utils/units.js
+- Submitted PR #17545 (branch test-assist/units-utils-tests): 57 unit tests for shell/utils/units.js
 - Coverage: 0% → 90.15% stmts, 0% → 90.47% branches, 0% → 100% functions
 
 ### 2026-05-06
@@ -89,25 +99,15 @@
 - Coverage: 0% → 50% stmts, 33% fns, 92% branches
 - Closed April 2026 Monthly Activity issue #17177; created May 2026 issue #17452
 
-### 2026-04-30
-- Submitted PR #17431: 43 unit tests for shell/utils/pagination-utils.ts (branch test-assist/pagination-utils-tests)
-- Coverage: 0% → 50% stmts, 44% fns, 77% branches
-
 ### 2026-04-30 (confirmed)
 - PR #17412 (git.ts tests) merged by nwmac ✅
-
-### 2026-04-29
-- Created branch `test-assist/git-utils-tests` with 13 tests for shell/utils/git.ts
-- PR #17412: 100% stmts/fns/lines coverage, 72% branches — all tests pass, ESLint clean
 
 ### 2026-04-22
 - PR #17176 (url.ts, 38 tests) merged by nwmac ✅
 
-### 2026-04-08
-- Created PR #17176 (url.ts tests)
-
 ## Task Round-Robin History
 
+- 2026-05-08: Task 3 (duration.js + parse-externalid.js, 39 tests) + Task 4 (confirmed all 8 PRs merged) + Task 7 (monthly update)
 - 2026-05-07: Task 3 (units.js 57 tests, 90.15% stmts) + Task 4 (PR CI check: #17431/#17499 all green) + Task 7 (monthly activity update)
 - 2026-05-06: Task 3 (perf-setting.utils + ingress.ts pure methods, 21 tests) + Task 4 (PR CI check: all passing) + Task 7 (monthly activity update)
 - 2026-05-05: Task 3 (style.ts 43 tests, 100% all) + Task 4 (PR CI check) + Task 7 (monthly activity update)
@@ -116,20 +116,13 @@
 - 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
 - 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
 - 2026-04-30: Task 3 (pagination-utils.ts 43 tests, 50% stmts) + Task 7 (monthly activity update)
-- 2026-04-29: Task 3 (git.ts 13 tests, 100% stmts/fns/lines) + Task 7 (monthly activity update)
 
 ## Monthly Activity Issue
 
 - Issue for May 2026: #17452 (created 2026-05-01)
 - Issue #17177: closed 2026-05-01 (was April 2026)
-- PR #17431: pagination-utils.ts — open
-- PR #17451: settings.ts — open
-- PR #17466: fleet-utils-tests — open
-- PR #17471: gc.ts — open
-- PR #17478: gc-interval + gc-route-changed — open
-- PR #17499: style.ts — open
-- PR #17518: perf-setting.utils + ingress pure methods — open
-- PR (branch test-assist/units-utils-tests): units.js — submitted 2026-05-07, PR number TBD
+- PR (branch test-assist/duration-externalid-utils-tests): duration.js + parse-externalid.js — submitted 2026-05-08, PR number TBD
+- All prior PRs (#17431, #17451, #17466, #17471, #17478, #17499, #17518, #17545): merged 2026-05-08 ✅
 
 ## Maintainer Priorities
 
