@@ -122,6 +122,12 @@ export default class MgmtCluster extends SteveModel {
   get provisioner() {
     // Sometimes the driver will be empty (like unconnected custom rke2 clusters), so fall back on the new and improved status.provider
     if (this.status?.provider) {
+      if (['gke', 'eks', 'aks', 'k3s'].includes(this.status.provider)) {
+        // Defensive coding. we're now using status.provider which uses lowercase for some distro's
+        // To support the old use case of upper case status.driver values make status.provider upper case...
+        return this.status.provider.toUpperCase();
+      }
+
       return this.status.provider;
     }
 
