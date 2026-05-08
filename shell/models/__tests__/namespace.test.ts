@@ -192,7 +192,7 @@ describe('class Namespace', () => {
       expect(namespace.listLocation.name).toBe('harvester-c-cluster-projectsnamespaces');
       expect(namespace.listLocation.params.resource).toBe('namespace');
       expect(namespace.listLocation.params.cluster).toBe('c-123');
-      expect(namespace.listLocation.params.product).toBe('harvester');
+      expect(namespace.listLocation.params.product).toBe(EXPLORER);
     });
 
     it('should route to local cluster explorer when in manager product', () => {
@@ -209,7 +209,7 @@ describe('class Namespace', () => {
       expect(namespace.listLocation.params.product).toBe(EXPLORER);
     });
 
-    it('should use current cluster and product when not in manager product', () => {
+    it('should use current cluster and always use explorer product when not in manager', () => {
       const namespace = new Namespace({});
 
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({

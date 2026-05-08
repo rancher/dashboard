@@ -191,15 +191,13 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    // In Cluster Management, namespaces belong to the local cluster's explorer
     const productId = this.$rootGetters['productId'];
     const isManagerProduct = productId === MANAGER;
     const cluster = isManagerProduct ? LOCAL_CLUSTER : this.$rootGetters['clusterId'];
-    const product = isManagerProduct ? EXPLORER : productId;
 
     const listLocation = {
       name:   this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource',
-      params: { cluster, product },
+      params: { cluster, product: EXPLORER },
     };
 
     // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
