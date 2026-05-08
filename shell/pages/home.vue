@@ -766,14 +766,6 @@ export default defineComponent({
                     &mdash;
                   </td>
                 </template>
-                <!-- <template #cell:explorer="{row}">
-                    <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
-                      {{ t('landing.clusters.explore') }}
-                    </router-link>
-                    <button v-else :disabled="true" class="btn btn-sm role-primary">
-                      {{ t('landing.clusters.explore') }}
-                    </button>
-                  </template> -->
               </ResourceTable>
             </div>
             <div
@@ -917,14 +909,6 @@ export default defineComponent({
                     &mdash;
                   </td>
                 </template>
-                <!-- <template #cell:explorer="{row}">
-                  <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
-                    {{ t('landing.clusters.explore') }}
-                  </router-link>
-                  <button v-else :disabled="true" class="btn btn-sm role-primary">
-                    {{ t('landing.clusters.explore') }}
-                  </button>
-                </template> -->
               </PaginatedResourceTable>
             </div>
             <div
