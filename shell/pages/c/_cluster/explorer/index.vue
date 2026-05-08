@@ -227,7 +227,7 @@ export default {
     },
 
     isHarvesterCluster() {
-      return true;// this.currentCluster?.isHarvester;
+      return this.currentCluster?.isHarvester;
     },
 
     isRKE() {
