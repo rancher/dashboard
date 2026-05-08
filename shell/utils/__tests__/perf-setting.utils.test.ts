@@ -16,11 +16,31 @@ const makePerfSettings = (incrementalLoading: boolean, manualRefresh: boolean): 
 describe('perf-setting.utils', () => {
   describe('incrementalLoadingUtils.isEnabled', () => {
     it.each([
-      [false, true, true, 'SSP disabled, performance setting enabled → enabled'],
-      [false, false, false, 'SSP disabled, performance setting disabled → disabled'],
-      [true, true, false, 'SSP enabled takes precedence even if performance setting enabled → disabled'],
-      [true, false, false, 'SSP enabled, performance setting disabled → disabled'],
-    ])('paginationEnabled=%s, perfEnabled=%s → %s (%s)', (paginationEnabled, perfEnabled, expected) => {
+      {
+        desc:              'SSP disabled, performance setting enabled → enabled',
+        paginationEnabled: false,
+        perfEnabled:       true,
+        expected:          true,
+      },
+      {
+        desc:              'SSP disabled, performance setting disabled → disabled',
+        paginationEnabled: false,
+        perfEnabled:       false,
+        expected:          false,
+      },
+      {
+        desc:              'SSP enabled takes precedence even if performance setting enabled → disabled',
+        paginationEnabled: true,
+        perfEnabled:       true,
+        expected:          false,
+      },
+      {
+        desc:              'SSP enabled, performance setting disabled → disabled',
+        paginationEnabled: true,
+        perfEnabled:       false,
+        expected:          false,
+      },
+    ])('$desc', ({ paginationEnabled, perfEnabled, expected }) => {
       const settings = makePerfSettings(perfEnabled, false);
 
       expect(perfSettingUtils.incrementalLoadingUtils.isEnabled(paginationEnabled, settings)).toStrictEqual(expected);
@@ -29,11 +49,31 @@ describe('perf-setting.utils', () => {
 
   describe('manualRefreshUtils.isEnabled', () => {
     it.each([
-      [false, true, true, 'SSP disabled, performance setting enabled → enabled'],
-      [false, false, false, 'SSP disabled, performance setting disabled → disabled'],
-      [true, true, false, 'SSP enabled takes precedence even if performance setting enabled → disabled'],
-      [true, false, false, 'SSP enabled, performance setting disabled → disabled'],
-    ])('paginationEnabled=%s, perfEnabled=%s → %s (%s)', (paginationEnabled, perfEnabled, expected) => {
+      {
+        desc:              'SSP disabled, performance setting enabled → enabled',
+        paginationEnabled: false,
+        perfEnabled:       true,
+        expected:          true,
+      },
+      {
+        desc:              'SSP disabled, performance setting disabled → disabled',
+        paginationEnabled: false,
+        perfEnabled:       false,
+        expected:          false,
+      },
+      {
+        desc:              'SSP enabled takes precedence even if performance setting enabled → disabled',
+        paginationEnabled: true,
+        perfEnabled:       true,
+        expected:          false,
+      },
+      {
+        desc:              'SSP enabled, performance setting disabled → disabled',
+        paginationEnabled: true,
+        perfEnabled:       false,
+        expected:          false,
+      },
+    ])('$desc', ({ paginationEnabled, perfEnabled, expected }) => {
       const settings = makePerfSettings(false, perfEnabled);
 
       expect(perfSettingUtils.manualRefreshUtils.isEnabled(paginationEnabled, settings)).toStrictEqual(expected);
