@@ -1,6 +1,9 @@
 import Namespace from '@shell/models/namespace';
 import { SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
 import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
+import { LOCAL_CLUSTER } from '@shell/config/types';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 describe('class Namespace', () => {
   describe('checking if isSystem', () => {
@@ -170,15 +173,43 @@ describe('class Namespace', () => {
 
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
         isRancher:      true,
+        productId:      'harvester',
+        clusterId:      'c-123',
         currentProduct: { inStore: 'harvester' }
       });
 
-      const value = {
-        name:   'harvester-c-cluster-projectsnamespaces',
-        params: { resource: 'namespace' }
-      };
+      expect(namespace.listLocation.name).toBe('harvester-c-cluster-projectsnamespaces');
+      expect(namespace.listLocation.params.resource).toBe('namespace');
+      expect(namespace.listLocation.params.cluster).toBe('c-123');
+      expect(namespace.listLocation.params.product).toBe('harvester');
+    });
 
-      expect(namespace.listLocation).toStrictEqual(value);
+    it('should route to local cluster explorer when in manager product', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:      true,
+        productId:      MANAGER,
+        clusterId:      '_',
+        currentProduct: { inStore: '' },
+      });
+
+      expect(namespace.listLocation.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(namespace.listLocation.params.product).toBe(EXPLORER);
+    });
+
+    it('should use current cluster and product when not in manager product', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:      true,
+        productId:      EXPLORER,
+        clusterId:      'c-abc',
+        currentProduct: { inStore: '' },
+      });
+
+      expect(namespace.listLocation.params.cluster).toBe('c-abc');
+      expect(namespace.listLocation.params.product).toBe(EXPLORER);
     });
   });
 
@@ -227,12 +258,82 @@ describe('class Namespace', () => {
       const namespace = new Namespace({});
 
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: EXPLORER });
       Object.defineProperty(namespace, '_glance', { get: jest.fn(() => [{ name: 'namespace' }, { name: 'other' }]) });
 
       const result = namespace.glance;
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('other');
+    });
+
+    it('should remove type Link formatter when in manager product without local cluster access', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        productId:         MANAGER,
+        'management/byId': jest.fn(() => null),
+      });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem.formatter).toBeUndefined();
+      expect(typeItem.formatterOpts).toBeUndefined();
+    });
+
+    it('should keep type Link formatter when in manager product with local cluster access', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        productId:         MANAGER,
+        'management/byId': jest.fn(() => ({ id: LOCAL_CLUSTER })),
+      });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem.formatter).toBe('Link');
+      expect(typeItem.formatterOpts).toBeDefined();
+    });
+
+    it('should keep type Link formatter when not in manager product', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: EXPLORER });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem.formatter).toBe('Link');
+      expect(typeItem.formatterOpts).toBeDefined();
     });
   });
 

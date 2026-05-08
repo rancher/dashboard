@@ -8,6 +8,8 @@ import { get, set } from '@shell/utils/object';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
@@ -190,9 +192,9 @@ export default class Namespace extends SteveModel {
   get listLocation() {
     // In Cluster Management, namespaces belong to the local cluster's explorer
     const productId = this.$rootGetters['productId'];
-    const isManagerProduct = productId === 'manager';
+    const isManagerProduct = productId === MANAGER;
     const cluster = isManagerProduct ? LOCAL_CLUSTER : this.$rootGetters['clusterId'];
-    const product = isManagerProduct ? 'explorer' : productId;
+    const product = isManagerProduct ? EXPLORER : productId;
 
     const listLocation = {
       name:   this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource',
@@ -298,7 +300,7 @@ export default class Namespace extends SteveModel {
     // If the user cannot access the local cluster, show type as plain text.
     const productId = this.$rootGetters['productId'];
 
-    if (productId === 'manager') {
+    if (productId === MANAGER) {
       const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
       const typeIndex = glance.findIndex((item) => item.name === 'type');
 
