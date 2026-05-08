@@ -7,6 +7,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
 import TableDataUserIcon from '@shell/components/TableDataUserIcon';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
@@ -14,6 +15,7 @@ export default {
     ResourceTable,
     Masthead,
     TableDataUserIcon,
+    RcButton
   },
   mixins: [ResourceFetch],
   props:  {
@@ -128,14 +130,17 @@ export default {
         v-if="isAdmin"
         #subHeader
       >
-        <router-link
+        <rc-button
+          variant="link"
+          class="btn-user-retention"
           :to="{ name: 'c-cluster-auth-user.retention'}"
-          class="btn role-link btn-sm btn-user-retention"
           data-testid="router-link-user-retention"
         >
-          <i class="icon icon-gear" />
+          <template #before>
+            <i class="icon icon-gear" />
+          </template>
           {{ t('user.retention.button.label') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
 
@@ -159,10 +164,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-  .btn-user-retention {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0;
+<style lang="scss" scoped>
+  .btn.rc-button.btn-medium.btn-user-retention:not(.btn-sm) {
+    padding: 0; //retain the padding override for left-alignment with the header
   }
 </style>
