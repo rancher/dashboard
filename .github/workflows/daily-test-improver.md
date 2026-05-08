@@ -16,6 +16,15 @@
     slash_command:
       name: test-assist
     reaction: "eyes"
+    steps:
+      - name: Check main repo
+        id: repo_check
+        run: |
+          if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
+            echo "Skipping: not the main repository"
+            exit 1
+          fi
+  if: needs.pre_activation.outputs.repo_check_result == 'success'
 
   timeout-minutes: 30
 
