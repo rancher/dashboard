@@ -4,6 +4,17 @@ import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import { LOCAL_CLUSTER } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+
+jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
+  __esModule: true,
+  default:    {
+    helper: {
+      clustersPinned: [],
+      clustersOthers: [],
+    },
+  },
+}));
 
 describe('class Namespace', () => {
   describe('checking if isSystem', () => {
@@ -298,11 +309,11 @@ describe('class Namespace', () => {
     it('should remove type Link formatter when in manager product without local cluster access', () => {
       const namespace = new Namespace({});
 
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersOthers.length = 0;
+
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
-      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
-        productId:         MANAGER,
-        'management/byId': jest.fn(() => null),
-      });
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
       Object.defineProperty(namespace, '_glance', {
         get: jest.fn(() => [
           {
@@ -322,11 +333,12 @@ describe('class Namespace', () => {
     it('should keep type Link formatter when in manager product with local cluster access', () => {
       const namespace = new Namespace({});
 
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
+      sideNavService.helper.clustersOthers.length = 0;
+
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
-      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
-        productId:         MANAGER,
-        'management/byId': jest.fn(() => ({ id: LOCAL_CLUSTER })),
-      });
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
       Object.defineProperty(namespace, '_glance', {
         get: jest.fn(() => [
           {

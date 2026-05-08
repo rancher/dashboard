@@ -10,6 +10,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
@@ -309,10 +310,11 @@ export default class Namespace extends SteveModel {
     const productId = this.$rootGetters['productId'];
 
     if (productId === MANAGER) {
-      const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+      const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
+        sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
       const typeIndex = glance.findIndex((item) => item.name === 'type');
 
-      if (!localCluster && typeIndex > -1) {
+      if (!hasLocalCluster && typeIndex > -1) {
         glance[typeIndex] = {
           ...glance[typeIndex], formatter: undefined, formatterOpts: undefined
         };
