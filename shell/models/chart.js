@@ -89,22 +89,33 @@ export default class Chart extends SteveModel {
   }
 
   /**
-   * Determines if the chart is installed by checking if exactly one matching installed app is found.
+   * Determines if the chart is installed by checking if at least one matching installed app is found.
    *
    * @returns {boolean} `true` if the chart is currently installed.
    */
   get isInstalled() {
-    return this.matchingInstalledApps.length === 1;
+    return this.matchingInstalledApps.length >= 1;
   }
 
   /**
-   * Determines if the installed app has a single available upgrade.
+   * Determines if at least one installed instance has an available upgrade.
    * Requires the chart to be installed.
    *
-   * @returns {boolean} `true` if the app is installed and has a single upgrade available.
+   * @returns {boolean} `true` if the app is installed and at least one instance has an upgrade available.
    */
   get upgradeable() {
-    return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+    return this.isInstalled && this.matchingInstalledApps.some(
+      (app) => app.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE
+    );
+  }
+
+  /**
+   * Returns the number of installed instances of this chart.
+   *
+   * @returns {number} The count of installed instances.
+   */
+  get installedCount() {
+    return this.matchingInstalledApps.length;
   }
 
   /**
@@ -206,10 +217,18 @@ export default class Chart extends SteveModel {
     }
 
     if (this.isInstalled) {
+      const hasMultipleInstances = this.installedCount > 1;
       const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
 
+      // When multiple instances, don't show version in tooltip since each may have different versions
+      let tooltipText = hasMultipleInstances ? this.t('generic.installedMultiple') : this.t('generic.installed');
+
+      if (!hasMultipleInstances) {
+        tooltipText = `${ tooltipText } (${ installedVersion })`;
+      }
+
       statuses.push({
-        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ installedVersion })` }
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: tooltipText }
       });
     }
 
