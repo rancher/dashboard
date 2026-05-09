@@ -27,12 +27,10 @@
 - ESLint rule: `padding-line-between-statements` — use `eslint --fix` to auto-fix spacing
 - ESLint rule: `jest/prefer-to-be-null` — use `toBeNull()` not `toStrictEqual(null)`
 - ESLint rule: `jest/prefer-to-be-undefined` — use `toBeUndefined()` not `toStrictEqual(undefined)`
+- ESLint rule: `jest/prefer-to-have-length` — use `toHaveLength()` not `toStrictEqual(n)` on length
 - Mock `Date.now` with `jest.spyOn(Date, 'now').mockReturnValue(timestamp)` for time-dependent tests
 - `jest.restoreAllMocks()` in `afterEach` (or `beforeEach`) when using `spyOn`
-- Math.floor on negative floats rounds toward -infinity (e.g. floor(-200.6) = -201)
-- EXT.USER_ACTIVITY = 'ext.cattle.io.useractivity' (from shell/config/types.js)
-- For async util tests: mock store.dispatch, mock resource.save; always run `eslint --fix` before linting check
-- inactivity.ts: Inactivity class exported as named export; use named export (not default singleton) in tests
+- validators/index.js: mock getters as `{ 'i18n/t': (key, args) => args ? key+':'+JSON.stringify(args) : key, 'i18n/exists': () => false }` for deterministic assertions
 
 ## Testing Notes (additional)
 
@@ -59,14 +57,19 @@
 2. `shell/utils/pagination-utils.ts` store methods — `isEnabled`, `isSteveCacheEnabled`, `isDownstreamSteveCacheEnabled` require Vuex mock (follow-up to PR #17431)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — `fetchServices`/`fetchSecrets` store-dependent methods (follow-up to #17518)
-5. Additional utils — `promise.js`, `socket.js`, validators sub-modules
+5. Additional utils — `validators/service.js`, `promise.js`, `socket.js`
 
 ## Completed Work
 
+### 2026-05-09
+- Submitted PR (branch test-assist/validators-index-tests): 56 unit tests for shell/utils/validators/index.js
+- Coverage: validators/index.js 0% → 100% stmts/fns/lines, 97.59% branches
+- All 7 exported functions tested: displayKeyFor, validateLength, validateChars, validateHostname, validateDnsLabel, validateDnsLikeTypes, validateBoolean
+
 ### 2026-05-08
-- Submitted PR (branch test-assist/duration-externalid-utils-tests): 39 unit tests for shell/utils/duration.js and shell/utils/parse-externalid.js
+- Submitted PR #17562 (branch test-assist/duration-externalid-utils-tests): 39 unit tests for shell/utils/duration.js and shell/utils/parse-externalid.js
 - Coverage: duration.js 0% → 100%; parse-externalid.js 0% → 97.84% stmts, 94.73% branches, 100% fns
-- All 8 previously open PRs merged today by marcelofukumoto ✅
+- All prior PRs (#17431, #17451, #17466, #17471, #17478, #17499, #17518, #17545): merged by marcelofukumoto ✅
 
 ### 2026-05-07
 - Submitted PR #17545 (branch test-assist/units-utils-tests): 57 unit tests for shell/utils/units.js
@@ -74,29 +77,22 @@
 
 ### 2026-05-06
 - Submitted PR #17518 (branch test-assist/perf-ingress-utils-tests): 21 unit tests for shell/utils/perf-setting.utils.ts and shell/utils/ingress.ts pure methods
-- Coverage: 0% → 100% stmts/branches/fns/lines for perf-setting.utils.ts; 0% → 100% branches for ingress.ts pure methods
 
 ### 2026-05-05
 - Submitted PR #17499 (branch test-assist/style-utils-tests): 43 unit tests for shell/utils/style.ts
 - Coverage: 0% → 100% stmts/branches/fns/lines
-- Notable: documented 'disabled' edge case in isHigherAlert (not in order array)
 
 ### 2026-05-04
 - Submitted PR #17478 (branch test-assist/gc-companion-tests): 16 unit tests for gc-interval.ts and gc-route-changed.ts
-- Coverage: 0% → 100% stmts/fns/lines, 95% branches for both files
-- Notable: documented match[2] bug in gc-route-changed.ts
 
 ### 2026-05-03
 - Submitted PR #17471 (branch test-assist/gc-utils-tests): 30 unit tests for shell/utils/gc/gc.ts
-- Coverage: 0% → 94.68% stmts, 0% → 100% fns, 0% → 86.56% branches
 
 ### 2026-05-02
-- Submitted PR #17466: 40 unit tests for shell/utils/fleet.ts (branch test-assist/fleet-utils-tests)
-- Coverage: 52% → 80% stmts, 17% → 83% fns, 85% branches (77 total)
+- Submitted PR #17466: 40 unit tests for shell/utils/fleet.ts
 
 ### 2026-05-01
-- Submitted PR #17451: 12 unit tests for shell/utils/settings.ts (branch test-assist/settings-utils-tests)
-- Coverage: 0% → 50% stmts, 33% fns, 92% branches
+- Submitted PR #17451: 12 unit tests for shell/utils/settings.ts
 - Closed April 2026 Monthly Activity issue #17177; created May 2026 issue #17452
 
 ### 2026-04-30 (confirmed)
@@ -107,23 +103,23 @@
 
 ## Task Round-Robin History
 
+- 2026-05-09: Task 3 (validators/index.js 56 tests, 100% stmts/fns/lines) + Task 4 (PR #17562 CI check) + Task 7 (monthly activity update)
 - 2026-05-08: Task 3 (duration.js + parse-externalid.js, 39 tests) + Task 4 (confirmed all 8 PRs merged) + Task 7 (monthly update)
-- 2026-05-07: Task 3 (units.js 57 tests, 90.15% stmts) + Task 4 (PR CI check: #17431/#17499 all green) + Task 7 (monthly activity update)
-- 2026-05-06: Task 3 (perf-setting.utils + ingress.ts pure methods, 21 tests) + Task 4 (PR CI check: all passing) + Task 7 (monthly activity update)
-- 2026-05-05: Task 3 (style.ts 43 tests, 100% all) + Task 4 (PR CI check) + Task 7 (monthly activity update)
-- 2026-05-04: Task 3 (gc-interval.ts + gc-route-changed.ts, 16 tests, 100% stmts) + Task 7 (monthly activity update)
-- 2026-05-03: Task 3 (gc.ts 30 tests, 94.68% stmts, 100% fns) + Task 7 (monthly activity update)
-- 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7 (monthly activity update)
-- 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 (PR maintenance check) + Task 7 (monthly activity May)
-- 2026-04-30: Task 3 (pagination-utils.ts 43 tests, 50% stmts) + Task 7 (monthly activity update)
+- 2026-05-07: Task 3 (units.js 57 tests, 90.15% stmts) + Task 4 (PR CI check) + Task 7 (monthly activity update)
+- 2026-05-06: Task 3 (perf-setting.utils + ingress.ts pure methods, 21 tests) + Task 4 + Task 7
+- 2026-05-05: Task 3 (style.ts 43 tests, 100% all) + Task 4 + Task 7
+- 2026-05-04: Task 3 (gc-interval.ts + gc-route-changed.ts, 16 tests, 100% stmts) + Task 7
+- 2026-05-03: Task 3 (gc.ts 30 tests, 94.68% stmts, 100% fns) + Task 7
+- 2026-05-02: Task 4 (PR CI check) + Task 3 (fleet.ts 40 tests, 80% stmts) + Task 7
+- 2026-05-01: Task 3 (settings.ts 12 tests, 92% branches) + Task 4 + Task 7
 
 ## Monthly Activity Issue
 
 - Issue for May 2026: #17452 (created 2026-05-01)
 - Issue #17177: closed 2026-05-01 (was April 2026)
-- PR (branch test-assist/duration-externalid-utils-tests): duration.js + parse-externalid.js — submitted 2026-05-08, PR number TBD
-- All prior PRs (#17431, #17451, #17466, #17471, #17478, #17499, #17518, #17545): merged 2026-05-08 ✅
+- PR #17562 (branch test-assist/duration-externalid-utils-tests): submitted 2026-05-08 — OPEN
+- PR (branch test-assist/validators-index-tests): submitted 2026-05-09, PR number TBD
 
 ## Maintainer Priorities
 
-None noted yet.
+No specific priorities communicated yet.
