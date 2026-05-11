@@ -11,6 +11,15 @@ on:
   slash_command:
     name: pr-fix
   reaction: "eyes"
+  steps:
+    - name: Check main repo
+      id: repo_check
+      run: |
+        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
+          echo "Skipping: not the main repository"
+          exit 1
+        fi
+if: needs.pre_activation.outputs.repo_check_result == 'success'
 
 permissions: read-all
 
@@ -26,6 +35,8 @@ safe-outputs:
 tools:
   web-fetch:
   bash: true
+  github:
+    min-integrity: none
 
 timeout-minutes: 20
 
