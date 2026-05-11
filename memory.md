@@ -35,6 +35,7 @@
 - ingress.ts: findAndMapCerts/findAndMapServiceTargets are pure; fetchServices/fetchSecrets need Vuex mock
 - pagination-utils.ts: pure methods need no mocks; store-dependent methods need Vuex mock
 - settings.ts: `isProviderEnabled` takes `ClusterProvisionerContext` from `@shell/core/types`
+- color.js: `contrastColor` default opts = LIGHT_CONTRAST_COLORS; both light and dark themes may return same value for mid-range colors; `lighten()` is private/not exported
 
 ## Testing Backlog (Prioritized)
 
@@ -43,11 +44,11 @@
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
 5. `shell/utils/validators/service.js` — servicePort and clusterIp validation
-6. `shell/utils/color.js` — hexToRgb, rgbToRgb, colorToRgb, normalizeHex, textColor
 
 ## Completed Work (Summary)
 
-- 2026-05-10: PR (branch test-assist/promise-queue-utils-tests): 34 tests for promise.js + queue.js; ~93% stmts, 100% fns
+- 2026-05-11: PR (branch test-assist/color-utils-tests): 32 tests for color.js; 100% stmts/fns/lines, 96.87% branches
+- 2026-05-10: PR #17590 (branch test-assist/promise-queue-utils-tests): 34 tests for promise.js + queue.js; ~93% stmts, 100% fns
 - 2026-05-09: PR #17583: 56 tests for validators/index.js; 100% stmts/fns/lines, 97.59% branches
 - 2026-05-08: PR #17562: 39 tests for duration.js + parse-externalid.js; 100% + 97.84% stmts
 - 2026-05-07: PR #17545: 57 tests for units.js; 90.15% stmts
@@ -61,6 +62,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-11: Task 3 (color.js, 32 tests) + Task 4 (reviewed open PRs, no failures) + Task 7
 - 2026-05-10: Task 2 (scanned untested utils) + Task 3 (promise.js+queue.js, 34 tests) + Task 7
 - 2026-05-09: Task 3 (validators/index.js, 56 tests) + Task 4 + Task 7
 - 2026-05-08: Task 3 (duration.js+parse-externalid.js, 39 tests) + Task 4 + Task 7
@@ -71,7 +73,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open PRs: #17562 (duration/parse-externalid), #17583 (validators/index.js), branch test-assist/promise-queue-utils-tests (promise/queue, PR# TBD)
+- Open PRs: #17562 (duration/parse-externalid), #17583 (validators/index.js), #17590 (promise/queue), branch test-assist/color-utils-tests (PR# TBD)
 
 ## Maintainer Priorities
 
