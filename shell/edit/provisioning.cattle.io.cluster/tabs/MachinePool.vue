@@ -106,6 +106,16 @@ export default {
           const max = this.value?.pool?.autoscalingMaxSize || 0;
 
           return max - min >= 0 ? undefined : this.t('cluster.machinePool.autoscaler.validation.isAutoscalerMaxGreaterThanMin');
+        },
+        uniquePoolName: (name) => {
+          if (!name) {
+            return undefined;
+          }
+
+          const otherPools = (this.machinePools || []).filter((p) => !p.remove && p !== this.value);
+          const isDuplicate = otherPools.some((p) => p.pool.name?.toLowerCase() === name.toLowerCase());
+
+          return isDuplicate ? this.t('cluster.machinePool.name.unique') : undefined;
         }
       }
     };
@@ -295,6 +305,7 @@ export default {
           :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
+          :require-dirty="false"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
           data-testid="machine-pool-name-input"
         />
