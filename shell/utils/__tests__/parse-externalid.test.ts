@@ -2,8 +2,12 @@ import { parseExternalId, parseHelmExternalId } from '@shell/utils/parse-externa
 
 describe('parseExternalId', () => {
   describe('falsy / empty input', () => {
-    it.each([null, undefined, ''] as string[])('returns all-null output for %p', (input) => {
-      expect(parseExternalId(input)).toStrictEqual({
+    it.each([
+      { desc: 'null', input: null },
+      { desc: 'undefined', input: undefined },
+      { desc: 'empty string', input: '' },
+    ])('returns all-null output for $desc', ({ input }) => {
+      expect(parseExternalId(input as any)).toStrictEqual({
         kind:    null,
         group:   null,
         base:    null,
@@ -91,8 +95,12 @@ describe('parseExternalId', () => {
 
 describe('parseHelmExternalId', () => {
   describe('falsy / empty input', () => {
-    it.each([null, undefined, ''] as string[])('returns all-null output for %p', (input) => {
-      expect(parseHelmExternalId(input)).toStrictEqual({
+    it.each([
+      { desc: 'null', input: null },
+      { desc: 'undefined', input: undefined },
+      { desc: 'empty string', input: '' },
+    ])('returns all-null output for $desc', ({ input }) => {
+      expect(parseHelmExternalId(input as any)).toStrictEqual({
         kind:    null,
         group:   null,
         base:    null,
