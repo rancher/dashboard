@@ -76,6 +76,7 @@
     "d3": "7.3.0",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.18",
+    "diff": "9.0.0",
     "diff2html": "3.4.24",
     "dompurify": "3.2.5",
     "element-matches": "^0.1.2",
