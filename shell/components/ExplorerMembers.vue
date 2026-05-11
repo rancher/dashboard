@@ -313,6 +313,7 @@ export default {
           <rc-button
             size="large"
             class="pull-right"
+            data-testid="button-cluster-member-add"
             :to="createLocation"
           >
             {{ t('members.createActionLabel') }}
