@@ -12,52 +12,65 @@ import {
 
 describe('shell/utils/color', () => {
   describe('hexToRgb', () => {
-    it('parses a lowercase hex color', () => {
-      expect(hexToRgb('#ff0080')).toStrictEqual({
-        r: 255, g: 0, b: 128
-      });
+    it.each([
+      {
+        desc:     'a lowercase hex color',
+        input:    '#ff0080',
+        expected: {
+          r: 255, g: 0, b: 128
+        },
+      },
+      {
+        desc:     'a hex color without # prefix',
+        input:    'ff0080',
+        expected: {
+          r: 255, g: 0, b: 128
+        },
+      },
+      {
+        desc:     'an uppercase hex color',
+        input:    '#AABBCC',
+        expected: {
+          r: 170, g: 187, b: 204
+        },
+      },
+    ])('parses $desc', ({ input, expected }) => {
+      expect(hexToRgb(input)).toStrictEqual(expected);
     });
 
-    it('parses a hex color without # prefix', () => {
-      expect(hexToRgb('ff0080')).toStrictEqual({
-        r: 255, g: 0, b: 128
-      });
-    });
-
-    it('parses an uppercase hex color', () => {
-      expect(hexToRgb('#AABBCC')).toStrictEqual({
-        r: 170, g: 187, b: 204
-      });
-    });
-
-    it('returns null for an invalid hex string', () => {
-      expect(hexToRgb('not-a-color')).toBeNull();
-    });
-
-    it('returns null for a short 3-character hex (not supported by hexToRgb)', () => {
-      expect(hexToRgb('#abc')).toBeNull();
+    it.each([
+      { desc: 'an invalid hex string', input: 'not-a-color' },
+      { desc: 'a short 3-character hex (not supported by hexToRgb)', input: '#abc' },
+    ])('returns null for $desc', ({ input }) => {
+      expect(hexToRgb(input)).toBeNull();
     });
   });
 
   describe('rgbToRgb', () => {
-    it('parses a valid rgb() string', () => {
-      expect(rgbToRgb('rgb(10, 20, 30)')).toStrictEqual({
-        r: 10, g: 20, b: 30
-      });
+    it.each([
+      {
+        desc:     'a valid rgb() string with spaces',
+        input:    'rgb(10, 20, 30)',
+        expected: {
+          r: 10, g: 20, b: 30
+        },
+      },
+      {
+        desc:     'an rgb() string without spaces',
+        input:    'rgb(0,128,255)',
+        expected: {
+          r: 0, g: 128, b: 255
+        },
+      },
+    ])('parses $desc', ({ input, expected }) => {
+      expect(rgbToRgb(input)).toStrictEqual(expected);
     });
 
-    it('parses an rgb() string without spaces', () => {
-      expect(rgbToRgb('rgb(0,128,255)')).toStrictEqual({
-        r: 0, g: 128, b: 255
-      });
-    });
-
-    it('returns null for an invalid rgb string', () => {
-      expect(rgbToRgb('rgba(10,20,30,0.5)')).toBeNull();
-    });
-
-    it('returns null for a plain string', () => {
-      expect(rgbToRgb('red')).toBeNull();
+    it.each([
+      { desc: 'an rgba string', input: 'rgba(10,20,30,0.5)' },
+      { desc: 'a plain color name', input: 'red' },
+    ])('returns null for $desc', ({ input }) => {
+      expect(rgbToRgb(input)).toBeNull();
     });
   });
 
@@ -87,68 +100,64 @@ describe('shell/utils/color', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       colorToRgb('blue');
-      expect(consoleSpy).toHaveBeenCalledWith('Unable to parse color: blue');
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Unable to parse color: blue'));
       consoleSpy.mockRestore();
     });
   });
 
   describe('normalizeHex', () => {
-    it('expands a 3-char hex with # to 6-char', () => {
-      expect(normalizeHex('#abc')).toStrictEqual('#aabbcc');
-    });
-
-    it('expands a 3-char hex without # to 6-char', () => {
-      expect(normalizeHex('abc')).toStrictEqual('aabbcc');
-    });
-
-    it('returns a 6-char hex with # unchanged', () => {
-      expect(normalizeHex('#aabbcc')).toStrictEqual('#aabbcc');
-    });
-
-    it('returns a 6-char hex without # unchanged', () => {
-      expect(normalizeHex('aabbcc')).toStrictEqual('aabbcc');
+    it.each([
+      {
+        desc: '3-char hex with # to 6-char', input: '#abc', expected: '#aabbcc'
+      },
+      {
+        desc: '3-char hex without # to 6-char', input: 'abc', expected: 'aabbcc'
+      },
+      {
+        desc: '6-char hex with # unchanged', input: '#aabbcc', expected: '#aabbcc'
+      },
+      {
+        desc: '6-char hex without # unchanged', input: 'aabbcc', expected: 'aabbcc'
+      },
+    ])('handles $desc', ({ input, expected }) => {
+      expect(normalizeHex(input)).toStrictEqual(expected);
     });
   });
 
   describe('mapStandardColors', () => {
-    it('maps "black" to its hex value', () => {
-      expect(mapStandardColors('black')).toStrictEqual('#000000');
-    });
-
-    it('maps "white" to its hex value', () => {
-      expect(mapStandardColors('white')).toStrictEqual('#ffffff');
-    });
-
-    it('returns an unknown color string unchanged', () => {
-      expect(mapStandardColors('#123456')).toStrictEqual('#123456');
+    it.each([
+      {
+        desc: '"black" to its hex value', input: 'black', expected: '#000000'
+      },
+      {
+        desc: '"white" to its hex value', input: 'white', expected: '#ffffff'
+      },
+      {
+        desc: 'an unknown color string unchanged', input: '#123456', expected: '#123456'
+      },
+    ])('maps $desc', ({ input, expected }) => {
+      expect(mapStandardColors(input)).toStrictEqual(expected);
     });
   });
 
   describe('textColor', () => {
-    it('returns "black" for a light color', () => {
-      const color = parseColor('#ffffff');
+    it.each([
+      {
+        desc: '"black" for a light color (#ffffff)', input: '#ffffff', expected: 'black'
+      },
+      {
+        desc: '"white" for a dark color (#000000)', input: '#000000', expected: 'white'
+      },
+      {
+        desc: '"black" for brightness above threshold (rgb 200,200,200)', input: 'rgb(200, 200, 200)', expected: 'black'
+      },
+      {
+        desc: '"white" for brightness below threshold (rgb 50,50,50)', input: 'rgb(50, 50, 50)', expected: 'white'
+      },
+    ])('returns $desc', ({ input, expected }) => {
+      const color = parseColor(input);
 
-      expect(textColor(color)).toStrictEqual('black');
-    });
-
-    it('returns "white" for a dark color', () => {
-      const color = parseColor('#000000');
-
-      expect(textColor(color)).toStrictEqual('white');
-    });
-
-    it('returns "black" for a mid-brightness color above threshold', () => {
-      // rgb(200,200,200) brightness ~ 200 > 125
-      const color = parseColor('rgb(200, 200, 200)');
-
-      expect(textColor(color)).toStrictEqual('black');
-    });
-
-    it('returns "white" for a mid-brightness color below threshold', () => {
-      // rgb(50,50,50) brightness ~ 50 < 125
-      const color = parseColor('rgb(50, 50, 50)');
-
-      expect(textColor(color)).toStrictEqual('white');
+      expect(textColor(color)).toStrictEqual(expected);
     });
   });
 
@@ -172,14 +181,19 @@ describe('shell/utils/color', () => {
   describe('createCssVars', () => {
     it('returns an object with expected CSS variable keys for light theme', () => {
       const vars = createCssVars('#4a90d9', 'light', 'primary');
+      const expectedKeys = [
+        '--primary',
+        '--primary-text ',
+        '--primary-hover-bg',
+        '--primary-active-bg',
+        '--primary-active-text',
+        '--primary-border',
+        '--primary-banner-bg',
+        '--primary-light-bg',
+        '--primary-keyboard-focus',
+      ];
 
-      expect(vars).toHaveProperty('--primary');
-      expect(vars).toHaveProperty('--primary-hover-bg');
-      expect(vars).toHaveProperty('--primary-active-bg');
-      expect(vars).toHaveProperty('--primary-border');
-      expect(vars).toHaveProperty('--primary-banner-bg');
-      expect(vars).toHaveProperty('--primary-light-bg');
-      expect(vars).toHaveProperty('--primary-keyboard-focus');
+      expect(Object.keys(vars)).toStrictEqual(expectedKeys);
     });
 
     it('sets --primary to the input color', () => {
