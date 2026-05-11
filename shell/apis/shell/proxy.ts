@@ -2,11 +2,7 @@ import { Store } from 'vuex';
 import { ProxyApi, ProxyAuthCloudCredential, ProxyAuthToken, ProxyRequestOptions } from '@shell/apis/intf/shell';
 import { Metadata } from '@shell/types/resources/settings';
 import { MANAGEMENT } from '@shell/config/types';
-
-/** Traverses a dot-separated path on an object, returning `undefined` if any segment is missing. */
-function getByPath(obj: any, path: string): any {
-  return path.split('.').reduce((acc: any, key: string) => acc?.[key], obj);
-}
+import { get } from '@shell/utils/object';
 
 /**
  * Shell implementation of the `ProxyApi`.
@@ -217,7 +213,7 @@ export class ProxyApiImpl implements ProxyApi {
  *
  * @param proxyApi       - The `ProxyApi` instance used to fetch subsequent pages.
  * @param requestOptions - Base request options (without `postProcess`) reused for each page.
- * @param opts.nextUrlPath - Dot-path to the next-page URL in the response.
+ * @param opts.nextUrlPath - Dot-path or jsonpath to the next-page URL in the response.
  *                           Defaults to `links.pages.next`.
  * @param opts.mergeKey    - Response key whose array value is merged across pages.
  *                           When omitted the first top-level array key is used.
@@ -245,7 +241,7 @@ export function createDepaginator(
     // If we have a prior page's data, concatenate this page's array into it; otherwise use this page as-is
     const merged = (accumulated !== undefined && key && Array.isArray(accumulated[key]) && Array.isArray(res?.[key])) ? { ...res, [key]: [...accumulated[key], ...res[key]] } : res;
 
-    const nextUrl = getByPath(merged, nextPath);
+    const nextUrl = get(merged, nextPath);
 
     if (!nextUrl) {
       return merged;
