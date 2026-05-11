@@ -9,49 +9,52 @@ import {
 
 describe('queue', () => {
   describe('getLength', () => {
-    it('returns 0 for an empty queue', () => {
+    it.each([
+      {
+        desc: '0 for an empty queue', enqueueCount: 0, dequeueCount: 0, expected: 0
+      },
+      {
+        desc: '1 after one enqueue', enqueueCount: 1, dequeueCount: 0, expected: 1
+      },
+      {
+        desc: 'decrements after dequeue', enqueueCount: 2, dequeueCount: 1, expected: 1
+      },
+    ])('returns $desc', ({ enqueueCount, dequeueCount, expected }) => {
       const q = new Queue();
 
-      expect(q.getLength()).toStrictEqual(0);
-    });
+      for (let i = 0; i < enqueueCount; i++) {
+        q.enqueue(`item-${ i }`);
+      }
+      for (let i = 0; i < dequeueCount; i++) {
+        q.dequeue();
+      }
 
-    it('returns 1 after one enqueue', () => {
-      const q = new Queue();
-
-      q.enqueue('a');
-      expect(q.getLength()).toStrictEqual(1);
-    });
-
-    it('decrements after dequeue', () => {
-      const q = new Queue();
-
-      q.enqueue('a');
-      q.enqueue('b');
-      q.dequeue();
-      expect(q.getLength()).toStrictEqual(1);
+      expect(q.getLength()).toStrictEqual(expected);
     });
   });
 
   describe('isEmpty', () => {
-    it('returns true when queue is empty', () => {
+    it.each([
+      {
+        desc: 'true when queue is empty', enqueueCount: 0, dequeueCount: 0, expected: true
+      },
+      {
+        desc: 'false after enqueueing an item', enqueueCount: 1, dequeueCount: 0, expected: false
+      },
+      {
+        desc: 'true after all items are dequeued', enqueueCount: 1, dequeueCount: 1, expected: true
+      },
+    ])('returns $desc', ({ enqueueCount, dequeueCount, expected }) => {
       const q = new Queue();
 
-      expect(q.isEmpty()).toStrictEqual(true);
-    });
+      for (let i = 0; i < enqueueCount; i++) {
+        q.enqueue('x');
+      }
+      for (let i = 0; i < dequeueCount; i++) {
+        q.dequeue();
+      }
 
-    it('returns false after enqueueing an item', () => {
-      const q = new Queue();
-
-      q.enqueue('x');
-      expect(q.isEmpty()).toStrictEqual(false);
-    });
-
-    it('returns true after all items are dequeued', () => {
-      const q = new Queue();
-
-      q.enqueue('x');
-      q.dequeue();
-      expect(q.isEmpty()).toStrictEqual(true);
+      expect(q.isEmpty()).toStrictEqual(expected);
     });
   });
 
@@ -84,20 +87,20 @@ describe('queue', () => {
   });
 
   describe('peek', () => {
-    it('returns the front item without removing it', () => {
+    it.each([
+      {
+        desc: 'the front item without removing it', items: ['a', 'b'], expected: 'a'
+      },
+      {
+        desc: 'undefined when queue is empty', items: [] as string[], expected: undefined
+      },
+    ])('returns $desc', ({ items, expected }) => {
       const q = new Queue();
 
-      q.enqueue('a');
-      q.enqueue('b');
+      items.forEach((item) => q.enqueue(item));
 
-      expect(q.peek()).toStrictEqual('a');
-      expect(q.getLength()).toStrictEqual(2);
-    });
-
-    it('returns undefined when queue is empty', () => {
-      const q = new Queue();
-
-      expect(q.peek()).toBeUndefined();
+      expect(q.peek()).toStrictEqual(expected);
+      expect(q.getLength()).toStrictEqual(items.length);
     });
   });
 
@@ -161,12 +164,12 @@ describe('allHash', () => {
       a: Promise.resolve('a-val'),
     });
 
-    expect(result.z).toStrictEqual('z-val');
-    expect(result.a).toStrictEqual('a-val');
+    expect(Object.keys(result)).toStrictEqual(['z', 'a']);
+    expect(result).toStrictEqual({ z: 'z-val', a: 'a-val' });
   });
 
   it('resolves non-promise values in the hash', async() => {
-    const result = await allHash({ x: Promise.resolve(42) });
+    const result = await allHash({ x: 42 });
 
     expect(result).toStrictEqual({ x: 42 });
   });
