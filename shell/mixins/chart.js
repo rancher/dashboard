@@ -10,7 +10,8 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease, compare, isUpgradeFromPreToStable } from '@shell/utils/version';
+import { isPrerelease } from '@shell/utils/version';
+import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
@@ -27,6 +28,17 @@ export default {
       ignoreWarning: false,
 
       chart: null,
+
+      // Whether installing a new instance is allowed.
+      // This is false when the chart is targeted (has fixed namespace/name annotations)
+      // or when the URL query specifies a specific app to edit.
+      canInstallNew: true,
+
+      // Installed instances of this chart that can be selected for edit/upgrade
+      // on the chart detail page. When instances exist, `existing` is set to the
+      // first one by default, but the user can select a different instance or
+      // choose to install a new one.
+      installedInstances: [],
     };
   },
 
@@ -51,7 +63,12 @@ export default {
     },
 
     mappedVersions() {
-      const versions = this.chart?.versions || [];
+      const versions = (this.chart?.versions || []).slice();
+
+      versions.sort((a, b) => {
+        return compareChartVersions(b.version, a.version);
+      });
+
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
       const out = [];
@@ -240,13 +257,9 @@ export default {
         };
       }
 
-      if (isUpgradeFromPreToStable(this.currentVersion, this.targetVersion)) {
-        return {
-          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
-        };
-      }
+      const diff = compareChartVersions(this.currentVersion, this.targetVersion);
 
-      if (compare(this.currentVersion, this.targetVersion) < 0) {
+      if (diff < 0) {
         return {
           name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
         };
@@ -374,6 +387,9 @@ export default {
         // If found, set the form to edit mode. If not, set the
         // form to create mode.
 
+        // This is a hard blocker - installing a new instance is NOT allowed.
+        this.canInstallNew = false;
+
         try {
           this.existing = await this.$store.dispatch('cluster/find', {
             type: CATALOG.APP,
@@ -398,6 +414,9 @@ export default {
           // Ask to install a special chart with fixed namespace/name
           // or edit it if there's an existing install.
 
+          // This is a hard blocker - installing a new instance is NOT allowed.
+          this.canInstallNew = false;
+
           try {
             this.existing = await this.$store.dispatch('cluster/find', {
               type: CATALOG.APP,
@@ -408,19 +427,33 @@ export default {
             this.mode = _CREATE;
             this.existing = null;
           }
-        } else if (this.chart) {
-          const matching = this.chart.matchingInstalledApps;
+        } else {
+          // Regular chart (not targeted) - check if there are installed instances.
+          // Installing new instances IS allowed (canInstallNew remains true).
+          const isChartDetailPage = this.$route.name === 'c-cluster-apps-charts-chart';
 
-          if (matching.length === 1) {
-            this.existing = matching[0];
-            this.mode = _EDIT;
+          if (isChartDetailPage) {
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            // Always refresh the available instances so stale values are removed.
+            this.installedInstances = [];
+
+            if (matching.length >= 1) {
+              // Populate the instance selector and preserve the current selection
+              // when it is still one of the matching installed apps.
+              this.installedInstances = matching;
+              const hasExistingMatch = this.existing?.id && matching.some((instance) => instance.id === this.existing.id);
+
+              if (!hasExistingMatch) {
+                this.existing = matching[0];
+              }
+            } else {
+              this.existing = null;
+            }
           } else {
+            // Regular create
             this.mode = _CREATE;
           }
-        } else {
-          // Regular create
-
-          this.mode = _CREATE;
         }
       }
     }, // End of fetchChart

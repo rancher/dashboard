@@ -72,6 +72,7 @@ export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';
 export const FROM_CLUSTER = 'cluster';
+export const NEW_APP_INSTANCE = 'new-instance';
 export const HIDE_SIDE_NAV = 'hide-side-nav';
 
 // Cluster provisioning
