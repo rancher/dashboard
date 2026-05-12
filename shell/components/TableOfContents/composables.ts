@@ -114,6 +114,8 @@ export function useFormSummary() {
     locatedComponents.value = buildTree([], parent?.vnode) || [];
   };
 
+  // when forms initially this is called synchonously by every component using the summary composable
+  // debounce without a delay reduces that to one call on initial page load
   const debouncedLocateRegisteredComponents = debounce(locateRegisteredComponents);
 
   const findParent = (component: SummaryComponent) => {
