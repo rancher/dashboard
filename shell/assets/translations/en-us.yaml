@@ -1514,9 +1514,12 @@ compliance:
       =1 { Any scheduled scans using this profile will no longer work. }
       other { Any scheduled scans using either of these profiles will no longer work. }
     }
-  downloadAllReports: Download All Saved Reports
-  downloadLatestReport: Download Latest Report
-  downloadReport: Download Report
+  downloadAllReports: Download All Saved Reports (CSV)
+  downloadAllReportsXCCDF: Download All Saved Reports (XCCDF)
+  downloadLatestReport: Download Latest Report (CSV)
+  downloadLatestReportXCCDF: Download Latest Report (XCCDF)
+  downloadReport: Download Report (CSV)
+  downloadReportXCCDF: Download Report (XCCDF)
   maxKubernetesVersion: Maximum allowed Kubernetes version
   minKubernetesVersion: Minimum required Kubernetes version
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
