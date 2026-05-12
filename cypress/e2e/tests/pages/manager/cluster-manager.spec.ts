@@ -373,6 +373,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         detailPage.waitForPage(undefined, 'log');
         detailPage.logsContainer().should('be.visible');
       });
+      it('preserves custom addon config values after saving cluster config', () => {
+        const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
+        const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .set(customAddonConfig);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .value()
+          .should('equal', customAddonConfig);
+      });
 
       qase(1434, it('can delete cluster', () => {
         clusterList.goTo();
@@ -1376,6 +1405,10 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
     // takes percy snapshot.
     cy.percySnapshot('cluster manager list page');
   }));
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
+  });
 
   after(() => {
     cy.restoreProductDefaultTestTheme();
