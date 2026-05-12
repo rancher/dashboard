@@ -301,6 +301,8 @@ export default {
         :pagination-headers="paginationHeaders"
         :context="paginationContext"
 
+        :use-query-params-for-simple-filtering="true"
+
         :local-filter="filterRowsLocal"
         :api-filter="filterRowsApi"
 

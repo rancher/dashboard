@@ -306,7 +306,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isRke2() {
-    return this.mgmt?.isRke2;
+    // This isn't mapped to mgmt isRke2 to ensure the create flow --> edit yaml (where no mgmt cluster exists) works correctly
+    return !!this.spec?.rkeConfig;
   }
 
   get isRke1() {

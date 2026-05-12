@@ -68,7 +68,7 @@ export default class MgmtCluster extends SteveModel {
     const currentRoute = this.currentRoute();
 
     // Compare params, but exclude cluster (could be a bad link which provides a specific cluster)
-    const { cluster: _1, ...lLProduct } = listLocation.params;
+    const { cluster: _1, ...lLProduct } = listLocation.params || {};
     const { cluster: _2, ...cRParams } = currentRoute.params;
     const paramsEqual = isEqual(lLProduct, cRParams);
 
@@ -245,7 +245,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get isRke2() {
-    return !!this.provCluster?.spec?.rkeConfig;
+    return !!this.provCluster?.isRke2;
   }
 
   // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
