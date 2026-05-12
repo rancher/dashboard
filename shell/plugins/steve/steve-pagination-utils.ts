@@ -260,7 +260,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.connected` },
       { field: `status.info.machineProvider` },
       { field: `status.driver` },
-      // { field: `status.provider` }, // https://github.com/rancher/rancher/issues/54992
+      { field: `status.provider` },
       { field: `status.info.kubernetesVersion` },
     ],
     [SECRET]: [
