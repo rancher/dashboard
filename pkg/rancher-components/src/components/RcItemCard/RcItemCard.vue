@@ -82,8 +82,8 @@ interface RcItemCardProps {
 
   /** Optional actions that will be displayed inside an action-menu
    *
-   * Each action should include an `action` name, which is included in the payload
-   * of the 'action-invoked' event when the action is selected.
+   * Each action should include an `action` name, which is emitted as a custom event when selected.
+   * To respond to the event, you must also register a matching event listener using the `@` syntax.
    *
    * Example:
    * <rc-item-card
@@ -94,10 +94,8 @@ interface RcItemCardProps {
    *       enabled: true
    *     }
    *   ]"
-   *   @action-invoked="handleActionInvoked"
+   *   @focusSearch="focusSearch"
    * />
-   *
-   * The handler receives a payload with { action: string, actionData: object, event: MouseEvent, ... }
    */
   actions?: DropdownOption[];
 
@@ -126,9 +124,23 @@ const props = defineProps<RcItemCardProps>();
 /**
  * Emits:
  * - 'card-click' when card is clicked or activated via keyboard.
- * - 'action-invoked' when an action is selected from the action menu (only when `actions` prop is used).
+ * - custom events defined in the `actions` prop, but only if the corresponding event listener is explicitly declared on the component.
  */
-const emit = defineEmits<{(e: 'card-click', value?: ItemValue): void; (e: 'action-invoked', payload: unknown): void;}>();
+const emit = defineEmits<{(e: 'card-click', value: ItemValue): void; (e: string, payload: unknown): void;}>();
+
+const actionListeners = computed(() => {
+  if (!props.actions) return {};
+
+  const listeners: Record<string, (payload: unknown) => void> = {};
+
+  for (const a of props.actions) {
+    if (a.action) {
+      listeners[a.action] = (payload: unknown) => emit(a.action, payload);
+    }
+  }
+
+  return listeners;
+});
 
 /**
  * Handles the card click while avoiding nested interactive elements
@@ -288,7 +300,7 @@ const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
                   data-testid="item-card-header-action-menu"
                   :button-aria-label="cardMeta.actionMenuLabel"
                   :custom-actions="actions"
-                  @action-invoked="(payload) => emit('action-invoked', payload)"
+                  v-on="actionListeners"
                 />
               </rc-item-card-action>
             </template>

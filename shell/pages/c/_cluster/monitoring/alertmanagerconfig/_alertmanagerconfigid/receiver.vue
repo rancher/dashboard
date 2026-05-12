@@ -210,11 +210,11 @@ export default {
     // and this method executes the action.
       this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(this.receiverValue.name, _EDIT));
     },
-    promptRemove(payload) {
+    promptRemove(actionData) {
       // 'promptRemove' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
       // Get the name of the receiver to delete from the action info.
-      const nameOfReceiverToDelete = payload?.route?.query?.receiverName;
+      const nameOfReceiverToDelete = actionData.route.query.receiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
       // resource.
       const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
@@ -226,21 +226,6 @@ export default {
       // After saving the AlertmanagerConfig, the resource has been deleted.
       this.alertmanagerConfigResource.save(...arguments);
       this.$router.push(this.alertmanagerConfigResource._detailLocation);
-    },
-    handleReceiverAction(payload) {
-      switch (payload?.action) {
-      case 'goToEdit':
-        this.goToEdit();
-        break;
-      case 'goToEditYaml':
-        this.goToEditYaml();
-        break;
-      case 'promptRemove':
-        this.promptRemove(payload);
-        break;
-      default:
-        console.warn(`Unknown receiver action: ${ payload?.action }`); // eslint-disable-line no-console
-      }
     },
     redirectToReceiverDetail(receiverName) {
       return this.alertmanagerConfigResource.getReceiverDetailLink(receiverName);
@@ -315,7 +300,9 @@ export default {
       :custom-target-element="actionMenuTargetElement"
       :custom-target-event="actionMenuTargetEvent"
       @close="receiverActionMenuIsOpen = false"
-      @action-invoked="handleReceiverAction"
+      @goToEdit="goToEdit"
+      @goToEditYaml="goToEditYaml"
+      @promptRemove="promptRemove"
     />
   </div>
 </template>

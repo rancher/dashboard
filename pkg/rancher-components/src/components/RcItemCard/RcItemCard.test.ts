@@ -189,7 +189,7 @@ describe('rcItemCard', () => {
     expect(icon.attributes('style')).toContain('color: red');
   });
 
-  it('emits action-invoked event when action is triggered', async() => {
+  it('emits custom action events correctly', async() => {
     const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
@@ -200,22 +200,12 @@ describe('rcItemCard', () => {
       }
     });
 
-    // Simulate the action-invoked event being emitted from ActionMenu
-    const actionMenu = wrapper.findComponent({ name: 'ActionMenuShell' });
+    const listeners = wrapper.vm.$.setupState.actionListeners;
 
-    expect(actionMenu.exists()).toBe(true);
+    listeners.myActionA('payload-1');
+    listeners.myActionB('payload-2');
 
-    // Emit action-invoked event with payload
-    const payload = {
-      action: 'myActionA', actionData: { action: 'myActionA', label: 'Edit' }, event: new MouseEvent('click')
-    };
-
-    actionMenu.vm.$emit('action-invoked', payload);
-    await wrapper.vm.$nextTick();
-
-    const emitted = wrapper.emitted('action-invoked');
-
-    expect(emitted).toBeTruthy();
-    expect(emitted?.[0]).toStrictEqual([payload]);
+    expect(wrapper.emitted('myActionA')?.[0]).toStrictEqual(['payload-1']);
+    expect(wrapper.emitted('myActionB')?.[0]).toStrictEqual(['payload-2']);
   });
 });

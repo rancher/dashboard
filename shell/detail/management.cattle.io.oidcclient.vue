@@ -7,7 +7,7 @@ import { defineComponent } from 'vue';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import DateComponent from '@shell/components/formatter/Date.vue';
 import { RcItemCard } from '@components/RcItemCard';
-import ActionMenu, { type ActionMenuSelection } from '@shell/components/ActionMenuShell.vue';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { Banner } from '@components/Banner';
 
 type SecretActionType = 'create-secret' | 'regen-secret' | 'remove-secret'
@@ -32,6 +32,7 @@ interface SecretManageData {
 const OIDC_SECRETS_NAMESPACE = 'cattle-oidc-client-secrets';
 
 export default defineComponent({
+  emits: ['regenerateSecret', 'removeSecret'],
 
   components: {
     CopyToClipboardText,
@@ -99,19 +100,6 @@ export default defineComponent({
   },
 
   methods: {
-    handleSecretAction(secret: SecretManageData, payload?: ActionMenuSelection) {
-      switch (payload?.action) {
-      case 'regenerateSecret':
-        this.promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REGEN, secret);
-        break;
-      case 'removeSecret':
-        this.promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REMOVE, secret);
-        break;
-      default:
-        console.warn(`Unknown secret action: ${ payload?.action }`); // eslint-disable-line no-console
-      }
-    },
-
     promptSecretsModal(actionType: SecretActionType, secret: SecretManageData) {
       this.errors = [];
 
@@ -332,7 +320,8 @@ export default defineComponent({
                 :data-testid="`oidc-client-secret-${i}-action-menu`"
                 :resource="secret"
                 :custom-actions="cardActions"
-                @action-invoked="(payload) => handleSecretAction(secret, payload)"
+                @regenerateSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REGEN, secret)"
+                @removeSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REMOVE, secret)"
               />
             </template>
           </rc-item-card>
