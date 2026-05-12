@@ -370,7 +370,7 @@ export default {
       await this.$store.dispatch(`${ store }/forgetType`, {
         type:           this.resource,
         compareWatches: (watchParams) => {
-          return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.type.mode;
+          return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.mode;
         },
         unwatch: true,
         forget:  !retainResource

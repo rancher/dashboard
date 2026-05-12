@@ -841,8 +841,6 @@ export default {
 
   /**
    * Remove all cached entries for a resource and stop watches
-   *
-   * //
    */
   forgetType({ commit, dispatch, state }, payload) {
     let type = payload;

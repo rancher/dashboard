@@ -632,7 +632,7 @@ function _execute(resources, action, args, opts = {}, ctx) {
   const findResourceFromAction = (r) => {
     const actualAction = r.availableActions.find((aa) => aa.action === action.action);
 
-    return actualAction.altResource || r;
+    return actualAction?.altResource || r;
   };
 
   // if there there are multiple resources and a bulk action, use it and pass in the resources

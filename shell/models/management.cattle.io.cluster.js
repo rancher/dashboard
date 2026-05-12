@@ -4,11 +4,11 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject, sameContents } from '@shell/utils/array';
+import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
-import { isEmpty } from '@shell/utils/object';
+import { isEmpty, isEqual } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -64,10 +64,15 @@ export default class MgmtCluster extends SteveModel {
     // If on the Cluster Management Cluster List use the provisioning cluster actions instead of the management cluster
     // This resolution feels a bit hacky, however the alternative would be to create a table prop and lots of weird plumbing
     // It's a small use case, so just doing a limited solution
-    const listLocation = this.provCluster?.listLocation;
+    const listLocation = this.provCluster?.listLocation || {};
     const currentRoute = this.currentRoute();
 
-    const isClusterManagementListPage = listLocation?.name === currentRoute?.name && sameContents(listLocation.params, currentRoute.params);
+    // Compare params, but exclude cluster (could be a bad link which provides a specific cluster)
+    const { cluster: _1, ...lLProduct } = listLocation.params;
+    const { cluster: _2, ...cRParams } = currentRoute.params;
+    const paramsEqual = isEqual(lLProduct, cRParams);
+
+    const isClusterManagementListPage = listLocation?.name === currentRoute?.name && paramsEqual;
 
     if (isClusterManagementListPage) {
       return this.provCluster?.availableActions.map((action) => ({
@@ -162,7 +167,7 @@ export default class MgmtCluster extends SteveModel {
    * Get the custom provisioner helper for this model
    */
   get customProvisionerHelper() {
-    if (this.provCluster) {
+    if (!this.provCluster) {
       return null;
     }
 
@@ -711,14 +716,14 @@ export default class MgmtCluster extends SteveModel {
 
   get provClusterNamespace() {
     // Could consider using `metadata.annotations."objectset.rio.cattle.io/owner-namespace"` instead of provClusterId from resource rels
-    const [namespace] = this.provClusterId.split('/');
+    const [namespace] = this.provClusterId?.split('/') || [];
 
     return namespace;
   }
 
   get provClusterName() {
     // Could consider using `metadata.annotations."objectset.rio.cattle.io/owner-name"` instead of provClusterId from resource rels
-    const [, name] = this.provClusterId.split('/');
+    const [, name] = this.provClusterId?.split('/') || [];
 
     return name;
   }
