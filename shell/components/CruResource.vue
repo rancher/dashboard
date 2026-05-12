@@ -1094,8 +1094,6 @@ form.create-resource-container .cru {
   }
 
   &__content {
-    display: flex;
-    flex-direction: column;
     flex-grow: 1;
 
     &-wizard {
