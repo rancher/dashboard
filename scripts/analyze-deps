@@ -17,16 +17,17 @@ const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
 const REPORT = path.join(ROOT, 'dist', 'report.json');
-const OUTPUT = path.join(ROOT, 'dist', 'dependencies.json');
-const LICENSES_DIR = path.join(ROOT, 'dist', 'licenses');
-const LICENSES_INDEX = path.join(LICENSES_DIR, 'index.json');
+const DEPS_OUTPUT = path.join(ROOT, 'dist', 'dependencies.json');
+const LICENSES_OUTPUT = path.join(ROOT, 'dist', 'licenses.json');
+const STALE_LICENSES_DIR = path.join(ROOT, 'dist', 'licenses');
 const OSV_URL = 'https://api.osv.dev/v1/query';
 const OSV_CONCURRENCY = 8;
 
 const USAGE = `Usage: analyze-deps [options]
 
-Reads dist/report.json (output of webpack-bundle-analyzer) and writes a
-deduplicated license bundle to dist/licenses/ (license files + index.json).
+Reads dist/report.json (output of webpack-bundle-analyzer) and writes
+dist/licenses.json, a single bundle containing each package's license
+metadata plus the deduplicated full license text keyed by <type>-<md5>.
 
 Options:
   --vulnerabilities   Also query osv.dev for known CVEs and write
@@ -335,6 +336,17 @@ async function fetchLicenseFromGitHub(repository) {
 }
 
 /*
+ * Classify license content based on the source filename. `.md` / `.markdown`
+ * map to 'markdown'; everything else (including README-section extractions,
+ * which we always treat as markdown) is handled by the caller.
+ */
+function licenseTypeFromFilename(filename) {
+  if (!filename) return 'text';
+  const ext = path.extname(filename).toLowerCase();
+  return (ext === '.md' || ext === '.markdown') ? 'markdown' : 'text';
+}
+
+/*
  * Turn a license identifier into a filename-safe slug. Strips characters that
  * aren't alphanumeric, dot, plus or dash. Falls back to `UNKNOWN` when null.
  */
@@ -346,16 +358,18 @@ function licenseSlug(license) {
 
 /*
  * For each entry, locate its LICENSE/LICENSE.md file, hash the contents, and
- * write one deduplicated file per unique md5 under dist/licenses/. Each entry
- * is updated with `licenseMd5` and `licenseFile` (a filename relative to
- * dist/licenses/, alongside the index.json that catalogues them).
+ * record a deduplicated entry per unique md5. Each entry is updated with
+ * `licenseRef`, the `<type>-<md5>` key that indexes into the returned
+ * `licenses` map. Each license value is `{ [type]: content }` where `type`
+ * is 'text' or 'markdown', so the raw content lives under that key.
  */
 async function processLicenses(entries) {
-  // Reset the licenses dir so old runs don't leave stale files behind.
-  fs.rmSync(LICENSES_DIR, { recursive: true, force: true });
-  fs.mkdirSync(LICENSES_DIR, { recursive: true });
+  // Old runs of this script wrote individual files into dist/licenses/.
+  // Clean that up if it's lying around.
+  fs.rmSync(STALE_LICENSES_DIR, { recursive: true, force: true });
 
   const byMd5 = new Map();
+  const md5BySource = { file: 0, readme: 0, github: 0 };
   const ghErrors = [];
 
   for (const entry of entries) {
@@ -363,15 +377,18 @@ async function processLicenses(entries) {
 
     let content = null;
     let source = null;
+    let type = null;
     const licensePath = findLicenseFile(pkgDir);
     if (licensePath) {
       content = fs.readFileSync(licensePath);
       source = 'file';
+      type = licenseTypeFromFilename(licensePath);
     } else {
       const readmeSection = extractLicenseFromReadme(pkgDir);
       if (readmeSection) {
         content = Buffer.from(`${ readmeSection }\n`, 'utf8');
         source = 'readme';
+        type = 'markdown';
       }
     }
 
@@ -390,6 +407,7 @@ async function processLicenses(entries) {
           if (gh) {
             content = gh.content;
             source = 'github';
+            type = licenseTypeFromFilename(gh.filename);
             process.stderr.write(` found ${ gh.filename }\n`);
           } else {
             process.stderr.write(' not found\n');
@@ -405,38 +423,38 @@ async function processLicenses(entries) {
 
     const md5 = crypto.createHash('md5').update(content).digest('hex');
 
-    entry.licenseMd5 = md5;
-    entry.licenseSource = source;
-    if (!byMd5.has(md5)) byMd5.set(md5, { content, license: entry.license });
+    entry._md5 = md5;
+    md5BySource[source]++;
+    if (!byMd5.has(md5)) byMd5.set(md5, { content, license: entry.license, type });
   }
 
   if (ghErrors.length) {
     console.warn(`GitHub license lookup failed for ${ ghErrors.length } package(s): ${ ghErrors.map((e) => `${ e.pkg } (${ e.error })`).join('; ') }`);
   }
 
-  const md5ToFilename = new Map();
-  for (const [md5, { content, license }] of byMd5) {
-    const filename = `${ licenseSlug(license) }-${ md5 }.license.md`;
-    fs.writeFileSync(path.join(LICENSES_DIR, filename), content);
-    md5ToFilename.set(md5, filename);
+  const md5ToKey = new Map();
+  const licenses = {};
+  for (const [md5, { content, license, type }] of byMd5) {
+    const key = `${ licenseSlug(license) }-${ md5 }`;
+    licenses[key] = { [type]: content.toString('utf8') };
+    md5ToKey.set(md5, key);
   }
 
   for (const entry of entries) {
-    if (entry.licenseMd5) {
-      entry.licenseFile = md5ToFilename.get(entry.licenseMd5);
+    if (entry._md5) {
+      entry.licenseRef = md5ToKey.get(entry._md5);
+      delete entry._md5;
     }
   }
 
-  const withoutLicense = entries.filter((e) => !e.licenseFile);
-  const fromFile = entries.filter((e) => e.licenseSource === 'file').length;
-  const fromReadme = entries.filter((e) => e.licenseSource === 'readme').length;
-  const fromGithub = entries.filter((e) => e.licenseSource === 'github').length;
+  const withoutLicense = entries.filter((e) => !e.licenseRef);
   return {
-    unique:  byMd5.size,
-    fromFile,
-    fromReadme,
-    fromGithub,
-    missing: {
+    licenses,
+    unique:     byMd5.size,
+    fromFile:   md5BySource.file,
+    fromReadme: md5BySource.readme,
+    fromGithub: md5BySource.github,
+    missing:    {
       count:    withoutLicense.length,
       packages: withoutLicense.map((e) => `${ e.name }@${ e.version }`)
     }
@@ -556,9 +574,7 @@ function licenseEntry(e) {
     ...(e.licenseField ? { licenseField: e.licenseField } : {}),
     ...(e.home ? { home: e.home } : {}),
     path:    e.path,
-    ...(e.licenseSource ? { licenseSource: e.licenseSource } : {}),
-    ...(e.licenseMd5 ? { licenseMd5: e.licenseMd5 } : {}),
-    ...(e.licenseFile ? { licenseFile: e.licenseFile } : {})
+    ...(e.licenseRef ? { licenseRef: e.licenseRef } : {})
   };
 }
 
@@ -617,15 +633,16 @@ async function main() {
   const licenseStats = await processLicenses(entries);
   console.log(`Resolved ${ entries.length } packages (${ licenseStats.fromFile } via LICENSE file, ${ licenseStats.fromReadme } via README, ${ licenseStats.fromGithub } via GitHub, ${ licenseStats.missing.count } missing; ${ licenseStats.unique } unique).`);
 
-  fs.writeFileSync(LICENSES_INDEX, `${ JSON.stringify({
+  fs.writeFileSync(LICENSES_OUTPUT, `${ JSON.stringify({
     generatedAt:     new Date().toISOString(),
     source:          path.relative(ROOT, REPORT),
     packageCount:    entries.length,
     licensesMissing: licenseStats.missing,
     licenseSummary:  buildLicenseSummary(entries),
-    packages:        entries.map(licenseEntry)
+    packages:        entries.map(licenseEntry),
+    licenses:        licenseStats.licenses
   }, null, 2) }\n`);
-  console.log(`Wrote license index to ${ path.relative(ROOT, LICENSES_INDEX) }`);
+  console.log(`Wrote license bundle to ${ path.relative(ROOT, LICENSES_OUTPUT) }`);
 
   if (missing.size) console.warn(`Could not find package.json for ${ missing.size } path(s): ${ Array.from(missing).slice(0, 5).join(', ') }${ missing.size > 5 ? ', ...' : '' }`);
 
@@ -639,7 +656,7 @@ async function main() {
 
   const vulnerabilitySummary = buildSummary(entries);
 
-  fs.writeFileSync(OUTPUT, `${ JSON.stringify({
+  fs.writeFileSync(DEPS_OUTPUT, `${ JSON.stringify({
     generatedAt:  new Date().toISOString(),
     source:       path.relative(ROOT, REPORT),
     packageCount: entries.length,
@@ -647,7 +664,7 @@ async function main() {
     packages:     entries.map(dependencyEntry)
   }, null, 2) }\n`);
 
-  console.log(`Wrote vulnerability data to ${ path.relative(ROOT, OUTPUT) }`);
+  console.log(`Wrote vulnerability data to ${ path.relative(ROOT, DEPS_OUTPUT) }`);
   console.log(`Vulns: ${ vulnerabilitySummary.total } across ${ vulnerabilitySummary.packagesAffected } package(s) — critical=${ vulnerabilitySummary.critical } high=${ vulnerabilitySummary.high } moderate=${ vulnerabilitySummary.moderate } low=${ vulnerabilitySummary.low } unknown=${ vulnerabilitySummary.unknown }`);
   if (osvErrors.length) console.warn(`OSV lookup failed for ${ osvErrors.length } package(s); first: ${ osvErrors.slice(0, 3).map((e) => `${ e.pkg } (${ e.error })`).join('; ') }`);
 }
