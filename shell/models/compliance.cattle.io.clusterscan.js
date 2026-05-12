@@ -196,17 +196,33 @@ export default class ClusterScan extends SteveModel {
 
     try {
       const benchmark = await this._resolveBenchmark();
-      const { generateXCCDF } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
 
-      const xml = generateXCCDF({
-        report:           report.parsedReport || {},
-        benchmarkVersion: report.parsedReport?.version || benchmark?.spec?.benchmarkVersion || '',
+      const parsed = report.parsedReport || {};
+      const common = {
+        report:           parsed,
+        benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
         metadata:         benchmark?.spec?.benchmarkMetadata || {},
         stigChecks:       benchmark?.spec?.stigChecks || {},
-        clusterName:      this.spec?.clusterName,
+      };
+
+      const toZip = {};
+
+      Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+        (hosts || []).forEach((hostname) => {
+          const xml = generateXCCDFPerNode({
+            ...common, hostname, role,
+          });
+
+          toZip[`${ labelFor(report) }--${ hostname }.xml`] = xml;
+        });
       });
 
-      downloadFile(`${ labelFor(report) }.xml`, xml, 'application/xml');
+      if (!isEmpty(toZip)) {
+        const zip = await generateZip(toZip);
+
+        downloadFile(`${ labelFor(report) }-per-node.zip`, zip, 'application/zip');
+      }
     } catch (err) {
       this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
     }
@@ -218,19 +234,28 @@ export default class ClusterScan extends SteveModel {
 
     try {
       const benchmark = await this._resolveBenchmark();
-      const { generateXCCDF } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
 
       reports.forEach((report) => {
         try {
-          const xml = generateXCCDF({
-            report:           report.parsedReport || {},
-            benchmarkVersion: report.parsedReport?.version || benchmark?.spec?.benchmarkVersion || '',
+          const parsed = report.parsedReport || {};
+          const common = {
+            report:           parsed,
+            benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
             metadata:         benchmark?.spec?.benchmarkMetadata || {},
             stigChecks:       benchmark?.spec?.stigChecks || {},
-            clusterName:      this.spec?.clusterName,
-          });
+          };
+          const folder = labelFor(report);
 
-          toZip[`${ labelFor(report) }.xml`] = xml;
+          Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+            (hosts || []).forEach((hostname) => {
+              const xml = generateXCCDFPerNode({
+                ...common, hostname, role,
+              });
+
+              toZip[`${ folder }/${ hostname }.xml`] = xml;
+            });
+          });
         } catch (err) {
           this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
         }
@@ -238,7 +263,7 @@ export default class ClusterScan extends SteveModel {
 
       if (!isEmpty(toZip)) {
         generateZip(toZip).then((zip) => {
-          downloadFile(`${ this.id }-reports-xccdf`, zip, 'application/zip');
+          downloadFile(`${ this.id }-reports-xccdf-per-node.zip`, zip, 'application/zip');
         });
       }
     } catch (err) {

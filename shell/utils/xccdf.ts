@@ -15,6 +15,11 @@ export interface XccdfReportCheck {
   audit?: string;
   scored?: boolean;
   state?: string;
+  nodes?: string[];
+  // eslint-disable-next-line camelcase
+  node_type?: string[];
+  // eslint-disable-next-line camelcase
+  actual_value_per_node?: Record<string, string>;
 }
 
 export interface XccdfReportGroup {
@@ -82,6 +87,8 @@ export interface GenerateXccdfArgs {
   targetFacts?: XccdfTargetFact[];
   /** Override the cluster name used for the <target> element. Falls back to metadata.clusterName, then derived node names. */
   clusterName?: string;
+  /** Override the TestResult @id. Required when multiple documents from the same benchmark will be co-loaded into a validator. */
+  testResultId?: string;
 }
 
 const na = (s?: string): string => (s && s.length > 0 ? s : NA);
@@ -184,6 +191,7 @@ export function generateXCCDF({
   targetAddresses,
   targetFacts,
   clusterName,
+  testResultId,
 }: GenerateXccdfArgs): string {
   const now = new Date();
   const timeStr = now.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -301,7 +309,7 @@ export function generateXCCDF({
   const targets = clusterName ? [clusterName] : metadata.clusterName ? [metadata.clusterName] : collectTargets(report);
 
   const testResult = benchmark.ele('TestResult', {
-    id:            `${ ID_PREFIX }_${ TEST_RESULT_ID_SUFFIX }`,
+    id:            testResultId || `${ ID_PREFIX }_${ TEST_RESULT_ID_SUFFIX }`,
     'start-time':  timeStr,
     'end-time':    timeStr,
     version:       benchmarkVersion,
@@ -368,4 +376,43 @@ export function generateXCCDF({
   testResult.ele('score', { system: SCORING_SYSTEM, maximum: '100.0' }).txt(scoreStr);
 
   return doc.end({ prettyPrint: true });
+}
+
+export interface GenerateXccdfPerNodeArgs extends Omit<GenerateXccdfArgs, 'clusterName' | 'targetAddresses' | 'targetFacts'> {
+  hostname: string;
+  role: string;
+}
+
+const remapCheckForNode = (check: XccdfReportCheck, hostname: string): XccdfReportCheck => {
+  const isMixed = (check.state || '').toLowerCase() === 'mixed';
+  const state = isMixed ? ((check.nodes || []).includes(hostname) ? 'fail' : 'pass') : check.state;
+
+  return { ...check, state };
+};
+
+export function generateXCCDFPerNode(args: GenerateXccdfPerNodeArgs): string {
+  const {
+    report, hostname, role, ...rest
+  } = args;
+
+  const perNodeResults: XccdfReportGroup[] = (report.results || []).map((group) => ({
+    ...group,
+    checks: (group.checks || []).map((c) => remapCheckForNode(c, hostname)),
+  }));
+
+  const passForNode = perNodeResults
+    .flatMap((g) => g.checks || [])
+    .filter((c) => (c.state || '').toLowerCase() === 'pass').length;
+
+  return generateXCCDF({
+    ...rest,
+    report: {
+      ...report,
+      results: perNodeResults,
+      pass:    passForNode,
+      nodes:   { [role]: [hostname] },
+    },
+    clusterName:  hostname,
+    testResultId: `${ ID_PREFIX }_${ TEST_RESULT_ID_SUFFIX }_${ safeId(hostname) }`,
+  });
 }

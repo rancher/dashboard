@@ -1,4 +1,4 @@
-import { generateXCCDF } from '@shell/utils/xccdf';
+import { generateXCCDF, generateXCCDFPerNode } from '@shell/utils/xccdf';
 
 describe('xccdf util: generateXCCDF', () => {
   const baseReport = {
@@ -191,5 +191,201 @@ describe('xccdf util: generateXCCDF', () => {
     });
 
     expect(xml).toContain('id="xccdf_compliance-operator_rule_5.1.1"');
+  });
+});
+
+describe('xccdf util: generateXCCDFPerNode', () => {
+  const multiNodeReport = {
+    version: '1.0',
+    total:   3,
+    pass:    1,
+    nodes:   { master: ['m-1'], node: ['w-1', 'w-2'] },
+    results: [{
+      id:          '1.1',
+      description: 'Master Node Configuration',
+      checks:      [{
+        id:          '1.1.1',
+        description: 'master check',
+        scored:      true,
+        state:       'pass' as const,
+      }],
+    }, {
+      id:          '4.1',
+      description: 'Worker Node Configuration',
+      checks:      [{
+        id:          '4.1.1',
+        description: 'mixed check',
+        scored:      true,
+        state:       'mixed' as const,
+        nodes:       ['w-2'],
+      }, {
+        id:          '4.1.2',
+        description: 'failing check',
+        scored:      false,
+        state:       'fail' as const,
+      }],
+    }],
+  };
+
+  it('emits a single <target> equal to the hostname', () => {
+    const xml = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+
+    expect(xml).toContain('<target>w-1</target>');
+    expect(xml).not.toContain('<target>w-2</target>');
+    expect(xml).not.toContain('<target>m-1</target>');
+  });
+
+  it('assigns each per-node document a TestResult id suffixed with the hostname so co-loaded files do not collide', () => {
+    const a = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+    const b = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-2', role: 'node',
+    });
+
+    expect(a).toContain('<TestResult id="xccdf_compliance-operator_testresult_1_w-1"');
+    expect(b).toContain('<TestResult id="xccdf_compliance-operator_testresult_1_w-2"');
+    expect(a).not.toContain('id="xccdf_compliance-operator_testresult_1_w-2"');
+  });
+
+  it('emits every rule from the cluster report regardless of role', () => {
+    const workerXml = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+    const masterXml = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'm-1', role: 'master',
+    });
+
+    [workerXml, masterXml].forEach((xml) => {
+      expect(xml).toContain('xccdf_compliance-operator_rule_1.1.1');
+      expect(xml).toContain('xccdf_compliance-operator_rule_4.1.1');
+      expect(xml).toContain('xccdf_compliance-operator_rule_4.1.2');
+    });
+  });
+
+  it('maps mixed-state checks to fail for dissenting hosts and pass for the rest', () => {
+    const dissenter = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-2', role: 'node',
+    });
+    const compliant = generateXCCDFPerNode({
+      report: multiNodeReport, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+
+    expect(dissenter).toMatch(/idref="xccdf_compliance-operator_rule_4\.1\.1"[\s\S]*?<result>fail<\/result>/);
+    expect(compliant).toMatch(/idref="xccdf_compliance-operator_rule_4\.1\.1"[\s\S]*?<result>pass<\/result>/);
+  });
+
+  it('treats mixed-state checks with no dissent list as pass for all nodes', () => {
+    const report = {
+      ...multiNodeReport,
+      results: [{
+        id:          '4.1',
+        description: 'g',
+        checks:      [{
+          id: '4.1.9', description: 'm', state: 'mixed' as const,
+        }],
+      }],
+    };
+    const xml = generateXCCDFPerNode({
+      report, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+
+    expect(xml).toMatch(/idref="xccdf_compliance-operator_rule_4\.1\.9"[\s\S]*?<result>pass<\/result>/);
+  });
+
+  it('recomputes pass count per node while preserving cluster total as the scoring denominator', () => {
+    const report = {
+      version: '1.0',
+      total:   2,
+      pass:    1,
+      nodes:   { node: ['w-1', 'w-2'] },
+      results: [{
+        id:          '1',
+        description: 'g',
+        checks:      [
+          {
+            id: 'a', description: 'a', state: 'pass' as const
+          },
+          {
+            id: 'b', description: 'b', state: 'mixed' as const, nodes: ['w-2'],
+          },
+        ],
+      }],
+    };
+    const compliant = generateXCCDFPerNode({
+      report, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+    const dissenter = generateXCCDFPerNode({
+      report, benchmarkVersion: 'cis-1.7', hostname: 'w-2', role: 'node',
+    });
+
+    expect(compliant).toMatch(/<score[^>]*>100\.0<\/score>/);
+    expect(dissenter).toMatch(/<score[^>]*>50\.0<\/score>/);
+  });
+
+  it('preserves full rule metadata (title, fixtext, idents, check) from the cluster report', () => {
+    const report = {
+      version: '1.0',
+      total:   1,
+      pass:    1,
+      nodes:   { node: ['w-1'] },
+      results: [{
+        id:          'V-254554',
+        description: 'controller manager group',
+        checks:      [{
+          id:          'V-254554',
+          description: 'use-service-account-credentials',
+          audit:       '/bin/ps -fC kube-controller-manager',
+          remediation: 'set use-service-account-credentials=true',
+          scored:      true,
+          state:       'pass' as const,
+        }],
+      }],
+    };
+    const xml = generateXCCDFPerNode({
+      report, benchmarkVersion: 'rke2-stig-1.31-rgs', hostname: 'w-1', role: 'node',
+    });
+
+    expect(xml).toContain('<Group id="V-254554">');
+    expect(xml).toContain('<check-content>/bin/ps -fC kube-controller-manager</check-content>');
+    expect(xml).toContain('set use-service-account-credentials=true');
+  });
+
+  it('passes through non-mixed states unchanged', () => {
+    const report = {
+      ...multiNodeReport,
+      results: [{
+        id:          '4.1',
+        description: 'g',
+        checks:      [
+          {
+            id: 'a', description: 'a', state: 'pass' as const
+          },
+          {
+            id: 'b', description: 'b', state: 'fail' as const
+          },
+          {
+            id: 'c', description: 'c', state: 'skip' as const
+          },
+          {
+            id: 'd', description: 'd', state: 'warn' as const
+          },
+          {
+            id: 'e', description: 'e', state: 'notApplicable' as const
+          },
+        ],
+      }],
+    };
+    const xml = generateXCCDFPerNode({
+      report, benchmarkVersion: 'cis-1.7', hostname: 'w-1', role: 'node',
+    });
+
+    expect(xml).toContain('<result>pass</result>');
+    expect(xml).toContain('<result>fail</result>');
+    expect(xml).toContain('<result>notselected</result>');
+    expect(xml).toContain('<result>informational</result>');
+    expect(xml).toContain('<result>notapplicable</result>');
   });
 });
