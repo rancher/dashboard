@@ -472,7 +472,7 @@ export default {
             button-size="large"
             button-role="secondary"
             :custom-actions="[{ label: t('catalog.chart.chartButton.action.installNew'), icon: 'icon-plus', action: 'installNew' }]"
-            @action-invoked="installNewInstance"
+            @installNew="installNewInstance"
           />
         </div>
         <!-- Simple button: shown when chart is not installed OR cannot be re-installed -->
