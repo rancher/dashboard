@@ -47,7 +47,7 @@
     create-pull-request:
       draft: true
       title-prefix: "[Test Improver] "
-      labels: [bot/daily-test-improver]
+      labels: [bot/daily-test-improver, "QA/None"]
       max: 4
       protected-files: fallback-to-issue
     push-to-pull-request-branch:
