@@ -53,6 +53,8 @@ export default {
   },
 
   async fetch() {
+    console.log('isRancherPrime=', isRancherPrime())
+    console.log('HARVESTER_REPO=', HARVESTER_REPO)
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const _hash = {
@@ -123,8 +125,10 @@ export default {
 
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
+      console.log('harvester extension=', extension);
       // if installed harvester ui extension, but no harvester repository, then we will show missing repository warning message
       const missingRepository = !!extension && !this.harvesterRepository;
+      console.log('harvester this.harvesterRepository=',this.harvesterRepository)
 
       const action = async(btnCb) => {
         const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
@@ -205,11 +209,17 @@ export default {
       };
     },
 
-    canCreateCluster() {
-      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+    // canCreateCluster() {
+    //   // we also check MANAGEMENT.CLUSTER (management.cattle.io.cluster) to avoid `View Virtualization Resource` role (introduced in Harvester RBAC) to create or manage the harvester cluster
+    //   const mgmtClusterSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER);
+    //   const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
-    },
+    //   const mgmtClusterCreate = !!mgmtClusterSchema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+    //   console.log('mgmtClusterCreate=', mgmtClusterCreate);
+    //   const clusterCreate = !!schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+    //   console.log('clusterCreate=', clusterCreate);
+    //   return clusterCreate && mgmtClusterCreate;
+    // },
 
     rows() {
       return this.hciClusters
@@ -252,6 +262,8 @@ export default {
         if (isRancherPrime()) {
           return await getHelmRepositoryExact(this.$store, HARVESTER_REPO.gitRepo);
         } else {
+          console.log('getHarvesterRepository communityRepoRegexes=',communityRepoRegexes)
+          console.log('getHarvesterRepository HARVESTER_CATALOG_IMAGES=',HARVESTER_CATALOG_IMAGES)
           return await getHelmRepositoryMatch(this.$store, communityRepoRegexes, HARVESTER_CATALOG_IMAGES);
         }
       } catch (error) {
@@ -402,7 +414,7 @@ export default {
         </template>
 
         <template
-          v-if="canCreateCluster"
+          v-if="canCreateAndManageCluster"
           #extraActions
         >
           <router-link
@@ -445,7 +457,7 @@ export default {
         <template #cell:harvester="{row}">
           <button
             class="btn btn-sm role-primary"
-            :disabled="!row.isSupportedHarvester"
+            :disabled="!row.isSupportedHarvester || !row.canCreateAndManageCluster"
             @click="$router.push(row.detailLocation)"
           >
             {{ t('harvesterManager.manage') }}
