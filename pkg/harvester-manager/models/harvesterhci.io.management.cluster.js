@@ -43,19 +43,21 @@ export default class HciCluster extends ProvCluster {
   // We do not allow users to edit Harvester clusters from Cluster Management, so we need to re-enable that action here.
   get _availableActions() {
     const out = super._availableActions;
-    if(!this.canCreateAndManageCluster){
+
+    if (!this.canCreateAndManageCluster) {
       const allowActions = ['goToViewYaml', 'download', 'viewInApi'];
+
       return out.filter((action) => allowActions.includes(action.action));
     }
 
     const edit = out.find((action) => action.action === 'goToEdit');
+
     if (edit) {
       edit.enabled = this.canEdit;
     }
 
     return out;
   }
-
 
   get canCreateAndManageCluster() {
     // we check MANAGEMENT.CLUSTER (management.cattle.io.cluster) to avoid standard user role to create or manage the harvester clusters.
@@ -64,6 +66,7 @@ export default class HciCluster extends ProvCluster {
 
     const mgmtClusterCreate = !!mgmtClusterSchema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
     const clusterCreate = !!schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+
     return clusterCreate && mgmtClusterCreate;
   }
 
