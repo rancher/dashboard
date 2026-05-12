@@ -133,7 +133,6 @@
     "vee-validate": "4.15.0",
     "vue-router": "4.6.4",
     "vue-select": "4.0.0-beta.6",
-    "vue-server-renderer": "2.6.14",
     "vue3-resize": "0.2.0",
     "vue3-virtual-scroll-list": "0.2.1",
     "vuedraggable": "4.1.0",
