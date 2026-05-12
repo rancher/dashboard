@@ -366,6 +366,52 @@ describe('chartMixin', () => {
     });
   });
 
+  describe('isChartTargeted', () => {
+    const DummyComponent = {
+      mixins:   [ChartMixin],
+      template: '<div></div>',
+    };
+
+    const mockStore = {
+      dispatch: jest.fn(() => Promise.resolve()),
+      getters:  { 'i18n/t': (key: string) => key }
+    };
+
+    it('should return truthy when version annotations have both namespace and release-name', () => {
+      const wrapper = mount(DummyComponent, {
+        data: () => ({
+          version: {
+            annotations: {
+              [CATALOG_ANNOTATIONS.NAMESPACE]:    'custom-ns',
+              [CATALOG_ANNOTATIONS.RELEASE_NAME]: 'custom-name',
+            }
+          }
+        }),
+        global: { mocks: { $store: mockStore } }
+      });
+
+      expect(wrapper.vm.isChartTargeted).toBeTruthy();
+    });
+
+    it('should return falsy when version annotations are missing', () => {
+      const wrapper = mount(DummyComponent, {
+        data:   () => ({ version: { annotations: {} } }),
+        global: { mocks: { $store: mockStore } }
+      });
+
+      expect(wrapper.vm.isChartTargeted).toBeFalsy();
+    });
+
+    it('should return falsy when version is null', () => {
+      const wrapper = mount(DummyComponent, {
+        data:   () => ({ version: null }),
+        global: { mocks: { $store: mockStore } }
+      });
+
+      expect(wrapper.vm.isChartTargeted).toBeFalsy();
+    });
+  });
+
   describe('mappedVersions', () => {
     it('should return versions sorted by semver (descending)', () => {
       const versions = [

@@ -271,7 +271,7 @@ export default {
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
