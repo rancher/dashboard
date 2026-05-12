@@ -35,7 +35,6 @@ export default defineComponent({
 
     const scrollTo = () => {
       isOpen.value = true;
-      console.log('**** accordion scrollTo called');
       nextTick(() => {
         const el = instance?.proxy?.$el as HTMLElement | undefined;
 
