@@ -1,5 +1,6 @@
 import {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
 } from './resource-base';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 
@@ -49,24 +50,15 @@ export interface ResourcesApi {
   ): Promise<T | null>;
 
   /**
-   * Finds resources using either server-side pagination or label selector matching.
+   * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
    *
-   * **Two modes of operation:**
-   *
-   * 1. **Pagination mode** (requires `ui-sql-cache` enabled): Pass options with
-   *    `pagination` settings for server-side filtering, sorting, and pagination via the Steve API's
-   *    pagination cache. See {@link FindFilteredPageOptions}.
-   *
-   * 2. **Label selector mode**: Pass options with `labelSelector` to
-   *    filter by Kubernetes labels. The store automatically handles pagination if enabled,
-   *    otherwise uses native Kubernetes API pagination. See {@link FindFilteredLabelSelectorOptions}.
+   * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - The type of the resources (defaults to SteveListResponse)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
-   * @param options - Discriminated union: either {@link FindFilteredPageOptions} (object with `pagination`) or {@link FindFilteredLabelSelectorOptions} (object with `labelSelector`).
-   * @returns An array of resource items or an empty array if none are found.
+   * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
+   * @returns Response containing resource items (may be transient if requested, otherwise cached array).
    * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
-   * @throws Error if options are neither pagination nor labelSelector mode.
    *
    * @example
    * ```ts
@@ -74,8 +66,7 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * // Pagination mode (server-side, requires ui-sql-cache)
-   * const pods1 = await resources.cluster.findFiltered(K8S.POD, {
+   * const pods = await resources.cluster.findFiltered(K8S.POD, {
    *   pagination: {
    *     page: 1,
    *     pageSize: 10,
@@ -83,17 +74,48 @@ export interface ResourcesApi {
    *     sort: []
    *   }
    * });
+   * ```
+   */
+  findFiltered<T = SteveListResponse>(
+    resourceType: ResourceType,
+    options: FindFilteredPageOptions
+  ): Promise<FindFilteredPageResponse<T>>;
+
+  /**
+   * Finds resources using label selector matching.
    *
-   * // Label selector mode (automatic pagination handling)
-   * const pods2 = await resources.cluster.findFiltered(K8S.POD, {
+   * Filters resources by Kubernetes labels. The store automatically handles pagination:
+   * - If `ui-sql-cache` is enabled: uses server-side pagination
+   * - Otherwise: uses native Kubernetes API pagination
+   *
+   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param options - Label selector options for filtering. See {@link FindFilteredLabelSelectorOptions}.
+   * @returns Response containing resource items (may be transient if requested, otherwise cached array).
+   *
+   * @example
+   * ```ts
+   * import { useResources, K8S } from '@shell/apis';
+   *
+   * const resources = useResources();
+   *
+   * const pods = await resources.cluster.findFiltered(K8S.POD, {
    *   labelSelector: { matchLabels: { type: 'my-type' } }
    * });
    * ```
    */
   findFiltered<T = SteveListResponse>(
     resourceType: ResourceType,
+    options: FindFilteredLabelSelectorOptions
+  ): Promise<FindFilteredLabelSelectorResponse<T>>;
+
+  /**
+   * @internal Implementation - use one of the overloads above
+   */
+  findFiltered<T = SteveListResponse>(
+    resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
-  ): Promise<T[]>;
+  ): Promise<FindFilteredPageResponse<T> | FindFilteredLabelSelectorResponse<T>>;
 
   /**
    * Fetches all resources of a specific type with advanced options.

@@ -289,6 +289,30 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
+    it('should return transient response from label selector mode', async() => {
+      // Arrange
+      const transientResponse = {
+        data: [{ metadata: { name: 'pod-1' } }]
+      };
+      const labelSelector = {
+        matchLabels: {
+          app: 'nginx'
+        }
+      };
+
+      mockDispatch.mockResolvedValue(transientResponse);
+
+      // Act
+      const result = await resourcesApi.findFiltered('pod', {
+        labelSelector,
+        force: true
+      } as any);
+
+      // Assert
+      expect(result).toStrictEqual(transientResponse);
+      expect(result).toHaveProperty('data');
+    });
+
     it('should find resources with pagination options when enabled', async() => {
       // Arrange
       const mockResources = [
@@ -297,9 +321,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       ];
       const paginationOptions = {
         pagination: {
-          page: 1,
+          page:     1,
           pageSize: 10,
-          sort: []
+          sort:     []
         }
       };
 
@@ -317,6 +341,33 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       });
       expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockPaginationEnabled).toHaveBeenCalledWith('pod');
+    });
+
+    it('should return transient response from pagination mode', async() => {
+      // Arrange
+      const transientResponse = {
+        data:       [{ metadata: { name: 'pod-1' } }],
+        pagination: { page: 1, pageSize: 10, total: 50 }
+      };
+      const paginationOptions = {
+        pagination: {
+          page:     1,
+          pageSize: 10,
+          sort:     []
+        },
+        transient: true
+      };
+
+      mockPaginationEnabled.mockReturnValue(true);
+      mockDispatch.mockResolvedValue(transientResponse);
+
+      // Act
+      const result = await resourcesApi.findFiltered('pod', paginationOptions as any);
+
+      // Assert
+      expect(result).toStrictEqual(transientResponse);
+      expect(result).toHaveProperty('data');
+      expect(result).toHaveProperty('pagination');
     });
 
     it('should throw error when pagination is not enabled', async() => {
@@ -358,8 +409,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const mockResources = [{ metadata: { name: 'pod-1' } }];
       const paginationOptions = {
         pagination: {
-          page: 1,
-          sort: [],
+          page:    1,
+          sort:    [],
           filters: []
         },
         watch: true,

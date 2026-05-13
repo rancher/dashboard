@@ -2,7 +2,8 @@ import { K8SResourceType } from './resource-constants';
 import {
   ActionFindAllArgs, ActionFindArgs,
   ActionFindMatchingArgs,
-  ActionFindPageArgs
+  ActionFindPageArgs,
+  ActionFindPageResponse, ActionFindMatchingResponse
 } from '@shell/types/store/dashboard-store.types';
 
 /**
@@ -83,8 +84,24 @@ export type FindFilteredLabelSelectorOptions = Omit<ActionFindMatchingArgs, 'dep
  * See {@link ActionFindPageArgs} for complete pagination options.
  */
 
-// @internal This interface extends ActionFindPageArgs without adding new properties.
-// We use an interface instead of a type alias so the documentation generator
-// displays "FindFilteredPageOptions" in the signature instead of resolving it to "ActionFindPageArgs".
+// @internal We use an interface instead of a type alias so the documentation generator
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FindFilteredPageOptions extends ActionFindPageArgs {}
+
+/**
+ * @interface
+ * Response type for `findFiltered` when using pagination mode.
+ *
+ * Aligns with the response type of the underlying `findPage` store action.
+ * Can be either a transient response object (with data and pagination) or an array of resources.
+ */
+export type FindFilteredPageResponse<T = any> = ActionFindPageResponse<T>;
+
+/**
+ * @interface
+ * Response type for `findFiltered` when using label selector mode.
+ *
+ * Aligns with the response type of the underlying `findMatching` store action via `findLabelSelector`.
+ * Can be either a transient response object (with data and pagination) or an array of resources.
+ */
+export type FindFilteredLabelSelectorResponse<T = any> = ActionFindMatchingResponse<T>;

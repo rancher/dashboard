@@ -1,5 +1,6 @@
 import {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
@@ -71,24 +72,45 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   }
 
   /**
-   * Finds resources using either server-side pagination or label selector matching.
+   * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
    *
-   * Discriminates between two modes based on option properties:
-   * - If `pagination` present: pagination mode (requires `ui-sql-cache`)
-   * - If `labelSelector` present: label selector mode
+   * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - The type of the resources (defaults to SteveListResponse)
    * @param resourceType - The type of the resources to find
-   * @param options - Either FindFilteredPageOptions or FindFilteredLabelSelectorOptions
-   * @returns An array of resource items
-   * @throws If pagination mode requested but `ui-sql-cache` not enabled
-   * @throws If options are neither pagination nor labelSelector
-   * @throws On network or store dispatch errors
+   * @param options - Pagination options with server-side filtering and sorting
+   * @returns Response containing resource items (may be transient if requested, otherwise cached array)
+   * @throws If pagination mode is requested but `ui-sql-cache` is not enabled
+   */
+  findFiltered<T = SteveListResponse>(
+    resourceType: ResourceType,
+    options: FindFilteredPageOptions
+  ): Promise<FindFilteredPageResponse<T>>;
+
+  /**
+   * Finds resources using label selector matching.
+   *
+   * Filters resources by Kubernetes labels. The store automatically handles pagination:
+   * - If `ui-sql-cache` is enabled: uses server-side pagination
+   * - Otherwise: uses native Kubernetes API pagination
+   *
+   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @param resourceType - The type of the resources to find
+   * @param options - Label selector options for filtering
+   * @returns Response containing resource items (may be transient if requested, otherwise cached array)
+   */
+  findFiltered<T = SteveListResponse>(
+    resourceType: ResourceType,
+    options: FindFilteredLabelSelectorOptions
+  ): Promise<FindFilteredLabelSelectorResponse<T>>;
+
+  /**
+   * @internal Implementation - use one of the overloads above
    */
   async findFiltered<T = SteveListResponse>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
-  ): Promise<T[]> {
+  ): Promise<FindFilteredPageResponse<T> | FindFilteredLabelSelectorResponse<T>> {
     try {
       if ('pagination' in options) { // pagination mode
         const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
@@ -103,9 +125,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           opt:  safeOption
         });
 
-        const resourceArray = Array.isArray(response) ? response : response.data;
-
-        return resourceArray as T[];
+        return response as FindFilteredPageResponse<T>;
       } else if ('labelSelector' in options) { // label selector mode
         const safeOption = options as FindFilteredLabelSelectorOptions;
         const { labelSelector, namespaced, ...rest } = safeOption;
@@ -118,7 +138,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           opt: rest
         });
 
-        return resources as T[];
+        return resources as FindFilteredLabelSelectorResponse<T>;
       } else {
         return this.surfaceError('findFiltered request was made with unknown options');
       }

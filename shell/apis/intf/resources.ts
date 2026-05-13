@@ -6,7 +6,8 @@ export * from '@shell/apis/intf/resources-api/resources-api';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
 export {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions
+  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
 } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
 
