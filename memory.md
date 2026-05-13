@@ -37,6 +37,8 @@
 - settings.ts: `isProviderEnabled` takes `ClusterProvisionerContext` from `@shell/core/types`
 - color.js: `contrastColor` default opts = LIGHT_CONTRAST_COLORS; both light and dark themes may return same value for mid-range colors; `lighten()` is private/not exported
 - service.js: servicePort/externalName name-error merging has dead else branch (inner guard redundant); clusterIp is mostly a stub
+- kubernetes-name.js: uncovered branch is invalidChars opt-out path inside validateChars internals
+- cluster-name.js: uncovered branch is the regex `(c-.{5}|local)` non-match on short `c-abc` path
 
 ## Testing Backlog (Prioritized)
 
@@ -44,10 +46,11 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-5. `shell/utils/validators/kubernetes-name.js` / `cluster-name.js` — DNS-like validators
+5. Other validators: `cidr.js`, `container-images.js`, `cron-schedule.js`, `flow-output.js`
 
 ## Completed Work (Summary)
 
+- 2026-05-13: PR (branch test-assist/kubernetes-cluster-name-tests): 37 tests for kubernetes-name.js + cluster-name.js; 100% stmts/fns/lines, 92.85% branches
 - 2026-05-12: PR (branch test-assist/validators-service-tests): 30 tests for service.js; 97.05% stmts, 93.75% branches, 100% fns
 - 2026-05-11: PR (branch test-assist/color-utils-tests): 32 tests for color.js; 100% stmts/fns/lines, 96.87% branches
 - 2026-05-10: PR #17590 (branch test-assist/promise-queue-utils-tests): 34 tests for promise.js + queue.js; ~93% stmts, 100% fns
@@ -64,6 +67,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-13: Task 3 (kubernetes-name.js + cluster-name.js, 37 tests) + Task 7
 - 2026-05-12: Task 3 (service.js, 30 tests) + Task 4 (all PRs merged) + Task 7
 - 2026-05-11: Task 3 (color.js, 32 tests) + Task 4 (reviewed open PRs, no failures) + Task 7
 - 2026-05-10: Task 2 (scanned untested utils) + Task 3 (promise.js+queue.js, 34 tests) + Task 7
@@ -75,7 +79,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open PRs: branch test-assist/validators-service-tests (PR# TBD — patch submitted)
+- Open branches: test-assist/validators-service-tests, test-assist/kubernetes-cluster-name-tests
 
 ## Maintainer Priorities
 
