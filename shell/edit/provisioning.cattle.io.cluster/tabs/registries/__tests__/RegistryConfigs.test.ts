@@ -4,6 +4,9 @@ import { _EDIT } from '@shell/config/query-params';
 import { PROV_CLUSTER } from '@shell/edit/provisioning.cattle.io.cluster/__tests__/utils/cluster';
 import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs.vue';
 
+const VALID_BASE64_CERT = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t';
+const VALID_PEM_TEXT = '-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJA';
+
 describe('component: RegistryConfigs', () => {
   let wrapper: Wrapper<InstanceType<typeof RegistryConfigs> & { [key: string]: any }>;
 
@@ -24,7 +27,7 @@ describe('component: RegistryConfigs', () => {
 
   describe('key CA Cert Bundle', () => {
     it.each([
-      ['source is base64', 'Zm9vYmFy', 'foobar'],
+      ['source is base64', VALID_BASE64_CERT, '-----BEGIN CERTIFICATE-----'],
       ['source is plain text', 'foobar', 'foobar'],
     ])('should display key, %p', (_, sourceCaBundle, displayedCaBundle) => {
       const value = clone(PROV_CLUSTER);
@@ -46,7 +49,7 @@ describe('component: RegistryConfigs', () => {
     it('should base64 encode plain PEM text on save', async() => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = { foo: { caBundle: 'Zm9vYmFy' } };
+      value.spec.rkeConfig.registries.configs = { foo: { caBundle: VALID_BASE64_CERT } };
 
       mountOptions.propsData.value = value;
 
@@ -57,7 +60,7 @@ describe('component: RegistryConfigs', () => {
 
       const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      registry.vm.$emit('update:value', '-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJA');
+      registry.vm.$emit('update:value', VALID_PEM_TEXT);
       wrapper.vm.update();
 
       expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe('LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJrVENCK3dJSkE=');
@@ -66,7 +69,7 @@ describe('component: RegistryConfigs', () => {
     it('should keep base64 value as-is on save', async() => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = { foo: { caBundle: 'Zm9vYmFy' } };
+      value.spec.rkeConfig.registries.configs = { foo: { caBundle: VALID_BASE64_CERT } };
 
       mountOptions.propsData.value = value;
 
@@ -77,10 +80,10 @@ describe('component: RegistryConfigs', () => {
 
       const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      registry.vm.$emit('update:value', 'c3NoIGtleQ==');
+      registry.vm.$emit('update:value', VALID_BASE64_CERT);
       wrapper.vm.update();
 
-      expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
+      expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe(VALID_BASE64_CERT);
     });
   });
 
@@ -95,7 +98,7 @@ describe('component: RegistryConfigs', () => {
 
       const rule = wrapper.vm.caBundleRules[0];
 
-      expect(rule('Zm9vYmFy')).toBeUndefined();
+      expect(rule(VALID_BASE64_CERT)).toBeUndefined();
     });
 
     it('should pass validation for PEM text', () => {
@@ -108,7 +111,7 @@ describe('component: RegistryConfigs', () => {
 
       const rule = wrapper.vm.caBundleRules[0];
 
-      expect(rule('-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJA')).toBeUndefined();
+      expect(rule(VALID_PEM_TEXT)).toBeUndefined();
     });
 
     it('should pass validation for empty value', () => {

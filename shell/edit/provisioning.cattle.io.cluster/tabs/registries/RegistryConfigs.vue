@@ -7,7 +7,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { isBase64 } from '@shell/utils/string';
+import { isBase64EncodedCert } from '@shell/utils/string';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
@@ -72,7 +72,7 @@ export default {
           }
 
           const isPem = value.trimStart().startsWith('-----BEGIN ');
-          const isValidBase64 = isBase64(value);
+          const isValidBase64 = isBase64EncodedCert(value);
 
           return (!isPem && !isValidBase64) ? this.t('registryConfig.caBundle.validationError') : undefined;
         }
@@ -94,7 +94,7 @@ export default {
 
         const caBundle = configMap[hostname].caBundle ?? this.defaultAddValue.caBundle;
 
-        configMap[hostname].caBundle = isBase64(caBundle) ? base64Decode(caBundle) : caBundle;
+        configMap[hostname].caBundle = isBase64EncodedCert(caBundle) ? base64Decode(caBundle) : caBundle;
 
         configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? this.defaultAddValue.tlsSecretName;
       }
@@ -119,7 +119,7 @@ export default {
 
         configs[h] = {
           ...entry,
-          caBundle: entry.caBundle ? (isBase64(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
+          caBundle: entry.caBundle ? (isBase64EncodedCert(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
         };
 
         delete configs[h].hostname;
