@@ -70,23 +70,58 @@ export class ResourcesApiClassImpl implements ResourcesApi {
     }
   }
 
+  /**
+   * Finds resources using either server-side pagination or label selector matching.
+   *
+   * Discriminates between two modes based on option properties:
+   * - If `pagination` present: pagination mode (requires `ui-sql-cache`)
+   * - If `labelSelector` present: label selector mode
+   *
+   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @param resourceType - The type of the resources to find
+   * @param options - Either FindFilteredPageOptions or FindFilteredLabelSelectorOptions
+   * @returns An array of resource items
+   * @throws If pagination mode requested but `ui-sql-cache` not enabled
+   * @throws If options are neither pagination nor labelSelector
+   * @throws On network or store dispatch errors
+   */
   async findFiltered<T = SteveListResponse>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
   ): Promise<T[]> {
     try {
-      const { labelSelector, namespaced, ...rest } = options as FindFilteredLabelSelectorOptions;
+      if ('pagination' in options) { // pagination mode
+        const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
 
-      const resources = await this.store.dispatch(`${ this.storeType }/findLabelSelector`, {
-        type:     resourceType,
-        matching: {
-          namespace: namespaced,
-          labelSelector
-        },
-        opt: rest
-      });
+        if (!canPaginate) {
+          return this.surfaceError('findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled');
+        }
 
-      return resources as T[];
+        const safeOption = options as FindFilteredPageOptions;
+        const response = await this.store.dispatch(`${ this.storeType }/findPage`, {
+          type: resourceType,
+          opt:  safeOption
+        });
+
+        const resourceArray = Array.isArray(response) ? response : response.data;
+
+        return resourceArray as T[];
+      } else if ('labelSelector' in options) { // label selector mode
+        const safeOption = options as FindFilteredLabelSelectorOptions;
+        const { labelSelector, namespaced, ...rest } = safeOption;
+        const resources = await this.store.dispatch(`${ this.storeType }/findLabelSelector`, {
+          type:     resourceType,
+          matching: {
+            namespace: namespaced,
+            labelSelector
+          },
+          opt: rest
+        });
+
+        return resources as T[];
+      } else {
+        return this.surfaceError('findFiltered request was made with unknown options');
+      }
     } catch (e: unknown) {
       this.surfaceError(`Failed to find filtered resources ${ resourceType }: ${ (e as Error).message }`, e);
     }

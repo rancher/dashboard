@@ -227,4 +227,4 @@ export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
  * @internal
  * Args used for findLabelSelector action
  */
-export type ActionFindLabelSelectorArgs = ActionFindPageArgs | ActionFindMatchingArgs;
+export type ActionFindLabelSelectorArgs = Omit<ActionFindPageArgs, 'pagination' | 'namespace'> | ActionFindMatchingArgs;

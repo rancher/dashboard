@@ -49,62 +49,50 @@ export interface ResourcesApi {
   ): Promise<T | null>;
 
   /**
-   * Finds resources using a label selector with server-side pagination.
+   * Finds resources using either server-side pagination or label selector matching.
    *
-   * Requires both `labelSelector` and `pagination` settings for server-side
-   * filtering, sorting, and pagination via the Steve API's pagination cache.
+   * **Two modes of operation:**
+   *
+   * 1. **Pagination mode** (requires `ui-sql-cache` enabled): Pass options with
+   *    `pagination` settings for server-side filtering, sorting, and pagination via the Steve API's
+   *    pagination cache. See {@link FindFilteredPageOptions}.
+   *
+   * 2. **Label selector mode**: Pass options with `labelSelector` to
+   *    filter by Kubernetes labels. The store automatically handles pagination if enabled,
+   *    otherwise uses native Kubernetes API pagination. See {@link FindFilteredLabelSelectorOptions}.
    *
    * @template T - The type of the resources (defaults to SteveListResponse)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
-   * @param options - Label selector and pagination options. See {@link FindFilteredPageOptions}.
+   * @param options - Discriminated union: either {@link FindFilteredPageOptions} (object with `pagination`) or {@link FindFilteredLabelSelectorOptions} (object with `labelSelector`).
    * @returns An array of resource items or an empty array if none are found.
+   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   * @throws Error if options are neither pagination nor labelSelector mode.
    *
    * @example
    * ```ts
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
-   * const pods = await resources.cluster.findFiltered(K8S.POD, {
-   *   labelSelector: { matchLabels: { type: 'my-type' } },
+   *
+   * // Pagination mode (server-side, requires ui-sql-cache)
+   * const pods1 = await resources.cluster.findFiltered(K8S.POD, {
    *   pagination: {
-   *      page:                 1,
-   *      projectsOrNamespaces: [],
-   *      filters:              [],
-   *      sort:                 []
+   *     page: 1,
+   *     pageSize: 10,
+   *     filters: [],
+   *     sort: []
    *   }
    * });
-   * ```
-   */
-  findFiltered<T = SteveListResponse>(
-    resourceType: ResourceType,
-    options: FindFilteredPageOptions
-  ): Promise<T[]>;
-
-  /**
-   * Finds resources using a label selector.
    *
-   * Filters resources by `labelSelector` (matchLabels / matchExpressions).
-   * Under the hood, the store decides whether to use paginated or non-paginated
-   * matching depending on whether server-side pagination is enabled.
-   *
-   * @template T - The type of the resources (defaults to SteveListResponse)
-   * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
-   * @param options - Label selector options. See {@link FindFilteredLabelSelectorOptions}.
-   * @returns An array of resource items or an empty array if none are found.
-   *
-   * @example
-   * ```ts
-   * import { useResources, K8S } from '@shell/apis';
-   *
-   * const resources = useResources();
-   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   * // Label selector mode (automatic pagination handling)
+   * const pods2 = await resources.cluster.findFiltered(K8S.POD, {
    *   labelSelector: { matchLabels: { type: 'my-type' } }
    * });
    * ```
    */
   findFiltered<T = SteveListResponse>(
     resourceType: ResourceType,
-    options: FindFilteredLabelSelectorOptions
+    options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
   ): Promise<T[]>;
 
   /**

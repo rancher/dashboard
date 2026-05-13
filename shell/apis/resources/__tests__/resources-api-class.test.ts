@@ -9,6 +9,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   let resourcesApi: ResourcesApiClassImpl;
   let mockDispatch: jest.Mock;
   let mockSchemaFor: jest.Mock;
+  let mockPaginationEnabled: jest.Mock;
   let consoleErrorSpy: any;
 
   beforeEach(() => {
@@ -16,10 +17,14 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
 
     mockDispatch = jest.fn() as any;
     mockSchemaFor = jest.fn() as any;
+    mockPaginationEnabled = jest.fn() as any;
 
     mockStore = {
       dispatch: mockDispatch,
-      getters:  { [`${ storeType }/schemaFor`]: mockSchemaFor }
+      getters:  {
+        [`${ storeType }/schemaFor`]:         mockSchemaFor,
+        [`${ storeType }/paginationEnabled`]: mockPaginationEnabled
+      }
     } as any;
 
     resourcesApi = new ResourcesApiClassImpl(mockStore, storeType);
@@ -282,6 +287,96 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       // Assert
       expect(result).toStrictEqual([]);
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should find resources with pagination options when enabled', async() => {
+      // Arrange
+      const mockResources = [
+        { metadata: { name: 'pod-1', labels: { app: 'nginx' } } },
+        { metadata: { name: 'pod-2', labels: { app: 'nginx' } } }
+      ];
+      const paginationOptions = {
+        pagination: {
+          page: 1,
+          pageSize: 10,
+          sort: []
+        }
+      };
+
+      mockPaginationEnabled.mockReturnValue(true);
+      mockDispatch.mockResolvedValue(mockResources);
+
+      // Act
+      const result = await resourcesApi.findFiltered('pod', paginationOptions as any);
+
+      // Assert
+      expect(result).toStrictEqual(mockResources);
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findPage`, {
+        type: 'pod',
+        opt:  paginationOptions
+      });
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockPaginationEnabled).toHaveBeenCalledWith('pod');
+    });
+
+    it('should throw error when pagination is not enabled', async() => {
+      // Arrange
+      const paginationOptions = {
+        pagination: {
+          page: 1,
+          sort: []
+        }
+      };
+
+      mockPaginationEnabled.mockReturnValue(false);
+
+      // Act & Assert
+      await expect(resourcesApi.findFiltered('pod', paginationOptions as any)).rejects.toThrow(
+        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when options are neither pagination nor labelSelector', async() => {
+      // Arrange
+      const invalidOptions = { someUnknownProp: 'value' } as any;
+
+      // Act & Assert
+      await expect(resourcesApi.findFiltered('pod', invalidOptions)).rejects.toThrow(
+        /findFiltered request was made with unknown options/
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('findFiltered request was made with unknown options')
+      );
+    });
+
+    it('should pass pagination options with additional properties', async() => {
+      // Arrange
+      const mockResources = [{ metadata: { name: 'pod-1' } }];
+      const paginationOptions = {
+        pagination: {
+          page: 1,
+          sort: [],
+          filters: []
+        },
+        watch: true,
+        force: true
+      };
+
+      mockPaginationEnabled.mockReturnValue(true);
+      mockDispatch.mockResolvedValue(mockResources);
+
+      // Act
+      await resourcesApi.findFiltered('pod', paginationOptions as any);
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findPage`, {
+        type: 'pod',
+        opt:  paginationOptions
+      });
     });
   });
 
