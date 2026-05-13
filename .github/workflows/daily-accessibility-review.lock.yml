@@ -1,4 +1,4 @@
-# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"7d930746466ee9e7e25be267be97f33a215b8a28ef2117016dab278e296478d9","compiler_version":"v0.71.5","strict":true,"agent_id":"copilot"}
+# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"828e11de75dbc362c565fa82ad75c3095c158909d32e9cc186f35e21fc78cb24","compiler_version":"v0.71.5","strict":true,"agent_id":"copilot"}
 # gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"de0fac2e4500dabe0009e67214ff5f5447ce83dd","version":"v6.0.2"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/github-script","sha":"d746ffe35508b1917358783b479e04febd2b8f71","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/setup-python","sha":"a309ff8b426b58ec0e2a45f0f869d46889d02405","version":"v6.2.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"b8068426813005612b960b5ab0b8bd2c27142323","version":"v0.71.5"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.25.40","digest":"sha256:14ff567e8d9d4c2fbc5e55c973488381c71d7e0fdbe72d30ee7b8a738fd86504","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.25.40@sha256:14ff567e8d9d4c2fbc5e55c973488381c71d7e0fdbe72d30ee7b8a738fd86504"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.25.40","digest":"sha256:2883ca3e5ae9f330cafdd9345bfd4ae17fc8da36c96d4c9a1f76e922b4c45280","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.25.40@sha256:2883ca3e5ae9f330cafdd9345bfd4ae17fc8da36c96d4c9a1f76e922b4c45280"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.25.40","digest":"sha256:b084f4a2c771f584ee68084ced52fa6b3245197a1889645d817462d307d3ac51","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.25.40@sha256:b084f4a2c771f584ee68084ced52fa6b3245197a1889645d817462d307d3ac51"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.6","digest":"sha256:2bb8eef86006a4c5963c55616a9c51c32f27bfdecb023b8aa6f91f6718d9171c","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.6@sha256:2bb8eef86006a4c5963c55616a9c51c32f27bfdecb023b8aa6f91f6718d9171c"},{"image":"ghcr.io/github/github-mcp-server:v1.0.3","digest":"sha256:2ac27ef03461ef2b877031b838a7d1fd7f12b12d4ace7796d8cad91446d55959","pinned_image":"ghcr.io/github/github-mcp-server:v1.0.3@sha256:2ac27ef03461ef2b877031b838a7d1fd7f12b12d4ace7796d8cad91446d55959"},{"image":"mcr.microsoft.com/playwright/mcp","digest":"sha256:7b82f29c6ef83480a97f612d53ac3fd5f30a32df3fea1e06923d4204d3532bb2","pinned_image":"mcr.microsoft.com/playwright/mcp@sha256:7b82f29c6ef83480a97f612d53ac3fd5f30a32df3fea1e06923d4204d3532bb2"},{"image":"node:lts-alpine","digest":"sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f","pinned_image":"node:lts-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f"}]}
 #    ___                   _   _      
 #   / _ \                 | | (_)     
@@ -201,21 +201,21 @@ jobs:
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/create_prompt_first.sh"
           {
-          cat << 'GH_AW_PROMPT_3f3d279137abc576_EOF'
+          cat << 'GH_AW_PROMPT_acd564dcbabb1a0b_EOF'
           <system>
-          GH_AW_PROMPT_3f3d279137abc576_EOF
+          GH_AW_PROMPT_acd564dcbabb1a0b_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/xpia.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/temp_folder_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/markdown.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/playwright_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/safe_outputs_prompt.md"
-          cat << 'GH_AW_PROMPT_3f3d279137abc576_EOF'
+          cat << 'GH_AW_PROMPT_acd564dcbabb1a0b_EOF'
           <safe-output-tools>
           Tools: add_comment(max:5), create_discussion(max:5), missing_tool, missing_data, noop
           </safe-output-tools>
-          GH_AW_PROMPT_3f3d279137abc576_EOF
+          GH_AW_PROMPT_acd564dcbabb1a0b_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/mcp_cli_tools_prompt.md"
-          cat << 'GH_AW_PROMPT_3f3d279137abc576_EOF'
+          cat << 'GH_AW_PROMPT_acd564dcbabb1a0b_EOF'
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if __GH_AW_GITHUB_ACTOR__ }}
@@ -244,12 +244,12 @@ jobs:
           {{/if}}
           </github-context>
           
-          GH_AW_PROMPT_3f3d279137abc576_EOF
+          GH_AW_PROMPT_acd564dcbabb1a0b_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/github_mcp_tools_with_safeoutputs_prompt.md"
-          cat << 'GH_AW_PROMPT_3f3d279137abc576_EOF'
+          cat << 'GH_AW_PROMPT_acd564dcbabb1a0b_EOF'
           </system>
           {{#runtime-import .github/workflows/daily-accessibility-review.md}}
-          GH_AW_PROMPT_3f3d279137abc576_EOF
+          GH_AW_PROMPT_acd564dcbabb1a0b_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
@@ -395,9 +395,9 @@ jobs:
       - name: Install packages
         run: yarn install --frozen-lockfile --ignore-engines
       - name: Run Rancher
-        run: "# Same as .github/workflows/test.yaml -> yarn e2e:docker -> scripts/e2e-docker-start\n# Ports 80/443 are reserved by the MCP Gateway, so we remap to 8080/8443\nRANCHER_HOST_HTTP_PORT=8080 RANCHER_HOST_HTTPS_PORT=8443 RANCHER_CONTAINER_NAME=rancher RANCHER_VERSION_E2E=head yarn e2e:docker\n"
+        run: "# Same as .github/workflows/test.yaml -> yarn e2e:docker -> scripts/e2e-docker-start\n# Port 8080 is reserved by the MCP Gateway, so we use 9080/9443 for Rancher\nRANCHER_HOST_HTTP_PORT=9080 RANCHER_HOST_HTTPS_PORT=9443 RANCHER_CONTAINER_NAME=rancher RANCHER_VERSION_E2E=head yarn e2e:docker\n"
       - name: Bootstrap Rancher (first-login setup)
-        run: "# Complete the first-login flow via API so the dashboard is fully usable.\n# See cypress/jenkins/run.sh rancher_init() for the reference implementation.\nRANCHER_URL=\"https://127.0.0.1:8443\"\nBOOTSTRAP_PASSWORD=\"password\"\n\necho \"Logging in with bootstrap password...\"\nTOKEN=$(curl -sk -X POST \"${RANCHER_URL}/v3-public/localProviders/local?action=login\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"username\\\":\\\"admin\\\",\\\"password\\\":\\\"${BOOTSTRAP_PASSWORD}\\\"}\" \\\n  | python3 -c \"import sys,json; print(json.load(sys.stdin)['token'])\")\necho \"Token obtained: ${TOKEN:+yes}\"\n\necho \"Setting server-url...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/server-url\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"server-url\\\",\\\"value\\\":\\\"${RANCHER_URL}\\\"}\"\n\necho \"Accepting EULA...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/eula-agreed\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"eula-agreed\\\",\\\"value\\\":\\\"$(date +%Y-%m-%dT%H:%M:%S.000Z)\\\"}\"\n\necho \"Marking first-login as complete...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/first-login\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"first-login\\\",\\\"value\\\":\\\"false\\\"}\"\n\necho \"Rancher bootstrap complete\"\n"
+        run: "# Complete the first-login flow via API so the dashboard is fully usable.\n# See cypress/jenkins/run.sh rancher_init() for the reference implementation.\nRANCHER_URL=\"https://127.0.0.1:9443\"\nBOOTSTRAP_PASSWORD=\"password\"\n\necho \"Logging in with bootstrap password...\"\nTOKEN=$(curl -sk -X POST \"${RANCHER_URL}/v3-public/localProviders/local?action=login\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"username\\\":\\\"admin\\\",\\\"password\\\":\\\"${BOOTSTRAP_PASSWORD}\\\"}\" \\\n  | python3 -c \"import sys,json; print(json.load(sys.stdin)['token'])\")\necho \"Token obtained: ${TOKEN:+yes}\"\n\necho \"Setting server-url...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/server-url\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"server-url\\\",\\\"value\\\":\\\"${RANCHER_URL}\\\"}\"\n\necho \"Accepting EULA...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/eula-agreed\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"eula-agreed\\\",\\\"value\\\":\\\"$(date +%Y-%m-%dT%H:%M:%S.000Z)\\\"}\"\n\necho \"Marking first-login as complete...\"\ncurl -sk -X PUT \"${RANCHER_URL}/v3/settings/first-login\" \\\n  -H \"Authorization: Bearer ${TOKEN}\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"name\\\":\\\"first-login\\\",\\\"value\\\":\\\"false\\\"}\"\n\necho \"Rancher bootstrap complete\"\n"
       - name: Pre-create MCP logs directory
         run: "# The Playwright MCP container needs write access to the mcp-logs directory.\n# Pre-create it with world-writable permissions to avoid EACCES errors\n# when the container process (running as a different UID) tries to write logs.\nmkdir -p /tmp/gh-aw/mcp-logs/playwright\nchmod 777 /tmp/gh-aw/mcp-logs/playwright\n"
 
@@ -461,9 +461,9 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
-          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << GH_AW_SAFE_OUTPUTS_CONFIG_d9fa71219eb9e9cc_EOF
+          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << GH_AW_SAFE_OUTPUTS_CONFIG_920e3b832335d13f_EOF
           {"add_comment":{"max":5},"create_discussion":{"category":"q-a","expires":168,"fallback_to_issue":true,"max":5,"title_prefix":"${GITHUB_WORKFLOW}"},"create_report_incomplete_issue":{},"mentions":{"enabled":false},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"true"},"report_incomplete":{}}
-          GH_AW_SAFE_OUTPUTS_CONFIG_d9fa71219eb9e9cc_EOF
+          GH_AW_SAFE_OUTPUTS_CONFIG_920e3b832335d13f_EOF
       - name: Generate Safe Outputs Tools
         env:
           GH_AW_TOOLS_META_JSON: |
@@ -679,7 +679,7 @@ jobs:
           
           mkdir -p /home/runner/.copilot
           GH_AW_NODE=$(which node 2>/dev/null || command -v node 2>/dev/null || echo node)
-          cat << GH_AW_MCP_CONFIG_63d64518470a64e0_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
+          cat << GH_AW_MCP_CONFIG_42354a7cd410b496_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
           {
             "mcpServers": {
               "github": {
@@ -737,7 +737,7 @@ jobs:
               "payloadDir": "${MCP_GATEWAY_PAYLOAD_DIR}"
             }
           }
-          GH_AW_MCP_CONFIG_63d64518470a64e0_EOF
+          GH_AW_MCP_CONFIG_42354a7cd410b496_EOF
       - name: Mount MCP servers as CLIs
         id: mount-mcp-clis
         continue-on-error: true
