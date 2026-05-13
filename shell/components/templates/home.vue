@@ -62,6 +62,10 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <a
+      href="#main-content"
+      class="skip-to-content btn role-primary"
+    >{{ t('nav.skipToContent') }}</a>
     <FixedBanner :header="true" />
     <Inactivity />
     <AwsComplianceBanner />
@@ -77,8 +81,10 @@ export default {
       />
 
       <main
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.home')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
@@ -140,6 +146,18 @@ export default {
     .outlet {
       min-height: 100%;
       padding: 0;
+    }
+  }
+
+  .skip-to-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transform: translateY(-100%);
+
+    &:focus {
+      transform: translate(1rem, 1rem);
     }
   }
 </style>
