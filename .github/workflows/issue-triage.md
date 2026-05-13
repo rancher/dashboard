@@ -10,6 +10,15 @@ on:
   issues:
     types: [opened, reopened]
   reaction: eyes
+  steps:
+    - name: Check main repo
+      id: repo_check
+      run: |
+        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
+          echo "Skipping: not the main repository"
+          exit 1
+        fi
+if: needs.pre_activation.outputs.repo_check_result == 'success'
 
 permissions: read-all
 
@@ -27,7 +36,8 @@ tools:
     # If in a public repo, setting `lockdown: false` allows
     # reading issues, pull requests and comments from 3rd-parties
     # If in a private repo this has no particular effect.
-    lockdown: false    
+    lockdown: false
+    min-integrity: none    
 
 timeout-minutes: 10
 ---

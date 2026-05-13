@@ -4,6 +4,15 @@ description: Identifies duplicate code patterns across the codebase and suggests
 on:
   workflow_dispatch:
   schedule: daily
+  steps:
+    - name: Check main repo
+      id: repo_check
+      run: |
+        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
+          echo "Skipping: not the main repository"
+          exit 1
+        fi
+if: needs.pre_activation.outputs.repo_check_result == 'success'
 permissions:
   contents: read
   issues: read
@@ -15,6 +24,9 @@ safe-outputs:
     labels: [bot/duplicate-code-detector, bot/skip-grooming]
     group: true
     max: 3
+tools:
+  github:
+    min-integrity: none
 timeout-minutes: 15
 strict: true
 ---

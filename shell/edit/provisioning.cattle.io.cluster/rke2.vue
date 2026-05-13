@@ -2518,14 +2518,14 @@ export default {
           >
             <template
               v-for="(obj, idx) in machinePools"
-              :key="idx"
+              :key="obj.id"
             >
               <Tab
                 v-if="!obj.remove"
                 :key="obj.id"
                 :weight="-1 * idx"
                 :name="obj.id"
-                :label="obj.pool.name || '(Not Named)'"
+                :label="obj.pool.name || t('cluster.machinePool.name.notNamed')"
                 :show-header="false"
                 :error="!machinePoolValidation[obj.id]"
               >
