@@ -75,7 +75,7 @@
     "@smithy/fetch-http-handler": "5.1.1",
     "@vee-validate/zod": "4.15.0",
     "ansi_up": "5.0.0",
-    "axios": "1.15.0",
+    "axios": "1.15.2",
     "axios-retry": "3.1.9",
     "cache-loader": "4.1.0",
     "chart.js": "4.5.1",
