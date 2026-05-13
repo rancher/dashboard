@@ -7,8 +7,7 @@
  *
  * <rc-button variant="primary" @click="doAction">Perform an Action</rc-button>
  */
-import { computed, ref, resolveComponent } from 'vue';
-import type { RouteLocationRaw } from 'vue-router';
+import { computed, ref, resolveComponent, watchEffect } from 'vue';
 import {
   ButtonVariantProps,
   ButtonSizeProps,
@@ -16,6 +15,7 @@ import {
   ButtonSizeNewProps,
   ButtonSize,
   IconProps,
+  NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
@@ -44,16 +44,48 @@ const props = withDefaults(
         ButtonSizeProps &
         ButtonVariantNewProps &
         ButtonSizeNewProps &
-        IconProps & { to?: RouteLocationRaw }
+        IconProps &
+        NavigationProps
     >(),
   {
     size: 'medium',
     to:   undefined,
+    href: undefined,
   }
 );
 
-const tag = computed(() => (props.to ? resolveComponent('RouterLink') : 'button'));
-const role = computed(() => (props.to ? 'link' : 'button'));
+if (process.env.NODE_ENV !== 'production') {
+  watchEffect(() => {
+    if (props.to && props.href) {
+      console.warn('[RcButton] "to" and "href" are mutually exclusive. Provide only one.'); // eslint-disable-line no-console
+    }
+  });
+}
+
+const tag = computed(() => {
+  if (props.to) {
+    return resolveComponent('RouterLink');
+  }
+  if (props.href) {
+    return 'a';
+  }
+
+  return 'button';
+});
+
+const role = computed(() => (props.to || props.href ? 'link' : 'button'));
+
+const linkProps = computed(() => {
+  if (props.to) {
+    return { to: props.to };
+  }
+
+  if (props.href) {
+    return { href: props.href };
+  }
+
+  return {};
+});
 
 const activeVariantClassName = computed(() => {
   if (props.variant === 'multiAction' || props.multiAction) {
@@ -122,7 +154,7 @@ defineExpose({ focus });
     :is="tag"
     ref="RcFocusTarget"
     :role="role"
-    :to="to"
+    v-bind="linkProps"
     :class="{ ...buttonClass }"
     @keydown.space.prevent="handleSpace"
   >
@@ -292,7 +324,7 @@ defineExpose({ focus });
       font-size: 12px;
       min-height: 24px;
 
-      padding: 0 8px;
+      padding: var(--rc-button-padding, 0 8px);
       gap: 8px;
     }
   }
@@ -304,7 +336,7 @@ defineExpose({ focus });
       font-size: 14px;
       min-height: 32px;
 
-      padding: 0 12px;
+      padding: var(--rc-button-padding, 0 12px);
       gap: 8px;
     }
   }
@@ -316,7 +348,7 @@ defineExpose({ focus });
       font-size: 16px;
       min-height: 40px;
 
-      padding: 0 16px;
+      padding: var(--rc-button-padding, 0 16px);
       gap: 12px;
     }
   }
