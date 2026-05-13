@@ -142,51 +142,50 @@ describe('component: RegistryConfigs', () => {
       expect(rule('not-valid-base64!')).toContain('registryConfig.caBundle.validationError');
     });
 
-    it('should emit validation-changed with false when caBundle is invalid', () => {
+    it('should report allCaBundlesValid as true when all entries have valid caBundles', () => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = {};
+      value.spec.rkeConfig.registries.configs = {
+        'reg1.example.com': { caBundle: VALID_BASE64_CERT },
+        'reg2.example.com': { caBundle: VALID_BASE64_CERT },
+      };
       mountOptions.propsData.value = value;
 
       wrapper = mount(RegistryConfigs, mountOptions);
 
-      wrapper.vm.onCaBundleValidation(0, false);
-
-      const emitted = wrapper.emitted('validation-changed');
-
-      expect(emitted[emitted.length - 1]).toStrictEqual([false]);
+      expect(wrapper.vm.allCaBundlesValid).toBe(true);
     });
 
-    it('should emit validation-changed with true when all caBundles are valid', () => {
+    it('should report allCaBundlesValid as false when any entry has an invalid caBundle', () => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = {};
+      value.spec.rkeConfig.registries.configs = {
+        'reg1.example.com': { caBundle: VALID_BASE64_CERT },
+        'reg2.example.com': { caBundle: 'not-valid!' },
+      };
       mountOptions.propsData.value = value;
 
       wrapper = mount(RegistryConfigs, mountOptions);
 
-      wrapper.vm.onCaBundleValidation(0, true);
-      wrapper.vm.onCaBundleValidation(1, true);
-
-      const emitted = wrapper.emitted('validation-changed');
-
-      expect(emitted[emitted.length - 1]).toStrictEqual([true]);
+      expect(wrapper.vm.allCaBundlesValid).toBe(false);
     });
 
-    it('should emit validation-changed with false when any caBundle is invalid', () => {
+    it('should update validation when an invalid entry is removed', () => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = {};
+      value.spec.rkeConfig.registries.configs = {
+        'reg1.example.com': { caBundle: VALID_BASE64_CERT },
+        'reg2.example.com': { caBundle: 'not-valid!' },
+      };
       mountOptions.propsData.value = value;
 
       wrapper = mount(RegistryConfigs, mountOptions);
 
-      wrapper.vm.onCaBundleValidation(0, true);
-      wrapper.vm.onCaBundleValidation(1, false);
+      expect(wrapper.vm.allCaBundlesValid).toBe(false);
 
-      const emitted = wrapper.emitted('validation-changed');
+      wrapper.vm.entries.splice(1, 1);
 
-      expect(emitted[emitted.length - 1]).toStrictEqual([false]);
+      expect(wrapper.vm.allCaBundlesValid).toBe(true);
     });
   });
 });

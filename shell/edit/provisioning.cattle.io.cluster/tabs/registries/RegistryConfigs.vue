@@ -45,9 +45,8 @@ export default {
 
   data() {
     return {
-      entries:            [],
-      caBundleValidation: {},
-      defaultAddValue:    {
+      entries:         [],
+      defaultAddValue: {
         hostname:             '',
         authConfigSecretName: null,
         caBundle:             '',
@@ -78,6 +77,19 @@ export default {
         }
       ];
     },
+
+    // Derives validation state from entries directly, so it auto-updates when entries are added or removed
+    allCaBundlesValid() {
+      return this.entries.every((entry) => {
+        return this.caBundleRules.every((rule) => !rule(entry.caBundle));
+      });
+    },
+  },
+
+  watch: {
+    allCaBundlesValid(valid) {
+      this.$emit('validation-changed', valid);
+    },
   },
 
   mounted() {
@@ -94,6 +106,7 @@ export default {
 
         const caBundle = configMap[hostname].caBundle ?? this.defaultAddValue.caBundle;
 
+        // Decode base64 for display so the user sees readable PEM text
         configMap[hostname].caBundle = isBase64EncodedCert(caBundle) ? base64Decode(caBundle) : caBundle;
 
         configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? this.defaultAddValue.tlsSecretName;
@@ -119,6 +132,7 @@ export default {
 
         configs[h] = {
           ...entry,
+          // If the value is already base64, use as-is to avoid double-encoding
           caBundle: entry.caBundle ? (isBase64EncodedCert(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
         };
 
@@ -127,13 +141,6 @@ export default {
 
       this.value.spec.rkeConfig.registries.configs = configs;
       this.$emit('updateConfigs', configs);
-    },
-
-    onCaBundleValidation(idx, valid) {
-      this.caBundleValidation[idx] = valid;
-      const allValid = Object.values(this.caBundleValidation).every((v) => v !== false);
-
-      this.$emit('validation-changed', allValid);
     },
 
     wrapRegisterBeforeHook(fn, ...args) {
@@ -218,7 +225,6 @@ export default {
               :rules="caBundleRules"
               :require-dirty="false"
               :tooltip="t('registryConfig.caBundle.tooltip')"
-              @update:validation="onCaBundleValidation(i, $event)"
             />
 
             <div>
