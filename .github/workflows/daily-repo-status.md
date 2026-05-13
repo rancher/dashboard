@@ -14,9 +14,17 @@ on:
       run: |
         if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
           echo "Skipping: not the main repository"
-          exit 1
+          echo "should_run=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
         fi
-if: needs.pre_activation.outputs.repo_check_result == 'success'
+
+jobs:
+  pre-activation:
+    outputs:
+      should_run: ${{ steps.repo_check.outputs.should_run }}
+
+if: needs.pre_activation.outputs.should_run == 'true'
 
 permissions:
   contents: read

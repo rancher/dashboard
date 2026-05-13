@@ -89,7 +89,7 @@ name: "Daily Test Improver"
   # steps: # Steps injected into pre-activation job
   # - id: repo_check
     # name: Check main repo
-    # run: "if [ \"${{ github.repository }}\" != \"rancher/dashboard\" ]; then\n  echo \"Skipping: not the main repository\"\n  exit 1\nfi\n"
+    # run: "if [ \"${{ github.repository }}\" != \"rancher/dashboard\" ]; then\n  echo \"Skipping: not the main repository\"\n  echo \"should_run=false\" >> \"$GITHUB_OUTPUT\"\nelse\n  echo \"should_run=true\" >> \"$GITHUB_OUTPUT\"\nfi\n"
   workflow_dispatch:
     inputs:
       aw_context:
@@ -108,7 +108,7 @@ run-name: "Daily Test Improver"
 jobs:
   activation:
     needs: pre_activation
-    if: needs.pre_activation.outputs.activated == 'true' && (needs.pre_activation.outputs.repo_check_result == 'success')
+    if: needs.pre_activation.outputs.activated == 'true' && (needs.pre_activation.outputs.should_run == 'true')
     runs-on: ubuntu-slim
     permissions:
       actions: read
@@ -1537,6 +1537,7 @@ jobs:
       matched_command: ${{ steps.check_command_position.outputs.matched_command }}
       repo_check_result: ${{ steps.repo_check.outcome }}
       setup-trace-id: ${{ steps.setup.outputs.trace-id }}
+      should_run: ${{ steps.repo_check.outputs.should_run }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -1576,7 +1577,9 @@ jobs:
         run: |
           if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
             echo "Skipping: not the main repository"
-            exit 1
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
 
   push_repo_memory:
