@@ -87,7 +87,7 @@ export default {
           path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
         },
         {
-          path: 'spec.rules.http.paths.backend.service.port.number', rules: ['required'], translationKey: 'ingress.rules.port.label'
+          path: 'spec.rules.http.paths.backend.service.port', rules: ['portNumberOrName'], translationKey: 'ingress.rules.port.label'
         },
         {
           path: 'spec.rules.http.paths.backend.service.name', rules: ['required'], translationKey: 'ingress.rules.target.label'
@@ -97,11 +97,11 @@ export default {
           path: 'spec.defaultBackend.service.name', rules: ['required'], translationKey: 'ingress.defaultBackend.targetService.label'
         },
         {
-          path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
+          path: 'spec.defaultBackend.service.port', rules: ['portNumberOrName'], translationKey: 'ingress.defaultBackend.port.label'
         },
         { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
-      fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
+      fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
   },
 
@@ -125,19 +125,25 @@ export default {
         }
       };
 
-      return { backEndOrRules };
+      const portNumberOrName = (port) => {
+        if (!port || (!port.number && !port.name)) {
+          return this.t('validation.required', { key: this.t('ingress.rules.port.label') });
+        }
+      };
+
+      return { backEndOrRules, portNumberOrName };
     },
     tabErrors() {
       return {
-        rules:          this.fvGetPathErrors(['spec.rules.host', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.backend.service.name'])?.length > 0,
-        defaultBackend: this.fvGetPathErrors(['spec.defaultBackend.service.name', 'spec.defaultBackend.service.port.number'])?.length > 0
+        rules:          this.fvGetPathErrors(['spec.rules.host', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.port', 'spec.rules.http.paths.backend.service.name'])?.length > 0,
+        defaultBackend: this.fvGetPathErrors(['spec.defaultBackend.service.name', 'spec.defaultBackend.service.port'])?.length > 0
       };
     },
     rulesPathRules() {
       return {
         requestHost: this.fvGetAndReportPathRules('spec.rules.host'),
         path:        this.fvGetAndReportPathRules('spec.rules.http.paths.path'),
-        port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port.number'),
+        port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port'),
         target:      this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.name'),
 
       };
@@ -149,7 +155,7 @@ export default {
       if (!rulesExist || defaultBackendExist) {
         return {
           name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
-          port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port.number'),
+          port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port'),
         };
       }
 

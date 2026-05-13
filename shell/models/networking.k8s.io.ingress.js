@@ -84,7 +84,7 @@ export default class Ingress extends SteveModel {
       serviceTargetTo: this.targetTo(workloads, serviceName),
       certs:           this.certLinks(rule, certificates),
       targetLink:      this.targetLink(workloads, serviceName),
-      port:            get(path?.backend, this.servicePortPath)
+      port:            get(path?.backend, this.servicePortPath) || get(path?.backend, this.servicePortNamePath)
     };
   }
 
@@ -179,6 +179,13 @@ export default class Ingress extends SteveModel {
 
   get servicePortPath() {
     const nestedPath = 'service.port.number';
+    const flatPath = 'servicePort';
+
+    return this.useNestedBackendField ? nestedPath : flatPath;
+  }
+
+  get servicePortNamePath() {
+    const nestedPath = 'service.port.name';
     const flatPath = 'servicePort';
 
     return this.useNestedBackendField ? nestedPath : flatPath;

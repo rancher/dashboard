@@ -43,7 +43,9 @@ export default {
     const backend = get(this.value.spec, this.value.defaultBackendPath);
 
     this.serviceName = get(backend, this.value.serviceNamePath) || '';
-    this.servicePort = get(backend, this.value.servicePortPath) || '';
+    this.servicePort = get(backend, this.value.servicePortPath) ||
+      get(backend, this.value.servicePortNamePath) ||
+      '';
   },
   computed: {
     isView() {
@@ -75,10 +77,12 @@ export default {
   },
   methods: {
     update() {
-      const backend = get(this.value.spec, this.value.defaultBackendPath) || {};
+      const backend = {};
+      const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
+      const portPath = typeof servicePort === 'number' ? this.value.servicePortPath : this.value.servicePortNamePath;
 
       set(backend, this.value.serviceNamePath, this.serviceName);
-      set(backend, this.value.servicePortPath, this.servicePort);
+      set(backend, portPath, servicePort);
       set(this.value.spec, this.value.defaultBackendPath, backend);
 
       this.$emit('update:value', this.value);
@@ -121,7 +125,7 @@ export default {
       >
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
-          v-model:value.number="servicePort"
+          v-model:value="servicePort"
           :mode="mode"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"

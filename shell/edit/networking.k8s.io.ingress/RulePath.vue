@@ -79,10 +79,11 @@ export default {
     set(this.value, 'path', this.value.path || '');
     set(this.value, 'pathType', this.value.pathType || this.pathTypes[0]);
     set(this.value.backend, this.ingress.serviceNamePath, get(this.value.backend, this.ingress.serviceNamePath) || '');
-    set(this.value.backend, this.ingress.servicePortPath, get(this.value.backend, this.ingress.servicePortPath) || '');
 
     this.serviceName = get(this.value.backend, this.ingress.serviceNamePath);
-    this.servicePort = get(this.value.backend, this.ingress.servicePortPath);
+    this.servicePort = get(this.value.backend, this.ingress.servicePortPath) ||
+      get(this.value.backend, this.ingress.servicePortNamePath) ||
+      '';
   },
   methods: {
     update() {
@@ -92,7 +93,9 @@ export default {
         id: this.value.id, backend: {}, path: this.path, pathType: this.pathType
       };
 
-      set(out.backend, this.ingress.servicePortPath, servicePort);
+      const portPath = typeof servicePort === 'number' ? this.ingress.servicePortPath : this.ingress.servicePortNamePath;
+
+      set(out.backend, portPath, servicePort);
       set(out.backend, this.ingress.serviceNamePath, serviceName);
 
       this.$emit('update:value', out);

@@ -73,6 +73,18 @@ describe('ingress', () => {
         }],
       },
       {
+        desc:     'includes port names alongside port numbers when available',
+        services: [{
+          metadata: { name: 'named-ports-service' },
+          spec:     { ports: [{ port: 80, name: 'http' }, { port: 443, name: 'https' }] },
+        }],
+        expected: [{
+          label: 'named-ports-service',
+          value: 'named-ports-service',
+          ports: [80, 'http', 443, 'https'],
+        }],
+      },
+      {
         desc:     'returns undefined ports when service has no spec.ports',
         services: [{
           metadata: { name: 'headless-service' },
@@ -120,6 +132,18 @@ describe('ingress', () => {
             ports: [9090, 9091],
           },
         ],
+      },
+      {
+        desc:     'includes only port numbers when ports have no names',
+        services: [{
+          metadata: { name: 'unnamed-service' },
+          spec:     { ports: [{ port: 3000 }] },
+        }],
+        expected: [{
+          label: 'unnamed-service',
+          value: 'unnamed-service',
+          ports: [3000],
+        }],
       },
     ])('$desc', ({ services, expected }) => {
       const helper = makeHelper();
