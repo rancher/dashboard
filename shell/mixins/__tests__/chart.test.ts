@@ -214,6 +214,72 @@ describe('chartMixin', () => {
         id:   'custom-ns/custom-name'
       });
     });
+
+    it('should fall back to matchingInstalledApps when version namespace lookup fails', async() => {
+      const installedApp = {
+        id:   'other-ns/custom-name',
+        spec: { chart: { metadata: { version: '0.9.0' } } }
+      };
+
+      const mockStore = {
+        dispatch: jest.fn((action, payload) => {
+          if (action === 'cluster/find') {
+            return Promise.reject(new Error('not found'));
+          }
+
+          return Promise.resolve();
+        }),
+        getters: {
+          currentCluster: () => {},
+          isRancher:      () => true,
+          'catalog/repo': () => {
+            return () => 'repo';
+          },
+          'catalog/chart': () => {
+            return {
+              id:                    'chart-id',
+              versions:              [{ version: '1.0.0' }],
+              matchingInstalledApps: [installedApp]
+            };
+          },
+          'catalog/version': () => ({
+            version:     '1.0.0',
+            annotations: {
+              [CATALOG_ANNOTATIONS.NAMESPACE]:    'custom-ns',
+              [CATALOG_ANNOTATIONS.RELEASE_NAME]: 'custom-name',
+            }
+          }),
+          'prefs/get': () => {},
+          'i18n/t':    () => jest.fn()
+        }
+      };
+
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
+
+      const wrapper = mount(
+        DummyComponent,
+        {
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: {
+                query: {
+                  chart:       'chart_name',
+                  versionName: '1.0.0'
+                }
+              }
+            }
+          }
+        });
+
+      await wrapper.vm.fetchChart();
+
+      expect(wrapper.vm.existing).toStrictEqual(installedApp);
+      expect(wrapper.vm.mode).toStrictEqual('edit');
+    });
   });
 
   describe('action', () => {
