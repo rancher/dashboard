@@ -103,7 +103,7 @@ export default {
               <p class="mt-20">
                 <rc-button
                   size="large"
-                  :to="home"
+                  :href="home"
                 >
                   {{ t('nav.home') }}
                 </rc-button>

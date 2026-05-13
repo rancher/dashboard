@@ -166,6 +166,82 @@ describe('rcButton.vue', () => {
     });
   });
 
+  describe('to and href mutual exclusion', () => {
+    it('warns when both "to" and "href" props are provided', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mount(RcButton, {
+        props:  { to: '/foo', href: 'https://example.com' },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith('[RcButton] "to" and "href" are mutually exclusive. Provide only one.');
+      warnSpy.mockRestore();
+    });
+
+    it('does not warn when only "to" is provided', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mount(RcButton, {
+        props:  { to: '/foo' },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      expect(warnSpy).not.toHaveBeenCalledWith('[RcButton] "to" and "href" are mutually exclusive. Provide only one.');
+      warnSpy.mockRestore();
+    });
+
+    it('does not warn when only "href" is provided', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mount(RcButton, { props: { href: 'https://example.com' } });
+
+      expect(warnSpy).not.toHaveBeenCalledWith('[RcButton] "to" and "href" are mutually exclusive. Provide only one.');
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('href prop', () => {
+    it('renders as an <a> element when "href" prop is provided', () => {
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com' } });
+
+      expect(wrapper.find('a').exists()).toBe(true);
+      expect(wrapper.find('button').exists()).toBe(false);
+    });
+
+    it('sets the href attribute on the rendered anchor', () => {
+      const href = 'https://example.com';
+      const wrapper = mount(RcButton, { props: { href } });
+
+      expect(wrapper.find('a').attributes('href')).toStrictEqual(href);
+    });
+
+    it('sets role="link" when rendered as an anchor', () => {
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com' } });
+
+      expect(wrapper.find('a').attributes('role')).toStrictEqual('link');
+    });
+
+    it('applies button classes when rendered as an anchor', () => {
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com', variant: 'secondary' } });
+      const anchor = wrapper.find('a');
+
+      expect(anchor.classes()).toContain('rc-button');
+      expect(anchor.classes()).toContain('btn');
+      expect(anchor.classes()).toContain('variant-secondary');
+    });
+
+    it('triggers click when Space is pressed on an anchor', async() => {
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com' } });
+      const anchor = wrapper.find('a');
+      const clickSpy = jest.spyOn(anchor.element, 'click');
+
+      await anchor.trigger('keydown', { key: ' ' });
+
+      expect(clickSpy).toHaveBeenCalledWith();
+    });
+  });
+
   describe('to prop', () => {
     it('renders as a <button> when no "to" prop is provided', () => {
       const wrapper = mount(RcButton);

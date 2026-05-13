@@ -1,4 +1,7 @@
+import type { RouteLocationRaw } from 'vue-router';
 import { RcIconType } from '@components/RcIcon/types';
+
+export type NavigationProps = { to?: RouteLocationRaw; href?: string }
 
 // TODO: 13211 Investigate why `InstanceType<typeof RcButton>` fails prod builds
 // export type RcButtonType = InstanceType<typeof RcButton>
