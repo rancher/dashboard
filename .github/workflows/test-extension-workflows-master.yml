@@ -60,6 +60,7 @@ jobs:
         shell: bash
 
   test-build-extension-charts-master:
+    if: ${{ github.repository_owner == 'rancher' }}
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
@@ -75,6 +76,7 @@ jobs:
       test_ext_branch:  'main'
 
   test-build-extension-catalog-master:
+    if: ${{ github.repository_owner == 'rancher' }}
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
@@ -92,6 +94,7 @@ jobs:
       registry_token: ${{ secrets.GITHUB_TOKEN }}
 
   test-release-shell-pkg-master:
+    if: ${{ github.repository_owner == 'rancher' }}
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
@@ -103,6 +106,7 @@ jobs:
       tag: ${{ needs.retrieve-tags-master.outputs.SHELL_TAG }}
 
   test-release-creators-pkg-master:
+    if: ${{ github.repository_owner == 'rancher' }}
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
     permissions:
