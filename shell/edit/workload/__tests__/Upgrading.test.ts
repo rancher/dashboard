@@ -25,20 +25,17 @@ describe('component: Upgrading', () => {
     expect(wrapper.props('value')?.[key]).toBe(newValue);
   });
 
-  // TODO: #6179: Integrate test with component fix, as the scope is not to check the value of the input
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip.each([
-    ['surge', 'maxSurge', '%'],
-    ['unavailable', 'maxUnavailable', '%'],
-  ])('should set typed value in %p into %p and unit', (field, key, unit) => {
+  it.each([
+    ['maxSurge', '%'],
+    ['maxUnavailable', '%'],
+  ])('should set typed value in %p with %p unit', (key, unit) => {
     const wrapper = mount(Upgrading);
-    const input = wrapper.find(`[data-testid="input-policy-${ field }"]`).find('input');
     const newValue = 123;
     const expectation = `${ newValue }${ unit }`;
 
-    input.setValue(newValue);
-    input.trigger('blur');
+    wrapper.vm.updateWithUnits({ selected: unit, text: newValue }, key);
 
+    expect(wrapper.vm[key]).toBe(newValue);
     expect(wrapper.props('value')?.strategy.rollingUpdate[key]).toBe(expectation);
   });
 
