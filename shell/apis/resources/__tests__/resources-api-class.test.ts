@@ -291,14 +291,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
 
     it('should return transient response from label selector mode', async() => {
       // Arrange
-      const transientResponse = {
-        data: [{ metadata: { name: 'pod-1' } }]
-      };
-      const labelSelector = {
-        matchLabels: {
-          app: 'nginx'
-        }
-      };
+      const transientResponse = { data: [{ metadata: { name: 'pod-1' } }] };
+      const labelSelector = { matchLabels: { app: 'nginx' } };
 
       mockDispatch.mockResolvedValue(transientResponse);
 
@@ -347,7 +341,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       // Arrange
       const transientResponse = {
         data:       [{ metadata: { name: 'pod-1' } }],
-        pagination: { page: 1, pageSize: 10, total: 50 }
+        pagination: {
+          page: 1, pageSize: 10, total: 50
+        }
       };
       const paginationOptions = {
         pagination: {
