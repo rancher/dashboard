@@ -8791,6 +8791,9 @@ registryConfig:
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
   description: "Define the TLS and credential configuration for each registry hostname and mirror."
+  caBundle:
+    tooltip: Accepts a CA PEM certificate or a base64 encoded CA PEM.
+    validationError: Invalid CA cert bundle. Must be a CA PEM certificate or a base64 encoded CA PEM.
 
 ##############################
 ### Advanced Settings
