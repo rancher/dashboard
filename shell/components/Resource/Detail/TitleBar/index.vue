@@ -210,7 +210,7 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 
   .resource-name {
     display: inline-block;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     white-space: nowrap;
     overflow-x: hidden;
