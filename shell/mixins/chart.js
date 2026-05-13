@@ -271,7 +271,7 @@ export default {
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
@@ -423,8 +423,12 @@ export default {
             });
             this.mode = _EDIT;
           } catch (e) {
-            this.mode = _CREATE;
-            this.existing = null;
+            // Version targets a different namespace than where the app is installed.
+            // Fall back to matching installed apps (e.g. chart detail page).
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            this.existing = matching[0] || null;
+            this.mode = this.existing ? _EDIT : _CREATE;
           }
         } else {
           // Regular chart (not targeted) - check if there are installed instances.
