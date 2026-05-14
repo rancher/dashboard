@@ -8,23 +8,8 @@ description: |
 on:
   schedule: daily
   workflow_dispatch:
-  steps:
-    - name: Check main repo
-      id: repo_check
-      run: |
-        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
-          echo "Skipping: not the main repository"
-          echo "should_run=false" >> "$GITHUB_OUTPUT"
-        else
-          echo "should_run=true" >> "$GITHUB_OUTPUT"
-        fi
 
-jobs:
-  pre-activation:
-    outputs:
-      should_run: ${{ steps.repo_check.outputs.should_run }}
-
-if: needs.pre_activation.outputs.should_run == 'true'
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
 
 permissions:
   contents: read
