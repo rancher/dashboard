@@ -1,8 +1,7 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { DEFAULT_WORKSPACE, HCI } from '@shell/config/types';
+import { DEFAULT_WORKSPACE, HCI, MANAGEMENT, CAPI } from '@shell/config/types';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-
 export default class HciCluster extends ProvCluster {
   get isSupportedHarvester() {
     return this._isSupportedHarvester === undefined ? true : this._isSupportedHarvester;
@@ -44,6 +43,13 @@ export default class HciCluster extends ProvCluster {
   // We do not allow users to edit Harvester clusters from Cluster Management, so we need to re-enable that action here.
   get _availableActions() {
     const out = super._availableActions;
+
+    if (!this.canCreateAndManageCluster) {
+      const allowActions = ['goToViewYaml', 'download', 'viewInApi'];
+
+      return out.filter((action) => allowActions.includes(action.action));
+    }
+
     const edit = out.find((action) => action.action === 'goToEdit');
 
     if (edit) {
@@ -51,6 +57,17 @@ export default class HciCluster extends ProvCluster {
     }
 
     return out;
+  }
+
+  get canCreateAndManageCluster() {
+    // we check MANAGEMENT.CLUSTER (management.cattle.io.cluster) to avoid standard user role to create or manage the harvester clusters.
+    const mgmtClusterSchema = this.$rootGetters['management/schemaFor'](MANAGEMENT.CLUSTER);
+    const schema = this.$rootGetters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+    const mgmtClusterCreate = !!mgmtClusterSchema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+    const clusterCreate = !!schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+
+    return clusterCreate && mgmtClusterCreate;
   }
 
   get stateColor() {
@@ -98,7 +115,8 @@ export default class HciCluster extends ProvCluster {
   }
 
   get disableResourceDetailDrawerConfigTab() {
-    return false;
+    // if user is not allowed to create or manage the cluster, we will disable the edit config tab in resource detail drawer.
+    return !this.canCreateAndManageCluster;
   }
 
   get fullDetailPageOverride() {
