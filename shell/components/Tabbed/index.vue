@@ -7,7 +7,7 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
-import { computed, ref } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
 import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
@@ -175,7 +175,12 @@ export default {
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
-    const { summary } = useInSummary( { label: computed(() => props.title ?? '') });
+    const tabbedSummarizedContainer = useTemplateRef<HTMLElement>('tabbed-summarized-container');
+    const { summary } = useInSummary({
+      label:      computed(() => props.title ?? ''),
+      scrollTo:   () => tabbedSummarizedContainer.value?.scrollIntoView(true),
+      elementRef: tabbedSummarizedContainer,
+    });
 
     return {
       isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
@@ -326,6 +331,7 @@ export default {
 
 <template>
   <div
+    ref="tabbed-summarized-container"
     class="tabbed-container"
     :class="{
       'side-tabs': !!sideTabs,

@@ -1,10 +1,9 @@
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 import {
-  computed, getCurrentInstance, inject, onMounted, onUnmounted, provide, ref, useTemplateRef, watch
+  computed, inject, onMounted, onUnmounted, provide, ref, useTemplateRef, watch
 } from 'vue';
 import type {
-  ComponentPublicInstance,
   ComputedRef,
   Ref,
   VNode
@@ -16,15 +15,9 @@ type SummaryInfo = {
   scrollTo?: () => void;
 };
 
-type SummaryComponent = ComponentPublicInstance & {
-  summary?: SummaryInfo;
-  displayTitle?: string;
-  title?: string;
-  label?: string;
-  labelKey?: string;
-  name?: string;
-  scrollTo?: () => void;
-  getComponentLabel?: () => string;
+type SummaryComponent = {
+  summary: SummaryInfo;
+  summaryID: String
 };
 
 type SummaryEntry = {
@@ -80,10 +73,11 @@ export function useFormSummary(rootComponentRefKey: string) {
 
     if (component && summary && registeredComponents.value[summary.id] && !found.has(summary.id)) {
       found.add(summary.id);
+
       const out: SummaryEntry = {
         node:     node as VNode,
         children: [],
-        label:    summary.label?.value || summary.id,
+        ...summary,
         scrollTo: component ? () => scrollToComponent(component) : undefined
       };
 
@@ -174,11 +168,14 @@ export function useFormSummary(rootComponentRefKey: string) {
     if (parent?.component) {
       scrollToComponent(parent.component);
     }
-    if (component.scrollTo) {
-      component.scrollTo();
-    } else if (component?.summary?.scrollTo) {
+    if (component?.summary?.scrollTo) {
       component.summary.scrollTo();
     }
+    // if (component.scrollTo) {
+    //   component.scrollTo();
+    // } else if (component?.summary?.scrollTo) {
+    //   component.summary.scrollTo();
+    // }
   };
 
   const registerComponent: RegisterComponent = (component) => {
@@ -250,69 +247,29 @@ export function useFormSummary(rootComponentRefKey: string) {
  * into the correct scoped context. Components using inFormSummary will register themselves
  *  with the nearest ancestor containing useFormSummary
  *
- * @param options.scrollTo - Optional scroll handler. When provided, the ToC system calls
- *   this function instead of the default `element.scrollIntoView` behaviour when the user
- *   navigates to this component via the Table of Contents. Use this to perform any
+ * @param options.scrollTo - Scroll handler. The ToC system calls this function when the
+ *   user navigates to this component via the Table of Contents. Use this to perform any
  *   additional work before scrolling (e.g. expanding an accordion, revealing a tab).
- * @param options.label - Optional label for this component's ToC entry. Accepts a plain
- *   string or a `ComputedRef<string>`. When provided it takes precedence over the
- *   automatic label derived from `displayTitle`, `title`, `labelKey`, etc.
+ * @param options.label - Label for this component's ToC entry. Accepts a plain string or
+ *   a `ComputedRef<string>`.
+ * @param options.elementRef - A template ref pointing to the component's root element.
+ *   Used by the ToC system to locate this component during DOM tree traversal.
  */
-export function useInSummary(options?: { scrollTo?: () => void; label?: ComputedRef<string> | string }) {
+export function useInSummary(options: { scrollTo: () => void; label: ComputedRef<string> | string; elementRef: Readonly<Ref<HTMLElement | null>> }) {
   const {
     registerComponent = () => {},
     unRegisterComponent = () => {},
     refreshComponents = () => {},
     updateComponentLabel = () => false
   } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
-  const instance = getCurrentInstance() as any; // avoid TS error TS2339
-  const t = instance?.proxy?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
-  const component = ref<SummaryComponent | null>(null);
 
-  // Use the caller-supplied scrollTo if provided; otherwise fall back to a plain scrollIntoView.
-  const scrollTo = options?.scrollTo ?? (() => {
-    const el = instance?.proxy?.$el as ElementWithSummaryID | null | undefined;
-
-    (el as HTMLElement | undefined)?.scrollIntoView(true);
-  });
-
-  // options.label will take precedence if defined
-  const getComponentLabel = () => {
-    const currentComponent = component.value;
-
-    if (currentComponent?.displayTitle) {
-      return currentComponent.displayTitle;
-    }
-
-    if (currentComponent?.title) {
-      return currentComponent.title;
-    }
-
-    if (currentComponent?.label) {
-      return currentComponent.label;
-    }
-
-    if (currentComponent?.labelKey) {
-      return typeof t === 'function' ? t(currentComponent.labelKey) : currentComponent.labelKey;
-    }
-
-    if (currentComponent?.name) {
-      return currentComponent.name;
-    }
-
-    return summaryID;
-  };
+  const { scrollTo, label, elementRef } = options;
 
   const summaryID = randomStr();
   const summary: SummaryInfo = { id: summaryID, scrollTo };
 
-  if (options?.label !== undefined) {
-    // Caller supplied an explicit label — wrap a plain string in a computed so the
-    // type is always ComputedRef<string>, and skip the component-field heuristics.
-    summary.label = typeof options.label === 'string' ? computed(() => options.label as string) : options.label;
-  } else {
-    summary.label = computed(getComponentLabel);
-  }
+  // Wrap a plain string in a computed so the type is always ComputedRef<string>.
+  summary.label = typeof label === 'string' ? computed(() => label) : label;
 
   watch(summary.label, (label) => {
     const updated = updateComponentLabel(summaryID, label);
@@ -323,42 +280,11 @@ export function useInSummary(options?: { scrollTo?: () => void; label?: Computed
   });
 
   onMounted(() => {
-    const exposed = instance?.exposed as Record<string, unknown> | null | undefined;
-    const proxy = instance?.proxy as SummaryComponent | null | undefined;
-    const rootEl = proxy?.$el as ElementWithSummaryID | null | undefined;
-
-    if (rootEl) {
-      rootEl.summaryID = summaryID;
+    if (elementRef.value) {
+      (elementRef.value as ElementWithSummaryID).summaryID = summaryID;
     }
 
-    if (proxy) {
-      (proxy as SummaryComponent & { summaryID?: string }).summaryID = summaryID;
-    }
-
-    // Build a merged view of proxy + exposed (unwrapping computed refs from exposed)
-    // so that registerComponent can read displayTitle, name etc. from <script setup>
-    // components that use defineExpose()
-    component.value = new Proxy({} as SummaryComponent, {
-      get(_target, key: string) {
-        if (key === 'summary') {
-          return summary;
-        }
-        if (key === 'summaryID') {
-          return summaryID;
-        }
-        if (exposed && key in exposed) {
-          const val = exposed[key];
-
-          return val && typeof val === 'object' && 'value' in val ? (val as { value: unknown }).value : val;
-        }
-
-        return (proxy as Record<string, unknown> | null | undefined)?.[key];
-      }
-    });
-
-    if (component.value) {
-      registerComponent(component.value);
-    }
+    registerComponent({ summary, summaryID } as SummaryComponent);
   });
 
   onUnmounted(() => {

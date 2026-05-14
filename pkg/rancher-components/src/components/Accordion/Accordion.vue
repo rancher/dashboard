@@ -32,16 +32,20 @@ export default defineComponent({
     const label = computed(() => props.titleKey && typeof t === 'function' ? t(props.titleKey) : props.title);
 
     const isOpen = ref(props.openInitially);
-    const accordionScrollContainer = useTemplateRef<HTMLElement>('accordion-scroll-container');
+    const accordionSummarizedContainer = useTemplateRef<HTMLElement>('accordion-summarized-container');
 
     const scrollTo = () => {
       isOpen.value = true;
       nextTick(() => {
-        accordionScrollContainer.value?.scrollIntoView();
+        accordionSummarizedContainer.value?.scrollIntoView();
       });
     };
 
-    const { summary } = useInSummary( { scrollTo, label });
+    const { summary } = useInSummary({
+      scrollTo,
+      label,
+      elementRef: accordionSummarizedContainer,
+    });
 
     return {
       summary,
@@ -72,7 +76,7 @@ export default defineComponent({
 
 <template>
   <div
-    ref="accordion-scroll-container"
+    ref="accordion-summarized-container"
     class="accordion-container"
   >
     <div

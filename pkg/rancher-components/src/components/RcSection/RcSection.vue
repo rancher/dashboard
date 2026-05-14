@@ -33,7 +33,9 @@
  *   <p>Section content here</p>
  * </RcSection>
  */
-import { computed, inject, provide, type Ref } from 'vue';
+import {
+  computed, inject, provide, useTemplateRef, type Ref
+} from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
@@ -66,7 +68,12 @@ const displayTitle = computed(() => props.title);
 const name = 'RcSection';
 
 // Register this section in form summary/table-of-contents context (if provided)
-const { summary } = useInSummary({ label: displayTitle });
+const sectionRef = useTemplateRef<HTMLElement>('rc-section-summarized-container');
+const { summary } = useInSummary({
+  label:      displayTitle,
+  scrollTo:   () => sectionRef.value?.scrollIntoView(true),
+  elementRef: sectionRef,
+});
 
 defineExpose({
   summary, displayTitle, name
@@ -99,6 +106,7 @@ function toggle() {
 
 <template>
   <div
+    ref="rc-section-summarized-container"
     :class="sectionClass"
   >
     <div

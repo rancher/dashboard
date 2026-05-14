@@ -198,7 +198,7 @@ export default {
       showAsForm:                         this.$route.query[AS] !== _YAML,
       tocContainerHeight:                 0,
       mainLayoutEl:                       null,
-      throttledComputeTocContainerHeight: throttle(this.computeTocContainerHeight, 20),
+      throttledComputeTocContainerHeight: null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
@@ -301,6 +301,7 @@ export default {
   },
 
   created() {
+    this.throttledComputeTocContainerHeight = throttle(this.computeTocContainerHeight, 20);
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
