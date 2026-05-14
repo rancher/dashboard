@@ -1,5 +1,5 @@
 <script>
-import { SNAPSHOT } from '@shell/config/types';
+import { SNAPSHOT, OPERATION } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
@@ -82,12 +82,30 @@ export default {
 
     async apply(buttonDone) {
       try {
-        const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
+        if (this.cluster.isImportedWithDayTwoOps) {
+          // For imported clusters with day 2 ops, create an encryption key rotation operation CR
+          const namespace = this.cluster.mgmt?.metadata?.namespace || this.cluster.mgmt?.id;
+          const resource = await this.$store.dispatch('management/create', {
+            type:     OPERATION.ENCRYPTION_KEY_ROTATE,
+            metadata: { namespace },
+            spec:     {
+              clusterRef: {
+                apiVersion: 'management.cattle.io/v3',
+                kind:       'Cluster',
+                name:       this.cluster.mgmt?.id,
+              },
+            },
+          }, { root: true });
 
-        // To rotate the encryption keys, increment
-        // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
-        set(this.cluster, 'spec.rkeConfig.rotateEncryptionKeys.generation', currentGeneration + 1);
-        await this.cluster.save();
+          await resource.save();
+        } else {
+          const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
+
+          // To rotate the encryption keys, increment
+          // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
+          set(this.cluster, 'spec.rkeConfig.rotateEncryptionKeys.generation', currentGeneration + 1);
+          await this.cluster.save();
+        }
 
         this.close(buttonDone);
       } catch (err) {

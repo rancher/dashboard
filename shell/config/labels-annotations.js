@@ -149,6 +149,11 @@ export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
 export const SNAPSHOT = { CLUSTER_NAME: 'rke.cattle.io/cluster-name' };
 
+export const OPERATION_ANNOTATIONS = {
+  ENABLED:       'operation.cattle.io/enabled',
+  INTERRUPTIBLE: 'operation.cattle.io/interruptible',
+};
+
 export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
 
 const CATTLE_REGEX = /cattle\.io\//;
