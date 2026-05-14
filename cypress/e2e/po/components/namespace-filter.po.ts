@@ -6,6 +6,8 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   toggle() {
+    this.namespaceDropdown().should('be.visible');
+
     return this.namespaceDropdown().click({ force: true });
   }
 

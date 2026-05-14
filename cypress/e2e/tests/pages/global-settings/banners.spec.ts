@@ -101,6 +101,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
       BannersPagePo.navTo();
+      bannersPage.waitForPage();
 
       // Show Banner
       bannersPage.headerBannerCheckbox().set();

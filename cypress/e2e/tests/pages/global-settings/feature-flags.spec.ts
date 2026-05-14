@@ -15,6 +15,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle harvester feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be active by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
 
     // Deactivate
@@ -51,6 +53,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -71,6 +75,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle istio-virtual-service-ui feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be active by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
 
     // Deactivate
@@ -91,6 +97,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be active by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
 
     // Deactivate
@@ -111,6 +119,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -129,6 +139,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -141,6 +153,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Deactivate
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
 
     featureFlagsPage.list().elementWithName('unsupported-storage-drivers').scrollIntoView().should('be.visible');
     featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Deactivate');
@@ -157,6 +170,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
 
     // Intercept the request to change the feature flag and return an error - 403, permission denied
@@ -208,6 +223,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     ];
 
     FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
 
     featureFlags.forEach((featureFlags) => {
       featureFlagsPage.list().details(featureFlags, 4).should('not.exist');
@@ -217,6 +233,8 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   describe('List', { tags: ['@noVai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
+      featureFlagsPage.waitForPage();
+
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher'];
 

@@ -691,10 +691,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         cy.setUserPreference({ 'plugin-developer': true });
 
         extensionsPo.goTo();
-        extensionsPo.waitForPage(null, 'available');
+        extensionsPo.waitForPage(undefined, 'available');
         extensionsPo.loading().should('not.exist');
         extensionsPo.extensionTabBuiltinClick();
-        extensionsPo.waitForPage(null, 'builtin');
+        extensionsPo.waitForPage(undefined, 'builtin');
         extensionsPo.extensionCard('AKS Provisioning').checkVisible();
         cy.injectAxe();
 

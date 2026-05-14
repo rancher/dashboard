@@ -13,7 +13,7 @@ let removeExtensions = false;
 function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
   extensionsPo.waitForTabs();
   extensionsPo.extensionTabInstalledClick();
-  extensionsPo.waitForPage(null, 'installed');
+  extensionsPo.waitForPage(undefined, 'installed');
   extensionsPo.extensionCardClick(extensionName);
   extensionsPo.extensionDetailsTitle().should('contain', extensionName);
   extensionsPo.extensionDetailsCloseClick();
@@ -55,7 +55,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
         return;
       }
       extensionsPo.extensionTabInstalledClick();
-      extensionsPo.waitForPage(null, 'installed');
+      extensionsPo.waitForPage(undefined, 'installed');
       extensionsPo.checkForExtensionCardWithName(extensionName).then((kubewardenCardPresent) => {
         if (kubewardenCardPresent) {
           extensionsPo.extensionCardClick(extensionName);

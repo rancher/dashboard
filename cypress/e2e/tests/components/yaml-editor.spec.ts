@@ -19,6 +19,7 @@ describe('Yaml Editor', () => {
 
     // Create a new deployment resource
     deploymentsCreatePage.goTo();
+    deploymentsCreatePage.waitForPage();
     cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
     deploymentsCreatePage.createWithUI(name, containerImage, namespace);
     cy.wait('@createDeployment').its('response.statusCode').should('eq', 201);
@@ -41,6 +42,8 @@ describe('Yaml Editor', () => {
   afterEach(() => {
     // Delete the deployment
     deploymentsListPage.goTo();
+    deploymentsListPage.waitForPage();
+    deploymentsListPage.list().checkVisible();
     deploymentsListPage.deleteItemWithUI(name);
   });
 });

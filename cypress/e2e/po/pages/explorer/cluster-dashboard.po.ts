@@ -7,6 +7,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ResourceTablePo from '~/cypress/e2e/po/components/resource-table.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -118,7 +119,7 @@ export default class ClusterDashboardPagePo extends PagePo {
 
     instance.goTo();
     instance.waitForPage();
-    nsfilter.checkVisible();
+    nsfilter.checkVisible(MEDIUM_TIMEOUT_OPT);
 
     if (nsProject) {
       for (let i = 0; i < nsProject.values.length; i++) {

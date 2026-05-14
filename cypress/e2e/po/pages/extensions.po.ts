@@ -86,7 +86,7 @@ export default class ExtensionsPagePo extends PagePo {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ clusterRepoName }?action=install`).as(interceptAlias);
 
     this.extensionTabAvailableClick();
-    this.waitForPage(null, 'available');
+    this.waitForPage(undefined, 'available');
     this.extensionCardInstallClick(extensionName);
     this.installModal().checkVisible();
     this.installModal().installButton().click();
@@ -106,7 +106,7 @@ export default class ExtensionsPagePo extends PagePo {
     cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?*`).as('getRepos');
 
     // we should be on the extensions page
-    this.waitForPage(null, 'available');
+    this.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
     this.loading().should('not.exist');
 
     // go to app repos
@@ -259,6 +259,8 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
+    this.waitForTabs();
+
     return this.extensionTabs.clickTabWithName('installed');
   }
 
