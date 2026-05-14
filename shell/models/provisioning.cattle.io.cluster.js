@@ -342,7 +342,7 @@ export default class ProvCluster extends SteveModel {
   // nodeGroups can be undefined for an EKS cluster that has just been created and has not
   // had any node groups added to it
   get eksNodeGroups() {
-    return this.mgmt?.eksNodeGroups;
+    return this.mgmt?.eksNodeGroups || [];
   }
 
   waitForProvisioner(timeout, interval) {
@@ -460,7 +460,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get unavailableMachines() {
-    return this.mgmt?.unavailableMachines || 0;
+    return this.mgmt?.unavailableMachines || '';
   }
 
   get stateParts() {

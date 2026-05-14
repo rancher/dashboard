@@ -217,7 +217,7 @@ export default class MgmtCluster extends SteveModel {
 
     // imported KEv2
     // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    if (this.isHostedKubernetesProvider && !!this.provCluster?.providerConfig.imported) {
+    if (this.isHostedKubernetesProvider && !!this.provCluster?.providerConfig?.imported) {
       return true;
     }
 

@@ -37,7 +37,7 @@ export default {
       headers,
       paginationHeaders,
 
-      clusterCount: 0,
+      clusterCount: undefined as number | undefined,
 
       paginationContext: 'cluster-management',
 
@@ -151,6 +151,11 @@ export default {
      * Explorer world, listing PCIC, SSP disabled, filter all rows via...
      */
     filterProvRowsLocal(rows: ProvCluster[]) {
+      if (!rows.length) {
+        // no rows to filter on, so immediately return no rows
+        return [];
+      }
+
       let filteredRows = [];
 
       if (this.harvesterEnabled) {
@@ -183,7 +188,7 @@ export default {
 
     hiddenHarvesterCount() {
       // Don't show Harvester banner message on the cluster management page or if Harvester is not enabled
-      if (!this.isExplorer || !this.harvesterEnabled) {
+      if (!this.isExplorer || !this.harvesterEnabled || this.clusterCount === undefined) {
         return 0;
       }
 
