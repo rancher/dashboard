@@ -1505,6 +1505,68 @@ describe('type-map', () => {
 
         expect(product2Options('pod', false).customRoute).toBeUndefined();
       });
+
+      it('should use explicit product parameter when provided', () => {
+        const state = {
+          typeOptions: {
+            explorer: [
+              {
+                match:       'pod',
+                customRoute: { name: 'explorer-route' },
+                localOnly:   true
+              }
+            ],
+            'product-1': [
+              {
+                match:       'pod',
+                customRoute: { name: 'product-1-route' },
+                localOnly:   false
+              }
+            ]
+          }
+        } as any;
+
+        const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        // Without product override, should use current product (product-1)
+        const defaultOpts = optionsFn('pod', false);
+
+        expect(defaultOpts.customRoute.name).toBe('product-1-route');
+        expect(defaultOpts.localOnly).toBe(false);
+
+        // With product override to explorer, should use explorer's config
+        const explorerOpts = optionsFn('pod', false, 'explorer');
+
+        expect(explorerOpts.customRoute.name).toBe('explorer-route');
+        expect(explorerOpts.localOnly).toBe(true);
+      });
+
+      it('should handle product override for unconfigured types', () => {
+        const state = {
+          typeOptions: {
+            explorer: [
+              {
+                match:       'pod',
+                customRoute: { name: 'explorer-route' }
+              }
+            ]
+          }
+        } as any;
+
+        const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+        // Override to explorer which has config
+        const explorerOpts = optionsFn('secret', false, 'explorer');
+
+        expect(explorerOpts.customRoute).toBeUndefined(); // secret not configured in explorer
+        expect(explorerOpts.isCreatable).toBe(true); // uses default
+
+        // Override to product-2 which has no config
+        const product2Opts = optionsFn('pod', false, 'product-2');
+
+        expect(product2Opts.customRoute).toBeUndefined();
+        expect(product2Opts.isCreatable).toBe(true);
+      });
     });
   });
 });

@@ -551,7 +551,7 @@ export const getters = {
       subTypes:                 [],
     };
 
-    return (schemaOrType, pagination) => {
+    return (schemaOrType, pagination, product) => {
       // Note - This can run a LOT so needs to be performant
 
       if (!schemaOrType) {
@@ -559,8 +559,8 @@ export const getters = {
       }
 
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
-      const currentProduct = rootGetters['productId'];
-      const productTypeOptions = state.typeOptions[currentProduct] || [];
+      const productToUse = product || rootGetters['productId'];
+      const productTypeOptions = state.typeOptions[productToUse] || [];
       const found = productTypeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
 
@@ -948,7 +948,7 @@ export const getters = {
         });
 
         const attrs = schema.attributes || {};
-        const typeOptions = getters['optionsFor'](schema);
+        const typeOptions = getters['optionsFor'](schema, undefined, product);
 
         schemaModes[TYPE_MODES.BASIC] = schemaModes[TYPE_MODES.BASIC] && getters.groupForBasicType(product, schema.id);
 
@@ -1859,8 +1859,10 @@ export const actions = {
     dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
 
-  configureType({ commit }, options) {
-    commit('configureType', options);
+  configureType({ commit, rootGetters }, options) {
+    const product = options.product || rootGetters['productId'];
+
+    commit('configureType', { ...options, product });
   }
 };
 
