@@ -98,7 +98,9 @@ function toggle() {
 </script>
 
 <template>
-  <div :class="sectionClass">
+  <div
+    :class="sectionClass"
+  >
     <div
       v-if="hasHeader"
       class="section-header"

@@ -175,7 +175,7 @@ export default {
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
-    const { summary } = useInSummary({ label: computed(() => props.title ?? '') });
+    const { summary } = useInSummary( { label: computed(() => props.title ?? '') });
 
     return {
       isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary

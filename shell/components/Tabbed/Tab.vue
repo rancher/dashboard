@@ -1,7 +1,9 @@
 <script>
 import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
-import { computed, getCurrentInstance, inject } from 'vue';
+import { computed, inject } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   name: 'Tab',
@@ -69,8 +71,8 @@ export default {
 
   setup(props) {
     const select = inject('select');
-    const instance = getCurrentInstance();
-    const t = instance?.proxy?.$store?.getters?.['i18n/t'];
+    const store = useStore();
+    const { t } = useI18n(store);
     const label = computed(() => {
       if (props.labelKey && typeof t === 'function') {
         return t(props.labelKey);

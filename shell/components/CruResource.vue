@@ -14,6 +14,7 @@ import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@she
 
 import { useFormSummary } from '@shell/components/TableOfContents/composables';
 import TableOfContents from '@shell/components/TableOfContents/TableOfContents.vue';
+import { useTemplateRef } from 'vue';
 
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
@@ -176,7 +177,7 @@ export default {
   },
 
   setup() {
-    const { locateComponentsByNamePattern } = useFormSummary();
+    const { locateComponentsByNamePattern } = useFormSummary('cru-form');
     const accordions = locateComponentsByNamePattern();
 
     return { accordions };
@@ -610,6 +611,7 @@ export default {
 
 <template>
   <section
+    ref="cru-form"
     :class="{'show-toc':showToc}"
     class="cru"
   >
@@ -622,6 +624,7 @@ export default {
     </p>
     <component
       :is="(isView? 'div' : 'form')"
+
       :value="resource"
       data-testid="cru-form"
       class="create-resource-container cru__form"

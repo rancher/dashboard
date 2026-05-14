@@ -1,9 +1,10 @@
 <script lang="ts">
 import {
-  computed, defineComponent, getCurrentInstance, nextTick, ref
+  computed, defineComponent, nextTick, ref, useTemplateRef
 } from 'vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default defineComponent({
   name: 'Accordion',
@@ -26,23 +27,21 @@ export default defineComponent({
   },
 
   setup(props) {
-    const instance = getCurrentInstance();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const t = (instance?.proxy as any)?.$store?.getters?.['i18n/t'] as ((key: string) => string) | undefined;
+    const store = useStore();
+    const { t } = useI18n(store);
     const label = computed(() => props.titleKey && typeof t === 'function' ? t(props.titleKey) : props.title);
 
     const isOpen = ref(props.openInitially);
+    const accordionScrollContainer = useTemplateRef<HTMLElement>('accordion-scroll-container');
 
     const scrollTo = () => {
       isOpen.value = true;
       nextTick(() => {
-        const el = instance?.proxy?.$el as HTMLElement | undefined;
-
-        el?.scrollIntoView(true);
+        accordionScrollContainer.value?.scrollIntoView();
       });
     };
 
-    const { summary } = useInSummary({ scrollTo, label });
+    const { summary } = useInSummary( { scrollTo, label });
 
     return {
       summary,
@@ -73,6 +72,7 @@ export default defineComponent({
 
 <template>
   <div
+    ref="accordion-scroll-container"
     class="accordion-container"
   >
     <div

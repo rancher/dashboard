@@ -1,12 +1,12 @@
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 import {
-  computed, getCurrentInstance, inject, onMounted, onUnmounted, provide, ref, watch
+  computed, getCurrentInstance, inject, onMounted, onUnmounted, provide, ref, useTemplateRef, watch
 } from 'vue';
 import type {
-  ComponentInternalInstance,
   ComponentPublicInstance,
   ComputedRef,
+  Ref,
   VNode
 } from 'vue';
 
@@ -62,13 +62,11 @@ const FORM_SUMMARY_KEY = Symbol('formSummary');
  * that may have interactable elements deeply nested in child components. The list of located components
  * returned by locateComponentsByNamePattern includes access to the component instance and a scrollTo method.
  */
-export function useFormSummary() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const root = getCurrentInstance() as any; // get around issue typing root.proxy.$store
+export function useFormSummary(rootComponentRefKey: string) {
+  let rootComponentRef: Readonly<Ref<HTMLElement | null>> | undefined;
 
   const registeredComponents = ref<Record<string, SummaryComponent>>({});
   const locatedComponents = ref<SummaryEntry[]>([]);
-
   const buildTree = (
     components: SummaryEntry[] = [],
     node?: any,
@@ -109,14 +107,24 @@ export function useFormSummary() {
   };
 
   const locateRegisteredComponents = () => {
-    const parent = root?.parent as ComponentInternalInstance | null | undefined;
-
-    locatedComponents.value = buildTree([], parent?.vnode) || [];
+    if (rootComponentRef?.value) {
+      locatedComponents.value = buildTree([], rootComponentRef.value) || [];
+    } else {
+      locatedComponents.value = [];
+    }
   };
 
   // when forms initially this is called synchonously by every component using the summary composable
   // debounce without a delay reduces that to one call on initial page load
   const debouncedLocateRegisteredComponents = debounce(locateRegisteredComponents);
+
+  // onMounted fires on the calling component (CruResource) after its template refs are
+  // populated and after all children have run their own onMounted hooks. This guarantees
+  // rootComponentRef is available and all child registrations have arrived.
+  onMounted(() => {
+    rootComponentRef = useTemplateRef(rootComponentRefKey);
+    debouncedLocateRegisteredComponents();
+  });
 
   const findParent = (component: SummaryComponent) => {
     const walk = (entries: SummaryEntry[] = [], parent: SummaryEntry | null = null): SummaryEntry | null => {
