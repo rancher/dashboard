@@ -11,19 +11,21 @@ import type {
 
 type SummaryInfo = {
   id: string;
-  label?: ComputedRef<string>;
+  label?: ComputedRef<string> | string;
   scrollTo?: () => void;
 };
 
 type SummaryComponent = {
   summary: SummaryInfo;
-  summaryID: String
+  summaryID: String;
+  $options?: { name?: string };
+  $?: { type?: { name?: string } };
 };
 
 type SummaryEntry = {
   node: VNode;
   children: SummaryEntry[];
-  label: string;
+  label?: string | ComputedRef<string>;
   scrollTo?: () => void;
   component?: SummaryComponent;
 };
@@ -171,11 +173,6 @@ export function useFormSummary(rootComponentRefKey: string) {
     if (component?.summary?.scrollTo) {
       component.summary.scrollTo();
     }
-    // if (component.scrollTo) {
-    //   component.scrollTo();
-    // } else if (component?.summary?.scrollTo) {
-    //   component.summary.scrollTo();
-    // }
   };
 
   const registerComponent: RegisterComponent = (component) => {

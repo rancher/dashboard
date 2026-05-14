@@ -175,7 +175,7 @@ export default {
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
-    const tabbedSummarizedContainer = useTemplateRef<HTMLElement>('tabbed-summarized-container');
+    const tabbedSummarizedContainer = useTemplateRef('tabbed-summarized-container');
     const { summary } = useInSummary({
       label:      computed(() => props.title ?? ''),
       scrollTo:   () => tabbedSummarizedContainer.value?.scrollIntoView(true),
