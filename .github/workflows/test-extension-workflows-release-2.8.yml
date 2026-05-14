@@ -52,7 +52,7 @@ jobs:
     permissions:
       actions: write
       contents: read
-      packages: none
+      packages: write
     with:
       registry_target: ghcr.io
       registry_user: ${{ github.actor }}
