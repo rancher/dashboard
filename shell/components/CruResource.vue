@@ -14,7 +14,6 @@ import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@she
 
 import { useFormSummary } from '@shell/components/TableOfContents/composables';
 import TableOfContents from '@shell/components/TableOfContents/TableOfContents.vue';
-import { useTemplateRef } from 'vue';
 
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
