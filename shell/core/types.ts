@@ -4,8 +4,9 @@ import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import type {
   ProductMetadata, ProductSinglePage,
-  StandardProductName, RouteRecordRawWithParams, ProductChildGroup,
-  ProductChildPage, ProductChild
+  StandardProductName, RouteRecordRawWithParams, ProductChild,
+  ProductChildGroup,
+  ProductChildPage
 } from './plugin-types';
 
 // Cluster Provisioning types

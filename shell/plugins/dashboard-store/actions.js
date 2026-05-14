@@ -660,12 +660,8 @@ export default {
     return getters.all(type);
   },
 
-  // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  // opt: @ActionFindArgs
+  // @returns @ActionFindResponse
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {
