@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-ID="$(echo ${TEST_RUN_ID:-`date +%s` } | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
-echo "$ID"
-
 SPEC_ARG=""
 
 # check if script invoke contains any argument. If so, add spec to run
@@ -10,21 +7,17 @@ if [ $# -eq 1 ]; then
   SPEC_ARG="--spec ${1}"
 fi
 
-# Define the command to use (cy2 or cypress)
-# TEST_DISABLE_DASHBOARD: Disable Cypress dashboard using GH repository settings
-# TEST_DISABLE_DASHBOARD_LABEL: Disable Cypress dashboard using PR label `ci/skip-e2e-cypress-dashboard`
-echo "TEST_DISABLE_DASHBOARD: ${TEST_DISABLE_DASHBOARD}"
-echo "TEST_DISABLE_DASHBOARD_LABEL: ${TEST_DISABLE_DASHBOARD_LABEL}"
-if [ "${TEST_DISABLE_DASHBOARD}" = "true" ] || [ "${TEST_DISABLE_DASHBOARD_LABEL}" = "true" ]; then
-  echo "Running Cypress without dashboard"
-  CYPRESS_COMMAND="cypress run ${SPEC_ARG}"
+CYPRESS_GREP_TAGS_ARGS=""
+
+if [ -n "GREP_TAGS" ]; then
+  echo "Running Cypress with grep tags: $GREP_TAGS"
+  CYPRESS_GREP_TAGS_ARGS="--env grepTags=\"$GREP_TAGS\""
 else
-  echo "Running Cypress with Sorry Cypress on dashboard"
-  CYPRESS_COMMAND="cy2 run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --parallel --group \"$GREP_TAGS\""
+  echo "Running Cypress without grep tags"
 fi
 
 # Construct the full command
-E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} --browser chrome"
+E2E_COMMAND="cypress run ${SPEC_ARG} ${CYPRESS_GREP_TAGS_ARGS} --browser chrome"
 
 # Execute the command
 eval $E2E_COMMAND

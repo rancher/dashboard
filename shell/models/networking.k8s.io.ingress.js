@@ -1,5 +1,5 @@
 import { SECRET, SERVICE } from '@shell/config/types';
-import isUrl from 'is-url';
+import { isValidUrl } from '@shell/utils/validators/setting';
 import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -76,8 +76,8 @@ export default class Ingress extends SteveModel {
     const fullPath = this.fullPath(rule, path);
 
     return {
-      // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
-      isUrl:           isUrl(fullPath) && !fullPath.includes('*'),
+      // is-url thinks urls which contain '*' are valid so adding an additional check for '*'
+      isUrl:           isValidUrl(fullPath) && !fullPath.includes('*'),
       pathType:        path.pathType,
       fullPath,
       serviceName,

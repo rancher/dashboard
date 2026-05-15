@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
@@ -8,6 +8,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -114,6 +115,15 @@ export default defineComponent({
     ariaLabel: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * The field name used for vee-validate integration. When provided, the
+     * component registers with a parent vee-validate form context
+     */
+    name: {
+      type:    String,
+      default: null
     }
   },
 
@@ -132,15 +142,27 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
+    const effectiveStatus = computed(() => props.status);
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
       onInput,
       isDisabled,
-      validationMessage,
+      validationMessage: effectiveValidationMessage,
       requiredField,
       isCompact,
+      veeHandleBlur,
+      veeValidate,
+      effectiveStatus,
     };
   },
 
@@ -339,6 +361,11 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      // Mark the field as touched in vee-validate without relying on its
+      // 'validated-only' guard, then run validation unconditionally so
+      // errors surface on the first blur (matching useLabeledFormElement behavior).
+      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeValidate();
     },
 
     escapeHtml
@@ -353,7 +380,7 @@ export default defineComponent({
       focused,
       [mode]: true,
       disabled: isDisabled,
-      [status]: status,
+      [effectiveStatus]: effectiveStatus,
       suffix: hasSuffix,
       'has-clean-tooltip': hasTooltip,
       'compact-input': isCompact,
@@ -389,6 +416,7 @@ export default defineComponent({
         ref="value"
         v-bind="$attrs"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
@@ -410,6 +438,7 @@ export default defineComponent({
         :role="type === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"

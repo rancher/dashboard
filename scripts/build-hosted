@@ -32,3 +32,7 @@ echo "BUILD_HOSTED_DIR=${OUTPUT_DIR}" >> "$ENV_OUTPUT"
 echo "BUILD_HOSTED_LOCATION=${DIR}" >> "$ENV_OUTPUT"
 
 COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=${OUTPUT_DIR} ROUTER_BASE="/dashboard/" RESOURCE_BASE="${BASE}" yarn run build
+
+# Write the version beside the other static files at the root of the build.
+# Strip the leading `v` from tags (e.g. v2.14.0-alpha7 -> 2.14.0-alpha7) to match the old Ember UI format.
+echo "${VERSION#v}" > ${OUTPUT_DIR}/VERSION.txt

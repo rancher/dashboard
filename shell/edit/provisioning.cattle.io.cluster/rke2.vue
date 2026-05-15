@@ -174,7 +174,7 @@ export default {
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
 
-      this.set(this.userChartValues, key, value);
+      this.userChartValues[key] = value;
     });
     this.setAgentConfiguration();
   },
@@ -298,6 +298,7 @@ export default {
       isEmpty,
       AGENT_CONFIGURATION_TYPES,
       basicsValid:                              true,
+      registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
     };
   },
@@ -529,6 +530,7 @@ export default {
     },
 
     hasMachinePools() {
+      console.log(this.provider, this.value);
       if (this.provider === 'custom' || this.provider === 'import') {
         return false;
       }
@@ -589,9 +591,15 @@ export default {
       // If this is an extension provider then the extension can provide the schema
       const extensionSchema = this.extensionProvider?.machineConfigSchema;
 
+      // eslint-disable-next-line no-console
+      console.log('machineConfigSchema: input', this.provider, this.hasMachinePools, this.isElementalCluster, schema, typeof extensionSchema, extensionSchema?.id);
+
       if (extensionSchema) {
         // machineConfigSchema can either be the schema name (string) or the schema itself (object)
         if (typeof extensionSchema === 'object') {
+          // eslint-disable-next-line no-console
+          console.log('machineConfigSchema: using extension object schema', this.provider, extensionSchema?.id);
+
           return extensionSchema;
         }
 
@@ -932,7 +940,8 @@ export default {
       return this.validationPassed &&
             this.fvFormIsValid &&
             this.etcdConfigValid &&
-            this.basicsValid;
+            this.basicsValid &&
+            this.registryConfigValid;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -2586,14 +2595,14 @@ export default {
           >
             <template
               v-for="(obj, idx) in machinePools"
-              :key="idx"
+              :key="obj.id"
             >
               <Tab
                 v-if="!obj.remove"
                 :key="obj.id"
                 :weight="-1 * idx"
                 :name="obj.id"
-                :label="obj.pool.name || '(Not Named)'"
+                :label="obj.pool.name || t('cluster.machinePool.name.notNamed')"
                 :show-header="false"
                 :error="!machinePoolValidation[obj.id]"
               >
@@ -2756,6 +2765,7 @@ export default {
           <Tab
             :name="REGISTRIES_TAB_NAME"
             label-key="cluster.tabs.registry"
+            :error="!registryConfigValid"
           >
             <Registries
               v-if="isActiveTabRegistries"
@@ -2771,6 +2781,7 @@ export default {
               @custom-registry-changed="toggleCustomRegistry"
               @registry-host-changed="handleRegistryHostChanged"
               @registry-secret-changed="handleRegistrySecretChanged"
+              @registry-validation-changed="(val) => registryConfigValid = val"
             />
           </Tab>
 

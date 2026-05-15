@@ -1,30 +1,54 @@
 import { CATALOG } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import {
   state, getters, actions, mutations, filterAndArrangeCharts
 } from '../catalog';
 import { createStore } from 'vuex';
 
 const clusterRepo = { _key: 'testClusterRepo' };
-const repoChartName = 'abc';
+const repoChartName = 'regular-chart';
 const repoChart = {
   name:     repoChartName,
   type:     'namespaced',
   version:  1,
   metadata: { name: repoChartName }
 };
-const repoCharts = [repoChart];
+const deprecatedByFieldChartName = 'deprecated-by-field-chart';
+const deprecatedByFieldChart = {
+  name:       deprecatedByFieldChartName,
+  type:       'namespaced',
+  version:    1,
+  deprecated: true,
+  metadata:   { name: deprecatedByFieldChartName }
+};
+const deprecatedByAnnotationChartName = 'deprecated-by-annotation-chart';
+const deprecatedByAnnotationChart = {
+  name:        deprecatedByAnnotationChartName,
+  type:        'namespaced',
+  version:     1,
+  annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' },
+  metadata:    { name: deprecatedByAnnotationChartName }
+};
 const repo = {
   metadata:   { name: 'testRepo' },
   _key:       'testRepo',
   links:      { index: 'fetchindex' },
   canLoad:    true,
-  followLink: () => ({ entries: { [repoChartName]: repoCharts } })
+  followLink: () => ({
+    entries: {
+      [repoChartName]:                   [repoChart],
+      [deprecatedByFieldChartName]:      [deprecatedByFieldChart],
+      [deprecatedByAnnotationChartName]: [deprecatedByAnnotationChart]
+    }
+  })
 };
 
 const catalogStoreName = 'catalog';
 const clusterStore = 'cluster';
 
 const expectedChartKey = `namespace/${ repo._key }/${ repoChartName }`;
+const expectedDeprecatedByFieldChartKey = `namespace/${ repo._key }/${ deprecatedByFieldChartName }`;
+const expectedDeprecatedByAnnotationChartKey = `namespace/${ repo._key }/${ deprecatedByAnnotationChartName }`;
 const initialVersionInfo = { junk: true };
 const initialRawChartName = 'cde';
 const initialRawChart = {
@@ -160,10 +184,20 @@ describe('catalog', () => {
       expect(rawCharts[expectedChartKey]).toBeDefined();
       expect(rawCharts[expectedChartKey].id).toBe(expectedChartKey);
       expect(rawCharts[expectedChartKey].versions[0].version).toBe(repoChart.version);
-      expect(charts[0]).toBeDefined();
-      expect(charts[0].id).toBe(initialRawChart.id);
-      expect(charts[1]).toBeDefined();
-      expect(charts[1].id).toBe(expectedChartKey);
+
+      expect(rawCharts[expectedDeprecatedByFieldChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].id).toBe(expectedDeprecatedByFieldChartKey);
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].deprecated).toBe(true);
+
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].id).toBe(expectedDeprecatedByAnnotationChartKey);
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].deprecated).toBe(true);
+
+      expect(charts).toHaveLength(4);
+      expect(charts.find((c: any) => c.id === initialRawChart.id)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByFieldChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByAnnotationChartKey)).toBeDefined();
 
       // Version info should be unchanged
       expect(store.state[catalogStoreName].versionInfos).toStrictEqual(initialVersionInfo);
@@ -197,13 +231,129 @@ describe('catalog', () => {
       expect(rawCharts[expectedChartKey].id).toBe(expectedChartKey);
       expect(rawCharts[expectedChartKey].versions[0].version).toBe(repoChart.version);
 
-      expect(charts).toHaveLength(1);
-      expect(charts[0]).toBeDefined();
-      expect(charts[0].id).toBe(expectedChartKey);
-      expect(charts[0].versions[0].version).toBe(repoChart.version);
+      expect(rawCharts[expectedDeprecatedByFieldChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].id).toBe(expectedDeprecatedByFieldChartKey);
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].deprecated).toBe(true);
+
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].id).toBe(expectedDeprecatedByAnnotationChartKey);
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].deprecated).toBe(true);
+
+      expect(charts).toHaveLength(3);
+      expect(charts.find((c: any) => c.id === expectedChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByFieldChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByAnnotationChartKey)).toBeDefined();
 
       // Version info should be changed (it's now empty given reset)
       expect(store.state[catalogStoreName].versionInfos).toStrictEqual({ });
+    });
+
+    it('repoKeys provided', async() => {
+      const store = createStore(constructStore());
+
+      // Validate initial state of store
+      expect(store.getters[`${ catalogStoreName }/rawCharts`]).toStrictEqual(initialRawCharts);
+      expect(store.getters[`${ catalogStoreName }/charts`]).toStrictEqual([]);
+
+      // Make the request targeting specific repo (we provide repo._key)
+      await store.dispatch(`${ catalogStoreName }/load`, {
+        force:    true,
+        repoKeys: [repo._key]
+      });
+
+      const rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
+      const charts = store.getters[`${ catalogStoreName }/charts`];
+
+      // We expect the old chart belonging to this repo to be wiped out
+      // and replaced entirely by the newly fetched chart.
+      expect(rawCharts[initialRawChart.id]).not.toBeDefined();
+      expect(rawCharts[expectedChartKey]).toBeDefined();
+      expect(rawCharts[expectedChartKey].id).toBe(expectedChartKey);
+      expect(rawCharts[expectedChartKey].versions[0].version).toBe(repoChart.version);
+
+      expect(rawCharts[expectedDeprecatedByFieldChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].id).toBe(expectedDeprecatedByFieldChartKey);
+      expect(rawCharts[expectedDeprecatedByFieldChartKey].deprecated).toBe(true);
+
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].id).toBe(expectedDeprecatedByAnnotationChartKey);
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey].deprecated).toBe(true);
+
+      expect(charts).toHaveLength(3);
+      expect(charts.find((c: any) => c.id === expectedChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByFieldChartKey)).toBeDefined();
+      expect(charts.find((c: any) => c.id === expectedDeprecatedByAnnotationChartKey)).toBeDefined();
+    });
+
+    it('repoKeys provided, ignoring unrelated charts and versions', async() => {
+      // We will manually inject an unrelated chart to prove it isn't wiped out
+      const store = createStore(constructStore());
+      const unrelatedChart = {
+        id:       `namespace/unrelatedRepo/unrelatedChart`,
+        repoKey:  'unrelatedRepo',
+        type:     'namespaced',
+        name:     'unrelatedChart',
+        version:  1,
+        metadata: { name: 'unrelatedChart' }
+      };
+
+      const targetedVersionKey = `namespace/testRepo/myChart/1.0.0`;
+      const unrelatedVersionKey = `namespace/unrelatedRepo/unrelatedChart/1.0.0`;
+
+      store.state[catalogStoreName].charts = {
+        ...initialRawCharts,
+        [unrelatedChart.id]: unrelatedChart
+      };
+
+      store.state[catalogStoreName].versionInfos = {
+        [targetedVersionKey]:  { data: 'old-data' },
+        [unrelatedVersionKey]: { data: 'keep-me' }
+      };
+
+      // Make the request targeting specific repo
+      await store.dispatch(`${ catalogStoreName }/load`, {
+        force:    true,
+        repoKeys: [repo._key]
+      });
+
+      const rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
+      const versionInfos = store.state[catalogStoreName].versionInfos;
+
+      // The unrelated chart should NOT be wiped
+      expect(rawCharts[unrelatedChart.id]).toBeDefined();
+      expect(rawCharts[unrelatedChart.id].repoKey).toBe('unrelatedRepo');
+
+      // The old initialRawChart (with repoKey: repo._key) SHOULD be wiped and replaced
+      expect(rawCharts[initialRawChart.id]).not.toBeDefined();
+      expect(rawCharts[expectedChartKey]).toBeDefined();
+
+      expect(rawCharts[expectedDeprecatedByFieldChartKey]).toBeDefined();
+      expect(rawCharts[expectedDeprecatedByAnnotationChartKey]).toBeDefined();
+
+      // The targeted version info SHOULD be wiped
+      expect(versionInfos[targetedVersionKey]).not.toBeDefined();
+      // The unrelated version info should NOT be wiped
+      expect(versionInfos[unrelatedVersionKey]).toBeDefined();
+      expect(versionInfos[unrelatedVersionKey].data).toBe('keep-me');
+    });
+  });
+
+  describe('refresh', () => {
+    it('calls refresh(false) on all repos and then dispatches a reset load', async() => {
+      const mockRepo1 = { refresh: jest.fn().mockResolvedValue(true) };
+      const mockRepo2 = { refresh: jest.fn().mockResolvedValue(true) };
+
+      const getters = { repos: [mockRepo1, mockRepo2] };
+      const dispatch = jest.fn().mockResolvedValue(true);
+      const commit = jest.fn();
+
+      await actions.refresh({
+        getters, commit, dispatch
+      });
+
+      expect(mockRepo1.refresh).toHaveBeenCalledWith(false);
+      expect(mockRepo2.refresh).toHaveBeenCalledWith(false);
+      expect(dispatch).toHaveBeenCalledWith('load', { force: true, reset: true });
     });
   });
 

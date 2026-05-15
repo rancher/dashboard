@@ -205,12 +205,6 @@ export default {
       };
     },
 
-    canCreateCluster() {
-      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
-
-      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
-    },
-
     rows() {
       return this.hciClusters
         .filter((c) => {
@@ -402,7 +396,7 @@ export default {
         </template>
 
         <template
-          v-if="canCreateCluster"
+          v-if="canCreateAndManageCluster"
           #extraActions
         >
           <router-link
@@ -445,7 +439,7 @@ export default {
         <template #cell:harvester="{row}">
           <button
             class="btn btn-sm role-primary"
-            :disabled="!row.isSupportedHarvester"
+            :disabled="!row.isSupportedHarvester || !row.canCreateAndManageCluster"
             @click="$router.push(row.detailLocation)"
           >
             {{ t('harvesterManager.manage') }}

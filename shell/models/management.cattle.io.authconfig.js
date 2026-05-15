@@ -21,7 +21,11 @@ export const configType = {
   cognito:         'oidc',
 };
 
-const imageOverrides = { keycloakoidc: 'keycloak', genericoidc: 'openid' };
+const imageOverrides = {
+  azuread:      'entraid',
+  keycloakoidc: 'keycloak',
+  genericoidc:  'openid',
+};
 
 export default class AuthConfig extends SteveModel {
   get _availableActions() {

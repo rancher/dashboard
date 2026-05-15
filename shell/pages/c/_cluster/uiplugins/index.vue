@@ -5,7 +5,8 @@ import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { isMissingDate } from '@shell/utils/time';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
@@ -896,18 +897,12 @@ export default {
         label:       plugin.displayVersionLabel,
       }];
 
-      if (plugin.created) {
-        const hasZeroTime = plugin.created === ZERO_TIME;
-        const lastUpdatedItem = {
+      if (!isMissingDate(plugin.created)) {
+        items.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
-        };
-
-        if (hasZeroTime) {
-          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
-        }
-        items.push(lastUpdatedItem);
+          label:       day(plugin.created).format('MMM D, YYYY')
+        });
       }
 
       if (plugin.installing) {
@@ -989,24 +984,27 @@ export default {
     getStatuses(plugin) {
       const statuses = [];
 
-      const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
-      const isDeprecated = plugin?.chart?.deprecated;
+      const errorMsg = plugin.installedError || (plugin.helmError ? this.t('plugins.helmError') : null);
+      const incompatibilityMsg = plugin.incompatibilityMessage;
+      const isDeprecated = uiPluginHasAnnotation(plugin?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
 
-      if (isDeprecated || errorTooltip) {
-        let tooltip;
+      const tooltipMsgs = [];
 
-        if (isDeprecated && errorTooltip) {
-          tooltip = { text: `${ this.t('generic.deprecated') }. ${ this.t('generic.error') }: ${ errorTooltip }` };
-        } else if (isDeprecated) {
-          tooltip = { key: 'generic.deprecated' };
-        } else { // errorTooltip is present
-          tooltip = { text: `${ this.t('generic.error') }: ${ errorTooltip }` };
-        }
+      if (isDeprecated) {
+        tooltipMsgs.push(this.t('generic.deprecated'));
+      }
 
+      if (errorMsg) {
+        tooltipMsgs.push(errorMsg);
+      } else if (incompatibilityMsg) {
+        tooltipMsgs.push(incompatibilityMsg);
+      }
+
+      if (tooltipMsgs.length) {
         statuses.push({
-          icon:  'icon-alert-alt',
-          color: 'error',
-          tooltip
+          icon:    'icon-alert-alt',
+          color:   'error',
+          tooltip: { text: tooltipMsgs.join('<br/>') }
         });
       }
 

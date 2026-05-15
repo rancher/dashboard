@@ -23,7 +23,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('.controls-steps .btn.variant-primary');
 
     btn.click(true);
 
@@ -54,6 +54,10 @@ export class InstallChartPage extends PagePo {
     this.self().get('[data-testid="btn-group-options-view"]').contains('Edit YAML').click();
 
     return this;
+  }
+
+  footerControls() {
+    return cy.get('#wizard-footer-controls');
   }
 
   chartName() {

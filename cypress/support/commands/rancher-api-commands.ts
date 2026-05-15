@@ -3,6 +3,7 @@ import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2Cluste
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { base64Encode } from '@shell/utils/crypto/index.js';
 
 // This file contains commands which makes API requests to the rancher API.
@@ -652,6 +653,30 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
 });
 
 /**
+ * Wait for an intercepted request to complete with the expected status code.
+ * If the response is a 409 Conflict (or another retryable status), waits for one automatic retry before asserting success.
+ */
+Cypress.Commands.add('waitForInterceptWithConflictRetry', (alias: string, successStatusCode = 200, retryStatusCodes = [409], options = MEDIUM_TIMEOUT_OPT) => {
+  return cy.wait(alias).then((interception) => {
+    const statusCode = interception.response?.statusCode;
+
+    if (statusCode === successStatusCode) {
+      return cy.wrap(interception);
+    }
+
+    if (statusCode && retryStatusCodes.includes(statusCode)) {
+      return cy.wait(alias, options);
+    }
+
+    return cy.wrap(interception);
+  }).then((interception) => {
+    expect(interception.response?.statusCode).to.eq(successStatusCode);
+
+    return interception;
+  });
+});
+
+/**
  * Wait for repository to be downloaded and ready
  */
 Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourceId, retries = 20) => {
@@ -666,12 +691,17 @@ Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourc
 /**
  * Wait for repository to be state
  */
-Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20) => {
+Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20, failOnStatusCode = false) => {
   return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
+    // The resource may not exist yet (404) right after creation or update, so we should return false to retry instead of failing immediately
+    if (resp.status === 404) {
+      return false;
+    }
+
     const state = resp.body.metadata?.state;
 
     return state && state.transitioning === false && state.name === resourceState;
-  }, retries);
+  }, retries, { failOnStatusCode });
 });
 
 /**
@@ -1228,7 +1258,8 @@ Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, cluste
 });
 
 // Update the user preferences by over-writing the given preference
-Cypress.Commands.add('setUserPreference', (prefs: any) => {
+// If verify is true, the command will wait for the preferences to be updated and verify that the values are correct
+Cypress.Commands.add('setUserPreference', (prefs: any, verify = false, retries = 5) => {
   return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
     const update = resp.body.data[0];
 
@@ -1239,7 +1270,27 @@ Cypress.Commands.add('setUserPreference', (prefs: any) => {
 
     delete update.links;
 
-    return cy.setRancherResource('v1', 'userpreferences', update.id, update);
+    return cy.setRancherResource('v1', 'userpreferences', update.id, update)
+      .then((putResp: Cypress.Response<any>) => {
+        if (!verify) {
+          return putResp;
+        }
+
+        return cy.waitForRancherResource('v1', 'userpreferences', update.id, (getResp: any) => {
+          const responseData = getResp?.body?.data ?? getResp?.body ?? {};
+
+          return Object.entries(prefs).every(([key, value]) => {
+            const actual = responseData[key];
+
+            return String(actual) === String(value);
+          });
+        }, retries)
+          .then((success) => {
+            const msg = success ? `Successfully verified preferences ${ JSON.stringify(prefs) }` : `Failed to verify preferences ${ JSON.stringify(prefs) } after ${ retries } retries (non-fatal)`;
+
+            return cy.log(`setUserPreference: ${ msg }`).then(() => putResp);
+          });
+      });
   });
 });
 
@@ -1471,3 +1522,164 @@ Cypress.Commands.add('restoreProductDefaultTestTheme', () => {
       });
   });
 });
+const CATALOG_TYPE = 'catalog.cattle.io/type';
+const CLUSTER_TOOL = 'cluster-tool';
+const EXPERIMENTAL = 'catalog.cattle.io/experimental';
+
+/**
+ * Returns the expected number of cluster tool charts for the cluster tools page.
+ * Counts charts from the filtered rancher-charts index that have the cluster-tool type,
+ * are not experimental, and are not deprecated (matching the UI's filterAndArrangeCharts logic).
+ */
+Cypress.Commands.add('getClusterToolsChartCount', (repoName = 'rancher-charts') => {
+  const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repoName }`;
+
+  const headers = {
+    'x-api-csrf': token.value,
+    Accept:       'application/json',
+  };
+
+  return cy.request({
+    method: 'GET',
+    url:    `${ baseUrl }?link=index`,
+    headers,
+  }).then((resp) => {
+    const entries = resp.body?.entries || {};
+    let count = 0;
+
+    for (const [, versions] of Object.entries(entries)) {
+      const chart = Array.isArray(versions) ? versions[0] : versions;
+
+      if (!chart?.annotations) {
+        continue;
+      }
+
+      const isClusterTool = chart.annotations[CATALOG_TYPE] === CLUSTER_TOOL;
+      const isExperimental = !!chart.annotations[EXPERIMENTAL];
+      const isDeprecated = !!chart.deprecated;
+
+      if (isClusterTool && !isExperimental && !isDeprecated) {
+        count++;
+      }
+    }
+
+    return count;
+  });
+});
+
+/**
+ * Checks whether a chart is present in the filtered catalog index (what the UI uses).
+ *
+ * `link=index` => Rancher applies catalog filtering based on chart annotations/constraints
+ * `skipFilter=true` => bypasses Rancher filtering so we can confirm the chart exists in the index at all.
+ */
+Cypress.Commands.add('checkChartPresence', (repoName: string, chartKey: string) => {
+  const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repoName }`;
+
+  const headers = {
+    'x-api-csrf': token.value,
+    Accept:       'application/json',
+  };
+
+  return cy.request({
+    method: 'GET',
+    url:    `${ baseUrl }?link=index`,
+    headers,
+  }).then((filteredResp) => {
+    const inFiltered = Boolean(filteredResp.body?.entries?.[chartKey]);
+
+    return cy.request({
+      method: 'GET',
+      url:    `${ baseUrl }?link=index&skipFilter=true`,
+      headers,
+    }).then((unfilteredResp) => {
+      const inUnfiltered = Boolean(unfilteredResp.body?.entries?.[chartKey]);
+
+      return { inFiltered, inUnfiltered };
+    });
+  });
+});
+
+/**
+ * Get the list of available versions for a chart from the filtered catalog index for a given repo.
+ * Versions are returned in the order Rancher reports them (newest first).
+ * Callers can pick whichever version they need (e.g. `versions[0]` for latest).
+ */
+Cypress.Commands.add('getChartVersions', (repo: string, chartId: string) => {
+  const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repo }`;
+
+  const headers = {
+    'x-api-csrf': token.value,
+    Accept:       'application/json',
+  };
+
+  return cy.request({
+    method: 'GET',
+    url:    `${ baseUrl }?link=index`,
+    headers,
+  }).then((resp) => {
+    const versions = resp.body?.entries?.[chartId];
+
+    return versions.map((v: any) => v.version as string);
+  });
+});
+
+/**
+ * Install a Helm chart via the Rancher API (bypassing the install wizard UI).
+ * Useful for test setup where the install flow itself is not under test.
+ */
+Cypress.Commands.add('installChart', (repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string) => {
+  return cy.createRancherResource('v1', `catalog.cattle.io.clusterrepos/${ repo }?action=install`, {
+    charts: [
+      {
+        chartName:   chartId,
+        version:     chartVersion,
+        releaseName: chartId,
+        description: chartName,
+        annotations: {
+          'catalog.cattle.io/ui-source-repo-type': 'cluster',
+          'catalog.cattle.io/ui-source-repo':      repo
+        },
+        values: {}
+      }
+    ],
+    noHooks:                  false,
+    timeout:                  '1000s',
+    wait:                     true,
+    namespace,
+    projectId:                '',
+    disableOpenAPIValidation: false,
+    skipCRDs:                 false,
+  });
+});
+
+/**
+ * Runs `callback` when `chartKey` is present in the filtered catalog index (the list the Charts UI uses).
+ * Throws error if the chart is missing from the unfiltered index — that points to catalog publish or sync, not compatibility filtering.
+ * If the chart is in the unfiltered index but not the filtered index, skips when Cypress env `allowFilteredCatalogSkip`
+ * is enabled; otherwise throws error.
+ */
+export function runTestWhenChartAvailable(
+  repo: string,
+  chartKey: string,
+  mochaContext: { skip: () => void },
+  callback: () => void
+) {
+  cy.checkChartPresence(repo, chartKey).then(({ inFiltered, inUnfiltered }) => {
+    if (!inUnfiltered) {
+      throw new Error(`Chart '${ chartKey }' is missing from the unfiltered catalog index. This looks like a publishing/sync issue, not due to version compatibility filtering.`);
+    }
+
+    if (!inFiltered) {
+      if (String(Cypress.env('allowFilteredCatalogSkip')).toLowerCase() === 'true') {
+        cy.log(`Skipping: chart '${ chartKey }' is intentionally hidden from the filtered catalog index`);
+
+        return mochaContext.skip();
+      }
+
+      throw new Error(`Failing: chart '${ chartKey }' is not in the filtered catalog index, so it does not appear in the Charts/Tools UI for this environment.`);
+    }
+
+    callback();
+  });
+}

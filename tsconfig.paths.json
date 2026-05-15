@@ -1,11 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "~/*": [
-        "*"
-      ],
-      "@/*": [
-        "*"
+      "@components/*": [
+        "pkg/rancher-components/src/components/*"
       ],
       "@shell/*": [
         "shell/*"
@@ -13,8 +10,11 @@
       "@pkg/*": [
         "shell/pkg/*"
       ],
-      "@components/*": [
-        "pkg/rancher-components/src/components/*"
+      "~/*": [
+        "*"
+      ],
+      "@/*": [
+        "*"
       ]
     },
   },
