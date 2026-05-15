@@ -97,6 +97,12 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 const REGISTRIES_TAB_NAME = 'registry';
 
+/**
+ * API group used by native upstream CAPI infrastructure providers
+ * (e.g. CAPV, CAPA, CAPZ) as opposed to the CAPR rancher-machine group.
+ */
+const UPSTREAM_CAPI_MACHINE_CONFIG_GROUP = 'infrastructure.cluster.x-k8s.io';
+
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
@@ -494,6 +500,17 @@ export default {
         return false;
       }
 
+      // Upstream CAPI providers use their own identity mechanisms
+      // (e.g. VSphereClusterIdentity, AWSClusterRoleIdentity) instead of Rancher cloud credentials.
+      // The extension can still explicitly opt-in to cloud credentials via cloudCredentialsOverride.
+      if (this.isUpstreamCAPIProvider) {
+        if (this.cloudCredentialsOverride === true || this.cloudCredentialsOverride === false) {
+          return this.cloudCredentialsOverride;
+        }
+
+        return false;
+      }
+
       // Check provider specific config
       if (this.cloudCredentialsOverride === true || this.cloudCredentialsOverride === false) {
         return this.cloudCredentialsOverride;
@@ -561,6 +578,24 @@ export default {
      */
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
+    },
+
+    /**
+     * True when the provider is a native upstream CAPI infrastructure provider
+     * (e.g. CAPV, CAPA, CAPZ) rather than CAPR's rancher-machine based implementation.
+     *
+     * Extension providers can explicitly declare this by setting `isUpstreamCAPIProvider = true`
+     * on the provisioner class.  It is also detected automatically when the machineConfigSchema
+     * belongs to the upstream CAPI infrastructure API group (infrastructure.cluster.x-k8s.io).
+     */
+    isUpstreamCAPIProvider() {
+      // Prefer an explicit declaration from the extension provisioner
+      if (this.extensionProvider?.isUpstreamCAPIProvider !== undefined) {
+        return !!this.extensionProvider.isUpstreamCAPIProvider;
+      }
+
+      // Fall back to detecting the API group of the machine config schema
+      return this.machineConfigSchema?.attributes?.group === UPSTREAM_CAPI_MACHINE_CONFIG_GROUP;
     },
 
     machineConfigSchema() {
@@ -944,7 +979,11 @@ export default {
 
     credentialId(val) {
       if (val) {
-        this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
+        // Upstream CAPI providers manage identity via their own CRDs; they do not use
+        // Rancher's NORMAN cloud credential store.
+        if (!this.isUpstreamCAPIProvider) {
+          this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
+        }
 
         if (this.isHarvesterDriver) {
           this.setHarvesterVersionRange();
@@ -953,7 +992,10 @@ export default {
         this.credential = null;
       }
 
-      this.value.spec.cloudCredentialSecretName = val;
+      // Upstream CAPI providers do not reference a Rancher cloudCredentialSecretName.
+      if (!this.isUpstreamCAPIProvider) {
+        this.value.spec.cloudCredentialSecretName = val;
+      }
     },
 
     addonNames(neu, old) {
@@ -1034,10 +1076,18 @@ export default {
     set,
 
     async handleVsphereCpiSecret() {
+      if (this.isUpstreamCAPIProvider) {
+        return;
+      }
+
       return VsphereUtils.handleVsphereCpiSecret(this);
     },
 
     async handleVsphereCsiSecret() {
+      if (this.isUpstreamCAPIProvider) {
+        return;
+      }
+
       return VsphereUtils.handleVsphereCsiSecret(this);
     },
 
@@ -1057,7 +1107,7 @@ export default {
         this.value.spec.machineSelectorConfig.unshift({ config: {} });
       }
 
-      if (this.value.spec.cloudCredentialSecretName) {
+      if (this.value.spec.cloudCredentialSecretName && !this.isUpstreamCAPIProvider) {
         await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
         this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
       }
@@ -1281,6 +1331,13 @@ export default {
 
           if (this.isElementalCluster) {
             type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else if (pool.machineConfigRef?.apiVersion) {
+            // Upstream CAPI providers (and Elemental-style refs) store an explicit apiVersion
+            // in machineConfigRef.  Derive the management store type from the group portion
+            // of that apiVersion combined with the resource kind.
+            const [group] = (pool.machineConfigRef.apiVersion || '').split('/');
+
+            type = `${ group }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           } else {
             type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           }
@@ -1388,6 +1445,16 @@ export default {
 
       if (this.isElementalCluster) {
         pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
+      // Upstream CAPI MachineTemplate resources are referenced by full apiVersion so that
+      // initMachinePools can resolve the correct management store type on subsequent loads.
+      if (this.isUpstreamCAPIProvider && this.machineConfigSchema?.attributes) {
+        const { group, version } = this.machineConfigSchema.attributes;
+
+        if (group && version) {
+          pool.pool.machineConfigRef.apiVersion = `${ group }/${ version }`;
+        }
       }
 
       this.machinePools.push(pool);
@@ -1538,6 +1605,11 @@ export default {
     },
 
     async cleanupMachinePools() {
+      // Allow the extension provider to handle its own resource cleanup
+      if (this.extensionProvider?.cleanupMachinePools) {
+        return await this.extensionProvider.cleanupMachinePools(this.machinePools);
+      }
+
       for (const entry of this.machinePools) {
         if (entry.remove && entry.config) {
           try {
@@ -1776,7 +1848,7 @@ export default {
     async setHarvesterChartValues() {
       const isHarvester = this.agentConfig?.['cloud-provider-name'] === HARVESTER;
 
-      if (!isHarvester) {
+      if (!isHarvester || this.isUpstreamCAPIProvider) {
         return;
       }
       try {
@@ -2349,7 +2421,9 @@ export default {
       if (this.errors) {
         clear(this.errors);
       }
-      if (this.value.cloudProvider === 'aws') {
+      // The IAM instance profile requirement is specific to CAPR (rancher-machine) AWS provisioning.
+      // Upstream CAPI providers on AWS use their own identity mechanisms and do not share this constraint.
+      if (!this.isUpstreamCAPIProvider && this.value.cloudProvider === 'aws') {
         const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
 
         if (missingProfileName) {
@@ -2358,7 +2432,7 @@ export default {
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
-        if (typeof this.$refs.pool[index]?.test === 'function') {
+        if (typeof this.$refs.pool?.[index]?.test === 'function') {
           try {
             const res = await this.$refs.pool[index].test();
 
@@ -2416,6 +2490,12 @@ export default {
       >
         <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
+      <Banner
+        v-if="isUpstreamCAPIProvider"
+        color="info"
+        :label="t('cluster.banner.upstreamCAPIProvider')"
+        data-testid="upstream-capi-provider-banner"
+      />
     </div>
     <AccountAccess
       v-if="!isAuthenticated"

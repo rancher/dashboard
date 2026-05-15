@@ -2307,6 +2307,7 @@ cluster:
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
     nginxDeprecated: The NGINX controller is deprecated and will be removed in upcoming versions
+    upstreamCAPIProvider: 'This cluster uses a native upstream CAPI infrastructure provider. Machine infrastructure is managed directly by the CAPI provider controllers rather than by Rancher machine drivers.'
   rke1Unsupported: RKE1 Clusters are no longer supported
 
   architecture:

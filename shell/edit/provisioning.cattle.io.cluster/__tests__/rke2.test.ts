@@ -806,4 +806,346 @@ describe('component: rke2', () => {
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
   });
+
+  describe('upstream CAPI infrastructure provider support', () => {
+    const createUpstreamCAPIWrapper = (extensionProviderOverrides = {}, schemaAttributes = {}) => {
+      const machineConfigSchema = Object.keys(schemaAttributes).length ? {
+        id:         'infrastructure.cluster.x-k8s.io.vspheremachinetemplate',
+        attributes: {
+          group:   'infrastructure.cluster.x-k8s.io',
+          version: 'v1beta1',
+          kind:    'VSphereMachineTemplate',
+          ...schemaAttributes
+        }
+      } : null;
+
+      return shallowMount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec: {
+              ...defaultSpec,
+              kubernetesVersion: 'v1.25.0+rke2r1',
+            },
+            agentConfig: { 'cloud-provider-name': '' }
+          },
+          provider: 'capv',
+        },
+        computed: {
+          ...rke2.computed,
+          machineConfigSchema: () => machineConfigSchema,
+          extensionProvider:   () => Object.keys(extensionProviderOverrides).length ? extensionProviderOverrides : undefined,
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined) },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+
+    describe('isUpstreamCAPIProvider', () => {
+      it('returns true when extension provider explicitly declares isUpstreamCAPIProvider = true', () => {
+        const wrapper = createUpstreamCAPIWrapper({ isUpstreamCAPIProvider: true });
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(true);
+      });
+
+      it('returns false when extension provider explicitly declares isUpstreamCAPIProvider = false', () => {
+        const wrapper = createUpstreamCAPIWrapper({ isUpstreamCAPIProvider: false });
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(false);
+      });
+
+      it('returns true when machineConfigSchema group is infrastructure.cluster.x-k8s.io', () => {
+        const wrapper = createUpstreamCAPIWrapper({}, { group: 'infrastructure.cluster.x-k8s.io' });
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(true);
+      });
+
+      it('returns false when machineConfigSchema group is provisioning.cattle.io', () => {
+        const wrapper = createUpstreamCAPIWrapper({}, { group: 'provisioning.cattle.io' });
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(false);
+      });
+
+      it('returns false when no extension provider and no schema', () => {
+        const wrapper = createUpstreamCAPIWrapper();
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(false);
+      });
+
+      it('extension declaration takes precedence over schema detection', () => {
+        // Extension says false but schema says upstream CAPI group
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _CREATE,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              agentConfig: { 'cloud-provider-name': '' }
+            },
+            provider: 'capv',
+          },
+          computed: {
+            ...rke2.computed,
+            machineConfigSchema: () => ({
+              id:         'infrastructure.cluster.x-k8s.io.vspheremachinetemplate',
+              attributes: { group: 'infrastructure.cluster.x-k8s.io' }
+            }),
+            extensionProvider: () => ({ isUpstreamCAPIProvider: false }),
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        expect((wrapper.vm as any).isUpstreamCAPIProvider).toBe(false);
+      });
+    });
+
+    describe('needCredential for upstream CAPI', () => {
+      it('returns false by default for upstream CAPI providers (no cloud credentials needed)', () => {
+        const wrapper = createUpstreamCAPIWrapper({ isUpstreamCAPIProvider: true });
+
+        expect((wrapper.vm as any).needCredential).toBe(false);
+      });
+
+      it('returns true when upstream CAPI extension explicitly overrides cloud credentials', () => {
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _CREATE,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              agentConfig: { 'cloud-provider-name': '' }
+            },
+            provider: 'capv',
+          },
+          computed: {
+            ...rke2.computed,
+            isUpstreamCAPIProvider:   () => true,
+            cloudCredentialsOverride: () => true,
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        expect((wrapper.vm as any).needCredential).toBe(true);
+      });
+    });
+
+    describe('initMachinePools for upstream CAPI', () => {
+      it('derives type from machineConfigRef.apiVersion for upstream CAPI pools', async() => {
+        const dispatched: any[] = [];
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _EDIT,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              metadata:    { namespace: 'fleet-default' },
+              agentConfig: { 'cloud-provider-name': '' }
+            },
+            provider: 'capv',
+          },
+          computed: {
+            ...rke2.computed,
+            isElementalCluster:     () => false,
+            isUpstreamCAPIProvider: () => true,
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store: {
+                dispatch: (action: string, opts: any) => {
+                  dispatched.push({ action, opts });
+
+                  return Promise.resolve(null);
+                },
+                getters: {
+                  ...defaultGetters,
+                  'management/canList': () => true,
+                }
+              },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        const existingPools = [{
+          machineConfigRef: {
+            apiVersion: 'infrastructure.cluster.x-k8s.io/v1beta1',
+            kind:       'VSphereMachineTemplate',
+            name:       'my-template',
+          },
+          quantity:         1,
+          etcdRole:         true,
+          controlPlaneRole: true,
+          workerRole:       true,
+        }];
+
+        await (wrapper.vm as any).initMachinePools(existingPools);
+
+        // Should have dispatched 'management/find' with the upstream CAPI type
+        const findCall = dispatched.find((d) => d.action === 'management/find');
+
+        expect(findCall).toBeDefined();
+        expect(findCall.opts.type).toBe('infrastructure.cluster.x-k8s.io.vspheremachinetemplate');
+      });
+    });
+
+    describe('validateMachinePool for upstream CAPI', () => {
+      const makePool = (iamInstanceProfile = '') => ({
+        remove: false,
+        config: { iamInstanceProfile },
+        pool:   {
+          quantity:         1,
+          etcdRole:         true,
+          controlPlaneRole: true,
+          workerRole:       true,
+        },
+      });
+
+      it('does not validate AWS IAM instance profile for upstream CAPI providers', async() => {
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _CREATE,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              agentConfig:   { 'cloud-provider-name': '' },
+              cloudProvider: 'aws',
+            },
+            provider: 'capa',
+          },
+          data:     () => ({ machinePools: [makePool()] }),
+          computed: {
+            ...rke2.computed,
+            isUpstreamCAPIProvider: () => true,
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        // Provide an empty pool refs array so the $refs.pool iteration doesn't fail
+        (wrapper.vm as any).$refs.pool = [];
+
+        await (wrapper.vm as any).validateMachinePool();
+
+        // No error should be pushed for missing IAM profile when using upstream CAPI
+        expect((wrapper.vm as any).errors).toHaveLength(0);
+      });
+
+      it('still validates AWS IAM instance profile for CAPR providers', async() => {
+        const t = jest.fn().mockReturnValue('IAM error message');
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _CREATE,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              agentConfig:   { 'cloud-provider-name': '' },
+              cloudProvider: 'aws',
+            },
+            provider: 'amazon',
+          },
+          data:     () => ({ machinePools: [makePool()] }),
+          computed: {
+            ...rke2.computed,
+            isUpstreamCAPIProvider: () => false,
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              t,
+              $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        // Provide an empty pool refs array so the $refs.pool iteration doesn't fail
+        (wrapper.vm as any).$refs.pool = [];
+
+        await (wrapper.vm as any).validateMachinePool();
+
+        expect((wrapper.vm as any).errors.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('cAPR-specific save hooks skipped for upstream CAPI', () => {
+      it('handleVsphereCpiSecret returns early for upstream CAPI providers', async() => {
+        const vsphereHandleSpy = jest.fn();
+
+        jest.mock('@shell/utils/v-sphere', () => ({
+          handleVsphereCpiSecret: vsphereHandleSpy,
+          VMWARE_VSPHERE:         'vsphere',
+        }));
+
+        const wrapper = shallowMount(rke2, {
+          props: {
+            mode:  _CREATE,
+            value: {
+              spec: {
+                ...defaultSpec,
+                kubernetesVersion: 'v1.25.0+rke2r1',
+              },
+              agentConfig: { 'cloud-provider-name': '' }
+            },
+            provider: 'capv',
+          },
+          computed: {
+            ...rke2.computed,
+            isUpstreamCAPIProvider: () => true,
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+              $extension: { getDynamic: jest.fn(() => undefined) },
+            },
+            stubs: defaultStubs,
+          },
+        });
+
+        await (wrapper.vm as any).handleVsphereCpiSecret();
+
+        // The underlying VsphereUtils function should not have been called
+        expect(vsphereHandleSpy).not.toHaveBeenCalled();
+      });
+    });
+  });
 });
