@@ -12,7 +12,7 @@ export default {
   components: { AsyncButton },
 
   async fetch() {
-    // This will be real heavy for rancher's with 1000s of clusters...
+    // Diagnostics does not scale with resources (this will be real heavy for rancher's with 1000s of clusters)
     const mgmtClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
     const readyMgmtClusters = mgmtClusters.filter((c) => c.isReady);
     const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyMgmtClusters, this.$store), this.$store);

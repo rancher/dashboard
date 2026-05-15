@@ -130,7 +130,7 @@ export default {
       const version = this.provisioningCluster?.kubernetesVersion;
 
       if (this.provisioningCluster?.isRke2) {
-        // why not use the prov cluster provisioner (which is now the mgmt cluster provisioner)
+        // This is a candidate for using the prov cluster provisioner (or now the mgmt cluster provisioner directly)
         const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
         const agentConfig = (machineSelectorConfig[0] || {}).config;
 

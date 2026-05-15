@@ -151,7 +151,7 @@ export default {
     const fetches = {};
 
     if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
-      // I could only find this used in one place - shell/components/form/WorkloadPorts.vue provisioningCluster
+      // I could only find one place where a prov cluster might be used by this and parent components - shell/components/form/WorkloadPorts.vue provisioningCluster
       fetches.rancherCluster = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
     }
 

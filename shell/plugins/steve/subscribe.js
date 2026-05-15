@@ -567,9 +567,12 @@ const sharedActions = {
     if ( !getters.typeRegistered(type) ) {
       if (registerType) {
         commit('registerType', type);
-      } else {
-        // We're going to ignore these anyway in queueChanges, so just ignore them earlier
-        // Interestingly there's quite a few (on cluster create screens theres token, cluster, project, projectRoleTemplateBinding, etc)
+      } else if (mode !== STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // - If we continue and open up a watch whenever we receive a `resource.` notification we go to queueChanges (bar resource.changes mode).
+        // - queueChanges ignores any change that's for a type that hasn't been registered
+        // - So here we're just existing early, avoiding the watch --> queueChanges --> ignore loop
+        //
+        // Interestingly this is hit quite a few times (on cluster create screens theres token, cluster, project, projectRoleTemplateBinding, etc)
         return;
       }
     }
