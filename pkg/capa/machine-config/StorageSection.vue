@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import { VOLUME_TYPE_OPTIONS, HTTP_TOKENS_VALUES } from './constants';
+import { VOLUME_TYPE_OPTIONS } from './constants';
 
 export default {
   components: {

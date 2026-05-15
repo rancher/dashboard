@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { VOLUME_TYPE_OPTIONS, HTTP_TOKENS_VALUES } from './constants';
+import { HTTP_TOKENS_VALUES } from './constants';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
@@ -88,11 +88,10 @@ export default {
       // TODO handle region outside of pools
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
 
-      console.log('region', region);
       if ( !this.value.region ) {
         this.value['region'] = region;
       }
-      console.log('this.value', this.value);
+      // console.log('this.value', this.value);
 
       this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
       this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });

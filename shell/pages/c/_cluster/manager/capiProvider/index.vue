@@ -1,21 +1,19 @@
 <script>
-import { MANAGEMENT, HOSTED_PROVIDER, CAPI, CATALOG } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { CAPI, CATALOG } from '@shell/config/types';
+// import { SETTING } from '@shell/config/settings';
 import { STATE, NAME } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Banner from '@components/Banner/Banner.vue';
-import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import { exceptionToErrorsArray } from '@shell/utils/error';
-import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+// import Banner from '@components/Banner/Banner.vue';
+// import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
+// import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+// import { exceptionToErrorsArray } from '@shell/utils/error';
+// import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 // import { getCapiProviders } from '@shell/utils/provider';
 
 export default {
   name:       'HostedProviders',
-  components: {
-    ResourceTable, Masthead, RcStatusBadge, Banner, Checkbox
-  },
+  components: { ResourceTable, Masthead },
   data() {
     return {
       errors:           [],
@@ -35,7 +33,6 @@ export default {
     this.allProviders = await this.$store.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER });
     await this.$store.dispatch('catalog/load');
     this.turtlesChart = this.$store.getters['catalog/chart']({ chartName: 'rancher-turtles-providers' });
-    console.log(this.turtlesChart);
 
     await this.getApp();
 
@@ -88,12 +85,12 @@ export default {
     // Move to a shared location
     async getChartValue() {
       try {
-        const res = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:    'cluster',
-          repoName:    'stgregistry',
-          chartName:   'rancher-turtles-providers',
-          versionName: '109.0.1%2Bup0.26.1-rc.0',
-        });
+        // const res = await this.$store.dispatch('catalog/getVersionInfo', {
+        //   repoType:    'cluster',
+        //   repoName:    'stgregistry',
+        //   chartName:   'rancher-turtles-providers',
+        //   versionName: '109.0.1%2Bup0.26.1-rc.0',
+        // });
       } catch (e) {
         console.error(`Failed to fetch or process chart info for rancher-turtles-providers`); // eslint-disable-line no-console
       }
@@ -111,18 +108,15 @@ export default {
             this.providersFromApp = res;
             const providersObj = res.chartValues?.providers || {};
 
-            console.log(providersObj);
-
             this.appRows = Object.entries(providersObj).map(([id, provider]) => ({
               id,
               enabled:               provider.enabled,
               enableAutomaticUpdate: provider.enableAutomaticUpdate,
               ...provider
             }));
-            console.log(this.providersFromApp);
           }
         } catch (err) {
-          console.error(`Failed to fetch apps`, err);
+          // console.error(`Failed to fetch apps`, err);
         }
       }
     },

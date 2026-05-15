@@ -2,7 +2,7 @@
 import { RcSection } from '@components/RcSection';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { VOLUME_TYPE_OPTIONS, HTTP_TOKENS_VALUES } from './constants';
+import { HTTP_TOKENS_VALUES } from './constants';
 
 export default {
   components: {

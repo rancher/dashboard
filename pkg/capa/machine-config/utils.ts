@@ -1,5 +1,5 @@
 export async function saveMachinePoolConfigs(pools: any[], cluster: any) {
-  console.log(pools, cluster);
+  // console.log(pools, cluster);
   // for (const entry of this.machinePools) {
   //   if (entry.remove) {
   //     continue;

@@ -12,7 +12,6 @@ const {
   value = {}
 } = defineProps<Props>();
 
-console.log('value shared sec', value);
 </script>
 
 <template>

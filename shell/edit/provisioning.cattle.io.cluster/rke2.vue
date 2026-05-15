@@ -330,8 +330,6 @@ export default {
     // TODO: improve
 
     isCapiCluster() {
-      console.log(this.provider);
-
       return this.provider === 'capa';
     },
 
@@ -531,7 +529,6 @@ export default {
     },
 
     hasMachinePools() {
-      console.log(this.provider, this.value);
       if (this.provider === 'custom' || this.provider === 'import') {
         return false;
       }
@@ -571,8 +568,6 @@ export default {
     },
     // TODO: improve
     clusterSchema() {
-      let schema;
-
       if (this.isCapiCluster) {
         return this.extensionProvider?.clusterSchema;
       }
@@ -594,15 +589,9 @@ export default {
       // If this is an extension provider then the extension can provide the schema
       const extensionSchema = this.extensionProvider?.machineConfigSchema;
 
-      // eslint-disable-next-line no-console
-      console.log('machineConfigSchema: input', this.provider, this.hasMachinePools, this.isElementalCluster, schema, typeof extensionSchema, extensionSchema?.id);
-
       if (extensionSchema) {
         // machineConfigSchema can either be the schema name (string) or the schema itself (object)
         if (typeof extensionSchema === 'object') {
-          // eslint-disable-next-line no-console
-          console.log('machineConfigSchema: using extension object schema', this.provider, extensionSchema?.id);
-
           return extensionSchema;
         }
 
@@ -616,8 +605,7 @@ export default {
         // eslint-disable-next-line no-console
         console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
       } else {
-        // eslint-disable-next-line no-console
-        console.log('machineConfigSchema: resolved schema', this.provider, schema, resolved?.id, resolved?.attributes?.kind);
+        // TODO
       }
 
       return resolved;
@@ -1309,8 +1297,8 @@ export default {
     },
     async initCapiCluster() {
       // TODO handle edit
-      let config;
-      let configMissing = false;
+      // let config;
+      // let configMissing = false;
 
       if (!this.clusterSchema) {
         // eslint-disable-next-line no-console
@@ -1318,17 +1306,16 @@ export default {
       }
       if (this.$store.getters['management/canList'](this.clusterSchema.id)) {
         try {
-          config = await this.$store.dispatch('management/find', {
-            type: this.clusterSchema.id,
-            // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
-          });
-          console.log('initCapiCluster: fetched cluster config', config);
+          // config = await this.$store.dispatch('management/find', {
+          //   type: this.clusterSchema.id,
+          //   // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+          // });
         } catch (e) {
           // Some users can't see the config, that's ok.
           // we will display a banner for a 404 only for elemental
           if (e?.status === 404) {
             if (this.isElementalCluster) {
-              configMissing = true;
+              // configMissing = true;
             }
           }
         }
@@ -1423,7 +1410,7 @@ export default {
         // If there is no specific model, the applyDefaults does nothing by default
         config.applyDefaults(idx, this.machinePools);
       }
-      console.log('addMachinePool: created config', config);
+      // console.log('addMachinePool: created config', config);
 
       const name = `pool${ ++this.lastIdx }`;
 
