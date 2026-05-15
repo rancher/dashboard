@@ -2,6 +2,8 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import ArrayList from '@shell/components/form/ArrayList.vue';
+import { VOLUME_TYPE_OPTIONS, HTTP_TOKENS_VALUES } from './constants';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
@@ -13,13 +15,16 @@ import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
-import Networking from '../components/Networking.vue';
+import { RcSection, RcSectionBadges, RcSectionActions } from '@components/RcSection';
+import { SectionType, SectionMode, SectionBackground } from '@components/RcSection/types';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import RadioGroup from '@components/src/components/Form/Radio/RadioGroup.vue';
 
 const DEFAULT_GROUP = 'rancher-nodes';
 
 export default {
   components: {
-    Banner, Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue, Networking,
+    Banner, Loading, RcSection, ArrayList, LabeledInput, KeyValue, LabeledSelect, Checkbox, UnitInput, RadioGroup
   },
 
   mixins: [CreateEditView],
@@ -66,10 +71,13 @@ export default {
       type:    Boolean,
       default: true
     },
+    mode: {
+      type:    String,
+      default: _CREATE,
+    },
   },
 
   async fetch() {
-    console.log('HERE');
     this.errors = [];
     if ( !this.credentialId ) {
       return;
@@ -84,11 +92,14 @@ export default {
     }
 
     try {
+      // TODO handle region outside of pools
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
 
+      console.log('region', region);
       if ( !this.value.region ) {
         this.value['region'] = region;
       }
+      console.log('this.value', this.value);
 
       this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
       this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
@@ -123,24 +134,28 @@ export default {
         this.canReadKms = false;
       }
 
-      if ( !this.value.zone ) {
-        this.value['zone'] = 'a';
-      }
+      // if ( !this.value.zone ) {
+      //   this.value['zone'] = 'a';
+      // }
 
       if ( !this.value.instanceType ) {
         this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
       }
 
-      this.initTags();
+      // this.initTags();
 
-      if ( !this.value.securityGroup?.length ) {
-        this.value['securityGroup'] = [DEFAULT_GROUP];
-      }
+      // if ( !this.value.securityGroup?.length ) {
+      //   this.value['securityGroup'] = [DEFAULT_GROUP];
+      // }
 
-      if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
-        this.securityGroupMode = 'default';
-      } else {
-        this.securityGroupMode = 'custom';
+      // if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
+      //   this.securityGroupMode = 'default';
+      // } else {
+      //   this.securityGroupMode = 'custom';
+      // }
+
+      if ( !this.value.zone && this.zoneOptions.length ) {
+        this.value['zone'] = this.zoneOptions[0];
       }
 
       this.loadedRegionalFor = region;
@@ -181,7 +196,7 @@ export default {
       return this.cluster?.cloudProvider === 'aws';
     },
 
-    instanceOptions() {
+    instanceTypeOptions() {
       let lastGroup;
 
       const out = [];
@@ -204,6 +219,10 @@ export default {
       }
 
       return out;
+    },
+
+    subnetOptions() {
+      return [];
     },
 
     regionOptions() {
@@ -256,6 +275,17 @@ export default {
       return out;
     },
 
+    httpTokensOptions() {
+      return [
+        { label: this.t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.options.required'), value: HTTP_TOKENS_VALUES.REQUIRED },
+        { label: this.t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.options.optional'), value: HTTP_TOKENS_VALUES.OPTIONAL },
+      ];
+    },
+
+    additionalVolumeTypeOptions() {
+      return VOLUME_TYPE_OPTIONS;
+    },
+
     DEFAULT_GROUP() {
       return DEFAULT_GROUP;
     }
@@ -277,6 +307,19 @@ export default {
     'securityGroupMode'(val) {
       this.value.securityGroupReadonly = ( val !== 'default' );
     },
+  },
+
+  created() {
+    if (!this.value.instanceMetadataOptions?.httpTokens) {
+      this.value.instanceMetadataOptions = {
+        ...this.value.instanceMetadataOptions,
+        httpTokens: HTTP_TOKENS_VALUES.REQUIRED,
+      };
+    }
+
+    if (!Array.isArray(this.value.additionalVolumes)) {
+      this.value.additionalVolumes = [];
+    }
   },
 
   methods: {
@@ -320,277 +363,217 @@ export default {
       </div>
 
       <div v-if="loadedRegionalFor">
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="value.region"
-              :mode="mode"
-              :options="regionOptions"
-              :required="true"
-              :searchable="true"
-              :disabled="disabled"
-              :label="t('cluster.machineConfig.amazonEc2.region')"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="value.zone"
-              :mode="mode"
-              :options="zoneOptions"
-              :required="true"
-              :disabled="disabled"
-              :label="t('cluster.machineConfig.amazonEc2.zone')"
-            />
-          </div>
-        </div>
-        <div class="row mb-20">
-          <div class="col span-9">
-            <LabeledSelect
-              v-model:value="value.instanceType"
-              :mode="mode"
-              :options="instanceOptions"
-              :required="true"
-              :selectable="option => !option.disabled"
-              :searchable="true"
-              :disabled="disabled"
-              :label="t('cluster.machineConfig.amazonEc2.instanceType')"
-            >
-              <template v-slot:option="opt">
-                <template v-if="opt.kind === 'group'">
-                  <b>{{ opt.label }}</b>
-                </template>
-                <template v-else>
-                  <span class="pl-10">{{ opt.label }}</span>
-                </template>
-              </template>
-            </LabeledSelect>
-          </div>
-          <div class="col span-3">
-            <UnitInput
-              v-model:value="value.rootSize"
-              output-as="string"
-              :mode="mode"
-              :disabled="disabled"
-              :placeholder="t('cluster.machineConfig.amazonEc2.rootSize.placeholder')"
-              :label="t('cluster.machineConfig.amazonEc2.rootSize.label')"
-              :suffix="t('cluster.machineConfig.amazonEc2.rootSize.suffix')"
-            />
-          </div>
-        </div>
+        <RcSection
+          :title="t('capa.machineConfig.instanceConfiguration.title')"
+          :expandable="true"
+          mode="with-header"
+          type="primary"
+        >
+          <p>{{ t('capa.machineConfig.instanceConfiguration.description') }}</p>
 
-        <!-- <Networking
-          :key="value.region"
-          v-model:enable-primary-ipv6="value.enablePrimaryIpv6"
-          v-model:ipv6-address-count="value.ipv6AddressCount"
-          v-model:ipv6-address-only="value.ipv6AddressOnly"
-          v-model:http-protocol-ipv6="value.httpProtocolIpv6"
-          v-model:vpc-id="value.vpcId"
-          v-model:subnet-id="value.subnetId"
-          :mode="mode"
-          :vpc-info="vpcInfo"
-          :subnet-info="subnetInfo"
-          :zone="value.zone"
-          :region="value.region"
-          :machine-pools="machinePools"
-          :is-ipv6="isIpv6"
-          :is-dual-stack="isDualStack"
-          :disabled="disabled"
-          :is-new="poolCreateMode"
-          @update:is-ipv6="e=>$emit('update:isIpv6', e)"
-          @update:is-dual-stack="e=>$emit('update:isDualStack', e)"
-          @validation-changed="e=>$emit('validationChanged',e)"
-        /> -->
-
-        <div class="row mt-20 mb-20">
-          <div class="col span-6">
+          <LabeledSelect
+            v-model:value="value.instanceType"
+            :options="instanceTypeOptions"
+            label-key="capa.machineConfig.instanceConfiguration.instanceType.label"
+            option-key="apiName"
+            option-label="label"
+            required
+          />
+          <LabeledSelect
+            v-model:value="value.subnet.id"
+            :options="subnetOptions"
+            label-key="capa.machineConfig.instanceConfiguration.subnet.label"
+            required
+          />
+          <RcSection
+            :title="t('capa.machineConfig.instanceConfiguration.advanced.title')"
+            :expandable="true"
+            mode="with-header"
+            type="secondary"
+          >
+            <LabeledInput
+              v-model:value="value.ami.id"
+              label-key="capa.machineConfig.instanceConfiguration.advanced.machineImage.label"
+              :placeholder="t('capa.machineConfig.instanceConfiguration.advanced.machineImage.placeholder')"
+            />
             <LabeledInput
               v-model:value="value.iamInstanceProfile"
-              :mode="mode"
-              :disabled="disabled"
-              :required="isIamInstanceProfileNameRequired"
-              :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
-              :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
+              label-key="capa.machineConfig.instanceConfiguration.advanced.iamInstanceProfileName.label"
+            />
+            <div>
+              <LabeledSelect
+                v-model:value="value.instanceMetadataOptions.httpTokens"
+                :options="httpTokensOptions"
+                label-key="capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.label"
+              />
+              <p class="text-muted text-small mt-5 mb-0">
+                {{ t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.description') }}
+              </p>
+            </div>
+          </RcSection>
+        </RcSection>
+        <RcSection
+          :title="t('capa.machineConfig.storage.title')"
+          :expandable="true"
+          mode="with-header"
+          type="primary"
+        >
+          <p>{{ t('capa.machineConfig.storage.description') }}</p>
+          <div class="row">
+            <UnitInput
+              v-model:value="value.rootVolume.size"
+              label-key="capa.machineConfig.storage.rootVolume.size.label"
+              suffix="GiB"
+              class="mr-10"
+            />
+            <LabeledSelect
+              v-model:value="value.rootVolume.type"
+              :options="[]"
+              label-key="capa.machineConfig.storage.rootVolume.type.label"
+              required
             />
           </div>
-        </div>
-        <portal :to="'advanced-'+uuid">
-          <div class="row mt-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.ami"
-                :mode="mode"
-                :disabled="disabled"
-                :placeholder="t('cluster.machineConfig.amazonEc2.ami.placeholder')"
-                :label="t('cluster.machineConfig.amazonEc2.ami.label')"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.sshUser"
-                :mode="mode"
-                :label="t('cluster.machineConfig.amazonEc2.sshUser.label')"
-                :disabled="!value.ami || disabled"
-                :tooltip="t('cluster.machineConfig.amazonEc2.sshUser.tooltip')"
-                :placeholder="t('cluster.machineConfig.amazonEc2.sshUser.placeholder')"
-              />
-            </div>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-12">
-              <h3>
-                {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
-                <span
-                  v-if="!value.vpcId"
-                  class="text-muted text-small"
-                >
-                  {{ t('cluster.machineConfig.amazonEc2.securityGroup.vpcId') }}
-                </span>
-              </h3>
-              <RadioGroup
-                v-model:value="securityGroupMode"
-                name="securityGroupMode"
-                :mode="mode"
-                :disabled="!value.vpcId || disabled"
-                :labels="securityGroupLabels"
-                :options="['default','custom']"
-              />
-              <LabeledSelect
-                v-if="value.vpcId && securityGroupMode === 'custom'"
-                v-model:value="value.securityGroup"
-                :mode="mode"
-                :disabled="!value.vpcId || disabled"
-                :options="securityGroupOptions"
-                :searchable="true"
-                :multiple="true"
-                :taggable="true"
-              />
-            </div>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.volumeType"
-                :mode="mode"
-                :disabled="disabled"
-                :label="t('cluster.machineConfig.amazonEc2.volumeType.label')"
-                :placeholder="t('cluster.machineConfig.amazonEc2.volumeType.placeholder')"
-              />
-            </div>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-12">
-              <Checkbox
-                v-model:value="value.encryptEbsVolume"
-                :mode="mode"
-                :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
-              />
-              <div
-                v-if="value.encryptEbsVolume"
-                class="mt-10"
-              >
-                <LabeledSelect
-                  v-if="canReadKms"
-                  v-model:value="value.kmsKey"
-                  :mode="mode"
-                  :options="kmsOptions"
-                  :disabled="disabled"
-                  :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
-                />
-                <template v-else>
+          <Checkbox
+            v-model:value="value.rootVolume.encrypted"
+            :label="t('capa.machineConfig.storage.rootVolume.encrypted.label')"
+          />
+          <LabeledInput
+            v-if="value.rootVolume.encrypted"
+            v-model:value="value.rootVolume.encryptionKey"
+            label-key="capa.machineConfig.storage.rootVolume.encryptionKey.label"
+            placeholder-key="capa.machineConfig.storage.rootVolume.encryptionKey.placeholder"
+            required
+          />
+          <RcSection
+            :title="t('capa.machineConfig.storage.advanced.title')"
+            :expandable="true"
+            mode="with-header"
+            type="secondary"
+          >
+            <ArrayList
+              v-model:value="value.nonRootVolumes"
+              :add-allowed="true"
+              :default-add-value="{ deviceName: '', type: 'gp3', size: null }"
+              :add-label="t('capa.machineConfig.storage.advanced.additionalVolumes.add')"
+              :show-header="true"
+              class="mb-10 additional-volumes-list"
+            >
+              <template #columns="{ row, queueUpdate }">
+                <div class="additional-volumes-grid">
                   <LabeledInput
-                    v-model:value="value.kmsKey"
-                    :mode="mode"
-                    :disabled="disabled"
-                    :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+                    v-model:value="row.value.deviceName"
+                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.deviceName.label"
+                    class="additional-volume-field"
+                    @update:value="queueUpdate"
                   />
-                  <p class="text-muted">
-                    {{ t('cluster.machineConfig.amazonEc2.kmsKey.text') }}
-                  </p>
-                </template>
-              </div>
-            </div>
+                  <LabeledSelect
+                    v-model:value="row.value.type"
+                    :options="additionalVolumeTypeOptions"
+                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.type.label"
+                    class="additional-volume-field"
+                    @update:value="queueUpdate"
+                  />
+                  <UnitInput
+                    v-model:value="row.value.size"
+                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.size.label"
+                    class="additional-volume-field"
+                    suffix="GiB"
+                    @update:value="queueUpdate"
+                  />
+                </div>
+              </template>
+            </ArrayList>
+          </RcSection>
+        </RcSection>
+        <RcSection
+          :title="t('capa.machineConfig.advanced.title')"
+          :expandable="true"
+          mode="with-header"
+          type="primary"
+        >
+          <div>
+            <p>{{ t('capa.machineConfig.advanced.cloudInit.title') }}</p>
+            <Checkbox
+              v-model:value="value.cloudInit.insecureSkipSecretsManager"
+              :label="t('capa.machineConfig.advanced.cloudInit.disable.label')"
+              class="mt-10"
+            />
           </div>
-          <div class="row mt-20">
-            <div class="col span-6">
-              <Checkbox
-                v-model:value="value.requestSpotInstance"
-                :mode="mode"
-                :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
+          <RadioGroup
+            v-model:value="value.securityGroup"
+            name="security-group"
+            :options="[
+              { label: t('capa.machineConfig.advanced.securityGroup.options.standard'), value: 'merge' },
+              { label: t('capa.machineConfig.advanced.securityGroup.options.existing'), value: 'replace' },
+            ]"
+            label-key="capa.machineConfig.advanced.securityGroup.label"
+            class="mt-20 mb-10"
+          />
+          <RcSection
+            :title="t('capa.machineConfig.advanced.marketType.title')"
+            :expandable="true"
+            mode="with-header"
+            type="secondary"
+          >
+            <p>{{ t('capa.machineConfig.advanced.marketType.description') }}</p>
+            <RadioGroup
+              v-model:value="value.marketType"
+              name="market-type"
+              :options="[
+                { label: t('capa.machineConfig.advanced.marketType.options.onDemand'), value: 'on-demand' },
+                { label: t('capa.machineConfig.advanced.marketType.options.spot'), value: 'spot' },
+                { label: t('capa.machineConfig.advanced.marketType.options.block'), value: 'block' },
+              ]"
+              class=""
+            />
+            <div v-if="value.marketType === 'spot'">
+              <UnitInput
+                v-model:value="value.spotMarketOptions.maxPrice"
+                label-key="capa.machineConfig.advanced.marketType.price.label"
+                suffix="USD/h"
+                class="mb-10"
               />
-              <div
-                v-if="value.requestSpotInstance"
-                class="mt-10"
-              >
-                <UnitInput
-                  v-model:value="value.spotPrice"
-                  output-as="string"
-                  :mode="mode"
-                  :disabled="disabled"
-                  :placeholder="t('cluster.machineConfig.amazonEc2.spotPrice.placeholder')"
-                  :label="t('cluster.machineConfig.amazonEc2.spotPrice.label')"
-                  :suffix="t('cluster.machineConfig.amazonEc2.spotPrice.suffix')"
-                />
-              </div>
+              <p>{{ t('capa.machineConfig.advanced.marketType.price.description') }}</p>
             </div>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-12">
-              <div>
-                <Checkbox
-                  v-model:value="value.privateAddressOnly"
-                  :mode="mode"
-                  :disabled="disabled"
-                  :label="t('cluster.machineConfig.amazonEc2.privateAddressOnly')"
-                />
-              </div>
-              <div>
-                <Checkbox
-                  v-model:value="value.useEbsOptimizedInstance"
-                  :mode="mode"
-                  :disabled="disabled"
-                  :label="t('cluster.machineConfig.amazonEc2.useEbsOptimizedInstance')"
-                />
-              </div>
-              <div>
-                <Checkbox
-                  v-model:value="value.httpEndpoint"
-                  value-when-true="enabled"
-                  :mode="mode"
-                  :disabled="disabled"
-                  :label="t('cluster.machineConfig.amazonEc2.httpEndpoint')"
-                />
-              </div>
-              <div>
-                <Checkbox
-                  v-model:value="value.httpTokens"
-                  value-when-true="required"
-                  :mode="mode"
-                  :disabled="!value.httpEndpoint || disabled"
-                  :label="t('cluster.machineConfig.amazonEc2.httpTokens')"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-12">
-              <KeyValue
-                :value="tags"
-                :mode="mode"
-                :read-allowed="false"
-                :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
-                :add-label="t('labels.addTag')"
-                :disabled="disabled"
-                @update:value="updateTags"
-              />
-            </div>
-          </div>
-        </portal>
+          </RcSection>
+          <RcSection
+            :title="t('capa.machineConfig.advanced.tags.title')"
+            :expandable="true"
+            mode="with-header"
+            type="secondary"
+          >
+            <p>{{ t('capa.machineConfig.advanced.tags.description') }}</p>
+            <KeyValue
+              :mode="mode"
+              :read-allowed="false"
+              :as-map="true"
+              :value="value.additionalTags"
+              :addLabel="t('capa.machineConfig.advanced.tags.add')"
+              data-testid="eks-resource-tags-input"
+              @update:value="$emit('update:tags', $event)"
+            />
+          </RcSection>
+        </RcSection>
       </div>
     </template>
   </div>
 </template>
+
+<style lang='scss' scoped>
+.additional-volumes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.additional-volume-field {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .additional-volumes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

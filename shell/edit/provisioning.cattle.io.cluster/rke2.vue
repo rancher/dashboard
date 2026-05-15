@@ -327,6 +327,13 @@ export default {
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
+    // TODO: improve
+
+    isCapiCluster() {
+      console.log(this.provider);
+
+      return this.provider === 'capa';
+    },
 
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
@@ -562,6 +569,16 @@ export default {
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
     },
+    // TODO: improve
+    clusterSchema() {
+      let schema;
+
+      if (this.isCapiCluster) {
+        return this.extensionProvider?.clusterSchema;
+      }
+
+      return null;
+    },
 
     machineConfigSchema() {
       let schema;
@@ -573,7 +590,6 @@ export default {
       } else {
         schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
-      console.log('Using machine config schema', schema);
 
       // If this is an extension provider then the extension can provide the schema
       const extensionSchema = this.extensionProvider?.machineConfigSchema;
@@ -841,6 +857,10 @@ export default {
       }
 
       return null;
+    },
+
+    extensionTopPoolSection() {
+      return this.extensionProvider?.extensionTopPoolSection || null;
     },
 
     showForm() {
@@ -1122,6 +1142,10 @@ export default {
       if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
         set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
       }
+
+      if (this.isCapiCluster) {
+        await this.initCapiCluster();
+      }
     },
 
     /**
@@ -1283,6 +1307,13 @@ export default {
         this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
+    initCapiCluster() {
+      // TODO handle edit
+      if (!this.clusterSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+      }
+    },
 
     /**
      * Get machine pools from the cluster configuration
@@ -1372,6 +1403,7 @@ export default {
         // If there is no specific model, the applyDefaults does nothing by default
         config.applyDefaults(idx, this.machinePools);
       }
+      console.log('addMachinePool: created config', config);
 
       const name = `pool${ ++this.lastIdx }`;
 
@@ -1394,7 +1426,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: this.machineConfigSchema.attributes?.kind,
+            kind: this.machineConfigSchema.attributes?.kind, // TODO?
             name: null,
           },
           drainBeforeDelete: true
@@ -2528,6 +2560,14 @@ export default {
               />
             </div>
           </div>
+          <component
+            :is="extensionTopPoolSection"
+            v-if="extensionTopPoolSection"
+            :value="value"
+            :mode="mode"
+            :provider="provider"
+            data-testid="extension-top-section"
+          />
 
           <!-- Extra Tabs for Machine Pool -->
           <Tabbed

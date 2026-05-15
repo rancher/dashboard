@@ -167,22 +167,5 @@ export default {
       key-field="id"
       class="mb-20"
     />
-    <ResourceTable
-      :schema="null"
-      :resource="null"
-      :headers="appHeaders"
-      :rows="appRows"
-      :row-actions="false"
-      :table-actions="false"
-      :data-testid="'capi-provider-app-list'"
-      key-field="id"
-    >
-      <!-- <template #cell:enabled="{ row }">
-        <Checkbox
-          v-model="row.enabled"
-          @input="updateProvider(row)"
-        />
-      </template> -->
-    </ResourceTable>
   </div>
 </template>
