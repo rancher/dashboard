@@ -87,6 +87,48 @@ export interface ClusterProvisionerContext {
 }
 
 /**
+ * Existing tabs to show or hide in the cluster's detail view
+ */
+export interface ClusterProvisionerDetailTabs {
+  /**
+   * CAPI machine pool tab
+   */
+  machines: boolean,
+  /**
+   * Mgmt node pool tab
+   */
+  nodes?: boolean,
+  /**
+   * RKE2 provisioning logs
+   */
+  logs: boolean,
+  /**
+   * RKE2 registration commands
+   */
+  registration: boolean,
+  /**
+   * RKE2 snapshots
+   */
+  snapshots: boolean,
+  /**
+   * Kube resources related to the instance of provisioning.cattle.io.cluster
+   */
+  related: boolean,
+  /**
+   * Kube events associated with the instance of provisioning.cattle.io.cluster
+   */
+  events: boolean,
+  /**
+   * Kube conditions of the provisioning.cattle.io.cluster instance
+   */
+  conditions: boolean,
+  /**
+   * RKE2 autoscaler
+   */
+  autoscaler?: boolean,
+}
+
+/**
  * Interface that a custom Cluster Provisioner should implement
  *
  * The majority of these hooks are used in shell/edit/provisioning.cattle.io.cluster/rke2.vue
@@ -180,36 +222,7 @@ export interface IClusterProvisioner {
    *
    * `plugin.addTab(TabLocation.RESOURCE_DETAIL... ` can be used to add additional tabs to the same view
    */
-  detailTabs: {
-    /**
-     * RKE2 machine pool tabs
-     */
-    machines: boolean,
-    /**
-     * RKE2 provisioning logs
-     */
-    logs: boolean,
-    /**
-     * RKE2 registration commands
-     */
-    registration: boolean,
-    /**
-     * RKE2 snapshots
-     */
-    snapshots: boolean,
-    /**
-     * Kube resources related to the instance of provisioning.cattle.io.cluster
-     */
-    related: boolean,
-    /**
-     * Kube events associated with the instance of provisioning.cattle.io.cluster
-     */
-    events: boolean,
-    /**
-     * Kube conditions of the provisioning.cattle.io.cluster instance
-     */
-    conditions: boolean
-  };
+  detailTabs: ClusterProvisionerDetailTabs;
 
   /* --------------------------------------------------------------------------------------
    * Getters / Functions for Managing Machine Configs

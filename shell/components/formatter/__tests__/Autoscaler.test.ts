@@ -30,6 +30,10 @@ describe('component: formatter/Autoscaler.vue', () => {
         stubs:   {
           PopoverCard:    PopoverCardStub,
           RcButton:       { template: '<button><slot /></button>' },
+          // RcButton:    {
+          //   template: '<button><i v-if="icon" :class="icon" /><i v-if="leftIcon" :class="leftIcon" /><slot /></button>',
+          //   props:    ['icon', 'leftIcon']
+          // },
           AutoscalerCard: {
             name:     'AutoscalerCard',
             props:    ['value'],
@@ -88,30 +92,26 @@ describe('component: formatter/Autoscaler.vue', () => {
     });
 
     it('should render AutoscalerCard with correct row data', () => {
-      const rowData = { id: 'test-row' };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const provCluster = { id: 'test-row' };
+      const wrapper = createWrapper({ value: true, row: { provCluster } });
       const card = wrapper.findComponent({ name: 'AutoscalerCard' });
 
       expect(card.exists()).toBe(true);
-      expect(card.props('value')).toStrictEqual(rowData);
+      expect(card.props('value')).toStrictEqual(provCluster);
     });
   });
 
   describe('heading action button', () => {
     it('should NOT render if canExplore is false', () => {
-      const rowData = { canExplore: false };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const provCluster = { canExplore: false };
+      const wrapper = createWrapper({ value: true, row: { provCluster } });
 
       expect(wrapper.find('button').exists()).toBe(false);
     });
 
     it('should render "Pause" button if autoscaler is running', () => {
-      const rowData = {
-        canExplore: true, isAutoscalerPaused: false, canPauseResumeAutoscaler: true
-      };
-      const wrapper = createWrapper({
-        value: true, row: rowData, canPauseResumeAutoscaler: true
-      });
+      const provCluster = { isAutoscalerPaused: false, canPauseResumeAutoscaler: true };
+      const wrapper = createWrapper({ value: true, row: { canExplore: true, provCluster } });
       const button = wrapper.find('button');
 
       expect(button.exists()).toBe(true);
@@ -120,10 +120,8 @@ describe('component: formatter/Autoscaler.vue', () => {
     });
 
     it('should render "Resume" button if autoscaler is paused', () => {
-      const rowData = {
-        canExplore: true, isAutoscalerPaused: true, canPauseResumeAutoscaler: true
-      };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const provCluster = { isAutoscalerPaused: true, canPauseResumeAutoscaler: true };
+      const wrapper = createWrapper({ value: true, row: { canExplore: true, provCluster } });
       const button = wrapper.find('button');
 
       expect(button.exists()).toBe(true);
@@ -132,20 +130,19 @@ describe('component: formatter/Autoscaler.vue', () => {
     });
 
     it('should hide "Resume" button if canPauseResumeAutoscaler is false', () => {
-      const rowData = {
-        canExplore: true, isAutoscalerPaused: true, canPauseResumeAutoscaler: false
-      };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const provCluster = { isAutoscalerPaused: true, canPauseResumeAutoscaler: false };
+      const wrapper = createWrapper({ value: true, row: { canExplore: true, provCluster } });
       const button = wrapper.find('button');
 
       expect(button.exists()).toBe(false);
     });
 
     it('should call toggleAutoscalerRunner and close on click', async() => {
-      const rowData = {
-        canExplore: true, toggleAutoscalerRunner: mockToggleRunner, canPauseResumeAutoscaler: true
+      const provCluster = { canPauseResumeAutoscaler: true };
+      const mgmtCluster = {
+        toggleAutoscalerRunner: mockToggleRunner, canExplore: true, provCluster
       };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const wrapper = createWrapper({ value: true, row: mgmtCluster });
 
       wrapper.find('button').trigger('click');
 

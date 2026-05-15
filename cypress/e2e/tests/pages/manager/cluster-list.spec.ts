@@ -23,7 +23,7 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     });
   });
 
-  it('can group clusters by namespace', () => {
+  it('can group clusters by workspace', () => {
     cy.intercept('POST', '/v1/provisioning.cattle.io.clusters').as('createCluster');
 
     // create ns
@@ -76,7 +76,7 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.list().resourceTable().sortableTable().groupByButtons(1)
       .should('be.visible')
       .click();
-    clusterList.list().resourceTable().sortableTable().groupElementWithName(`Namespace: ${ nsName }`)
+    clusterList.list().resourceTable().sortableTable().groupElementWithName(`Workspace: ${ nsName }`)
       .scrollIntoView()
       .should('be.visible');
   });

@@ -1,12 +1,11 @@
-import { clone } from '@shell/utils/object';
+import { mergeWithReplace } from '@shell/utils/object';
 import Dashboard from '@shell/pages/c/_cluster/explorer/index.vue';
 import { shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 
 describe('page: cluster dashboard', () => {
-  const mountOptions = {
+  const createMountOptions = () => ({
     global: {
       stubs: {
         'router-link': true,
@@ -17,12 +16,11 @@ describe('page: cluster dashboard', () => {
           dispatch: jest.fn(),
           getters:  {
             currentCluster: {
-              id:                         'cluster',
-              metadata:                   { creationTimestamp: Date.now() },
-              status:                     { provider: 'foo' },
-              kubernetesVersionBase:      '0.0.0',
-              kubernetesVersionExtension: 'k3s',
+              id:       'cluster',
+              metadata: { creationTimestamp: Date.now() },
+              status:   { provider: 'foo' },
             },
+            'management/byId':   jest.fn(),
             'cluster/inError':   () => false,
             'cluster/schemaFor': jest.fn(),
             'cluster/canList':   jest.fn(),
@@ -36,7 +34,7 @@ describe('page: cluster dashboard', () => {
         }
       },
     }
-  };
+  });
 
   describe.each([
     'etcd',
@@ -49,7 +47,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.HEALTHY, 'icon-checkmark', `${ componentId }foo`, [{ status: 'True' }]],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', `${ componentId }foo`, [{ status: 'False' }]],
     ])('should show %p status', (status, iconClass, name, conditions) => {
-      const options = clone(mountOptions);
+      const options = createMountOptions();
 
       options.global.mocks.$store.getters.currentCluster.status = {
         provider:          'provider',
@@ -100,7 +98,7 @@ describe('page: cluster dashboard', () => {
     ]]
   ])('%p cluster - %p agent health box :', (_, agentId, isLocal, agentResources, statuses) => {
     it.each(statuses)('should NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
-      const options = clone(mountOptions);
+      const options = createMountOptions();
 
       options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
@@ -168,7 +166,7 @@ describe('page: cluster dashboard', () => {
     it.each(statuses)('should show %p status', async(status, iconClass, clickable, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       let agentRoute = null;
 
-      const options = clone(mountOptions);
+      const options = createMountOptions();
 
       options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
@@ -221,7 +219,7 @@ describe('page: cluster dashboard', () => {
   });
 
   it('local cluster - cattle agent health box - should be hidden', () => {
-    const options = clone(mountOptions);
+    const options = createMountOptions();
 
     options.global.mocks.$store.getters.currentCluster.isLocal = true;
 
@@ -241,18 +239,18 @@ describe('page: cluster dashboard', () => {
 
   describe('cluster details', () => {
     it.each([
-      ['clusterProvider', 'other', []],
-      ['kubernetesVersion', 'glance.version', []],
-      ['created', 'glance.created', []],
-      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }]],
-      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }]],
-      ['architecture', 'amd64', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }]],
-      ['architecture', 'unknown', [{ labels: { } }]],
-      ['architecture', 'glance.architecture', [{ metadata: { state: { transitioning: true } } }]],
-    ])('should show %p label %p', (label, text, nodes) => {
-      const options = clone(mountOptions);
+      ['clusterProvider', 'abc', { provisionerDisplay: 'abc' }],
+      ['kubernetesVersion', 'glance.version', null],
+      ['created', 'glance.created', null],
+      ['architecture', 'mixed', { architecture: { label: 'mixed' } }],
+      ['architecture', 'amd64', { architecture: { label: 'amd64' } }],
+      ['architecture', 'glance.architecture', { architecture: { label: null } }],
+    ])('should show %p label %p', (label, text, mgmtCluster) => {
+      const options = createMountOptions();
 
-      options.global.mocks.$store.getters['cluster/all'] = () => nodes;
+      const currentCluster = options.global.mocks.$store.getters['currentCluster'];
+
+      options.global.mocks.$store.getters['currentCluster'] = mgmtCluster ? mergeWithReplace(currentCluster, mgmtCluster) : currentCluster; // eslint-disable-line jest/no-if
 
       const wrapper = shallowMount(Dashboard, options);
 

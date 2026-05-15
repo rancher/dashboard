@@ -11,9 +11,20 @@ export const STEVE_RESPONSE_CODE = {
 };
 
 /**
+ * Steve API JSON response for GET requests
+ */
+export interface SteveGetResponse extends KubeGetResponse {
+  // Rancher specific properties (there are more)
+  id: string,
+
+  // Bucket for everything else (hopefully to remove once above populated)
+  [key: string]: any
+}
+
+/**
  * Steve API JSON response for LIST requests
  */
-export interface SteveListResponse<T = any> {
+export interface SteveListResponse<T = SteveGetResponse> {
   actions: any,
   count: number,
   data: T[],
@@ -21,17 +32,6 @@ export interface SteveListResponse<T = any> {
   resourceType: string,
   revision: string,
   type: string,
-
-  // Bucket for everything else (hopefully to remove once above populated)
-  [key: string]: any
-}
-
-/**
- * Steve API JSON response for GET requests
- */
-export interface SteveGetResponse extends KubeGetResponse {
-  // Rancher specific properties (there are more)
-  id: string,
 
   // Bucket for everything else (hopefully to remove once above populated)
   [key: string]: any

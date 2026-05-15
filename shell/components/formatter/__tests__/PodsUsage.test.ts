@@ -7,11 +7,9 @@ describe('component: PodsUsage', () => {
       props: {
         row: {
           isReady: true,
-          mgmt:    {
-            status: {
-              requested:   { pods: 10 },
-              allocatable: { pods: 20 }
-            }
+          status:  {
+            requested:   { pods: 10 },
+            allocatable: { pods: 20 }
           }
         }
       },
@@ -28,11 +26,9 @@ describe('component: PodsUsage', () => {
       props: {
         row: {
           isReady: true,
-          mgmt:    {
-            status: {
-              requested:   { pods: 10 },
-              allocatable: { pods: 0 }
-            }
+          status:  {
+            requested:   { pods: 10 },
+            allocatable: { pods: 0 }
           }
         }
       },

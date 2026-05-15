@@ -56,6 +56,10 @@ const config = {
         // show params as code blocks
         useCodeBlocks: true,
 
+        // render nested object sub-properties as a compact HTML table
+        // instead of separate heading blocks (improves visual hierarchy)
+        propertyMembersFormat: 'htmlTable',
+
         // The entry point for TypeDoc to start scanning for files.
         // The path is relative to the `docusaurus` directory.
         // entryPoints: ['../shell/apis/shell/*'],
@@ -88,6 +92,24 @@ const config = {
 
         // exclude all code comments marked as @internal
         excludeInternal: true
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        disableSources:        true,
+        textContentMappings:   { 'title.memberPage': '{name}' },
+        useCodeBlocks:         true,
+        propertyMembersFormat: 'htmlTable',
+        entryPoints:           ['../shell/apis/intf/resources.ts'],
+        tsconfig:              'tsconfig-typedoc-integration.json',
+        out:                   'docs/extensions/resources-api',
+        readme:                'none',
+        cleanOutputDir:        false,
+        sidebar:               { autoConfiguration: true },
+        entryFileName:         '_api-index.md',
+        id:                    'resources-api-docs',
+        excludeInternal:       true
       },
     ],
     [require.resolve('docusaurus-lunr-search'), { excludeRoutes: ['internal/*', 'internal/**/*', '/internal/*', '/internal/**/*', 'blog/*', 'blog/**/*', '/blog/*', '/blog/**/*'] }
