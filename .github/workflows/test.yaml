@@ -139,7 +139,9 @@ jobs:
           cp -r cypress/screenshots artifacts 2>/dev/null || :
           cp -r cypress/videos artifacts 2>/dev/null || :
           cp -r cypress/reports/* artifacts || :
+          ls -la ${{ env.E2E_RANCHER_LOG }} || echo ${{ env.E2E_RANCHER_LOG }} not found
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+          ls -la browser-logs/out.html || echo browser-logs/out.html not found
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
 
       - name: Upload Artifacts

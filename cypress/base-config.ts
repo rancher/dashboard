@@ -2,6 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
+import fs from 'fs';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
 const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
@@ -168,6 +169,32 @@ const baseConfig = defineConfig({
 
         // Done this way to catch errors when there are no tests run
         on('after:run', async() => {
+          // We need to wait for the cypress-terminal-report plugin to finish writing the browser logs
+          // There's a race condition where the mochawesome afterRunHook can finish and exit the process
+          // before the terminal report is written.
+          const logFile = path.join(config.projectRoot, 'browser-logs', 'out.html');
+          const timeout = 5000; // 5 seconds
+          const interval = 100; // 100 ms
+          let waited = 0;
+          const fileExists = () => {
+            try {
+              return fs.existsSync(logFile);
+            } catch (e) {
+              return false;
+            }
+          };
+
+          const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          while (waited < timeout && !fileExists()) {
+            await wait(interval);
+            waited += interval;
+          }
+
+          if (!fileExists()) {
+            console.warn(`\n\n⚠️  Browser log file not found at ${ logFile } after ${ timeout }ms. Proceeding without it.\n\n`);
+          }
+
           try {
             await afterRunHook();
           } catch (error) {
