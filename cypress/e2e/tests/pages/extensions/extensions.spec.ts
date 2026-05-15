@@ -188,7 +188,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
 
-    // check if burguer menu nav is highlighted correctly for extensions
+    // check if burger menu nav is highlighted correctly for extensions
     // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Extensions');
 

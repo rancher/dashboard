@@ -3,7 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
-const featureFlagsPage = new FeatureFlagsPagePo();
+const featureFlagsPage = new FeatureFlagsPagePo('local');
 const burgerMenu = new BurgerMenuPo();
 
 describe('Feature Flags', { testIsolation: 'off' }, () => {
