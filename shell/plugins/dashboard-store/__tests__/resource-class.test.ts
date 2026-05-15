@@ -3,6 +3,10 @@ import Resource from '@shell/plugins/dashboard-store/resource-class.js';
 import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
 import { EVENT } from '@shell/config/types';
 
+jest.mock('@shell/config/version', () => ({ getVersionData: () => ({ Version: 'v2.13.0' }) }));
+jest.mock('@shell/config/uiplugins', () => ({ parseRancherVersion: (v: string) => v }));
+jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: () => [] }));
+
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
     const customResource = resourceClassJunkObject;
@@ -495,6 +499,90 @@ describe('class: Resource', () => {
       expect(actions[0].variant).toBe('secondary');
       expect(actions[1].label).toBe('Action 2');
       expect(actions[1].variant).toBe('primary');
+    });
+  });
+
+  describe('getter: _availableActions', () => {
+    function createResource(links: Record<string, string>, overrides: Record<string, any> = {}) {
+      const resource = new Resource({
+        type: 'test-type',
+        links,
+        ...overrides,
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:           jest.fn(),
+            resourceMethods:   [],
+            collectionMethods: [],
+          }),
+        },
+        dispatch:    jest.fn(),
+        rootState:   { $extension: { getPlugins: () => ({}) } },
+        rootGetters: {
+          'i18n/t':                 (key: string) => key,
+          'type-map/hasCustomEdit': () => false,
+          'type-map/optionsFor':    () => ({
+            isEditable: false, isRemovable: true, isCreatable: false
+          }),
+          'prefs/get':    () => false,
+          currentCluster: undefined,
+          currentProduct: undefined,
+          ...overrides.rootGetters,
+        },
+      });
+
+      jest.spyOn(resource, 'currentRouter').mockReturnValue({ currentRoute: { value: {} } } as any);
+
+      return resource;
+    }
+
+    function findAction(actions: any[], actionName: string) {
+      return actions.find((a: any) => a.action === actionName);
+    }
+
+    it('should hide "View YAML" when "Show Configuration" is enabled and resource cannot edit YAML', () => {
+      const resource = createResource({ view: '/api/v1/test' });
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewYaml.enabled).toBe(false);
+    });
+
+    it('should show "Edit YAML" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/optionsFor': () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            })
+          }
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editYaml = findAction(actions, 'goToEditYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editYaml.enabled).toBe(true);
+    });
+
+    it('should show "View YAML" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { disableResourceDetailDrawer: true },
+      );
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewYaml.enabled).toBe(true);
     });
   });
 });
