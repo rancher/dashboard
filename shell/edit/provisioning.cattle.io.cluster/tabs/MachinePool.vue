@@ -394,7 +394,7 @@ export default {
       color="info"
       label-key="cluster.machinePool.noAccessBanner"
     />
-
+    <!---TODO Make it optional-->
     <AdvancedSection
       ref="advanced"
       :mode="mode"
