@@ -361,4 +361,40 @@ describe('page: Chart Detail', () => {
       openSpy.mockRestore();
     });
   });
+
+  describe('methods: installNewInstance', () => {
+    it('should navigate to install page with correct query parameters', () => {
+      const mockRouterPush = jest.fn();
+      const thisContext = {
+        $router: { push: mockRouterPush },
+        $route:  { params: { cluster: 'local' } },
+        $store:  { getters: { productId: 'explorer' } },
+        query:   {
+          repoType:    'cluster',
+          repoName:    'rancher-charts',
+          chartName:   'my-chart',
+          versionName: '1.2.3',
+          deprecated:  'false'
+        }
+      };
+
+      (Chart.methods!.installNewInstance as () => void).call(thisContext);
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-apps-charts-install',
+        params: {
+          cluster: 'local',
+          product: 'explorer',
+        },
+        query: {
+          'repo-type':    'cluster',
+          repo:           'rancher-charts',
+          chart:          'my-chart',
+          version:        '1.2.3',
+          deprecated:     'false',
+          'new-instance': null
+        }
+      });
+    });
+  });
 });

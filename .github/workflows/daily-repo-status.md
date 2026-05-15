@@ -9,6 +9,8 @@ on:
   schedule: daily
   workflow_dispatch:
 
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+
 permissions:
   contents: read
   issues: read
@@ -22,6 +24,7 @@ tools:
     # reading issues, pull requests and comments from 3rd-parties
     # If in a private repo this has no particular effect.
     lockdown: false
+    min-integrity: none
 
 safe-outputs:
   mentions: false

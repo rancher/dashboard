@@ -271,7 +271,7 @@ export default {
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
@@ -386,8 +386,8 @@ export default {
         // Use those values to check for a catalog app resource.
         // If found, set the form to edit mode. If not, set the
         // form to create mode.
-        // This is a hard blocker - installing a new instance is NOT allowed.
 
+        // This is a hard blocker - installing a new instance is NOT allowed.
         this.canInstallNew = false;
 
         try {
@@ -410,11 +410,10 @@ export default {
         if ( targetNamespace && targetName ) {
           // If the app name and namespace values are not provided in the
           // query, fall back on target values defined in the Helm chart itself.
-
           // Ask to install a special chart with fixed namespace/name
           // or edit it if there's an existing install.
-          // This is a hard blocker - installing a new instance is NOT allowed.
 
+          // This is a hard blocker - installing a new instance is NOT allowed.
           this.canInstallNew = false;
 
           try {
@@ -424,8 +423,12 @@ export default {
             });
             this.mode = _EDIT;
           } catch (e) {
-            this.mode = _CREATE;
-            this.existing = null;
+            // Version targets a different namespace than where the app is installed.
+            // Fall back to matching installed apps (e.g. chart detail page).
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            this.existing = matching[0] || null;
+            this.mode = this.existing ? _EDIT : _CREATE;
           }
         } else {
           // Regular chart (not targeted) - check if there are installed instances.

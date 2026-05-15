@@ -1194,8 +1194,8 @@ export const MGMT_CLUSTER_PROVIDER = {
   labelKey:  'tableHeaders.provider',
   subLabel:  'Distro',
   value:     'statusInfo.machineProvider',
-  sort:      ['statusInfo.machineProvider', 'status.driver'],
-  search:    ['statusInfo.machineProvider', 'status.driver'],
+  sort:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.provider', 'status.driver'],
   formatter: 'ClusterProvider',
 };
 

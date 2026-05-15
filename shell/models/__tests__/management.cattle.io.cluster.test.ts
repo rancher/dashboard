@@ -7,7 +7,7 @@ jest.mock('@shell/utils/clipboard', () => {
 describe('class MgmtCluster', () => {
   describe('provisioner', () => {
     const testCases = [
-      [{ provider: 'rke', driver: 'imported' }, 'imported'],
+      [{ provider: 'rke2', driver: 'imported' }, 'rke2'],
       [{ provider: 'k3s', driver: 'K3S' }, 'K3S'],
       [{ provider: 'aks', driver: 'AKS' }, 'AKS'],
       [{}, 'imported'],

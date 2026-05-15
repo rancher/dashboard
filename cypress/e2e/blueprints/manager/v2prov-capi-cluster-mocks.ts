@@ -219,14 +219,14 @@ export const mockCapiMgmtCluster = {
       provisioningClusterRef: {
         apiVersion: 'provisioning.cattle.io/v1',
         kind:       'Cluster',
-        name:       'c-m-h7mt5x6v',
+        name:       'mocked-capi',
         namespace:  `fleet-default`
       }
     },
     limits: {
       cpu: '0', memory: '0', pods: '0'
     },
-    provider:  '',
+    provider:  'rke2',
     requested: {
       cpu: '0', cpuRaw: 0, memory: '0', memoryRaw: 0, pods: '0'
     }

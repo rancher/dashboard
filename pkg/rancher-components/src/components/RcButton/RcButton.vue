@@ -7,10 +7,15 @@
  *
  * <rc-button variant="primary" @click="doAction">Perform an Action</rc-button>
  */
-import { computed, ref } from 'vue';
+import { computed, ref, resolveComponent } from 'vue';
+import type { RouteLocationRaw } from 'vue-router';
 import {
-  ButtonVariantProps, ButtonSizeProps, ButtonVariantNewProps, ButtonSizeNewProps, ButtonSize,
-  IconProps
+  ButtonVariantProps,
+  ButtonSizeProps,
+  ButtonVariantNewProps,
+  ButtonSizeNewProps,
+  ButtonSize,
+  IconProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
@@ -33,7 +38,22 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
   { size: 'large', className: 'btn-large' },
 ];
 
-const props = withDefaults(defineProps<ButtonVariantProps & ButtonSizeProps & ButtonVariantNewProps & ButtonSizeNewProps & IconProps>(), { size: 'medium' });
+const props = withDefaults(
+  defineProps<
+        ButtonVariantProps &
+        ButtonSizeProps &
+        ButtonVariantNewProps &
+        ButtonSizeNewProps &
+        IconProps & { to?: RouteLocationRaw }
+    >(),
+  {
+    size: 'medium',
+    to:   undefined,
+  }
+);
+
+const tag = computed(() => (props.to ? resolveComponent('RouterLink') : 'button'));
+const role = computed(() => (props.to ? 'link' : 'button'));
 
 const activeVariantClassName = computed(() => {
   if (props.variant === 'multiAction' || props.multiAction) {
@@ -94,9 +114,11 @@ defineExpose({ focus });
 </script>
 
 <template>
-  <button
+  <component
+    :is="tag"
     ref="RcFocusTarget"
-    role="button"
+    :role="role"
+    :to="to"
     :class="{ ...buttonClass }"
   >
     <slot
@@ -124,14 +146,22 @@ defineExpose({ focus });
         size="inherit"
       />
     </slot>
-  </button>
+  </component>
 </template>
 
 <style lang="scss" scoped>
-button {
+.rc-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  // Override global .btn > .icon:not(:only-child) { margin-right: 6px } from _button.scss.
+  // RcButton uses flex gap for spacing instead. The :not(:only-child) clause matches the global
+  // selector so we win on specificity regardless of stylesheet load order; :deep() is needed to
+  // target slotted content.
+  & > :deep(.icon:not(:only-child)) {
+    margin-right: 0;
+  }
 
   // Much of the styling in here came from _button.scss. Because we're making changes from role to variant and we don't want to impact existing use cases we're pulling in some of these styles. We should in the long run deprecate that file.
   // Variant styles

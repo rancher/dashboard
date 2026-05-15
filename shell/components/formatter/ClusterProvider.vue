@@ -20,11 +20,14 @@ export default {
           {{ row.machineProviderDisplay }}
         </a>
       </span>
-      <span v-else-if="row.machineProviderDisplay !== row.provisionerDisplay">
+      <span v-else-if="row.machineProviderDisplay">
         {{ row.machineProviderDisplay }}
       </span>
     </template>
-    <div class="text-muted">
+    <div
+      v-if="row.machineProviderDisplay !== row.provisionerDisplay"
+      class="text-muted"
+    >
       {{ row.provisionerDisplay }}
     </div>
   </div>

@@ -260,6 +260,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.connected` },
       { field: `status.info.machineProvider` },
       { field: `status.driver` },
+      { field: `status.provider` },
       { field: `status.info.kubernetesVersion` },
       { field: `spec.fleetWorkspaceName` },
     ],

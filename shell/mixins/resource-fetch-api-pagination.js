@@ -370,28 +370,34 @@ export default {
       await this.$store.dispatch(`${ store }/forgetType`, {
         type:           this.resource,
         compareWatches: (watchParams) => {
-          return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.type.mode;
+          return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.mode;
         },
         unwatch: true,
         forget:  !retainResource
       });
 
-      if (retainResource) {
-        // Clone to ensure we can load each property of A into B without worrying about them being the same reference
-        const clone = await this.$store.dispatch(`${ store }/clone`, { resource: retainResource });
-
-        // Load the resource. It's already in the store but this makes sure any legacy state (like havePage) is reset
-        await this.$store.dispatch(`${ store }/load`, {
-          data:                clone,
-          existing:            retainResource,
-          invalidatePageCache: true,
-        });
-        // Watch the resource.
-        await this.$store.dispatch(`${ store }/watch`, {
-          type: this.resource,
-          id:   retainResource.id,
-        });
+      if (!!retainResource) {
         // The end state should be just like we've dispatched `${store}/find`
+
+        try {
+          // Clone to ensure we can load each property of A into B without worrying about them being the same reference
+          const clone = await this.$store.dispatch(`${ store }/clone`, { resource: retainResource });
+
+          // Load the resource. It's already in the store but this makes sure any legacy state (like havePage) is reset
+          await this.$store.dispatch(`${ store }/load`, {
+            data:                clone,
+            existing:            retainResource,
+            invalidatePageCache: true,
+          });
+
+          // Watch the resource.
+          await this.$store.dispatch(`${ store }/watch`, {
+            type: this.resource,
+            id:   retainResource.id,
+          });
+        } catch (error) {
+          console.error('Error occurred whilst trying to retain the management cluster in cache and correctly watched', error); // eslint-disable-line no-console
+        }
       }
     }
   }

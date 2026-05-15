@@ -106,12 +106,7 @@ export const STEVE_WORKLOAD_HEALTH_SCALE = {
   search: false,
 };
 
-export const STEVE_MGMT_CLUSTER_PROVIDER = {
-  ...MGMT_CLUSTER_PROVIDER,
-  value:  'status.info.machineProvider',
-  sort:   ['status.info.machineProvider', 'status.driver'],
-  search: ['status.info.machineProvider', 'status.driver'],
-};
+export const STEVE_MGMT_CLUSTER_PROVIDER = { ...MGMT_CLUSTER_PROVIDER };
 
 export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   ...MGMT_CLUSTER_KUBE_VERSION,

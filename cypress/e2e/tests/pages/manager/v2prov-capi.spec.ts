@@ -32,7 +32,7 @@ describe('Cluster List - v2 Provisioning CAPI Clusters', { tags: ['@manager', '@
   }));
 
   qase(18528, it('should not report a machine provider for CAPI clusters', () => {
-    clusterList.list().provider(clusterName).should('have.text', 'RKE2');
+    clusterList.list().provider(clusterName).should('contain.text', 'RKE2');
 
     clusterList.list().provider('local').invoke('text').should('match', /^Local (K3s|RKE2)$/);
   }));
