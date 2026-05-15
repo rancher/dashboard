@@ -87,7 +87,8 @@ export default {
   },
   methods: {
     update() {
-      const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
+      const parsed = Number.parseInt(this.servicePort);
+      const servicePort = Number.isNaN(parsed) ? this.servicePort : parsed;
       const serviceName = this.serviceName.label || this.serviceName;
       const out = {
         id: this.value.id, backend: {}, path: this.path, pathType: this.pathType

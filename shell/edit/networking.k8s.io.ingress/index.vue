@@ -87,7 +87,7 @@ export default {
           path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
         },
         {
-          path: 'spec.rules.http.paths.backend.service.port', rules: ['portNumberOrName'], translationKey: 'ingress.rules.port.label'
+          path: 'spec.rules.http.paths.backend.service.port', rules: ['portRequired', 'portRange'], translationKey: 'ingress.rules.port.label'
         },
         {
           path: 'spec.rules.http.paths.backend.service.name', rules: ['required'], translationKey: 'ingress.rules.target.label'
@@ -97,7 +97,7 @@ export default {
           path: 'spec.defaultBackend.service.name', rules: ['required'], translationKey: 'ingress.defaultBackend.targetService.label'
         },
         {
-          path: 'spec.defaultBackend.service.port', rules: ['portNumberOrName'], translationKey: 'ingress.defaultBackend.port.label'
+          path: 'spec.defaultBackend.service.port', rules: ['portRequired', 'portRange'], translationKey: 'ingress.defaultBackend.port.label'
         },
         { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
@@ -125,13 +125,40 @@ export default {
         }
       };
 
-      const portNumberOrName = (port) => {
-        if (!port || (!port.number && !port.name)) {
-          return this.t('validation.required', { key: this.t('ingress.rules.port.label') });
+      const portLabel = this.t('ingress.rules.port.label');
+
+      // Built-in `required` won't work: it passes for empty objects like {} or { name: '' }.
+      const portRequired = (port) => {
+        if (typeof port === 'string' || typeof port === 'number') {
+          if (!port) {
+            return this.t('validation.required', { key: portLabel });
+          }
+        } else if (!port || (!port.number && !port.name)) {
+          return this.t('validation.required', { key: portLabel });
         }
       };
 
-      return { backEndOrRules, portNumberOrName };
+      const portRange = (port) => {
+        let num;
+
+        if (typeof port === 'number') {
+          num = port;
+        } else if (typeof port === 'string') {
+          num = Number.parseInt(port);
+        } else if (port?.number) {
+          num = port.number;
+        }
+
+        if (num !== undefined && !Number.isNaN(num) && (num < 1 || num > 65535)) {
+          return this.t('validation.number.between', {
+            key: portLabel, min: '1', max: '65535'
+          });
+        }
+      };
+
+      return {
+        backEndOrRules, portRequired, portRange
+      };
     },
     tabErrors() {
       return {

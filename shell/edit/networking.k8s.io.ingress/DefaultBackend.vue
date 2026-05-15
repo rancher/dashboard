@@ -78,7 +78,8 @@ export default {
   methods: {
     update() {
       const backend = {};
-      const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
+      const parsed = Number.parseInt(this.servicePort);
+      const servicePort = Number.isNaN(parsed) ? this.servicePort : parsed;
       const portPath = typeof servicePort === 'number' ? this.value.servicePortPath : this.value.servicePortNamePath;
 
       set(backend, this.value.serviceNamePath, this.serviceName);
@@ -127,6 +128,7 @@ export default {
           v-if="portOptions.length === 0 || isView"
           v-model:value="servicePort"
           :mode="mode"
+          :required="true"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
@@ -136,6 +138,7 @@ export default {
           v-else
           v-model:value="servicePort"
           :mode="mode"
+          :required="true"
           :options="portOptions"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
