@@ -2,29 +2,22 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import ArrayList from '@shell/components/form/ArrayList.vue';
 import { VOLUME_TYPE_OPTIONS, HTTP_TOKENS_VALUES } from './constants';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import KeyValue from '@shell/components/form/KeyValue';
-import UnitInput from '@shell/components/form/UnitInput';
-import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
-import { RcSection, RcSectionBadges, RcSectionActions } from '@components/RcSection';
-import { SectionType, SectionMode, SectionBackground } from '@components/RcSection/types';
-import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import RadioGroup from '@components/src/components/Form/Radio/RadioGroup.vue';
+import { _CREATE } from '@shell/config/query-params';
+import InstanceConfigSection from './InstanceConfigSection.vue';
+import StorageSection from './StorageSection.vue';
+import AdvancedSection from './AdvancedSection.vue';
 
 const DEFAULT_GROUP = 'rancher-nodes';
 
 export default {
   components: {
-    Banner, Loading, RcSection, ArrayList, LabeledInput, KeyValue, LabeledSelect, Checkbox, UnitInput, RadioGroup
+    Banner, Loading, InstanceConfigSection, StorageSection, AdvancedSection,
   },
 
   mixins: [CreateEditView],
@@ -275,17 +268,6 @@ export default {
       return out;
     },
 
-    httpTokensOptions() {
-      return [
-        { label: this.t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.options.required'), value: HTTP_TOKENS_VALUES.REQUIRED },
-        { label: this.t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.options.optional'), value: HTTP_TOKENS_VALUES.OPTIONAL },
-      ];
-    },
-
-    additionalVolumeTypeOptions() {
-      return VOLUME_TYPE_OPTIONS;
-    },
-
     DEFAULT_GROUP() {
       return DEFAULT_GROUP;
     }
@@ -363,217 +345,24 @@ export default {
       </div>
 
       <div v-if="loadedRegionalFor">
-        <RcSection
-          :title="t('capa.machineConfig.instanceConfiguration.title')"
-          :expandable="true"
-          mode="with-header"
-          type="primary"
-        >
-          <p>{{ t('capa.machineConfig.instanceConfiguration.description') }}</p>
-
-          <LabeledSelect
-            v-model:value="value.instanceType"
-            :options="instanceTypeOptions"
-            label-key="capa.machineConfig.instanceConfiguration.instanceType.label"
-            option-key="apiName"
-            option-label="label"
-            required
-          />
-          <LabeledSelect
-            v-model:value="value.subnet.id"
-            :options="subnetOptions"
-            label-key="capa.machineConfig.instanceConfiguration.subnet.label"
-            required
-          />
-          <RcSection
-            :title="t('capa.machineConfig.instanceConfiguration.advanced.title')"
-            :expandable="true"
-            mode="with-header"
-            type="secondary"
-          >
-            <LabeledInput
-              v-model:value="value.ami.id"
-              label-key="capa.machineConfig.instanceConfiguration.advanced.machineImage.label"
-              :placeholder="t('capa.machineConfig.instanceConfiguration.advanced.machineImage.placeholder')"
-            />
-            <LabeledInput
-              v-model:value="value.iamInstanceProfile"
-              label-key="capa.machineConfig.instanceConfiguration.advanced.iamInstanceProfileName.label"
-            />
-            <div>
-              <LabeledSelect
-                v-model:value="value.instanceMetadataOptions.httpTokens"
-                :options="httpTokensOptions"
-                label-key="capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.label"
-              />
-              <p class="text-muted text-small mt-5 mb-0">
-                {{ t('capa.machineConfig.instanceConfiguration.advanced.instanceMetadataOptions.httpTokens.description') }}
-              </p>
-            </div>
-          </RcSection>
-        </RcSection>
-        <RcSection
-          :title="t('capa.machineConfig.storage.title')"
-          :expandable="true"
-          mode="with-header"
-          type="primary"
-        >
-          <p>{{ t('capa.machineConfig.storage.description') }}</p>
-          <div class="row">
-            <UnitInput
-              v-model:value="value.rootVolume.size"
-              label-key="capa.machineConfig.storage.rootVolume.size.label"
-              suffix="GiB"
-              class="mr-10"
-            />
-            <LabeledSelect
-              v-model:value="value.rootVolume.type"
-              :options="[]"
-              label-key="capa.machineConfig.storage.rootVolume.type.label"
-              required
-            />
-          </div>
-          <Checkbox
-            v-model:value="value.rootVolume.encrypted"
-            :label="t('capa.machineConfig.storage.rootVolume.encrypted.label')"
-          />
-          <LabeledInput
-            v-if="value.rootVolume.encrypted"
-            v-model:value="value.rootVolume.encryptionKey"
-            label-key="capa.machineConfig.storage.rootVolume.encryptionKey.label"
-            placeholder-key="capa.machineConfig.storage.rootVolume.encryptionKey.placeholder"
-            required
-          />
-          <RcSection
-            :title="t('capa.machineConfig.storage.advanced.title')"
-            :expandable="true"
-            mode="with-header"
-            type="secondary"
-          >
-            <ArrayList
-              v-model:value="value.nonRootVolumes"
-              :add-allowed="true"
-              :default-add-value="{ deviceName: '', type: 'gp3', size: null }"
-              :add-label="t('capa.machineConfig.storage.advanced.additionalVolumes.add')"
-              :show-header="true"
-              class="mb-10 additional-volumes-list"
-            >
-              <template #columns="{ row, queueUpdate }">
-                <div class="additional-volumes-grid">
-                  <LabeledInput
-                    v-model:value="row.value.deviceName"
-                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.deviceName.label"
-                    class="additional-volume-field"
-                    @update:value="queueUpdate"
-                  />
-                  <LabeledSelect
-                    v-model:value="row.value.type"
-                    :options="additionalVolumeTypeOptions"
-                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.type.label"
-                    class="additional-volume-field"
-                    @update:value="queueUpdate"
-                  />
-                  <UnitInput
-                    v-model:value="row.value.size"
-                    label-key="capa.machineConfig.storage.advanced.additionalVolumes.size.label"
-                    class="additional-volume-field"
-                    suffix="GiB"
-                    @update:value="queueUpdate"
-                  />
-                </div>
-              </template>
-            </ArrayList>
-          </RcSection>
-        </RcSection>
-        <RcSection
-          :title="t('capa.machineConfig.advanced.title')"
-          :expandable="true"
-          mode="with-header"
-          type="primary"
-        >
-          <div>
-            <p>{{ t('capa.machineConfig.advanced.cloudInit.title') }}</p>
-            <Checkbox
-              v-model:value="value.cloudInit.insecureSkipSecretsManager"
-              :label="t('capa.machineConfig.advanced.cloudInit.disable.label')"
-              class="mt-10"
-            />
-          </div>
-          <RadioGroup
-            v-model:value="value.securityGroup"
-            name="security-group"
-            :options="[
-              { label: t('capa.machineConfig.advanced.securityGroup.options.standard'), value: 'merge' },
-              { label: t('capa.machineConfig.advanced.securityGroup.options.existing'), value: 'replace' },
-            ]"
-            label-key="capa.machineConfig.advanced.securityGroup.label"
-            class="mt-20 mb-10"
-          />
-          <RcSection
-            :title="t('capa.machineConfig.advanced.marketType.title')"
-            :expandable="true"
-            mode="with-header"
-            type="secondary"
-          >
-            <p>{{ t('capa.machineConfig.advanced.marketType.description') }}</p>
-            <RadioGroup
-              v-model:value="value.marketType"
-              name="market-type"
-              :options="[
-                { label: t('capa.machineConfig.advanced.marketType.options.onDemand'), value: 'on-demand' },
-                { label: t('capa.machineConfig.advanced.marketType.options.spot'), value: 'spot' },
-                { label: t('capa.machineConfig.advanced.marketType.options.block'), value: 'block' },
-              ]"
-              class=""
-            />
-            <div v-if="value.marketType === 'spot'">
-              <UnitInput
-                v-model:value="value.spotMarketOptions.maxPrice"
-                label-key="capa.machineConfig.advanced.marketType.price.label"
-                suffix="USD/h"
-                class="mb-10"
-              />
-              <p>{{ t('capa.machineConfig.advanced.marketType.price.description') }}</p>
-            </div>
-          </RcSection>
-          <RcSection
-            :title="t('capa.machineConfig.advanced.tags.title')"
-            :expandable="true"
-            mode="with-header"
-            type="secondary"
-          >
-            <p>{{ t('capa.machineConfig.advanced.tags.description') }}</p>
-            <KeyValue
-              :mode="mode"
-              :read-allowed="false"
-              :as-map="true"
-              :value="value.additionalTags"
-              :addLabel="t('capa.machineConfig.advanced.tags.add')"
-              data-testid="eks-resource-tags-input"
-              @update:value="$emit('update:tags', $event)"
-            />
-          </RcSection>
-        </RcSection>
+        <InstanceConfigSection
+          :value="value"
+          :instance-type-options="instanceTypeOptions"
+          :subnet-options="subnetOptions"
+          :mode="mode"
+          :disabled="disabled"
+        />
+        <StorageSection
+          :value="value"
+          :mode="mode"
+          :disabled="disabled"
+        />
+        <AdvancedSection
+          v-model:value="value"
+          :mode="mode"
+          :disabled="disabled"
+        />
       </div>
     </template>
   </div>
 </template>
-
-<style lang='scss' scoped>
-.additional-volumes-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  width: 100%;
-}
-
-.additional-volume-field {
-  min-width: 0;
-}
-
-@media (max-width: 1024px) {
-  .additional-volumes-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

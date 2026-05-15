@@ -2477,6 +2477,7 @@ cluster:
     create-rke2: Provision new nodes and create a cluster using RKE2/K3s
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
+    create-capi: Create a cluster using Cluster API
   rke2:
     banner:
       psaChange: PSACT is now set to Rancher default automatically

@@ -1307,11 +1307,31 @@ export default {
         this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
-    initCapiCluster() {
+    async initCapiCluster() {
       // TODO handle edit
+      let config;
+      let configMissing = false;
+
       if (!this.clusterSchema) {
         // eslint-disable-next-line no-console
         console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+      }
+      if (this.$store.getters['management/canList'](this.clusterSchema.id)) {
+        try {
+          config = await this.$store.dispatch('management/find', {
+            type: this.clusterSchema.id,
+            // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+          });
+          console.log('initCapiCluster: fetched cluster config', config);
+        } catch (e) {
+          // Some users can't see the config, that's ok.
+          // we will display a banner for a 404 only for elemental
+          if (e?.status === 404) {
+            if (this.isElementalCluster) {
+              configMissing = true;
+            }
+          }
+        }
       }
     },
 
