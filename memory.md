@@ -41,6 +41,8 @@
 - cluster-name.js: uncovered branch is the regex `(c-.{5}|local)` non-match on short `c-abc` path
 - pod-affinity.js: topologyKey regex is not anchored; only fails for strings with NO alphanumeric chars (e.g. `!!!`)
 - prometheusrule.js: uncovered branch is `else if (has(rule, 'record') && isEmpty(rule.record))` path
+- role-template.js: `missingOneResource` fires whenever both resources AND nonResourceURLs are empty (including undefined); use nonResourceURLs: ['/healthz'] in rules to avoid triggering it when testing other branches
+- cron-schedule.js: mock cronstrue with `jest.mock('cronstrue', ...)` before imports; test validates error-to-i18n translation, not cron parsing
 
 ## Testing Backlog (Prioritized)
 
@@ -48,10 +50,12 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-5. Validators: `cron-schedule.js` (needs cronstrue mock), `role-template.js`, `machine-pool.ts`
+5. `shell/utils/namespace-filter.js` — pure functions (createNamespaceFilterKey, splitNamespaceFilterKey)
+6. `shell/utils/async.ts` — waitFor/wait (need fake timers)
 
 ## Completed Work (Summary)
 
+- 2026-05-15: PR (branch test-assist/validator-role-template-cron-tests): 19 tests for role-template.js + cron-schedule.js; 100% all metrics
 - 2026-05-14: PR (branch test-assist/validator-tests-batch2): 79 tests for pod-affinity.js, prometheusrule.js, container-images.js, flow-output.js, logging-outputs.js, monitoring-route.js; 100% stmts/fns/lines, 98.7% branches
 - 2026-05-13: PR (branch test-assist/kubernetes-cluster-name-tests): 37 tests for kubernetes-name.js + cluster-name.js; 100% stmts/fns/lines, 92.85% branches
 - 2026-05-12: PR (branch test-assist/validators-service-tests): 30 tests for service.js; 97.05% stmts, 93.75% branches, 100% fns
@@ -70,6 +74,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-15: Task 3 (role-template.js + cron-schedule.js, 19 tests) + Task 7
 - 2026-05-14: Task 3 (validator-tests-batch2, 79 tests) + Task 7
 - 2026-05-13: Task 3 (kubernetes-name.js + cluster-name.js, 37 tests) + Task 7
 - 2026-05-12: Task 3 (service.js, 30 tests) + Task 4 (all PRs merged) + Task 7
@@ -83,7 +88,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open branches: test-assist/validator-tests-batch2, test-assist/validators-service-tests, test-assist/kubernetes-cluster-name-tests
+- Open branches: test-assist/validator-role-template-cron-tests, test-assist/validator-tests-batch2, test-assist/kubernetes-cluster-name-tests, test-assist/validators-service-tests
 
 ## Maintainer Priorities
 
