@@ -328,6 +328,11 @@ export default {
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
+    // TODO: improve
+
+    isCapiCluster() {
+      return this.provider === 'capa';
+    },
 
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
@@ -562,6 +567,14 @@ export default {
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
     },
+    // TODO: improve
+    clusterSchema() {
+      if (this.isCapiCluster) {
+        return this.extensionProvider?.clusterSchema;
+      }
+
+      return null;
+    },
 
     machineConfigSchema() {
       let schema;
@@ -587,7 +600,16 @@ export default {
         schema = extensionSchema;
       }
 
-      return this.$store.getters['management/schemaFor'](schema);
+      const resolved = this.$store.getters['management/schemaFor'](schema);
+
+      if (!resolved) {
+        // eslint-disable-next-line no-console
+        console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
+      } else {
+        // TODO
+      }
+
+      return resolved;
     },
 
     nodeTotals() {
@@ -824,6 +846,10 @@ export default {
       }
 
       return null;
+    },
+
+    extensionTopPoolSection() {
+      return this.extensionProvider?.extensionTopPoolSection || null;
     },
 
     showForm() {
@@ -1106,6 +1132,10 @@ export default {
       if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
         set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
       }
+
+      if (this.isCapiCluster) {
+        await this.initCapiCluster();
+      }
     },
 
     /**
@@ -1267,6 +1297,32 @@ export default {
         this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
+    async initCapiCluster() {
+      // TODO handle edit
+      // let config;
+      // let configMissing = false;
+
+      if (!this.clusterSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+      }
+      if (this.$store.getters['management/canList'](this.clusterSchema.id)) {
+        try {
+          // config = await this.$store.dispatch('management/find', {
+          //   type: this.clusterSchema.id,
+          //   // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+          // });
+        } catch (e) {
+          // Some users can't see the config, that's ok.
+          // we will display a banner for a 404 only for elemental
+          if (e?.status === 404) {
+            if (this.isElementalCluster) {
+              // configMissing = true;
+            }
+          }
+        }
+      }
+    },
 
     /**
      * Get machine pools from the cluster configuration
@@ -1334,6 +1390,9 @@ export default {
     async addMachinePool(idx) {
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if (!this.machineConfigSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('addMachinePool: missing machineConfigSchema, pool creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+
         return;
       }
 
@@ -1353,6 +1412,7 @@ export default {
         // If there is no specific model, the applyDefaults does nothing by default
         config.applyDefaults(idx, this.machinePools);
       }
+      // console.log('addMachinePool: created config', config);
 
       const name = `pool${ ++this.lastIdx }`;
 
@@ -1375,7 +1435,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: this.machineConfigSchema.attributes?.kind,
+            kind: this.machineConfigSchema.attributes?.kind, // TODO?
             name: null,
           },
           drainBeforeDelete: true
@@ -2509,6 +2569,14 @@ export default {
               />
             </div>
           </div>
+          <component
+            :is="extensionTopPoolSection"
+            v-if="extensionTopPoolSection"
+            :value="value"
+            :mode="mode"
+            :provider="provider"
+            data-testid="extension-top-section"
+          />
 
           <!-- Extra Tabs for Machine Pool -->
           <Tabbed

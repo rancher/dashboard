@@ -278,6 +278,7 @@ export const CAPI = {
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',
   MACHINE_CONFIG_GROUP: 'rke-machine-config.cattle.io',
+  CAPI_PROVIDER:        'turtles-capi.cattle.io.capiprovider'
 };
 
 // --------------------------------------

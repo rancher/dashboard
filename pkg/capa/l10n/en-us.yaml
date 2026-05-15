@@ -1,0 +1,81 @@
+---
+capa:
+  description: Provision new CAPA (Cluster API Provider AWS) clusters or register existing ones.
+  label: CAPA
+  poolsSharedSection:
+    region:
+      label: Region
+      placeholder: Select a region
+  machineConfig:
+    instanceConfiguration:
+      title: Instance configuration
+      description: Configuration options for the EC2 instance.
+      instanceType:
+        label: Instance type
+      subnet:
+        label: Subnet
+      advanced:
+        title: Advanced instance settings
+        machineImage:
+          label: Machine image (AMI ID)
+          placeholder: 'Default: A recent Ubuntu LTS'
+        iamInstanceProfileName:
+          label: IAM Instance Profile Name
+        instanceMetadataOptions:
+          httpTokens:
+            label: Instance metadata HTTP Tokens
+            description: The state of token usage for your instance metadata requests.
+            options:
+              required: Required
+              optional: Optional
+    storage:
+      title: Storage
+      description: Configuration options for the root storage volume.
+      rootVolume:
+        encrypted:
+          label: Encrypted volume
+        encryptionKey:
+          label: Encryption key
+          placeholder: KMS key id or ARN to encrypt the volume
+        iops:
+          label: IOPS
+        size:
+          label: Root Disk Size
+        type:
+          label: Volume type  
+      advanced:
+        title: Additional volumes (non-root)
+        additionalVolumes:
+          add: Add volume
+          deviceName:
+            label: Device name
+          type:
+            label: Volume type
+          size:
+            label: Disk size
+    advanced:
+      title: Advanced machine settings
+      cloudInit:
+        title: Cloud Init
+        disable:
+          label: Skip secrets manager (insecure)
+      securityGroup:
+        label: Security group
+        options:
+          standard: "Standard: Automatically create and use a 'rancher-nodes' security group"
+          existing: Choose one or more existing security groups
+      marketType:
+        title: Market type
+        description: This specifies the type of market for the EC2 instance and the max price if applies.
+        options:
+          onDemand: On Demand
+          spot: Spot
+          block: Capacity Block
+        price:
+          label: Max price
+          placeholder: 'Default: 0.50'
+          description: Defines the maximum price the user is willing to pay for Spot VM instances.
+      tags:
+        title: Additional tags
+        description: Tags that CAPA will add to managed AWS resources, in addition to the usual ones it adds.
+        add: Add tag
