@@ -78,6 +78,7 @@ export function init(store) {
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
+  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
