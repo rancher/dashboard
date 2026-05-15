@@ -6187,6 +6187,7 @@ resourceTable:
     cluster: Group by Cluster
     device: Group by Device
     pool: Group by Pool
+    workspace: Group by Workspace
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
