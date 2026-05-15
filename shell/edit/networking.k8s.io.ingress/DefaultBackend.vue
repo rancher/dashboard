@@ -77,6 +77,7 @@ export default {
   },
   methods: {
     update() {
+      // Fresh object so the old port path (name vs number) doesn't linger.
       const backend = {};
       const parsed = Number.parseInt(this.servicePort);
       const servicePort = Number.isNaN(parsed) ? this.servicePort : parsed;
@@ -124,6 +125,7 @@ export default {
         class="col span-3"
         :style="{'margin-right': '0px'}"
       >
+        <!-- :required drives the asterisk; portRequired doesn't have .name === 'required' -->
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
           v-model:value="servicePort"

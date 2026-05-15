@@ -186,6 +186,7 @@ export default class Ingress extends SteveModel {
 
   get servicePortNamePath() {
     const nestedPath = 'service.port.name';
+    // Flat API has a single `servicePort` field for both name and number.
     const flatPath = 'servicePort';
 
     return this.useNestedBackendField ? nestedPath : flatPath;
