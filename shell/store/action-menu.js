@@ -191,6 +191,9 @@ function _filter(map, disableAll = false) {
 function _execute(resources, action, args, opts = {}) {
   args = args || [];
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
+    // I think this is dead code. This is only run from the action menu where there's only ever a single resource
+    // For bulk actions shell/components/SortableTable/selection.js _execute runs
+    // If we do ever need to run this it should use that version
     const fn = resources[0][action.bulkAction];
 
     if ( fn ) {
@@ -203,14 +206,16 @@ function _execute(resources, action, args, opts = {}) {
   for ( const resource of resources ) {
     let fn;
 
+    const applyResource = action.altResource || resource;
+
     if (opts.alt && action.altAction) {
-      fn = resource[action.altAction];
+      fn = applyResource[action.altAction];
     } else {
-      fn = resource[action.action];
+      fn = applyResource[action.action];
     }
 
     if ( fn ) {
-      promises.push(fn.apply(resource, args));
+      promises.push(fn.apply(applyResource, args));
     }
   }
 

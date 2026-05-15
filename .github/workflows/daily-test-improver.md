@@ -16,15 +16,8 @@
     slash_command:
       name: test-assist
     reaction: "eyes"
-    steps:
-      - name: Check main repo
-        id: repo_check
-        run: |
-          if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
-            echo "Skipping: not the main repository"
-            exit 1
-          fi
-  if: needs.pre_activation.outputs.repo_check_result == 'success'
+
+  if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
 
   timeout-minutes: 30
 
@@ -47,7 +40,7 @@
     create-pull-request:
       draft: true
       title-prefix: "[Test Improver] "
-      labels: [bot/daily-test-improver]
+      labels: [bot/daily-test-improver, "QA/None"]
       max: 4
       protected-files: fallback-to-issue
     push-to-pull-request-branch:
@@ -336,6 +329,38 @@
   - **Build, format, lint, and test before every PR**: run any code formatting, linting, and testing checks configured in the repository. Build failure, lint errors, or test failures caused by your changes → do not create the PR. Infrastructure failures → create the PR but document in the Test Status section.
   - **Exclude generated files from PRs**: Coverage reports, test outputs go in PR description, not in commits.
   - **Respect existing style** - match test organization, naming conventions, and patterns used in the repo.
+
+  ### Test Code Style (Mandatory)
+
+  These rules are enforced by ESLint and reviewers. Violations block PR approval.
+
+  1. **Named-object `it.each` for table-driven tests**: When multiple tests share the same assertion logic with different inputs/outputs, use `it.each` with named-object entries containing a `desc` field — never positional arrays or individual `it()` blocks:
+      ```ts
+      it.each([
+        {
+          desc:     'short description of case',
+          input:    'value',
+          expected: 'result',
+        },
+        {
+          desc:     'another case',
+          input:    'other',
+          expected: 'other-result',
+        },
+      ])('does something for $desc', ({ input, expected }) => {
+        expect(fn(input)).toStrictEqual(expected);
+      });
+      ```
+  2. **Multi-line object entries**: When `it.each` entry objects have 3 or more properties, write each property on its own line. This prevents `object-curly-newline` ESLint violations. Single-line entries are only acceptable for 1-2 property objects.
+  3. **No `if` statements in tests**: The `jest/no-if` ESLint rule is enforced. Use loop counts or separate test cases instead of conditionals inside test bodies.
+  4. **Lowercase describe/it names**: The `jest/lowercase-name` ESLint rule is enforced. Test and describe block names must start with a lowercase letter (e.g. `'returns the value'`, not `'Returns the value'`).
+  5. **Strong assertions over weak ones**:
+      - Use `toStrictEqual` with exact expected values instead of `toContain` or `toBeGreaterThan(0)` when the exact value is known.
+      - Use `toHaveBeenCalledWith(exact, args)` instead of `toHaveBeenCalled()`.
+      - When verifying object keys, prefer `expect(Object.keys(result)).toStrictEqual([...])` over multiple `toHaveProperty` calls.
+  6. **Test titles must match test behavior**: Ensure the description accurately describes what the test does. If a test passes `0`, don't say "numeric 1". If a test wraps a value in `Promise.resolve()`, don't call it "non-promise value".
+  7. **Tests must actually verify what they claim**: If a test says "preserves key ordering", assert key order (e.g. `Object.keys()`). If it says "resolves non-promise values", pass an actual non-promise value, not `Promise.resolve(42)`.
+  8. **Always run `eslint --fix` then `eslint --max-warnings 0`** on test files before committing. Fix all warnings — the `--fix` flag resolves most `object-curly-newline` and `key-spacing` issues automatically.
   - **AI transparency**: every comment, PR, and issue must include a Test Improver disclosure with 🤖.
   - **Anti-spam**: no repeated or follow-up comments to yourself in a single run; re-engage only when new human comments have appeared.
 

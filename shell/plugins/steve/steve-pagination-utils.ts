@@ -258,6 +258,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `status.connected` },
+      { field: `status.info.machineProvider` },
+      { field: `status.driver` },
+      { field: `status.provider` },
+      { field: `status.info.kubernetesVersion` },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
@@ -265,7 +269,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [NAMESPACE]: [
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' }
+      { field: 'spec.clusterName' },
+    ],
+    [CAPI.MACHINE_DEPLOYMENT]: [
+      { field: 'spec.clusterName' },
     ],
     [EVENT]: [
       { field: '_type' },
@@ -770,8 +777,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
-          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],

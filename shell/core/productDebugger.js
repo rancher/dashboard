@@ -21,8 +21,13 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     }
 
     // prod configureType
-    if (dataType === 'typeOptions' && typeMapData[dataType].filter((item) => item.customRoute && item.customRoute.name.includes(prodName))) {
-      parsedData['configureType'] = typeMapData[dataType].filter((item) => item.customRoute && item.customRoute.name.includes(prodName));
+    if (dataType === 'typeOptions') {
+      const allTypeOptions = Object.values(typeMapData[dataType]).flat();
+      const filtered = allTypeOptions.filter((item) => item.customRoute && item.customRoute.name.includes(prodName));
+
+      if (filtered.length > 0) {
+        parsedData['configureType'] = filtered;
+      }
     }
 
     // other types which map with prodName

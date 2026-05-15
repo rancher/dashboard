@@ -1,5 +1,5 @@
 import { cloudCredentialCreatePayloadDO, cloudCredentialCreatePayloadAzure } from '@/cypress/e2e/blueprints/manager/cloud-credential-create-payload';
-import { clusterProvDigitalOceanSingleResponse } from '@/cypress/e2e/blueprints/manager/digital-ocean-cluster-provisioning-response';
+import { clusterMgmtDigitalOceanSingleResponse, clusterProvDigitalOceanSingleResponse } from '@/cypress/e2e/blueprints/manager/digital-ocean-cluster-provisioning-response';
 import { machinePoolConfigResponse } from '@/cypress/e2e/blueprints/manager/machine-pool-config-response';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
@@ -14,13 +14,13 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 ******/
 describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
-  const doCreatedCloudCredsIds = [];
-  const azCreatedCloudCredsIds = [];
+  const doCreatedCloudCredsIds: any[] = [];
+  const azCreatedCloudCredsIds: any[] = [];
 
   before(() => {
     cy.login();
     // Clean up any orphaned Amazon cloud credentials from previous test runs to ensure tests start with a clean state
-    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v3', 'cloudcredentials', undefined, undefined).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
       if (body.pagination['total'] > 0) {
@@ -148,7 +148,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'
       },
     ];
 
-    const create = (cloudCredsToCreate) => {
+    const create = (cloudCredsToCreate: any) => {
       return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadDO(
         cloudCredsToCreate.name,
         cloudCredsToCreate.token
@@ -161,13 +161,12 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'
       .then(() => create(cloudCredsToCreate[1]))
       .then(() => create(cloudCredsToCreate[2]))
       .then(() => {
+        const mgmtClusterResponse = clusterMgmtDigitalOceanSingleResponse(clusterName);
+        const provClusterResponse = clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId);
+
+        ClusterManagerListPagePo.mockListRequests(provClusterResponse, mgmtClusterResponse);
+
         clusterList.goTo();
-        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', (req) => {
-          req.reply({
-            statusCode: 200,
-            body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),
-          });
-        }).as('dummyClusterListLoad');
 
         clusterList.checkIsCurrentPage();
         clusterList.editCluster(clusterName);
@@ -254,7 +253,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'
     clusterList.goTo();
     clusterList.waitForPage();
 
-    const create = (cloudCredsToCreate) => {
+    const create = (cloudCredsToCreate: any) => {
       return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadAzure(
         cloudCredsToCreate.name,
         cloudCredsToCreate.environment,

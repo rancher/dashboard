@@ -12,7 +12,7 @@ import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContent
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { AGE, STATE } from '@shell/config/table-headers';
+import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
@@ -20,22 +20,21 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import { paginationFilterClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
-import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
-import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION, getVersionData } from '@shell/config/version';
-import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 import paginationUtils from '@shell/utils/pagination-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
 import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
+import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
 
 export default defineComponent({
   name:       'Home',
@@ -71,6 +70,30 @@ export default defineComponent({
       query: { [MODE]: _IMPORT }
     };
 
+    const cpuHeader = {
+      label:  this.t('tableHeaders.cpu'),
+      value:  '',
+      name:   'cpu',
+      sort:   ['status.allocatable.cpuRaw'],
+      search: ['status.allocatable.cpuRaw'],
+    };
+    const memoryHeader = {
+      label:  this.t('tableHeaders.memory'),
+      value:  '',
+      name:   'memory',
+      sort:   ['status.allocatable.memoryRaw'],
+      search: ['status.allocatable.memoryRaw'],
+    };
+    const podsHeader = {
+      label:        this.t('tableHeaders.pods'),
+      name:         'pods',
+      value:        '',
+      sort:         ['status.allocatable.pods', 'status.requested.pods'],
+      search:       ['status.allocatable.pods', 'status.requested.pods'],
+      formatter:    'PodsUsage',
+      delayLoading: true
+    };
+
     return {
       HIDE_HOME_PAGE_CARDS,
       // Page actions don't change on the Home Page
@@ -88,12 +111,9 @@ export default defineComponent({
       vendor: getVendor(),
 
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
-      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
-      canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
-      canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
-      canViewMgmtPools:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
-      canViewMgmtTemplates: !!this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE),
+      canViewMgmtClusters: !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
 
       manageLocation: {
         name:   'c-cluster-product-resource',
@@ -116,41 +136,20 @@ export default defineComponent({
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
         },
         {
-          label:     this.t('landing.clusters.provider'),
-          subLabel:  this.t('landing.clusters.distro'),
-          value:     'mgmt.status.provider',
-          name:      'Provider',
-          sort:      ['mgmt.status.provider'],
-          formatter: 'ClusterProvider'
+          ...MGMT_CLUSTER_PROVIDER,
+          labelKey: 'landing.clusters.provider',
+          subLabel: this.t('landing.clusters.distro'),
         },
         {
-          label:    this.t('landing.clusters.kubernetesVersion'),
+          ...MGMT_CLUSTER_KUBE_VERSION,
+          labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
-          name:     'kubernetesVersion',
         },
-        {
-          label: this.t('tableHeaders.cpu'),
-          value: '',
-          name:  'cpu',
-          sort:  ['status.allocatable.cpu', 'status.available.cpu']
-        },
-        {
-          label: this.t('tableHeaders.memory'),
-          value: '',
-          name:  'memory',
-          sort:  ['status.allocatable.memory', 'status.available.memory']
-        },
-        {
-          label:        this.t('tableHeaders.pods'),
-          name:         'pods',
-          value:        '',
-          sort:         ['status.allocatable.pods', 'status.requested.pods'],
-          formatter:    'PodsUsage',
-          delayLoading: true
-        },
+        cpuHeader,
+        memoryHeader,
+        podsHeader,
         // {
         //   name:  'explorer',
         //   label:  this.t('landing.clusters.explorer')
@@ -162,50 +161,25 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          value:         `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
-          sort:          [`metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`],
-          search:        `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
+          value:         `spec.displayName`,
+          sort:          [`spec.displayName`],
+          search:        `spec.displayName`,
         },
         {
-          label:     this.t('landing.clusters.provider'),
-          subLabel:  this.t('landing.clusters.distro'),
-          value:     'mgmt.status.provider',
-          name:      'Provider',
-          sort:      false,
-          search:    false,
-          formatter: 'ClusterProvider'
+          ...STEVE_MGMT_CLUSTER_PROVIDER,
+          labelKey: 'landing.clusters.provider',
+          subLabel: this.t('landing.clusters.distro'),
         },
         {
-          label:    this.t('landing.clusters.kubernetesVersion'),
+          ...STEVE_MGMT_CLUSTER_KUBE_VERSION,
+          labelKey: 'landing.clusters.kubernetesVersion',
           subLabel: this.t('landing.clusters.architecture'),
-          name:     'kubernetesVersion',
-          sort:     false,
-          search:   false,
         },
-        {
-          label:  this.t('tableHeaders.cpu'),
-          value:  '',
-          name:   'cpu',
-          sort:   false,
-          search: false,
-        },
-        {
-          label:  this.t('tableHeaders.memory'),
-          value:  '',
-          name:   'memory',
-          sort:   false,
-          search: false,
-        },
-        {
-          label:        this.t('tableHeaders.pods'),
-          name:         'pods',
-          value:        '',
-          sort:         false,
-          search:       false,
-          formatter:    'PodsUsage',
-          delayLoading: true
-        },
+        cpuHeader,
+        memoryHeader,
+        podsHeader,
       ],
+      paginationContext: 'home',
 
       clusterCount: 0,
 
@@ -293,134 +267,27 @@ export default defineComponent({
 
   // Forget the types when we leave the page
   beforeUnmount() {
-    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
-    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
+    ManagementClusterUtils.forgetSecondaryResources({ context: this.paginationContext }, { $store: this.$store });
   },
 
   methods: {
     /**
-     * Of type PagTableFetchSecondaryResources
+     * Of type #PagTableFetchSecondaryResources
      */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
-      if (opts.canPaginate) {
-        return Promise.resolve({});
-      }
-
-      const promises = [];
-
-      if ( this.canViewMgmtClusters ) {
-        // This is the only one we need to block on (needed for the initial sort on mgmt name)
-        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }));
-      }
-
-      if ( this.canViewMachine ) {
-        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-      }
-
-      if ( this.canViewMgmtNodes ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
-
-      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.canViewMgmtTemplates ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-
-      return Promise.all(promises);
+      return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
     },
 
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
     }: PagTableFetchPageSecondaryResourcesOpts) {
-      if (!canPaginate || !page?.length) {
-        this.clusterCount = 0;
+      this.clusterCount = !canPaginate || !page?.length ? 0 : pagResult.count;
 
-        return;
-      }
+      const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
+        canPaginate, force, page, pagResult
+      }, { $store: this.$store });
 
-      this.clusterCount = pagResult.count;
-
-      if ( this.canViewMgmtClusters ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.mgmtClusterId
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
-      }
-
-      if ( this.canViewMachine ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.metadata.name
-            }))),
-          })
-        };
-
-        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
-      }
-
-      if ( this.canViewMgmtNodes ) {
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'id',
-              value: r.mgmtClusterId,
-              exact: false,
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
-      }
-
-      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates ) {
-        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
-          .filter((p: any) => p.status?.clusterName)
-          .map((r: any) => new PaginationFilterField({
-            field: 'spec.clusterName',
-            value: r.status?.clusterName
-          })));
-        const nodePools = await this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_POOL,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: nodePoolFilters })
-          }
-        });
-
-        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
-          .filter((np: any) => !!np.nodeTemplateId)
-          .map((np: any) => new PaginationFilterField({
-            field: 'id',
-            value: np.nodeTemplateId,
-            exact: true,
-          })));
-
-        this.$store.dispatch(`management/findPage`, {
-          type: MANAGEMENT.NODE_TEMPLATE,
-          opt:  {
-            force,
-            pagination: new FilterArgs({ filters: templateOpt })
-          }
-        });
-      }
+      await Promise.all(promises);
     },
 
     /**
@@ -482,47 +349,12 @@ export default defineComponent({
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
     },
 
-    /**
-     * Filter out hidden clusters from list of all clusters
-     */
-    filterRowsLocal(rows: any[]) {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store);
+    filterRowsLocal(rows: MgmtCluster[]) {
+      return ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
     },
 
-    /**
-     * Filter out hidden clusters via api
-     */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
-      if (!pagination.filters) {
-        pagination.filters = [];
-      }
-
-      const existingFilters = pagination.filters;
-      const requiredFilters = paginationFilterClusters(this.$store, false);
-
-      for (let i = 0; i < requiredFilters.length; i++) {
-        let found = false;
-        const required = requiredFilters[i];
-
-        for (let j = 0; j < existingFilters.length; j++) {
-          const existing = existingFilters[j];
-
-          if (
-            required.fields.length === existing.fields.length &&
-            sameContents(required.fields.map((e) => e.field), existing.fields.map((e) => e.field))
-          ) {
-            Object.assign(existing, required);
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          pagination.filters.push(required);
-        }
-      }
-
-      return pagination;
+      return ManagementClusterUtils.filterRowsApi(pagination, { $store: this.$store });
     },
 
     async toggleAltClusterListDisabled(disabled: boolean) {
@@ -787,23 +619,25 @@ export default defineComponent({
               class="col span-12"
             >
               <PaginatedResourceTable
-                v-if="provClusterSchema"
-                :schema="provClusterSchema"
+                v-if="mgmtClusterSchema"
+                :schema="mgmtClusterSchema"
+                overrideInStore="management"
                 :table-actions="false"
                 :row-actions="false"
                 key-field="id"
                 :headers="headers"
                 :pagination-headers="paginationHeaders"
-                context="home"
+                :context="paginationContext"
 
                 :local-filter="filterRowsLocal"
                 :api-filter="filterRowsApi"
 
+                :fetch-secondary-resources="fetchSecondaryResources"
+                :fetch-page-secondary-resources="fetchPageSecondaryResources"
+
                 :namespaced="false"
                 :groupable="false"
                 manualRefreshButtonSize="sm"
-                :fetchSecondaryResources="fetchSecondaryResources"
-                :fetchPageSecondaryResources="fetchPageSecondaryResources"
               >
                 <template #header-left>
                   <div class="row table-heading">
@@ -870,12 +704,13 @@ export default defineComponent({
                   <td class="col-name">
                     <div class="list-cluster-name">
                       <p
-                        v-if="row.mgmt"
+                        v-if="row"
                         class="cluster-name"
                       >
+                        <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
                         <router-link
-                          v-if="row.mgmt.isReady && !row.hasError"
-                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                          v-if="row.canExplore"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.id }}"
                           role="link"
                           :aria-label="row.nameDisplay"
                         >
@@ -887,11 +722,6 @@ export default defineComponent({
                           v-clean-tooltip="row.unavailableMachines"
                           class="conditions-alert-icon icon-alert icon"
                         />
-                        <i
-                          v-if="row.isRke1"
-                          v-clean-tooltip="t('cluster.rke1Unsupported')"
-                          class="rke1-unsupported-icon icon-warning icon"
-                        />
                       </p>
                       <p
                         v-if="row.description"
@@ -902,30 +732,17 @@ export default defineComponent({
                     </div>
                   </td>
                 </template>
-                <template #col:kubernetesVersion="{row}">
-                  <td class="col-name">
-                    <span>
-                      {{ row.kubernetesVersion }}
-                    </span>
-                    <div
-                      v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
-                      class="text-muted"
-                    >
-                      {{ row.architecture.label }}
-                    </div>
-                  </td>
-                </template>
                 <template #col:cpu="{row}">
-                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
-                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
+                  <td v-if="cpuAllocatable(row)">
+                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
                   </td>
                 </template>
                 <template #col:memory="{row}">
-                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row.mgmt) }}
+                  <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
+                    {{ memoryAllocatable(row) }}
                   </td>
                   <td v-else>
                     &mdash;

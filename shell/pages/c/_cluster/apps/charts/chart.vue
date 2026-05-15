@@ -859,7 +859,6 @@ export default {
     .readme-wrapper {
       position: relative;
       flex: 1;
-      min-width: 400px;
 
       .open-readme-button {
         display: flex;
@@ -881,6 +880,8 @@ export default {
     }
 
     &__readme {
+      flex: 1;
+      min-width: 400px;
       padding: 12px 24px;
     }
     &__info {
