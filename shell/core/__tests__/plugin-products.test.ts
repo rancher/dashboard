@@ -58,9 +58,10 @@ jest.mock('@shell/core/productDebugger', () => ({
 // Create mock factories
 function createMockPlugin(): IExtension {
   return {
-    _registerTopLevelProduct: jest.fn(),
-    addRoute:                 jest.fn(),
-    DSL:                      jest.fn((store, productName) => ({
+    _registerTopLevelProduct:   jest.fn(),
+    addRoute:                   jest.fn(),
+    enableServerSidePagination: jest.fn(),
+    DSL:                        jest.fn((store, productName) => ({
       basicType:           jest.fn(),
       labelGroup:          jest.fn(),
       setGroupDefaultType: jest.fn(),
@@ -80,8 +81,13 @@ function createMockPlugin(): IExtension {
   } as any;
 }
 
-function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames)): any {
-  return { getters: { 'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined) } };
+function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames), managementSchemas: string[] = []): any {
+  return {
+    getters: {
+      'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined),
+      'management/schemaFor':   (type: string) => (managementSchemas.includes(type) ? { id: type } : undefined),
+    }
+  };
 }
 
 describe('pluginProduct', () => {
@@ -3939,6 +3945,176 @@ describe('pluginProduct', () => {
         });
       });
 
+      describe('resource page: automatic SSP enablement via sspHeaders', () => {
+        it('should call enableServerSidePagination for resource pages with sspHeaders', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore(Object.values(StandardProductNames), ['provisioning.cattle.io.cluster']);
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-auto-test',
+            label: 'SSP Auto Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'provisioning.cattle.io.cluster', sspHeaders: testSspHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockPlugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: ['provisioning.cattle.io.cluster'] } } } });
+        });
+
+        it('should collect sspHeaders types from multiple resource pages', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore(Object.values(StandardProductNames), ['type.a', 'type.b']);
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-multi-test',
+            label: 'SSP Multi Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'type.a', sspHeaders: testSspHeaders },
+            { type: 'type.b', sspHeaders: testSspHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockPlugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: ['type.a', 'type.b'] } } } });
+        });
+
+        it('should collect sspHeaders types from resource pages nested inside groups', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore(Object.values(StandardProductNames), ['nested.resource']);
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-nested-test',
+            label: 'SSP Nested Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const group: ProductChildGroup = {
+            name:     'my-group',
+            label:    'My Group',
+            children: [
+              { type: 'nested.resource', sspHeaders: testSspHeaders },
+            ],
+          };
+
+          const config: ProductChild[] = [group];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockPlugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: ['nested.resource'] } } } });
+        });
+
+        it('should not call enableServerSidePagination when no resource pages have sspHeaders', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-none-test',
+            label: 'SSP None Test',
+          };
+
+          const config: ProductChildPage[] = [
+            { type: 'some.resource.type' },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockPlugin.enableServerSidePagination).not.toHaveBeenCalled();
+        });
+
+        it('should warn when sspHeaders resource type is not available in the management store', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore(Object.values(StandardProductNames), []);
+          const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-warn-test',
+            label: 'SSP Warn Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'pod', sspHeaders: testSspHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('resource type "pod" defines "sspHeaders" but is not available as a global-level resource')
+          );
+
+          // should still call enableServerSidePagination even with the warning
+          expect(mockPlugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: ['pod'] } } } });
+
+          warnSpy.mockRestore();
+        });
+
+        it('should not warn when sspHeaders resource type exists in the management store', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore(Object.values(StandardProductNames), ['provisioning.cattle.io.cluster']);
+          const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-no-warn-test',
+            label: 'SSP No Warn Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'provisioning.cattle.io.cluster', sspHeaders: testSspHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(warnSpy).not.toHaveBeenCalled();
+
+          warnSpy.mockRestore();
+        });
+      });
+
       describe('resource page: overrideListResourceName (mapType) support', () => {
         it('should call DSL mapType when resource page has overrideListResourceName', () => {
           const mockPlugin = createMockPlugin();
@@ -4122,8 +4298,8 @@ describe('pluginProduct', () => {
             name:         'maptogroup-test',
             label:        'MapToGroup Test',
             renameGroups: [
-              { regexOrString: /some\.regex/, group: 'my-group' },
-              { regexOrString: 'exact.match', group: 'other-group' },
+              { groupSelector: /some\.regex/, newName: 'my-group' },
+              { groupSelector: 'exact.match', newName: 'other-group' },
             ],
           };
 
@@ -4169,7 +4345,7 @@ describe('pluginProduct', () => {
       });
 
       describe('product-level: ignoreGroups support', () => {
-        it('should call DSL ignoreGroup with callback when fn is provided', () => {
+        it('should call DSL ignoreGroup with callback when condition is provided', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
           const mockDSL = (mockPlugin.DSL as jest.Mock)();
@@ -4182,7 +4358,7 @@ describe('pluginProduct', () => {
             name:         'ignoregroups-test',
             label:        'IgnoreGroups Test',
             ignoreGroups: [
-              { regexOrString: 'hidden-group', fn: cbFn },
+              { groupSelector: 'hidden-group', condition: cbFn },
             ],
           };
 
@@ -4200,7 +4376,7 @@ describe('pluginProduct', () => {
           expect(mockDSL.ignoreGroup).toHaveBeenCalledWith('hidden-group', cbFn);
         });
 
-        it('should call DSL ignoreGroup without callback when fn is not provided (unconditional hide)', () => {
+        it('should call DSL ignoreGroup without callback when condition is not provided (unconditional hide)', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
           const mockDSL = (mockPlugin.DSL as jest.Mock)();
@@ -4211,7 +4387,7 @@ describe('pluginProduct', () => {
             name:         'ignoregroups-unconditional',
             label:        'IgnoreGroups Unconditional',
             ignoreGroups: [
-              { regexOrString: 'always-hidden' },
+              { groupSelector: 'always-hidden' },
             ],
           };
 
@@ -4240,7 +4416,7 @@ describe('pluginProduct', () => {
             name:         'ignoregroups-regex',
             label:        'IgnoreGroups Regex',
             ignoreGroups: [
-              { regexOrString: /^internal-.*/ },
+              { groupSelector: /^internal-.*/ },
             ],
           };
 
@@ -4330,7 +4506,7 @@ describe('pluginProduct', () => {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
-              { id: 'pod', group: 'monitoring' },
+              { entryId: 'pod', groupName: 'monitoring' },
             ],
           };
 
@@ -4375,7 +4551,7 @@ describe('pluginProduct', () => {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
-              { id: 'dashboard', group: 'monitoring' },
+              { entryId: 'dashboard', groupName: 'monitoring' },
             ],
           };
 
@@ -4412,7 +4588,7 @@ describe('pluginProduct', () => {
             label:       'My App',
             moveToGroup: [
               {
-                id: 'apps.deployment', group: 'resources', weight: 10
+                entryId: 'apps.deployment', groupName: 'resources', weight: 10
               },
             ],
           };
@@ -4427,7 +4603,7 @@ describe('pluginProduct', () => {
           expect(mockDSL.moveType).toHaveBeenCalledWith('apps.deployment', 'myapp-resources', 10);
         });
 
-        it('should throw when moveToGroup references a group that does not exist in the config', () => {
+        it('should throw when moveToGroup references a groupName that does not exist in the config', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
           const mockDSL = (mockPlugin.DSL as jest.Mock)();
@@ -4438,7 +4614,7 @@ describe('pluginProduct', () => {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
-              { id: 'pod', group: 'nonexistent-group' },
+              { entryId: 'pod', groupName: 'nonexistent-group' },
             ],
           };
 
@@ -4453,7 +4629,7 @@ describe('pluginProduct', () => {
           }).toThrow('moveToGroup target group "nonexistent-group" not found');
         });
 
-        it('should throw when moveToGroup id does not match any registered page', () => {
+        it('should throw when moveToGroup entryId does not match any registered page', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
           const mockDSL = (mockPlugin.DSL as jest.Mock)();
@@ -4474,7 +4650,7 @@ describe('pluginProduct', () => {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
-              { id: 'nonexistent-page', group: 'monitoring' },
+              { entryId: 'nonexistent-page', groupName: 'monitoring' },
             ],
           };
 
@@ -4483,7 +4659,7 @@ describe('pluginProduct', () => {
 
           expect(() => {
             pluginProduct.apply(mockPlugin, mockStore);
-          }).toThrow('moveToGroup id "nonexistent-page" not found');
+          }).toThrow('moveToGroup entryId "nonexistent-page" not found');
         });
 
         it('should not call moveType when no moveToGroup entries exist', () => {
@@ -4542,8 +4718,8 @@ describe('pluginProduct', () => {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
-              { id: 'networking.ingress', group: 'networking' },
-              { id: 'storage.pvc', group: 'storage' },
+              { entryId: 'networking.ingress', groupName: 'networking' },
+              { entryId: 'storage.pvc', groupName: 'storage' },
             ],
           };
 

@@ -506,6 +506,12 @@ Formatters transform raw values into formatted display output. Rancher Dashboard
 
 When server-side pagination is enabled for a resource type, Rancher Dashboard uses a separate set of headers optimized for paginated data. These headers follow the same format as `headers` but **do not support `getValue`** — since rows are fetched page-by-page from the server, computed client-side values are not available.
 
+> **Important:** Property paths used to display, sort and search on must exist natively on the resource and not in the Dashboard's model for the resource type. For more information please see [Choosing fields to display, sort and filter on](https://extensions.rancher.io/extensions/next/performance/scaling/lists#choosing-fields-to-display-sort-and-filter-on).
+
+When `sspHeaders` is defined on a resource page, server-side pagination is automatically enabled for that resource type — no additional configuration is needed.
+
+> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`). Cluster-scoped resources like `pod` or `service` are not yet supported by `addProduct`. A console warning will be shown if `sspHeaders` is set on a resource type that is not available at the global level.
+
 Use `sspHeaders` alongside `headers` to define columns for both pagination modes:
 
 ```ts

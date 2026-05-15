@@ -123,6 +123,21 @@ export abstract class BasePluginProduct {
       }
     });
 
+    // Auto-enable SSP for resource pages that define sspHeaders
+    if (this.product) {
+      const sspTypes = this.collectSspTypes(this.config);
+
+      if (sspTypes.length) {
+        sspTypes.forEach((type: string) => {
+          if (!store.getters['management/schemaFor'](type)) {
+            console.warn(`Extensions - product "${ this.name }" ::: resource type "${ type }" defines "sspHeaders" but is not available as a global-level resource. Server-side pagination will not work for this type.`); // eslint-disable-line no-console
+          }
+        });
+
+        plugin.enableServerSidePagination({ management: { resources: { enableSome: { enabled: sspTypes } } } });
+      }
+    }
+
     // Process product-level DSL options after all groups are registered
     // so that the groupNameMap is fully populated for moveToGroup resolution
     if (this.product) {
@@ -278,32 +293,32 @@ export abstract class BasePluginProduct {
 
     if (this.product?.renameGroups?.length) {
       this.product.renameGroups.forEach((mapping) => {
-        mapGroup(mapping.regexOrString, mapping.group);
+        mapGroup(mapping.groupSelector, mapping.newName);
       });
     }
 
     if (this.product?.ignoreGroups?.length) {
       this.product.ignoreGroups.forEach((ignore) => {
-        if (ignore.fn) {
-          ignoreGroup(ignore.regexOrString, ignore.fn);
+        if (ignore.condition) {
+          ignoreGroup(ignore.groupSelector, ignore.condition);
         } else {
-          ignoreGroup(ignore.regexOrString);
+          ignoreGroup(ignore.groupSelector);
         }
       });
     }
 
     if (this.product?.moveToGroup?.length) {
       this.product.moveToGroup.forEach((move) => {
-        const resolvedGroup = this.groupNameMap.get(move.group);
+        const resolvedGroup = this.groupNameMap.get(move.groupName);
 
         if (!resolvedGroup) {
-          this.surfaceError(`moveToGroup target group "${ move.group }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
+          this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
         }
 
-        const resolvedPageId = this.pageIdMap.get(move.id);
+        const resolvedPageId = this.pageIdMap.get(move.entryId);
 
         if (!resolvedPageId) {
-          this.surfaceError(`moveToGroup id "${ move.id }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
+          this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
         }
 
         // Re-register via basicType to move the page in the nav tree (basic view mode)
@@ -311,10 +326,10 @@ export abstract class BasePluginProduct {
 
         // Also register via moveType for non-basic view modes (e.g. "in use" mode).
         // moveType uses regex matching against schema IDs, so it only works for resource types.
-        const isResourceType = resolvedPageId === move.id;
+        const isResourceType = resolvedPageId === move.entryId;
 
         if (isResourceType) {
-          moveType(move.id, resolvedGroup, move.weight);
+          moveType(move.entryId, resolvedGroup, move.weight);
         }
       });
     }
@@ -407,6 +422,25 @@ export abstract class BasePluginProduct {
         weightType(typeValue, item.weight, true);
       }
     }
+  }
+
+  /**
+   * Recursively collects resource types that define sspHeaders from the config tree
+   */
+  protected collectSspTypes(items: ProductChild[]): string[] {
+    const types: string[] = [];
+
+    for (const item of items) {
+      if (isProductChildWithType(item) && item.sspHeaders?.length) {
+        types.push(item.type);
+      }
+
+      if (isProductChildGroup(item)) {
+        types.push(...this.collectSspTypes(item.children));
+      }
+    }
+
+    return types;
   }
 
   /**
