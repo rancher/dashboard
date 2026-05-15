@@ -20,7 +20,7 @@
 // importList(type)                 Returns a promise that resolves to the list component for type
 // importDetail(type[,subType])     Returns a promise that resolves to the detail component for type
 // importEdit(type[,subType])       Returns a promise that resolves to the edit component for type
-// optionsFor(schemaOrType)         Return the configured options for a type (from configureType)
+// optionsFor(schemaOrType, pagination(bool), product(string)) Return the configured options for a type (from configureType) - additional product param can be passed if "optionsFor" needed isn't the current product
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -107,6 +107,7 @@
 //                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                               localOnly: False -- Hide this type from the nav/search bar on downstream clusters
 //                               custom: any - Custom options for a given type
+//                               product: string - If set, this type's options will only apply when that product is active
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -373,6 +374,18 @@ export function DSL(store, product, module = 'type-map') {
   };
 }
 
+const LEGACY_COMPATIBILITY_BUCKET = 'legacyCompatibilityProdRegistration';
+
+function validateProductName(product) {
+  if (!product || typeof product !== 'string' || product.trim() === '') {
+    throw new Error(`Product name must be a non-empty string, got: ${ JSON.stringify(product) }`);
+  }
+
+  if (product === LEGACY_COMPATIBILITY_BUCKET) {
+    throw new Error(`Product name cannot be "${ LEGACY_COMPATIBILITY_BUCKET }" as it is reserved for backward compatibility`);
+  }
+}
+
 let called = false;
 
 export async function applyProducts(store, $extension) {
@@ -558,9 +571,29 @@ export const getters = {
         return {};
       }
 
+      if (product) {
+        validateProductName(product);
+      }
+
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
       const productToUse = product || rootGetters['productId'];
-      const productTypeOptions = state.typeOptions[productToUse] || [];
+
+      // Handle both array (pre-2.15) and object (2.15+) state.typeOptions formats for backwards compatibility
+      let productTypeOptions = [];
+
+      if (Array.isArray(state.typeOptions)) {
+        // Legacy format: filter the flat array for entries matching the product or entries without a product field
+        productTypeOptions = state.typeOptions.filter((entry) => entry.product === productToUse || !entry.product
+        );
+      } else {
+        // New format: direct object lookup by product, with fallback to legacy compatibility bucket for unscoped entries
+        // (e.g., extensions compiled with pre-2.15 shell that don't send product parameter)
+        productTypeOptions = [
+          ...(state.typeOptions[productToUse] || []),
+          ...(state.typeOptions[LEGACY_COMPATIBILITY_BUCKET] || [])
+        ];
+      }
+
       const found = productTypeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
 
@@ -1793,34 +1826,53 @@ export const mutations = {
 
   configureType(state, options) {
     const { product, ...typeOptions } = options;
-
-    if (!product) {
-      // eslint-disable-next-line no-console
-      console.error('configureType called without product parameter');
-
-      return;
-    }
-
     const match = regexToString(ensureRegex(typeOptions.match));
 
-    // Initialize product's typeOptions array if needed
-    if (!state.typeOptions[product]) {
-      state.typeOptions[product] = [];
-    }
+    // Handle both old (array) and new (object) state.typeOptions formats for backwards compatibility
+    // Old format (pre-2.15): state.typeOptions = []
+    // New format (2.15+): state.typeOptions = { productName: [...] }
+    if (Array.isArray(state.typeOptions)) {
+      // Legacy path: old format for extensions compiled with pre-2.15 shell
+      // In 2.14, product parameter is not validated/enforced
+      const idx = state.typeOptions.findIndex((obj) => obj.match === match);
+      let obj = { ...options, match };
 
-    const productTypeOptions = state.typeOptions[product];
-    const idx = productTypeOptions.findIndex((obj) => obj.match === match);
-    let obj = { ...typeOptions, match };
-
-    if ( idx >= 0 ) {
-      // Merge the custom data object - multiple configures will update existing rather than overwrite
-      obj.custom = Object.assign(productTypeOptions[idx].custom || {}, obj.custom || {});
-      obj = Object.assign(productTypeOptions[idx], obj);
-      productTypeOptions.splice(idx, 1, obj);
+      if ( idx >= 0 ) {
+        // Merge the custom data object - multiple configures will update existing rather than overwrite
+        obj.custom = Object.assign(state.typeOptions[idx].custom || {}, obj.custom || {});
+        obj = Object.assign(state.typeOptions[idx], obj);
+        state.typeOptions.splice(idx, 1, obj);
+      } else {
+        state.typeOptions.push(obj);
+      }
     } else {
-      const obj = Object.assign({}, typeOptions, { match });
+      // New path: object format with product scoping (2.15+)
+      // Product is required in new format
+      if (!product) {
+        throw new Error(`configureType: product parameter is required in Rancher 2.15+, not provided for type "${ match }"`);
+      }
 
-      productTypeOptions.push(obj);
+      validateProductName(product);
+
+      // Initialize product's typeOptions array if needed
+      if (!state.typeOptions[product]) {
+        state.typeOptions[product] = [];
+      }
+
+      const productTypeOptions = state.typeOptions[product];
+      const idx = productTypeOptions.findIndex((obj) => obj.match === match);
+      let obj = { ...typeOptions, match };
+
+      if ( idx >= 0 ) {
+        // Merge the custom data object - multiple configures will update existing rather than overwrite
+        obj.custom = Object.assign(productTypeOptions[idx].custom || {}, obj.custom || {});
+        obj = Object.assign(productTypeOptions[idx], obj);
+        productTypeOptions.splice(idx, 1, obj);
+      } else {
+        const obj = Object.assign({}, typeOptions, { match });
+
+        productTypeOptions.push(obj);
+      }
     }
   },
 

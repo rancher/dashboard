@@ -1406,19 +1406,26 @@ describe('type-map', () => {
         });
       });
 
-      it('should log error when product parameter is missing', () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      it('should throw error when product parameter is missing in new format (2.15+)', () => {
         const state = { typeOptions: {} } as any;
 
-        mutations.configureType(state, {
-          match:       'pod',
-          customRoute: { name: 'route' }
-        });
+        expect(() => {
+          mutations.configureType(state, {
+            match:       'pod',
+            customRoute: { name: 'route' }
+          });
+        }).toThrow(/product parameter is required/);
+      });
 
-        expect(consoleSpy).toHaveBeenCalledWith('configureType called without product parameter');
-        expect(state.typeOptions).toStrictEqual({});
+      it('should throw error with type info when product parameter is missing', () => {
+        const state = { typeOptions: {} } as any;
 
-        consoleSpy.mockRestore();
+        expect(() => {
+          mutations.configureType(state, {
+            match:       'pod',
+            customRoute: { name: 'route' }
+          });
+        }).toThrow(/for type/);
       });
 
       it('should allow different types in same product', () => {
@@ -1566,6 +1573,237 @@ describe('type-map', () => {
 
         expect(product2Opts.customRoute).toBeUndefined();
         expect(product2Opts.isCreatable).toBe(true);
+      });
+
+      describe('backward compatibility - legacy array format (Rancher 2.14)', () => {
+        it('should handle legacy array format with product field', () => {
+          const state = {
+            typeOptions: [
+              {
+                match: 'pod', product: 'explorer', customRoute: { name: 'explorer-route' }
+              },
+              {
+                match: 'pod', product: 'product-1', customRoute: { name: 'product-1-route' }
+              }
+            ]
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-route');
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+        });
+
+        it('should handle legacy array format with entries without product field', () => {
+          const state = {
+            typeOptions: [
+              {
+                match: 'pod', product: 'explorer', customRoute: { name: 'explorer-route' }
+              },
+              { match: 'pod', customRoute: { name: 'shared-route' } }
+            ]
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+          const otherProductOptions = getters.optionsFor(state, {}, {}, { productId: 'other' });
+
+          // explorer gets its product-specific entry (matches first)
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-route');
+
+          // other product gets only unscoped entries
+          expect(otherProductOptions('pod', false).customRoute.name).toBe('shared-route');
+        });
+      });
+
+      describe('backward compatibility - missing product parameter (old extensions in 2.15)', () => {
+        it('should reject unscoped config (requires product parameter in 2.15+)', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              match:       'pod',
+              customRoute: { name: 'legacy-route' }
+            });
+          }).toThrow(/product parameter is required/);
+        });
+
+        it('should retrieve legacyCompatibilityProdRegistration entries for products without specific config', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+          const product2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+
+          // product-1 gets its own config (takes precedence)
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+
+          // product-2 gets legacy entries
+          expect(product2Options('pod', false).customRoute.name).toBe('legacy-route');
+        });
+
+        it('should merge product-specific and legacyCompatibilityProdRegistration buckets in getter', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'deployment', customRoute: { name: 'product-1-deployment-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-pod-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // pod from legacy bucket (product-1 doesn't have pod config)
+          expect(product1Options('pod', false).customRoute.name).toBe('legacy-pod-route');
+
+          // deployment from product-specific bucket
+          expect(product1Options('deployment', false).customRoute.name).toBe('product-1-deployment-route');
+        });
+      });
+
+      describe('mixed extensions scenario (2.15 with old + new extensions)', () => {
+        it('should handle old extension (2.14 shell) + new extension (2.15 shell) in same product', () => {
+          const state = {
+            typeOptions: {
+              explorer:                            [{ match: 'pod', customRoute: { name: 'explorer-pod-route' } }],
+              legacyCompatibilityProdRegistration: [
+                { match: 'secret', customRoute: { name: 'legacy-secret-route' } },
+                { match: 'configmap', customRoute: { name: 'legacy-configmap-route' } }
+              ]
+            }
+          } as any;
+
+          const explorerOptions = getters.optionsFor(state, {}, {}, { productId: 'explorer' });
+
+          // New extension config (product-specific)
+          expect(explorerOptions('pod', false).customRoute.name).toBe('explorer-pod-route');
+
+          // Old extension configs (from legacy bucket)
+          expect(explorerOptions('secret', false).customRoute.name).toBe('legacy-secret-route');
+          expect(explorerOptions('configmap', false).customRoute.name).toBe('legacy-configmap-route');
+        });
+
+        it('should prioritize product-specific config over legacy bucket when same type in both', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'product-1-route' } }],
+              legacyCompatibilityProdRegistration: [{ match: 'pod', customRoute: { name: 'legacy-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // product-specific should come first in the array and match first
+          expect(product1Options('pod', false).customRoute.name).toBe('product-1-route');
+        });
+
+        it('should work with multiple products having both specific and legacy configs', () => {
+          const state = {
+            typeOptions: {
+              'product-1':                         [{ match: 'pod', customRoute: { name: 'p1-pod' } }],
+              'product-2':                         [{ match: 'pod', customRoute: { name: 'p2-pod' } }],
+              legacyCompatibilityProdRegistration: [
+                { match: 'secret', customRoute: { name: 'legacy-secret' } },
+                { match: 'pod', customRoute: { name: 'legacy-pod' } }
+              ]
+            }
+          } as any;
+
+          const p1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+          const p2Options = getters.optionsFor(state, {}, {}, { productId: 'product-2' });
+          const p3Options = getters.optionsFor(state, {}, {}, { productId: 'product-3' });
+
+          // product-1: gets its own pod config, ignores legacy pod, gets legacy secret
+          expect(p1Options('pod', false).customRoute.name).toBe('p1-pod');
+          expect(p1Options('secret', false).customRoute.name).toBe('legacy-secret');
+
+          // product-2: gets its own pod config, ignores legacy pod, gets legacy secret
+          expect(p2Options('pod', false).customRoute.name).toBe('p2-pod');
+          expect(p2Options('secret', false).customRoute.name).toBe('legacy-secret');
+
+          // product-3: gets only legacy configs
+          expect(p3Options('pod', false).customRoute.name).toBe('legacy-pod');
+          expect(p3Options('secret', false).customRoute.name).toBe('legacy-secret');
+        });
+      });
+
+      describe('product name validation', () => {
+        it('should throw error when product name equals reserved legacyCompatibilityProdRegistration', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              product:     'legacyCompatibilityProdRegistration',
+              match:       'pod',
+              customRoute: { name: 'route' }
+            });
+          }).toThrow(/cannot be "legacyCompatibilityProdRegistration"/);
+        });
+
+        it('should allow empty string in getter (falsy, bypasses validation)', () => {
+          const state = { typeOptions: { 'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // Empty string is falsy so it skips validation and uses current product context
+          expect(() => {
+            optionsFn('pod', false, '');
+          }).not.toThrow();
+        });
+
+        it('should throw error in getter when product override is the reserved name', () => {
+          const state = { typeOptions: { 'product-1': [] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          expect(() => {
+            optionsFn('pod', false, 'legacyCompatibilityProdRegistration');
+          }).toThrow(/cannot be "legacyCompatibilityProdRegistration"/);
+        });
+
+        it('should allow undefined product (triggers default context in getter)', () => {
+          const state = { typeOptions: { 'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }] } } as any;
+          const optionsFn = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // undefined product should use current product context
+          expect(() => {
+            optionsFn('pod', false, undefined);
+          }).not.toThrow();
+        });
+
+        it('should allow valid product names', () => {
+          const state = { typeOptions: {} } as any;
+
+          expect(() => {
+            mutations.configureType(state, {
+              product:     'my-product',
+              match:       'pod',
+              customRoute: { name: 'route' }
+            });
+          }).not.toThrow();
+
+          expect(state.typeOptions['my-product']).toHaveLength(1);
+        });
+      });
+
+      describe('edge cases and potential issues', () => {
+        it('should handle explicit product override with product parameter in getter', () => {
+          const state = {
+            typeOptions: {
+              'product-1': [{ match: 'pod', customRoute: { name: 'p1-route' } }],
+              'product-2': [{ match: 'pod', customRoute: { name: 'p2-route' } }]
+            }
+          } as any;
+
+          const product1Options = getters.optionsFor(state, {}, {}, { productId: 'product-1' });
+
+          // Without override, should use product-1
+          expect(product1Options('pod', false).customRoute.name).toBe('p1-route');
+
+          // With explicit override to product-2, should use product-2
+          expect(product1Options('pod', false, 'product-2').customRoute.name).toBe('p2-route');
+        });
       });
     });
   });
