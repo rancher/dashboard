@@ -324,11 +324,15 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
+    if (this.status?.clusterName) {
+      return this.status.clusterName;
+    }
+
     // when a cluster is created `this` instance isn't immediately updated with `status.clusterName`
     // Workaround - Get fresh copy from the store
     const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
 
-    return this.status?.clusterName || pCluster?.status?.clusterName;
+    return pCluster?.status?.clusterName;
   }
 
   get mgmt() {

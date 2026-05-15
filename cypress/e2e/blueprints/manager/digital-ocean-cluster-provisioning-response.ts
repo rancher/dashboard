@@ -66,7 +66,8 @@ export function clusterMgmtDigitalOceanSingleResponse(clusterName: string): obje
             name:       `${ clusterName }`,
             namespace:  `${ namespace }`
           }
-        }
+        },
+        provider: 'rke2'
       },
     }],
   };
