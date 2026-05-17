@@ -44,6 +44,8 @@
 - role-template.js: `missingOneResource` fires whenever both resources AND nonResourceURLs are empty (including undefined); use nonResourceURLs: ['/healthz'] in rules to avoid triggering it when testing other branches
 - cron-schedule.js: mock cronstrue with `jest.mock('cronstrue', ...)` before imports; test validates error-to-i18n translation, not cron parsing
 - async.ts: `waitFor` uses `this` in resolve (undefined in strict), but tests pass; gatedLog branches only active when log=true (not worth testing)
+- aws.ts: all 4 functions are pure; Ipv6CidrBlockAssociationSet is array (check length); Tags.find for 'Name' key
+- kube.js: normalizeName handles null/undefined via `(str || '')` pattern
 
 ## Testing Backlog (Prioritized)
 
@@ -51,10 +53,13 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
+5. `shell/utils/alertmanagerconfig.js` — pure functions: createDefaultRouteName, areRoutesSupportedFormat, canCreate
+6. `shell/utils/svg-filter.js` — pure color filter algorithm (302 lines, no deps)
 
 ## Completed Work (Summary)
 
-- 2026-05-16: PR (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts; namespace-filter 100%, async.ts 94% stmts/87% branches/100% fns
+- 2026-05-17: PR (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics
+- 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts; namespace-filter 100%, async.ts 94% stmts/87% branches/100% fns
 - 2026-05-15: PR (branch test-assist/validator-role-template-cron-tests): 19 tests for role-template.js + cron-schedule.js; 100% all metrics
 - 2026-05-14: PR (branch test-assist/validator-tests-batch2): 79 tests for pod-affinity.js, prometheusrule.js, container-images.js, flow-output.js, logging-outputs.js, monitoring-route.js; 100% stmts/fns/lines, 98.7% branches
 - 2026-05-13: PR (branch test-assist/kubernetes-cluster-name-tests): 37 tests for kubernetes-name.js + cluster-name.js; 100% stmts/fns/lines, 92.85% branches
@@ -74,6 +79,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-17: Task 3 (aws.ts + kube.js, 29 tests) + Task 4 (checked PR #17692 CI - unit tests pass) + Task 7
 - 2026-05-16: Task 3 (namespace-filter.js + async.ts, 20 tests) + Task 7
 - 2026-05-15: Task 3 (role-template.js + cron-schedule.js, 19 tests) + Task 7
 - 2026-05-14: Task 3 (validator-tests-batch2, 79 tests) + Task 7
@@ -89,7 +95,8 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open branches: test-assist/namespace-filter-async-tests, test-assist/validator-role-template-cron-tests, test-assist/validator-tests-batch2, test-assist/kubernetes-cluster-name-tests, test-assist/validators-service-tests
+- Open PRs: #17692 (namespace-filter+async); test-assist/aws-kube-utils-tests (new, pending PR number)
+- Open branches without PR numbers: test-assist/validator-role-template-cron-tests, test-assist/validator-tests-batch2, test-assist/kubernetes-cluster-name-tests, test-assist/validators-service-tests, test-assist/color-utils-tests
 
 ## Maintainer Priorities
 
