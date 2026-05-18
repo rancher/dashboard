@@ -1368,6 +1368,19 @@ const defaultActions = {
     const data = msg.data;
     const type = data?.type;
 
+    // Notify the web worker about the new schema so its hash map stays in sync.
+    // This mirrors the handling in ws.resource.remove and prevents spurious
+    // "changed" notifications for schemas the worker has never seen before.
+    // Note: we deliberately do NOT return early here – we also call queueChange
+    // below so that the schema is added to the store immediately.
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ updateSchema: data });
+      }
+    }
+
     const havePage = ctx.getters['havePage'](type);
 
     if (havePage) {

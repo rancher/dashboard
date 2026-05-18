@@ -112,6 +112,87 @@ describe('steve: subscribe', () => {
       });
     });
 
+    describe('ws.resource.create', () => {
+      const makeCtx = (overrides: Record<string, any> = {}) => ({
+        state:   { debugSocket: false, queue: [] },
+        getters: {
+          storeName:     'cluster',
+          normalizeType: (t: string) => t,
+          typeEntry:     () => ({ revision: 0 }),
+          havePage:      () => null,
+          haveNamespace: () => null,
+          ...overrides.getters,
+        },
+        rootGetters: {
+          isAllNamespaces: true,
+          ...overrides.rootGetters,
+        },
+        dispatch: jest.fn(),
+        commit:   jest.fn(),
+        ...overrides,
+      });
+
+      it('notifies the worker about a new schema via updateSchema', () => {
+        const postMessage = jest.fn();
+        const ctx = makeCtx();
+
+        // Simulate a worker being registered for this store
+        (actions['ws.resource.create'] as any).call(
+          { $workers: { cluster: { postMessage } } },
+          ctx,
+          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
+        );
+
+        expect(postMessage).toHaveBeenCalledWith({ updateSchema: { type: 'schema', id: 'my.io.crd' } });
+      });
+
+      it('queues a load for the new schema even when a worker is present', () => {
+        const postMessage = jest.fn();
+        const ctx = makeCtx();
+
+        (actions['ws.resource.create'] as any).call(
+          { $workers: { cluster: { postMessage } } },
+          ctx,
+          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
+        );
+
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'schema', id: 'my.io.crd' }
+          },
+        ]);
+      });
+
+      it('does not notify the worker for non-schema resource creates', () => {
+        const postMessage = jest.fn();
+        const ctx = makeCtx();
+
+        (actions['ws.resource.create'] as any).call(
+          { $workers: { cluster: { postMessage } } },
+          ctx,
+          { data: { type: 'pod', id: 'my-pod' }, revision: '1' }
+        );
+
+        expect(postMessage).not.toHaveBeenCalled();
+      });
+
+      it('still queues a load when no worker is registered', () => {
+        const ctx = makeCtx();
+
+        (actions['ws.resource.create'] as any).call(
+          { $workers: {} },
+          ctx,
+          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
+        );
+
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'schema', id: 'my.io.crd' }
+          },
+        ]);
+      });
+    });
+
     describe('fetchPageResources', () => {
       const dispatch = jest.fn();
       const getters = {
