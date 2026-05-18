@@ -2,7 +2,7 @@
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { base64Decode } from '@shell/utils/crypto';
+import { extractDockerAuthCredentials } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -72,18 +72,7 @@ export default {
     }
 
     const authEntry = auths[registryUrl] || {};
-    let username = authEntry.username || '';
-    let password = authEntry.password || '';
-
-    if (!username && !password && authEntry.auth) {
-      const decoded = base64Decode(authEntry.auth);
-      const separatorIndex = decoded.indexOf(':');
-
-      if (separatorIndex !== -1) {
-        username = decoded.substring(0, separatorIndex);
-        password = decoded.substring(separatorIndex + 1);
-      }
-    }
+    const { username = '', password = '' } = extractDockerAuthCredentials(authEntry);
 
     return {
       registryProvider,

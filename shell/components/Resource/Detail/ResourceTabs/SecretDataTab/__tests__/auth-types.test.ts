@@ -111,25 +111,49 @@ describe('composables: SecretDataTab/auth-types', () => {
       expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
       expect(base64DecodeSpy).toHaveBeenCalledWith('encodedAuth');
     });
+  });
 
-    it('should decode username and password from the auth field when the password contains a colon', () => {
-      const data = { '.dockerconfigjson': 'base64Json' };
-      const registryUrl = 'registry-url.com';
+  describe('extractDockerAuthCredentials', () => {
+    it('should return username and password when both are present in the auth entry', () => {
+      const username = 'tiger';
+      const password = 'pass1234';
+
+      const result = authTypes.extractDockerAuthCredentials({ username, password });
+
+      expect(result.username).toStrictEqual(username);
+      expect(result.password).toStrictEqual(password);
+    });
+
+    it('should decode username and password from the auth field when only auth is present', () => {
+      const username = 'tiger';
+      const password = 'pass1234';
+
+      base64DecodeSpy.mockReturnValue(`${ username }:${ password }`);
+
+      const result = authTypes.extractDockerAuthCredentials({ auth: 'encodedAuth' });
+
+      expect(result.username).toStrictEqual(username);
+      expect(result.password).toStrictEqual(password);
+      expect(base64DecodeSpy).toHaveBeenCalledWith('encodedAuth');
+    });
+
+    it('should correctly split on only the first colon when the password contains colons', () => {
       const username = 'tiger';
       const password = 'pass:with:colons';
-      const authFieldValue = `${ username }:${ password }`;
-      const json = { auths: { [registryUrl]: { auth: 'encodedAuth' } } };
 
-      base64DecodeSpy.mockImplementation((value: string) => {
-        if (value === 'encodedAuth') return authFieldValue;
+      base64DecodeSpy.mockReturnValue(`${ username }:${ password }`);
 
-        return JSON.stringify(json);
-      });
+      const result = authTypes.extractDockerAuthCredentials({ auth: 'encodedAuth' });
 
-      const dockerBasic = authTypes.useDockerBasic({ data });
+      expect(result.username).toStrictEqual(username);
+      expect(result.password).toStrictEqual(password);
+    });
 
-      expect(dockerBasic.value.username).toStrictEqual(username);
-      expect(dockerBasic.value.password).toStrictEqual(password);
+    it('should return undefined username and password when auth entry is empty', () => {
+      const result = authTypes.extractDockerAuthCredentials({});
+
+      expect(result.username).toBeUndefined();
+      expect(result.password).toBeUndefined();
     });
   });
 
