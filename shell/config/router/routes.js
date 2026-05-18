@@ -350,6 +350,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/explorer-utils.js')),
         name:      'c-cluster-explorer-explorer-utils'
       }, {
+        path:      '/c/:cluster/explorer/workload-dashboard',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/workload-dashboard.vue')),
+        name:      'c-cluster-explorer-workload-dashboard'
+      }, {
         path:      '/c/:cluster/explorer/tools',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/index.vue')),
         name:      'c-cluster-explorer-tools'

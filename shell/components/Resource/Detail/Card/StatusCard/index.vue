@@ -8,12 +8,16 @@ import { useI18n } from '@shell/composables/useI18n';
 import { StateColor } from '@shell/utils/style';
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import type { RouteLocationRaw } from 'vue-router';
 
 export interface Props {
   title: string;
   resources?: any[];
   showScaling?: boolean;
+  showPercent?: boolean;
   noResourcesMessage?: string;
+  to?: RouteLocationRaw;
+  rowTo?: RouteLocationRaw | string;
 }
 </script>
 
@@ -24,7 +28,10 @@ const i18n = useI18n(store);
 const props = withDefaults(defineProps<Props>(), {
   resources:          undefined,
   showScaling:        false,
-  noResourcesMessage: undefined
+  showPercent:        true,
+  noResourcesMessage: undefined,
+  to:                 undefined,
+  rowTo:              undefined
 });
 const emit = defineEmits(['decrease', 'increase']);
 
@@ -85,6 +92,14 @@ const rows = computed(() => {
   }));
 });
 
+function rowRoute(label: string): RouteLocationRaw | undefined {
+  if (!props.rowTo || typeof props.rowTo === 'string') {
+    return undefined;
+  }
+
+  return { ...props.rowTo, query: { q: label } };
+}
+
 </script>
 
 <template>
@@ -92,6 +107,14 @@ const rows = computed(() => {
     :title="title"
     data-testid="resource-detail-status-card"
   >
+    <template
+      v-if="props.to"
+      #title
+    >
+      <router-link :to="props.to">
+        {{ title }}
+      </router-link>
+    </template>
     <template
       v-if="props.showScaling"
       #heading-action
@@ -120,6 +143,8 @@ const rows = computed(() => {
         :label="row.label"
         :count="row.count"
         :percent="row.percent"
+        :showPercent="props.showPercent"
+        :to="rowRoute(row.label)"
       />
     </div>
     <div
