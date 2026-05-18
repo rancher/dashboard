@@ -510,7 +510,7 @@ When server-side pagination is enabled for a resource type, Rancher Dashboard us
 
 When `sspHeaders` is defined on a resource page, server-side pagination is automatically enabled for that resource type — no additional configuration is needed.
 
-> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`). Cluster-scoped resources like `pod` or `service` are not yet supported by `addProduct`. A console warning will be shown if `sspHeaders` is set on a resource type that is not available at the global level.
+> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`. A console warning will be shown if `sspHeaders` is set on a resource type that is not available at the global level.
 
 Use `sspHeaders` alongside `headers` to define columns for both pagination modes:
 
