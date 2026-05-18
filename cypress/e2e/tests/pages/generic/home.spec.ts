@@ -392,7 +392,7 @@ describe('Home Page', () => {
 
       cy.getRancherVersion().then((version) => {
         cy.window().then((win) => {
-          cy.stub(win, 'open').callsFake(() => {}).as('openReleaseNotes');
+          cy.stub(win, 'open').as('openReleaseNotes');
         });
 
         item.primaryActionButton().click();

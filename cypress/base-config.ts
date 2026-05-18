@@ -141,9 +141,7 @@ const baseConfig = defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      const { plugin: grepPlugin } = require('@cypress/grep/plugin');
-
-      grepPlugin(config);
+      require('@cypress/grep/plugin').plugin(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
       on('task', { removeDirectory });
