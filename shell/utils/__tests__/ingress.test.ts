@@ -1,21 +1,13 @@
 import IngressDetailEditHelper from '@shell/utils/ingress';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { get, set } from '@shell/utils/object';
 
-/**
- * Mirrors the port parsing logic used in RulePath.vue and DefaultBackend.vue
- * to decide whether to write port.number or port.name
- */
 function parseServicePort(rawPort: string | number): string | number {
   const parsed = Number.parseInt(String(rawPort));
 
   return Number.isNaN(parsed) ? rawPort : parsed;
 }
 
-/**
- * Mirrors the portRequired validation rule from index.vue.
- * Handles both scalar values (from component-level validation)
- * and port objects (from form-validation mixin).
- */
 function portRequired(port: any): string | undefined {
   if (typeof port === 'string' || typeof port === 'number') {
     if (!port) {
@@ -28,10 +20,6 @@ function portRequired(port: any): string | undefined {
   return undefined;
 }
 
-/**
- * Mirrors the portRange validation rule from index.vue.
- * Checks that a numeric port is within 1-65535 (handles both scalar and object inputs).
- */
 function portRange(port: any): string | undefined {
   let num;
 
@@ -48,6 +36,45 @@ function portRange(port: any): string | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Mirrors willSave() from index.vue.
+ * Clears the default backend when the service name or port is missing.
+ */
+function willSave(spec: any, paths: { defaultBackendPath: string; serviceNamePath: string; servicePortPath: string; servicePortNamePath: string }): void {
+  const backend = get(spec, paths.defaultBackendPath);
+  const serviceName = get(backend, paths.serviceNamePath);
+  const servicePort = get(backend, paths.servicePortPath) ||
+    get(backend, paths.servicePortNamePath);
+
+  if (backend && (!serviceName || !servicePort)) {
+    set(spec, paths.defaultBackendPath, null);
+  }
+}
+
+/**
+ * Mirrors defaultBackendNameRequired from index.vue.
+ * Only enforces required when a service is actually selected.
+ */
+function defaultBackendNameRequired(name: any, hasService: boolean): string | undefined {
+  if (hasService && !name) {
+    return 'Target Service is required';
+  }
+
+  return undefined;
+}
+
+/**
+ * Mirrors defaultBackendPortRequired from index.vue.
+ * Delegates to portRequired only when a service is selected.
+ */
+function defaultBackendPortRequired(port: any, hasService: boolean): string | undefined {
+  if (!hasService) {
+    return undefined;
+  }
+
+  return portRequired(port);
 }
 
 const makeHelper = () => new IngressDetailEditHelper({
@@ -434,6 +461,93 @@ describe('ingress', () => {
       ])('invalid: $desc', ({ port }) => {
         expect(portRange(port)).toBeDefined();
       });
+    });
+  });
+
+  describe('willSave', () => {
+    const nestedPaths = {
+      defaultBackendPath:  'defaultBackend',
+      serviceNamePath:     'service.name',
+      servicePortPath:     'service.port.number',
+      servicePortNamePath: 'service.port.name',
+    };
+
+    it('preserves backend when port.number is set', () => {
+      const spec = { defaultBackend: { service: { name: 'my-svc', port: { number: 80 } } } };
+
+      willSave(spec, nestedPaths);
+      expect(spec.defaultBackend).toStrictEqual({ service: { name: 'my-svc', port: { number: 80 } } });
+    });
+
+    it('preserves backend when port.name is set', () => {
+      const spec = { defaultBackend: { service: { name: 'my-svc', port: { name: 'http' } } } };
+
+      willSave(spec, nestedPaths);
+      expect(spec.defaultBackend).toStrictEqual({ service: { name: 'my-svc', port: { name: 'http' } } });
+    });
+
+    it('clears backend when service name is empty', () => {
+      const spec = { defaultBackend: { service: { name: '', port: { number: 80 } } } };
+
+      willSave(spec, nestedPaths);
+      expect(spec.defaultBackend).toBeNull();
+    });
+
+    it('clears backend when both port paths are empty', () => {
+      const spec = { defaultBackend: { service: { name: 'my-svc', port: {} } } };
+
+      willSave(spec, nestedPaths);
+      expect(spec.defaultBackend).toBeNull();
+    });
+
+    it('clears backend when port is undefined', () => {
+      const spec = { defaultBackend: { service: { name: 'my-svc' } } };
+
+      willSave(spec, nestedPaths);
+      expect(spec.defaultBackend).toBeNull();
+    });
+
+    it('does nothing when there is no backend', () => {
+      const spec = { rules: [{}] } as any;
+
+      willSave(spec, nestedPaths);
+      expect(spec).toStrictEqual({ rules: [{}] });
+    });
+  });
+
+  describe('defaultBackendNameRequired', () => {
+    it('returns error when service is selected but name is empty', () => {
+      expect(defaultBackendNameRequired('', true)).toBeDefined();
+    });
+
+    it('passes when service is selected and name is set', () => {
+      expect(defaultBackendNameRequired('my-svc', true)).toBeUndefined();
+    });
+
+    it('passes when no service is selected and name is empty', () => {
+      expect(defaultBackendNameRequired('', false)).toBeUndefined();
+    });
+
+    it('passes when no service is selected and name is undefined', () => {
+      expect(defaultBackendNameRequired(undefined, false)).toBeUndefined();
+    });
+  });
+
+  describe('defaultBackendPortRequired', () => {
+    it('delegates to portRequired when service is selected', () => {
+      expect(defaultBackendPortRequired('', true)).toBeDefined();
+      expect(defaultBackendPortRequired(80, true)).toBeUndefined();
+      expect(defaultBackendPortRequired('http', true)).toBeUndefined();
+      expect(defaultBackendPortRequired({ number: 80 }, true)).toBeUndefined();
+      expect(defaultBackendPortRequired({ name: 'http' }, true)).toBeUndefined();
+      expect(defaultBackendPortRequired({}, true)).toBeDefined();
+    });
+
+    it('skips validation when no service is selected', () => {
+      expect(defaultBackendPortRequired('', false)).toBeUndefined();
+      expect(defaultBackendPortRequired(undefined, false)).toBeUndefined();
+      expect(defaultBackendPortRequired(null, false)).toBeUndefined();
+      expect(defaultBackendPortRequired({}, false)).toBeUndefined();
     });
   });
 });

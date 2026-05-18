@@ -94,10 +94,10 @@ export default {
         },
         { path: 'spec', rules: ['backEndOrRules'] },
         {
-          path: 'spec.defaultBackend.service.name', rules: ['required'], translationKey: 'ingress.defaultBackend.targetService.label'
+          path: 'spec.defaultBackend.service.name', rules: ['defaultBackendNameRequired'], translationKey: 'ingress.defaultBackend.targetService.label'
         },
         {
-          path: 'spec.defaultBackend.service.port', rules: ['portRequired', 'portRange'], translationKey: 'ingress.defaultBackend.port.label'
+          path: 'spec.defaultBackend.service.port', rules: ['defaultBackendPortRequired', 'portRange'], translationKey: 'ingress.defaultBackend.port.label'
         },
         { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
@@ -156,8 +156,36 @@ export default {
         }
       };
 
+      const hasDefaultBackendService = () => {
+        const backend = get(this.value?.spec, this.value.defaultBackendPath);
+
+        return !!get(backend, this.value.serviceNamePath);
+      };
+
+      const nameLabel = this.t('ingress.defaultBackend.targetService.label');
+
+      // Only enforce required on the default backend when a service is selected.
+      // Selecting "None" means the user wants to remove the backend; willSave() handles cleanup.
+      const defaultBackendNameRequired = (name) => {
+        if (hasDefaultBackendService() && !name) {
+          return this.t('validation.required', { key: nameLabel });
+        }
+      };
+
+      const defaultBackendPortRequired = (port) => {
+        if (!hasDefaultBackendService()) {
+          return;
+        }
+
+        return portRequired(port);
+      };
+
       return {
-        backEndOrRules, portRequired, portRange
+        backEndOrRules,
+        portRequired,
+        portRange,
+        defaultBackendNameRequired,
+        defaultBackendPortRequired,
       };
     },
     tabErrors() {
@@ -176,17 +204,10 @@ export default {
       };
     },
     defaultBackendPathRules() {
-      const rulesExist = (this.value?.spec?.rules || []).length > 0;
-      const defaultBackendExist = !!this.value?.spec?.defaultBackend?.service;
-
-      if (!rulesExist || defaultBackendExist) {
-        return {
-          name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
-          port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port'),
-        };
-      }
-
-      return { name: [], port: [] };
+      return {
+        name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
+        port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port'),
+      };
     },
     serviceTargets() {
       return this.ingressHelper.findAndMapServiceTargets(this.services);
