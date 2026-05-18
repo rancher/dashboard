@@ -221,7 +221,8 @@ export default {
     willSave() {
       const backend = get(this.value.spec, this.value.defaultBackendPath);
       const serviceName = get(backend, this.value.serviceNamePath);
-      const servicePort = get(backend, this.value.servicePortPath);
+      const servicePort = get(backend, this.value.servicePortPath) ||
+        get(backend, this.value.servicePortNamePath);
 
       if (backend && (!serviceName || !servicePort)) {
         const path = this.value.defaultBackendPath;
