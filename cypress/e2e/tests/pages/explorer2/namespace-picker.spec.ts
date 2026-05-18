@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const namespacePicker = new NamespaceFilterPo();
 
-describe('Namespace picker', { testIsolation: 'off' }, () => {
+describe('Namespace picker', { testIsolation: false }, () => {
   let removeProjectAndNs = false;
   let projectId: string;
   const projName = `project${ +new Date() }`;

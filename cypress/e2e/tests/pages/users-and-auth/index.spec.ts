@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Auth Index', { testIsolation: 'off', tags: ['@usersAndAuths', '@adminUser'] }, () => {
+describe('Auth Index', { testIsolation: false, tags: ['@usersAndAuths', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

@@ -12,7 +12,7 @@ const helmOpList: string[] = [];
 const secretsList: Array<{ name: string; namespace: string }> = [];
 const configMapsList: Array<{ name: string; namespace: string }> = [];
 
-describe('Fleet HelmOps', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Fleet HelmOps', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const appBundleCreatePage = new FleetApplicationCreatePo();
   const appBundleListPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();

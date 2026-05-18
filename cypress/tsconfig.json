@@ -16,7 +16,6 @@
     "baseUrl": "..",
     "types": [
       "cypress",
-      "@cypress/grep",
       "cypress-axe"
     ],
     "paths": {

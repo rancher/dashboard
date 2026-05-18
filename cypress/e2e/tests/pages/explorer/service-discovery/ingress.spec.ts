@@ -11,7 +11,7 @@ const secretsCount = 4;
 const servicesCount = 4;
 let namespace;
 
-describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

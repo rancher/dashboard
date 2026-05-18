@@ -4,7 +4,7 @@ import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
 
 const aboutPage = new AboutPagePo();
 
-describe('About Page', { testIsolation: 'on', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

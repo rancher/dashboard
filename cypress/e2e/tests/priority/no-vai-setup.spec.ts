@@ -7,7 +7,7 @@ import { RESTART_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 const featureFlagsPage = new FeatureFlagsPagePo('local');
 
-describe('Disable Vai', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+describe('Disable Vai', { testIsolation: false, tags: ['@noVai', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

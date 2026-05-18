@@ -3,7 +3,7 @@ import { clusterRolesNoData, generateClusterRolesDataSmall } from '@/cypress/e2e
 
 const clusterRolesPage = new ClusterRolesPagePo();
 
-describe('ClusterRoles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('ClusterRoles', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

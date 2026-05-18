@@ -6,7 +6,7 @@ import { ConfigMapListPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

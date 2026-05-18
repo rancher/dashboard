@@ -66,7 +66,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
     });
   });
 
-  describe('Logged in', { testIsolation: 'off' }, () => {
+  describe('Logged in', { testIsolation: false }, () => {
     const aboutPage = new AboutPagePo();
     const prefPage = new PreferencesPagePo();
     const userMenu = new UserMenuPo();

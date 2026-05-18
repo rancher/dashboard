@@ -5,7 +5,7 @@ import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 const performancePage = new PerformancePagePo();
 const performanceSettingsOriginal = [];
 
-describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
+describe('Performance', { testIsolation: false, tags: ['@globalSettings', '@adminUser'] }, () => {
   before('get default performance settings', () => {
     cy.login();
     HomePagePo.goTo();

@@ -14,7 +14,7 @@ const workspaceNameList = [];
 let customWorkspace = '';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesListPage = new FleetWorkspaceListPagePo();
 
   const headerPo = new HeaderPo();

@@ -3,7 +3,7 @@ import { generateHorizontalPodAutoscalersDataSmall, horizontalPodAutoScalersNoDa
 
 const horizontalPodAutoscalersPage = new HorizontalPodAutoscalersPagePo();
 
-describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('HorizontalPodAutoscalers', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

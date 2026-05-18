@@ -3,7 +3,7 @@ import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-se
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -25,7 +25,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
     cy.percySnapshot('machineSets Page');
   });
 });
-describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('MachineSets', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machineSetsPage = new MachineSetsPagePo();
   const nsName = 'default';
   let resourceVersion = '';

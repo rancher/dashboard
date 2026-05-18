@@ -45,7 +45,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   //   cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
   // }
 
-  describe('Monitoring', { testIsolation: 'off' }, () => {
+  describe('Monitoring', { testIsolation: false }, () => {
     describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
       const storageClass = 'local-path';

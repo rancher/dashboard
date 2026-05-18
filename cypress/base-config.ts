@@ -141,7 +141,9 @@ const baseConfig = defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(config);
+      const { plugin: grepPlugin } = require('@cypress/grep/plugin');
+
+      grepPlugin(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
       on('task', { removeDirectory });
@@ -178,12 +180,10 @@ const baseConfig = defineConfig({
 
       return config;
     },
-    experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(testDirs, process.env),
+    specPattern: getSpecPattern(testDirs, process.env),
     baseUrl
   },
   videoCompression:       15,
-  videoUploadOnPasses:    false,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
   video:                  process.env.TEST_NO_VIDEOS !== 'true'
 });

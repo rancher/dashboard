@@ -3,7 +3,7 @@ import { fleetContentsNoData, generateFleetContentsDataSmall } from '@/cypress/e
 
 const contentsPagePo = new ContentsPagePo();
 
-describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Contents', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

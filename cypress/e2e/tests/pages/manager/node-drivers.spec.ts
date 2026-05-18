@@ -6,13 +6,13 @@
 // import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 // import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
 
-describe('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Node Drivers', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   it('every file must have a test...', () => {});
 });
 
 // Note: This test fails due to https://github.com/rancher/dashboard/issues/10275
 // skipping this tests until issue has been resolved
-// describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+// describe.skip('Node Drivers', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
 //   const driversPage = new NodeDriversPagePo();
 //   const createDriverPage = new NodeDriverCreateEditPo();
 //   const clusterList = new ClusterManagerListPagePo();

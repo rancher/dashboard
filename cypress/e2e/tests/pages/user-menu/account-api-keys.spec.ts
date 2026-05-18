@@ -11,12 +11,12 @@
 // const apiKeysList = accountPage.list();
 // const tokenIdsList = [];
 
-describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardUser'], testIsolation: 'off' }, () => {
+describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardUser'], testIsolation: false }, () => {
   it('every file must have a test...', () => {});
 });
 
 // TODO: undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
-// describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
+// describe.skip('Account and API Keys', { testIsolation: false }, () => {
 //   before(() => {
 //     cy.login();
 //   });

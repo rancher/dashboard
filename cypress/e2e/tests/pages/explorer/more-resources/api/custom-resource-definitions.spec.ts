@@ -9,7 +9,7 @@ const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
 const crdName = `e2etests.${ +new Date() }.example.com`;
 const crdGroup = `${ +new Date() }.example.com`;
 
-describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

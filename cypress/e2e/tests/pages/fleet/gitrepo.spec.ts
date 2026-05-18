@@ -24,7 +24,7 @@ let adminUserId = '';
 
 const reposToDelete = [];
 
-describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const listPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();
 

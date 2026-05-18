@@ -46,7 +46,7 @@ const bannerHtmlSanitized = `<div style="display: flex; align-items: center; pad
 
 const acceptButtonText = 'Got it!';
 
-describe('Banners', { testIsolation: 'off' }, () => {
+describe('Banners', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

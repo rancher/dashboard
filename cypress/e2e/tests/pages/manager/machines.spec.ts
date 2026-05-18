@@ -3,7 +3,7 @@ import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Machines', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machinesPage = new MachinesPagePo();
   const nsName = 'default';
   let resourceVersion = '';

@@ -13,7 +13,7 @@ let removeBundle = false;
 const bundlesNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetBundlesListPage = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
