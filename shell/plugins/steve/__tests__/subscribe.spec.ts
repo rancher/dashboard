@@ -132,7 +132,7 @@ describe('steve: subscribe', () => {
         ...overrides,
       });
 
-      it('notifies the worker about a new schema via updateSchema', () => {
+      it('notifies the worker about a new schema via updateSchema and still queues a load', () => {
         const postMessage = jest.fn();
         const ctx = makeCtx();
 
@@ -144,18 +144,6 @@ describe('steve: subscribe', () => {
         );
 
         expect(postMessage).toHaveBeenCalledWith({ updateSchema: { type: 'schema', id: 'my.io.crd' } });
-      });
-
-      it('queues a load for the new schema even when a worker is present', () => {
-        const postMessage = jest.fn();
-        const ctx = makeCtx();
-
-        (actions['ws.resource.create'] as any).call(
-          { $workers: { cluster: { postMessage } } },
-          ctx,
-          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
-        );
-
         expect(ctx.state.queue).toStrictEqual([
           {
             action: 'dispatch', event: 'load', body: { type: 'schema', id: 'my.io.crd' }
@@ -163,7 +151,7 @@ describe('steve: subscribe', () => {
         ]);
       });
 
-      it('does not notify the worker for non-schema resource creates', () => {
+      it('does not notify the worker for non-schema resource creates, but still queues a load', () => {
         const postMessage = jest.fn();
         const ctx = makeCtx();
 
@@ -174,6 +162,11 @@ describe('steve: subscribe', () => {
         );
 
         expect(postMessage).not.toHaveBeenCalled();
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'pod', id: 'my-pod' }
+          },
+        ]);
       });
 
       it('still queues a load when no worker is registered', () => {
