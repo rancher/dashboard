@@ -55,9 +55,30 @@ export const useDockerBasic = (resource: any) => {
   const dockerRegistry = useDockerRegistry(resource);
 
   return computed(() => {
+    const authEntry = dockerAuths.value[dockerRegistry.value.registryUrl] || {};
+
+    if (authEntry.username !== undefined || authEntry.password !== undefined) {
+      return {
+        username: authEntry.username,
+        password: authEntry.password,
+      };
+    }
+
+    if (authEntry.auth) {
+      const decoded = base64Decode(authEntry.auth);
+      const separatorIndex = decoded.indexOf(':');
+
+      if (separatorIndex !== -1) {
+        return {
+          username: decoded.substring(0, separatorIndex),
+          password: decoded.substring(separatorIndex + 1),
+        };
+      }
+    }
+
     return {
-      username: dockerAuths.value[dockerRegistry.value.registryUrl].username,
-      password: dockerAuths.value[dockerRegistry.value.registryUrl].password,
+      username: authEntry.username,
+      password: authEntry.password,
     };
   });
 };

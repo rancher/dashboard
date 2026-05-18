@@ -89,6 +89,48 @@ describe('composables: SecretDataTab/auth-types', () => {
       expect(dockerBasic.value.password).toStrictEqual(password);
       expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
     });
+
+    it('should decode username and password from the auth field when username and password fields are absent', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+      const registryUrl = 'registry-url.com';
+      const username = 'tiger';
+      const password = 'pass1234';
+      const authFieldValue = `${ username }:${ password }`;
+      const json = { auths: { [registryUrl]: { auth: 'encodedAuth' } } };
+
+      base64DecodeSpy.mockImplementation((value: string) => {
+        if (value === 'encodedAuth') return authFieldValue;
+
+        return JSON.stringify(json);
+      });
+
+      const dockerBasic = authTypes.useDockerBasic({ data });
+
+      expect(dockerBasic.value.username).toStrictEqual(username);
+      expect(dockerBasic.value.password).toStrictEqual(password);
+      expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
+      expect(base64DecodeSpy).toHaveBeenCalledWith('encodedAuth');
+    });
+
+    it('should decode username and password from the auth field when the password contains a colon', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+      const registryUrl = 'registry-url.com';
+      const username = 'tiger';
+      const password = 'pass:with:colons';
+      const authFieldValue = `${ username }:${ password }`;
+      const json = { auths: { [registryUrl]: { auth: 'encodedAuth' } } };
+
+      base64DecodeSpy.mockImplementation((value: string) => {
+        if (value === 'encodedAuth') return authFieldValue;
+
+        return JSON.stringify(json);
+      });
+
+      const dockerBasic = authTypes.useDockerBasic({ data });
+
+      expect(dockerBasic.value.username).toStrictEqual(username);
+      expect(dockerBasic.value.password).toStrictEqual(password);
+    });
   });
 
   describe('useBasic', () => {
