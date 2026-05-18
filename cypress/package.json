@@ -67,6 +67,7 @@
     "publish-pkg": "./scripts/publish.sh --npm"
   },
   "resolutions": {
-    "axios": "1.13.5"
+    "axios": "1.13.5",
+    "form-data": "2.5.5"
   }
 }
