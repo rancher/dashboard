@@ -27,10 +27,11 @@ export const extractDockerAuthCredentials = (authEntry: Record<string, string> =
   }
 
   return {
-    username: authEntry.username,
-    password: authEntry.password,
+    username: undefined,
+    password: undefined,
   };
 };
+
 export const useSecretInfo = (resource: any) => {
   return computed(() => {
     const resourceValue = toValue(resource);
