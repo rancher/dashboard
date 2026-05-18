@@ -2577,7 +2577,7 @@ export function generateFakeClusterDataAndIntercepts({
       statusCode: 200,
       body:       fakeNavClusterData.mgmtClusterObj,
     });
-  }).as('provCluster');
+  }).as('mgmtCluster');
 
   // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {

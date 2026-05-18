@@ -570,9 +570,11 @@ const sharedActions = {
       } else if (mode !== STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // - If we continue and open up a watch whenever we receive a `resource.` notification we go to queueChanges (bar resource.changes mode).
         // - queueChanges ignores any change that's for a type that hasn't been registered
-        // - So here we're just existing early, avoiding the watch --> queueChanges --> ignore loop
+        // - So here we're just exiting early, avoiding the watch --> queueChanges --> ignore loop
         //
-        // Interestingly this is hit quite a few times (on cluster create screens theres token, cluster, project, projectRoleTemplateBinding, etc)
+        // Interestingly this is hit quite a few times (on cluster create screens there's token, cluster, project, projectRoleTemplateBinding, etc)
+        state.debugSocket && console.info('Will not Watch (type is not registered)', JSON.stringify(params)); // eslint-disable-line no-console
+
         return;
       }
     }

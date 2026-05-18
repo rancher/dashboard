@@ -24,7 +24,7 @@ export default {
     clusterForCounts.forEach((mgmtCluster, i) => {
       finalCounts.push({
         id:             mgmtCluster.id,
-        name:           mgmtCluster.spec.displayName,
+        name:           mgmtCluster.spec.displayName || mgmtCluster.metadata?.name,
         namespace:      mgmtCluster.provClusterNamespace,
         counts:         null,
         isTableVisible: !!(i === 0 && clusterForCounts.length === 1)

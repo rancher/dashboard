@@ -103,7 +103,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.mgmtCluster.provCluster;
+    return this.mgmtCluster?.provCluster;
   }
 
   get doneOverride() {

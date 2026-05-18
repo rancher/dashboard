@@ -87,7 +87,7 @@ export default {
       await this.$store.dispatch('management/watch', { type: MANAGEMENT.CLUSTER, registerType: true });
       await this.$store.dispatch('management/watch', { type: CAPI.RANCHER_CLUSTER, registerType: true });
     } else {
-      hash.mgmtClusters = this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: this.value.mgmtClusterId });
+      hash.mgmtClusters = this.value.waitForMgmt();
     }
 
     // No need to fetch charts when editing an RKE1 cluster

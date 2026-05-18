@@ -65,10 +65,10 @@ export default class NormanCluster extends NormanModel {
   }
 
   waitForProvisioning(timeout = 60000, interval) {
-    const id = this.provisioningClusterId;
-
     return this.waitForTestFn(() => {
+      const id = this.provisioningClusterId;
+
       return id && !!this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, id);
-    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: CAPI.RANCHER_CLUSTER, name: id }), timeout, interval);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: CAPI.RANCHER_CLUSTER, name: this.provisioningClusterId }), timeout, interval);
   }
 }

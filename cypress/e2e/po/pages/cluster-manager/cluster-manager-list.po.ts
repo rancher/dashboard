@@ -42,8 +42,12 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
       });
     }).as('mgmtCluster');
 
-    // Covers both side bar and cluster list
-    cy.intercept('GET', '/v1/management.cattle.io.clusters?page=1&pagesize=10*', (req) => {
+    // Covers both side bar and any standard cluster list
+    cy.intercept({
+      method:   'GET',
+      pathname: '/v1/management.cattle.io.clusters',
+      query:    { pagesize: '*' }
+    }, (req) => {
       req.reply({
         statusCode: 200,
         body:       mgmtClusterList,
