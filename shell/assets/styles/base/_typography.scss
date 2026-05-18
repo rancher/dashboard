@@ -11,6 +11,10 @@ HTML, BODY {
   font-size: 14px;
 }
 
+BODY.lato2 {
+  font-family: 'Lato2' !important;
+}
+
 H1, H2, H3, H4, H5, H6 {
   @include h-css;
 }

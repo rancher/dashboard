@@ -3509,6 +3509,10 @@ fleet:
     label: Config Maps
   secrets:
     label: Secrets
+fonts:
+  title: Fonts
+  description: Compare the existing Lato font with the new Lato2 font side-by-side across weights and sizes.
+  weight: Weight
 footer:
   docs: Docs
   download: Download CLI

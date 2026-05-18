@@ -55,6 +55,9 @@ export default {
     toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
     },
+    toggleLatoFont() {
+      this.$store.dispatch('prefs/toggleLatoFont');
+    },
   }
 
 };
@@ -108,10 +111,9 @@ export default {
       @shortkey="toggleTheme()"
     />
     <button
-      v-if="noLocaleShortcut"
       v-shortkey.once="['shift','l']"
       class="hide"
-      @shortkey="toggleNoneLocale()"
+      @shortkey="toggleLatoFont()"
     />
   </div>
 </template>

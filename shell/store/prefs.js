@@ -140,11 +140,15 @@ export const state = function() {
     cookiesLoaded: false,
     data:          {},
     definitions,
-    authRedirect:  null
+    authRedirect:  null,
+    latoFontNew: false,
   };
 };
 
 export const getters = {
+  latoFontNew: (state) => {
+    return state.latoFontNew;
+  },
   get: (state) => (key) => {
     const definition = state.definitions[key];
 
@@ -282,6 +286,19 @@ export const mutations = {
 
   setAuthRedirect(state, route) {
     state.authRedirect = route;
+  },
+
+  setLatoFont(state, value) {
+    console.log('setLatoFont', value);
+    state.latoFontNew = value;
+
+    console.log(state);
+
+    if (value) {
+      document.body.classList.add('lato2');
+    } else {
+      document.body.classList.remove('lato2');
+    }    
   }
 };
 
@@ -521,6 +538,12 @@ export const actions = {
     const value = getters[THEME] === 'light' ? 'dark' : 'light';
 
     return dispatch('set', { key: THEME, value });
+  },
+
+  toggleLatoFont({ commit, state }) {
+    const isNewLatoFont = state.latoFontNew;
+
+    commit('setLatoFont', !isNewLatoFont);
   },
 
   setBrandStyle({ rootState, rootGetters }, dark = false) {

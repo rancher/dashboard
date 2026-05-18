@@ -100,6 +100,10 @@ export default {
       'showWorkspaceSwitcher'
     ]),
 
+    newLatoFont() {
+      return this.$store.getters['prefs/latoFontNew'];
+    },
+
     sloAuthProviderEnabled() {
       const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
@@ -311,6 +315,10 @@ export default {
   },
 
   methods: {
+    gotToFontPage() {
+      this.$router.push({ name: 'fonts' });
+    },
+
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
@@ -695,6 +703,15 @@ export default {
         >
           <i class="icon icon-search icon-lg" />
         </button>
+      </div>
+
+      <div class="header-buttons font-click" @click.stop="gotToFontPage()">
+        <div v-if="newLatoFont">
+          New Lato Font
+        </div>
+        <div v-else>
+          Old Lato Font
+        </div>
       </div>
 
       <!-- Extension header actions -->
@@ -1195,6 +1212,16 @@ export default {
         background-color: var(--border);
         height: 1px;
       }
+    }
+  }
+
+  .font-click {
+    cursor: pointer;
+    padding: 0 10px;
+    color: var(--body-text);
+
+    &:hover {
+      color: var(--link);
     }
   }
 

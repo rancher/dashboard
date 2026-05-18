@@ -60,6 +60,9 @@ export default {
     toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
     },
+    toggleLatoFont() {
+      this.$store.dispatch('prefs/toggleLatoFont');
+    },
   }
 };
 </script>
@@ -101,10 +104,9 @@ export default {
           @shortkey="toggleTheme()"
         />
         <button
-          v-if="noLocaleShortcut"
           v-shortkey.once="['shift','l']"
           class="hide"
-          @shortkey="toggleNoneLocale()"
+          @shortkey="toggleLatoFont()"
         />
       </main>
       <!-- Teleport target for WindowManager (unique per layout) -->

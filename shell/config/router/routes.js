@@ -93,6 +93,11 @@ export default [
         name:      'diagnostic'
       },
       {
+        path:      '/fonts',
+        component: () => interopDefault(import('@shell/pages/fonts.vue')),
+        name:      'fonts'
+      },
+      {
         path:      '/prefs',
         component: () => interopDefault(import('@shell/pages/prefs.vue')),
         name:      'prefs'

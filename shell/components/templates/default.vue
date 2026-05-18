@@ -128,6 +128,10 @@ export default {
       this.$store.dispatch('i18n/toggleNone');
     },
 
+    toggleLatoFont() {
+      this.$store.dispatch('prefs/toggleLatoFont');
+    },
+
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
     },
@@ -194,11 +198,16 @@ export default {
         <PromptRestore />
         <PromptModal />
         <ModalManager />
-        <button
+        <!-- <button
           v-if="noLocaleShortcut"
           v-shortkey.once="['shift','l']"
           class="hide"
           @shortkey="toggleNoneLocale()"
+        /> -->
+        <button
+          v-shortkey.once="['shift','l']"
+          class="hide"
+          @shortkey="toggleLatoFont()"
         />
         <button
           v-if="themeShortcut"
