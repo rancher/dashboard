@@ -21,7 +21,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
     let podName: string;
     const defaultNamespace = 'default';
 
-    before('set up', () => {
+    beforeEach('set up', () => {
       // Create a cronjob for the test
       cy.getRootE2EResourceName().then((root) => {
         cronJobName = root;
@@ -116,7 +116,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       });
     });
 
-    after('clean up', () => {
+    afterEach('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
       // Delete the cronjob
