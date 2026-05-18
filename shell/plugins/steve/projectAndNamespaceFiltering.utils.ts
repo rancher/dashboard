@@ -14,9 +14,10 @@ class ProjectAndNamespaceFiltering {
 
   isEnabled(rootGetters: any): boolean {
     const currentProduct = rootGetters['currentProduct'];
+    const isSingleProduct = !!rootGetters['isSingleProduct'];
 
-    // Only enable for the cluster store at the moment. In theory this should work in management as well, as they're both 'steve' stores
-    if (currentProduct?.inStore !== 'cluster') {
+    // Enable for cluster store and single-product standalone experiences backed by steve
+    if (currentProduct?.inStore !== 'cluster' && !isSingleProduct) {
       return false;
     }
 
