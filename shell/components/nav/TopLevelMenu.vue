@@ -423,7 +423,7 @@ export default {
     },
 
     async goToHarvesterCluster() {
-      const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((C) => C.id === 'fleet-local/local');
+      const localCluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, 'fleet-local/local');
 
       try {
         await localCluster.goToHarvesterCluster();
