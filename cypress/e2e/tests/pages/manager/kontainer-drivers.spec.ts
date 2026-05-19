@@ -221,6 +221,21 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
+    // Ensure driver is inactive before attempting to activate
+    driversPage.list().details(exampleDriver, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateForSetup');
+        driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
+        const deactivateDialog = new DeactivateDriverDialogPo();
+
+        deactivateDialog.deactivate();
+        cy.wait('@deactivateForSetup');
+        driversPage.list().details(exampleDriver, 1).should('contain', 'Inactive');
+      }
+    });
+
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Inactive');
+
     cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
 
     driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
