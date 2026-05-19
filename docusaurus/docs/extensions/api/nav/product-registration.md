@@ -508,9 +508,9 @@ When server-side pagination is enabled for a resource type, Rancher Dashboard us
 
 > **Important:** Property paths used to display, sort and search on must exist natively on the resource and not in the Dashboard's model for the resource type. For more information please see [Choosing fields to display, sort and filter on](https://extensions.rancher.io/extensions/next/performance/scaling/lists#choosing-fields-to-display-sort-and-filter-on).
 
-When `sspHeaders` is defined on a resource page, server-side pagination is automatically enabled for that resource type — no additional configuration is needed.
+Before using `sspHeaders`, server-side pagination must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
 
-> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`. A console warning will be shown if `sspHeaders` is set on a resource type that is not available at the global level.
+> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`.
 
 Use `sspHeaders` alongside `headers` to define columns for both pagination modes:
 

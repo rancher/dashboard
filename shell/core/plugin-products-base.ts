@@ -123,21 +123,6 @@ export abstract class BasePluginProduct {
       }
     });
 
-    // Auto-enable SSP for resource pages that define sspHeaders
-    if (this.product) {
-      const sspTypes = this.collectSspTypes(this.config);
-
-      if (sspTypes.length) {
-        sspTypes.forEach((type: string) => {
-          if (!store.getters['management/schemaFor'](type)) {
-            console.warn(`Extensions - product "${ this.name }" ::: resource type "${ type }" defines "sspHeaders" but is not available as a global-level resource. Server-side pagination will not work for this type.`); // eslint-disable-line no-console
-          }
-        });
-
-        plugin.enableServerSidePagination({ management: { resources: { enableSome: { enabled: sspTypes } } } });
-      }
-    }
-
     // Process product-level DSL options after all groups are registered
     // so that the groupNameMap is fully populated for moveToGroup resolution
     if (this.product) {
@@ -422,25 +407,6 @@ export abstract class BasePluginProduct {
         weightType(typeValue, item.weight, true);
       }
     }
-  }
-
-  /**
-   * Recursively collects resource types that define sspHeaders from the config tree
-   */
-  protected collectSspTypes(items: ProductChild[]): string[] {
-    const types: string[] = [];
-
-    for (const item of items) {
-      if (isProductChildWithType(item) && item.sspHeaders?.length) {
-        types.push(item.type);
-      }
-
-      if (isProductChildGroup(item)) {
-        types.push(...this.collectSspTypes(item.children));
-      }
-    }
-
-    return types;
   }
 
   /**
