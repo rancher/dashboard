@@ -16,7 +16,6 @@ export interface Props {
   showScaling?: boolean;
   showPercent?: boolean;
   noResourcesMessage?: string;
-  to?: RouteLocationRaw;
   rowTo?: RouteLocationRaw | string;
 }
 </script>
@@ -30,7 +29,6 @@ const props = withDefaults(defineProps<Props>(), {
   showScaling:        false,
   showPercent:        true,
   noResourcesMessage: undefined,
-  to:                 undefined,
   rowTo:              undefined
 });
 const emit = defineEmits(['decrease', 'increase']);
@@ -107,14 +105,6 @@ function rowRoute(label: string): RouteLocationRaw | undefined {
     :title="title"
     data-testid="resource-detail-status-card"
   >
-    <template
-      v-if="props.to"
-      #title
-    >
-      <router-link :to="props.to">
-        {{ title }}
-      </router-link>
-    </template>
     <template
       v-if="props.showScaling"
       #heading-action
