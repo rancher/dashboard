@@ -1,5 +1,9 @@
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -16,7 +20,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
-import { isValidUrl } from '@shell/utils/validators/setting';
+import { useI18n } from '@shell/composables/useI18n';
 
 const PKCE_S256 = 'S256';
 
@@ -42,9 +46,13 @@ export default {
   mixins: [CreateEditView, AuthConfig],
 
   setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
     // These refs sync mixin-state for the composition api
     const modelId = ref(null);
     const sloTypeRef = ref(null);
+    const customEndpointEnabled = ref(false);
 
     const isAmazonCognito = computed(() => modelId.value === 'cognito');
     const isKeycloak = computed(() => modelId.value === 'keycloakoidc');
@@ -55,10 +63,52 @@ export default {
     const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
     const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
 
+    // z.preprocess coerces null/undefined to '' before validation. This
+    // prevents the raw "Expected string, received null" zod message.
+    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
+    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
+    const optionalField = coerce(z.string());
+
+    // Reactive schema uses computed to reshape when provider or endpoint mode
+    // changes.
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        clientId:     requiredField('authConfig.oidc.clientId'),
+        clientSecret: requiredField('authConfig.oidc.clientSecret'),
+
+        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? requiredUrlField('authConfig.oidc.url') : optionalField,
+        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.realm') : optionalField,
+
+        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.rancherUrl') : optionalField,
+        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? requiredField('authConfig.oidc.issuer') : optionalField,
+
+        authEndpoint: requiresAuthEndpoint.value ? requiredUrlField('authConfig.oidc.authEndpoint') : optionalField,
+
+        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? requiredUrlField('authConfig.oidc.endSessionEndpoint.title') : optionalField,
+
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
     return {
       PKCE_S256,
+      isFormValid,
+      validateAllFields,
       modelId,
       sloTypeRef,
+      customEndpointEnabled,
       isAmazonCognito,
       isKeycloak,
       isGenericOidc,
@@ -122,32 +172,7 @@ export default {
         return true;
       }
 
-      const { clientId, clientSecret } = this.model;
-      const isMissingAuthEndpoint = (this.requiresAuthEndpoint && !this.model.authEndpoint);
-      const isMissingScopes = !this.requiredScopes.every((scope) => this.oidcScope.includes(scope));
-
-      if (isMissingAuthEndpoint || isMissingScopes) {
-        return false;
-      }
-
-      // make sure that if SLO options are enabled on radio group, field "endSessionEndpoint" is required
-      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && (!this.model.endSessionEndpoint || !isValidUrl(this.model.endSessionEndpoint))) {
-        return false;
-      }
-
-      if (this.isAmazonCognito) {
-        const { issuer } = this.model;
-
-        return !!(clientId && clientSecret && issuer);
-      } else if ( !this.customEndpoint.value ) {
-        const { url, realm } = this.oidcUrls;
-
-        return !!(clientId && clientSecret && url && realm);
-      } else {
-        const { rancherUrl, issuer } = this.model;
-
-        return !!(clientId && clientSecret && rancherUrl && issuer);
-      }
+      return this.isFormValid;
     },
 
     /**
@@ -179,7 +204,7 @@ export default {
   },
 
   watch: {
-    fvFormIsValid(newValue) {
+    validationPassed(newValue) {
       this.$emit('validationChanged', !!newValue);
     },
 
@@ -188,6 +213,10 @@ export default {
         this.modelId = newVal;
       },
       immediate: true,
+    },
+
+    'customEndpoint.value'(v) {
+      this.customEndpointEnabled = v;
     },
 
     'oidcUrls.url'() {
@@ -379,6 +408,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientId"
+              name="clientId"
               :label="t(`authConfig.oidc.clientId`)"
               :mode="mode"
               required
@@ -388,6 +418,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientSecret"
+              name="clientSecret"
               :label="t(`authConfig.oidc.clientSecret`)"
               :mode="mode"
               required
@@ -528,6 +559,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="oidcUrls.url"
+                name="url"
                 :label="t(`authConfig.oidc.url`)"
                 :mode="mode"
                 :required="!customEndpoint.value"
@@ -538,6 +570,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="oidcUrls.realm"
+                name="realm"
                 :label="t(`authConfig.oidc.realm`)"
                 :mode="mode"
                 :required="!customEndpoint.value"
@@ -552,6 +585,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.rancherUrl"
+                name="rancherUrl"
                 :label="t(`authConfig.oidc.rancherUrl`)"
                 :mode="mode"
                 required
@@ -565,6 +599,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.issuer"
+                name="issuer"
                 :label="t(`authConfig.oidc.issuer`)"
                 :mode="mode"
                 required
@@ -575,6 +610,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.authEndpoint"
+                name="authEndpoint"
                 :label="t(`authConfig.oidc.authEndpoint`)"
                 :mode="mode"
                 :disabled="!customEndpoint.value"
@@ -635,6 +671,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.issuer"
+                name="issuer"
                 :label="t(`authConfig.oidc.issuer`)"
                 :mode="mode"
                 required
@@ -686,6 +723,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.endSessionEndpoint"
+                name="endSessionEndpoint"
                 :tooltip="t('authConfig.oidc.endSessionEndpoint.tooltip')"
                 :label="t('authConfig.oidc.endSessionEndpoint.title')"
                 :mode="mode"
