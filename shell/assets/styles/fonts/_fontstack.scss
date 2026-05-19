@@ -162,6 +162,26 @@
        url('~@shell/assets/fonts/lato2/LatoLatin-HeavyItalic.woff') format('woff'); /* Modern Browsers */
 }
 
+/* Webfont: Lato-Black (900) */
+@font-face {
+  font-family: 'Lato2';
+  font-style: normal;
+  font-weight: 900;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato2/LatoLatin-Black.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato2/LatoLatin-Black.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-BlackItalic (900) */
+@font-face {
+  font-family: 'Lato2';
+  font-style: italic;
+  font-weight: 900;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato2/LatoLatin-BlackItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato2/LatoLatin-BlackItalic.woff') format('woff'); /* Modern Browsers */
+}
+
 /* roboto-mono-regular - latin */
 @font-face {
   font-family: 'Roboto Mono';

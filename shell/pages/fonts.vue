@@ -8,7 +8,7 @@ export default {
   mixins:     [BackRoute],
   data() {
     return {
-      weights:    [300, 400, 500, 600, 700, 800],
+      weights:    [300, 400, 500, 600, 700, 800, 900],
       sampleText: 'Książęcych spóźnień czułość. The quick brown fox jumps over the lazy dog. Zwei Boxkämpfer jagen Eva quer durch Sylt.',
     };
   },
