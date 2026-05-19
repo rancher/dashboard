@@ -199,6 +199,13 @@ export default {
           }
         } catch {}
       }
+
+      const isNewLatoFont = this.$store.getters['prefs/latoFontNew'];
+
+      if (isNewLatoFont) {
+        bodyClass += ' lato2';
+      }
+
       body.className = bodyClass;
     }
   }

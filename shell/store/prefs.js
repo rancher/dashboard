@@ -300,6 +300,14 @@ export const mutations = {
 };
 
 export const actions = {
+  setLatoFont() {
+    if (state.latoFontNew) {
+      document.body.classList.add('lato2');
+    } else {
+      document.body.classList.remove('lato2');
+    }
+  },
+
   async set({
     dispatch, commit, rootGetters, state
   }, opt) {
