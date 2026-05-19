@@ -469,8 +469,9 @@ const sharedActions = {
     const worker = (this.$workers || {})[getters.storeName];
 
     if (worker) {
+      const storeName = getters.storeName;
       worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      cleanupTasks.push(waitFor(() => !this.$workers[getters.storeName], 'Worker is destroyed', 3000000, 100, true));
+      cleanupTasks.push(waitFor(() => !this.$workers[storeName], 'Worker is destroyed', 3000000, 100, true));
     }
 
     if ( socket ) {
