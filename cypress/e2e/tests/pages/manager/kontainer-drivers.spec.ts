@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverD
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -85,7 +85,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     });
 
     driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
-    driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Active', { timeout: LONG_TIMEOUT_OPT });
 
     // Verify the driver tile appears on the cluster create page.
     // Legacy ember-based kontainer drivers are shown disabled with an informational tooltip
@@ -144,12 +144,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().activate().click();
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
-    // wait for drivers to be activating
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Activating');
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Activating');
     // wait for drivers to be active
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
+    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active', MEDIUM_TIMEOUT_OPT);
+    driversPage.list().details(oracleDriver, 1).should('contain', 'Active', MEDIUM_TIMEOUT_OPT);
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
@@ -230,6 +227,10 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(response?.statusCode).to.eq(200);
       expect(isMatch(request.body, requestData)).to.equal(true);
     });
+
+    // wait for driver to be activating then active
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Active');
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
