@@ -2,7 +2,18 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
   gatedLog('Starting wait for', msg);
 
   return new Promise((resolve, reject) => {
-    if (testFn()) {
+    const wrappedTestFunction = () => {
+      try {
+        return testFn();
+      } catch (e) {
+        gatedLog('Wait for', msg || 'unknown', 'testFn threw an exception', e);
+        clearInterval(interval);
+        clearTimeout(timeout);
+        reject(new Error(msg ? `Failed test for: ${ msg }` : `waitFor test failed`, { cause: e }));
+      }
+    };
+
+    if (wrappedTestFunction()) {
       gatedLog('Wait for', msg || 'unknown', 'done immediately');
       resolve(this);
     }
@@ -13,7 +24,7 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
       reject(new Error(msg ? `Failed waiting for: ${ msg }` : `waitFor timed out after ${ timeoutMs / 1000 } seconds`));
     }, timeoutMs);
     const interval = setInterval(() => {
-      if ( testFn() ) {
+      if ( wrappedTestFunction() ) {
         gatedLog('Wait for', msg, 'done');
         clearInterval(interval);
         clearTimeout(timeout);
