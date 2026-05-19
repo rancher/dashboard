@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverD
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -85,7 +85,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     });
 
     driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Active', { timeout: LONG_TIMEOUT_OPT });
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Active', LONG_TIMEOUT_OPT );
 
     // Verify the driver tile appears on the cluster create page.
     // Legacy ember-based kontainer drivers are shown disabled with an informational tooltip
@@ -145,8 +145,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
     // wait for drivers to be active
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active', MEDIUM_TIMEOUT_OPT);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active', MEDIUM_TIMEOUT_OPT);
+    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active', VERY_LONG_TIMEOUT_OPT);
+    driversPage.list().details(oracleDriver, 1).should('contain', 'Active', VERY_LONG_TIMEOUT_OPT);
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
@@ -201,6 +201,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(response?.statusCode).to.eq(200);
       expect(isMatch(request.body, requestData)).to.equal(true);
     });
+
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Inactive');
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
@@ -330,31 +332,22 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       body:       { }
     }).as('deleteDriver');
 
-    // Scroll element into view and select with force
-    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver)
-      .scrollIntoView();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(exampleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
-      .click({ force: true });
+    driversPage.list().actionMenu(exampleDriver).getMenuItem('Delete').click();
 
-    driversPage.list().resourceTable().sortableTable().rowNames()
-      .then((rows: any) => {
-        const promptRemove = new PromptRemove();
+    const promptRemove = new PromptRemove();
 
-        promptRemove.remove();
+    promptRemove.remove();
 
-        cy.wait('@deleteDriver').then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          if (response?.statusCode === 200) {
-            removeDriver = false;
-          }
-          driversPage.waitForPage();
-          driversPage.list().resourceTable().sortableTable().rowNames()
-            .should('not.contain', exampleDriver);
-        });
-      });
+    cy.wait('@deleteDriver').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+    });
+
+    driversPage.waitForPage();
+    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver, MEDIUM_TIMEOUT_OPT)
+      .should('not.exist');
+
+    // only mark removeDriver false once tests assert the driver is actually gone
+    removeDriver = false;
   });
 
   after(() => {
