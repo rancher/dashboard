@@ -5,7 +5,7 @@ import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import {
-  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
+  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW, _CREATE
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
@@ -80,16 +80,20 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-    };
+    const hash = {};
+
+    if (this.mode === _CREATE) {
+      // After we create we wait for these to exist, so start watching
+      await this.$store.dispatch('management/watch', { type: MANAGEMENT.CLUSTER, registerType: true });
+      await this.$store.dispatch('management/watch', { type: CAPI.RANCHER_CLUSTER, registerType: true });
+    } else {
+      hash.mgmtClusters = this.value.waitForMgmt();
+    }
 
     // No need to fetch charts when editing an RKE1 cluster
     // The computed property `isRke1` in this file is based on the RKE1/RKE2 toggle, which is not applicable in this case
     // Instead, we should rely on the value from the model: `this.value.isRke1`
-    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== 'edit')) {
+    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== _EDIT)) {
       hash['catalog'] = this.$store.dispatch('catalog/load');
     }
 

@@ -2528,6 +2528,7 @@ export function generateFakeClusterDataAndIntercepts({
   cy.intercept({
     method:   'GET',
     pathname: '/v1/provisioning.cattle.io.clusters',
+    query:    { pagesize: '*' }
   }, (req) => {
     req.continue((res) => {
       const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
@@ -2552,7 +2553,11 @@ export function generateFakeClusterDataAndIntercepts({
   }).as('provCluster');
 
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-  cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '*' }
+  }, (req) => {
     req.continue((res) => {
       const localIndex = res.body.data.findIndex((item: any) => item.id.includes('local'));
 
@@ -2566,6 +2571,13 @@ export function generateFakeClusterDataAndIntercepts({
       res.send(res.body);
     });
   }).as('mgmtClusters');
+
+  cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       fakeNavClusterData.mgmtClusterObj,
+    });
+  }).as('mgmtCluster');
 
   // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {

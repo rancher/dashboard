@@ -34,17 +34,27 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
   }
 
   public static mockListRequests(provClusterList: any, mgmtClusterList: any) {
-    cy.intercept('GET', '/v1/management.cattle.io.clusters?*', (req) => {
+    // Covers specific get
+    cy.intercept('GET', `/v1/management.cattle.io.clusters/${ mgmtClusterList.data[0].id }?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       mgmtClusterList.data[0],
+      });
+    }).as('mgmtCluster');
+
+    // Covers both side bar and any standard cluster list
+    cy.intercept({
+      method:   'GET',
+      pathname: '/v1/management.cattle.io.clusters',
+      query:    { pagesize: '*' }
+    }, (req) => {
       req.reply({
         statusCode: 200,
         body:       mgmtClusterList,
       });
     }).as('mgmtClusterList');
 
-    // Why aren't we doing `/v1/provisioning.cattle.io.clusters?*`
-    // doesn't match the `/v1/provisioning.cattle.io.clusters?pagesize=100000&filter=id%20IN%20(fleet-default url
-    // doesn't match the get
-
+    // Covers specific get
     cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/${ provClusterList.data[0].id }?*`, (req) => {
       req.reply({
         statusCode: 200,
@@ -52,6 +62,7 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
       });
     }).as('provCluster');
 
+    // Covers only fetch all of prov cluster, probably un-used
     cy.intercept({
       method:   'GET',
       pathname: '/v1/provisioning.cattle.io.clusters',

@@ -42,7 +42,7 @@ const settings = {
 };
 
 const bannerHtml = `<div style="display: flex; align-items: center; padding: 0 10px"><img onload="alert('hello');" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg" height="24" style="margin-right: 10px; padding: 4px 0"/><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com">SUSE's Terms and Conditions</a></p></div>`;
-const bannerHtmlSanitized = `<div style="display: flex; align-items: center; padding: 0 10px"><img style="margin-right: 10px; padding: 4px 0" height="24" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg"><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com" rel="noopener noreferrer nofollow">SUSE's Terms and Conditions</a></p></div>`;
+const bannerHtmlSanitized = `<div style="display: flex; align-items: center; padding: 0 10px"><img src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg" height="24" style="margin-right: 10px; padding: 4px 0"><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com" rel="noopener noreferrer nofollow">SUSE\'s Terms and Conditions</a></p></div>`;
 
 const acceptButtonText = 'Got it!';
 
@@ -380,7 +380,7 @@ describe('Banners', { testIsolation: false }, () => {
         BannersPagePo.navTo();
 
         // Show Banner
-        bannersPage.headerBannerCheckbox().set();
+        bannersPage.headerBannerCheckbox().check();
         // to check custom box element width and height in order to prevent regression
         // https://github.com/rancher/dashboard/issues/10000
         bannersPage.headerBannerCheckbox().hasAppropriateWidth();
@@ -433,7 +433,7 @@ describe('Banners', { testIsolation: false }, () => {
 
         // Show Banner
         bannersPage.loginScreenBannerCheckbox().checkVisible();
-        bannersPage.loginScreenBannerCheckbox().set();
+        bannersPage.loginScreenBannerCheckbox().check();
         bannersPage.consentBannerShowAsDialogCheckbox().set();
         bannersPage.contentTypeToggle('bannerConsent').set('HTML'); // Set content type as HTML
         bannersPage.htmlTextArea('bannerConsent').set(bannerHtml);
