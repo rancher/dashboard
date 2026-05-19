@@ -14,8 +14,9 @@ export default {
   },
 
   computed: {
+
     active() {
-      const newFont = this.$store.getters['prefs/latoFontNew'];;
+      const newFont = this.$store.getters['prefs/latoFontNew'];
 
       return newFont ? 'New Lato Font' : 'Old Lato Font';
     },
@@ -40,7 +41,7 @@ export default {
           <th class="weight-col">
             {{ t('fonts.weight') }}
           </th>
-          <th>Current ({{  active }})</th>
+          <th>Current ({{ active }})</th>
           <th>Old Lato Font</th>
           <th>New Lato Font</th>
         </tr>

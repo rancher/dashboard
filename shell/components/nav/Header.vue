@@ -705,7 +705,10 @@ export default {
         </button>
       </div>
 
-      <div class="header-buttons font-click" @click.stop="gotToFontPage()">
+      <div
+        class="header-buttons font-click"
+        @click.stop="gotToFontPage()"
+      >
         <div v-if="newLatoFont">
           New Lato Font
         </div>

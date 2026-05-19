@@ -141,7 +141,7 @@ export const state = function() {
     data:          {},
     definitions,
     authRedirect:  null,
-    latoFontNew: false,
+    latoFontNew:   false,
   };
 };
 
@@ -289,16 +289,13 @@ export const mutations = {
   },
 
   setLatoFont(state, value) {
-    console.log('setLatoFont', value);
     state.latoFontNew = value;
-
-    console.log(state);
 
     if (value) {
       document.body.classList.add('lato2');
     } else {
       document.body.classList.remove('lato2');
-    }    
+    }
   }
 };
 
