@@ -340,7 +340,6 @@ export default {
           :key="card.color"
           class="state-card"
           :class="'state-card--' + card.color"
-          headless
         >
           <ResourceRow
             v-for="(row, idx) in card.rows"
@@ -355,7 +354,6 @@ export default {
           v-if="byStateLayout.subHero"
           class="state-card bento-sub-hero"
           :class="'state-card--' + byStateLayout.subHero.color"
-          headless
         >
           <ResourceRow
             v-for="(row, idx) in byStateLayout.subHero.rows"
@@ -370,7 +368,6 @@ export default {
           v-if="byStateLayout.hero"
           class="state-card bento-hero"
           :class="['state-card--' + byStateLayout.hero.color, 'bento-hero--' + byStateLayout.heroMode]"
-          headless
         >
           <ResourceRow
             v-for="(row, idx) in byStateLayout.hero.rows"

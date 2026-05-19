@@ -4,17 +4,15 @@ import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue'
 
 export interface CardProps {
     title?: string;
-    headless?: boolean;
 }
 
-const { title, headless = false } = defineProps<CardProps>();
+const { title } = defineProps<CardProps>();
 
-const hideHeading = computed(() => headless || !title);
 </script>
 
 <template>
   <div class="detail-card">
-    <template v-if="!hideHeading">
+    <template v-if="title">
       <div class="heading">
         <slot name="heading">
           <div class="title">
