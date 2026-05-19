@@ -1,27 +1,19 @@
 <script>
 import { WORKLOAD_TYPES, POD } from '@shell/config/types';
 import { Banner } from '@components/Banner';
+import Loading from '@shell/components/Loading';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 
-const WORKLOAD_RESOURCE_TYPES = {
-  [WORKLOAD_TYPES.DEPLOYMENT]:   { label: 'Deployments' },
-  [WORKLOAD_TYPES.DAEMON_SET]:   { label: 'DaemonSets' },
-  [WORKLOAD_TYPES.STATEFUL_SET]: { label: 'StatefulSets' },
-  [WORKLOAD_TYPES.JOB]:          { label: 'Jobs' },
-  [WORKLOAD_TYPES.CRON_JOB]:     { label: 'CronJobs' },
-  [POD]:                         { label: 'Pods' },
-};
-
-const DATA_SOURCE_OPTIONS = [
-  { label: 'Real (API)', value: 'real' },
-  { label: '1 State', value: '1-state' },
-  { label: '2 States', value: '2-states' },
-  { label: '3 States', value: '3-states' },
-  { label: '4 States', value: '4-states' },
-  { label: '5 States', value: '5-states' },
+const WORKLOAD_RESOURCE_TYPES = [
+  WORKLOAD_TYPES.DEPLOYMENT,
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.CRON_JOB,
+  POD,
 ];
 
 // States that the Steve server marks as transitioning (metadata.state.transitioning = true).
@@ -57,7 +49,7 @@ function toStateColor(state) {
 export default {
   name:       'WorkloadDashboard',
   components: {
-    Banner, Card, ResourceRow, StatusCard,
+    Banner, Card, Loading, ResourceRow, StatusCard,
   },
 
   async fetch() {
@@ -66,30 +58,21 @@ export default {
 
   data() {
     return {
-      summaries:         [],
-      fetchError:        null,
-      dataSource:        'real',
-      dataSourceOptions: DATA_SOURCE_OPTIONS,
-      pollTimer:         null,
+      summaries:  [],
+      fetchError: null,
+      pollTimer:  null,
     };
   },
 
   watch: {
     activeNamespaces() {
-      if (this.dataSource === 'real') {
-        this.fetchSummaries();
-      }
-    },
-    dataSource() {
-      this.applyDataSource();
+      this.fetchSummaries();
     },
   },
 
   mounted() {
     this.pollTimer = setInterval(() => {
-      if (this.dataSource === 'real') {
-        this.fetchSummaries();
-      }
+      this.fetchSummaries();
     }, 5000);
   },
 
@@ -109,18 +92,9 @@ export default {
       };
     },
 
-    applyDataSource() {
-      if (this.dataSource === 'real') {
-        this.fetchSummaries();
-      } else {
-        this.summaries = [];
-        this.fetchError = null;
-      }
-    },
-
     async fetchSummaries() {
       try {
-        const workloadPromises = Object.keys(WORKLOAD_RESOURCE_TYPES).map(async(type) => {
+        const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type) => {
           const schema = this.$store.getters['cluster/schemaFor'](type);
 
           if (!schema) {
@@ -168,9 +142,23 @@ export default {
       return this.$store.getters['isAllNamespaces'];
     },
 
+    namespaceSubtitle() {
+      if (this.isAllNamespaces) {
+        return this.t('workloadDashboard.subtitle.allNamespaces');
+      }
+
+      const namespaces = Object.keys(this.activeNamespaces);
+
+      if (namespaces.length === 1) {
+        return this.t('workloadDashboard.subtitle.filtered', { namespace: namespaces[0] });
+      }
+
+      return this.t('workloadDashboard.subtitle.filteredMultiple', { count: namespaces.length });
+    },
+
     workloadData() {
       return this.summaries.map((entry) => {
-        const config = WORKLOAD_RESOURCE_TYPES[entry.type] || { label: entry.type };
+        const label = this.t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
         const stateCounts = {};
         let total = 0;
 
@@ -185,7 +173,7 @@ export default {
 
         return {
           type:  entry.type,
-          label: config.label,
+          label,
           total,
           stateCounts,
           error: entry.error,
@@ -310,10 +298,10 @@ export default {
     <header class="row">
       <div class="col span-12 title">
         <h1 class="m-0">
-          Workloads Overview
+          {{ t('workloadDashboard.title') }}
         </h1>
         <div class="sub-title text-muted">
-          For all namespaces
+          {{ namespaceSubtitle }}
         </div>
       </div>
     </header>
@@ -328,7 +316,7 @@ export default {
     <!-- ━━━ By State ━━━ -->
     <div class="section">
       <h4 class="m-0 text-muted">
-        By State
+        {{ t('workloadDashboard.sections.byState') }}
       </h4>
       <div
         class="bento-grid"
@@ -384,7 +372,7 @@ export default {
     <!-- ━━━ By Type ━━━ -->
     <div class="section">
       <h4 class="m-0 text-muted">
-        By Type
+        {{ t('workloadDashboard.sections.byType') }}
       </h4>
       <div class="card-grid">
         <StatusCard
@@ -402,6 +390,8 @@ export default {
 
 <style lang="scss" scoped>
 .workload-dashboard {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 
   .section {
@@ -493,17 +483,10 @@ export default {
       }
     }
 
-    &--error {
-      background: var(--error-banner-bg, rgba(var(--error-rgb), 0.1));
-    }
-    &--warning {
-      background: var(--warning-banner-bg, rgba(var(--warning-rgb), 0.1));
-    }
-    &--info {
-      background: var(--info-banner-bg, rgba(var(--info-rgb), 0.1));
-    }
-    &--success {
-      background: var(--success-banner-bg, rgba(var(--success-rgb), 0.1));
+    @each $color in (error, warning, info, success) {
+      &--#{$color} {
+        background: var(--#{$color}-banner-bg, rgba(var(--#{$color}-rgb), 0.1));
+      }
     }
   }
 }

@@ -7425,6 +7425,16 @@ wm:
   kubectlShell:
     title: "Kubectl: {name}"
 
+workloadDashboard:
+  title: Workloads Overview
+  subtitle:
+    allNamespaces: For all namespaces
+    filtered: "For namespace: {namespace}"
+    filteredMultiple: "For {count} namespaces"
+  sections:
+    byState: By State
+    byType: By Type
+
 workload:
   scaleWorkloads: Scale workloads
   healthWorkloads: Jobs/Pods health status
