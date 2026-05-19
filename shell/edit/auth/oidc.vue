@@ -1,4 +1,5 @@
 <script>
+import { ref, computed } from 'vue';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -41,7 +42,32 @@ export default {
   mixins: [CreateEditView, AuthConfig],
 
   setup() {
-    return { PKCE_S256 };
+    // These refs sync mixin-state for the composition api
+    const modelId = ref(null);
+    const sloTypeRef = ref(null);
+
+    const isAmazonCognito = computed(() => modelId.value === 'cognito');
+    const isKeycloak = computed(() => modelId.value === 'keycloakoidc');
+    const isGenericOidc = computed(() => modelId.value === 'genericoidc');
+    const supportsCustomClaims = computed(() => isKeycloak.value || isGenericOidc.value);
+    const supportsGroupSearch = computed(() => modelId.value !== 'cognito');
+    const requiresCert = computed(() => modelId.value !== 'cognito');
+    const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
+    const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
+
+    return {
+      PKCE_S256,
+      modelId,
+      sloTypeRef,
+      isAmazonCognito,
+      isKeycloak,
+      isGenericOidc,
+      supportsCustomClaims,
+      supportsGroupSearch,
+      requiresCert,
+      requiresAuthEndpoint,
+      sloEndSessionEndpointUiEnabled,
+    };
   },
 
   data() {
@@ -124,10 +150,6 @@ export default {
       }
     },
 
-    requiresAuthEndpoint() {
-      return ['genericoidc', 'keycloakoidc'].includes(this.model.id);
-    },
-
     /**
      * TODO #13457: Refactor scopes to be an array of terms
      * Return valid scopes
@@ -135,32 +157,6 @@ export default {
      */
     requiredScopes() {
       return this.model.id ? (BASE_SCOPES[this.model.id] || []) ? (BASE_SCOPES[this.model.id] || [])[0].split(' ') : [] : [];
-    },
-
-    requiresCert() {
-      // We assume all do, apart from the ones here, which do not
-      return !(['cognito'].includes(this.model.id));
-    },
-
-    supportsGroupSearch() {
-      // We assume all do, apart from the ones here, which do not
-      return !(['cognito'].includes(this.model.id));
-    },
-
-    isAmazonCognito() {
-      return this.model?.id === 'cognito';
-    },
-
-    isGenericOidc() {
-      return this.model?.id === 'genericoidc';
-    },
-
-    isKeycloak() {
-      return this.model?.id === 'keycloakoidc';
-    },
-
-    supportsCustomClaims() {
-      return this.isGenericOidc || this.isKeycloak;
     },
 
     isLogoutAllSupported() {
@@ -180,15 +176,18 @@ export default {
 
       return sloOptionSelected?.label || '';
     },
-
-    sloEndSessionEndpointUiEnabled() {
-      return this.sloType === SLO_OPTION_VALUES.all || this.sloType === SLO_OPTION_VALUES.both;
-    },
   },
 
   watch: {
     fvFormIsValid(newValue) {
       this.$emit('validationChanged', !!newValue);
+    },
+
+    'model.id': {
+      handler(newVal) {
+        this.modelId = newVal;
+      },
+      immediate: true,
     },
 
     'oidcUrls.url'() {
@@ -228,6 +227,7 @@ export default {
 
     // sloType is defined on shell/mixins/auth-config.js
     sloType(neu) {
+      this.sloTypeRef = neu;
       switch (neu) {
       case SLO_OPTION_VALUES.rancher:
         this.model.logoutAllEnabled = false;
