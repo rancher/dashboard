@@ -1,18 +1,22 @@
 <script>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, toRef } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   emits: ['add', 'remove', 'update:value'],
 
-  components: { TextAreaAutoGrow, LabeledInput },
-  props:      {
+  components: {
+    TextAreaAutoGrow, LabeledInput, LabeledTooltip
+  },
+  props: {
     value: {
       type:    Array,
       default: null,
@@ -106,7 +110,17 @@ export default {
     componentTestid: {
       type:    String,
       default: 'array-list',
-    }
+    },
+
+    /**
+     * Field name for vee-validate integration. When provided, the component
+     * registers with a parent form context for schema-level validation.
+     */
+    name: {
+      type:    String,
+      default: null,
+    },
+
   },
 
   setup(props, { emit }) {
@@ -124,6 +138,17 @@ export default {
 
     const isView = computed(() => {
       return props.mode === _VIEW;
+    });
+
+    // vee-validate integration: array-level validation via a parent form schema.
+    // Per-item validation continues to use the existing `rules` prop on
+    // LabeledInput.
+    const arrayValue = computed(() => props.value || []);
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:              toRef(props, 'name'),
+      rules:             ref([]),
+      value:             arrayValue,
+      validationMessage: ref(null),
     });
 
     /**
@@ -144,6 +169,8 @@ export default {
         }
       }
       emit('update:value', out);
+      veeHandleBlur(undefined, false);
+      veeValidate();
     };
 
     const lastUpdateWasFromValue = ref(false);
@@ -177,6 +204,7 @@ export default {
       queueUpdate,
       isView,
       update,
+      effectiveValidationMessage,
     };
   },
 
@@ -431,10 +459,18 @@ export default {
         </slot>
       </div>
     </div>
+    <LabeledTooltip
+      v-if="effectiveValidationMessage"
+      :value="effectiveValidationMessage"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
+  .array-list-main-container {
+    position: relative;
+  }
+
   .title {
     margin-bottom: 10px;
   }

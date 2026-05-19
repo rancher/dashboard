@@ -53,6 +53,7 @@ export default {
     const modelId = ref(null);
     const sloTypeRef = ref(null);
     const customEndpointEnabled = ref(false);
+    const requiredScopesRef = ref([]);
 
     const isAmazonCognito = computed(() => modelId.value === 'cognito');
     const isKeycloak = computed(() => modelId.value === 'keycloakoidc');
@@ -87,6 +88,17 @@ export default {
 
         endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? requiredUrlField('authConfig.oidc.endSessionEndpoint.title') : optionalField,
 
+        scope: z.preprocess(
+          (v) => (Array.isArray(v) ? v : []),
+          z.array(z.string()).refine(
+            (arr) => requiredScopesRef.value?.every((s) => arr.includes(s)),
+            (arr) => {
+              const missing = requiredScopesRef.value?.filter((s) => !arr.includes(s));
+
+              return { message: t('authConfig.oidc.scope.missingRequired', { scopes: missing?.join(', '), count: missing?.length }) };
+            }
+          )
+        ),
       })
     ));
 
@@ -109,6 +121,7 @@ export default {
       modelId,
       sloTypeRef,
       customEndpointEnabled,
+      requiredScopesRef,
       isAmazonCognito,
       isKeycloak,
       isGenericOidc,
@@ -168,7 +181,7 @@ export default {
     },
 
     validationPassed() {
-      if ( this.model.enabled && !this.editConfig ) {
+      if ( this.model?.enabled && !this.editConfig ) {
         return true;
       }
 
@@ -181,7 +194,7 @@ export default {
      * The scopes for given auth provider (model.id) have format of ['scope1 scope2 scope3']
      */
     requiredScopes() {
-      return this.model.id ? (BASE_SCOPES[this.model.id] || []) ? (BASE_SCOPES[this.model.id] || [])[0].split(' ') : [] : [];
+      return this.model?.id ? (BASE_SCOPES[this.model.id] || []) ? (BASE_SCOPES[this.model.id] || [])[0].split(' ') : [] : [];
     },
 
     isLogoutAllSupported() {
@@ -217,6 +230,13 @@ export default {
 
     'customEndpoint.value'(v) {
       this.customEndpointEnabled = v;
+    },
+
+    requiredScopes: {
+      handler(v) {
+        this.requiredScopesRef = v;
+      },
+      immediate: true,
     },
 
     'oidcUrls.url'() {
@@ -686,6 +706,7 @@ export default {
           <div class="col span-6">
             <ArrayList
               v-model:value="oidcScope"
+              name="scope"
               :mode="mode"
               :title="t('authConfig.oidc.scope.label')"
               :value-placeholder="t('authConfig.oidc.scope.placeholder')"
