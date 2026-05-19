@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue';
 
 export interface CardProps {
