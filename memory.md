@@ -31,6 +31,7 @@
 - units.js: `parseSi('1m', {allowFractional:false})` returns 1_000_000 (Mega not milli)
 - perf-setting.utils.ts: isEnabled = `!paginationEnabled && perfSettings[this.setting].enabled`
 - kube.js: normalizeName handles null/undefined via `(str || '')` pattern
+- svg-filter.js: Solver.loss() resets reusedColor each call (safe to reuse); contrast(0) pushes black to mid-gray (127.5); stochastic solve() only asserts structural invariants
 
 ## Testing Backlog (Prioritized)
 
@@ -39,13 +40,13 @@
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
 5. `shell/utils/alertmanagerconfig.js` — async store-dependent fns (follow-up with Vuex mock)
-6. `shell/utils/svg-filter.js` — pure color filter algorithm (302 lines, no deps)
 
 ## Completed Work (Summary)
 
-- 2026-05-18: PR (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns; 85.7% branches
-- 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics
-- 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts
+- 2026-05-19: PR (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class; 95% stmts, 96.4% branches, 92% fns
+- 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns; 85.7% branches
+- 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics — MERGED ✅
+- 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts — MERGED ✅
 - 2026-05-15: PR (branch test-assist/validator-role-template-cron-tests): 19 tests for role-template.js + cron-schedule.js
 - 2026-05-14: PR (branch test-assist/validator-tests-batch2): 79 tests for 6 validator modules
 - 2026-05-13: PR (branch test-assist/kubernetes-cluster-name-tests): 37 tests for kubernetes-name.js + cluster-name.js
@@ -56,19 +57,19 @@
 - 2026-05-08: PR #17562: 39 tests for duration.js + parse-externalid.js
 - 2026-05-07: PR #17545: 57 tests for units.js
 - 2026-05-06: PR #17518: 21 tests for perf-setting.utils.ts + ingress.ts pure methods
-- All PRs #17431–#17590: merged ✅
+- All PRs #17431–#17699: merged ✅
 
 ## Task Round-Robin History
 
+- 2026-05-19: Task 3 (svg-filter.js, 18 tests) + Task 4 + Task 7
 - 2026-05-18: Task 3 (alertmanagerconfig.js, 12 tests) + Task 7
 - 2026-05-17: Task 3 (aws.ts + kube.js, 29 tests) + Task 4 + Task 7
 - 2026-05-16: Task 3 (namespace-filter.js + async.ts, 20 tests) + Task 7
-- 2026-05-15: Task 3 (role-template.js + cron-schedule.js, 19 tests) + Task 7
 
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open PRs: #17692, #17699; branch test-assist/alertmanagerconfig-tests (new)
+- Open PRs: #17712 (alertmanagerconfig); new PR for svg-filter (branch test-assist/svg-filter-tests, number unknown yet)
 
 ## Maintainer Priorities
 
