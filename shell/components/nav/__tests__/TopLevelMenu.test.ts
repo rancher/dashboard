@@ -727,13 +727,13 @@ describe('topLevelMenu', () => {
                     nameDisplay: 'cluster1',
                     id:          'an-id1',
                     mgmt:        { id: 'an-id1' },
-                    isReady:     true
+                    canExplore:  true
                   },
                   {
                     nameDisplay: 'cluster2',
                     id:          'an-id2',
                     mgmt:        { id: 'an-id2' },
-                    isReady:     true
+                    canExplore:  true
                   }
                 ])
               }
@@ -786,7 +786,7 @@ describe('topLevelMenu', () => {
             nameDisplay: 'cluster1',
             id:          'an-id1',
             mgmt:        { id: 'an-id1' },
-            isReady:     true
+            canExplore:  true
           }
         ]);
 
@@ -814,7 +814,7 @@ describe('topLevelMenu', () => {
             nameDisplay: 'cluster1',
             id:          'an-id1',
             mgmt:        { id: 'an-id1' },
-            isReady:     true
+            canExplore:  true
           }
         ]);
 
