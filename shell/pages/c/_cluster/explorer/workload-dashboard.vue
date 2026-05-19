@@ -2,7 +2,9 @@
 import { WORKLOAD_TYPES, POD } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { DOCS_BASE } from '@shell/config/private-label';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
@@ -49,7 +51,7 @@ function toStateColor(state) {
 export default {
   name:       'WorkloadDashboard',
   components: {
-    Banner, Card, Loading, ResourceRow, StatusCard,
+    Banner, Card, Loading, RichTranslation, ResourceRow, StatusCard,
   },
 
   async fetch() {
@@ -58,6 +60,7 @@ export default {
 
   data() {
     return {
+      DOCS_BASE,
       summaries:  [],
       fetchError: null,
       pollTimer:  null,
@@ -81,6 +84,13 @@ export default {
   },
 
   methods: {
+    resetNamespaceFilter() {
+      this.$store.dispatch('switchNamespaces', {
+        ids: [],
+        key: this.$store.getters['clusterId'],
+      });
+    },
+
     resourceRoute(type) {
       return {
         name:   'c-cluster-product-resource',
@@ -154,6 +164,10 @@ export default {
       }
 
       return this.t('workloadDashboard.subtitle.filteredMultiple', { count: namespaces.length });
+    },
+
+    hasWorkloads() {
+      return this.workloadData.some((w) => !w.error && w.total > 0);
     },
 
     workloadData() {
@@ -295,17 +309,6 @@ export default {
     v-else
     class="workload-dashboard"
   >
-    <header class="row">
-      <div class="col span-12 title">
-        <h1 class="m-0">
-          {{ t('workloadDashboard.title') }}
-        </h1>
-        <div class="sub-title text-muted">
-          {{ namespaceSubtitle }}
-        </div>
-      </div>
-    </header>
-
     <Banner
       v-if="fetchError"
       color="error"
@@ -313,78 +316,127 @@ export default {
       {{ fetchError }}
     </Banner>
 
-    <!-- ━━━ By State ━━━ -->
-    <div class="section">
-      <h4 class="m-0 text-muted">
-        {{ t('workloadDashboard.sections.byState') }}
-      </h4>
-      <div
-        class="bento-grid"
-        :class="{ 'bento-grid--has-sub-hero': !!byStateLayout.subHero }"
-        :style="{ 'grid-template-rows': 'repeat(' + byStateLayout.gridRows + ', ' + (byStateLayout.subHero ? '1fr' : 'auto') + ')' }"
-      >
-        <Card
-          v-for="card in byStateLayout.cards"
-          :key="card.color"
-          class="state-card"
-          :class="'state-card--' + card.color"
+    <!-- ━━━ Empty state ━━━ -->
+    <div
+      v-if="!hasWorkloads"
+      class="empty-state"
+    >
+      <h1 class="m-0">
+        {{ t('workloadDashboard.empty.title') }}
+      </h1>
+      <div class="empty-state-tips">
+        <RichTranslation k="workloadDashboard.empty.message">
+          <template #resetLink="{ content }">
+            <a
+              role="button"
+              class="link"
+              @click="resetNamespaceFilter"
+              @keyup.enter="resetNamespaceFilter"
+            >{{ content }}</a>
+          </template>
+        </RichTranslation>
+        <RichTranslation
+          k="workloadDashboard.empty.docsMessage"
+          tag="div"
         >
-          <ResourceRow
-            v-for="(row, idx) in card.rows"
-            :key="idx"
-            :label="row.label"
-            :to="resourceRoute(row.type)"
-            :color="row.color"
-            :counts="row.counts"
-          />
-        </Card>
-        <Card
-          v-if="byStateLayout.subHero"
-          class="state-card bento-sub-hero"
-          :class="'state-card--' + byStateLayout.subHero.color"
-        >
-          <ResourceRow
-            v-for="(row, idx) in byStateLayout.subHero.rows"
-            :key="idx"
-            :label="row.label"
-            :to="resourceRoute(row.type)"
-            :color="row.color"
-            :counts="row.counts"
-          />
-        </Card>
-        <Card
-          v-if="byStateLayout.hero"
-          class="state-card bento-hero"
-          :class="['state-card--' + byStateLayout.hero.color, 'bento-hero--' + byStateLayout.heroMode]"
-        >
-          <ResourceRow
-            v-for="(row, idx) in byStateLayout.hero.rows"
-            :key="idx"
-            :label="row.label"
-            :to="resourceRoute(row.type)"
-            :color="row.color"
-            :counts="row.counts"
-          />
-        </Card>
+          <template #docsLink="{ content }">
+            <a
+              :href="`${DOCS_BASE}/how-to-guides/new-user-guides/kubernetes-resources-setup/workloads-and-pods`"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              class="secondary-text-link"
+            >
+              {{ content }} <i class="icon icon-external-link" />
+            </a>
+          </template>
+        </RichTranslation>
       </div>
     </div>
 
-    <!-- ━━━ By Type ━━━ -->
-    <div class="section">
-      <h4 class="m-0 text-muted">
-        {{ t('workloadDashboard.sections.byType') }}
-      </h4>
-      <div class="card-grid">
-        <StatusCard
-          v-for="card in byTypeCards"
-          :key="card.title"
-          :title="card.title"
-          :row-to="resourceRoute(card.type)"
-          :resources="card.resources"
-          :showPercent="false"
-        />
+    <template v-else>
+      <header class="row">
+        <div class="col span-12 title">
+          <h1 class="m-0">
+            {{ t('workloadDashboard.title') }}
+          </h1>
+          <div class="sub-title text-muted">
+            {{ namespaceSubtitle }}
+          </div>
+        </div>
+      </header>
+      <!-- ━━━ By State ━━━ -->
+      <div class="section">
+        <h4 class="m-0 text-muted">
+          {{ t('workloadDashboard.sections.byState') }}
+        </h4>
+        <div
+          class="bento-grid"
+          :class="{ 'bento-grid--has-sub-hero': !!byStateLayout.subHero }"
+          :style="{ 'grid-template-rows': 'repeat(' + byStateLayout.gridRows + ', ' + (byStateLayout.subHero ? '1fr' : 'auto') + ')' }"
+        >
+          <Card
+            v-for="card in byStateLayout.cards"
+            :key="card.color"
+            class="state-card"
+            :class="'state-card--' + card.color"
+          >
+            <ResourceRow
+              v-for="(row, idx) in card.rows"
+              :key="idx"
+              :label="row.label"
+              :to="resourceRoute(row.type)"
+              :color="row.color"
+              :counts="row.counts"
+            />
+          </Card>
+          <Card
+            v-if="byStateLayout.subHero"
+            class="state-card bento-sub-hero"
+            :class="'state-card--' + byStateLayout.subHero.color"
+          >
+            <ResourceRow
+              v-for="(row, idx) in byStateLayout.subHero.rows"
+              :key="idx"
+              :label="row.label"
+              :to="resourceRoute(row.type)"
+              :color="row.color"
+              :counts="row.counts"
+            />
+          </Card>
+          <Card
+            v-if="byStateLayout.hero"
+            class="state-card bento-hero"
+            :class="['state-card--' + byStateLayout.hero.color, 'bento-hero--' + byStateLayout.heroMode]"
+          >
+            <ResourceRow
+              v-for="(row, idx) in byStateLayout.hero.rows"
+              :key="idx"
+              :label="row.label"
+              :to="resourceRoute(row.type)"
+              :color="row.color"
+              :counts="row.counts"
+            />
+          </Card>
+        </div>
       </div>
-    </div>
+
+      <!-- ━━━ By Type ━━━ -->
+      <div class="section">
+        <h4 class="m-0 text-muted">
+          {{ t('workloadDashboard.sections.byType') }}
+        </h4>
+        <div class="card-grid">
+          <StatusCard
+            v-for="card in byTypeCards"
+            :key="card.title"
+            :title="card.title"
+            :row-to="resourceRoute(card.type)"
+            :resources="card.resources"
+            :showPercent="false"
+          />
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -412,6 +464,22 @@ export default {
 
     .sub-title {
       line-height: 21px;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    h1 {
+      line-height: 38px;
+    }
+    .empty-state-tips {
+      font-size: 16px;
+      line-height: 29px;
     }
   }
 

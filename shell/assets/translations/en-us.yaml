@@ -7434,6 +7434,10 @@ workloadDashboard:
   sections:
     byState: By State
     byType: By Type
+  empty:
+    title: No workloads to show
+    message: "Tips: undo the last namespace filter you applied or <resetLink>reset the namespaces filter</resetLink>."
+    docsMessage: "Want to learn more about Workloads? Read our <docsLink>documentation</docsLink>."
 
 workload:
   scaleWorkloads: Scale workloads
