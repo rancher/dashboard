@@ -32,7 +32,13 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      cy.wait('@provClusters'); // Wait for request which will populate the drop down
+      cy.intercept({
+        method:   'GET',
+        pathname: '/v1/provisioning.cattle.io.clusters',
+        query:    { pagesize: '100000' }
+      }).as('waitForDropDownInfo'); // Wait for request which will populate the drop down
+
+      cy.wait('@waitForDropDownInfo');
       clusterList.editCluster(fakeProvClusterId);
 
       const editCluster = new ClusterManagerEditGenericPagePo('_', fakeProvClusterId);
