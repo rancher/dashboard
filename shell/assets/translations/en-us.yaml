@@ -7434,6 +7434,10 @@ workloadDashboard:
   sections:
     byState: By State
     byType: By Type
+  errors:
+    noAccess: "No access to {type}"
+    fetchType: "Failed to fetch {type}"
+    fetchAll: Failed to fetch workload summaries
   empty:
     title: No workloads to show
     message: "Tips: undo the last namespace filter you applied or <resetLink>reset the namespaces filter</resetLink>."

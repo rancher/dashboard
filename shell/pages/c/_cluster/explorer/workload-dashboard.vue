@@ -1,15 +1,49 @@
-<script>
+<script setup lang="ts">
+import {
+  ref, computed, watch, onMounted, onBeforeUnmount
+} from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import type { RouteLocationRaw } from 'vue-router';
 import { WORKLOAD_TYPES, POD } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { DOCS_BASE } from '@shell/config/private-label';
+import { StateColor } from '@shell/utils/style';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
+import { useI18n } from '@shell/composables/useI18n';
 
-const WORKLOAD_RESOURCE_TYPES = [
+interface SummaryEntry {
+  type: string;
+  summary: { property: string; counts: Record<string, number> }[] | null;
+  error: string | null;
+}
+
+interface WorkloadEntry {
+  type: string;
+  label: string;
+  total: number;
+  stateCounts: Record<string, number>;
+  error: string | null;
+}
+
+interface StateCardRow {
+  label: string;
+  color: StateColor;
+  type: string;
+  counts: { label: string; count: number }[];
+}
+
+interface StateCard {
+  color: StateColor;
+  rows: StateCardRow[];
+}
+
+const WORKLOAD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.DEPLOYMENT,
   WORKLOAD_TYPES.DAEMON_SET,
   WORKLOAD_TYPES.STATEFUL_SET,
@@ -18,20 +52,20 @@ const WORKLOAD_RESOURCE_TYPES = [
   POD,
 ];
 
-// States that the Steve server marks as transitioning (metadata.state.transitioning = true).
-// For these, the real colorForState returns 'info' regardless of STATES[key].color.
 const TRANSITIONING_STATES = new Set([
   'unknown', 'containerstatusunknown', 'imagepullbackoff',
   'crashloopbackoff',
 ]);
 
-// States that the Steve server marks as error (metadata.state.error = true).
-// For these, the real colorForState returns 'error' regardless of STATES[key].color.
 const ERROR_STATES = new Set([
   'init:error', 'init:crashloopbackoff',
 ]);
 
-function toStateColor(state) {
+const COLOR_ORDER: Record<string, number> = {
+  error: 0, warning: 1, disabled: 2, info: 3, success: 4
+};
+
+function toStateColor(state: string): StateColor {
   const key = (state || '').toLowerCase();
 
   if (ERROR_STATES.has(key)) {
@@ -45,265 +79,237 @@ function toStateColor(state) {
   const config = STATES[key];
   const color = config?.color || 'info';
 
-  return color === 'darker' ? 'disabled' : color;
+  return (color === 'darker' ? 'disabled' : color) as StateColor;
 }
 
-export default {
-  name:       'WorkloadDashboard',
-  components: {
-    Banner, Card, Loading, RichTranslation, ResourceRow, StatusCard,
-  },
+const store = useStore();
+const route = useRoute();
+const { t } = useI18n(store);
 
-  async fetch() {
-    await this.fetchSummaries();
-  },
+const summaries = ref<SummaryEntry[]>([]);
+const fetchError = ref<string | null>(null);
+const loading = ref(true);
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  data() {
+const activeNamespaces = computed<Record<string, boolean>>(() => {
+  return store.getters['activeNamespaceCache'];
+});
+
+const isAllNamespaces = computed<boolean>(() => {
+  return store.getters['isAllNamespaces'];
+});
+
+const namespaceSubtitle = computed<string>(() => {
+  if (isAllNamespaces.value) {
+    return t('workloadDashboard.subtitle.allNamespaces');
+  }
+
+  const namespaces = Object.keys(activeNamespaces.value);
+
+  if (namespaces.length === 1) {
+    return t('workloadDashboard.subtitle.filtered', { namespace: namespaces[0] });
+  }
+
+  return t('workloadDashboard.subtitle.filteredMultiple', { count: namespaces.length });
+});
+
+const workloadData = computed<WorkloadEntry[]>(() => {
+  return summaries.value.map((entry) => {
+    const label = t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
+    const stateCounts: Record<string, number> = {};
+    let total = 0;
+
+    if (entry.summary) {
+      for (const s of entry.summary) {
+        if (s.property === 'metadata.state.name') {
+          Object.assign(stateCounts, s.counts);
+          total = Object.values(s.counts).reduce((sum, c) => sum + c, 0);
+        }
+      }
+    }
+
     return {
-      DOCS_BASE,
-      summaries:  [],
-      fetchError: null,
-      pollTimer:  null,
+      type:  entry.type,
+      label,
+      total,
+      stateCounts,
+      error: entry.error,
     };
-  },
+  });
+});
 
-  watch: {
-    activeNamespaces() {
-      this.fetchSummaries();
-    },
-  },
+const hasWorkloads = computed<boolean>(() => {
+  return workloadData.value.some((w) => !w.error && w.total > 0);
+});
 
-  mounted() {
-    this.pollTimer = setInterval(() => {
-      this.fetchSummaries();
-    }, 5000);
-  },
+const byStateCards = computed<StateCard[]>(() => {
+  const colorGroups: Record<string, Record<string, { count: number; type: string }>> = {
+    error:    {},
+    warning:  {},
+    info:     {},
+    success:  {},
+    disabled: {},
+  };
 
-  beforeUnmount() {
-    clearInterval(this.pollTimer);
-  },
+  for (const w of workloadData.value) {
+    if (w.error || w.total === 0) {
+      continue;
+    }
 
-  methods: {
-    resetNamespaceFilter() {
-      this.$store.dispatch('switchNamespaces', {
-        ids: [],
-        key: this.$store.getters['clusterId'],
-      });
-    },
+    for (const [state, count] of Object.entries(w.stateCounts)) {
+      const color = toStateColor(state);
 
-    resourceRoute(type) {
-      return {
-        name:   'c-cluster-product-resource',
-        params: {
-          cluster:  this.$route.params.cluster,
-          product:  'explorer',
-          resource: type,
-        },
-      };
-    },
+      if (!colorGroups[color][w.label]) {
+        colorGroups[color][w.label] = { count: 0, type: w.type };
+      }
+      colorGroups[color][w.label].count += count;
+    }
+  }
 
-    async fetchSummaries() {
-      try {
-        const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type) => {
-          const schema = this.$store.getters['cluster/schemaFor'](type);
+  return Object.entries(colorGroups)
+    .filter(([, typeMap]) => Object.keys(typeMap).length > 0)
+    .map(([color, typeMap]) => ({
+      color: color as StateColor,
+      rows:  Object.entries(typeMap).map(([label, { count, type }]) => ({
+        label,
+        color:  color as StateColor,
+        type,
+        counts: [{ label: '', count }],
+      })),
+    }));
+});
 
-          if (!schema) {
-            return {
-              type, summary: null, error: `No access to ${ type }`
-            };
-          }
+const byStateLayout = computed(() => {
+  const cards = byStateCards.value;
+  const hero = cards.find((c) => c.color === 'success') || null;
+  const others = cards.filter((c) => c !== hero);
 
-          try {
-            let url = `/v1/${ type }?summary=metadata.state.name`;
+  let heroMode = 'default';
 
-            if (!this.isAllNamespaces) {
-              const namespaces = Object.keys(this.activeNamespaces);
+  if (cards.length === 1) {
+    heroMode = 'full';
+  } else if (others.length === 1) {
+    heroMode = 'wide';
+  }
 
-              if (namespaces.length) {
-                url += `&projectsornamespaces=${ namespaces.join(',') }`;
-              }
-            }
+  const subHero = (hero && others.length >= 3) ? others.find((c) => c.color === 'info') || null : null;
 
-            const res = await this.$store.dispatch('cluster/request', { url });
+  const regularCards = subHero ? others.filter((c) => c !== subHero) : others;
+  const gridRows = subHero ? Math.max(1, regularCards.length) : Math.max(1, Math.ceil(regularCards.length / 2));
 
-            return {
-              type, summary: res.summary || [], error: null
-            };
-          } catch (e) {
-            return {
-              type, summary: null, error: e.message || `Failed to fetch ${ type }`
-            };
-          }
+  return {
+    hero,
+    subHero,
+    cards: regularCards,
+    heroMode,
+    gridRows,
+  };
+});
+
+const byTypeCards = computed(() => {
+  return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
+    const resources: { stateDisplay: string; stateSimpleColor: string }[] = [];
+
+    const sortedStates = Object.entries(w.stateCounts)
+      .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5));
+
+    for (const [state, count] of sortedStates) {
+      for (let i = 0; i < count; i++) {
+        resources.push({
+          stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
+          stateSimpleColor: toStateColor(state),
         });
-
-        this.summaries = await Promise.all(workloadPromises);
-      } catch (e) {
-        this.fetchError = e.message || 'Failed to fetch workload summaries';
       }
-    },
-  },
+    }
 
-  computed: {
-    activeNamespaces() {
-      return this.$store.getters['activeNamespaceCache'];
-    },
+    return {
+      title: w.label,
+      type:  w.type,
+      resources,
+    };
+  });
+});
 
-    isAllNamespaces() {
-      return this.$store.getters['isAllNamespaces'];
-    },
+function resetNamespaceFilter(): void {
+  store.dispatch('switchNamespaces', {
+    ids: [],
+    key: store.getters['clusterId'],
+  });
+}
 
-    namespaceSubtitle() {
-      if (this.isAllNamespaces) {
-        return this.t('workloadDashboard.subtitle.allNamespaces');
+function resourceRoute(type: string): RouteLocationRaw {
+  return {
+    name:   'c-cluster-product-resource',
+    params: {
+      cluster:  route.params.cluster as string,
+      product:  'explorer',
+      resource: type,
+    },
+  };
+}
+
+async function fetchSummaries(): Promise<void> {
+  try {
+    const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type): Promise<SummaryEntry> => {
+      const schema = store.getters['cluster/schemaFor'](type);
+
+      if (!schema) {
+        return {
+          type, summary: null, error: t('workloadDashboard.errors.noAccess', { type })
+        };
       }
 
-      const namespaces = Object.keys(this.activeNamespaces);
+      try {
+        let url = `/v1/${ type }?summary=metadata.state.name`;
 
-      if (namespaces.length === 1) {
-        return this.t('workloadDashboard.subtitle.filtered', { namespace: namespaces[0] });
-      }
+        if (!isAllNamespaces.value) {
+          const namespaces = Object.keys(activeNamespaces.value);
 
-      return this.t('workloadDashboard.subtitle.filteredMultiple', { count: namespaces.length });
-    },
-
-    hasWorkloads() {
-      return this.workloadData.some((w) => !w.error && w.total > 0);
-    },
-
-    workloadData() {
-      return this.summaries.map((entry) => {
-        const label = this.t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
-        const stateCounts = {};
-        let total = 0;
-
-        if (entry.summary) {
-          for (const s of entry.summary) {
-            if (s.property === 'metadata.state.name') {
-              Object.assign(stateCounts, s.counts);
-              total = Object.values(s.counts).reduce((sum, c) => sum + c, 0);
-            }
+          if (namespaces.length) {
+            url += `&projectsornamespaces=${ namespaces.join(',') }`;
           }
         }
+
+        const res = await store.dispatch('cluster/request', { url });
 
         return {
-          type:  entry.type,
-          label,
-          total,
-          stateCounts,
-          error: entry.error,
+          type, summary: res.summary || [], error: null
         };
-      });
-    },
-
-    /**
-     * "By State": decompose each workload type's state counts into severity groups.
-     * Aggregates counts per type within each severity card.
-     */
-    byStateCards() {
-      const colorGroups = {
-        error:    {},
-        warning:  {},
-        info:     {},
-        success:  {},
-        disabled: {},
-      };
-
-      for (const w of this.workloadData) {
-        if (w.error || w.total === 0) {
-          continue;
-        }
-
-        for (const [state, count] of Object.entries(w.stateCounts)) {
-          const color = toStateColor(state);
-
-          if (!colorGroups[color][w.label]) {
-            colorGroups[color][w.label] = { count: 0, type: w.type };
-          }
-          colorGroups[color][w.label].count += count;
-        }
-      }
-
-      return Object.entries(colorGroups)
-        .filter(([, typeMap]) => Object.keys(typeMap).length > 0)
-        .map(([color, typeMap]) => ({
-          color,
-          rows: Object.entries(typeMap).map(([label, { count, type }]) => ({
-            label,
-            color,
-            type,
-            counts: [{ label: '', count }],
-          })),
-        }));
-    },
-
-    /**
-     * Bento-box layout: hero (success) card on the right spanning full height,
-     * remaining cards fill a 2-column left grid.
-     */
-    byStateLayout() {
-      const cards = this.byStateCards;
-      const hero = cards.find((c) => c.color === 'success') || null;
-      const others = cards.filter((c) => c !== hero);
-
-      let heroMode = 'default';
-
-      if (cards.length === 1) {
-        heroMode = 'full';
-      } else if (others.length === 1) {
-        heroMode = 'wide';
-      }
-
-      const subHero = (hero && others.length >= 3) ? others.find((c) => c.color === 'info') || null : null;
-
-      const regularCards = subHero ? others.filter((c) => c !== subHero) : others;
-      const gridRows = subHero ? Math.max(1, regularCards.length) : Math.max(1, Math.ceil(regularCards.length / 2));
-
-      return {
-        hero,
-        subHero,
-        cards: regularCards,
-        heroMode,
-        gridRows,
-      };
-    },
-
-    /**
-     * "By Type": one StatusCard per workload type with fake resource objects.
-     */
-    byTypeCards() {
-      const colorOrder = {
-        error: 0, warning: 1, disabled: 2, info: 3, success: 4
-      };
-
-      return this.workloadData.filter((w) => !w.error && w.total > 0).map((w) => {
-        const resources = [];
-
-        const sortedStates = Object.entries(w.stateCounts)
-          .sort(([a], [b]) => (colorOrder[toStateColor(a)] ?? 5) - (colorOrder[toStateColor(b)] ?? 5));
-
-        for (const [state, count] of sortedStates) {
-          for (let i = 0; i < count; i++) {
-            resources.push({
-              stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
-              stateSimpleColor: toStateColor(state),
-            });
-          }
-        }
-
+      } catch (e: any) {
         return {
-          title: w.label,
-          type:  w.type,
-          resources,
+          type, summary: null, error: e.message || t('workloadDashboard.errors.fetchType', { type })
         };
-      });
-    },
+      }
+    });
 
-  },
-};
+    summaries.value = await Promise.all(workloadPromises);
+  } catch (e: any) {
+    fetchError.value = e.message || t('workloadDashboard.errors.fetchAll');
+  }
+}
+
+watch(activeNamespaces, () => {
+  fetchSummaries();
+});
+
+onMounted(async() => {
+  await fetchSummaries();
+  loading.value = false;
+
+  pollTimer = setInterval(() => {
+    fetchSummaries();
+  }, 5000);
+});
+
+onBeforeUnmount(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+  }
+});
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="loading" />
 
   <div
     v-else
@@ -503,7 +509,7 @@ export default {
     &--full {
       grid-column: 1 / -1;
 
-      ::v-deep .body {
+      :deep(.body) {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 4px 48px;
@@ -513,7 +519,7 @@ export default {
     &--wide {
       grid-column: 2 / -1;
 
-      ::v-deep .body {
+      :deep(.body) {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 4px 48px;
@@ -533,7 +539,7 @@ export default {
   }
 
   .state-card {
-    ::v-deep .resource-row {
+    :deep(.resource-row) {
       position: relative;
       padding-left: 20px;
       line-height: 20px;

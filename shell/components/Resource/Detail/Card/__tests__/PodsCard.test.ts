@@ -74,10 +74,12 @@ describe('component: PodsCard', () => {
     const rows = wrapper.findComponent(StatusRow);
 
     expect(rows.props()).toStrictEqual({
-      color:   'success',
-      count:   1,
-      label:   'Completed',
-      percent: 50
+      color:       'success',
+      count:       1,
+      label:       'Completed',
+      percent:     50,
+      showPercent: true,
+      to:          undefined,
     });
   });
 });

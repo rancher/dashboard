@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, useSlots } from 'vue';
 import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue';
 
 export interface CardProps {
@@ -6,12 +7,14 @@ export interface CardProps {
 }
 
 const { title } = defineProps<CardProps>();
+const slots = useSlots();
 
+const showHeading = computed(() => !!title || !!slots.title || !!slots['heading-action']);
 </script>
 
 <template>
   <div class="detail-card">
-    <template v-if="title">
+    <template v-if="showHeading">
       <div class="heading">
         <slot name="heading">
           <div class="title">
