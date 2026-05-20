@@ -39,12 +39,13 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-5. `shell/utils/alertmanagerconfig.js` — async store-dependent fns (follow-up with Vuex mock)
+5. `shell/utils/banners.js` — overlayIndividualBanners pure function + getIndividualBanners with store mock
 
 ## Completed Work (Summary)
 
-- 2026-05-19: PR (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class; 95% stmts, 96.4% branches, 92% fns
-- 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns; 85.7% branches
+- 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for poller.js + poller-sequential.js; 98.9% stmts, 75% branches, 89.5% fns
+- 2026-05-19: PR #17729 (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class — MERGED ✅
+- 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns — MERGED ✅
 - 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics — MERGED ✅
 - 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts — MERGED ✅
 - 2026-05-15: PR (branch test-assist/validator-role-template-cron-tests): 19 tests for role-template.js + cron-schedule.js
@@ -61,6 +62,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-20: Task 3 (poller.js + poller-sequential.js, 32 tests) + Task 4 + Task 7
 - 2026-05-19: Task 3 (svg-filter.js, 18 tests) + Task 4 + Task 7
 - 2026-05-18: Task 3 (alertmanagerconfig.js, 12 tests) + Task 7
 - 2026-05-17: Task 3 (aws.ts + kube.js, 29 tests) + Task 4 + Task 7
@@ -69,7 +71,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- Open PRs: #17712 (alertmanagerconfig); new PR for svg-filter (branch test-assist/svg-filter-tests, number unknown yet)
+- All previous PRs merged; new PR (branch test-assist/poller-tests) pending
 
 ## Maintainer Priorities
 
