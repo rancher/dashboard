@@ -2,7 +2,7 @@
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { extractDockerAuthCredentials } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
+import { extractDockerAuthCredentials } from '@shell/utils/secret';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
 

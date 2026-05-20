@@ -1,36 +1,9 @@
 import { computed, toValue } from 'vue';
 import { base64Decode } from '@shell/utils/crypto';
+import { extractDockerAuthCredentials } from '@shell/utils/secret';
 
-/**
- * Extracts username and password from a docker auth entry.
- * The entry may have explicit `username`/`password` fields, or a base64-encoded
- * `auth` field in the format `username:password` (as produced by `docker login`).
- */
-export const extractDockerAuthCredentials = (authEntry: Record<string, string> = {}): { username?: string; password?: string } => {
-  if (authEntry.username !== undefined || authEntry.password !== undefined) {
-    return {
-      username: authEntry.username,
-      password: authEntry.password,
-    };
-  }
-
-  if (authEntry.auth) {
-    const decoded = base64Decode(authEntry.auth);
-    const separatorIndex = decoded.indexOf(':');
-
-    if (separatorIndex !== -1) {
-      return {
-        username: decoded.substring(0, separatorIndex),
-        password: decoded.substring(separatorIndex + 1),
-      };
-    }
-  }
-
-  return {
-    username: undefined,
-    password: undefined,
-  };
-};
+export type { DockerAuthEntry } from '@shell/utils/secret';
+export { extractDockerAuthCredentials } from '@shell/utils/secret';
 
 export const useSecretInfo = (resource: any) => {
   return computed(() => {
