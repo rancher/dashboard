@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 import {
-  computed, inject, onMounted, onUnmounted, provide, ref, useTemplateRef, watch
+  computed, inject, onMounted, onUnmounted, provide, ref, watch
 } from 'vue';
 import type {
   ComputedRef,
@@ -57,9 +57,7 @@ const FORM_SUMMARY_KEY = Symbol('formSummary');
  * that may have interactable elements deeply nested in child components. The list of located components
  * returned by locateComponentsByNamePattern includes access to the component instance and a scrollTo method.
  */
-export function useFormSummary(rootComponentRefKey: string) {
-  let rootComponentRef: Readonly<Ref<HTMLElement | null>> | undefined;
-
+export function useFormSummary(rootComponentRef: Readonly<Ref<HTMLElement | null>>) {
   const registeredComponents = ref<Record<string, SummaryComponent>>({});
   const locatedComponents = ref<SummaryEntry[]>([]);
   const buildTree = (
@@ -118,7 +116,6 @@ export function useFormSummary(rootComponentRefKey: string) {
   // populated and after all children have run their own onMounted hooks. This guarantees
   // rootComponentRef is available and all child registrations have arrived.
   onMounted(() => {
-    rootComponentRef = useTemplateRef(rootComponentRefKey);
     debouncedLocateRegisteredComponents();
   });
 
@@ -200,41 +197,7 @@ export function useFormSummary(rootComponentRefKey: string) {
     updateComponentLabel,
   });
 
-  const locateComponentsByNamePattern = (pattern?: string): ComputedRef<SummaryEntry[]> => {
-    if (!pattern) {
-      return computed(() => locatedComponents.value);
-    }
-
-    const matcher = new RegExp(pattern);
-
-    const matches = (entry: SummaryEntry) => {
-      const componentName = entry.component?.$options?.name || (entry.component?.$?.type as { name?: string } | undefined)?.name || '';
-
-      return matcher.test(componentName);
-    };
-
-    const filterTree = (entries: SummaryEntry[] = []) => {
-      return entries.reduce((acc: SummaryEntry[], entry) => {
-        const filteredChildren = filterTree(entry?.children || []);
-        const isMatch = matches(entry);
-
-        if (isMatch) {
-          acc.push({
-            ...entry,
-            children: filteredChildren
-          });
-        } else if (filteredChildren.length) {
-          acc.push(...filteredChildren);
-        }
-
-        return acc;
-      }, []);
-    };
-
-    return computed(() => filterTree(locatedComponents.value));
-  };
-
-  return { locateComponentsByNamePattern };
+  return { locatedComponents };
 }
 
 /**

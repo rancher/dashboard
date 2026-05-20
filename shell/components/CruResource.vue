@@ -13,6 +13,7 @@ import CruResourceFooter from '@shell/components/CruResourceFooter';
 import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
 
 import { useFormSummary } from '@shell/components/TableOfContents/composables';
+import { useTemplateRef } from 'vue';
 import TableOfContents from '@shell/components/TableOfContents/TableOfContents.vue';
 
 import {
@@ -176,8 +177,9 @@ export default {
   },
 
   setup() {
-    const { locateComponentsByNamePattern } = useFormSummary('cru-form');
-    const accordions = locateComponentsByNamePattern();
+    const cruFormRef = useTemplateRef('cru-form');
+    const { locatedComponents } = useFormSummary(cruFormRef);
+    const accordions = locatedComponents;
 
     return { accordions };
   },
