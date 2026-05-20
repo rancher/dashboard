@@ -523,26 +523,8 @@ describe('catalog', () => {
       expect(isRancherRepo(repo, null)).toBe(true);
     });
 
-    it('should return true if repo is airgapped rancher-charts', () => {
-      const repo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-charts' } as any;
-
-      expect(isRancherRepo(repo, null)).toBe(true);
-    });
-
-    it('should return true if repo is airgapped rancher-partner-charts', () => {
-      const repo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-partner-charts' } as any;
-
-      expect(isRancherRepo(repo, null)).toBe(true);
-    });
-
-    it('should return false if repo is a namespace-scoped rancher-charts', () => {
-      const repo = { type: CATALOG.REPO, name: 'rancher-charts' } as any;
-
-      expect(isRancherRepo(repo, null)).toBe(false);
-    });
-
-    it('should return false for unrelated repo', () => {
-      const repo = { type: CATALOG.CLUSTER_REPO, name: 'other-repo' } as any;
+    it('should return false if repo is not a rancher source', () => {
+      const repo = { isRancherSource: false } as any;
 
       expect(isRancherRepo(repo, null)).toBe(false);
     });
@@ -581,26 +563,16 @@ describe('catalog', () => {
     });
 
     it('should fallback to LINUX for rancher repos and block windows nodes', () => {
-      const rancherRepo = { type: CATALOG.CLUSTER_REPO, name: 'rancher-charts' } as any;
-      const chart = { versions: [{ version: '1.0.0' }] } as any;
-
-      chart.isRancherRepo = (isRancherRepo as any)(rancherRepo, chart);
-
+      const chart = { isRancherRepo: true, versions: [{ version: '1.0.0' }] } as any;
       const versions = compatibleVersionsFor(chart, 'windows');
 
-      expect(chart.isRancherRepo).toBe(true);
       expect(versions).toHaveLength(0);
     });
 
     it('should not fallback to LINUX for non-rancher repos and allow windows nodes', () => {
-      const nonRancherRepo = { type: CATALOG.REPO, name: 'partner-charts' } as any;
-      const chart = { versions: [{ version: '1.0.0' }] } as any;
-
-      chart.isRancherRepo = (isRancherRepo as any)(nonRancherRepo, chart);
-
+      const chart = { isRancherRepo: false, versions: [{ version: '1.0.0' }] } as any;
       const versions = compatibleVersionsFor(chart, 'windows');
 
-      expect(chart.isRancherRepo).toBe(false);
       expect(versions).toHaveLength(1);
     });
   });

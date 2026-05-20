@@ -792,18 +792,11 @@ export function filterAndArrangeCharts(charts, {
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
 }
 
-/*
- Detects if a repository is a Rancher repository.
- Airgapped environments often use mirrored registries, meaning `isRancherSource`
- will return false because the URL doesn't point to a *.rancher.io domain. We check the repo
- names directly to ensure we still correctly identify these mirrored rancher repos.
-*/
+/**
+ * Detects if a repository is a Rancher repository.
+ */
 export function isRancherRepo(repo, chart) {
-  if (chart?.isRancherRepo || repo?.isRancherSource) {
-    return true;
-  }
-
-  return repo?.type === CATALOG.CLUSTER_REPO && (repo?.name === 'rancher-charts' || repo?.name === 'rancher-partner-charts');
+  return !!(chart?.isRancherRepo || repo?.isRancherSource);
 }
 
 /**
