@@ -112,7 +112,9 @@ export default class ClusterManagerListPagePo extends BaseListPagePo {
   }
 
   editCluster(name: string) {
-    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Edit Config').click();
+    const rowMenu = this.sortableTable().rowActionMenuOpen(name);
+
+    return rowMenu.waitForMenuItem('Edit Config').click();
   }
 
   /**
