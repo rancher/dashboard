@@ -608,15 +608,15 @@ export default class Workload extends WorkloadService {
         }
       });
 
-      summaries.pods = await this.$dispatch('fetchSummary', { type: POD, opt: { summaryField: 'metadata.state.name', filters } });
+      summaries.pods = await this.$dispatch('fetchResourceSummary', { type: POD, opt: { summaryField: 'metadata.state.name', filters } });
     }
 
-    summaries.services = await this.$dispatch('fetchSummary', {
+    summaries.services = await this.$dispatch('fetchResourceSummary', {
       type: SERVICE,
       opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
     });
 
-    summaries.ingresses = await this.$dispatch('fetchSummary', {
+    summaries.ingresses = await this.$dispatch('fetchResourceSummary', {
       type: INGRESS,
       opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
     });
