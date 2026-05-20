@@ -272,8 +272,7 @@ export async function createHelmRepository(store: any, name: string, url: string
     });
 
     tries++;
-
-    const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
+    const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
     console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
 
