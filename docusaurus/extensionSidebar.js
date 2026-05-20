@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-// Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
-const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/shell-api/typedoc-sidebar.cjs');
+// Define the absolute paths to the sidebar files that `docusaurus-plugin-typedoc` generates.
+const shellApiSidebarPath = path.resolve(__dirname, './docs/extensions/shell-api/typedoc-sidebar.cjs');
+const resourcesApiSidebarPath = path.resolve(__dirname, './docs/extensions/resources-api/typedoc-sidebar.cjs');
 
 /**
  * Recursively processes an array of Docusaurus sidebar items.
@@ -49,17 +50,22 @@ function fixTypedocIds(items) {
   });
 }
 
-// Initialize an empty array for the TypeDoc sidebar items.
-let typedocSidebarItems = [];
+// Initialize empty arrays for both TypeDoc sidebar items.
+let shellApiSidebarItems = [];
+let resourcesApiSidebarItems = [];
 
-// Safely check if the generated `typedoc-sidebar.cjs` file exists.
-// This prevents build errors if the file hasn't been generated yet.
-if (fs.existsSync(typedocSidebarPath)) {
-  // If the file exists, import its contents.
-  const originalTypedocSidebar = require(typedocSidebarPath);
+// Load Shell API sidebar
+if (fs.existsSync(shellApiSidebarPath)) {
+  const originalShellApiSidebar = require(shellApiSidebarPath);
 
-  // Run the imported items through our correction function.
-  typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
+  shellApiSidebarItems = fixTypedocIds(originalShellApiSidebar);
+}
+
+// Load Resources API sidebar
+if (fs.existsSync(resourcesApiSidebarPath)) {
+  const originalResourcesApiSidebar = require(resourcesApiSidebarPath);
+
+  resourcesApiSidebarItems = fixTypedocIds(originalResourcesApiSidebar);
 }
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
@@ -127,7 +133,16 @@ const sidebars = {
             type: 'doc',
             id:   'shell-api',
           },
-          items: typedocSidebarItems
+          items: shellApiSidebarItems
+        },
+        {
+          type:  'category',
+          label: 'Resources API (Experimental)',
+          link:  {
+            type: 'doc',
+            id:   'resources-api',
+          },
+          items: resourcesApiSidebarItems
         },
         {
           type:  'category',

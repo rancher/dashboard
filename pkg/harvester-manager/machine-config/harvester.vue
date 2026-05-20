@@ -41,6 +41,7 @@ import { isEqual } from 'lodash';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
+const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';
 
 // init qemu guest agent
 export const QGA_JSON = {
@@ -144,7 +145,8 @@ export default {
             filters: [
               PaginationParamFilter.createMultipleFields([
                 new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'user' }),
-                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' })
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' }),
+                new PaginationFilterField({ field: 'id', value: HARVESTER_CPU_MODEL })
               ])
             ]
           });
@@ -153,13 +155,12 @@ export default {
         }
 
         const res = await allHashSettled({
-          namespaces:     this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:         this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:     this.$store.dispatch('cluster/request', { url: configMapsUrl }),
-          networks:       this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
-          storageClass:   this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
-          settings:       this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` }),
-          cpuModelConfig: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s/harvester-system/node-cpu-model-configuration` }),
+          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps:   this.$store.dispatch('cluster/request', { url: configMapsUrl }),
+          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          storageClass: this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
+          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
         });
 
         for (const key of Object.keys(res)) {
@@ -188,7 +189,7 @@ export default {
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
-        this.cpuModelConfigMap = res.cpuModelConfig.value?.data;
+        this.cpuModelConfigMap = this.genCpuModelConfigMap(res.configMaps.value?.data);
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -409,6 +410,8 @@ export default {
 
       const globalModels = cpuModelsData.globalModels || [];
 
+      globalModels.sort((a, b) => a[0].localeCompare(b[0]));
+
       globalModels.forEach((modelName) => {
         options.push({ label: modelName, value: modelName });
       });
@@ -617,6 +620,11 @@ export default {
 
   methods: {
     stringify,
+    genCpuModelConfigMap(configMaps = []) {
+      const cpuModelConfigMap = configMaps.find((cm) => cm.id === HARVESTER_CPU_MODEL);
+
+      return cpuModelConfigMap?.data || null;
+    },
     genCloudDataOptions(configMaps = [], type = 'user') {
       const valueMap = new Map();
 

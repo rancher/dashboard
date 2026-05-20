@@ -444,7 +444,7 @@ describe('User can update their preferences', () => {
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
 
-  function testLandingPageOption(key: { index: string, value: string, page: string, checkCluster?: string}) {
+  function testLandingPageOption(key: { index: string, value: string, page: string}) {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -454,13 +454,6 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();
-
-    // Check if the dropdown exists before doing anything for the 'specific cluster' option
-    if (key.checkCluster) {
-      // Ensure the clusters fetch has completed and the Select component has populated
-      // with 'local' before we try to select the radio button.
-      prefPage.expectClusterOptionExists(key.checkCluster);
-    }
 
     cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
       let body = req.body;
@@ -520,7 +513,7 @@ describe('User can update their preferences', () => {
 
   it('Can select login landing page - specific cluster', { tags: ['@userMenu', '@adminUser'] }, () => {
     testLandingPageOption({ // This option only works when there is an existing local cluster
-      index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore', checkCluster: 'local'
+      index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
     });
   });
 });

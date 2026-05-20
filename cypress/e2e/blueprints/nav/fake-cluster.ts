@@ -20,15 +20,17 @@ import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 const MACHINE_POOL_ID = '995mj';
 const CLOUD_CRED_ID = 'srb7v';
 
-function generateProvClusterObj(provClusterId, mgmtClusterId) {
+const namespace = `fleet-default`;
+
+function generateProvClusterObj(provClusterId: string, mgmtClusterId: string) {
   return {
-    id:    `fleet-default/${ provClusterId }`,
+    id:    `${ namespace }/${ provClusterId }`,
     type:  'provisioning.cattle.io.cluster',
     links: {
-      remove: `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ provClusterId }`,
-      self:   `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ provClusterId }`,
-      update: `https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/${ provClusterId }`,
-      view:   `https://localhost:8005/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/${ provClusterId }`
+      remove: `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ provClusterId }`,
+      self:   `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ provClusterId }`,
+      update: `https://localhost:8005/v1/provisioning.cattle.io.clusters/${ namespace }/${ provClusterId }`,
+      view:   `https://localhost:8005/apis/provisioning.cattle.io/v1/namespaces/${ namespace }/clusters/${ provClusterId }`
     },
     apiVersion: 'provisioning.cattle.io/v1',
     kind:       'Cluster',
@@ -47,100 +49,100 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
       ],
       generation:    3,
       name:          provClusterId,
-      namespace:     'fleet-default',
+      namespace:     `${ namespace }`,
       relationships: [
         {
-          toId:    `fleet-default/crt-${ provClusterId }-cluster-owner`,
+          toId:    `${ namespace }/crt-${ provClusterId }-cluster-owner`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/crt-${ provClusterId }-cluster-admin`,
+          toId:    `${ namespace }/crt-${ provClusterId }-cluster-admin`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/nc-${ provClusterId }-pool1-${ MACHINE_POOL_ID }`,
+          toId:    `${ namespace }/nc-${ provClusterId }-pool1-${ MACHINE_POOL_ID }`,
           toType:  'rke-machine-config.cattle.io.digitaloceanconfig',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:   `fleet-default/${ provClusterId }`,
+          toId:   `${ namespace }/${ provClusterId }`,
           toType: 'cluster.x-k8s.io.cluster',
           rel:    'owner',
           state:  'provisioned'
         },
         {
-          toId:    `fleet-default/crt-${ provClusterId }-cluster-member`,
+          toId:    `${ namespace }/crt-${ provClusterId }-cluster-member`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/${ provClusterId }-managed-system-agent`,
+          toId:    `${ namespace }/${ provClusterId }-managed-system-agent`,
           toType:  'fleet.cattle.io.bundle',
           rel:     'owner',
           state:   'active',
           message: 'Resource is Ready'
         },
         {
-          toId:    `fleet-default/${ provClusterId }-managed-system-upgrade-c-e07cc`,
+          toId:    `${ namespace }/${ provClusterId }-managed-system-upgrade-c-e07cc`,
           toType:  'management.cattle.io.managedchart',
           rel:     'owner',
           state:   'active',
           message: 'Resource is Ready'
         },
         {
-          toId:    `fleet-default/r-cluster-${ provClusterId }-view-p-jwd4v-creator-project-7edf69`,
+          toId:    `${ namespace }/r-cluster-${ provClusterId }-view-p-jwd4v-creator-project-7edf69`,
           toType:  'rbac.authorization.k8s.io.rolebinding',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/${ provClusterId }`,
+          toId:    `${ namespace }/${ provClusterId }`,
           toType:  'fleet.cattle.io.cluster',
           rel:     'applies',
           state:   'active',
           message: 'Resource is Ready'
         },
         {
-          toId:    `fleet-default/crt-${ provClusterId }-nodes-view`,
+          toId:    `${ namespace }/crt-${ provClusterId }-nodes-view`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/r-cluster-${ provClusterId }-view`,
+          toId:    `${ namespace }/r-cluster-${ provClusterId }-view`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/r-cluster-${ provClusterId }-view-p-rs8ps-creator-project-8aae6c`,
+          toId:    `${ namespace }/r-cluster-${ provClusterId }-view-p-rs8ps-creator-project-8aae6c`,
           toType:  'rbac.authorization.k8s.io.rolebinding',
           rel:     'owner',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `${ mgmtClusterId }/${ mgmtClusterId }-fleet-default-owner`,
+          toId:    `${ mgmtClusterId }/${ mgmtClusterId }-${ namespace }-owner`,
           toType:  'management.cattle.io.clusterroletemplatebinding',
           rel:     'applies',
           state:   'active',
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/crt-${ provClusterId }-nodes-manage`,
+          toId:    `${ namespace }/crt-${ provClusterId }-nodes-manage`,
           toType:  'rbac.authorization.k8s.io.role',
           rel:     'owner',
           state:   'active',
@@ -154,7 +156,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is Ready'
         },
         {
-          toId:    `fleet-default/${ provClusterId }-kubeconfig`,
+          toId:    `${ namespace }/${ provClusterId }-kubeconfig`,
           toType:  'secret',
           rel:     'owner',
           state:   'active',
@@ -406,14 +408,14 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           type:           'Waiting'
         }
       ],
-      fleetWorkspaceName: 'fleet-default',
+      fleetWorkspaceName: `${ namespace }`,
       observedGeneration: 3,
       ready:              true
     }
   };
 }
 
-function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
+function generateMgmtClusterObj(provClusterId: string, mgmtClusterId: string) {
   return {
     id:    mgmtClusterId,
     type:  'management.cattle.io.cluster',
@@ -450,7 +452,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
         'objectset.rio.cattle.io/id':                                  'cluster-create',
         'objectset.rio.cattle.io/owner-gvk':                           'provisioning.cattle.io/v1, Kind=Cluster',
         'objectset.rio.cattle.io/owner-name':                          provClusterId,
-        'objectset.rio.cattle.io/owner-namespace':                     'fleet-default',
+        'objectset.rio.cattle.io/owner-namespace':                     `${ namespace }`,
         'provisioning.cattle.io/administrated':                        'true'
       },
       creationTimestamp: '2024-03-07T15:45:25Z',
@@ -473,7 +475,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
       name:          mgmtClusterId,
       relationships: [
         {
-          fromId:   `fleet-default/${ provClusterId }`,
+          fromId:   `${ namespace }/${ provClusterId }`,
           fromType: 'provisioning.cattle.io.cluster',
           rel:      'applies',
           state:    'active',
@@ -528,7 +530,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
       enableClusterAlerting:    false,
       enableClusterMonitoring:  false,
       enableNetworkPolicy:      null,
-      fleetWorkspaceName:       'fleet-default',
+      fleetWorkspaceName:       `${ namespace }`,
       importedConfig:           { kubeConfig: '' },
       internal:                 false,
       localClusterAuthEndpoint: { enabled: false },
@@ -730,7 +732,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
           type:           'Waiting'
         }
       ],
-      driver:    'imported',
+      driver:    'digitalocean',
       eksStatus: {
         generatedNodeRole:             '',
         managedLaunchTemplateID:       '',
@@ -744,6 +746,18 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
       gkeStatus: {
         privateRequiresTunnel: null,
         upstreamSpec:          null
+      },
+      info: {
+        arch:                   'amd64',
+        kubernetesVersion:      'v1.35.3+rke2r3',
+        machineProvider:        'Digitalocean',
+        nodeCount:              2,
+        provisioningClusterRef: {
+          apiVersion: 'provisioning.cattle.io/v1',
+          kind:       'Cluster',
+          name:       `${ provClusterId }`,
+          namespace:  `${ namespace }`
+        }
       },
       limits: {
         cpu:    '200m',
@@ -774,7 +788,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
   };
 }
 
-function generateFakeCountsReply(mgmtClusterId) {
+function generateFakeCountsReply(mgmtClusterId: string) {
   return [
     {
       id:     'count',
@@ -1052,7 +1066,7 @@ function generateFakeCountsReply(mgmtClusterId) {
   ];
 }
 
-function generateFakeNamespacesReply(mgmtClusterId) {
+function generateFakeNamespacesReply(mgmtClusterId: string) {
   return [
     {
       id:    'calico-system',
@@ -1605,7 +1619,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
   ];
 }
 
-function generateFakeDaemonsetsReply(mgmtClusterId) {
+function generateFakeDaemonsetsReply(mgmtClusterId: string) {
   return [
     {
       id:    'calico-system/calico-node',
@@ -2495,7 +2509,7 @@ export function generateFakeClusterDataAndIntercepts({
   // add cluster to fleet clusters for testing https://github.com/rancher/dashboard/issues/9984
   cy.intercept('GET', `/v1/fleet.cattle.io.clusters?*`, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
 
       if (localIndex >= 0) {
         const localCluster = res.body.data[localIndex];
@@ -2511,9 +2525,13 @@ export function generateFakeClusterDataAndIntercepts({
 
   // add description to local cluster for testing https://github.com/rancher/dashboard/issues/10441
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-  cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/provisioning.cattle.io.clusters',
+    query:    { pagesize: '*' }
+  }, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
 
       if (localIndex >= 0) {
         const localCluster = res.body.data[localIndex];
@@ -2527,10 +2545,21 @@ export function generateFakeClusterDataAndIntercepts({
     });
   }).as('provClusters');
 
+  cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/${ fakeNavClusterData.provClusterObj.id }?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       fakeNavClusterData.provClusterObj,
+    });
+  }).as('provCluster');
+
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-  cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '*' }
+  }, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item) => item.id.includes('local'));
+      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('local'));
 
       if (localIndex >= 0) {
         const localCluster = res.body.data[localIndex];
@@ -2542,6 +2571,13 @@ export function generateFakeClusterDataAndIntercepts({
       res.send(res.body);
     });
   }).as('mgmtClusters');
+
+  cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       fakeNavClusterData.mgmtClusterObj,
+    });
+  }).as('mgmtCluster');
 
   // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {
@@ -2620,7 +2656,7 @@ export function generateFakeClusterDataAndIntercepts({
     }).as('cloudCreds');
 
     // intercept machine config for fake cluster edit scenario
-    cy.intercept('GET', `/v1/rke-machine-config.cattle.io.digitaloceanconfigs/fleet-default/nc-${ fakeProvClusterId }-pool1-${ MACHINE_POOL_ID }?*`, (req) => {
+    cy.intercept('GET', `/v1/rke-machine-config.cattle.io.digitaloceanconfigs/${ namespace }/nc-${ fakeProvClusterId }-pool1-${ MACHINE_POOL_ID }?*`, (req) => {
       req.reply({
         statusCode: 200,
         body:       fakeNavClusterData.fakeMachineConfigReply,
@@ -2751,7 +2787,7 @@ export function generateFakeClusterDataAndIntercepts({
       });
     }).as('secretsReply');
 
-    cy.intercept('GET', `/v1/secrets/fleet-default?*`, (req) => {
+    cy.intercept('GET', `/v1/secrets/${ namespace }?*`, (req) => {
       req.reply({
         statusCode: 200,
         body:       { data: fakeNavClusterData.fakeSecretsReply },

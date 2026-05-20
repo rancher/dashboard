@@ -1,5 +1,5 @@
 import Kubeconfig from '@shell/models/ext.cattle.io.kubeconfig';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 
 // SteveModel is JS, so we need to type the constructor
 const KubeconfigModel = Kubeconfig as unknown as new (data: object) => Kubeconfig;
@@ -19,8 +19,9 @@ describe('class Kubeconfig', () => {
     // Mock $rootGetters before any getters are accessed
     // Cast to any since $rootGetters is inherited from JS SteveModel
     jest.spyOn(kubeconfig as any, '$rootGetters', 'get').mockReturnValue({
-      'i18n/t':         mockT,
-      'management/all': () => [],
+      'i18n/t':          mockT,
+      'management/all':  () => [],
+      'management/byId': () => null,
       ...rootGetters
     });
 
@@ -70,11 +71,12 @@ describe('class Kubeconfig', () => {
   });
 
   describe('referencedClusters', () => {
-    const mockProvCluster = {
-      mgmt:           { id: 'c-m-abc123' },
-      status:         { clusterName: 'c-m-abc123' },
-      nameDisplay:    'my-cluster',
-      detailLocation: { name: 'c-cluster-product-resource-id', params: { cluster: 'my-cluster' } }
+    const mockProvCluster = { detailLocation: { name: 'c-cluster-product-resource-id', params: { cluster: 'my-cluster' } } };
+
+    const mockMgmtClusterWithProv = {
+      id:          'c-m-abc123',
+      nameDisplay: 'my-cluster',
+      provCluster: mockProvCluster
     };
 
     const mockMgmtCluster = {
@@ -99,12 +101,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-abc123'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return [mockProvCluster];
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER && id === 'c-m-abc123') {
+              return mockMgmtClusterWithProv;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -124,12 +126,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-def456'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === MANAGEMENT.CLUSTER) {
-              return [mockMgmtCluster];
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER && id === 'c-m-def456') {
+              return mockMgmtCluster;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -157,11 +159,12 @@ describe('class Kubeconfig', () => {
       expect(mockT).toHaveBeenCalledWith('"ext.cattle.io.kubeconfig".deleted', { name: 'c-m-deleted' });
     });
 
-    it('should prefer provisioning cluster over management cluster', () => {
-      const mgmtClusterSameId = {
+    it('should prefer provisioning cluster over management cluster for location', () => {
+      const mgmtClusterBothLocs = {
         id:             'c-m-abc123',
-        nameDisplay:    'mgmt-version',
-        detailLocation: { name: 'mgmt-location' }
+        nameDisplay:    'my-cluster',
+        detailLocation: { name: 'mgmt-location' },
+        provCluster:    { detailLocation: { name: 'prov-location' } }
       };
 
       const kubeconfig = createKubeconfig(
@@ -170,15 +173,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-abc123'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return [mockProvCluster];
-            }
-            if (type === MANAGEMENT.CLUSTER) {
-              return [mgmtClusterSameId];
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER && id === 'c-m-abc123') {
+              return mgmtClusterBothLocs;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -186,7 +186,7 @@ describe('class Kubeconfig', () => {
       expect(kubeconfig.referencedClusters).toStrictEqual([
         {
           label:    'my-cluster',
-          location: mockProvCluster.detailLocation
+          location: { name: 'prov-location' }
         }
       ]);
     });
@@ -195,7 +195,7 @@ describe('class Kubeconfig', () => {
   describe('sortedReferencedClusters', () => {
     it('should sort existing clusters before deleted clusters', () => {
       const existingCluster = {
-        mgmt:           { id: 'c-m-exists' },
+        id:             'c-m-exists',
         nameDisplay:    'existing-cluster',
         detailLocation: { name: 'location' }
       };
@@ -206,12 +206,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['deleted-1', 'c-m-exists', 'deleted-2'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return [existingCluster];
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER && id === 'c-m-exists') {
+              return existingCluster;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -225,17 +225,17 @@ describe('class Kubeconfig', () => {
     });
 
     it('should sort existing clusters alphabetically', () => {
-      const clusters = [
-        {
-          mgmt: { id: 'c-m-zebra' }, nameDisplay: 'zebra', detailLocation: { name: 'z' }
+      const clusters: Record<string, any> = {
+        'c-m-zebra': {
+          id: 'c-m-zebra', nameDisplay: 'zebra', detailLocation: { name: 'z' }
         },
-        {
-          mgmt: { id: 'c-m-alpha' }, nameDisplay: 'alpha', detailLocation: { name: 'a' }
+        'c-m-alpha': {
+          id: 'c-m-alpha', nameDisplay: 'alpha', detailLocation: { name: 'a' }
         },
-        {
-          mgmt: { id: 'c-m-beta' }, nameDisplay: 'beta', detailLocation: { name: 'b' }
+        'c-m-beta': {
+          id: 'c-m-beta', nameDisplay: 'beta', detailLocation: { name: 'b' }
         }
-      ];
+      };
 
       const kubeconfig = createKubeconfig(
         {
@@ -243,12 +243,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-zebra', 'c-m-alpha', 'c-m-beta'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return clusters;
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER) {
+              return clusters[id] || null;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -259,17 +259,17 @@ describe('class Kubeconfig', () => {
     });
 
     it('should sort numerically when names contain numbers', () => {
-      const clusters = [
-        {
-          mgmt: { id: 'c-m-2' }, nameDisplay: 'cluster2', detailLocation: { name: 'c2' }
+      const clusters: Record<string, any> = {
+        'c-m-2': {
+          id: 'c-m-2', nameDisplay: 'cluster2', detailLocation: { name: 'c2' }
         },
-        {
-          mgmt: { id: 'c-m-10' }, nameDisplay: 'cluster10', detailLocation: { name: 'c10' }
+        'c-m-10': {
+          id: 'c-m-10', nameDisplay: 'cluster10', detailLocation: { name: 'c10' }
         },
-        {
-          mgmt: { id: 'c-m-1' }, nameDisplay: 'cluster1', detailLocation: { name: 'c1' }
+        'c-m-1': {
+          id: 'c-m-1', nameDisplay: 'cluster1', detailLocation: { name: 'c1' }
         }
-      ];
+      };
 
       const kubeconfig = createKubeconfig(
         {
@@ -277,12 +277,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-2', 'c-m-10', 'c-m-1'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return clusters;
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER) {
+              return clusters[id] || null;
             }
 
-            return [];
+            return null;
           }
         }
       );
@@ -295,14 +295,14 @@ describe('class Kubeconfig', () => {
 
   describe('referencedClustersSortable', () => {
     it('should return comma-separated lowercase labels', () => {
-      const clusters = [
-        {
-          mgmt: { id: 'c-m-1' }, nameDisplay: 'Alpha', detailLocation: { name: 'a' }
+      const clusters: Record<string, any> = {
+        'c-m-1': {
+          id: 'c-m-1', nameDisplay: 'Alpha', detailLocation: { name: 'a' }
         },
-        {
-          mgmt: { id: 'c-m-2' }, nameDisplay: 'Beta', detailLocation: { name: 'b' }
+        'c-m-2': {
+          id: 'c-m-2', nameDisplay: 'Beta', detailLocation: { name: 'b' }
         }
-      ];
+      };
 
       const kubeconfig = createKubeconfig(
         {
@@ -310,12 +310,12 @@ describe('class Kubeconfig', () => {
           spec:     { clusters: ['c-m-1', 'c-m-2'] }
         },
         {
-          'management/all': (type: string) => {
-            if (type === CAPI.RANCHER_CLUSTER) {
-              return clusters;
+          'management/byId': (type: string, id: string) => {
+            if (type === MANAGEMENT.CLUSTER) {
+              return clusters[id] || null;
             }
 
-            return [];
+            return null;
           }
         }
       );

@@ -17,7 +17,6 @@ import {
   CATALOG,
   SECRET
 } from '@shell/config/types';
-import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
@@ -220,51 +219,11 @@ export default {
     },
 
     displayProvider() {
-      const other = 'other';
-
-      let provider = this.currentCluster?.status?.provider || this.currentCluster?.status?.driver.toLowerCase() || other;
-
-      if (provider === 'rke.windows') {
-        provider = 'rkeWindows';
-      }
-
-      if (!this.$store.getters['i18n/exists'](`cluster.provider.${ provider }`)) {
-        provider = 'other';
-      }
-
-      return this.t(`cluster.provider.${ provider }`);
-    },
-
-    nodesArchitecture() {
-      const obj = {};
-
-      this.nodes?.forEach((node) => {
-        if (!node.metadata?.state?.transitioning) {
-          const architecture = node.labels?.[NODE_ARCHITECTURE];
-
-          const key = architecture || this.t('cluster.architecture.label.unknown');
-
-          obj[key] = (obj[key] || 0) + 1;
-        }
-      });
-
-      return obj;
+      return this.currentCluster?.provisionerDisplay;
     },
 
     architecture() {
-      const keys = Object.keys(this.nodesArchitecture);
-
-      switch (keys.length) {
-      case 0:
-        return { label: this.t('generic.provisioning') };
-      case 1:
-        return { label: keys[0] };
-      default:
-        return {
-          label:   this.t('cluster.architecture.label.mixed'),
-          tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-        };
-      }
+      return this.currentCluster?.architecture;
     },
 
     isHarvesterCluster() {
@@ -395,6 +354,7 @@ export default {
 
     metricAggregations() {
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        // This should use cluster/byId getter
         const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
 
         return node;
@@ -463,9 +423,6 @@ export default {
           resource: SECRET,
         }
       };
-    },
-    hasNodes() {
-      return this.nodes?.length > 0;
     },
     kubernetesVersion() {
       const base = this.currentCluster?.kubernetesVersionBase || '';
@@ -584,8 +541,7 @@ export default {
 
     async goToHarvesterCluster() {
       try {
-        const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-        const provCluster = provClusters.find((p) => p.mgmt.id === this.currentCluster.id);
+        const provCluster = await this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
 
         await provCluster.goToHarvesterCluster();
       } catch {
@@ -653,7 +609,7 @@ export default {
         <span>{{ kubernetesVersion }}</span>
       </div>
       <div
-        v-if="hasNodes"
+        v-if="architecture"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>

@@ -2,11 +2,10 @@ import { ADDRESSES, CAPI, NODE } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
 
 /**
  * Prevent scaling down control plane or etcd machines to zero
@@ -53,7 +52,8 @@ export function notOnlyOfRole(current, all) {
 
   return false;
 }
-export default class CapiMachine extends SteveModel {
+
+export default class CapiMachine extends CapiMachineRoot {
   get _availableActions() {
     const out = super._availableActions;
 
@@ -144,18 +144,6 @@ export default class CapiMachine extends SteveModel {
     return await this.$dispatch('find', { type: kind, id });
   }
 
-  get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
-  }
-
   get poolName() {
     return this.metadata?.labels?.[ CAPI_LABELS.DEPLOYMENT_NAME ] || '';
   }
@@ -182,7 +170,7 @@ export default class CapiMachine extends SteveModel {
       return {
         name:   'c-cluster-product-resource-id',
         params: {
-          cluster:  this.cluster.status.clusterName,
+          cluster,
           product:  EXPLORER,
           resource: NODE,
           id:       kubeId
@@ -191,12 +179,6 @@ export default class CapiMachine extends SteveModel {
     }
 
     return kubeId;
-  }
-
-  get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
   }
 
   get labels() {

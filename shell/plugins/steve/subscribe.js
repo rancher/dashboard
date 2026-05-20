@@ -553,16 +553,31 @@ const sharedActions = {
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true, registerType = false
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      if (registerType) {
+        commit('registerType', type);
+      } else if (mode !== STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // - If we continue and open up a watch whenever we receive a `resource.` notification we go to queueChanges (bar resource.changes mode).
+        // - queueChanges ignores any change that's for a type that hasn't been registered
+        // - So here we're just exiting early, avoiding the watch --> queueChanges --> ignore loop
+        //
+        // Interestingly this is hit quite a few times (on cluster create screens there's token, cluster, project, projectRoleTemplateBinding, etc)
+        state.debugSocket && console.info('Will not Watch (type is not registered)', JSON.stringify(params)); // eslint-disable-line no-console
+
+        return;
+      }
+    }
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
@@ -620,6 +635,9 @@ const sharedActions = {
         if (debounceMs) {
           msg.debounceMs = debounceMs;
         }
+
+        // Anything in the queue will pollute the result set, so clear (and print to console so we know it's working)
+        commit('clearFromQueue', { type, log: true });
       }
     }
 
@@ -1556,10 +1574,20 @@ const defaultMutations = {
     state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
-  clearFromQueue(state, type) {
+  clearFromQueue(state, args) {
+    const safeArgs = typeof args === 'object' ? args : { type: args };
+    const { type, log } = safeArgs;
+
     // Remove anything in the queue that is a resource update for the given type
     state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
+      const keep = item.body?.type !== type;
+
+      if (!keep && log) {
+        // eslint-disable-next-line no-console
+        console.info(`Clearing queued item of type \`${ type }\` from queue`, item);
+      }
+
+      return keep;
     });
   },
 };

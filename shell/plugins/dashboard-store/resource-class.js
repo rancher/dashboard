@@ -946,12 +946,15 @@ export default class Resource {
     // where mostly likely extension CRD model is extending from resource-class
     const isResourceDetailDrawerCompatibleWithRancherSystem = semver.satisfies(parsedRancherVersion, '>= 2.13.0');
 
+    // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+    const showConfigEnabled = isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml);
+
     const all = [
       {
         action:  'showConfiguration',
         label:   this.t('action.showConfiguration'),
         icon:    'icon icon-document',
-        enabled: isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+        enabled: showConfigEnabled,
       },
       { divider: true },
       {
@@ -964,7 +967,7 @@ export default class Resource {
         action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
         label:   this.t(this.canEditYaml ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
-        enabled: this.canYaml,
+        enabled: this.canYaml && (this.canEditYaml || !showConfigEnabled), // Hide "View YAML" when "Show Configuration" is available since it already includes YAML viewing
       },
       {
         action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),

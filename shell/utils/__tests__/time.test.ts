@@ -1,6 +1,19 @@
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
-import { dateTimeFormat } from '@shell/utils/time';
+import { dateTimeFormat, isMissingDate } from '@shell/utils/time';
 import { type Store } from 'vuex';
+import { ZERO_TIME } from '@shell/config/types';
+
+describe('function: isMissingDate', () => {
+  it.each([
+    [undefined, true],
+    [null, true],
+    ['', true],
+    [ZERO_TIME, true],
+    ['2010-10-21T04:29:00Z', false],
+  ])('given %p, returns %p', (date, expected) => {
+    expect(isMissingDate(date)).toBe(expected);
+  });
+});
 
 describe('function: dateTimeFormat', () => {
   jest.useFakeTimers()

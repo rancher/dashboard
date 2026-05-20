@@ -21,6 +21,14 @@ export default {
     }
   },
 
+  created() {
+    this.$store.dispatch('showWorkspaceSwitcher', false);
+  },
+
+  beforeUnmount() {
+    this.$store.dispatch('showWorkspaceSwitcher', true);
+  },
+
   async fetch() {
     try {
       await this.$fetchType(this.resource);

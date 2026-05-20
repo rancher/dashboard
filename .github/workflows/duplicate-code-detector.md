@@ -4,6 +4,9 @@ description: Identifies duplicate code patterns across the codebase and suggests
 on:
   workflow_dispatch:
   schedule: daily
+
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+
 permissions:
   contents: read
   issues: read
@@ -12,10 +15,12 @@ safe-outputs:
   create-issue:
     expires: 2d
     title-prefix: "[duplicate-code] "
-    labels: [bot/duplicate-code-detector]
-    assignees: copilot
+    labels: [bot/duplicate-code-detector, bot/skip-grooming]
     group: true
     max: 3
+tools:
+  github:
+    min-integrity: none
 timeout-minutes: 15
 strict: true
 ---

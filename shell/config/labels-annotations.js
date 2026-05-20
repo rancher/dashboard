@@ -87,6 +87,7 @@ export const CATALOG = {
 
   PRIME_ONLY:   'catalog.cattle.io/prime-only',
   EXPERIMENTAL: 'catalog.cattle.io/experimental',
+  DEPRECATED:   'catalog.cattle.io/deprecated',
   NAMESPACE:    'catalog.cattle.io/namespace',
   RELEASE_NAME: 'catalog.cattle.io/release-name',
   FEATURED:     'catalog.cattle.io/featured',
