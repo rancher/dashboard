@@ -17,7 +17,7 @@ type SummaryInfo = {
 
 type SummaryComponent = {
   summary: SummaryInfo;
-  summaryID: String;
+  summaryID: string;
   $options?: { name?: string };
   $?: { type?: { name?: string } };
 };
