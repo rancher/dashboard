@@ -1,5 +1,19 @@
-import { useResourceCardRow, useResourceCardRowFromSummary, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { effectScope, ref } from 'vue';
+import { useResourceCardRow, useResourceCardRowFromSummary, useResourceCardRowFromRelationships, useResourceSummary } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+
+const generation = ref(0);
+const mockStore: any = {
+  getters: {
+    'cluster/normalizeType': (type: string) => type,
+    'cluster/generation':    () => generation.value,
+  },
+  dispatch: jest.fn(),
+};
+
+jest.mock('vuex', () => ({ useStore: () => mockStore }));
+
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('useResourceCardRow', () => {
   describe('with default keys', () => {
@@ -331,5 +345,86 @@ describe('useResourceCardRowFromRelationships', () => {
     expect(result.counts![0]).toStrictEqual(expect.objectContaining({
       label: 'missing', count: 2, color: 'warning'
     }));
+  });
+});
+
+describe('useResourceSummary', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    generation.value = 0;
+  });
+
+  it('should fetch initial summary data', async() => {
+    mockStore.dispatch.mockResolvedValue({
+      count:   5,
+      summary: [{ property: 'metadata.state.name', counts: { active: 5 } }]
+    });
+
+    const scope = effectScope();
+    const { count, summary } = scope.run(() => useResourceSummary('pod', { summaryField: 'metadata.state.name' }))!;
+
+    await flushPromises();
+
+    expect(mockStore.dispatch).toHaveBeenCalledWith('cluster/fetchResourceSummary', {
+      type: 'pod',
+      opt:  { summaryField: 'metadata.state.name' }
+    });
+    expect(count.value).toBe(5);
+    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: 5 } }]);
+
+    scope.stop();
+  });
+
+  it('should not update refs when fetch returns undefined', async() => {
+    mockStore.dispatch.mockResolvedValue(undefined);
+
+    const scope = effectScope();
+    const { count, summary } = scope.run(() => useResourceSummary('pod', { summaryField: 'metadata.state.name' }))!;
+
+    await flushPromises();
+
+    expect(count.value).toBe(0);
+    expect(summary.value).toBeNull();
+
+    scope.stop();
+  });
+
+  it('should refetch when generation changes', async() => {
+    mockStore.dispatch
+      .mockResolvedValueOnce({ count: 2, summary: [{ property: 'metadata.state.name', counts: { active: 2 } }] })
+      .mockResolvedValueOnce({ count: 3, summary: [{ property: 'metadata.state.name', counts: { active: 3 } }] });
+
+    const scope = effectScope();
+    const { count, summary } = scope.run(() => useResourceSummary('pod', { summaryField: 'metadata.state.name' }))!;
+
+    await flushPromises();
+    expect(count.value).toBe(2);
+
+    generation.value++;
+    await flushPromises();
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(2);
+    expect(count.value).toBe(3);
+    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: 3 } }]);
+
+    scope.stop();
+  });
+
+  it('should stop watching when scope is disposed', async() => {
+    mockStore.dispatch.mockResolvedValue({ count: 1, summary: null });
+
+    const scope = effectScope();
+
+    scope.run(() => useResourceSummary('pod', { summaryField: 'metadata.state.name' }));
+    await flushPromises();
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1);
+
+    scope.stop();
+
+    generation.value++;
+    await flushPromises();
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1);
   });
 });
