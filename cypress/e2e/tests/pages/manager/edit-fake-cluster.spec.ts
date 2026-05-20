@@ -32,6 +32,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
+      cy.wait('@provClusters'); // Wait for request which will populate the drop down
       clusterList.editCluster(fakeProvClusterId);
 
       const editCluster = new ClusterManagerEditGenericPagePo('_', fakeProvClusterId);

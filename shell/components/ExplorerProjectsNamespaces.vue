@@ -295,7 +295,7 @@ export default {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
     },
     showCreateNsButton() {
-      return this.groupPreference !== 'namespace';
+      return this.groupPreference !== 'namespace' && this.isNamespaceCreatable;
     },
     projectGroupBy() {
       return this.groupPreference === 'none' ? null : 'groupById';

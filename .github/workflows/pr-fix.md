@@ -12,6 +12,8 @@ on:
     name: pr-fix
   reaction: "eyes"
 
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+
 permissions: read-all
 
 network: defaults
@@ -26,6 +28,8 @@ safe-outputs:
 tools:
   web-fetch:
   bash: true
+  github:
+    min-integrity: none
 
 timeout-minutes: 20
 

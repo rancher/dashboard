@@ -3,6 +3,8 @@ on:
   schedule: daily
   workflow_dispatch:
 
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+
 permissions:
   contents: read
   issues: read
@@ -16,6 +18,7 @@ tools:
   github:
     toolsets:
       - default
+    min-integrity: none
 
 safe-outputs:
   add-comment:

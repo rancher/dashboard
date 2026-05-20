@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import { createExtensionManager } from '@shell/core/extension-manager-impl';
 import { ShellApiImpl } from '@shell/apis/shell';
+import { ResourcesApiImpl } from '@shell/apis/resources';
 
 /**
  * Initialise the APIs that are available in the shell
@@ -21,6 +22,11 @@ export function initUiApis(context: any, inject: any, vueApp: any) {
   // Shell API
   // ======================================================================================================================
   registerApi('shell', new ShellApiImpl(context.store), inject, vueApp);
+
+  // ======================================================================================================================
+  // Resources API
+  // ======================================================================================================================
+  registerApi('resources', new ResourcesApiImpl(context.store), inject, vueApp);
 }
 
 // ======================================================================================================================
