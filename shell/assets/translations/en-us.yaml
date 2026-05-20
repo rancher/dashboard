@@ -7428,9 +7428,11 @@ wm:
 workloadDashboard:
   title: Workloads Overview
   subtitle:
-    allNamespaces: For all namespaces
-    filtered: "For namespace: {namespace}"
-    filteredMultiple: "For {count} namespaces"
+    allNamespaces: "For all namespaces ({count})"
+    userNamespaces: "Only for user namespaces ({count})"
+    project: "For the namespaces of Project {name} ({count})"
+    namespace: "For the namespace {name} ({count})"
+    multipleSelected: "For {selected} items selected ({count})"
   sections:
     byState: By State
     byType: By Type

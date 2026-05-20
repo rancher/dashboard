@@ -18,6 +18,12 @@ import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.
 import { useI18n } from '@shell/composables/useI18n';
 import { STATE_COLOR_MAP, ALL_NAMESPACES } from '@shell/store/prefs';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import {
+  NAMESPACE_FILTER_ALL_USER,
+  NAMESPACE_FILTER_ALL_SYSTEM,
+  NAMESPACE_FILTER_P_FULL_PREFIX,
+  NAMESPACE_FILTER_NS_FULL_PREFIX,
+} from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterEquality } from '@shell/types/store/pagination.types';
 
@@ -48,11 +54,11 @@ interface StateCard {
 }
 
 const WORKLOAD_RESOURCE_TYPES: string[] = [
-  WORKLOAD_TYPES.DEPLOYMENT,
-  WORKLOAD_TYPES.DAEMON_SET,
-  WORKLOAD_TYPES.STATEFUL_SET,
-  WORKLOAD_TYPES.JOB,
   WORKLOAD_TYPES.CRON_JOB,
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.DEPLOYMENT,
+  WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.STATEFUL_SET,
   POD,
 ];
 
@@ -101,10 +107,6 @@ function toStateColor(state: string): StateColor {
   return (color === 'darker' ? 'disabled' : color) as StateColor;
 }
 
-const activeNamespaces = computed<Record<string, boolean>>(() => {
-  return store.getters['activeNamespaceCache'];
-});
-
 const isAllNamespaces = computed<boolean>(() => {
   return store.getters['isAllNamespaces'];
 });
@@ -141,18 +143,41 @@ const namespaceFilterParam = computed<string>(() => {
   return parts.join('&');
 });
 
+const totalWorkloads = computed<number>(() => {
+  return workloadData.value.reduce((sum, w) => sum + (w.error ? 0 : w.total), 0);
+});
+
 const namespaceSubtitle = computed<string>(() => {
+  const count = totalWorkloads.value;
+  const filters: string[] = store.getters['namespaceFilters'];
+
   if (isAllNamespaces.value) {
-    return t('workloadDashboard.subtitle.allNamespaces');
+    return t('workloadDashboard.subtitle.allNamespaces', { count });
   }
 
-  const namespaces = Object.keys(activeNamespaces.value);
+  if (filters.length === 1) {
+    const filter = filters[0];
 
-  if (namespaces.length === 1) {
-    return t('workloadDashboard.subtitle.filtered', { namespace: namespaces[0] });
+    if (filter === NAMESPACE_FILTER_ALL_USER || filter === NAMESPACE_FILTER_ALL_SYSTEM) {
+      return t('workloadDashboard.subtitle.userNamespaces', { count });
+    }
+
+    if (filter.startsWith(NAMESPACE_FILTER_P_FULL_PREFIX)) {
+      const projectId = filter.replace(NAMESPACE_FILTER_P_FULL_PREFIX, '');
+      const projects = store.getters['management/all']('management.cattle.io.project');
+      const project = projects.find((p: any) => p.id?.endsWith(`/${ projectId }`) || p.metadata?.name === projectId);
+
+      return t('workloadDashboard.subtitle.project', { name: project?.nameDisplay || projectId, count });
+    }
+
+    if (filter.startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX)) {
+      const name = filter.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '');
+
+      return t('workloadDashboard.subtitle.namespace', { name, count });
+    }
   }
 
-  return t('workloadDashboard.subtitle.filteredMultiple', { count: namespaces.length });
+  return t('workloadDashboard.subtitle.multipleSelected', { selected: filters.length, count });
 });
 
 const workloadData = computed<WorkloadEntry[]>(() => {
@@ -355,7 +380,7 @@ async function fetchSummaries(): Promise<void> {
       }
 
       try {
-        let url = `/v1/${ type }?summary=metadata.state.name`;
+        let url = `${ schema.links.collection }?summary=metadata.state.name`;
 
         if (namespaceFilterParam.value) {
           url += `&${ namespaceFilterParam.value }`;
@@ -530,6 +555,7 @@ onBeforeUnmount(() => {
             v-for="card in byTypeCards"
             :key="card.title"
             :title="card.title"
+            :to="resourceRoute(card.type)"
             :row-to="resourceRoute(card.type)"
             :resources="card.resources"
             :showPercent="false"
@@ -589,71 +615,80 @@ onBeforeUnmount(() => {
     gap: 15px;
   }
 
+  :deep(.state-card) {
+    .body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
   .bento-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-auto-flow: dense;
     gap: 15px;
-  }
 
-  .bento-hero {
-    grid-column: 3;
-    grid-row: 1 / -1;
+    .bento-hero {
+      grid-column: 3;
+      grid-row: 1 / -1;
 
-    &--full {
-      grid-column: 1 / -1;
+      &--full {
+        grid-column: 1 / -1;
 
-      :deep(.body) {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px 48px;
+        :deep(.body) {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 4px 48px;
+        }
+      }
+
+      &--wide {
+        grid-column: 2 / -1;
+
+        :deep(.body) {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 4px 48px;
+        }
       }
     }
 
-    &--wide {
-      grid-column: 2 / -1;
-
-      :deep(.body) {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px 48px;
-      }
+    .bento-sub-hero {
+      grid-column: 2;
+      grid-row: 1 / -1;
     }
-  }
 
-  .bento-sub-hero {
-    grid-column: 2;
-    grid-row: 1 / -1;
-  }
-
-  .bento-grid--has-sub-hero {
-    .state-card:not(.bento-hero):not(.bento-sub-hero) {
-      grid-column: 1;
-    }
-  }
-
-  .state-card {
-    :deep(.resource-row) {
-      position: relative;
-      padding-left: 20px;
-      line-height: 20px;
-      height: 24px;
-
-      .left {
-        flex-grow: 1;
-      }
-
-      .right .counts .state-dot {
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
+    .bento-grid--has-sub-hero {
+      .state-card:not(.bento-hero):not(.bento-sub-hero) {
+        grid-column: 1;
       }
     }
 
-    @each $color in (error, warning, info, success) {
-      &--#{$color} {
-        background: var(--#{$color}-banner-bg, rgba(var(--#{$color}-rgb), 0.1));
+    .state-card {
+      border: 0;
+      :deep(.resource-row) {
+        position: relative;
+        padding-left: 20px;
+        line-height: 21px;
+        height: 24px;
+
+        .left {
+          flex-grow: 1;
+        }
+
+        .right .counts .state-dot {
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+
+      @each $color in (error, warning, info, success, disabled) {
+        &--#{$color} {
+          background: var(--#{$color}-banner-bg, rgba(var(--#{$color}-rgb), 0.1));
+        }
       }
     }
   }

@@ -1,19 +1,38 @@
 <script setup lang="ts">
 import { computed, useSlots } from 'vue';
+import { useRouter } from 'vue-router';
+import type { RouteLocationRaw } from 'vue-router';
 import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue';
 
 export interface CardProps {
     title?: string;
+    to?: RouteLocationRaw;
 }
 
-const { title } = defineProps<CardProps>();
+const { title, to } = defineProps<CardProps>();
 const slots = useSlots();
+const router = useRouter();
 
+const clickable = computed(() => !!to);
+const cursorValue = computed(() => clickable.value ? 'pointer' : 'auto');
 const showHeading = computed(() => !!title || !!slots.title || !!slots['heading-action']);
+
+function handleClick(): void {
+  if (to) {
+    router.push(to);
+  }
+}
 </script>
 
 <template>
-  <div class="detail-card">
+  <div
+    class="detail-card"
+    :class="{ clickable: clickable }"
+    :role="clickable ? 'link' : undefined"
+    :tabindex="clickable ? 0 : undefined"
+    @click="handleClick"
+    @keyup.enter="handleClick"
+  >
     <template v-if="showHeading">
       <div class="heading">
         <slot name="heading">
@@ -38,6 +57,11 @@ const showHeading = computed(() => !!title || !!slots.title || !!slots['heading-
     padding: 16px;
     border-radius: var(--border-radius-md);
     border: 1px solid var(--border);
+    cursor: v-bind(cursorValue);
+
+    &.clickable:hover {
+      border-color: var(--primary);
+    }
 
     .heading {
       display: flex;

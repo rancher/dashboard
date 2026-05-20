@@ -16,6 +16,7 @@ export interface Props {
   showScaling?: boolean;
   showPercent?: boolean;
   noResourcesMessage?: string;
+  to?: RouteLocationRaw;
   rowTo?: RouteLocationRaw | string;
 }
 </script>
@@ -29,7 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
   showScaling:        false,
   showPercent:        true,
   noResourcesMessage: undefined,
-  rowTo:              undefined
+  to:                 undefined,
+  rowTo:              undefined,
 });
 const emit = defineEmits(['decrease', 'increase']);
 
@@ -104,6 +106,7 @@ function rowRoute(label: string): RouteLocationRaw | undefined {
   <Card
     :title="title"
     data-testid="resource-detail-status-card"
+    :to="props.to"
   >
     <template
       v-if="props.showScaling"
