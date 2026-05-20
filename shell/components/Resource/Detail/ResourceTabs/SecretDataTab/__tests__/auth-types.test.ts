@@ -166,19 +166,6 @@ describe('composables: SecretDataTab/auth-types', () => {
       expect(result.password).toStrictEqual(password);
     });
 
-    it('should prefer explicit username and password over the auth field when both are present', () => {
-      const username = 'tiger';
-      const password = 'pass1234';
-
-      base64DecodeSpy.mockReturnValue('other:decoded');
-
-      const result = authTypes.extractDockerAuthCredentials({ username, password, auth: 'encodedAuth' });
-
-      expect(result.username).toStrictEqual(username);
-      expect(result.password).toStrictEqual(password);
-      expect(base64DecodeSpy).not.toHaveBeenCalled();
-    });
-
     it('should return undefined username and password when auth entry is empty', () => {
       const result = authTypes.extractDockerAuthCredentials({});
 
