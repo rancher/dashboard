@@ -51,6 +51,7 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
 export const NAMESPACE_FILTERS = create('ns-by-cluster', {}, { parseJSON });
+export const STATE_COLOR_MAP = create('state-color-map', {}, { parseJSON, asUserPreference: false });
 export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'policy', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });

@@ -9,13 +9,14 @@ import { WORKLOAD_TYPES, POD } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import RichTranslation from '@shell/components/RichTranslation.vue';
-import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { DOCS_BASE } from '@shell/config/private-label';
 import { StateColor } from '@shell/utils/style';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { STATE_COLOR_MAP } from '@shell/store/prefs';
 
 interface SummaryEntry {
   type: string;
@@ -52,35 +53,9 @@ const WORKLOAD_RESOURCE_TYPES: string[] = [
   POD,
 ];
 
-const TRANSITIONING_STATES = new Set([
-  'unknown', 'containerstatusunknown', 'imagepullbackoff',
-  'crashloopbackoff',
-]);
-
-const ERROR_STATES = new Set([
-  'init:error', 'init:crashloopbackoff',
-]);
-
 const COLOR_ORDER: Record<string, number> = {
   error: 0, warning: 1, disabled: 2, info: 3, success: 4
 };
-
-function toStateColor(state: string): StateColor {
-  const key = (state || '').toLowerCase();
-
-  if (ERROR_STATES.has(key)) {
-    return 'error';
-  }
-
-  if (TRANSITIONING_STATES.has(key)) {
-    return 'info';
-  }
-
-  const config = STATES[key];
-  const color = config?.color || 'info';
-
-  return (color === 'darker' ? 'disabled' : color) as StateColor;
-}
 
 const store = useStore();
 const route = useRoute();
@@ -90,6 +65,38 @@ const summaries = ref<SummaryEntry[]>([]);
 const fetchError = ref<string | null>(null);
 const loading = ref(true);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+const clusterId = computed<string>(() => store.getters['clusterId']);
+
+const stateColorMap = computed<Record<string, StateColor>>(() => {
+  const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
+
+  return all[clusterId.value] || {};
+});
+
+function saveStateColorMap(updates: Record<string, StateColor>): void {
+  const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
+  const current = all[clusterId.value] || {};
+
+  store.dispatch('prefs/set', {
+    key:   STATE_COLOR_MAP,
+    value: { ...all, [clusterId.value]: { ...current, ...updates } },
+  });
+}
+
+function toStateColor(state: string): StateColor {
+  const key = (state || '').toLowerCase();
+  const cached = stateColorMap.value[key];
+
+  if (cached) {
+    return cached;
+  }
+
+  const config = STATES[key];
+  const color = config?.color || 'info';
+
+  return (color === 'darker' ? 'disabled' : color) as StateColor;
+}
 
 const activeNamespaces = computed<Record<string, boolean>>(() => {
   return store.getters['activeNamespaceCache'];
@@ -248,6 +255,59 @@ function resourceRoute(type: string): RouteLocationRaw {
   };
 }
 
+async function resolveStateColors(entries: SummaryEntry[]): Promise<void> {
+  const unresolvedStates = new Map<string, { originalName: string; type: string }>();
+
+  for (const entry of entries) {
+    if (!entry.summary) {
+      continue;
+    }
+
+    for (const s of entry.summary) {
+      if (s.property === 'metadata.state.name') {
+        for (const stateName of Object.keys(s.counts)) {
+          const key = stateName.toLowerCase();
+
+          if (!stateColorMap.value[key] && !unresolvedStates.has(key)) {
+            unresolvedStates.set(key, { originalName: stateName, type: entry.type });
+          }
+        }
+      }
+    }
+  }
+
+  if (unresolvedStates.size === 0) {
+    return;
+  }
+
+  const newColors: Record<string, StateColor> = {};
+
+  const colorPromises = Array.from(unresolvedStates.entries()).map(async([stateKey, { originalName, type }]) => {
+    try {
+      const url = `/v1/${ type }?limit=1&filter=metadata.state.name=${ originalName }`;
+      const res = await store.dispatch('cluster/request', { url });
+      const resource = res?.data?.[0];
+
+      if (!resource?.metadata?.state) {
+        return;
+      }
+
+      const { error: isError, transitioning, name } = resource.metadata.state;
+      const rawColor = colorForState(name, isError, transitioning).replace('text-', '');
+
+      newColors[stateKey] = (rawColor === 'darker' ? 'disabled' : rawColor) as StateColor;
+    } catch {
+      // Fallback handled by toStateColor via STATES lookup
+    }
+  });
+
+  await Promise.all(colorPromises);
+
+  if (Object.keys(newColors).length > 0) {
+    saveStateColorMap(newColors);
+  }
+}
+
 async function fetchSummaries(): Promise<void> {
   try {
     const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type): Promise<SummaryEntry> => {
@@ -282,7 +342,10 @@ async function fetchSummaries(): Promise<void> {
       }
     });
 
-    summaries.value = await Promise.all(workloadPromises);
+    const results = await Promise.all(workloadPromises);
+
+    await resolveStateColors(results);
+    summaries.value = results;
   } catch (e: any) {
     fetchError.value = e.message || t('workloadDashboard.errors.fetchAll');
   }
