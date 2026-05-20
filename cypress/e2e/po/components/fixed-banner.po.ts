@@ -16,4 +16,8 @@ export default class FixedBannerPo extends ComponentPo {
   color() {
     return this.self().find('.banner').first().should('have.css', 'color');
   }
+
+  close() {
+    return this.self().find('[data-testid="banner-close"]').first().click();
+  }
 }
