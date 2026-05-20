@@ -141,11 +141,11 @@ export default {
       }
 
       // Drop empty values so we don't send a string for int64 fields.
-      if (securityContext.fsGroup === '' || securityContext.fsGroup === null) {
+      if (securityContext.fsGroup === '' || securityContext.fsGroup === null || securityContext.fsGroup === undefined) {
         delete securityContext.fsGroup;
       }
 
-      if (securityContext.runAsUser === '' || securityContext.runAsUser === null) {
+      if (securityContext.runAsUser === '' || securityContext.runAsUser === null || securityContext.runAsUser === undefined) {
         delete securityContext.runAsUser;
       }
 
