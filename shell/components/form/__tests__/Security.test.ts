@@ -98,6 +98,23 @@ describe('component: Security', () => {
       expect(Object.prototype.hasOwnProperty.call(last, 'runAsUser')).toBe(false);
     });
 
+    it('should omit runAsUser from the emitted value when it is undefined', async() => {
+      const wrapper = mount(Security, {
+        props: {
+          mode: _EDIT, formType: FORM_TYPES.CONTAINER, value: {}
+        }
+      });
+
+      const checkbox = wrapper.find('[data-testid="input-security-runasNonRoot"]').find('label');
+
+      await checkbox.trigger('click');
+
+      const events = wrapper.emitted('update:value') ?? [];
+      const last = events[events.length - 1][0] as Record<string, unknown>;
+
+      expect(Object.prototype.hasOwnProperty.call(last, 'runAsUser')).toBe(false);
+    });
+
     it.each([
       'privileged',
       'allowPrivilegeEscalation',
@@ -157,6 +174,26 @@ describe('component: Security', () => {
       input.setValue(newValue);
 
       expect(wrapper.emitted('update:value')).toHaveLength(1);
+    });
+
+    it.each([
+      'runAsUser',
+      'fsGroup',
+    ])('should omit %p from the emitted value when it is undefined', async(field) => {
+      const wrapper = mount(Security, {
+        props: {
+          mode: _EDIT, formType: FORM_TYPES.POD, value: {}
+        }
+      });
+
+      const checkbox = wrapper.find('[data-testid="input-security-runasNonRoot"]').find('label');
+
+      await checkbox.trigger('click');
+
+      const events = wrapper.emitted('update:value') ?? [];
+      const last = events[events.length - 1][0] as Record<string, unknown>;
+
+      expect(Object.prototype.hasOwnProperty.call(last, field)).toBe(false);
     });
 
     // Regression for #9601 — see equivalent container-level test above.
