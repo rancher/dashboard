@@ -61,7 +61,7 @@ const segmentAccumulator = computed(() => {
     }
   } else {
     props.resources?.forEach((resource: any) => {
-      const color: StateColor = resource.stateSimpleColor;
+      const color: StateColor = resource.stateSimpleColor || 'disabled';
 
       accumulator[color] = accumulator[color] || { count: 0 };
       accumulator[color].count++;
@@ -90,9 +90,10 @@ const rowAccumulator = computed(() => {
     }
   } else {
     props.resources?.forEach((resource: any) => {
-      accumulator[resource.stateDisplay] = accumulator[resource.stateDisplay] || { count: 0, color: 'disabled' as StateColor };
+      const color = (resource.stateSimpleColor?.replace('text-', '') || 'disabled') as StateColor;
+
+      accumulator[resource.stateDisplay] = accumulator[resource.stateDisplay] || { count: 0, color };
       accumulator[resource.stateDisplay].count++;
-      accumulator[resource.stateDisplay].color = resource.stateSimpleColor.replace('text-', '') as StateColor;
     });
   }
 
@@ -100,7 +101,7 @@ const rowAccumulator = computed(() => {
 });
 
 const percent = (count: number, total: number) => {
-  return count / total * 100;
+  return total > 0 ? count / total * 100 : 0;
 };
 
 const count = computed(() => {

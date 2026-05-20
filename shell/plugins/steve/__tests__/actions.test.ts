@@ -78,7 +78,7 @@ describe('steve: actions:', () => {
 
       ctx.dispatch.mockResolvedValue({ count: 2, summary: null });
 
-      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', namespaced: 'cattle-system' } });
+      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', namespace: 'cattle-system' } });
 
       const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
 
@@ -92,7 +92,7 @@ describe('steve: actions:', () => {
       ctx.getters.schemaFor = () => nonNsSchema;
       ctx.dispatch.mockResolvedValue({ count: 1, summary: null });
 
-      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', namespaced: 'default' } });
+      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', namespace: 'default' } });
 
       const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
 
