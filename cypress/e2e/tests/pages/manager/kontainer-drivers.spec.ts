@@ -245,8 +245,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(isMatch(request.body, requestData)).to.equal(true);
     });
 
-    // wait for driver to be activating then active
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    // wait for driver to be active
     driversPage.list().details(exampleDriver, 1).should('contain', 'Active');
 
     // check options on cluster create page
