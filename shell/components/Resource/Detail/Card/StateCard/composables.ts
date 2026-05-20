@@ -2,11 +2,14 @@ import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Det
 import { useI18n } from '@shell/composables/useI18n';
 import { INGRESS, SERVICE } from '@shell/config/types';
 import { isHigherAlert, StateColor } from '@shell/utils/style';
-import { computed, Ref, toValue } from 'vue';
+import {
+  computed, onScopeDispose, ref, Ref, toValue, watch
+} from 'vue';
 import { useStore } from 'vuex';
 import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export interface SummaryResult {
   count: number;
@@ -261,4 +264,44 @@ export function useDefaultWorkloadInsightsCardProps(): StateCardProps {
     title: i18n.t('component.resource.detail.card.insightsCard.title'),
     rows
   };
+}
+
+export interface ResourceSummaryOpt {
+  summaryField: string;
+  namespaced?: string;
+  filters?: PaginationParamFilter[];
+}
+
+/**
+ * Composable that fetches a resource summary and keeps it updated by watching for resource changes.
+ * Automatically stops watching when the component is unmounted or the scope is disposed.
+ *
+ * Must be called during component setup.
+ */
+export function useResourceSummary(type: string, opt: ResourceSummaryOpt) {
+  const store = useStore();
+  const count = ref(0);
+  const summary = ref<SummaryResult['summary']>(null);
+
+  const normalizedType = store.getters['cluster/normalizeType']?.(type) || type;
+
+  async function fetch() {
+    const result = await store.dispatch('cluster/fetchResourceSummary', { type, opt });
+
+    if (result) {
+      count.value = result.count;
+      summary.value = result.summary;
+    }
+  }
+
+  fetch();
+
+  const stopWatch = watch(
+    () => store.getters['cluster/generation']?.(normalizedType),
+    () => fetch()
+  );
+
+  onScopeDispose(stopWatch);
+
+  return { count, summary };
 }

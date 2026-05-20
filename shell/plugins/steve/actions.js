@@ -236,26 +236,26 @@ export default {
    *
    * @example
    * const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
-   * const result = await dispatch('fetchSummary', { type: 'pod', opt: { filters: [nsFilter] } });
+   * const result = await dispatch('fetchResourceSummary', { type: 'pod', opt: { filters: [nsFilter] } });
    */
-  async fetchSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
+  async fetchResourceSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
     type = getters.normalizeType(type);
     const schema = getters.schemaFor(type);
 
     if (!schema) {
-      console.warn(`fetchSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
+      console.warn(`fetchResourceSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
 
       return undefined;
     }
 
     if (!paginationUtils.isSteveCacheEnabled({ rootGetters })) {
-      console.warn(`fetchSummary: VAI is not enabled, summary API unavailable for type "${ type }"`); // eslint-disable-line no-console
+      console.warn(`fetchResourceSummary: VAI is not enabled, summary API unavailable for type "${ type }"`); // eslint-disable-line no-console
 
       return undefined;
     }
 
     if (!opt.summaryField) {
-      console.warn(`fetchSummary: summaryField is required and must be a string for type "${ type }"`); // eslint-disable-line no-console
+      console.warn(`fetchResourceSummary: summaryField is required and must be a string for type "${ type }"`); // eslint-disable-line no-console
 
       return undefined;
     }
@@ -285,7 +285,7 @@ export default {
         summary: res.summary || null
       };
     } catch (e) {
-      console.warn(`fetchSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
+      console.warn(`fetchResourceSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
 
       return undefined;
     }
