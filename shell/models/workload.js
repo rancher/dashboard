@@ -595,6 +595,8 @@ export default class Workload extends WorkloadService {
 
     const podSelectorStr = this.podSelector;
 
+    summaries.pods = null;
+
     if (podSelectorStr) {
       const filters = [nsFilter];
 
@@ -931,6 +933,6 @@ export default class Workload extends WorkloadService {
       this.resourcesCard,
       this.insightCard,
       ...this._cards
-    ];
+    ].filter((c) => c);
   }
 }

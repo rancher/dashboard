@@ -106,10 +106,10 @@ const percent = (count: number, total: number) => {
 
 const count = computed(() => {
   if (summaryStateCounts.value) {
-    return props.summaryData?.count || 0;
+    return props.summaryData?.count ?? 0;
   }
 
-  return props.resources?.length || 0;
+  return props.resources?.length ?? 0;
 });
 
 const segmentColors = computed(() => Object.keys(segmentAccumulator.value) as StateColor[]);

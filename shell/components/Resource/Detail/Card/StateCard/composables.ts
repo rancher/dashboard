@@ -293,7 +293,7 @@ export function useResourceSummary(type: string, opt: ResourceSummaryOpt) {
     const id = ++fetchId;
 
     try {
-      const result = await store.dispatch('cluster/fetchResourceSummary', { type, opt });
+      const result = await store.dispatch('cluster/fetchResourceSummary', { type: normalizedType, opt });
 
       if (id !== fetchId) {
         return;
