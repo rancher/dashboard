@@ -25,7 +25,7 @@
   "author": "Rancher",
   "license": "Apache-2.0",
   "peerDependencies": {
-    "cypress": ">=15.14.2"
+    "cypress": "^15.14.2"
   },
   "dependencies": {
     "@cypress/code-coverage": "4.0.3",
