@@ -230,13 +230,16 @@ export default {
    * @param {object} [opt] - Options object
    *   @param {string} opt.summaryField - Field to aggregate counts by.
    *     Must be a field indexed by the VAI cache (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
-   *   @param {string} [opt.namespaced] - Namespace to scope the request to (only applies to namespaced resource types)
+   *   @param {string} [opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
    *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
    * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, number> }[] | null } | undefined>}
    *
    * @example
    * const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
-   * const result = await dispatch('fetchResourceSummary', { type: 'pod', opt: { filters: [nsFilter] } });
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
+   * });
    */
   async fetchResourceSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
     type = getters.normalizeType(type);
@@ -263,8 +266,8 @@ export default {
     try {
       const url = new URL(schema.links.collection, window.location.origin);
 
-      if (schema.attributes?.namespaced && opt.namespaced) {
-        url.pathname += `/${ opt.namespaced }`;
+      if (schema.attributes?.namespaced && opt.namespace) {
+        url.pathname += `/${ opt.namespace }`;
       }
 
       url.searchParams.set('summary', opt.summaryField);
@@ -281,7 +284,7 @@ export default {
       const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
 
       return {
-        count:   res.count || 0,
+        count:   res.count ?? 0,
         summary: res.summary || null
       };
     } catch (e) {

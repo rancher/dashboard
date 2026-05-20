@@ -163,7 +163,11 @@ export function useResourceCardRowFromRelationships(label: string, relationships
       return 1;
     }
 
-    return left.count >= right.count ? -1 : 1;
+    if (left.count === right.count) {
+      return 0;
+    }
+
+    return left.count > right.count ? -1 : 1;
   });
 
   return {
@@ -181,8 +185,7 @@ export interface Pairs {
 }
 
 export function useDefaultResources(pairs: Ref<Pairs[]>) {
-  const pairsValue = toValue(pairs);
-  const rows = computed(() => pairsValue.map(({ label, resources, to }) => useResourceCardRow(label, resources, undefined, undefined, to)));
+  const rows = computed(() => toValue(pairs).map(({ label, resources, to }) => useResourceCardRow(label, resources, undefined, undefined, to)));
 
   return rows;
 }
@@ -236,7 +239,7 @@ export function useDefaultWorkloadResources(services?: any[], ingresses?: any[],
   const rows = useDefaultResources(remainingPairs);
 
   return {
-    title: 'Resources',
+    title: i18n.t('component.resource.detail.card.resourcesCard.title'),
     rows:  rows.value
   };
 }
@@ -268,7 +271,7 @@ export function useDefaultWorkloadInsightsCardProps(): StateCardProps {
 
 export interface ResourceSummaryOpt {
   summaryField: string;
-  namespaced?: string;
+  namespace?: string;
   filters?: PaginationParamFilter[];
 }
 
@@ -284,13 +287,24 @@ export function useResourceSummary(type: string, opt: ResourceSummaryOpt) {
   const summary = ref<SummaryResult['summary']>(null);
 
   const normalizedType = store.getters['cluster/normalizeType']?.(type) || type;
+  let fetchId = 0;
 
   async function fetch() {
-    const result = await store.dispatch('cluster/fetchResourceSummary', { type, opt });
+    const id = ++fetchId;
 
-    if (result) {
-      count.value = result.count;
-      summary.value = result.summary;
+    try {
+      const result = await store.dispatch('cluster/fetchResourceSummary', { type, opt });
+
+      if (id !== fetchId) {
+        return;
+      }
+
+      if (result) {
+        count.value = result.count;
+        summary.value = result.summary;
+      }
+    } catch (e) {
+      console.warn(`useResourceSummary: fetch failed for type "${ type }"`, e); // eslint-disable-line no-console
     }
   }
 

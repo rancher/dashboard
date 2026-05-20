@@ -590,6 +590,7 @@ export default class Workload extends WorkloadService {
   async fetchSummaries() {
     const ns = this.metadata.namespace;
     const summaries = {};
+    const summaryField = 'metadata.state.name';
     const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: ns });
 
     const podSelectorStr = this.podSelector;
@@ -608,18 +609,24 @@ export default class Workload extends WorkloadService {
         }
       });
 
-      summaries.pods = await this.$dispatch('fetchResourceSummary', { type: POD, opt: { summaryField: 'metadata.state.name', filters } });
+      summaries.pods = await this.$dispatch('fetchResourceSummary', { type: POD, opt: { summaryField, filters } });
     }
 
-    summaries.services = await this.$dispatch('fetchResourceSummary', {
-      type: SERVICE,
-      opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
-    });
+    // Service and ingress summaries are scoped by namespace only (not by workload selector)
+    // because the relationship between workloads and services/ingresses is not label-based.
+    const [services, ingresses] = await Promise.all([
+      this.$dispatch('fetchResourceSummary', {
+        type: SERVICE,
+        opt:  { summaryField, filters: [nsFilter] }
+      }),
+      this.$dispatch('fetchResourceSummary', {
+        type: INGRESS,
+        opt:  { summaryField, filters: [nsFilter] }
+      }),
+    ]);
 
-    summaries.ingresses = await this.$dispatch('fetchResourceSummary', {
-      type: INGRESS,
-      opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
-    });
+    summaries.services = services;
+    summaries.ingresses = ingresses;
 
     set(this, '_summaries', summaries);
 
