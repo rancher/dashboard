@@ -2,9 +2,36 @@
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { extractDockerAuthCredentials } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
+
+function extractDockerAuthCredentials(authEntry = {}) {
+  const { username = '', password = '', auth = '' } = authEntry || {};
+
+  if (username || password) {
+    return { username, password };
+  }
+
+  if (!auth || typeof atob !== 'function') {
+    return { username: '', password: '' };
+  }
+
+  try {
+    const decoded = atob(auth);
+    const separatorIndex = decoded.indexOf(':');
+
+    if (separatorIndex === -1) {
+      return { username: decoded, password: '' };
+    }
+
+    return {
+      username: decoded.slice(0, separatorIndex),
+      password: decoded.slice(separatorIndex + 1),
+    };
+  } catch (e) {
+    return { username: '', password: '' };
+  }
+}
 
 export default {
   components: { LabeledInput, RadioGroup },
