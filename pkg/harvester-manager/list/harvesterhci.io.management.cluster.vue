@@ -195,6 +195,11 @@ export default {
       };
     },
 
+    // canImportHarvesterCluster() {
+    //   // POST methods both existed for admin and standard user, so we check PUT method in management.cattle.io.cluster instead.
+    //   return !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)?.resourceMethods?.find((x) => x.toLowerCase().includes('put'));
+    // },
+
     importLocation() {
       return {
         name:   'c-cluster-product-resource-create',
@@ -396,7 +401,7 @@ export default {
         </template>
 
         <template
-          v-if="canCreateAndManageCluster"
+          v-if="isAdmin"
           #extraActions
         >
           <router-link
