@@ -6,10 +6,12 @@ export * from '@shell/apis/intf/resources-api/resources-api';
 export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
 export {
-  ResourceType, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
+  ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
   FindFilteredPageResponse, FindFilteredLabelSelectorResponse
 } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
+
+export * from '@shell/apis/intf/resources-api/resource-instance';
 
 export { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
 export { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';

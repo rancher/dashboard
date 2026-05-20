@@ -25,6 +25,25 @@ export type ResourceType = K8SResourceType | string;
 
 /**
  * @interface
+ * Data object for creating a new resource. Must include a `type` property.
+ *
+ * @example
+ * ```ts
+ * import { useResources, K8S } from '@shell/apis';
+ *
+ * const resources = useResources();
+ *
+ * await resources.cluster.create({
+ *   type: K8S.CONFIG_MAP,
+ *   metadata: { name: 'my-config', namespace: 'default' },
+ *   data: { key: 'value' }
+ * });
+ * ```
+ */
+export type CreateResourceData = { type: ResourceType } & Record<string, any>;
+
+/**
+ * @interface
  * Resources API "findAll" options
  */
 export type FindAllMethodOptions = Omit<ActionFindAllArgs, 'hasManualRefresh' | 'depaginate' | 'saveCountAs' | 'incremental'>;
