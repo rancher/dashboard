@@ -5,7 +5,7 @@ import {
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import type { RouteLocationRaw } from 'vue-router';
-import { WORKLOAD_TYPES, POD } from '@shell/config/types';
+import { WORKLOAD_TYPES, POD, NAMESPACE } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import RichTranslation from '@shell/components/RichTranslation.vue';
@@ -16,7 +16,10 @@ import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { STATE_COLOR_MAP } from '@shell/store/prefs';
+import { STATE_COLOR_MAP, ALL_NAMESPACES } from '@shell/store/prefs';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { PaginationFilterEquality } from '@shell/types/store/pagination.types';
 
 interface SummaryEntry {
   type: string;
@@ -104,6 +107,38 @@ const activeNamespaces = computed<Record<string, boolean>>(() => {
 
 const isAllNamespaces = computed<boolean>(() => {
   return store.getters['isAllNamespaces'];
+});
+
+const namespaceFilterParam = computed<string>(() => {
+  const selection: string[] = store.getters['namespaceFilters'];
+  const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
+    allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
+    selection,
+    isAllNamespaces:               isAllNamespaces.value,
+    isLocalCluster:                store.getters['currentCluster']?.isLocal,
+    showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
+    productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
+  });
+
+  const parts: string[] = [];
+
+  const nsValues = projectsOrNamespaces.flatMap((p) => p.fields.map((f) => f.value || ''));
+  const pAndN = pAndNFiltering.createParam(nsValues);
+
+  if (pAndN) {
+    parts.push(pAndN);
+  }
+
+  for (const f of filters) {
+    for (const field of f.fields) {
+      const equality = field.equality || '=';
+      const val = [PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality as PaginationFilterEquality) ? `(${ field.value })` : field.value;
+
+      parts.push(`filter=${ field.field }${ equality }${ val }`);
+    }
+  }
+
+  return parts.join('&');
 });
 
 const namespaceSubtitle = computed<string>(() => {
@@ -322,12 +357,8 @@ async function fetchSummaries(): Promise<void> {
       try {
         let url = `/v1/${ type }?summary=metadata.state.name`;
 
-        if (!isAllNamespaces.value) {
-          const namespaces = Object.keys(activeNamespaces.value);
-
-          if (namespaces.length) {
-            url += `&projectsornamespaces=${ namespaces.join(',') }`;
-          }
+        if (namespaceFilterParam.value) {
+          url += `&${ namespaceFilterParam.value }`;
         }
 
         const res = await store.dispatch('cluster/request', { url });
@@ -351,7 +382,7 @@ async function fetchSummaries(): Promise<void> {
   }
 }
 
-watch(activeNamespaces, () => {
+watch(namespaceFilterParam, () => {
   fetchSummaries();
 });
 
