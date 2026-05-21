@@ -1,9 +1,13 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
-import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import {
+  UI_PLUGIN_NAMESPACE,
+  UI_PLUGIN_CHART_ANNOTATIONS,
+  EXTENSIONS_INCOMPATIBILITY_TYPES
+} from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
-const t = (key: string, args: Object) => {
+const t = (key: string, args?: object, raw?: boolean) => {
   if (args) {
     return `${ key } with ${ JSON.stringify(args) }`;
   }
@@ -609,6 +613,717 @@ describe('page: UI plugins/Extensions', () => {
 
       // plugin4 has no op, so its status should be cleared
       expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('repo/plugin4', false);
+    });
+  });
+
+  describe('extractCertificationFlags', () => {
+    it('should extract all flags as true when annotations match', () => {
+      const annotations = {
+        [CATALOG_ANNOTATIONS.PRIME_ONLY]:   'true',
+        [CATALOG_ANNOTATIONS.EXPERIMENTAL]: 'true',
+        [CATALOG_ANNOTATIONS.CERTIFIED]:    CATALOG_ANNOTATIONS._RANCHER,
+      };
+      const result = wrapper.vm.extractCertificationFlags(annotations);
+
+      expect(result).toStrictEqual({
+        primeOnly:    true,
+        experimental: true,
+        certified:    true,
+      });
+    });
+
+    it('should return all flags as false when annotations are empty', () => {
+      const result = wrapper.vm.extractCertificationFlags({});
+
+      expect(result).toStrictEqual({
+        primeOnly:    false,
+        experimental: false,
+        certified:    false,
+      });
+    });
+
+    it('should return all flags as false when annotations are undefined', () => {
+      const result = wrapper.vm.extractCertificationFlags(undefined);
+
+      expect(result).toStrictEqual({
+        primeOnly:    false,
+        experimental: false,
+        certified:    false,
+      });
+    });
+
+    it('should not treat non-"true" values as truthy for primeOnly and experimental', () => {
+      const annotations = {
+        [CATALOG_ANNOTATIONS.PRIME_ONLY]:   'false',
+        [CATALOG_ANNOTATIONS.EXPERIMENTAL]: '1',
+        [CATALOG_ANNOTATIONS.CERTIFIED]:    'community',
+      };
+      const result = wrapper.vm.extractCertificationFlags(annotations);
+
+      expect(result).toStrictEqual({
+        primeOnly:    false,
+        experimental: false,
+        certified:    false,
+      });
+    });
+
+    it('should handle partial annotations', () => {
+      const annotations = { [CATALOG_ANNOTATIONS.PRIME_ONLY]: 'true' };
+      const result = wrapper.vm.extractCertificationFlags(annotations);
+
+      expect(result).toStrictEqual({
+        primeOnly:    true,
+        experimental: false,
+        certified:    false,
+      });
+    });
+  });
+
+  describe('buildIncompatibilityMessage', () => {
+    it('should build a message for HOST incompatibility type', () => {
+      const versionData = {
+        version:                    '2.0.0',
+        versionIncompatibilityData: {
+          type:           EXTENSIONS_INCOMPATIBILITY_TYPES.HOST,
+          cardMessageKey: 'plugins.incompatible.host',
+          required:       'rancher-prime',
+          mainHost:       'rancher-manager',
+        }
+      };
+      const result = wrapper.vm.buildIncompatibilityMessage(versionData);
+
+      expect(result).toBe(`plugins.incompatible.host with ${ JSON.stringify({
+        version:  '2.0.0',
+        required: 'rancher-prime',
+        mainHost: 'rancher-manager',
+      }) }`);
+    });
+
+    it('should build a message for non-HOST incompatibility type without mainHost', () => {
+      const versionData = {
+        version:                    '2.0.0',
+        versionIncompatibilityData: {
+          type:           EXTENSIONS_INCOMPATIBILITY_TYPES.KUBE,
+          cardMessageKey: 'plugins.incompatible.kube',
+          required:       '1.25.0',
+        }
+      };
+      const result = wrapper.vm.buildIncompatibilityMessage(versionData);
+
+      expect(result).toBe(`plugins.incompatible.kube with ${ JSON.stringify({
+        version:  '2.0.0',
+        required: '1.25.0',
+      }) }`);
+    });
+
+    it('should handle missing required field', () => {
+      const versionData = {
+        version:                    '2.0.0',
+        versionIncompatibilityData: {
+          type:           EXTENSIONS_INCOMPATIBILITY_TYPES.UI,
+          cardMessageKey: 'plugins.incompatible.ui',
+        }
+      };
+      const result = wrapper.vm.buildIncompatibilityMessage(versionData);
+
+      expect(result).toBe(`plugins.incompatible.ui with ${ JSON.stringify({
+        version:  '2.0.0',
+        required: undefined,
+      }) }`);
+    });
+  });
+
+  describe('mapChartToPluginItem', () => {
+    const createChartWrapper = (overrides = {}) => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {},
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: {
+            $store: store,
+            t,
+            ...overrides,
+          },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.rancherVersion = '2.9.0';
+      w.vm.kubeVersion = '1.28.0';
+      w.vm.installing = {};
+
+      return w;
+    };
+
+    it('should map a chart with compatible versions correctly', () => {
+      const w = createChartWrapper();
+
+      const chart = {
+        chartName:        'my-extension',
+        chartNameDisplay: 'My Extension',
+        chartDescription: 'A test extension',
+        id:               'repo/my-extension',
+        icon:             'chart-icon.svg',
+        versions:         [{
+          version:      '1.0.0',
+          appVersion:   '1.0.0',
+          created:      '2024-01-01',
+          annotations:  {
+            [CATALOG_ANNOTATIONS.EXPERIMENTAL]: 'true',
+            [CATALOG_ANNOTATIONS.CERTIFIED]:    CATALOG_ANNOTATIONS._RANCHER,
+          }
+        }]
+      };
+
+      const result = w.vm.mapChartToPluginItem(chart);
+
+      expect(result.name).toBe('my-extension');
+      expect(result.label).toBe('My Extension');
+      expect(result.description).toBe('A test extension');
+      expect(result.id).toBe('repo/my-extension');
+      expect(result.installed).toBe(false);
+      expect(result.builtin).toBe(false);
+      expect(result.chart).toBe(chart);
+      expect(result.versions).toHaveLength(1);
+      expect(result.displayVersion).toBe('1.0.0');
+      expect(result.displayVersionLabel).toBe('1.0.0');
+    });
+
+    it('should use chart annotation DISPLAY_NAME as label when present', () => {
+      const w = createChartWrapper();
+
+      const chart = {
+        chartName:        'my-extension',
+        chartNameDisplay: 'My Extension',
+        chartDescription: 'desc',
+        id:               'repo/my-extension',
+        versions:         [{
+          version:     '1.0.0',
+          annotations: { [UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME]: 'Custom Display Name' }
+        }],
+      };
+
+      const result = w.vm.mapChartToPluginItem(chart);
+
+      expect(result.label).toBe('Custom Display Name');
+    });
+
+    it('should set installing status when plugin is being installed', () => {
+      const w = createChartWrapper();
+
+      w.vm.installing = { 'repo/my-extension': 'install' };
+
+      const chart = {
+        chartName:        'my-extension',
+        chartNameDisplay: 'My Extension',
+        chartDescription: 'desc',
+        id:               'repo/my-extension',
+        versions:         [{ version: '1.0.0', annotations: {} }]
+      };
+
+      const result = w.vm.mapChartToPluginItem(chart);
+
+      expect(result.installing).toBe('install');
+    });
+
+    it('should extract certification flags from compatible version', () => {
+      const w = createChartWrapper();
+
+      const chart = {
+        chartName:        'certified-extension',
+        chartNameDisplay: 'Certified Extension',
+        chartDescription: 'desc',
+        id:               'repo/certified',
+        versions:         [{
+          version:     '1.0.0',
+          annotations: {
+            [CATALOG_ANNOTATIONS.PRIME_ONLY]:   'true',
+            [CATALOG_ANNOTATIONS.EXPERIMENTAL]: 'false',
+            [CATALOG_ANNOTATIONS.CERTIFIED]:    CATALOG_ANNOTATIONS._RANCHER,
+          }
+        }]
+      };
+
+      const result = w.vm.mapChartToPluginItem(chart);
+
+      expect(result.primeOnly).toBe(true);
+      expect(result.experimental).toBe(false);
+      expect(result.certified).toBe(true);
+    });
+  });
+
+  describe('buildLoadedPluginItem', () => {
+    it('should build an item for a non-builtin loaded plugin', () => {
+      const plugin = {
+        name:     'my-plugin',
+        id:       'my-plugin-id',
+        builtin:  false,
+        metadata: {
+          version:     '1.2.3',
+          description: 'Plugin description',
+          icon:        'plugin-icon.svg',
+          rancher:     { annotations: {} },
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result).toStrictEqual({
+        name:                'my-plugin',
+        label:               'my-plugin',
+        description:         'Plugin description',
+        icon:                'plugin-icon.svg',
+        id:                  'my-plugin-id',
+        versions:            [],
+        displayVersion:      '1.2.3',
+        displayVersionLabel: '1.2.3',
+        installed:           true,
+        installedVersion:    '1.2.3',
+        builtin:             false,
+        primeOnly:           false,
+        experimental:        false,
+        certified:           false,
+      });
+    });
+
+    it('should use DISPLAY_NAME annotation as label when available', () => {
+      const plugin = {
+        name:     'my-plugin',
+        id:       'my-plugin-id',
+        builtin:  false,
+        metadata: {
+          version: '1.0.0',
+          rancher: { annotations: { [UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME]: 'Pretty Name' } }
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result?.label).toBe('Pretty Name');
+    });
+
+    it('should return null for hidden builtin plugins', () => {
+      const plugin = {
+        name:     'hidden-builtin',
+        id:       'hidden-id',
+        builtin:  true,
+        metadata: {
+          version: '1.0.0',
+          rancher: { [UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN]: true, annotations: {} }
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result).toBeNull();
+    });
+
+    it('should NOT return null for visible builtin plugins', () => {
+      const plugin = {
+        name:     'visible-builtin',
+        id:       'visible-id',
+        builtin:  true,
+        metadata: {
+          version: '1.0.0',
+          rancher: { annotations: {} }
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result).not.toBeNull();
+      expect(result?.builtin).toBe(true);
+    });
+
+    it('should default displayVersionLabel to "-" when version is missing', () => {
+      const plugin = {
+        name:     'no-version',
+        id:       'no-version-id',
+        builtin:  false,
+        metadata: { rancher: { annotations: {} } }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result?.displayVersionLabel).toBe('-');
+    });
+
+    it('should extract certification flags from rancher annotations', () => {
+      const plugin = {
+        name:     'certified-plugin',
+        id:       'cert-id',
+        builtin:  false,
+        metadata: {
+          version: '1.0.0',
+          rancher: {
+            annotations: {
+              [CATALOG_ANNOTATIONS.PRIME_ONLY]:   'true',
+              [CATALOG_ANNOTATIONS.EXPERIMENTAL]: 'true',
+              [CATALOG_ANNOTATIONS.CERTIFIED]:    CATALOG_ANNOTATIONS._RANCHER,
+            }
+          }
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result?.primeOnly).toBe(true);
+      expect(result?.experimental).toBe(true);
+      expect(result?.certified).toBe(true);
+    });
+
+    it('should handle metadata.rancher being a non-object', () => {
+      const plugin = {
+        name:     'legacy-plugin',
+        id:       'legacy-id',
+        builtin:  false,
+        metadata: {
+          version: '1.0.0',
+          rancher: 'not-an-object'
+        }
+      };
+
+      const result = wrapper.vm.buildLoadedPluginItem(plugin);
+
+      expect(result?.label).toBe('legacy-plugin');
+      expect(result?.primeOnly).toBe(false);
+    });
+  });
+
+  describe('wirePluginCRToChart', () => {
+    let wireWrapper: VueWrapper<any>;
+
+    const createWireWrapper = (apps: any[] = []) => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': {},
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {},
+          'management/all':    () => apps,
+          'i18n/withFallback': (_key: string, _fallback: null, repoName: string) => repoName,
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: {
+            $store: store,
+            t,
+          },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.installing = {};
+
+      return w;
+    };
+
+    beforeEach(() => {
+      wireWrapper = createWireWrapper();
+    });
+
+    it('should wire CR to matching chart when found by repo name', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'rancher-charts' }
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[0].installedVersion).toBe('1.0.0');
+    });
+
+    it('should set upgrade when a newer installable version exists', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'rancher-charts' }
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        installableVersions: [{ version: '2.0.0', appVersion: '2.0.0', annotations: {} }],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all[0].upgrade).toBe('2.0.0');
+    });
+
+    it('should NOT set upgrade when installed version matches latest', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'rancher-charts' }
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        installableVersions: [{ version: '1.0.0', annotations: {} }],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all[0].upgrade).toBeUndefined();
+    });
+
+    it('should push new item when no matching chart is found', () => {
+      const apps = [{
+        metadata: {
+          name:      'orphan-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'removed-repo' }
+        },
+        spec: {
+          chart: {
+            metadata: {
+              name:        'Orphan Plugin',
+              description: 'Plugin from removed repo',
+              icon:        'orphan-icon.svg',
+              annotations: { [UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME]: 'Orphan Display Name' }
+            }
+          }
+        }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [];
+      const pluginCR = {
+        name:        'orphan-plugin',
+        version:     '1.0.0',
+        description: 'fallback desc',
+        isDeveloper: false,
+      };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].name).toBe('orphan-plugin');
+      expect(all[0].label).toBe('Orphan Display Name');
+      expect(all[0].description).toBe('Plugin from removed repo');
+      expect(all[0].icon).toBe('orphan-icon.svg');
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[0].originalRepoNameDisplay).toBe('removed-repo');
+    });
+
+    it('should push new item with fallback values when app has no chart metadata', () => {
+      wireWrapper = createWireWrapper([]);
+
+      const all: any[] = [];
+      const pluginCR = {
+        name:        'no-app-plugin',
+        version:     '1.0.0',
+        description: 'CR description',
+        isDeveloper: true,
+      };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].label).toBe('no-app-plugin');
+      expect(all[0].description).toBe('CR description');
+      expect(all[0].isDeveloper).toBe(true);
+      expect(all[0].originalRepoNameDisplay).toBeNull();
+    });
+
+    it('should not match chart from a different repo', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'repo-a' }
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'repo-b' },
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(2);
+      expect(all[0].installed).toBeUndefined();
+      expect(all[1].installed).toBe(true);
+      expect(all[1].uiplugin).toBe(pluginCR);
+    });
+  });
+
+  describe('mergePluginErrors', () => {
+    it('should set installedError for string UI errors', () => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  { 'my-plugin': 'plugins.error.load' },
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.errors = {};
+
+      const all = [{ name: 'my-plugin', id: 'repo/my-plugin' }];
+
+      w.vm.mergePluginErrors(all);
+
+      expect(all[0]).toHaveProperty('installedError', 'plugins.error.load');
+    });
+
+    it('should set empty installedError for non-string UI errors', () => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  { 'my-plugin': true },
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.errors = {};
+
+      const all = [{ name: 'my-plugin', id: 'repo/my-plugin' }];
+
+      w.vm.mergePluginErrors(all);
+
+      expect(all[0]).toHaveProperty('installedError', '');
+    });
+
+    it('should set helmError from component errors', () => {
+      const all = [{ name: 'my-plugin', id: 'repo/my-plugin' }];
+
+      wrapper.vm.errors = { 'repo/my-plugin': 'helm failed' };
+      wrapper.vm.mergePluginErrors(all);
+
+      expect(all[0]).toHaveProperty('helmError', true);
+    });
+
+    it('should not modify plugins that have no matching errors', () => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  { 'other-plugin': 'some error' },
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.errors = { 'other-id': 'error' };
+
+      const all = [{ name: 'my-plugin', id: 'repo/my-plugin' }];
+
+      w.vm.mergePluginErrors(all);
+
+      expect(all[0]).not.toHaveProperty('installedError');
+      expect(all[0]).not.toHaveProperty('helmError');
+    });
+
+    it('should handle both UI errors and helm errors for different plugins', () => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  { 'plugin-a': 'plugins.error.load' },
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.errors = { 'repo/plugin-b': 'helm failure' };
+
+      const all = [
+        { name: 'plugin-a', id: 'repo/plugin-a' },
+        { name: 'plugin-b', id: 'repo/plugin-b' },
+      ];
+
+      w.vm.mergePluginErrors(all);
+
+      expect(all[0]).toHaveProperty('installedError', 'plugins.error.load');
+      expect(all[0]).not.toHaveProperty('helmError');
+      expect(all[1]).not.toHaveProperty('installedError');
+      expect(all[1]).toHaveProperty('helmError', true);
     });
   });
 });
