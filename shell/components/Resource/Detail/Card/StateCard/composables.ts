@@ -8,7 +8,7 @@ import {
 import { useStore } from 'vuex';
 import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
-import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { simpleColorForState, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export interface SummaryResult {
@@ -89,8 +89,7 @@ export function useResourceCardRowFromSummary(label: string, summaryResult: Summ
   }
 
   const tuples: Tuple[] = Object.entries(stateSummary.counts).map(([state, count]) => {
-    const colorRaw = colorForStateFn(state) as string;
-    const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
+    const color = simpleColorForState(state) as StateColor;
     const display = stateDisplayFn(state) as string;
 
     return {
@@ -139,8 +138,7 @@ export function useResourceCardRowFromRelationships(label: string, relationships
 
   relationships.forEach((r: any) => {
     const state = (r.state || 'missing').toLowerCase();
-    const colorRaw = colorForStateFn(state) as string;
-    const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
+    const color = simpleColorForState(state) as StateColor;
     const display = (stateDisplayFn(state) as string)?.toLowerCase() || state;
 
     agg[state] = agg[state] || {

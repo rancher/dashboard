@@ -1,10 +1,11 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, simpleColorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -154,6 +155,37 @@ export default class Pod extends WorkloadService {
     const { initContainers = [] } = this.spec;
 
     return initContainers.includes(container);
+  }
+
+  get resourceContainers() {
+    const statuses = [...(this.status?.containerStatuses || []), ...(this.status?.initContainerStatuses || [])];
+
+    return statuses.map((s) => {
+      const state = Object.keys(s.state || {})[0] || 'unknown';
+
+      return {
+        stateDisplay:     stateDisplay(state),
+        stateSimpleColor: simpleColorForState(state),
+      };
+    });
+  }
+
+  get resourcesCardRows() {
+    const rows = [...this._resourcesCardRows];
+
+    if (this.resourceContainers.length) {
+      rows.unshift(useResourceCardRow(this.t('workload.container.titles.containers'), this.resourceContainers, 'stateSimpleColor', 'stateDisplay', '#containers'));
+    }
+
+    return rows;
+  }
+
+  get cards() {
+    return [
+      this.resourcesCard,
+      this.insightCard,
+      ...this._cards
+    ].filter((c) => c);
   }
 
   get imageNames() {
