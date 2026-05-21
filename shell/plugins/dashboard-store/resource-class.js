@@ -507,7 +507,7 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function simpleColorForState(state, isError, isTransitioning) {
+export function simpleColorForState(state, isError = false, isTransitioning = false) {
   return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
 }
 
