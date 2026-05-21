@@ -53,8 +53,12 @@ export default {
     const modelId = ref(null);
     const sloTypeRef = ref(null);
     const customEndpointEnabled = ref(false);
-    const requiredScopesRef = ref([]);
 
+    const requiredScopes = computed(() => {
+      const scopes = BASE_SCOPES[modelId.value]?.[0];
+
+      return scopes ? scopes.split(' ') : [];
+    });
     const isAmazonCognito = computed(() => modelId.value === 'cognito');
     const isKeycloak = computed(() => modelId.value === 'keycloakoidc');
     const isGenericOidc = computed(() => modelId.value === 'genericoidc');
@@ -91,9 +95,9 @@ export default {
         scope: z.preprocess(
           (v) => (Array.isArray(v) ? v : []),
           z.array(z.string()).refine(
-            (arr) => requiredScopesRef.value?.every((s) => arr.includes(s)),
+            (arr) => requiredScopes.value?.every((s) => arr.includes(s)),
             (arr) => {
-              const missing = requiredScopesRef.value?.filter((s) => !arr.includes(s));
+              const missing = requiredScopes.value?.filter((s) => !arr.includes(s));
 
               return { message: t('authConfig.oidc.scope.missingRequired', { scopes: missing?.join(', '), count: missing?.length }) };
             }
@@ -121,7 +125,6 @@ export default {
       modelId,
       sloTypeRef,
       customEndpointEnabled,
-      requiredScopesRef,
       isAmazonCognito,
       isKeycloak,
       isGenericOidc,
@@ -188,15 +191,6 @@ export default {
       return this.isFormValid;
     },
 
-    /**
-     * TODO #13457: Refactor scopes to be an array of terms
-     * Return valid scopes
-     * The scopes for given auth provider (model.id) have format of ['scope1 scope2 scope3']
-     */
-    requiredScopes() {
-      return this.model?.id ? (BASE_SCOPES[this.model.id] || []) ? (BASE_SCOPES[this.model.id] || [])[0].split(' ') : [] : [];
-    },
-
     isLogoutAllSupported() {
       return this.model?.logoutAllSupported;
     },
@@ -230,13 +224,6 @@ export default {
 
     'customEndpoint.value'(v) {
       this.customEndpointEnabled = v;
-    },
-
-    requiredScopes: {
-      handler(v) {
-        this.requiredScopesRef = v;
-      },
-      immediate: true,
     },
 
     'oidcUrls.url'() {
