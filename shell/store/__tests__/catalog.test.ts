@@ -1,7 +1,7 @@
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import {
-  state, getters, actions, mutations, filterAndArrangeCharts
+  state, getters, actions, mutations, filterAndArrangeCharts, isRancherRepo, compatibleVersionsFor, getPermittedOSs
 } from '../catalog';
 import { createStore } from 'vuex';
 
@@ -507,6 +507,120 @@ describe('catalog', () => {
 
         expect(result3).toBeNull();
       });
+    });
+  });
+
+  describe('isRancherRepo', () => {
+    it('should return true if chart.isRancherRepo is true', () => {
+      const chart = { isRancherRepo: true } as any;
+
+      expect(isRancherRepo(null, chart)).toBe(true);
+    });
+
+    it('should return true if repo.isRancherSource is true', () => {
+      const repo = { isRancherSource: true } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(true);
+    });
+
+    it('should return false if repo is not a rancher source', () => {
+      const repo = { isRancherSource: false } as any;
+
+      expect(isRancherRepo(repo, null)).toBe(false);
+    });
+  });
+
+  describe('compatibleVersionsFor', () => {
+    it('should allow versions if no OS constraint is provided', () => {
+      const chart = { versions: [{ version: '1.0.0' }] } as any;
+      const versions = compatibleVersionsFor(chart, undefined);
+
+      expect(versions).toHaveLength(1);
+    });
+
+    it('should allow windows nodes if permitted-os includes windows', () => {
+      const chart = {
+        versions: [{
+          version:     '1.0.0',
+          annotations: { 'catalog.cattle.io/permits-os': 'linux,windows' }
+        }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(1);
+    });
+
+    it('should block windows nodes if permitted-os does not include windows', () => {
+      const chart = {
+        versions: [{
+          version:     '1.0.0',
+          annotations: { 'catalog.cattle.io/permits-os': 'linux' }
+        }]
+      } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(0);
+    });
+
+    it('should fallback to LINUX for rancher repos and block windows nodes', () => {
+      const chart = { isRancherRepo: true, versions: [{ version: '1.0.0' }] } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(0);
+    });
+
+    it('should not fallback to LINUX for non-rancher repos and allow windows nodes', () => {
+      const chart = { isRancherRepo: false, versions: [{ version: '1.0.0' }] } as any;
+      const versions = compatibleVersionsFor(chart, 'windows');
+
+      expect(versions).toHaveLength(1);
+    });
+  });
+
+  describe('getPermittedOSs', () => {
+    it('should return explicitly permitted OSs when the annotation is present on a Rancher repo', () => {
+      const annotations = { [CATALOG_ANNOTATIONS.PERMITTED_OS]: 'linux,windows' };
+      const result = getPermittedOSs(annotations, true);
+
+      expect(result).toHaveLength(2);
+      expect(result).toContain('linux');
+      expect(result).toContain('windows');
+    });
+
+    it('should return explicitly permitted OSs when the annotation is present on a non-Rancher repo', () => {
+      const annotations = { [CATALOG_ANNOTATIONS.PERMITTED_OS]: 'linux' };
+      const result = getPermittedOSs(annotations, false);
+
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should fallback to linux if the annotation is missing on a Rancher repo', () => {
+      const annotations = {};
+      const result = getPermittedOSs(annotations, true);
+
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should return an empty array (no restrictions) if the annotation is missing on a non-Rancher repo', () => {
+      const annotations = {};
+      const result = getPermittedOSs(annotations, false);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle undefined annotations safely for Rancher repos', () => {
+      const result = getPermittedOSs(undefined, true);
+
+      expect(result).toHaveLength(1);
+      expect(result).toContain('linux');
+    });
+
+    it('should handle undefined annotations safely for non-Rancher repos', () => {
+      const result = getPermittedOSs(undefined, false);
+
+      expect(result).toHaveLength(0);
     });
   });
 });
