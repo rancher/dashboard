@@ -4,6 +4,20 @@ import { FetchHttpHandler } from '@smithy/fetch-http-handler';
 import { isArray, addObjects } from '@shell/utils/array';
 import { formatAWSError } from '@shell/utils/error';
 
+/**
+ * Check if the given region is an AWS China region.
+ * China regions don't support dual-stack endpoints.
+ * @param {string} region - AWS region identifier (e.g., 'cn-north-1', 'us-west-2')
+ * @returns {boolean} - True if the region starts with 'cn-'
+ */
+function isChinaRegion(region) {
+  if (!region) {
+    return false;
+  }
+
+  return region.startsWith('cn-');
+}
+
 export const state = () => {
   return {
     instanceTypes: [],
@@ -115,7 +129,8 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
-      useDualstackEndpoint:      true,
+      // China regions (cn-*) don't support dual-stack endpoints
+      useDualstackEndpoint:      !isChinaRegion(region),
     });
 
     return client;
@@ -130,7 +145,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
-      useDualstackEndpoint:      true,
+      useDualstackEndpoint:      !isChinaRegion(region),
     });
 
     return client;
@@ -145,7 +160,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
-      useDualstackEndpoint:      true,
+      useDualstackEndpoint:      !isChinaRegion(region),
     });
 
     return client;
@@ -160,7 +175,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
-      useDualstackEndpoint:      true,
+      useDualstackEndpoint:      !isChinaRegion(region),
     });
 
     return client;
