@@ -240,35 +240,41 @@ export default class ClusterScan extends SteveModel {
       const benchmark = await this._resolveBenchmark();
       const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
 
-      reports.forEach((report) => {
-        try {
-          const parsed = report.parsedReport || {};
-          const common = {
-            report:           parsed,
-            benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
-            metadata:         benchmark?.spec?.benchmarkMetadata || {},
-            stigChecks:       benchmark?.spec?.stigChecks || {},
-          };
-          const folder = labelFor(report);
+      const hasParsedNodes = reports.some((report) => Object.entries(report.parsedReport?.nodes || {}).length);
 
-          Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
-            (hosts || []).forEach((hostname) => {
-              const xml = generateXCCDFPerNode({
-                ...common, hostname, role,
+      if (!hasParsedNodes) {
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorNoParsedNodes') }, { root: true });
+      } else {
+        reports.forEach((report) => {
+          try {
+            const parsed = report.parsedReport || {};
+            const common = {
+              report:           parsed,
+              benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
+              metadata:         benchmark?.spec?.benchmarkMetadata || {},
+              stigChecks:       benchmark?.spec?.stigChecks || {},
+            };
+            const folder = labelFor(report);
+
+            Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+              (hosts || []).forEach((hostname) => {
+                const xml = generateXCCDFPerNode({
+                  ...common, hostname, role,
+                });
+
+                toZip[`${ folder }/${ hostname }.xml`] = xml;
               });
-
-              toZip[`${ folder }/${ hostname }.xml`] = xml;
             });
-          });
-        } catch (err) {
-          this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
-        }
-      });
-
-      if (!isEmpty(toZip)) {
-        generateZip(toZip).then((zip) => {
-          downloadFile(`${ this.id }-reports-xccdf-per-node.zip`, zip, 'application/zip');
+          } catch (err) {
+            this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
+          }
         });
+
+        if (!isEmpty(toZip)) {
+          generateZip(toZip).then((zip) => {
+            downloadFile(`${ this.id }-reports-xccdf-per-node.zip`, zip, 'application/zip');
+          });
+        }
       }
     } catch (err) {
       this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
