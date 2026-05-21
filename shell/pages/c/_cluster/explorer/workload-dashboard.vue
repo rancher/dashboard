@@ -3,7 +3,6 @@ import {
   ref, computed, watch, onMounted, onBeforeUnmount
 } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
 import type { RouteLocationRaw } from 'vue-router';
 import { WORKLOAD_TYPES, POD, NAMESPACE } from '@shell/config/types';
 import { Banner } from '@components/Banner';
@@ -69,7 +68,6 @@ const COLOR_ORDER: Record<string, number> = {
 };
 
 const store = useStore();
-const route = useRoute();
 const { t } = useI18n(store);
 
 const summaries = ref<SummaryEntry[]>([]);
@@ -323,7 +321,7 @@ function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
   const loc: RouteLocationRaw = {
     name:   'c-cluster-product-resource',
     params: {
-      cluster:  route.params.cluster as string,
+      cluster:  clusterId.value,
       product:  'explorer',
       resource: type,
     },
@@ -429,6 +427,7 @@ async function fetchSummaries(): Promise<void> {
 
     await resolveStateColors(results);
     summaries.value = results;
+    fetchError.value = null;
   } catch (e: any) {
     fetchError.value = e.message || t('workloadDashboard.errors.fetchAll');
   }
