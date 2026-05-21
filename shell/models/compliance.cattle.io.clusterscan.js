@@ -142,7 +142,7 @@ export default class ClusterScan extends SteveModel {
 
       downloadFile(`${ labelFor(report) }.csv`, csv, 'application/csv');
     } catch (err) {
-      this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
     }
   }
 
@@ -164,7 +164,7 @@ export default class ClusterScan extends SteveModel {
 
         toZip[`${ labelFor(report) }.csv`] = csv;
       } catch (err) {
-        this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
       }
     });
     if (!isEmpty(toZip)) {
@@ -208,23 +208,27 @@ export default class ClusterScan extends SteveModel {
 
       const toZip = {};
 
-      Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
-        (hosts || []).forEach((hostname) => {
-          const xml = generateXCCDFPerNode({
-            ...common, hostname, role,
+      if (!Object.entries(parsed.nodes || {}).length) {
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorNoParsedNodes') }, { root: true });
+      } else {
+        Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+          (hosts || []).forEach((hostname) => {
+            const xml = generateXCCDFPerNode({
+              ...common, hostname, role,
+            });
+
+            toZip[`${ labelFor(report) }--${ hostname }.xml`] = xml;
           });
-
-          toZip[`${ labelFor(report) }--${ hostname }.xml`] = xml;
         });
-      });
 
-      if (!isEmpty(toZip)) {
-        const zip = await generateZip(toZip);
+        if (!isEmpty(toZip)) {
+          const zip = await generateZip(toZip);
 
-        downloadFile(`${ labelFor(report) }-per-node.zip`, zip, 'application/zip');
+          downloadFile(`${ labelFor(report) }-per-node.zip`, zip, 'application/zip');
+        }
       }
     } catch (err) {
-      this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
     }
   }
 
@@ -257,7 +261,7 @@ export default class ClusterScan extends SteveModel {
             });
           });
         } catch (err) {
-          this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+          this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
         }
       });
 
@@ -267,7 +271,7 @@ export default class ClusterScan extends SteveModel {
         });
       }
     } catch (err) {
-      this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
     }
   }
 

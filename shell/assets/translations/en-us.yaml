@@ -1528,6 +1528,8 @@ compliance:
   reports: Reports
   retention: Retention Count
   scan:
+    errorNoParsedNodes: No nodes were parsed from the scan results, so no report can be generated.
+    errorDownload: Error downloading file
     description: Description
     fail: Fail
     lastScanTime: Last Scan Time

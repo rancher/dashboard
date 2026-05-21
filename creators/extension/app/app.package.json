@@ -5,9 +5,7 @@
   "engines": {
     "node": ">=24"
   },
-  "dependencies": {
-    "xmlbuilder2": "4.0.3"
-  },
+  "dependencies": {},
   "resolutions": {
     "@types/node": "~25.3.0",
     "@types/lodash": "4.17.5"
