@@ -1,464 +1,28 @@
 <script setup lang="ts">
-import {
-  ref, computed, watch, onMounted, onBeforeUnmount
-} from 'vue';
-import { useStore } from 'vuex';
-import type { RouteLocationRaw } from 'vue-router';
-import { WORKLOAD_TYPES, POD, NAMESPACE } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import RichTranslation from '@shell/components/RichTranslation.vue';
-import { STATES, colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import { DOCS_BASE } from '@shell/config/private-label';
-import { StateColor } from '@shell/utils/style';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
-import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
-import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
+import { DOCS_BASE } from '@shell/config/private-label';
 import { useI18n } from '@shell/composables/useI18n';
-import { STATE_COLOR_MAP, ALL_NAMESPACES } from '@shell/store/prefs';
-import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
-import {
-  NAMESPACE_FILTER_ALL_USER,
-  NAMESPACE_FILTER_ALL_SYSTEM,
-  NAMESPACE_FILTER_P_FULL_PREFIX,
-  NAMESPACE_FILTER_NS_FULL_PREFIX,
-} from '@shell/utils/namespace-filter';
-import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
-import { PaginationFilterEquality } from '@shell/types/store/pagination.types';
-
-interface SummaryEntry {
-  type: string;
-  summary: { property: string; counts: Record<string, number> }[] | null;
-  error: string | null;
-}
-
-interface WorkloadEntry {
-  type: string;
-  label: string;
-  total: number;
-  stateCounts: Record<string, number>;
-  error: string | null;
-}
-
-interface StateCardRow {
-  label: string;
-  color: StateColor;
-  type: string;
-  stateNames: string[];
-  counts: { label: string; count: number }[];
-}
-
-interface StateCard {
-  color: StateColor;
-  rows: StateCardRow[];
-}
-
-const WORKLOAD_RESOURCE_TYPES: string[] = [
-  WORKLOAD_TYPES.CRON_JOB,
-  WORKLOAD_TYPES.DAEMON_SET,
-  WORKLOAD_TYPES.DEPLOYMENT,
-  WORKLOAD_TYPES.JOB,
-  WORKLOAD_TYPES.STATEFUL_SET,
-  POD,
-];
-
-const COLOR_ORDER: Record<string, number> = {
-  error: 0, warning: 1, disabled: 2, info: 3, success: 4
-};
+import { useStore } from 'vuex';
+import { useWorkloadDashboard } from './workload-dashboard/composable';
+import ByStateSection from './workload-dashboard/ByStateSection.vue';
+import ByTypeSection from './workload-dashboard/ByTypeSection.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const summaries = ref<SummaryEntry[]>([]);
-const fetchError = ref<string | null>(null);
-const loading = ref(true);
-let pollTimer: ReturnType<typeof setInterval> | null = null;
-
-const clusterId = computed<string>(() => store.getters['clusterId']);
-
-const stateColorMap = computed<Record<string, StateColor>>(() => {
-  const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
-
-  return all[clusterId.value] || {};
-});
-
-function saveStateColorMap(updates: Record<string, StateColor>): void {
-  const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
-  const current = all[clusterId.value] || {};
-
-  store.dispatch('prefs/set', {
-    key:   STATE_COLOR_MAP,
-    value: { ...all, [clusterId.value]: { ...current, ...updates } },
-  });
-}
-
-function toStateColor(state: string): StateColor {
-  const key = (state || '').toLowerCase();
-  const cached = stateColorMap.value[key];
-
-  if (cached) {
-    return cached;
-  }
-
-  const config = STATES[key];
-  const color = config?.color || 'info';
-
-  return (color === 'darker' ? 'disabled' : color) as StateColor;
-}
-
-const isAllNamespaces = computed<boolean>(() => {
-  return store.getters['isAllNamespaces'];
-});
-
-const namespaceFilterParam = computed<string>(() => {
-  const selection: string[] = store.getters['namespaceFilters'];
-  const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-    allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-    selection,
-    isAllNamespaces:               isAllNamespaces.value,
-    isLocalCluster:                store.getters['currentCluster']?.isLocal,
-    showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-    productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-  });
-
-  const parts: string[] = [];
-
-  const nsValues = projectsOrNamespaces.flatMap((p) => p.fields.map((f) => f.value || ''));
-  const pAndN = pAndNFiltering.createParam(nsValues);
-
-  if (pAndN) {
-    parts.push(pAndN);
-  }
-
-  for (const f of filters) {
-    for (const field of f.fields) {
-      const equality = field.equality || '=';
-      const val = [PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality as PaginationFilterEquality) ? `(${ field.value })` : field.value;
-
-      parts.push(`filter=${ field.field }${ equality }${ val }`);
-    }
-  }
-
-  return parts.join('&');
-});
-
-const totalWorkloads = computed<number>(() => {
-  return workloadData.value.reduce((sum, w) => sum + (w.error ? 0 : w.total), 0);
-});
-
-const namespaceMode = computed<string>(() => store.getters['namespaceMode']);
-
-const namespaceSubtitle = computed<string>(() => {
-  const count = totalWorkloads.value;
-  const filters: string[] = store.getters['namespaceFilters'];
-
-  if (namespaceMode.value === 'namespaced') {
-    return t('workloadDashboard.subtitle.namespacedOnly', { count });
-  }
-
-  if (namespaceMode.value === 'cluster') {
-    return t('workloadDashboard.subtitle.clusterOnly', { count });
-  }
-
-  if (isAllNamespaces.value) {
-    return t('workloadDashboard.subtitle.allNamespaces', { count });
-  }
-
-  if (filters.length === 1) {
-    const filter = filters[0];
-
-    if (filter === NAMESPACE_FILTER_ALL_USER) {
-      return t('workloadDashboard.subtitle.userNamespaces', { count });
-    }
-
-    if (filter === NAMESPACE_FILTER_ALL_SYSTEM) {
-      return t('workloadDashboard.subtitle.systemNamespaces', { count });
-    }
-
-    if (filter.startsWith(NAMESPACE_FILTER_P_FULL_PREFIX)) {
-      const projectId = filter.replace(NAMESPACE_FILTER_P_FULL_PREFIX, '');
-      const projects = store.getters['management/all']('management.cattle.io.project');
-      const project = projects.find((p: any) => p.id?.endsWith(`/${ projectId }`) || p.metadata?.name === projectId);
-
-      return t('workloadDashboard.subtitle.project', { name: project?.nameDisplay || projectId, count });
-    }
-
-    if (filter.startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX)) {
-      const name = filter.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '');
-
-      return t('workloadDashboard.subtitle.namespace', { name, count });
-    }
-  }
-
-  return t('workloadDashboard.subtitle.multipleSelected', { selected: filters.length, count });
-});
-
-const workloadData = computed<WorkloadEntry[]>(() => {
-  return summaries.value.map((entry) => {
-    const label = t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
-    const stateCounts: Record<string, number> = {};
-    let total = 0;
-
-    if (entry.summary) {
-      for (const s of entry.summary) {
-        if (s.property === 'metadata.state.name') {
-          Object.assign(stateCounts, s.counts);
-          total = Object.values(s.counts).reduce((sum, c) => sum + c, 0);
-        }
-      }
-    }
-
-    return {
-      type:  entry.type,
-      label,
-      total,
-      stateCounts,
-      error: entry.error,
-    };
-  });
-});
-
-const hasWorkloads = computed<boolean>(() => {
-  return workloadData.value.some((w) => !w.error && w.total > 0);
-});
-
-const byStateCards = computed<StateCard[]>(() => {
-  const colorGroups: Record<string, Record<string, { count: number; type: string; stateNames: Set<string> }>> = {
-    error:    {},
-    warning:  {},
-    info:     {},
-    success:  {},
-    disabled: {},
-  };
-
-  for (const w of workloadData.value) {
-    if (w.error || w.total === 0) {
-      continue;
-    }
-
-    for (const [state, count] of Object.entries(w.stateCounts)) {
-      const color = toStateColor(state);
-
-      if (!colorGroups[color][w.label]) {
-        colorGroups[color][w.label] = {
-          count: 0, type: w.type, stateNames: new Set()
-        };
-      }
-      colorGroups[color][w.label].count += count;
-      colorGroups[color][w.label].stateNames.add(state);
-    }
-  }
-
-  return Object.entries(colorGroups)
-    .filter(([, typeMap]) => Object.keys(typeMap).length > 0)
-    .map(([color, typeMap]) => ({
-      color: color as StateColor,
-      rows:  Object.entries(typeMap).map(([label, { count, type, stateNames }]) => ({
-        label,
-        color:      color as StateColor,
-        type,
-        stateNames: Array.from(stateNames),
-        counts:     [{ label: '', count }],
-      })),
-    }));
-});
-
-const byStateLayout = computed(() => {
-  const cards = byStateCards.value;
-  const hero = cards.find((c) => c.color === 'success') || null;
-  const others = cards.filter((c) => c !== hero);
-
-  let heroMode = 'default';
-
-  if (cards.length === 1) {
-    heroMode = 'full';
-  } else if (others.length === 1) {
-    heroMode = 'wide';
-  }
-
-  const subHero = (hero && others.length >= 3) ? others.find((c) => c.color === 'info') || null : null;
-
-  const regularCards = subHero ? others.filter((c) => c !== subHero) : others;
-  const gridRows = subHero ? Math.max(1, regularCards.length) : Math.max(1, Math.ceil(regularCards.length / 2));
-
-  return {
-    hero,
-    subHero,
-    cards: regularCards,
-    heroMode,
-    gridRows,
-  };
-});
-
-const byTypeCards = computed(() => {
-  return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-    const resources = Object.entries(w.stateCounts)
-      .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5))
-      .map(([state, count]) => ({
-        stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
-        stateId:          state,
-        stateSimpleColor: toStateColor(state),
-        count,
-      }));
-
-    return {
-      title: w.label,
-      type:  w.type,
-      resources,
-    };
-  });
-});
-
-function resetNamespaceFilter(): void {
-  store.dispatch('switchNamespaces', {
-    ids: [],
-    key: store.getters['clusterId'],
-  });
-}
-
-function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
-  const loc: RouteLocationRaw = {
-    name:   'c-cluster-product-resource',
-    params: {
-      cluster:  clusterId.value,
-      product:  'explorer',
-      resource: type,
-    },
-  };
-
-  if (stateNames?.length) {
-    const q = stateNames.map((s) => `"metadata.state.name":"${ s }"`).join(',');
-
-    (loc as any).query = { q };
-  }
-
-  return loc;
-}
-
-async function resolveStateColors(entries: SummaryEntry[]): Promise<void> {
-  const unresolvedStates = new Map<string, { originalName: string; type: string }>();
-
-  for (const entry of entries) {
-    if (!entry.summary) {
-      continue;
-    }
-
-    for (const s of entry.summary) {
-      if (s.property === 'metadata.state.name') {
-        for (const stateName of Object.keys(s.counts)) {
-          const key = stateName.toLowerCase();
-
-          if (!stateColorMap.value[key] && !unresolvedStates.has(key)) {
-            unresolvedStates.set(key, { originalName: stateName, type: entry.type });
-          }
-        }
-      }
-    }
-  }
-
-  if (unresolvedStates.size === 0) {
-    return;
-  }
-
-  const newColors: Record<string, StateColor> = {};
-  const pending = Array.from(unresolvedStates.entries());
-  const concurrency = 10;
-
-  for (let i = 0; i < pending.length; i += concurrency) {
-    const batch = pending.slice(i, i + concurrency);
-
-    await Promise.all(batch.map(async([stateKey, { originalName, type }]) => {
-      try {
-        const url = `/v1/${ type }?limit=1&filter=metadata.state.name=${ originalName }`;
-        const res = await store.dispatch('cluster/request', { url });
-        const resource = res?.data?.[0];
-
-        if (!resource?.metadata?.state) {
-          return;
-        }
-
-        const { error: isError, transitioning, name } = resource.metadata.state;
-        const rawColor = colorForState(name, isError, transitioning).replace('text-', '');
-
-        newColors[stateKey] = (rawColor === 'darker' ? 'disabled' : rawColor) as StateColor;
-      } catch {
-        // Fallback handled by toStateColor via STATES lookup
-      }
-    }));
-  }
-
-  if (Object.keys(newColors).length > 0) {
-    saveStateColorMap(newColors);
-  }
-}
-
-async function fetchSummaries(): Promise<void> {
-  try {
-    const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type): Promise<SummaryEntry> => {
-      const schema = store.getters['cluster/schemaFor'](type);
-
-      if (!schema) {
-        return {
-          type, summary: null, error: t('workloadDashboard.errors.noAccess', { type })
-        };
-      }
-
-      try {
-        let url = `${ schema.links.collection }?summary=metadata.state.name`;
-
-        if (namespaceFilterParam.value) {
-          url += `&${ namespaceFilterParam.value }`;
-        }
-
-        const res = await store.dispatch('cluster/request', { url });
-
-        return {
-          type, summary: res.summary || [], error: null
-        };
-      } catch (e: any) {
-        return {
-          type, summary: null, error: e.message || t('workloadDashboard.errors.fetchType', { type })
-        };
-      }
-    });
-
-    const results = await Promise.all(workloadPromises);
-
-    await resolveStateColors(results);
-    summaries.value = results;
-    fetchError.value = null;
-  } catch (e: any) {
-    fetchError.value = e.message || t('workloadDashboard.errors.fetchAll');
-  }
-}
-
-function resetPollTimer(): void {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-  }
-
-  pollTimer = setInterval(() => {
-    fetchSummaries();
-  }, 5000);
-}
-
-watch(namespaceFilterParam, () => {
-  fetchSummaries();
-  resetPollTimer();
-});
-
-onMounted(async() => {
-  await fetchSummaries();
-  loading.value = false;
-  resetPollTimer();
-});
-
-onBeforeUnmount(() => {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-  }
-});
+const {
+  loading,
+  fetchError,
+  hasWorkloads,
+  namespaceSubtitle,
+  byStateLayout,
+  byTypeCards,
+  resetNamespaceFilter,
+  resourceRoute,
+} = useWorkloadDashboard();
 </script>
 
 <template>
@@ -522,60 +86,16 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </header>
+
       <!-- ━━━ By State ━━━ -->
       <div class="section">
         <h4 class="m-0 text-muted">
           {{ t('workloadDashboard.sections.byState') }}
         </h4>
-        <div
-          class="bento-grid"
-          :class="{ 'bento-grid--has-sub-hero': !!byStateLayout.subHero }"
-          :style="{ 'grid-template-rows': 'repeat(' + byStateLayout.gridRows + ', ' + (byStateLayout.subHero ? '1fr' : 'auto') + ')' }"
-        >
-          <Card
-            v-for="card in byStateLayout.cards"
-            :key="card.color"
-            class="state-card"
-            :class="'state-card--' + card.color"
-          >
-            <ResourceRow
-              v-for="(row, idx) in card.rows"
-              :key="idx"
-              :label="row.label"
-              :to="resourceRoute(row.type, row.stateNames)"
-              :color="row.color"
-              :counts="row.counts"
-            />
-          </Card>
-          <Card
-            v-if="byStateLayout.subHero"
-            class="state-card bento-sub-hero"
-            :class="'state-card--' + byStateLayout.subHero.color"
-          >
-            <ResourceRow
-              v-for="(row, idx) in byStateLayout.subHero.rows"
-              :key="idx"
-              :label="row.label"
-              :to="resourceRoute(row.type, row.stateNames)"
-              :color="row.color"
-              :counts="row.counts"
-            />
-          </Card>
-          <Card
-            v-if="byStateLayout.hero"
-            class="state-card bento-hero"
-            :class="['state-card--' + byStateLayout.hero.color, 'bento-hero--' + byStateLayout.heroMode]"
-          >
-            <ResourceRow
-              v-for="(row, idx) in byStateLayout.hero.rows"
-              :key="idx"
-              :label="row.label"
-              :to="resourceRoute(row.type, row.stateNames)"
-              :color="row.color"
-              :counts="row.counts"
-            />
-          </Card>
-        </div>
+        <ByStateSection
+          :layout="byStateLayout"
+          :resource-route="resourceRoute"
+        />
       </div>
 
       <!-- ━━━ By Type ━━━ -->
@@ -583,17 +103,10 @@ onBeforeUnmount(() => {
         <h4 class="m-0 text-muted">
           {{ t('workloadDashboard.sections.byType') }}
         </h4>
-        <div class="card-grid">
-          <StatusCard
-            v-for="card in byTypeCards"
-            :key="card.title"
-            :title="card.title"
-            :to="resourceRoute(card.type)"
-            :row-to="resourceRoute(card.type)"
-            :resources="card.resources"
-            :show-percent="false"
-          />
-        </div>
+        <ByTypeSection
+          :cards="byTypeCards"
+          :resource-route="resourceRoute"
+        />
       </div>
     </template>
   </div>
@@ -642,87 +155,11 @@ onBeforeUnmount(() => {
     }
   }
 
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-  }
-
   :deep(.state-card) {
     .body {
       display: flex;
       flex-direction: column;
       gap: 4px;
-    }
-  }
-
-  .bento-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-flow: dense;
-    gap: 15px;
-
-    .bento-hero {
-      grid-column: 3;
-      grid-row: 1 / -1;
-
-      &--full {
-        grid-column: 1 / -1;
-
-        :deep(.body) {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 4px 48px;
-        }
-      }
-
-      &--wide {
-        grid-column: 2 / -1;
-
-        :deep(.body) {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 4px 48px;
-        }
-      }
-    }
-
-    .bento-sub-hero {
-      grid-column: 2;
-      grid-row: 1 / -1;
-    }
-
-    .bento-grid--has-sub-hero {
-      .state-card:not(.bento-hero):not(.bento-sub-hero) {
-        grid-column: 1;
-      }
-    }
-
-    .state-card {
-      border: 0;
-      :deep(.resource-row) {
-        position: relative;
-        padding-left: 20px;
-        line-height: 21px;
-        height: 24px;
-
-        .left {
-          flex-grow: 1;
-        }
-
-        .right .counts .state-dot {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-      }
-
-      @each $color in (error, warning, info, success, disabled) {
-        &--#{$color} {
-          background: var(--#{$color}-banner-bg, rgba(var(--#{$color}-rgb), 0.1));
-        }
-      }
     }
   }
 }
