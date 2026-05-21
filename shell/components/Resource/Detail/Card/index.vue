@@ -17,10 +17,18 @@ const clickable = computed(() => !!to);
 const cursorValue = computed(() => clickable.value ? 'pointer' : 'auto');
 const showHeading = computed(() => !!title || !!slots.title || !!slots['heading-action']);
 
-function handleClick(): void {
-  if (to) {
-    router.push(to);
+function handleClick(e: MouseEvent | KeyboardEvent): void {
+  if (!to) {
+    return;
   }
+
+  const target = e.target as HTMLElement;
+
+  if (target.closest('a, button')) {
+    return;
+  }
+
+  router.push(to);
 }
 </script>
 

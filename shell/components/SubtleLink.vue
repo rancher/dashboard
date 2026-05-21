@@ -1,25 +1,54 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import { RouterLink, RouteLocationRaw } from 'vue-router';
+import { useI18n } from '@shell/composables/useI18n';
 
 export interface Props {
-  to: RouteLocationRaw;
+  to?: RouteLocationRaw;
+  href?: string;
+  target?: string;
+  openInNewTab?: boolean;
 }
 
-const { to } = defineProps<Props>();
+const store = useStore();
+const { t } = useI18n(store);
+const props = defineProps<Props>();
+
+const isExternal = computed(() => !!props.href);
 </script>
 
 <template>
-  <RouterLink
-    class="subtle-link"
-    :to="to"
+  <component
+    :is="isExternal ? 'a' : RouterLink"
+    class="subtle-link link-main secondary-text-link"
+    v-bind="isExternal
+      ? { href, target, rel: target === '_blank' ? 'noopener noreferrer nofollow' : undefined }
+      : { to }"
   >
-    <slot name="default" />
-  </RouterLink>
+    <span
+      v-if="openInNewTab"
+      class="sr-only"
+    >{{ t('generic.opensInNewTab') }}</span>
+    <slot name="default" /><span v-if="openInNewTab">&nbsp;</span><i
+      v-if="openInNewTab"
+      class="link-icon icon icon-external-link"
+    />
+  </component>
 </template>
 
 <style lang="scss" scoped>
 .subtle-link {
     text-decoration: underline;
     color: var(--body-text);
+
+    &:hover,
+    &:active {
+      text-decoration: none;
+    }
+}
+
+.link-icon {
+  display: inline;
 }
 </style>

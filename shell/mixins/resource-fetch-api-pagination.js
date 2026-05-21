@@ -5,9 +5,44 @@ import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
-import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+
+const STRUCTURED_QUERY_REGEX = /^"([^"]+)":"([^"]*)"(?:,"([^"]+)":"([^"]*)")*$/;
+
+function parseStructuredQuery(query) {
+  if (!query || !STRUCTURED_QUERY_REGEX.test(query)) {
+    return null;
+  }
+
+  const pairs = [];
+  const pairRegex = /"([^"]+)":"([^"]*)"/g;
+  let match;
+
+  while ((match = pairRegex.exec(query)) !== null) {
+    pairs.push({ field: match[1], value: match[2] });
+  }
+
+  if (!pairs.length) {
+    return null;
+  }
+
+  const grouped = {};
+
+  for (const { field, value } of pairs) {
+    if (!grouped[field]) {
+      grouped[field] = [];
+    }
+    grouped[field].push(value);
+  }
+
+  return Object.entries(grouped).map(([field, values]) => new PaginationFilterField({
+    field,
+    value:    values.join(','),
+    equality: PaginationFilterEquality.IN,
+  }));
+}
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -75,11 +110,12 @@ export default {
       const {
         page, perPage, filter, sort, descending
       } = event;
-      const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
+      const structuredFilters = filter.searchQuery ? parseStructuredQuery(filter.searchQuery) : null;
+      const searchFilters = structuredFilters || (filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
         exact: false,
-      })) : [];
+      })) : []);
 
       const pagination = new PaginationArgs({
         page,

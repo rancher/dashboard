@@ -25,6 +25,7 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 import RichTranslation from '@shell/components/RichTranslation.vue';
+import SubtleLink from '@shell/components/SubtleLink.vue';
 import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import Select from '@shell/components/form/Select';
 import { getVersionData } from '@shell/config/version';
@@ -47,7 +48,8 @@ export default {
     AppChartCardSubHeader,
     AppChartCardFooter,
     Select,
-    RichTranslation
+    RichTranslation,
+    SubtleLink,
   },
 
   async fetch() {
@@ -683,16 +685,13 @@ export default {
             tag="span"
           >
             <template #docsUrl="{ content }">
-              <a
+              <SubtleLink
                 :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
-                class="secondary-text-link"
-                tabindex="0"
                 target="_blank"
-                rel="noopener noreferrer nofollow"
+                :open-in-new-tab="true"
               >
-                <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
-                {{ content }} <i class="icon icon-external-link" />
-              </a>
+                {{ content }}
+              </SubtleLink>
             </template>
           </RichTranslation>
         </div>

@@ -45,7 +45,7 @@ const segmentAccumulator = computed(() => {
     const color: StateColor = resource.stateSimpleColor;
 
     accumulator[color] = accumulator[color] || { count: 0 };
-    accumulator[color].count++;
+    accumulator[color].count += resource.count || 1;
   });
 
   return accumulator;
@@ -55,12 +55,13 @@ const rowAccumulator = computed(() => {
   interface Value {
     count: number;
     color: StateColor;
+    stateId: string;
   }
   const accumulator: {[key in string]: Value} = {};
 
   props.resources?.forEach((resource: any) => {
-    accumulator[resource.stateDisplay] = accumulator[resource.stateDisplay] || { count: 0 };
-    accumulator[resource.stateDisplay].count++;
+    accumulator[resource.stateDisplay] = accumulator[resource.stateDisplay] || { count: 0, stateId: resource.stateId || resource.stateDisplay };
+    accumulator[resource.stateDisplay].count += resource.count || 1;
     accumulator[resource.stateDisplay].color = resource.stateSimpleColor.replace('text-', '') as StateColor;
   });
 
@@ -71,7 +72,13 @@ const percent = (count: number, total: number) => {
   return count / total * 100;
 };
 
-const count = computed(() => props.resources?.length || 0);
+const count = computed(() => {
+  if (!props.resources?.length) {
+    return 0;
+  }
+
+  return props.resources.reduce((sum: number, r: any) => sum + (r.count || 1), 0);
+});
 
 const segmentColors = computed(() => Object.keys(segmentAccumulator.value) as StateColor[]);
 const segments = computed(() => segmentColors.value.map((color: StateColor) => ({
@@ -87,17 +94,18 @@ const rows = computed(() => {
   return rowStates.value.map((state) => ({
     color:   rowAccumulator.value[state].color,
     label:   state,
+    stateId: rowAccumulator.value[state].stateId,
     count:   rowAccumulator.value[state].count,
     percent: percent(rowAccumulator.value[state].count, count.value)
   }));
 });
 
-function rowRoute(label: string): RouteLocationRaw | undefined {
+function rowRoute(stateId: string): RouteLocationRaw | undefined {
   if (!props.rowTo || typeof props.rowTo === 'string') {
     return undefined;
   }
 
-  return { ...props.rowTo, query: { q: label } };
+  return { ...props.rowTo, query: { q: `"metadata.state.name":"${ stateId }"` } };
 }
 
 </script>
@@ -137,7 +145,7 @@ function rowRoute(label: string): RouteLocationRaw | undefined {
         :count="row.count"
         :percent="row.percent"
         :showPercent="props.showPercent"
-        :to="rowRoute(row.label)"
+        :to="rowRoute(row.stateId)"
       />
     </div>
     <div

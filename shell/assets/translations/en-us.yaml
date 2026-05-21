@@ -7430,6 +7430,9 @@ workloadDashboard:
   subtitle:
     allNamespaces: "For all namespaces ({count})"
     userNamespaces: "Only for user namespaces ({count})"
+    systemNamespaces: "Only for system namespaces ({count})"
+    namespacedOnly: "Only for namespaced resources ({count})"
+    clusterOnly: "Only for cluster resources ({count})"
     project: "For the namespaces of Project {name} ({count})"
     namespace: "For the namespace {name} ({count})"
     multipleSelected: "For {selected} items selected ({count})"

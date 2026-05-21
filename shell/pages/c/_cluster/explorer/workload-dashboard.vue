@@ -15,6 +15,7 @@ import { StateColor } from '@shell/utils/style';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
+import SubtleLink from '@shell/components/SubtleLink.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { STATE_COLOR_MAP, ALL_NAMESPACES } from '@shell/store/prefs';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
@@ -45,6 +46,7 @@ interface StateCardRow {
   label: string;
   color: StateColor;
   type: string;
+  stateNames: string[];
   counts: { label: string; count: number }[];
 }
 
@@ -147,9 +149,19 @@ const totalWorkloads = computed<number>(() => {
   return workloadData.value.reduce((sum, w) => sum + (w.error ? 0 : w.total), 0);
 });
 
+const namespaceMode = computed<string>(() => store.getters['namespaceMode']);
+
 const namespaceSubtitle = computed<string>(() => {
   const count = totalWorkloads.value;
   const filters: string[] = store.getters['namespaceFilters'];
+
+  if (namespaceMode.value === 'namespaced') {
+    return t('workloadDashboard.subtitle.namespacedOnly', { count });
+  }
+
+  if (namespaceMode.value === 'cluster') {
+    return t('workloadDashboard.subtitle.clusterOnly', { count });
+  }
 
   if (isAllNamespaces.value) {
     return t('workloadDashboard.subtitle.allNamespaces', { count });
@@ -158,8 +170,12 @@ const namespaceSubtitle = computed<string>(() => {
   if (filters.length === 1) {
     const filter = filters[0];
 
-    if (filter === NAMESPACE_FILTER_ALL_USER || filter === NAMESPACE_FILTER_ALL_SYSTEM) {
+    if (filter === NAMESPACE_FILTER_ALL_USER) {
       return t('workloadDashboard.subtitle.userNamespaces', { count });
+    }
+
+    if (filter === NAMESPACE_FILTER_ALL_SYSTEM) {
+      return t('workloadDashboard.subtitle.systemNamespaces', { count });
     }
 
     if (filter.startsWith(NAMESPACE_FILTER_P_FULL_PREFIX)) {
@@ -210,7 +226,7 @@ const hasWorkloads = computed<boolean>(() => {
 });
 
 const byStateCards = computed<StateCard[]>(() => {
-  const colorGroups: Record<string, Record<string, { count: number; type: string }>> = {
+  const colorGroups: Record<string, Record<string, { count: number; type: string; stateNames: Set<string> }>> = {
     error:    {},
     warning:  {},
     info:     {},
@@ -227,9 +243,12 @@ const byStateCards = computed<StateCard[]>(() => {
       const color = toStateColor(state);
 
       if (!colorGroups[color][w.label]) {
-        colorGroups[color][w.label] = { count: 0, type: w.type };
+        colorGroups[color][w.label] = {
+          count: 0, type: w.type, stateNames: new Set()
+        };
       }
       colorGroups[color][w.label].count += count;
+      colorGroups[color][w.label].stateNames.add(state);
     }
   }
 
@@ -237,11 +256,12 @@ const byStateCards = computed<StateCard[]>(() => {
     .filter(([, typeMap]) => Object.keys(typeMap).length > 0)
     .map(([color, typeMap]) => ({
       color: color as StateColor,
-      rows:  Object.entries(typeMap).map(([label, { count, type }]) => ({
+      rows:  Object.entries(typeMap).map(([label, { count, type, stateNames }]) => ({
         label,
-        color:  color as StateColor,
+        color:      color as StateColor,
         type,
-        counts: [{ label: '', count }],
+        stateNames: Array.from(stateNames),
+        counts:     [{ label: '', count }],
       })),
     }));
 });
@@ -275,19 +295,14 @@ const byStateLayout = computed(() => {
 
 const byTypeCards = computed(() => {
   return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-    const resources: { stateDisplay: string; stateSimpleColor: string }[] = [];
-
-    const sortedStates = Object.entries(w.stateCounts)
-      .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5));
-
-    for (const [state, count] of sortedStates) {
-      for (let i = 0; i < count; i++) {
-        resources.push({
-          stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
-          stateSimpleColor: toStateColor(state),
-        });
-      }
-    }
+    const resources = Object.entries(w.stateCounts)
+      .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5))
+      .map(([state, count]) => ({
+        stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
+        stateId:          state,
+        stateSimpleColor: toStateColor(state),
+        count,
+      }));
 
     return {
       title: w.label,
@@ -304,8 +319,8 @@ function resetNamespaceFilter(): void {
   });
 }
 
-function resourceRoute(type: string): RouteLocationRaw {
-  return {
+function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
+  const loc: RouteLocationRaw = {
     name:   'c-cluster-product-resource',
     params: {
       cluster:  route.params.cluster as string,
@@ -313,6 +328,14 @@ function resourceRoute(type: string): RouteLocationRaw {
       resource: type,
     },
   };
+
+  if (stateNames?.length) {
+    const q = stateNames.map((s) => `"metadata.state.name":"${ s }"`).join(',');
+
+    (loc as any).query = { q };
+  }
+
+  return loc;
 }
 
 async function resolveStateColors(entries: SummaryEntry[]): Promise<void> {
@@ -341,27 +364,31 @@ async function resolveStateColors(entries: SummaryEntry[]): Promise<void> {
   }
 
   const newColors: Record<string, StateColor> = {};
+  const pending = Array.from(unresolvedStates.entries());
+  const concurrency = 10;
 
-  const colorPromises = Array.from(unresolvedStates.entries()).map(async([stateKey, { originalName, type }]) => {
-    try {
-      const url = `/v1/${ type }?limit=1&filter=metadata.state.name=${ originalName }`;
-      const res = await store.dispatch('cluster/request', { url });
-      const resource = res?.data?.[0];
+  for (let i = 0; i < pending.length; i += concurrency) {
+    const batch = pending.slice(i, i + concurrency);
 
-      if (!resource?.metadata?.state) {
-        return;
+    await Promise.all(batch.map(async([stateKey, { originalName, type }]) => {
+      try {
+        const url = `/v1/${ type }?limit=1&filter=metadata.state.name=${ originalName }`;
+        const res = await store.dispatch('cluster/request', { url });
+        const resource = res?.data?.[0];
+
+        if (!resource?.metadata?.state) {
+          return;
+        }
+
+        const { error: isError, transitioning, name } = resource.metadata.state;
+        const rawColor = colorForState(name, isError, transitioning).replace('text-', '');
+
+        newColors[stateKey] = (rawColor === 'darker' ? 'disabled' : rawColor) as StateColor;
+      } catch {
+        // Fallback handled by toStateColor via STATES lookup
       }
-
-      const { error: isError, transitioning, name } = resource.metadata.state;
-      const rawColor = colorForState(name, isError, transitioning).replace('text-', '');
-
-      newColors[stateKey] = (rawColor === 'darker' ? 'disabled' : rawColor) as StateColor;
-    } catch {
-      // Fallback handled by toStateColor via STATES lookup
-    }
-  });
-
-  await Promise.all(colorPromises);
+    }));
+  }
 
   if (Object.keys(newColors).length > 0) {
     saveStateColorMap(newColors);
@@ -407,17 +434,25 @@ async function fetchSummaries(): Promise<void> {
   }
 }
 
+function resetPollTimer(): void {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+  }
+
+  pollTimer = setInterval(() => {
+    fetchSummaries();
+  }, 5000);
+}
+
 watch(namespaceFilterParam, () => {
   fetchSummaries();
+  resetPollTimer();
 });
 
 onMounted(async() => {
   await fetchSummaries();
   loading.value = false;
-
-  pollTimer = setInterval(() => {
-    fetchSummaries();
-  }, 5000);
+  resetPollTimer();
 });
 
 onBeforeUnmount(() => {
@@ -465,14 +500,13 @@ onBeforeUnmount(() => {
           tag="div"
         >
           <template #docsLink="{ content }">
-            <a
+            <SubtleLink
               :href="`${DOCS_BASE}/how-to-guides/new-user-guides/kubernetes-resources-setup/workloads-and-pods`"
               target="_blank"
-              rel="noopener noreferrer nofollow"
-              class="secondary-text-link"
+              :open-in-new-tab="true"
             >
-              {{ content }} <i class="icon icon-external-link" />
-            </a>
+              {{ content }}
+            </SubtleLink>
           </template>
         </RichTranslation>
       </div>
@@ -509,7 +543,7 @@ onBeforeUnmount(() => {
               v-for="(row, idx) in card.rows"
               :key="idx"
               :label="row.label"
-              :to="resourceRoute(row.type)"
+              :to="resourceRoute(row.type, row.stateNames)"
               :color="row.color"
               :counts="row.counts"
             />
@@ -523,7 +557,7 @@ onBeforeUnmount(() => {
               v-for="(row, idx) in byStateLayout.subHero.rows"
               :key="idx"
               :label="row.label"
-              :to="resourceRoute(row.type)"
+              :to="resourceRoute(row.type, row.stateNames)"
               :color="row.color"
               :counts="row.counts"
             />
@@ -537,7 +571,7 @@ onBeforeUnmount(() => {
               v-for="(row, idx) in byStateLayout.hero.rows"
               :key="idx"
               :label="row.label"
-              :to="resourceRoute(row.type)"
+              :to="resourceRoute(row.type, row.stateNames)"
               :color="row.color"
               :counts="row.counts"
             />
@@ -558,7 +592,7 @@ onBeforeUnmount(() => {
             :to="resourceRoute(card.type)"
             :row-to="resourceRoute(card.type)"
             :resources="card.resources"
-            :showPercent="false"
+            :show-percent="false"
           />
         </div>
       </div>
