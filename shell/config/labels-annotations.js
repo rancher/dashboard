@@ -20,6 +20,7 @@ export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-
 export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
 export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
 export const SERVICE_LINKS = 'ui.rancher/service-links';
+export const NODE_DRIVER_FIELD_HINTS = 'io.cattle.nodedriver/ui-field-hints';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',

@@ -4,6 +4,9 @@ import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';
+import { MANAGEMENT } from '@shell/config/types';
+import { NODE_DRIVER_FIELD_HINTS } from '@shell/config/labels-annotations';
+import { isEmpty } from '@shell/utils/object';
 
 export default {
   emits: ['input'],
@@ -40,6 +43,25 @@ export default {
 
       if ( !this.fields ) {
         throw new Error(`Machine Driver config schema not found for ${ name }`);
+      }
+    } catch (e) {
+      this.errors = exceptionToErrorsArray(e);
+    }
+
+    try {
+      const driver = await this.$store.dispatch('management/find', { type: MANAGEMENT.NODE_DRIVER, id: this.provider } );
+      const fieldHints = driver?.metadata?.annotations?.[NODE_DRIVER_FIELD_HINTS];
+      let parsedHints;
+
+      if (fieldHints) {
+        parsedHints = JSON.parse(fieldHints);
+      }
+      if (parsedHints && !isEmpty(parsedHints)) {
+        Object.keys(this.fields).forEach((fieldKey) => {
+          if (parsedHints[fieldKey] && parsedHints[fieldKey].type) {
+            this.fields[fieldKey].type = parsedHints[fieldKey].type;
+          }
+        });
       }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
