@@ -773,10 +773,10 @@ describe('page: UI plugins/Extensions', () => {
         id:               'repo/my-extension',
         icon:             'chart-icon.svg',
         versions:         [{
-          version:      '1.0.0',
-          appVersion:   '1.0.0',
-          created:      '2024-01-01',
-          annotations:  {
+          version:     '1.0.0',
+          appVersion:  '1.0.0',
+          created:     '2024-01-01',
+          annotations: {
             [CATALOG_ANNOTATIONS.EXPERIMENTAL]: 'true',
             [CATALOG_ANNOTATIONS.CERTIFIED]:    CATALOG_ANNOTATIONS._RANCHER,
           }
@@ -1076,7 +1076,9 @@ describe('page: UI plugins/Extensions', () => {
       const all: any[] = [{
         name:                'my-plugin',
         chart:               { repoName: 'rancher-charts' },
-        installableVersions: [{ version: '2.0.0', appVersion: '2.0.0', annotations: {} }],
+        installableVersions: [{
+          version: '2.0.0', appVersion: '2.0.0', annotations: {}
+        }],
       }];
 
       const pluginCR = { name: 'my-plugin', version: '1.0.0' };
