@@ -8,7 +8,7 @@ import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
-import { useResourceCardRow, useResourceCardRowFromSummary } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
@@ -866,20 +866,19 @@ export default class Workload extends WorkloadService {
 
   get resourcesCardRows() {
     const rows = [...this._resourcesCardRows];
-    const services = this.relatedServices || [];
-    const ingresses = this.matchingIngresses || [];
-    const summaries = this._summaries;
+    const showsIngressesAndServices = this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB;
 
-    if (ingresses.length) {
-      rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
-    } else if (summaries?.ingresses?.count) {
-      rows.unshift(useResourceCardRowFromSummary(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), summaries.ingresses, '#ingresses'));
-    }
+    if (showsIngressesAndServices) {
+      const services = this.relatedServices || [];
+      const ingresses = this.matchingIngresses || [];
 
-    if (services.length) {
-      rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), services, undefined, undefined, '#services'));
-    } else if (summaries?.services?.count) {
-      rows.unshift(useResourceCardRowFromSummary(this.t('component.resource.detail.card.resourcesCard.rows.services'), summaries.services, '#services'));
+      if (ingresses.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
+      }
+
+      if (services.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), services, undefined, undefined, '#services'));
+      }
     }
 
     return rows;

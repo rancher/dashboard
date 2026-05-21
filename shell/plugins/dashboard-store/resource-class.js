@@ -507,6 +507,10 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
+export function simpleColorForState(state, isError, isTransitioning) {
+  return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
+}
+
 export function stateDisplay(state) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
@@ -754,7 +758,7 @@ export default class Resource {
   }
 
   get stateSimpleColor() {
-    return this.stateColor.replace('text-', '');
+    return simpleColorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning);
   }
 
   get stateBackground() {
@@ -2249,8 +2253,8 @@ export default class Resource {
     const rows = [];
     const relationships = this.metadata?.relationships || [];
 
-    const referredToByRels = relationships.filter((r) => r.fromType && !r.selector);
-    const refersToRels = relationships.filter((r) => r.toType && !r.selector && !r.fromType);
+    const referredToByRels = relationships.filter((r) => r.fromType && r.fromId && !r.selector);
+    const refersToRels = relationships.filter((r) => r.toType && r.toId && !r.selector && !r.fromType);
 
     if (referredToByRels.length) {
       rows.push(useResourceCardRowFromRelationships(
