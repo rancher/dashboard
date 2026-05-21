@@ -17,36 +17,29 @@ export interface ModalConfig {
    * Example with a callback function:
    *
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import MyCustomModal from './MyCustomModal.vue';
    *
-   * export default {
-   *   methods: {
-   *     myAction() {
-   *       console.log('Performed an action');
-   *     },
-   *     showModal() {
-   *       this.$shell.modal.open(MyCustomModal, {
-   *         props: { onConfirm: this.myAction }
-   *       });
-   *     }
-   *   }
+   * const shell = useShell();
+   *
+   * function myAction() {
+   *   console.log('Performed an action');
+   * }
+   *
+   * function showModal() {
+   *   shell.modal.open(MyCustomModal, {
+   *     props: { onConfirm: myAction }
+   *   });
    * }
    * ```
    *
    * ```ts
-   * export default {
-   *   props: {
-   *     onConfirm: {
-   *       type: Function,
-   *       required: true
-   *     }
-   *   },
-   *   methods:.
-   *     confirm() {
-   *       this.onConfirm();
-   *       this.$emit('close');
-   *     }
-   *   }
+   * const props = defineProps<{ onConfirm: () => void }>();
+   * const emit = defineEmits<{ close: [] }>();
+   *
+   * function confirm() {
+   *   props.onConfirm();
+   *   emit('close');
    * }
    * ```
    */
@@ -108,13 +101,15 @@ export interface ModalApi {
    *
    * Example:
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * this.$shell.modal.open(MyCustomModal, {
+   * const shell = useShell();
+   *
+   * shell.modal.open(MyCustomModal, {
    *   props: { title: 'Hello Modal' }
    * });
    * ```
-   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
    *
    * @param component
    * The Vue component to be displayed inside the modal.

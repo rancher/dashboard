@@ -1,4 +1,4 @@
-import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
+import { IClusterProvisioner, ClusterProvisionerContext, ClusterProvisionerDetailTabs } from '@shell/core/types';
 import CruGKE from './components/CruGKE.vue';
 import { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
@@ -39,15 +39,17 @@ export class GKEProvisioner implements IClusterProvisioner {
     return !isProviderEnabled(this.context, this.id);
   }
 
-  get detailTabs(): any {
+  get detailTabs(): ClusterProvisionerDetailTabs {
     return {
+      nodes:        true,
       machines:     false,
       logs:         false,
       registration: false,
       snapshots:    false,
       related:      true,
-      events:       false,
-      conditions:   false,
+      events:       true,
+      conditions:   true,
+      autoscaler:   false,
     };
   }
 

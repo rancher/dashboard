@@ -13,7 +13,7 @@ import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
-import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
 
@@ -84,7 +84,8 @@ export default {
           keywords:        version.keywords
         };
 
-        const permittedSystems = (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+        const isRancher = isRancherRepo(this.repo, this.chart);
+        const permittedSystems = getPermittedOSs(version?.annotations, isRancher);
 
         if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
           nue.disabled = true;
@@ -271,7 +272,7 @@ export default {
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
@@ -423,8 +424,12 @@ export default {
             });
             this.mode = _EDIT;
           } catch (e) {
-            this.mode = _CREATE;
-            this.existing = null;
+            // Version targets a different namespace than where the app is installed.
+            // Fall back to matching installed apps (e.g. chart detail page).
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            this.existing = matching[0] || null;
+            this.mode = this.existing ? _EDIT : _CREATE;
           }
         } else {
           // Regular chart (not targeted) - check if there are installed instances.

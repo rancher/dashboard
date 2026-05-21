@@ -1,7 +1,5 @@
 import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
-import {
-  ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN
-} from '@shell/config/types';
+import { ADDRESSES, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
 import { downloadUrl } from '@shell/utils/download';
@@ -24,6 +22,10 @@ export default class MgmtNode extends HybridModel {
 
   get kubeNodeName() {
     return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
+  }
+
+  get mgmtCluster() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId);
   }
 
   get mgmtClusterId() {
@@ -101,7 +103,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.mgmtClusterId === this.mgmtClusterId);
+    return this.mgmtCluster?.provCluster;
   }
 
   get doneOverride() {

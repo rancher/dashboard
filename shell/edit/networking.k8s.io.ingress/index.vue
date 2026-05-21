@@ -87,21 +87,21 @@ export default {
           path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
         },
         {
-          path: 'spec.rules.http.paths.backend.service.port.number', rules: ['required'], translationKey: 'ingress.rules.port.label'
+          path: 'spec.rules.http.paths.backend.service.port', rules: ['portRequired', 'portRange'], translationKey: 'ingress.rules.port.label'
         },
         {
           path: 'spec.rules.http.paths.backend.service.name', rules: ['required'], translationKey: 'ingress.rules.target.label'
         },
         { path: 'spec', rules: ['backEndOrRules'] },
         {
-          path: 'spec.defaultBackend.service.name', rules: ['required'], translationKey: 'ingress.defaultBackend.targetService.label'
+          path: 'spec.defaultBackend.service.name', rules: ['defaultBackendNameRequired'], translationKey: 'ingress.defaultBackend.targetService.label'
         },
         {
-          path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
+          path: 'spec.defaultBackend.service.port', rules: ['defaultBackendPortRequired', 'portRange'], translationKey: 'ingress.defaultBackend.port.label'
         },
         { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
-      fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
+      fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
   },
 
@@ -125,35 +125,89 @@ export default {
         }
       };
 
-      return { backEndOrRules };
+      const portLabel = this.t('ingress.rules.port.label');
+
+      // Built-in `required` won't work: it passes for empty objects like {} or { name: '' }.
+      const portRequired = (port) => {
+        if (typeof port === 'string' || typeof port === 'number') {
+          if (!port) {
+            return this.t('validation.required', { key: portLabel });
+          }
+        } else if (!port || (!port.number && !port.name)) {
+          return this.t('validation.required', { key: portLabel });
+        }
+      };
+
+      const portRange = (port) => {
+        let num;
+
+        if (typeof port === 'number') {
+          num = port;
+        } else if (typeof port === 'string') {
+          num = Number.parseInt(port);
+        } else if (port?.number) {
+          num = port.number;
+        }
+
+        if (num !== undefined && !Number.isNaN(num) && (num < 1 || num > 65535)) {
+          return this.t('validation.number.between', {
+            key: portLabel, min: '1', max: '65535'
+          });
+        }
+      };
+
+      const hasDefaultBackendService = () => {
+        const backend = get(this.value?.spec, this.value.defaultBackendPath);
+
+        return !!get(backend, this.value.serviceNamePath);
+      };
+
+      const nameLabel = this.t('ingress.defaultBackend.targetService.label');
+
+      // Only enforce required on the default backend when a service is selected.
+      // Selecting "None" means the user wants to remove the backend; willSave() handles cleanup.
+      const defaultBackendNameRequired = (name) => {
+        if (hasDefaultBackendService() && !name) {
+          return this.t('validation.required', { key: nameLabel });
+        }
+      };
+
+      const defaultBackendPortRequired = (port) => {
+        if (!hasDefaultBackendService()) {
+          return;
+        }
+
+        return portRequired(port);
+      };
+
+      return {
+        backEndOrRules,
+        portRequired,
+        portRange,
+        defaultBackendNameRequired,
+        defaultBackendPortRequired,
+      };
     },
     tabErrors() {
       return {
-        rules:          this.fvGetPathErrors(['spec.rules.host', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.backend.service.name'])?.length > 0,
-        defaultBackend: this.fvGetPathErrors(['spec.defaultBackend.service.name', 'spec.defaultBackend.service.port.number'])?.length > 0
+        rules:          this.fvGetPathErrors(['spec.rules.host', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.port', 'spec.rules.http.paths.backend.service.name'])?.length > 0,
+        defaultBackend: this.fvGetPathErrors(['spec.defaultBackend.service.name', 'spec.defaultBackend.service.port'])?.length > 0
       };
     },
     rulesPathRules() {
       return {
         requestHost: this.fvGetAndReportPathRules('spec.rules.host'),
         path:        this.fvGetAndReportPathRules('spec.rules.http.paths.path'),
-        port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port.number'),
+        port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port'),
         target:      this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.name'),
 
       };
     },
     defaultBackendPathRules() {
-      const rulesExist = (this.value?.spec?.rules || []).length > 0;
-      const defaultBackendExist = !!this.value?.spec?.defaultBackend?.service;
-
-      if (!rulesExist || defaultBackendExist) {
-        return {
-          name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
-          port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port.number'),
-        };
-      }
-
-      return { name: [], port: [] };
+      return {
+        name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
+        port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port'),
+      };
     },
     serviceTargets() {
       return this.ingressHelper.findAndMapServiceTargets(this.services);
@@ -188,7 +242,8 @@ export default {
     willSave() {
       const backend = get(this.value.spec, this.value.defaultBackendPath);
       const serviceName = get(backend, this.value.serviceNamePath);
-      const servicePort = get(backend, this.value.servicePortPath);
+      const servicePort = get(backend, this.value.servicePortPath) ||
+        get(backend, this.value.servicePortNamePath);
 
       if (backend && (!serviceName || !servicePort)) {
         const path = this.value.defaultBackendPath;

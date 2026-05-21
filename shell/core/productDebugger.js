@@ -21,8 +21,13 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     }
 
     // prod configureType
-    if (dataType === 'typeOptions' && typeMapData[dataType].filter((item) => item.customRoute && item.customRoute.name.includes(prodName))) {
-      parsedData['configureType'] = typeMapData[dataType].filter((item) => item.customRoute && item.customRoute.name.includes(prodName));
+    if (dataType === 'typeOptions') {
+      const allTypeOptions = Object.values(typeMapData[dataType]).flat();
+      const filtered = allTypeOptions.filter((item) => item.customRoute && item.customRoute.name.includes(prodName));
+
+      if (filtered.length > 0) {
+        parsedData['configureType'] = filtered;
+      }
     }
 
     // other types which map with prodName
@@ -36,7 +41,7 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     }
   });
 
-  console.error('*** PRODUCT DATA DEBUGGER **** DSLRegistrationsPerProduct', parsedData); // eslint-disable-line no-console
+  console.error(`*** PRODUCT DATA DEBUGGER ${ prodName } **** DSLRegistrationsPerProduct`, parsedData); // eslint-disable-line no-console
 }
 
 export function registeredRoutes(store, prodName) {
@@ -44,5 +49,5 @@ export function registeredRoutes(store, prodName) {
 
   const parsedData = routes.filter((route) => route.path.includes(prodName));
 
-  console.error('*** PRODUCT DATA DEBUGGER **** registeredRoutes', parsedData); // eslint-disable-line no-console
+  console.error(`*** PRODUCT DATA DEBUGGER ${ prodName } **** registeredRoutes`, parsedData); // eslint-disable-line no-console
 }

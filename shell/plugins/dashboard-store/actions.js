@@ -660,12 +660,8 @@ export default {
     return getters.all(type);
   },
 
-  // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  // opt: @ActionFindArgs
+  // @returns @ActionFindResponse
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {
@@ -842,19 +838,33 @@ export default {
   /**
    * Remove all cached entries for a resource and stop watches
    */
-  forgetType({ commit, dispatch, state }, type, compareWatches) {
-    // Stop all known watches
-    state.started
-      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
-      .forEach((entry) => dispatch('unwatch', entry));
+  forgetType({ commit, dispatch, state }, payload) {
+    let type = payload;
+    let config = {};
 
-    // Stop all known back-off watch processes for this type
-    dispatch('resetWatchBackOff', {
-      type, compareWatches, resetStarted: false
-    });
+    if ( typeof payload === 'object' && payload !== null && payload.type ) {
+      type = payload.type;
+      config = payload;
+    }
 
-    // Remove entries from store
-    commit('forgetType', type);
+    const { compareWatches, unwatch = true, forget = true } = config;
+
+    if (unwatch) {
+      // Stop all known watches
+      state.started
+        .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
+        .forEach((entry) => dispatch('unwatch', entry));
+
+      // Stop all known back-off watch processes for this type
+      dispatch('resetWatchBackOff', {
+        type, compareWatches, resetStarted: false
+      });
+    }
+
+    if (forget) {
+      // Remove entries from store
+      commit('forgetType', type);
+    }
   },
 
   promptRemove({ commit, state }, resources ) {

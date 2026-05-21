@@ -4,7 +4,10 @@
  *
  * Usage example:
  * ```ts
- * const rancherVersion = this.$shell.system.rancherVersion;
+ * import { useShell } from '@shell/apis';
+ *
+ * const shell = useShell();
+ * const rancherVersion = shell.system.rancherVersion;
  * console.log('Rancher Version:', rancherVersion);
  * ```
  *

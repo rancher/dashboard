@@ -1,13 +1,13 @@
 
 import { NotificationApi } from '@shell/types/notifications';
-import { ModalApi } from '@shell/apis/intf/modal';
-import { SlideInApi } from '@shell/apis/intf/slide-in';
-import { SystemApi } from '@shell/apis/intf/system';
+import { ModalApi } from '@shell/apis/intf/shell-api/modal';
+import { SlideInApi } from '@shell/apis/intf/shell-api/slide-in';
+import { SystemApi } from '@shell/apis/intf/shell-api/system';
 
 export * from '@shell/types/notifications';
-export * from '@shell/apis/intf/modal';
-export * from '@shell/apis/intf/slide-in';
-export * from '@shell/apis/intf/system';
+export * from '@shell/apis/intf/shell-api/modal';
+export * from '@shell/apis/intf/shell-api/slide-in';
+export * from '@shell/apis/intf/shell-api/system';
 
 /**
  * @internal

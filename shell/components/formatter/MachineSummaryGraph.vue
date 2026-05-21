@@ -18,7 +18,7 @@ export default {
   computed: {
     ready() {
       // Ensure we never show more ready machines than desired
-      // If w can address in backedn, we could revert this in the future
+      // If we can address in backend, we could revert this in the future
       const ready = this.row?.ready || 0;
       const desired = this.row?.desired || 0;
 

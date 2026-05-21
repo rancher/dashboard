@@ -189,6 +189,36 @@ h5.anchor {
   text-decoration: underline;
 }
 
+/* Make "Inherited from" sections footnote-style */
+h4[id^="inherited-from"],
+h5[id^="inherited-from"] {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--ifm-color-emphasis-600);
+  margin-top: 0.35rem;
+  margin-bottom: 0.2rem;
+}
+
+h4[id^="inherited-from"] + div pre,
+h5[id^="inherited-from"] + div pre {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  background-color: transparent !important;
+}
+
+h4[id^="inherited-from"] + div pre code,
+h5[id^="inherited-from"] + div pre code {
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.10rem;
+}
+
 @media screen and (max-width: 996px) {
   .homepage-banner {
     padding: 30px 30px;

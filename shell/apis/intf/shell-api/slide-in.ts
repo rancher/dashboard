@@ -80,14 +80,15 @@ export interface SlideInApi {
    *
    * Example:
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
    *
-   * this.$shell.slideIn.open(MyCustomSlideIn, {
+   * const shell = useShell();
+   *
+   * shell.slideIn.open(MyCustomSlideIn, {
    *   title: 'Hello from SlideIn panel!'
    * });
    * ```
-   *
-   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
    *
    * @param component
    * The Vue component to be displayed inside the slide in panel.

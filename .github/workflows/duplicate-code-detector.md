@@ -4,15 +4,9 @@ description: Identifies duplicate code patterns across the codebase and suggests
 on:
   workflow_dispatch:
   schedule: daily
-  steps:
-    - name: Check main repo
-      id: repo_check
-      run: |
-        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
-          echo "Skipping: not the main repository"
-          exit 1
-        fi
-if: needs.pre_activation.outputs.repo_check_result == 'success'
+
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+
 permissions:
   contents: read
   issues: read

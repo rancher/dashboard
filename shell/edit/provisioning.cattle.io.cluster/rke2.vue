@@ -298,6 +298,7 @@ export default {
       isEmpty,
       AGENT_CONFIGURATION_TYPES,
       basicsValid:                              true,
+      registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
     };
   },
@@ -906,7 +907,8 @@ export default {
       return this.validationPassed &&
             this.fvFormIsValid &&
             this.etcdConfigValid &&
-            this.basicsValid;
+            this.basicsValid &&
+            this.registryConfigValid;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -2688,6 +2690,7 @@ export default {
           <Tab
             :name="REGISTRIES_TAB_NAME"
             label-key="cluster.tabs.registry"
+            :error="!registryConfigValid"
           >
             <Registries
               v-if="isActiveTabRegistries"
@@ -2703,6 +2706,7 @@ export default {
               @custom-registry-changed="toggleCustomRegistry"
               @registry-host-changed="handleRegistryHostChanged"
               @registry-secret-changed="handleRegistrySecretChanged"
+              @registry-validation-changed="(val) => registryConfigValid = val"
             />
           </Tab>
 

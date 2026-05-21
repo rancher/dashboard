@@ -9,15 +9,8 @@ description: |
 on:
   schedule: daily
   workflow_dispatch:
-  steps:
-    - name: Check main repo
-      id: repo_check
-      run: |
-        if [ "${{ github.repository }}" != "rancher/dashboard" ]; then
-          echo "Skipping: not the main repository"
-          exit 1
-        fi
-if: needs.pre_activation.outputs.repo_check_result == 'success'
+
+if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
 
 permissions: read-all
 
@@ -58,13 +51,13 @@ steps:
   - name: Run Rancher
     run: |
       # Same as .github/workflows/test.yaml -> yarn e2e:docker -> scripts/e2e-docker-start
-      # Ports 80/443 are reserved by the MCP Gateway, so we remap to 8080/8443
-      RANCHER_HOST_HTTP_PORT=8080 RANCHER_HOST_HTTPS_PORT=8443 RANCHER_CONTAINER_NAME=rancher RANCHER_VERSION_E2E=head yarn e2e:docker
+      # Port 8080 is reserved by the MCP Gateway, so we use 9080/9443 for Rancher
+      RANCHER_HOST_HTTP_PORT=9080 RANCHER_HOST_HTTPS_PORT=9443 RANCHER_CONTAINER_NAME=rancher RANCHER_VERSION_E2E=head yarn e2e:docker
   - name: Bootstrap Rancher (first-login setup)
     run: |
       # Complete the first-login flow via API so the dashboard is fully usable.
       # See cypress/jenkins/run.sh rancher_init() for the reference implementation.
-      RANCHER_URL="https://127.0.0.1:8443"
+      RANCHER_URL="https://127.0.0.1:9443"
       BOOTSTRAP_PASSWORD="password"
 
       echo "Logging in with bootstrap password..."
@@ -116,14 +109,14 @@ additional information about WCAG 2.2.
 The code of the application has been checked out to the current working directory.
 
 Important notes about the runtime environment:
-- The Rancher Dashboard is running at `https://127.0.0.1:8443/dashboard/` (started and bootstrapped by prior workflow steps).
+- The Rancher Dashboard is running at `https://127.0.0.1:9443/dashboard/` (started and bootstrapped by prior workflow steps).
 - The admin credentials are: username `admin`, password `password`.
 - You are running inside a sandboxed container. The Docker socket is NOT available, so do NOT run `docker ps`, `docker logs`, or any docker commands — they will fail.
 - If Playwright fails to connect, try waiting a few seconds and retrying. The server uses a self-signed certificate, which is already handled by `--ignore-https-errors`.
 
 Steps:
 
-1. Use the Playwright MCP tool to browse to `https://127.0.0.1:8443/dashboard/`. If you see a login page, log in with username `admin` and password `password`. Review the website for accessibility problems by navigating around, clicking
+1. Use the Playwright MCP tool to browse to `https://127.0.0.1:9443/dashboard/`. If you see a login page, log in with username `admin` and password `password`. Review the website for accessibility problems by navigating around, clicking
   links, pressing keys, taking snapshots and/or screenshots to review, etc. using the appropriate Playwright MCP commands.
 
 2. Review the source code of the application to look for accessibility issues in the code.  Use the Grep, LS, Read, etc. tools.

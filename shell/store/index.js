@@ -1041,6 +1041,8 @@ export const actions = {
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+    // Similarly to above, we somehow get here without everything in management land being ready. FF needed to determine pagination state
+    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.FEATURE });
 
     // If SSP is on we won't have requested all clusters
     if (!paginateClusters({ rootGetters, state })) {
