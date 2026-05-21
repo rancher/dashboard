@@ -11,7 +11,7 @@ import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 const STRUCTURED_QUERY_REGEX = /^"([^"]+)":"([^"]*)"(?:,"([^"]+)":"([^"]*)")*$/;
 
-function parseStructuredQuery(query) {
+export function parseStructuredQuery(query) {
   if (!query || !STRUCTURED_QUERY_REGEX.test(query)) {
     return null;
   }
