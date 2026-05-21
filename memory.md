@@ -39,10 +39,10 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-5. `shell/utils/banners.js` — overlayIndividualBanners pure function + getIndividualBanners with store mock
 
 ## Completed Work (Summary)
 
+- 2026-05-21: PR (branch test-assist/banners-utils-tests): 15 tests for banners.js; 100% all metrics
 - 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for poller.js + poller-sequential.js; 98.9% stmts, 75% branches, 89.5% fns
 - 2026-05-19: PR #17729 (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class — MERGED ✅
 - 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns — MERGED ✅
@@ -62,6 +62,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-21: Task 3 (banners.js, 15 tests) + Task 7
 - 2026-05-20: Task 3 (poller.js + poller-sequential.js, 32 tests) + Task 4 + Task 7
 - 2026-05-19: Task 3 (svg-filter.js, 18 tests) + Task 4 + Task 7
 - 2026-05-18: Task 3 (alertmanagerconfig.js, 12 tests) + Task 7
@@ -71,7 +72,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- All previous PRs merged; new PR (branch test-assist/poller-tests) pending
+- New PR (branch test-assist/banners-utils-tests) pending
 
 ## Maintainer Priorities
 
