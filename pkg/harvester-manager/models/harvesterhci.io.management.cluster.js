@@ -64,10 +64,10 @@ export default class HciCluster extends ProvCluster {
     const mgmtClusterSchema = this.$rootGetters['management/schemaFor'](MANAGEMENT.CLUSTER);
     const schema = this.$rootGetters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-    const mgmtClusterCreate = !!mgmtClusterSchema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
-    const clusterCreate = !!schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+    const mgmtClusterManage = !!mgmtClusterSchema?.resourceMethods?.find((x) => x.toLowerCase().includes('put'));
+    const clusterManage = !!schema?.resourceMethods?.find((x) => x.toLowerCase() === 'put');
 
-    return clusterCreate && mgmtClusterCreate;
+    return clusterManage && mgmtClusterManage;
   }
 
   get stateColor() {

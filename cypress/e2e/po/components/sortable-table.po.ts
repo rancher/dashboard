@@ -191,7 +191,7 @@ export default class SortableTablePo extends ComponentPo {
 
   rowActionMenu() {
     // Get the visible dropdown menu - this ensures we only interact with a menu that's actually open
-    return new ActionMenuPo(cy.get('[dropdown-menu-collection]:visible'));
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
   }
 
   noRowsShouldNotExist() {
@@ -244,9 +244,9 @@ export default class SortableTablePo extends ComponentPo {
 
     // Wait for the dropdown to finish loading (not show "No actions available")
     if (!skipNoActionAvailableCheck) {
-      actionMenu.self().should('not.contain', 'No actions available');
+      actionMenu.checkNoActionsAvailable(false);
       // Ensure at least one non-disabled menu item is present
-      actionMenu.self().find('[dropdown-menu-item]:not([disabled])').should('exist');
+      actionMenu.atLeastOneActiveMenuItem();
     }
 
     return actionMenu;

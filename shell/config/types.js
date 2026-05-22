@@ -253,7 +253,8 @@ export const MANAGEMENT = {
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
   CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
-  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient',
+  PROXY_ENDPOINT:                'management.cattle.io.proxyEndpoint',
 };
 
 export const BRAND = {

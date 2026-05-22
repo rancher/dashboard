@@ -1,6 +1,6 @@
 /* eslint-disable jest/max-nested-describe */
 
-import { TYPE_MODES, getters, mutations } from '../type-map';
+import { TYPE_MODES, getters, mutations, DSL } from '../type-map';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
   COUNT,
@@ -1803,6 +1803,95 @@ describe('type-map', () => {
 
           // With explicit override to product-2, should use product-2
           expect(product1Options('pod', false, 'product-2').customRoute.name).toBe('p2-route');
+        });
+      });
+
+      describe('dsl headers', () => {
+        function createMockStore() {
+          const committed: { type: string; payload: any }[] = [];
+
+          return {
+            committed,
+            commit(mutation: string, payload: any) {
+              committed.push({ type: mutation, payload });
+            }
+          };
+        }
+
+        it('should commit only paginationHeaders when regular headers are not provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const paginationHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'name', sort: ['name']
+            }
+          ];
+
+          headers('pod', undefined as any, paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/paginationHeaders');
+          expect(mockStore.committed[0].payload).toStrictEqual({ type: 'pod', paginationHeaders });
+        });
+
+        it('should commit only paginationHeaders when regular headers are an empty array', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const paginationHeaders = [
+            {
+              name: 'state', labelKey: 'tableHeaders.state', value: 'state', sort: ['state']
+            }
+          ];
+
+          headers('pod', [], paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/paginationHeaders');
+        });
+
+        it('should commit both headers and paginationHeaders when both are provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const regularHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort']
+            }
+          ];
+          const paginationHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'name', sort: ['name']
+            }
+          ];
+
+          headers('pod', regularHeaders, paginationHeaders);
+
+          expect(mockStore.committed).toHaveLength(2);
+          expect(mockStore.committed[0].type).toBe('type-map/headers');
+          expect(mockStore.committed[1].type).toBe('type-map/paginationHeaders');
+        });
+
+        it('should commit only regular headers when paginationHeaders are not provided', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+          const regularHeaders = [
+            {
+              name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort']
+            }
+          ];
+
+          headers('pod', regularHeaders);
+
+          expect(mockStore.committed).toHaveLength(1);
+          expect(mockStore.committed[0].type).toBe('type-map/headers');
+        });
+
+        it('should not commit anything when both headers and paginationHeaders are empty', () => {
+          const mockStore = createMockStore();
+          const { headers } = DSL(mockStore as any, 'test-product');
+
+          headers('pod', [], []);
+
+          expect(mockStore.committed).toHaveLength(0);
         });
       });
     });

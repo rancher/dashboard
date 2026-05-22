@@ -324,11 +324,15 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
+    if (this.status?.clusterName) {
+      return this.status.clusterName;
+    }
+
     // when a cluster is created `this` instance isn't immediately updated with `status.clusterName`
     // Workaround - Get fresh copy from the store
     const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
 
-    return this.status?.clusterName || pCluster?.status?.clusterName;
+    return pCluster?.status?.clusterName;
   }
 
   get mgmt() {
@@ -353,22 +357,19 @@ export default class ProvCluster extends SteveModel {
 
   waitForMgmt(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
-      // `this` instance isn't getting updated with `status.clusterName`
-      // Workaround - Get fresh copy from the store
-      const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
-      const name = this.status?.clusterName || pCluster?.status?.clusterName;
+      const mgmtId = this.mgmtClusterId;
 
       try {
-        if (name) {
+        if (mgmtId) {
           // Just in case we're not generically watching all mgmt clusters and...
           // thus won't receive new mgmt cluster over socket...
           // fire and forget a request to fetch it (this won't make multiple requests if one is already running)
-          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: name });
+          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: mgmtId });
         }
       } catch {}
 
-      return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
+      return mgmtId && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, mgmtId);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: MANAGEMENT.CLUSTER, name: this.mgmtClusterId }), timeout, interval);
   }
 
   get provisioner() {

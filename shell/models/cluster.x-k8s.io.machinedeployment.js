@@ -1,33 +1,15 @@
 import { CAPI } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { CAPI as CAPI_ANNOTATIONS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
+import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
 
-export default class CapiMachineDeployment extends SteveModel {
-  get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
-  }
-
-  get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
-  }
-
+export default class CapiMachineDeployment extends CapiMachineRoot {
   get groupByPoolLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   }

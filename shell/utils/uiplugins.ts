@@ -180,18 +180,19 @@ export async function getHelmRepositoryExact(store: any, url: string): Promise<H
 /**
  *
  * @param store Vue store
- * @param urlRegexes Regex to match a community repository
+ * @param urlRegexes Regex to match against the repository's urls
  * @param catalogImages Catalog images to match against the repository's labels
  * @returns HelmRepository
  */
 export async function getHelmRepositoryMatch(store: any, urlRegexes: string[], catalogImages: string[]): Promise<HelmRepository> {
   return await getHelmRepository(store, (repository: any) => {
-    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
     const catalog = repository?.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] || '';
 
-    if (catalogImages.includes(catalog)) {
+    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
+    if (catalog && catalogImages.includes(catalog)) {
       return true;
     }
+
     const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
 
     return matchesSomeRegex(target, urlRegexes);
@@ -272,8 +273,7 @@ export async function createHelmRepository(store: any, name: string, url: string
     });
 
     tries++;
-
-    const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
+    const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
     console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
 

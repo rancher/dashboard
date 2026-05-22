@@ -1,5 +1,5 @@
 <script>
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
@@ -12,28 +12,25 @@ export default {
   components: { AsyncButton },
 
   async fetch() {
-    const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    const readyClusters = provClusters.filter((c) => c.mgmt?.isReady);
-    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters, this.$store), this.$store);
+    // Diagnostics does not scale with resources (this will be real heavy for rancher's with 1000s of clusters)
+    const mgmtClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    const readyMgmtClusters = mgmtClusters.filter((c) => c.isReady);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyMgmtClusters, this.$store), this.$store);
     const finalCounts = [];
     const promises = [];
     const topFifteenForResponseTime = [];
     const schemaPromises = [];
 
-    clusterForCounts.forEach((cluster, i) => {
-      // Necessary to retrieve the proper display name of the cluster
-      const mgmtCluster = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, cluster.metadata.name);
-
+    clusterForCounts.forEach((mgmtCluster, i) => {
       finalCounts.push({
-        id:             cluster.id,
-        name:           mgmtCluster?.spec?.displayName || cluster.metadata?.name,
-        namespace:      cluster.metadata?.namespace,
-        capiId:         cluster.mgmt?.id,
+        id:             mgmtCluster.id,
+        name:           mgmtCluster.spec.displayName || mgmtCluster.metadata?.name,
+        namespace:      mgmtCluster.provClusterNamespace,
         counts:         null,
         isTableVisible: !!(i === 0 && clusterForCounts.length === 1)
       });
-      promises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/counts` }));
-      schemaPromises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/schemas?exclude=metadata.managedFields` }));
+      promises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ mgmtCluster.id }/v1/counts` }));
+      schemaPromises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ mgmtCluster.id }/v1/schemas?exclude=metadata.managedFields` }));
     });
 
     const countsPerCluster = await Promise.all(promises);
@@ -62,7 +59,6 @@ export default {
 
         finalCount.forEach((item, i) => {
           finalCount[i].id = finalCounts[index].id;
-          finalCount[i].capiId = finalCounts[index].capiId;
         });
 
         topFifteenForResponseTime.push(finalCount);
@@ -187,7 +183,7 @@ export default {
     setResourceResponseTiming(responseTimes) {
       responseTimes?.forEach((res) => {
         if ( res.outcome === 'success' ) {
-          const cluster = this.finalCounts.find((c) => c.capiId === res.item.capiId);
+          const cluster = this.finalCounts.find((c) => c.id === res.item.id);
           const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
@@ -218,7 +214,7 @@ export default {
         return cluster.map((item) => {
           const t = Date.now();
 
-          return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
+          return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.id }/v1/${ item.resource }` })
             .then(() => ({
               outcome: 'success', item, durationMs: Date.now() - t
             }))

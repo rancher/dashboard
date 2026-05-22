@@ -2528,6 +2528,7 @@ export function generateFakeClusterDataAndIntercepts({
   cy.intercept({
     method:   'GET',
     pathname: '/v1/provisioning.cattle.io.clusters',
+    query:    { pagesize: '100000' }
   }, (req) => {
     req.continue((res) => {
       const localIndex = res.body.data.findIndex((item: any) => item.id.includes('/local'));
@@ -2551,21 +2552,47 @@ export function generateFakeClusterDataAndIntercepts({
     });
   }).as('provCluster');
 
+  const update = (clusters: any[]) => {
+    const localIndex = clusters.findIndex((item: any) => item.id.includes('local'));
+
+    if (localIndex >= 0) {
+      const localCluster = clusters[localIndex];
+
+      localCluster.spec.description = longClusterDescription;
+    }
+
+    clusters.push(fakeNavClusterData.mgmtClusterObj);
+  };
+
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-  cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '10' }
+  }, (req) => {
     req.continue((res) => {
-      const localIndex = res.body.data.findIndex((item: any) => item.id.includes('local'));
-
-      if (localIndex >= 0) {
-        const localCluster = res.body.data[localIndex];
-
-        localCluster.spec.description = longClusterDescription;
-      }
-
-      res.body.data.push(fakeNavClusterData.mgmtClusterObj);
+      update(res.body.data);
       res.send(res.body);
     });
-  }).as('mgmtClusters');
+  }).as('mgmtClustersSideNav');
+
+  cy.intercept({
+    method:   'GET',
+    pathname: '/v1/management.cattle.io.clusters',
+    query:    { pagesize: '100' }
+  }, (req) => {
+    req.continue((res) => {
+      update(res.body.data);
+      res.send(res.body);
+    });
+  }).as('mgmtClustersLists');
+
+  cy.intercept('GET', `/v1/management.cattle.io.clusters/${ fakeNavClusterData.mgmtClusterObj.id }?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       fakeNavClusterData.mgmtClusterObj,
+    });
+  }).as('mgmtCluster');
 
   // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {

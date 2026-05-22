@@ -1,4 +1,5 @@
 import { PluginProduct } from '@shell/core/plugin-products';
+import { Plugin } from '@shell/core/plugin';
 import {
   ProductMetadata, ProductSinglePage, ProductChildPage,
   ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage,
@@ -57,9 +58,10 @@ jest.mock('@shell/core/productDebugger', () => ({
 // Create mock factories
 function createMockPlugin(): IExtension {
   return {
-    _registerTopLevelProduct: jest.fn(),
-    addRoute:                 jest.fn(),
-    DSL:                      jest.fn((store, productName) => ({
+    _registerTopLevelProduct:   jest.fn(),
+    addRoute:                   jest.fn(),
+    enableServerSidePagination: jest.fn(),
+    DSL:                        jest.fn((store, productName) => ({
       basicType:           jest.fn(),
       labelGroup:          jest.fn(),
       setGroupDefaultType: jest.fn(),
@@ -68,12 +70,24 @@ function createMockPlugin(): IExtension {
       configureType:       jest.fn(),
       weightType:          jest.fn(),
       product:             jest.fn(),
+      headers:             jest.fn(),
+      hideBulkActions:     jest.fn(),
+      mapGroup:            jest.fn(),
+      ignoreGroup:         jest.fn(),
+      mapType:             jest.fn(),
+      ignoreType:          jest.fn(),
+      moveType:            jest.fn(),
     })),
   } as any;
 }
 
-function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames)): any {
-  return { getters: { 'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined) } };
+function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames), managementSchemas: string[] = []): any {
+  return {
+    getters: {
+      'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined),
+      'management/schemaFor':   (type: string) => (managementSchemas.includes(type) ? { id: type } : undefined),
+    }
+  };
 }
 
 describe('pluginProduct', () => {
@@ -3134,11 +3148,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3169,11 +3183,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3200,11 +3214,11 @@ describe('pluginProduct', () => {
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-        spoofedType:         jest.fn(),
-        mapGroup:            jest.fn(),
-        ignoreGroup:         jest.fn(),
-        mapType:             jest.fn(),
-        ignoreType:          jest.fn(),
+
+        mapGroup:    jest.fn(),
+        ignoreGroup: jest.fn(),
+        mapType:     jest.fn(),
+        ignoreType:  jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3805,6 +3819,876 @@ describe('pluginProduct', () => {
         // It should NOT be a generic route without the group name
         expect(groupVirtualType[0].route.name).not.toBe('myapp-c-cluster');
       });
+      describe('resource page: headers support', () => {
+        it('should call DSL headers method when resource page has headers configured', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'headers-test',
+            label: 'Headers Test',
+          };
+
+          const testHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+            {
+              name: 'status', labelKey: 'tableHeaders.status', value: 'status'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'some.resource.type', headers: testHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.headers).toHaveBeenCalledWith('some.resource.type', testHeaders, undefined);
+        });
+
+        it('should call DSL headers method with sspHeaders when configured', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'ssp-headers-test',
+            label: 'SSP Headers Test',
+          };
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+            {
+              name: 'namespace', labelKey: 'tableHeaders.namespace', value: 'metadata.namespace'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            { type: 'some.resource.type', sspHeaders: testSspHeaders },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.headers).toHaveBeenCalledWith('some.resource.type', undefined, testSspHeaders);
+        });
+
+        it('should call DSL headers method with both headers and sspHeaders when both are configured', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'both-headers-test',
+            label: 'Both Headers Test',
+          };
+
+          const testHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const testSspHeaders = [
+            {
+              name: 'name', label: 'Name', value: 'metadata.name'
+            },
+          ];
+
+          const config: ProductChildPage[] = [
+            {
+              type:       'some.resource.type',
+              headers:    testHeaders,
+              sspHeaders: testSspHeaders,
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.headers).toHaveBeenCalledWith('some.resource.type', testHeaders, testSspHeaders);
+        });
+
+        it('should not call DSL headers method when resource page has no headers or sspHeaders', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-headers-test',
+            label: 'No Headers Test',
+          };
+
+          const config: ProductChildPage[] = [{ type: 'some.resource.type' }];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.headers).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('resource page: overrideListResourceName (mapType) support', () => {
+        it('should call DSL mapType when resource page has overrideListResourceName', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'maptype-test',
+            label: 'MapType Test',
+          };
+
+          const config: ProductChildPage[] = [
+            { type: 'apps.deployment', overrideListResourceName: 'Deployments' },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.mapType).toHaveBeenCalledWith('apps.deployment', 'Deployments');
+        });
+
+        it('should not call mapType when overrideListResourceName is not set', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-maptype',
+            label: 'No MapType',
+          };
+
+          const config: ProductChildPage[] = [{ type: 'apps.deployment' }];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.mapType).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('resource page: hideFromNav (ignoreType) support', () => {
+        it('should call DSL ignoreType when resource page has hideFromNav set', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'ignoretype-test',
+            label: 'IgnoreType Test',
+          };
+
+          const config: ProductChildPage[] = [
+            { type: 'secret.type', hideFromNav: true },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreType).toHaveBeenCalledWith('secret.type');
+        });
+
+        it('should not call ignoreType when hideFromNav is not set', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-ignoretype',
+            label: 'No IgnoreType',
+          };
+
+          const config: ProductChildPage[] = [{ type: 'apps.deployment' }];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreType).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('resource page: hideBulkActions support', () => {
+        it('should call DSL hideBulkActions when resource page has hideBulkActions set', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'bulk-actions-test',
+            label: 'Bulk Actions Test',
+          };
+
+          const config: ProductChildPage[] = [
+            { type: 'management.cattle.io.feature', hideBulkActions: true },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.hideBulkActions).toHaveBeenCalledWith('management.cattle.io.feature', true);
+        });
+      });
+
+      describe('resource page: ordering - weight is set last', () => {
+        it('should call weightType after configureType for resource pages', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const callOrder: string[] = [];
+          const mockDSL = {
+            product:             jest.fn(),
+            basicType:           jest.fn(),
+            labelGroup:          jest.fn(),
+            setGroupDefaultType: jest.fn(),
+            weightGroup:         jest.fn(),
+            virtualType:         jest.fn(),
+            configureType:       jest.fn(() => callOrder.push('configureType')),
+            weightType:          jest.fn(() => callOrder.push('weightType')),
+            headers:             jest.fn(() => callOrder.push('headers')),
+            hideBulkActions:     jest.fn(() => callOrder.push('hideBulkActions')),
+
+            mapGroup:    jest.fn(),
+            ignoreGroup: jest.fn(),
+            mapType:     jest.fn(() => callOrder.push('mapType')),
+            ignoreType:  jest.fn(() => callOrder.push('ignoreType')),
+          };
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'order-test',
+            label: 'Order Test',
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              type:                     'apps.deployment',
+              weight:                   10,
+              headers:                  [{ name: 'col1', label: 'Col1' }],
+              hideBulkActions:          true,
+              overrideListResourceName: 'Deployments',
+              hideFromNav:              true,
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          // weight must be the last thing set
+          const weightIndex = callOrder.indexOf('weightType');
+          const configureIndex = callOrder.indexOf('configureType');
+
+          expect(weightIndex).toBeGreaterThan(configureIndex);
+          expect(callOrder[callOrder.length - 1]).toBe('weightType');
+        });
+      });
+
+      describe('product-level: renameGroups support', () => {
+        it('should call DSL mapGroup for each renameGroups entry in product metadata', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:         'maptogroup-test',
+            label:        'MapToGroup Test',
+            renameGroups: [
+              { groupSelector: /some\.regex/, newName: 'my-group' },
+              { groupSelector: 'exact.match', newName: 'other-group' },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.mapGroup).toHaveBeenCalledTimes(2);
+          expect(mockDSL.mapGroup).toHaveBeenCalledWith(/some\.regex/, 'my-group');
+          expect(mockDSL.mapGroup).toHaveBeenCalledWith('exact.match', 'other-group');
+        });
+
+        it('should not call mapGroup when no renameGroups entries exist', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-maptogroup',
+            label: 'No MapToGroup',
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.mapGroup).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('product-level: ignoreGroups support', () => {
+        it('should call DSL ignoreGroup with callback when condition is provided', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const cbFn = jest.fn(() => true);
+
+          const productMetadata: ProductMetadata = {
+            name:         'ignoregroups-test',
+            label:        'IgnoreGroups Test',
+            ignoreGroups: [
+              { groupSelector: 'hidden-group', condition: cbFn },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledWith('hidden-group', cbFn);
+        });
+
+        it('should call DSL ignoreGroup without callback when condition is not provided (unconditional hide)', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:         'ignoregroups-unconditional',
+            label:        'IgnoreGroups Unconditional',
+            ignoreGroups: [
+              { groupSelector: 'always-hidden' },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledWith('always-hidden');
+        });
+
+        it('should support regex patterns in ignoreGroups', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:         'ignoregroups-regex',
+            label:        'IgnoreGroups Regex',
+            ignoreGroups: [
+              { groupSelector: /^internal-.*/ },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledTimes(1);
+          expect(mockDSL.ignoreGroup).toHaveBeenCalledWith(/^internal-.*/);
+        });
+
+        it('should not call ignoreGroup when no ignoreGroups entries exist', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-ignoregroups',
+            label: 'No IgnoreGroups',
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.ignoreGroup).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('product-level DSL options are not called when extending', () => {
+        it('should not call mapGroup, ignoreGroup, or moveType when extending an existing product', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.mapGroup).not.toHaveBeenCalled();
+          expect(mockDSL.ignoreGroup).not.toHaveBeenCalled();
+          expect(mockDSL.moveType).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('product-level: moveToGroup support', () => {
+        it('should call basicType and moveType to move a resource type into a group', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const monitoringGroup: ProductChildGroup = {
+            name:     'monitoring',
+            label:    'Monitoring',
+            children: [
+              {
+                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+              },
+            ],
+          };
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              { entryId: 'pod', groupName: 'monitoring' },
+            ],
+          };
+
+          const config: ProductChild[] = [
+            monitoringGroup,
+            { type: 'pod' },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          // basicType re-registers the page under the resolved group for the nav tree
+          expect(mockDSL.basicType).toHaveBeenCalledWith(['pod'], 'myapp-monitoring');
+          // moveType also called for resource types (non-basic view modes)
+          expect(mockDSL.moveType).toHaveBeenCalledTimes(1);
+          expect(mockDSL.moveType).toHaveBeenCalledWith('pod', 'myapp-monitoring', undefined);
+        });
+
+        it('should call basicType but NOT moveType when moving a custom page into a group', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const monitoringGroup: ProductChildGroup = {
+            name:     'monitoring',
+            label:    'Monitoring',
+            children: [
+              {
+                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+              },
+            ],
+          };
+
+          const customPage: ProductChildCustomPage = {
+            name: 'dashboard', label: 'Dashboard', component: { name: 'DashboardPage' }
+          };
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              { entryId: 'dashboard', groupName: 'monitoring' },
+            ],
+          };
+
+          const config: ProductChild[] = [monitoringGroup, customPage];
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          // basicType re-registers the custom page under the resolved group
+          expect(mockDSL.basicType).toHaveBeenCalledWith(['myapp-dashboard'], 'myapp-monitoring');
+          // moveType is NOT called for custom pages (no schema to match against)
+          expect(mockDSL.moveType).not.toHaveBeenCalled();
+        });
+
+        it('should pass weight to DSL moveType when specified', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const myGroup: ProductChildGroup = {
+            name:     'resources',
+            label:    'Resources',
+            children: [
+              {
+                name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+              },
+            ],
+          };
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              {
+                entryId: 'apps.deployment', groupName: 'resources', weight: 10
+              },
+            ],
+          };
+
+          const config: ProductChild[] = [myGroup, { type: 'apps.deployment' }];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.basicType).toHaveBeenCalledWith(['apps.deployment'], 'myapp-resources');
+          expect(mockDSL.moveType).toHaveBeenCalledWith('apps.deployment', 'myapp-resources', 10);
+        });
+
+        it('should throw when moveToGroup references a groupName that does not exist in the config', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              { entryId: 'pod', groupName: 'nonexistent-group' },
+            ],
+          };
+
+          const config: ProductChildPage[] = [
+            { type: 'pod' },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          expect(() => {
+            pluginProduct.apply(mockPlugin, mockStore);
+          }).toThrow('moveToGroup target group "nonexistent-group" not found');
+        });
+
+        it('should throw when moveToGroup entryId does not match any registered page', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const myGroup: ProductChildGroup = {
+            name:     'monitoring',
+            label:    'Monitoring',
+            children: [
+              {
+                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+              },
+            ],
+          };
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              { entryId: 'nonexistent-page', groupName: 'monitoring' },
+            ],
+          };
+
+          const config: ProductChild[] = [myGroup];
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          expect(() => {
+            pluginProduct.apply(mockPlugin, mockStore);
+          }).toThrow('moveToGroup entryId "nonexistent-page" not found');
+        });
+
+        it('should not call moveType when no moveToGroup entries exist', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const productMetadata: ProductMetadata = {
+            name:  'no-move',
+            label: 'No Move',
+          };
+
+          const config: ProductChildPage[] = [
+            {
+              name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.moveType).not.toHaveBeenCalled();
+        });
+
+        it('should support multiple moveToGroup entries targeting different groups', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const networkingGroup: ProductChildGroup = {
+            name:     'networking',
+            label:    'Networking',
+            children: [
+              {
+                name: 'net-overview', label: 'Overview', component: { name: 'NetOverview' }
+              },
+            ],
+          };
+
+          const storageGroup: ProductChildGroup = {
+            name:     'storage',
+            label:    'Storage',
+            children: [
+              {
+                name: 'storage-overview', label: 'Overview', component: { name: 'StorageOverview' }
+              },
+            ],
+          };
+
+          const productMetadata: ProductMetadata = {
+            name:        'my-app',
+            label:       'My App',
+            moveToGroup: [
+              { entryId: 'networking.ingress', groupName: 'networking' },
+              { entryId: 'storage.pvc', groupName: 'storage' },
+            ],
+          };
+
+          const config: ProductChild[] = [
+            networkingGroup,
+            storageGroup,
+            { type: 'networking.ingress' },
+            { type: 'storage.pvc' },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.basicType).toHaveBeenCalledWith(['networking.ingress'], 'myapp-networking');
+          expect(mockDSL.basicType).toHaveBeenCalledWith(['storage.pvc'], 'myapp-storage');
+          expect(mockDSL.moveType).toHaveBeenCalledTimes(2);
+          expect(mockDSL.moveType).toHaveBeenCalledWith('networking.ingress', 'myapp-networking', undefined);
+          expect(mockDSL.moveType).toHaveBeenCalledWith('storage.pvc', 'myapp-storage', undefined);
+        });
+      });
+
+      describe('resource page DSL options work when extending a product', () => {
+        it('should support headers, hideBulkActions, overrideListResourceName, hideFromNav on resource pages when extending', () => {
+          const mockPlugin = createMockPlugin();
+          const mockStore = createMockStore();
+          const mockDSL = (mockPlugin.DSL as jest.Mock)();
+
+          (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+          const testHeaders = [{ name: 'col1', label: 'Column 1' }];
+
+          const config: ProductChildPage[] = [
+            {
+              type:                     'custom.resource.type',
+              headers:                  testHeaders,
+              hideBulkActions:          true,
+              overrideListResourceName: 'Custom Name',
+              hideFromNav:              true,
+            },
+          ];
+
+          const pluginProduct = new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
+
+          pluginProduct.apply(mockPlugin, mockStore);
+
+          expect(mockDSL.headers).toHaveBeenCalledWith('custom.resource.type', testHeaders, undefined);
+          expect(mockDSL.hideBulkActions).toHaveBeenCalledWith('custom.resource.type', true);
+          expect(mockDSL.mapType).toHaveBeenCalledWith('custom.resource.type', 'Custom Name');
+          expect(mockDSL.ignoreType).toHaveBeenCalledWith('custom.resource.type');
+        });
+      });
+    });
+  });
+
+  describe('addProduct duplicate guard', () => {
+    it('should throw when addProduct is called twice with the same product name (object form)', () => {
+      const plugin = new Plugin('test-extension');
+
+      const product: ProductMetadata = {
+        name:  'my-product',
+        label: 'My Product',
+      };
+
+      const config: ProductChildPage[] = [
+        {
+          name: 'page-a', label: 'Page A', component: { name: 'PageA' }
+        },
+      ];
+
+      plugin.addProduct(product, config);
+
+      expect(() => {
+        plugin.addProduct(product, [{
+          name: 'page-b', label: 'Page B', component: { name: 'PageB' }
+        }]);
+      }).toThrow('addProduct can only be called once per product');
+    });
+
+    it('should throw when addProduct is called twice with the same product name (string form)', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct('my-product');
+
+      expect(() => {
+        plugin.addProduct('my-product');
+      }).toThrow('addProduct can only be called once per product');
+    });
+
+    it('should throw when addProduct is called twice mixing string and object form for the same name', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct('my-product');
+
+      expect(() => {
+        plugin.addProduct({ name: 'my-product', label: 'My Product' }, []);
+      }).toThrow('addProduct can only be called once per product');
+    });
+
+    it('should allow addProduct for different product names', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct('product-a');
+
+      expect(() => {
+        plugin.addProduct('product-b');
+      }).not.toThrow();
+
+      expect(plugin.productConfigs).toHaveLength(2);
+    });
+
+    it('should allow addProduct and extendProduct for the same name (extending is separate)', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct('my-product');
+
+      expect(() => {
+        plugin.extendProduct('explorer', [{
+          name: 'extra-page', label: 'Extra', component: { name: 'Extra' }
+        }]);
+      }).not.toThrow();
+
+      expect(plugin.productConfigs).toHaveLength(2);
+    });
+
+    it('should throw when addProduct is called twice with single page product form', () => {
+      const plugin = new Plugin('test-extension');
+
+      const singlePage: ProductSinglePage = {
+        name:      'my-dashboard',
+        label:     'My Dashboard',
+        component: { name: 'DashboardPage' },
+      };
+
+      plugin.addProduct(singlePage);
+
+      expect(() => {
+        plugin.addProduct(singlePage);
+      }).toThrow('addProduct can only be called once per product');
     });
   });
 });

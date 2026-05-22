@@ -15,11 +15,10 @@ import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import {
-  HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, communityRepoRegexes, HARVESTER_CATALOG_IMAGES
+  HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, harvesterRepoRegexes, HARVESTER_CATALOG_IMAGES
 } from '../types';
 import {
   getLatestExtensionVersion,
-  getHelmRepositoryExact,
   getHelmRepositoryMatch,
   createHelmRepository,
   refreshHelmRepository,
@@ -67,7 +66,6 @@ export default {
     this.mgmtClusters = hash.mgmtClusters;
 
     this.harvesterRepository = await this.getHarvesterRepository();
-
     this.kubeVersion = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, 'local')?.kubernetesVersionBase || '';
   },
 
@@ -107,6 +105,7 @@ export default {
   },
 
   watch: {
+    // watch harvester repository, if it changes to a valid one, then we will check if there is an update for harvester extension, which will trigger the extension update message in the UI
     async harvesterRepository(neu) {
       if (neu) {
         await refreshHelmRepository(this.$store, neu.spec.gitRepo || neu.spec.url);
@@ -243,11 +242,7 @@ export default {
   methods: {
     async getHarvesterRepository() {
       try {
-        if (isRancherPrime()) {
-          return await getHelmRepositoryExact(this.$store, HARVESTER_REPO.gitRepo);
-        } else {
-          return await getHelmRepositoryMatch(this.$store, communityRepoRegexes, HARVESTER_CATALOG_IMAGES);
-        }
+        return await getHelmRepositoryMatch(this.$store, harvesterRepoRegexes, HARVESTER_CATALOG_IMAGES);
       } catch (error) {
         this.harvesterRepositoryError = true;
       }
@@ -396,7 +391,7 @@ export default {
         </template>
 
         <template
-          v-if="canCreateAndManageCluster"
+          v-if="isAdmin"
           #extraActions
         >
           <router-link
