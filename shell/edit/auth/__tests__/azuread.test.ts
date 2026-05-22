@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import AzureAD from '@shell/edit/auth/azuread.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -68,8 +68,9 @@ const requiredSetup = (modelOverrides = {}) => ({
 describe('edit: azureAD should', () => {
   let wrapper: any;
 
-  beforeEach(() => {
+  beforeEach(async() => {
     wrapper = mount(AzureAD, { ...requiredSetup() });
+    await flushPromises();
   });
   afterEach(() => {
     wrapper.unmount();
@@ -121,7 +122,7 @@ describe('edit: azureAD should', () => {
     tenantIdInputField.setValue(testCase.tenantId);
     applicationIdInputField.setValue(testCase.applicationId);
     applicationSecretInputField.setValue(testCase.applicationSecret);
-    await nextTick();
+    await flushPromises();
 
     expect(saveButton.disabled).toBe(testCase.result);
   });
@@ -217,11 +218,11 @@ describe('edit: azureAD should', () => {
     tenantIdInputField.setValue(validTenantId);
     applicationIdInputField.setValue(validApplicationId);
     applicationSecretInputField.setValue(validAppSecret);
-    await nextTick();
+    await flushPromises();
 
     expect(saveButton.disabled).toBe(false);
     customButton.trigger('click');
-    await nextTick();
+    await flushPromises();
     expect(saveButton.disabled).toBe(true);
 
     const endpointInputField = wrapper.find('[data-testid="input-azureAD-endpoint"]');
@@ -233,7 +234,7 @@ describe('edit: azureAD should', () => {
     graphEndpointInputField.setValue(testCase.graphEndpoint);
     tokenEndpointInputField.setValue(testCase.tokenEndpoint);
     authEndpointInputField.setValue(testCase.authEndpoint);
-    await nextTick();
+    await flushPromises();
 
     expect(saveButton.disabled).toBe(testCase.result);
   });
@@ -287,7 +288,7 @@ describe('edit: azureAD SSO logout should', () => {
         };
       },
     });
-    await nextTick();
+    await flushPromises();
     const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
 
     expect(endSessionEndpointField.exists()).toBe(true);
@@ -303,7 +304,7 @@ describe('edit: azureAD SSO logout should', () => {
         };
       },
     });
-    await nextTick();
+    await flushPromises();
     const endSessionEndpointField = wrapper.find('[data-testid="azuread-endSessionEndpoint"]');
 
     expect(endSessionEndpointField.exists()).toBe(true);
@@ -358,7 +359,7 @@ describe('edit: azureAD SSO logout should', () => {
         };
       },
     });
-    await nextTick();
+    await flushPromises();
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
     expect(saveButton.disabled).toBe(testCase.disabled);
