@@ -5,18 +5,19 @@ const workloadDashboard = new WorkloadDashboardPagePo('local');
 describe('Workload Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
   });
 
   it('should navigate to the workload dashboard and display the title', () => {
     workloadDashboard.goTo();
     workloadDashboard.waitForPage();
 
-    workloadDashboard.title().should('contain.text', 'Workload Dashboard');
+    workloadDashboard.title().should('contain.text', 'Workloads Overview');
   });
 
   it('should display a namespace subtitle with workload count', () => {
     workloadDashboard.subtitle().should('be.visible');
-    workloadDashboard.subtitle().invoke('text').should('match', /workload/i);
+    workloadDashboard.subtitle().invoke('text').should('match', /\(\d+\)/);
   });
 
   it('should display the By State section with state cards', () => {
