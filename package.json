@@ -130,6 +130,7 @@
     "vue3-virtual-scroll-list": "0.2.1",
     "vuedraggable": "4.1.0",
     "vuex": "4.1.0",
+    "xmlbuilder2": "4.0.1",
     "xterm": "5.2.1",
     "xterm-addon-canvas": "0.5.0",
     "xterm-addon-fit": "0.8.0",
