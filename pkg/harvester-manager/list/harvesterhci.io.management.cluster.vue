@@ -391,7 +391,7 @@ export default {
         </template>
 
         <template
-          v-if="canCreateAndManageCluster"
+          v-if="isAdmin"
           #extraActions
         >
           <router-link
