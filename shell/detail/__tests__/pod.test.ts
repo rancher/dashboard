@@ -37,7 +37,5 @@ describe('view: pod', () => {
 
     expect(initRow.initIcon).toBe('icon-checkmark text-success ml-5');
     expect(appRow.initIcon).toBe('icon-minus text-muted ml-5');
-    expect(initRow.initIcon).not.toContain('icon-2x');
-    expect(appRow.initIcon).not.toContain('icon-2x');
   });
 });
