@@ -101,8 +101,13 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     const standardUserName = 'standard_user';
 
+    type RancherUser = {
+      username?: string;
+    };
+
     cy.getRancherResource('v1', 'management.cattle.io.users').then((usersResp: Cypress.Response<any>) => {
-      const userAlreadyExists = usersResp.body?.data?.some((user: any) => user.username === standardUserName);
+      const users = usersResp.body?.data as RancherUser[] | undefined;
+      const userAlreadyExists = users?.some((user) => user.username === standardUserName);
 
       if (userAlreadyExists) {
         cy.log(`User ${ standardUserName } already exists, skipping creation`);
