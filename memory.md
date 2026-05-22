@@ -32,6 +32,7 @@
 - perf-setting.utils.ts: isEnabled = `!paginationEnabled && perfSettings[this.setting].enabled`
 - kube.js: normalizeName handles null/undefined via `(str || '')` pattern
 - svg-filter.js: Solver.loss() resets reusedColor each call (safe to reuse); contrast(0) pushes black to mid-gray (127.5); stochastic solve() only asserts structural invariants
+- sort.js: sort-utils.test.ts covers typeOf/spaceship/compare/parseField/sortableNumericSuffix/isNumeric; sort.test.ts covers sortBy
 
 ## Testing Backlog (Prioritized)
 
@@ -39,9 +40,12 @@
 2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
 3. `shell/utils/gc/gc-root-store.js` — gc store integration
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
+5. `shell/utils/dynamic-content/` — createLogger, removeMatchingNotifications
+6. `shell/utils/gatekeeper/util.js` — findTemplateType (pure), findAllConstraintTypes (needs store mock)
 
 ## Completed Work (Summary)
 
+- 2026-05-22: PR (branch test-assist/sort-utils-tests): 47 tests for sort.js utility fns (typeOf, spaceship, compare, parseField, sortableNumericSuffix, isNumeric); ~86% stmts, ~94% branches
 - 2026-05-21: PR (branch test-assist/banners-utils-tests): 15 tests for banners.js; 100% all metrics
 - 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for poller.js + poller-sequential.js; 98.9% stmts, 75% branches, 89.5% fns
 - 2026-05-19: PR #17729 (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class — MERGED ✅
@@ -62,6 +66,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-22: Task 3 (sort.js, 47 tests) + Task 7
 - 2026-05-21: Task 3 (banners.js, 15 tests) + Task 7
 - 2026-05-20: Task 3 (poller.js + poller-sequential.js, 32 tests) + Task 4 + Task 7
 - 2026-05-19: Task 3 (svg-filter.js, 18 tests) + Task 4 + Task 7
@@ -72,7 +77,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- New PR (branch test-assist/banners-utils-tests) pending
+- New PR (branch test-assist/sort-utils-tests) pending
 
 ## Maintainer Priorities
 
