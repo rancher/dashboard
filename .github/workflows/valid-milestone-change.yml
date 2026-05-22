@@ -2,40 +2,67 @@ name: Check for Unexpected Milestone Change
 
 on:
   issues:
-    types: [milestoned, demilestoned, edited]
+    types: [milestoned, demilestoned]
 
 permissions:
   issues: read
-  organization: read
  
 jobs:
   notify-on-milestone-change:
-    if: |
-      github.event.action == 'milestoned' ||
-      github.event.action == 'demilestoned' ||
-      (github.event.action == 'edited' && github.event.changes.milestone)
+    if: github.repository_owner == 'rancher'
 
     runs-on: ubuntu-latest
+    env:
+      ACTOR: ''
+      ISSUE_TITLE: ''
+      ISSUE_URL: ''
+      NEW_MILESTONE: ''
+      OLD_MILESTONE: ''
     steps:
     - name: Set Event Data
       id: event_data
+      env:
+        ACTION: ${{ github.event.action }}
+        ISSUE_MILESTONE: ${{ github.event.issue.milestone.title }}
+        SENDER_LOGIN: ${{ github.event.sender.login }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+        ISSUE_URL: ${{ github.event.issue.html_url }}
       run: |
-        if [ "${{ github.event.action }}" == "milestoned" ]; then
-          echo "OLD_MILESTONE=None"
-          echo "NEW_MILESTONE=${{ github.event.issue.milestone.title }}"
-        
-        elif [ "${{ github.event.action }}" == "demilestoned" ]; then
-          echo "OLD_MILESTONE=${{ github.event.milestone.title }}"
-          echo "NEW_MILESTONE=None"
-        
-        elif [ "${{ github.event.action }}" == "edited" ]; then
-          echo "OLD_MILESTONE=${{ github.event.changes.milestone.from.title || 'None' }}"
-          echo "NEW_MILESTONE=${{ github.event.issue.milestone.title || 'None' }}"
-        fi >> $GITHUB_ENV
-        
-        echo "ACTOR=${{ github.event.sender.login }}" >> $GITHUB_ENV
-        echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
-        echo "ISSUE_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
+        # Generate a random delimiter to securely write multiline strings and prevent injection vulnerabilities
+        del=$(openssl rand -hex 16)
+        {
+          if [ "$ACTION" == "milestoned" ]; then
+            echo "OLD_MILESTONE=None"
+            echo "NEW_MILESTONE=$ISSUE_MILESTONE"
+          elif [ "$ACTION" == "demilestoned" ]; then
+            echo "OLD_MILESTONE=$ISSUE_MILESTONE"
+            echo "NEW_MILESTONE=None"
+          fi
+
+          echo "ACTOR=$SENDER_LOGIN"
+          echo "ISSUE_URL=$ISSUE_URL"
+
+          # Use delimiter
+          echo "ISSUE_TITLE<<$del"
+          echo "$ISSUE_TITLE"
+          echo "$del"
+
+        } >> "$GITHUB_ENV"
+
+    - name: Read secrets
+      uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID;
+          secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
+
+    - name: Generate Token
+      id: generate-token
+      uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+      with:
+        app-id: ${{ env.APPID }}
+        private-key: ${{ env.PRIVATEKEY }}
+
     - name: Check Team Membership
       id: check_team
       continue-on-error: true
@@ -43,20 +70,21 @@ jobs:
         github.event.sender.login != 'rancher-ui-project-bot' &&
         github.event.sender.login != 'rancher-backport-assistant'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ steps.generate-token.outputs.token }} # Requires org access
       run: |
-        gh api --silent /orgs/rancher/teams/ui/memberships/${{ env.ACTOR }}
+        gh api --silent /orgs/rancher/teams/ui/memberships/$ACTOR
+
     - name: "Send Slack message if user is not a team member"
       if: steps.check_team.outcome == 'failure'
       uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # v3.0.2
       with:
         payload: |
             {
-              "actor": "${{ env.ACTOR }}",
-              "issue_title": "${{ env.ISSUE_TITLE }}",
-              "issue_url": "${{ env.ISSUE_URL }}",
-              "milestone_new": "${{ env.NEW_MILESTONE }}",
-              "milestone_old": "${{ env.OLD_MILESTONE }}"
+              "actor": ${{ toJSON(env.ACTOR) }},
+              "issue_title": ${{ toJSON(env.ISSUE_TITLE) }},
+              "issue_url": ${{ toJSON(env.ISSUE_URL) }},
+              "milestone_new": ${{ toJSON(env.NEW_MILESTONE) }},
+              "milestone_old": ${{ toJSON(env.OLD_MILESTONE) }}
             }
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WORKFLOW_MILESTONE_CHANGED_URL }}
