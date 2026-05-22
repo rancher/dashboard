@@ -99,16 +99,28 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   it('Create standard user', () => {
     cy.login();
 
-    // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
-    cy.createUser({
-      username:    'standard_user',
-      globalRole:  { role: 'user' },
-      projectRole: {
-        clusterId:   'local',
-        projectName: 'Default',
-        role:        'project-member',
-      },
-      password: Cypress.env('password')
-    }, { createNameOptions: { onlyContext: true } });
+    const standardUserName = 'standard_user';
+
+    cy.getRancherResource('v1', 'management.cattle.io.users').then((usersResp: Cypress.Response<any>) => {
+      const userAlreadyExists = usersResp.body?.data?.some((user: any) => user.username === standardUserName);
+
+      if (userAlreadyExists) {
+        cy.log(`User ${ standardUserName } already exists, skipping creation`);
+
+        return;
+      }
+
+      // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
+      cy.createUser({
+        username:    standardUserName,
+        globalRole:  { role: 'user' },
+        projectRole: {
+          clusterId:   'local',
+          projectName: 'Default',
+          role:        'project-member',
+        },
+        password: Cypress.env('password')
+      }, { createNameOptions: { onlyContext: true } });
+    });
   });
 });
