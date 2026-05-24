@@ -17,6 +17,8 @@
 - `jest/prefer-called-with`, `jest/prefer-to-be-null`, `jest/prefer-to-be-undefined`, `jest/prefer-to-have-length`
 - `promise/param-names` — Promise constructor params must be named `resolve`/`reject` (not `r`/`rej`)
 - Use `eslint --fix` for key-spacing, object-curly-newline, padding-line-between-statements
+- `jest/require-top-level-describe` — ALL hooks (beforeEach/afterEach) must be inside a describe block
+- `jest/no-conditional-expect` — No `if` around `expect()` calls; use separate tests instead
 
 ## Testing Notes
 
@@ -34,22 +36,22 @@
 - svg-filter.js: Solver.loss() resets reusedColor each call (safe to reuse); contrast(0) pushes black to mid-gray (127.5); stochastic solve() only asserts structural invariants
 - sort.js: sort-utils.test.ts covers typeOf/spaceship/compare/parseField/sortableNumericSuffix/isNumeric; sort.test.ts covers sortBy
 - gatekeeper/util.js: store mock via `{ getters: { ['cluster/all']: () => schemas }, dispatch: jest.fn() }`
+- gc-root-store.js: mock gc/gc-interval/gc-route-changed via jest.resetModules()+jest.mock() in beforeEach inside describe
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
-2. `shell/utils/pagination-utils.ts` store methods — isEnabled, isSteveCacheEnabled (need Vuex mock)
-3. `shell/utils/gc/gc-root-store.js` — gc store integration
+1. `shell/utils/versions.ts` — singleton fetch with promise caching, store dispatch mock needed
+2. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
+3. `shell/utils/pagination-utils.ts` — ALREADY TESTED (existing test file)
 4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-5. `shell/utils/dynamic-content/` — createLogger, removeMatchingNotifications (already tested!)
-6. `shell/utils/versions.ts` — store-dependent, complex
 
 ## Completed Work (Summary)
 
-- 2026-05-23: PR (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics
+- 2026-05-24: PR (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics
+- 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics
 - 2026-05-22: PR (branch test-assist/sort-utils-tests): 47 tests for sort.js utility fns (typeOf, spaceship, compare, parseField, sortableNumericSuffix, isNumeric); ~86% stmts, ~94% branches
 - 2026-05-21: PR (branch test-assist/banners-utils-tests): 15 tests for banners.js; 100% all metrics
-- 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for poller.js + poller-sequential.js; 98.9% stmts, 75% branches, 89.5% fns
+- 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for Poller and PollerSequential; 98.9% stmts, 75% branches, 89.5% fns
 - 2026-05-19: PR #17729 (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class — MERGED ✅
 - 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns — MERGED ✅
 - 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics — MERGED ✅
@@ -68,6 +70,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-24: Task 3 (gc-root-store.js, 15 tests) + Task 7
 - 2026-05-23: Task 3 (gatekeeper/util.js, 14 tests) + Task 7
 - 2026-05-22: Task 3 (sort.js, 47 tests) + Task 7
 - 2026-05-21: Task 3 (banners.js, 15 tests) + Task 7
@@ -80,7 +83,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- New PR (branch test-assist/gatekeeper-util-tests) pending
+- New PR (branch test-assist/gc-root-store-tests) pending
 
 ## Maintainer Priorities
 
