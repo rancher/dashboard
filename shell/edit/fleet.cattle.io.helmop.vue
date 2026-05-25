@@ -11,7 +11,7 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
   AUTH_TYPE, CATALOG as CATALOG_TYPES, CONFIG_MAP, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
 } from '@shell/config/types';
-import { CATALOG, DESCRIPTION, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import { isRancherPrime } from '@shell/config/version';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -99,7 +99,6 @@ export default {
       chartValuesInit:  chartValues,
       correctDriftEnabled,
       tempCachedValues: {},
-      authCreateErrors: [],
       doneRouteList:    'c-cluster-fleet-application',
       isRealModeEdit:   this.realMode === _EDIT,
       targetsCreated:   '',
@@ -165,7 +164,7 @@ export default {
         if (querySecret) {
           const ns = this.value.metadata.namespace;
 
-          this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName', true);
+          this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName');
           this.addAppCoImagePullSecretToSpec(`${ querySecret }-image-pull-secret`);
 
           const repoName = querySecret.replace('auth', 'repo');
@@ -426,7 +425,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
-    async updateAuth(val, key, doNotUpdateGlobalValuesAndDownstreamSecrets = false) {
+    async updateAuth(val, key) {
       const spec = this.value.spec;
 
       if ( val ) {
@@ -435,10 +434,9 @@ export default {
         delete spec[key];
       }
 
-      if (this.isSuseAppCollection && !doNotUpdateGlobalValuesAndDownstreamSecrets) {
+      if (this.isSuseAppCollection) {
         const newRepoName = this.appCoRepoName;
 
-        // When auth is cleared (e.g. switching to _BASIC), reset everything
         if (!newRepoName) {
           if (this.oldAppCoRepoName) {
             this.resetAppCoChartSelection();
@@ -449,51 +447,17 @@ export default {
           return;
         }
 
-        // Same repo selected — nothing to do
         if (newRepoName === this.oldAppCoRepoName) {
           return;
         }
 
-        // Switching to a different auth secret — reset stale chart data
         if (this.oldAppCoRepoName) {
           this.resetAppCoChartSelection();
           this.resetAppCoChartData();
         }
 
         this.oldAppCoRepoName = newRepoName;
-
-        await this.updateGlobalValuesAndDownstreamSecrets();
         await this.fetchAppCoCharts(newRepoName);
-      }
-    },
-
-    async onCreateAuth(credentials) {
-      this.authCreateErrors = [];
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(credentials.selected) ) {
-        return;
-      }
-      try {
-        await this.doCreate('helmSecretName', credentials);
-      } catch (e) {
-        const msg = e?.message || String(e);
-
-        this.authCreateErrors = [msg];
-        throw e;
-      }
-    },
-
-    async updateGlobalValuesAndDownstreamSecrets() {
-      if (!this.value.spec.helmSecretName) {
-        return;
-      }
-      if (this.isSuseAppCollection) {
-        const rawSelected = this.value.spec.helmSecretName || '';
-        const authSecretName = rawSelected.includes('/') ? rawSelected.split('/')[1] : rawSelected;
-
-        await Promise.all([
-          this.ensureAppCoImagePullSecret(authSecretName),
-          this.ensureAppCoClusterRepo(authSecretName),
-        ]);
       }
     },
 
@@ -502,9 +466,6 @@ export default {
         await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
       }
 
-      // For SUSE App Collection, helmSecretName is created eagerly in onCreateAuth (on Next click);
-      // ensureAppCoImagePullSecret and ensureAppCoClusterRepo are also called there.
-      // Skip all of that here to avoid duplicates.
       if (!this.isSuseAppCollection && this.tempCachedValues.helmSecretName) {
         await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
       }
@@ -574,102 +535,10 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.metadata.name, name, true);
+        this.updateAuth(secret.metadata.name, name);
       });
 
       return secret;
-    },
-
-    /**
-     * Edit flow: the auth secret already exists. Checks if the image-pull-secret exists;
-     * creates it if missing, then ensures it is wired into downstreamResources and helm values.
-     */
-    async ensureAppCoImagePullSecret(authSecretName) {
-      const namespace = this.value.metadata.namespace;
-      const imagePullSecretName = `${ authSecretName }-image-pull-secret`;
-
-      let imagePullSecret = this.$store.getters[`${ CATALOG._MANAGEMENT }/byId`](SECRET, `${ namespace }/${ imagePullSecretName }`);
-
-      if (!imagePullSecret) {
-        try {
-          imagePullSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: SECRET, id: `${ namespace }/${ imagePullSecretName }` });
-        } catch (e) {
-          // Does not exist yet — fetch the auth secret so we can recreate credentials
-          let authSecret;
-
-          try {
-            authSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: SECRET, id: `${ namespace }/${ authSecretName }` });
-          } catch (_) {
-            // Cannot access auth secret; skip image-pull-secret creation
-            return;
-          }
-
-          const registryHost = new URL(SUSE_APP_COLLECTION_REPO_URL.replace('oci://', 'https://')).host;
-          const username = authSecret.decodedData?.username || '';
-          const password = authSecret.decodedData?.password || '';
-          const config = { auths: { [registryHost]: { username, password } } };
-
-          const newSecret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
-            type:     SECRET,
-            _type:    SECRET_TYPES.DOCKER_JSON,
-            metadata: {
-              name:   imagePullSecretName,
-              namespace,
-              labels: { [FLEET_LABELS.MANAGED]: 'true' }
-            }
-          });
-
-          newSecret.setData('.dockerconfigjson', JSON.stringify(config));
-          await newSecret.save();
-        }
-      }
-
-      this.addAppCoImagePullSecretToSpec(imagePullSecretName);
-    },
-
-    /**
-     * Creates a ClusterRepo named `fleet-{authSecretName}` for the SUSE App Collection
-     * pointing to the locked OCI URL and referencing the given auth secret.
-     * If the repo already exists the save will fail (409) and the error propagates.
-     */
-    async ensureAppCoClusterRepo(authSecretName) {
-      const repoName = authSecretName.replace('auth', 'repo');
-      let repo = this.$store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
-
-      if (!repo) {
-        try {
-          repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: CATALOG_TYPES.CLUSTER_REPO, id: repoName });
-        } catch (e) {
-          try {
-            repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
-              type:     CATALOG_TYPES.CLUSTER_REPO,
-              metadata: {
-                name:        repoName,
-                annotations: {
-                  [DESCRIPTION]:                 this.t('catalog.repo.target.suseAppCollection.description'),
-                  [CATALOG.SUSE_APP_COLLECTION]: 'true',
-                },
-              },
-              spec: {
-                url:          SUSE_APP_COLLECTION_REPO_URL,
-                clientSecret: {
-                  namespace: this.value.metadata.namespace,
-                  name:      authSecretName,
-                },
-              },
-            });
-
-            await repo.save();
-          } catch (e) {
-            if (e.status === 409) {
-              // Repo already exists — likely from a previous attempt to save the HelmOp. Ignore.
-              return;
-            }
-
-            throw e;
-          }
-        }
-      }
     },
 
     /**
@@ -914,15 +783,6 @@ export default {
       this.resetAppCoChartData({ error: true });
 
       return null;
-    },
-
-    async retryAppCoChartsFetch() {
-      const repoName = this.appCoRepoName;
-
-      if (repoName) {
-        delete this.appCoChartsCache[repoName];
-        await this.fetchAppCoCharts(repoName);
-      }
     },
 
     updateDownstreamResources(kind, list) {

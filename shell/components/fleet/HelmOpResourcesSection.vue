@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
@@ -6,55 +6,35 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 
-const props = defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  correctDriftEnabled: {
-    type:     Boolean,
-    required: true
-  },
-  downstreamSecretsList: {
-    type:     Array,
-    required: true
-  },
-  downstreamConfigMapsList: {
-    type:     Array,
-    required: true
-  },
-  lockedSecrets: {
-    type:    Array,
-    default: () => []
-  },
-  isAppCollection: {
-    type:    Boolean,
-    default: false
-  },
-  compact: {
-    type:    Boolean,
-    default: false
-  },
+const props = withDefaults(defineProps<{
+  value: Record<string, any>;
+  mode: string;
+  correctDriftEnabled: boolean;
+  downstreamSecretsList: string[];
+  downstreamConfigMapsList: string[];
+  lockedSecrets?: string[];
+  isAppCollection?: boolean;
+  compact?: boolean;
+}>(), {
+  lockedSecrets:   () => [],
+  isAppCollection: false,
+  compact:         false,
 });
 
-const emit = defineEmits([
-  'update:correct-drift',
-  'update:downstream-resources',
-]);
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:correct-drift', value: boolean): void;
+  (e: 'update:downstream-resources', value: { kind: string; list: string[] }): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const updateCorrectDrift = (value) => {
+const updateCorrectDrift = (value: boolean) => {
   emit('update:correct-drift', value);
 };
 
-const updateSecrets = (list) => {
-  // Ensure locked secrets are always included
+const updateSecrets = (list: string[]) => {
   const newList = [...list];
 
   for (const locked of props.lockedSecrets) {
@@ -66,7 +46,7 @@ const updateSecrets = (list) => {
   emit('update:downstream-resources', { kind: 'Secret', list: newList });
 };
 
-const updateDownstreamResources = (kind, list) => {
+const updateDownstreamResources = (kind: string, list: string[]) => {
   emit('update:downstream-resources', { kind, list });
 };
 </script>

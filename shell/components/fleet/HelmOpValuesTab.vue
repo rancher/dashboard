@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, nextTick } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
@@ -7,88 +7,54 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import YamlEditor from '@shell/components/YamlEditor';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
 
-const yaml = ref(null);
+const yaml = ref<{ refresh?:() => void } | null>(null);
 
 const refreshYaml = () => {
   nextTick(() => {
-    yaml.value?.refresh();
+    yaml.value?.refresh?.();
   });
 };
 
 defineExpose({ refreshYaml });
 
-defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  realMode: {
-    type:     String,
-    required: true
-  },
-  isView: {
-    type:    Boolean,
-    default: false
-  },
-  chartValues: {
-    type:     String,
-    required: true
-  },
-  chartValuesInit: {
-    type:     String,
-    required: true
-  },
-  yamlForm: {
-    type:     String,
-    required: true
-  },
-  yamlFormOptions: {
-    type:     Array,
-    required: true
-  },
-  yamlDiffModeOptions: {
-    type:     Array,
-    required: true
-  },
-  isYamlDiff: {
-    type:     Boolean,
-    required: true
-  },
-  editorMode: {
-    type:     String,
-    required: true
-  },
-  diffMode: {
-    type:     String,
-    required: true
-  },
-  isRealModeEdit: {
-    type:     Boolean,
-    required: true
-  },
-  hideTitle: {
-    type:    Boolean,
-    default: false
-  },
-  isSuseAppCollection: {
-    type:    Boolean,
-    default: false
-  },
-  bgBorder: {
-    type:    Boolean,
-    default: false
-  },
-  hideBanner: {
-    type:    Boolean,
-    default: false
-  }
+interface ButtonGroupOption {
+  labelKey: string;
+  value: string;
+  disabled?: boolean;
+}
+
+withDefaults(defineProps<{
+  value: Record<string, any>;
+  mode: string;
+  realMode: string;
+  isView?: boolean;
+  chartValues: string;
+  chartValuesInit: string;
+  yamlForm: string;
+  yamlFormOptions: ButtonGroupOption[];
+  yamlDiffModeOptions: ButtonGroupOption[];
+  isYamlDiff: boolean;
+  editorMode: string;
+  diffMode: string;
+  isRealModeEdit: boolean;
+  hideTitle?: boolean;
+  isSuseAppCollection?: boolean;
+  bgBorder?: boolean;
+  hideBanner?: boolean;
+}>(), {
+  isView:              false,
+  hideTitle:           false,
+  isSuseAppCollection: false,
+  bgBorder:            false,
+  hideBanner:          false,
 });
 
-const emit = defineEmits(['update:yaml-form', 'update:chart-values', 'update:diff-mode']);
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:yaml-form'): void;
+  (e: 'update:chart-values', value: string): void;
+  (e: 'update:diff-mode', value: string): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -97,11 +63,11 @@ const updateYamlForm = () => {
   emit('update:yaml-form');
 };
 
-const updateChartValues = (value) => {
+const updateChartValues = (value: string) => {
   emit('update:chart-values', value);
 };
 
-const updateDiffMode = (value) => {
+const updateDiffMode = (value: string) => {
   emit('update:diff-mode', value);
 };
 </script>

@@ -1,28 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
-defineProps({
-  value: {
-    type:    String,
-    default: ''
-  },
-  options: {
-    type:    Array,
-    default: () => []
-  },
-  loading: {
-    type:    Boolean,
-    default: false
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-});
+interface VersionOption {
+  label: string;
+  value: string;
+  date?: string;
+}
 
-const emit = defineEmits(['update:value']);
+defineProps<{
+  value?: string;
+  options?: VersionOption[];
+  loading?: boolean;
+  mode: string;
+}>();
+
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:value', value: string): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);

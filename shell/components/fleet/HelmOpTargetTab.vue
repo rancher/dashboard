@@ -1,50 +1,38 @@
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import HelmOpTargetOptionsSection from '@shell/components/fleet/HelmOpTargetOptionsSection.vue';
 
-defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  realMode: {
-    type:     String,
-    required: true
-  },
-  isView: {
-    type:    Boolean,
-    default: false
-  },
-  targetsCreated: {
-    type:    String,
-    default: ''
-  },
-  hideAdditionalOptions: {
-    type:    Boolean,
-    default: false
-  },
-  compact: {
-    type:    Boolean,
-    default: false
-  },
+withDefaults(defineProps<{
+  value: Record<string, any>;
+  mode: string;
+  realMode: string;
+  isView?: boolean;
+  targetsCreated?: string;
+  hideAdditionalOptions?: boolean;
+  compact?: boolean;
+}>(), {
+  isView:                false,
+  targetsCreated:        '',
+  hideAdditionalOptions: false,
+  compact:               false,
 });
 
-const emit = defineEmits(['update:targets', 'targets-created']);
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:targets', value: any): void;
+  (e: 'targets-created', value: string): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const updateTargets = (value) => {
+const updateTargets = (value: any) => {
   emit('update:targets', value);
 };
 
-const onTargetsCreated = (value) => {
+const onTargetsCreated = (value: string) => {
   emit('targets-created', value);
 };
 </script>

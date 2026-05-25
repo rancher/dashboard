@@ -1,20 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
-defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  stacked: {
-    type:    Boolean,
-    default: false,
-  },
-});
+withDefaults(defineProps<{
+  value: Record<string, any>;
+  mode: string;
+  stacked?: boolean;
+}>(), { stacked: false });
 </script>
 
 <template>

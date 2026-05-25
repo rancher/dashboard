@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, nextTick, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
@@ -20,147 +20,87 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import AppCoVersionSelect from '@shell/components/fleet/AppCoVersionSelect.vue';
 import { _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 
-const props = defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  realMode: {
-    type:     String,
-    required: true
-  },
-  appCoChartEntries: {
-    type:    Object,
-    default: () => ({})
-  },
-  appCoChartsLoading: {
-    type:    Boolean,
-    default: false
-  },
-  // Values tab props
-  chartValues: {
-    type:    String,
-    default: ''
-  },
-  chartValuesInit: {
-    type:    String,
-    default: ''
-  },
-  yamlForm: {
-    type:    String,
-    default: ''
-  },
-  yamlFormOptions: {
-    type:    Array,
-    default: () => []
-  },
-  yamlDiffModeOptions: {
-    type:    Array,
-    default: () => []
-  },
-  isYamlDiff: {
-    type:    Boolean,
-    default: false
-  },
-  editorMode: {
-    type:    String,
-    default: ''
-  },
-  diffMode: {
-    type:    String,
-    default: ''
-  },
-  isRealModeEdit: {
-    type:    Boolean,
-    default: false
-  },
-  // Target tab props
-  targetsCreated: {
-    type:    String,
-    default: ''
-  },
-  // Advanced tab props
-  sourceType: {
-    type:     String,
-    required: true
-  },
-  isSuseAppCollection: {
-    type:    Boolean,
-    default: false
-  },
-  tempCachedValues: {
-    type:    Object,
-    default: () => ({})
-  },
-  correctDriftEnabled: {
-    type:    Boolean,
-    default: false
-  },
-  pollingInterval: {
-    type:    Number,
-    default: undefined
-  },
-  isPollingEnabled: {
-    type:    Boolean,
-    default: false
-  },
-  showPollingIntervalMinValueWarning: {
-    type:    Boolean,
-    default: false
-  },
-  enablePollingTooltip: {
-    type:    String,
-    default: null
-  },
-  isNullOrStaticVersion: {
-    type:    Boolean,
-    default: false
-  },
-  downstreamSecretsList: {
-    type:    Array,
-    default: () => []
-  },
-  downstreamConfigMapsList: {
-    type:    Array,
-    default: () => []
-  },
-  registerBeforeHook: {
-    type:     Function,
-    required: true
-  },
-  hideTarget: {
-    type:    Boolean,
-    default: false
-  },
-  hideAdvanced: {
-    type:    Boolean,
-    default: false
-  },
-  hideChartConfig: {
-    type:    Boolean,
-    default: false
-  },
+interface ChartEntry {
+  version: string;
+  created?: string;
+  icon?: string;
+}
+
+const props = withDefaults(defineProps<{
+  value: Record<string, any>;
+  mode: string;
+  realMode: string;
+  appCoChartEntries?: Record<string, ChartEntry[]>;
+  appCoChartsLoading?: boolean;
+  chartValues?: string;
+  chartValuesInit?: string;
+  yamlForm?: string;
+  yamlFormOptions?: any[];
+  yamlDiffModeOptions?: any[];
+  isYamlDiff?: boolean;
+  editorMode?: string;
+  diffMode?: string;
+  isRealModeEdit?: boolean;
+  targetsCreated?: string;
+  sourceType: string;
+  isSuseAppCollection?: boolean;
+  tempCachedValues?: Record<string, any>;
+  correctDriftEnabled?: boolean;
+  pollingInterval?: number;
+  isPollingEnabled?: boolean;
+  showPollingIntervalMinValueWarning?: boolean;
+  enablePollingTooltip?: string | null;
+  isNullOrStaticVersion?: boolean;
+  downstreamSecretsList?: string[];
+  downstreamConfigMapsList?: string[];
+  registerBeforeHook:(...args: any[]) => void;
+  hideTarget?: boolean;
+  hideAdvanced?: boolean;
+  hideChartConfig?: boolean;
+}>(), {
+  appCoChartEntries:                  () => ({} as Record<string, ChartEntry[]>),
+  appCoChartsLoading:                 false,
+  chartValues:                        '',
+  chartValuesInit:                    '',
+  yamlForm:                           '',
+  yamlFormOptions:                    () => [],
+  yamlDiffModeOptions:                () => [],
+  isYamlDiff:                         false,
+  editorMode:                         '',
+  diffMode:                           '',
+  isRealModeEdit:                     false,
+  targetsCreated:                     '',
+  isSuseAppCollection:                false,
+  tempCachedValues:                   () => ({}),
+  correctDriftEnabled:                false,
+  pollingInterval:                    undefined,
+  isPollingEnabled:                   false,
+  showPollingIntervalMinValueWarning: false,
+  enablePollingTooltip:               null,
+  isNullOrStaticVersion:              false,
+  downstreamSecretsList:              () => [],
+  downstreamConfigMapsList:           () => [],
+  hideTarget:                         false,
+  hideAdvanced:                       false,
+  hideChartConfig:                    false,
 });
 
-const emit = defineEmits([
-  'update:value',
-  'update:targets',
-  'targets-created',
-  'update:yaml-form',
-  'update:chart-values',
-  'update:diff-mode',
-  'update:auth',
-  'update:cached-auth',
-  'update:correct-drift',
-  'update:downstream-resources',
-  'toggle-polling',
-  'update:polling-interval',
-  'update:validate-polling-interval',
-]);
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:value', value: any): void;
+  (e: 'update:targets', value: any): void;
+  (e: 'targets-created', value: string): void;
+  (e: 'update:yaml-form', value: any): void;
+  (e: 'update:chart-values', value: string): void;
+  (e: 'update:diff-mode', value: string): void;
+  (e: 'update:auth', value: { value: any; key: string }): void;
+  (e: 'update:cached-auth', value: { value: any; key: string }): void;
+  (e: 'update:correct-drift', value: boolean): void;
+  (e: 'update:downstream-resources', value: { kind: string; list: string[] }): void;
+  (e: 'toggle-polling', value: boolean): void;
+  (e: 'update:polling-interval', value: number): void;
+  (e: 'update:validate-polling-interval'): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -240,7 +180,7 @@ const chartSubHeaderItems = computed(() => {
   return items;
 });
 
-const onVersionSelect = (val) => {
+const onVersionSelect = (val: string) => {
   set(props.value, 'spec.helm.version', val);
 };
 
@@ -255,7 +195,7 @@ const isView = computed(() => props.mode === _VIEW);
 const isCreate = computed(() => props.mode === _CREATE);
 const isEdit = computed(() => props.mode === _EDIT);
 
-const valuesTabRef = ref(null);
+const valuesTabRef = ref<{ refreshYaml?:() => void } | null>(null);
 const valuesExpanded = ref(true);
 
 watch(valuesExpanded, (expanded) => {
