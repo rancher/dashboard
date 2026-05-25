@@ -133,7 +133,6 @@ const updateDiffMode = (value: string) => {
         :value="value.spec.helm.valuesFrom"
         :namespace="value.metadata.namespace"
         :mode="realMode"
-        :reduceTitleSize="hideTitle"
         data-testid="helmop-values-from"
       />
     </div>

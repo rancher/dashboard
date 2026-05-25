@@ -2,7 +2,6 @@
 import { clone, set } from '@shell/utils/object';
 import semver from 'semver';
 import jsyaml from 'js-yaml';
-import { isPrerelease } from '@shell/utils/version';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
@@ -103,10 +102,6 @@ export default {
       targetsCreated:   '',
       fvFormRuleSets:   [],
 
-      // Dropdown options for chart names (label/value pairs)
-      appCoChartOptions:     [],
-      // Dropdown options for the selected chart's versions (label/value pairs)
-      appCoVersionOptions:   [],
       // Raw chart index entries from the ClusterRepo, keyed by chart name
       appCoChartEntries:     {},
       // True while fetching the chart index from the ClusterRepo
@@ -661,11 +656,6 @@ export default {
         }
 
         this.appCoChartEntries = { [chartName]: catalogChart.versions };
-        this.appCoVersionOptions = catalogChart.versions
-          .filter((entry) => !isPrerelease(entry.version))
-          .map((entry) => entry.version)
-          .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-          .map((v) => ({ label: v, value: v }));
       } catch (e) {
         console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
         this.appCoChartsFetchError = true;
@@ -738,15 +728,9 @@ export default {
         :is-view="isView"
         :source-type="sourceType"
         :source-type-options="sourceTypeOptions"
-        :is-suse-app-collection="isSuseAppCollection"
-        :app-co-chart-options="appCoChartOptions"
-        :app-co-version-options="appCoVersionOptions"
-        :app-co-chart-entries="appCoChartEntries"
-        :app-co-charts-loading="appCoChartsLoading"
         :fv-get-and-report-path-rules="fvGetAndReportPathRules"
         data-testid="helmop-chart-tab"
         @update:source-type="onSourceTypeSelect"
-        @update:app-co-version-options="appCoVersionOptions = $event"
       />
     </template>
 
@@ -853,15 +837,9 @@ export default {
               :is-view="isView"
               :source-type="sourceType"
               :source-type-options="sourceTypeOptions"
-              :is-suse-app-collection="isSuseAppCollection"
-              :app-co-chart-options="appCoChartOptions"
-              :app-co-version-options="appCoVersionOptions"
-              :app-co-chart-entries="appCoChartEntries"
-              :app-co-charts-loading="appCoChartsLoading"
               :fv-get-and-report-path-rules="fvGetAndReportPathRules"
               data-testid="helmop-view-chart-tab"
               @update:source-type="onSourceTypeSelect"
-              @update:app-co-version-options="appCoVersionOptions = $event"
             />
           </Tab>
           <Tab

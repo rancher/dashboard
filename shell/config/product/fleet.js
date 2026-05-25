@@ -104,7 +104,6 @@ export function init(store) {
 
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);
-  weightType(FLEET.WORKSPACE, 106, true);
 
   headers(FLEET.WORKSPACE, [
     STATE,

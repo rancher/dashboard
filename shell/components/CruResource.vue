@@ -696,7 +696,7 @@ export default {
                 </div>
               </template>
             </template>
-            <template #controlsContainer="{showPrevious, next, back, canNext, activeStepIndex, visibleSteps}">
+            <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
               <CruResourceFooter
                 class="cru__footer"
                 :mode="mode"
@@ -745,7 +745,7 @@ export default {
                     <AsyncButton
                       v-if="!showSubtypeSelection && !isView"
                       ref="save"
-                      :disabled="!canSave"
+                      :disabled="!activeStep.ready"
                       :mode="finishButtonMode || mode"
                       @click="$emit('finish', $event)"
                     />

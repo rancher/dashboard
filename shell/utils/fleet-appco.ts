@@ -4,7 +4,6 @@ import {
 } from '@shell/config/types';
 import { CATALOG, DESCRIPTION, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
-import { isPrerelease } from '@shell/utils/version';
 
 export const SUSE_APP_COLLECTION_REPO_URL = 'oci://dp.apps.rancher.io/charts';
 
@@ -26,11 +25,6 @@ export interface RepoState {
 interface WaitResult {
   repo: any;
   state: RepoState | null;
-}
-
-interface SelectOption {
-  label: string;
-  value: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,26 +244,4 @@ export async function fetchAppCoCharts(
 
 export function deriveRepoName(secretName: string): string {
   return secretName ? secretName.replace('auth', 'repo') : '';
-}
-
-export function buildChartOptions(entries: Record<string, any[]>): SelectOption[] {
-  return Object.keys(entries).sort().map((name) => ({
-    label: name,
-    value: name
-  }));
-}
-
-export function buildVersionOptions(entries: Record<string, any[]>, chartName: string): SelectOption[] {
-  if (!chartName || !entries[chartName]) {
-    return [];
-  }
-
-  return entries[chartName]
-    .filter((entry: any) => !isPrerelease(entry.version))
-    .map((entry: any) => entry.version)
-    .sort((a: string, b: string) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-    .map((v: string) => ({
-      label: v,
-      value: v
-    }));
 }

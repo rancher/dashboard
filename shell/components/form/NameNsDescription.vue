@@ -152,10 +152,6 @@ export default {
       type:    Boolean,
       default: true
     },
-    noMarginBottom: {
-      type:    Boolean,
-      default: false,
-    },
     horizontal: {
       type:    Boolean,
       default: true,
@@ -168,6 +164,14 @@ export default {
       }),
       type: Object,
     },
+    nameFieldName: {
+      type:    String,
+      default: null,
+    },
+    namespaceFieldName: {
+      type:    String,
+      default: null,
+    },
 
     /**
      * Inherited global identifier prefix for tests
@@ -176,10 +180,6 @@ export default {
     componentTestid: {
       type:    String,
       default: 'name-ns-description'
-    },
-    fullWidth: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -436,16 +436,17 @@ export default {
 </script>
 
 <template>
-  <div :class="['row', { 'mb-20': !noMarginBottom }]">
+  <div class="row mb-20">
     <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
       :data-testid="componentTestid + '-namespace-create'"
-      :class="['col', fullWidth ? 'span-4' : 'span-3']"
+      class="col span-3"
     >
       <LabeledInput
         ref="namespaceInput"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
@@ -467,11 +468,12 @@ export default {
     <div
       v-if="namespaced && !nameNsHidden && !createNamespace"
       :data-testid="componentTestid + '-namespace'"
-      :class="['col', fullWidth ? 'span-4' : 'span-3']"
+      class="col span-3"
     >
       <LabeledSelect
         v-show="!createNamespace"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :clearable="true"
         :options="options"
         :disabled="namespaceReallyDisabled"
@@ -489,12 +491,13 @@ export default {
     <div
       v-if="!nameHidden && !nameNsHidden"
       :data-testid="componentTestid + '-name'"
-      :class="['col', fullWidth ? 'span-4' : 'span-3']"
+      class="col span-3"
     >
       <LabeledInput
         ref="nameInput"
         key="name"
         v-model:value="name"
+        :name="nameFieldName"
         data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"
@@ -510,7 +513,7 @@ export default {
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"
-      :class="['col', fullWidth ? 'span-8' : (extraColumns.length > 0 ? 'span-3' : 'span-6')]"
+      :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']"
     >
       <LabeledInput
         key="description"
