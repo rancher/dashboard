@@ -37,17 +37,17 @@
 - sort.js: sort-utils.test.ts covers typeOf/spaceship/compare/parseField/sortableNumericSuffix/isNumeric; sort.test.ts covers sortBy
 - gatekeeper/util.js: store mock via `{ getters: { ['cluster/all']: () => schemas }, dispatch: jest.fn() }`
 - gc-root-store.js: mock gc/gc-interval/gc-route-changed via jest.resetModules()+jest.mock() in beforeEach inside describe
+- versions.ts: singleton — use jest.resetModules()+jest.mock('@shell/config/version',...)` in beforeEach to reset; use makeStoreWithCalls(p1,p2) helper to control per-call dispatch results
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/versions.ts` — singleton fetch with promise caching, store dispatch mock needed
-2. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
-3. `shell/utils/pagination-utils.ts` — ALREADY TESTED (existing test file)
-4. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
+1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
+2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
 
 ## Completed Work (Summary)
 
-- 2026-05-24: PR (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics
+- 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics
+- 2026-05-24: PR #17806 (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics
 - 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics
 - 2026-05-22: PR (branch test-assist/sort-utils-tests): 47 tests for sort.js utility fns (typeOf, spaceship, compare, parseField, sortableNumericSuffix, isNumeric); ~86% stmts, ~94% branches
 - 2026-05-21: PR (branch test-assist/banners-utils-tests): 15 tests for banners.js; 100% all metrics
@@ -56,20 +56,11 @@
 - 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns — MERGED ✅
 - 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics — MERGED ✅
 - 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts — MERGED ✅
-- 2026-05-15: PR (branch test-assist/validator-role-template-cron-tests): 19 tests for role-template.js + cron-schedule.js
-- 2026-05-14: PR (branch test-assist/validator-tests-batch2): 79 tests for 6 validator modules
-- 2026-05-13: PR (branch test-assist/kubernetes-cluster-name-tests): 37 tests for kubernetes-name.js + cluster-name.js
-- 2026-05-12: PR (branch test-assist/validators-service-tests): 30 tests for service.js
-- 2026-05-11: PR (branch test-assist/color-utils-tests): 32 tests for color.js
-- 2026-05-10: PR #17590 (branch test-assist/promise-queue-utils-tests): 34 tests for promise.js + queue.js
-- 2026-05-09: PR #17583: 56 tests for validators/index.js
-- 2026-05-08: PR #17562: 39 tests for duration.js + parse-externalid.js
-- 2026-05-07: PR #17545: 57 tests for units.js
-- 2026-05-06: PR #17518: 21 tests for perf-setting.utils.ts + ingress.ts pure methods
-- All PRs #17431–#17699: merged ✅
+- All PRs #17431–#17729: merged ✅
 
 ## Task Round-Robin History
 
+- 2026-05-25: Task 3 (versions.ts, 10 tests) + Task 7
 - 2026-05-24: Task 3 (gc-root-store.js, 15 tests) + Task 7
 - 2026-05-23: Task 3 (gatekeeper/util.js, 14 tests) + Task 7
 - 2026-05-22: Task 3 (sort.js, 47 tests) + Task 7
@@ -83,7 +74,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- New PR (branch test-assist/gc-root-store-tests) pending
+- New PR (branch test-assist/versions-utils-tests) pending
 
 ## Maintainer Priorities
 
