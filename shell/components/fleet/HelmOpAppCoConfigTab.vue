@@ -470,7 +470,6 @@ defineExpose({ refreshYamlEditor });
             :mode="mode"
             :display-side-by-side="false"
             :add-icon="'icon-plus'"
-            :reduce-title-size="true"
             :use-rc-button="true"
             data-testid="appco-config-labels-section"
           />
@@ -581,7 +580,6 @@ defineExpose({ refreshYamlEditor });
           :mode="mode"
           :display-side-by-side="false"
           :add-icon="'icon-plus'"
-          :reduce-title-size="true"
           :use-rc-button="true"
           data-testid="appco-config-labels-section"
         />

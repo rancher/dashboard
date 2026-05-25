@@ -127,10 +127,6 @@ export default {
       default: '',
     },
 
-    reduceTitleSize: {
-      type:    Boolean,
-      default: false,
-    },
     useRcButton: {
       type:    Boolean,
       default: false
@@ -171,12 +167,9 @@ export default {
     <div :class="defaultSectionClass">
       <div class="labels">
         <div class="labels__header">
-          <component
-            :is="reduceTitleSize ? 'h4' : 'h3'"
-            v-if="showLabelTitle"
-          >
+          <h3 v-if="showLabelTitle">
             <t k="labels.labels.title" />
-          </component>
+          </h3>
           <ToggleSwitch
             v-if="showToggler"
             v-model:value="toggler"
@@ -216,28 +209,14 @@ export default {
         :add-label="t('labels.addAnnotation')"
         :add-icon="addIcon"
         :mode="mode"
-        :title="reduceTitleSize ? '' : t('labels.annotations.title')"
+        :title="t('labels.annotations.title')"
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
         :key-errors="annotations.keyErrors"
         :use-rc-button="useRcButton"
         @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
-      >
-        <template
-          v-if="reduceTitleSize"
-          #title
-        >
-          <h4>
-            {{ t('labels.annotations.title') }}
-            <i
-              v-if="annotationTitleTooltip"
-              v-clean-tooltip="annotationTitleTooltip"
-              class="icon icon-info"
-            />
-          </h4>
-        </template>
-      </KeyValue>
+      />
     </div>
   </div>
 </template>
