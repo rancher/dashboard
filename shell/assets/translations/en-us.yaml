@@ -3163,6 +3163,7 @@ fleet:
             }
         selectedClusters: Selected clusters
         viewAllClusters: View all clusters
+        hideAllClusters: Hide all clusters
         workspace: 'workspace:'
         placeholder: Select clusters by name, labels or groups
         placeholderNames: No clusters selected by name

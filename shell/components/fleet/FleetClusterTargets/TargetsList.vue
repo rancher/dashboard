@@ -68,15 +68,25 @@ export default {
     class="targets-list-main"
     :class="{ 'compact': compact, 'compact-bg': compact && !isAll, 'is-all': isAll }"
   >
-    <div class="compact-title">
+    <h3
+      v-if="!compact"
+      class="m-0"
+    >
+      {{ t('fleet.clusterTargets.rules.matching.title', { n: clustersRenderList.length }) }}
+    </h3>
+    <div
+      v-else
+      class="compact-title"
+    >
       <h3>{{ t('fleet.clusterTargets.rules.matching.selectedClusters') }}</h3>
       <RcCounterBadge
         :count="clustersRenderList.length"
+        :class="{ 'badge-white': isAll }"
         type="inactive"
       />
     </div>
 
-    <template v-if="isAll">
+    <template v-if="isAll && compact">
       <a
         v-if="!showAllClusters"
         href="#"
@@ -109,6 +119,14 @@ export default {
           {{ emptyLabel || t('fleet.clusterTargets.rules.matching.empty') }}
         </span>
       </div>
+      <a
+        v-if="showAllClusters"
+        href="#"
+        class="view-all-link"
+        @click.prevent="showAllClusters = false"
+      >
+        {{ t('fleet.clusterTargets.rules.matching.hideAllClusters') }}
+      </a>
       <div class="workspace-footer">
         <span class="workspace-label">{{ t('fleet.clusterTargets.rules.matching.workspace') }}</span>
         <router-link
@@ -225,6 +243,10 @@ export default {
 
       h3 {
         margin: 0;
+      }
+
+      :deep(.badge-white.rc-counter-badge) {
+        background: var(--body-bg);
       }
     }
   }

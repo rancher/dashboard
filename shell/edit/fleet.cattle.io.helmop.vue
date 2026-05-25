@@ -89,7 +89,6 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
-      allWorkspaces:    [],
       pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
       sourceType:       this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION || (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL) ? SOURCE_TYPE.OCI : (this.value.sourceType || SOURCE_TYPE.REPO),
@@ -498,7 +497,7 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: this.isSuseAppCollection ? FLEET_APPCO_AUTH_GENERATE_NAME : AUTH_GENERATE_NAME,
+            generateName: AUTH_GENERATE_NAME,
             labels:       { [FLEET_LABELS.MANAGED]: 'true' }
           }
         });
