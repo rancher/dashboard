@@ -2,8 +2,8 @@
 import Loading from '@shell/components/Loading';
 import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
-import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
+import ChartDetailBody from '@shell/components/ChartDetailBody.vue';
 import isEqual from 'lodash/isEqual';
 import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED
@@ -21,9 +21,9 @@ import { RcButton } from '@components/RcButton';
 export default {
   components: {
     Banner,
-    ChartReadme,
     LazyImage,
     Loading,
+    ChartDetailBody,
     AppChartCardSubHeader,
     AppChartCardFooter,
     RcButton
@@ -312,209 +312,62 @@ export default {
 
     <div class="dashed-spacer" />
 
-    <Banner
-      v-if="versionInfoError"
-      color="error"
-      :label="versionInfoError"
-    />
-    <Banner
-      v-if="warningMessage"
-      color="warning"
-      :label="warningMessage"
-      data-testid="deprecation-and-experimental-banner"
-    />
-
-    <div
-      v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
-      class="chart-banners"
+    <ChartDetailBody
+      :version="version"
+      :version-info="versionInfo"
+      :version-info-error="versionInfoError"
+      :versions="mappedVersions"
+      :repo="repo"
+      :chart="chart"
+      :current-version="currentVersion"
+      :app-version="appVersion || ''"
+      :home="home || ''"
+      :maintainers="maintainers"
+      @select-version="$router.push(getVersionRoute($event))"
     >
-      <Banner
-        v-if="osWarning"
-        color="error"
-      >
-        <span v-clean-html="osWarning" />
-      </Banner>
-      <Banner
-        v-for="(msg, i) in requires"
-        :key="i"
-        color="error"
-      >
-        <span v-clean-html="msg" />
-      </Banner>
-
-      <Banner
-        v-for="(msg, i) in warnings"
-        :key="i"
-        color="warning"
-      >
-        <span v-clean-html="msg" />
-      </Banner>
-
-      <Banner
-        v-if="targetedAppWarning"
-        color="warning"
-      >
-        <span v-clean-html="targetedAppWarning" />
-      </Banner>
-    </div>
-
-    <div class="chart-body">
-      <ChartReadme
-        v-if="hasReadme"
-        :version-info="versionInfo"
-        :show-app-readme="false"
-        :hide-readme-first-title="false"
-        class="chart-body__readme"
-      />
-      <div
-        v-else
-        class="chart-body__readme"
-      >
-        {{ t('catalog.install.appReadmeMissing', {}, true) }}
-      </div>
-      <aside
-        v-if="version"
-        class="chart-body__info"
-      >
-        <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
-          <div
-            v-for="vers of versions"
-            :key="vers.id"
-            class="chart-body__info-section--versions"
-            data-testid="chart-versions"
+      <template #banners>
+        <Banner
+          v-if="warningMessage"
+          color="warning"
+          :label="warningMessage"
+          data-testid="deprecation-and-experimental-banner"
+        />
+        <div
+          v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
+          class="chart-banners"
+        >
+          <Banner
+            v-if="osWarning"
+            color="error"
           >
-            <b
-              v-if="vers.originalVersion === version.version"
-              v-clean-tooltip="vers.label"
-              class="current-version"
-            >
-              <template v-if="vers.originalVersion === currentVersion">
-                <span class="ellipsis">{{ currentVersion }}</span>
-                <i class="icon icon-confirmation-alt" />
-              </template>
-              <span
-                v-else
-                class="ellipsis"
-              >
-                {{ vers.originalVersion }}
-              </span>
-            </b>
-            <div
-              v-else
-              class="current-version"
-            >
-              <router-link
-                v-clean-tooltip="vers.label"
-                :to="getVersionRoute(vers)"
-                class="ellipsis"
-                data-testid="chart-version-link"
-              >
-                {{ vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
-              </router-link>
-              <i
-                v-if="vers.originalVersion === currentVersion"
-                class="icon icon-confirmation-alt"
-              />
-            </div>
-            <p
-              v-clean-tooltip="{ content: getVersionDateTooltip(vers.created), placement: 'left'}"
-              class="version-date"
-            >
-              {{ formatVersionDate(vers.created) }}
-            </p>
-          </div>
-          <a
-            v-if="mappedVersions.length > showLastVersions"
-            href="#"
-            role="button"
-            class="mmt-1 secondary-text-link"
-            data-testid="chart-show-more-versions"
-            @click.prevent="showMoreVersions = !showMoreVersions"
+            <span v-clean-html="osWarning" />
+          </Banner>
+          <Banner
+            v-for="(msg, i) in requires"
+            :key="'req-' + i"
+            color="error"
           >
-            {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
-          </a>
-        </div>
-        <div
-          v-if="appVersion"
-          class="chart-body__info-section"
-        >
-          <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
-          {{ appVersion }}
-        </div>
-        <div
-          v-if="repo"
-          class="chart-body__info-section"
-        >
-          <h4>{{ t('catalog.chart.info.repository') }}</h4>
-          <router-link
-            :to="repo.detailLocation"
-            data-testid="chart-repo-link"
+            <span v-clean-html="msg" />
+          </Banner>
+          <Banner
+            v-for="(msg, i) in warnings"
+            :key="'warn-' + i"
+            color="warning"
           >
-            {{ chart.repoNameDisplay }}
-          </router-link>
+            <span v-clean-html="msg" />
+          </Banner>
+          <Banner
+            v-if="targetedAppWarning"
+            color="warning"
+          >
+            <span v-clean-html="targetedAppWarning" />
+          </Banner>
         </div>
+      </template>
+
+      <template #sidebar-extra>
         <div
-          v-if="home"
-          class="chart-body__info-section"
-        >
-          <h4>{{ t('catalog.chart.info.home') }}</h4>
-          <a
-            :href="home"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-            data-testid="chart-home-link"
-          >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-        </div>
-        <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
-          <template v-if="maintainers.length">
-            <div
-              v-for="m of maintainers"
-              :key="m.id"
-            >
-              <a
-                v-if="m.href"
-                v-clean-tooltip="m.name ? t('catalog.chart.info.maintainerContactTooltip', { maintainer: m.name }) : undefined"
-                :href="m.href"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-              >
-                {{ m.label }}
-              </a>
-              <span v-else>{{ m.label }}</span>
-            </div>
-          </template>
-          <span v-else>{{ t('generic.unknown') }}</span>
-        </div>
-        <div
-          v-if="version.sources"
-          class="chart-body__info-section"
-        >
-          <h4>{{ t('catalog.chart.info.related') }}</h4>
-          <a
-            v-for="s of version.sources"
-            :key="s"
-            :href="s"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-          >{{ s }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-        </div>
-        <div
-          v-if="version.urls"
-          class="chart-body__info-section"
-        >
-          <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
-          <a
-            v-for="url of version.urls"
-            :key="url"
-            :href="url"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-          >{{ version.urls.length === 1 ? 'Download': url }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-        </div>
-        <div
-          v-if="version.keywords"
+          v-if="version && version.keywords"
           class="chart-body__info-section chart-body__info-section--keywords"
         >
           <h4>{{ t('catalog.chart.info.keywords') }}</h4>
@@ -535,8 +388,8 @@ export default {
             </span>
           </div>
         </div>
-      </aside>
-    </div>
+      </template>
+    </ChartDetailBody>
   </main>
 </template>
 
@@ -638,90 +491,6 @@ export default {
     .banner {
       margin-top: 0;
       margin-bottom: 24px;
-    }
-  }
-
-  .chart-body {
-    display: flex;
-    &__readme {
-      flex: 1;
-      min-width: 400px;
-      padding: 12px 24px;
-    }
-    &__info {
-      min-width: 300px;
-      max-width: 300px;
-      height: max-content;
-      background: var(--sortable-table-header-bg);
-      padding: 16px;
-      border-radius: 8px;
-      margin-left: 24px;
-
-      &-section {
-        display: flex;
-        flex-direction: column;
-        padding-bottom: 24px;
-        word-break: break-all;
-        line-height: 21px;
-
-        h4 {
-          font-weight: bold;
-        }
-
-        a {
-          cursor: pointer;
-
-          .icon-external-link {
-            margin-left: 8px;
-          }
-        }
-
-        &--versions{
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 4px;
-
-          .version-date {
-            color: var(--link-text-secondary);
-          }
-
-          .current-version {
-            display: flex;
-            align-items: center;
-
-            .ellipsis {
-              display: block;
-              max-width: 140px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            }
-
-            .icon-confirmation-alt {
-              color: var(--success);
-              margin-left: 12px;
-              font-size: 19px;
-            }
-          }
-        }
-
-        &--keywords{
-          color: var(--link-text-secondary);
-          padding-bottom: 0;
-
-          .keyword-links {
-            .keyword-item {
-              display: inline-block;
-              white-space: nowrap;
-
-              span {
-                margin-right: 4px;
-                margin-left: -2px;
-              }
-            }
-          }
-        }
-      }
     }
   }
 </style>

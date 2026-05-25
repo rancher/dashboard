@@ -1,24 +1,17 @@
-<script>
+<script setup lang="ts">
 import { BadgeState } from '@components/BadgeState';
 import { RcIcon } from '@components/RcIcon';
 
-export default {
-  name: 'AppCoEmptyState',
-
-  components: { BadgeState, RcIcon },
-
-  props: {
-    title: {
-      type:     String,
-      required: true,
-    },
-    badgeState: {
-      type:    Object,
-      default: null,
-    },
-
+defineProps({
+  title: {
+    type:     String,
+    required: true,
   },
-};
+  badgeState: {
+    type:    Object,
+    default: null,
+  },
+});
 </script>
 
 <template>

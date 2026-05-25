@@ -233,6 +233,18 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
         name:      'c-cluster-fleet-application-create',
       }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/credentials',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue')),
+        name:      'c-cluster-fleet-application-appco-credentials',
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/charts',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue')),
+        name:      'c-cluster-fleet-application-appco-charts',
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/chart',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue')),
+        name:      'c-cluster-fleet-application-appco-chart',
+      }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
         name:      'c-cluster-fleet-application-resource-create',

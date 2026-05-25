@@ -33,10 +33,6 @@ defineProps({
     type:    Boolean,
     default: false
   },
-  isSuseAppCollection: {
-    type:    Boolean,
-    default: false
-  }
 });
 
 const emit = defineEmits(['update:targets', 'targets-created']);
@@ -57,7 +53,7 @@ const onTargetsCreated = (value) => {
   <div data-testid="helmop-target-tab">
     <div :class="compact ? 'gap-6' : ''">
       <component
-        :is="compact ? 'h3' : 'h2'"
+        :is="compact && isView || !compact ? 'h2' : 'h4'"
       >
         {{ t('fleet.helmOp.target.label') }}
       </component>
@@ -68,7 +64,6 @@ const onTargetsCreated = (value) => {
         :mode="realMode"
         :created="targetsCreated"
         :compact="compact"
-        :is-suse-app-collection="isSuseAppCollection"
         data-testid="helmop-target-cluster-targets"
         @update:value="updateTargets"
         @created="onTargetsCreated"

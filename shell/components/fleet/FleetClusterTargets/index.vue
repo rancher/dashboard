@@ -5,15 +5,14 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { FLEET } from '@shell/config/types';
 import FleetUtils from '@shell/utils/fleet';
-import { convertSelectorObj, matching as matchSelector } from '@shell/utils/selector';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
-import { RcSection } from '@components/RcSection';
 import { RcCounterBadge } from '@components/Pill';
+import { RcSection } from '@components/RcSection';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
 
@@ -31,6 +30,7 @@ interface DataType {
   selectedClusterGroups: string[],
   clusterSelectors: Selector[],
   key: number,
+  clustersExpanded: boolean,
 }
 
 const excludeHarvesterRule = FleetUtils.Application.excludeHarvesterRule;
@@ -47,9 +47,9 @@ export default {
     MatchExpressions,
     RadioGroup,
     RcButton,
-    RcCounterBadge,
     RcSection,
     TargetsList,
+    RcCounterBadge,
   },
 
   props: {
@@ -83,10 +83,6 @@ export default {
       default: false,
     },
 
-    isSuseAppCollection: {
-      type:    Boolean,
-      default: false,
-    },
   },
 
   async fetch() {
@@ -113,7 +109,8 @@ export default {
       selectedClusters:      [],
       selectedClusterGroups: [],
       clusterSelectors:      [],
-      key:                   0 // Generates a unique key to handle Targets
+      key:                   0, // Generates a unique key to handle Targets
+      clustersExpanded:      true,
     };
   },
 
@@ -183,63 +180,6 @@ export default {
         .map((x) => {
           return { label: x.nameDisplay, value: x.metadata.name };
         });
-    },
-
-    matchingByName(): any[] {
-      if (!this.selectedClusters.length) {
-        return [];
-      }
-
-      return this.allClusters.filter((c: any) => c.metadata.namespace === this.namespace && this.selectedClusters.includes(c.metadata.name));
-    },
-
-    matchingByLabel(): any[] {
-      if (!this.clusterSelectors.length) {
-        return [];
-      }
-
-      const namespaceClusters = this.allClusters.filter((c: any) => c.metadata.namespace === this.namespace);
-      const result: any[] = [];
-      const seen = new Set<string>();
-
-      for (const selector of this.clusterSelectors) {
-        const expressions = convertSelectorObj(selector);
-
-        if (expressions.length) {
-          for (const cluster of matchSelector(namespaceClusters, expressions)) {
-            if (!seen.has(cluster.metadata.name)) {
-              seen.add(cluster.metadata.name);
-              result.push(cluster);
-            }
-          }
-        }
-      }
-
-      return result;
-    },
-
-    matchingByGroup(): any[] {
-      if (!this.selectedClusterGroups.length) {
-        return [];
-      }
-
-      const result: any[] = [];
-      const seen = new Set<string>();
-
-      for (const groupName of this.selectedClusterGroups) {
-        const group = this.allClusterGroups.find((g: any) => g.metadata.namespace === this.namespace && g.metadata.name === groupName);
-
-        if (group?.targetClusters) {
-          for (const cluster of group.targetClusters) {
-            if (!seen.has(cluster.metadata.name)) {
-              seen.add(cluster.metadata.name);
-              result.push(cluster);
-            }
-          }
-        }
-      }
-
-      return result;
     },
 
     isLocal() {
@@ -460,169 +400,110 @@ export default {
 
     <!-- AppCo: RcSection layout -->
     <div
-      v-if="targetMode === 'clusters' && isSuseAppCollection"
+      v-if="targetMode === 'clusters' && compact && !isView"
       class="row"
     >
       <div class="col span-12 content-group">
         <RcSection
+          v-model:expanded="clustersExpanded"
           :title="t('fleet.clusterTargets.clusters.title')"
           mode="with-header"
           type="secondary"
           expandable
-          :expanded="true"
           data-testid="fleet-target-clusters-section"
         >
-          <div class="appco-select-clusters">
-            <div>
-              <h4>{{ t('fleet.clusterTargets.clusters.byName.title') }}</h4>
-              <LabeledSelect
-                data-testid="fleet-target-cluster-name-selector"
-                :value="selectedClusters"
-                :label="t('fleet.clusterTargets.clusters.byName.label')"
-                :options="clustersOptions"
-                :taggable="true"
-                :close-on-select="false"
-                :mode="mode"
-                :multiple="true"
-                :placeholder="t('fleet.clusterTargets.clusters.byName.placeholder')"
-                @update:value="selectClusters"
-              />
-            </div>
-            <div
-              v-if="!isView || (clusterSelectors && clusterSelectors.length > 0)"
-            >
-              <h4>{{ t('fleet.clusterTargets.clusters.byLabel.title') }}</h4>
-              <div
-                v-for="(selector, i) in clusterSelectors"
-                :key="selector.key"
-                class="match-expressions-container mmt-4"
-              >
-                <MatchExpressions
-                  :ref="`match-expression-${ selector.key }`"
-                  class="body"
-                  :value="selector"
-                  :mode="mode"
-                  :initial-empty-row="true"
-                  :label-key="t('fleet.clusterTargets.clusters.byLabel.labelKey')"
-                  :add-icon="'icon-plus'"
-                  :add-class="'btn-sm'"
-                  @update:value="updateMatchExpressions(i, $event, selector.key)"
-                />
-                <RcButton
-                  v-if="!isView"
-                  size="small"
-                  variant="link"
-                  @click="removeMatchExpressions(selector.key)"
-                >
-                  <i class="icon icon-x" />
-                </RcButton>
-              </div>
-              <RcButton
-                v-if="!isView"
-                size="small"
-                variant="secondary"
-                class="mmt-3"
-                @click="addMatchExpressions"
-              >
-                <i class="icon icon-plus" />
-                <span>{{ t('fleet.clusterTargets.clusters.byLabel.addSelector') }}</span>
-              </RcButton>
-            </div>
-            <div>
-              <h4>{{ t('fleet.clusterTargets.clusterGroups.title') }}</h4>
-              <LabeledSelect
-                data-testid="fleet-target-cluster-group-selector"
-                :value="selectedClusterGroups"
-                :label="t('fleet.clusterTargets.clusterGroups.byName.label')"
-                :options="clusterGroupsOptions"
-                :taggable="true"
-                :close-on-select="false"
-                :mode="mode"
-                :multiple="true"
-                :placeholder="t('fleet.clusterTargets.clusterGroups.byName.placeholder')"
-                @update:value="selectClusterGroups"
-              />
-            </div>
-          </div>
-        </RcSection>
-        <RcSection
-          :title="t('fleet.clusterTargets.rules.matching.sectionTitle')"
-          mode="with-header"
-          type="secondary"
-          expandable
-          :expanded="false"
-          data-testid="fleet-target-targeted-clusters-section"
-        >
-          <template #counter>
+          <template
+            v-if="!clustersExpanded"
+            #counter
+          >
             <RcCounterBadge
               :count="matching.length"
               type="inactive"
             />
           </template>
-          <div class="matching-subsections">
-            <RcSection
-              :title="t('fleet.clusterTargets.rules.matching.fromNames')"
-              mode="with-header"
-              type="secondary"
-              expandable
-              :expanded="matchingByName.length > 0"
-              data-testid="fleet-target-matching-by-name"
-            >
-              <template #counter>
-                <RcCounterBadge
-                  :count="matchingByName.length"
-                  type="inactive"
-                />
-              </template>
+          <div class="row">
+            <div class="col span-8">
+              <div class="appco-select-clusters">
+                <div>
+                  <h4>{{ t('fleet.clusterTargets.clusters.byName.title') }}</h4>
+                  <LabeledSelect
+                    data-testid="fleet-target-cluster-name-selector"
+                    :value="selectedClusters"
+                    :label="t('fleet.clusterTargets.clusters.byName.label')"
+                    :options="clustersOptions"
+                    :taggable="true"
+                    :close-on-select="false"
+                    :mode="mode"
+                    :multiple="true"
+                    :placeholder="t('fleet.clusterTargets.clusters.byName.placeholder')"
+                    @update:value="selectClusters"
+                  />
+                </div>
+                <div
+                  v-if="!isView || (clusterSelectors && clusterSelectors.length > 0)"
+                >
+                  <h4>{{ t('fleet.clusterTargets.clusters.byLabel.title') }}</h4>
+                  <div
+                    v-for="(selector, i) in clusterSelectors"
+                    :key="selector.key"
+                    class="match-expressions-container mmt-4"
+                  >
+                    <MatchExpressions
+                      :ref="`match-expression-${ selector.key }`"
+                      class="body"
+                      :value="selector"
+                      :mode="mode"
+                      :initial-empty-row="true"
+                      :label-key="t('fleet.clusterTargets.clusters.byLabel.labelKey')"
+                      :add-icon="'icon-plus'"
+                      :add-class="'btn-sm'"
+                      @update:value="updateMatchExpressions(i, $event, selector.key)"
+                    />
+                    <RcButton
+                      v-if="!isView"
+                      size="small"
+                      variant="link"
+                      @click="removeMatchExpressions(selector.key)"
+                    >
+                      <i class="icon icon-x" />
+                    </RcButton>
+                  </div>
+                  <RcButton
+                    v-if="!isView"
+                    size="small"
+                    variant="secondary"
+                    class="mmt-3"
+                    @click="addMatchExpressions"
+                  >
+                    <i class="icon icon-plus" />
+                    <span>{{ t('fleet.clusterTargets.clusters.byLabel.addSelector') }}</span>
+                  </RcButton>
+                </div>
+                <div>
+                  <h4>{{ t('fleet.clusterTargets.clusterGroups.title') }}</h4>
+                  <LabeledSelect
+                    data-testid="fleet-target-cluster-group-selector"
+                    :value="selectedClusterGroups"
+                    :label="t('fleet.clusterTargets.clusterGroups.byName.label')"
+                    :options="clusterGroupsOptions"
+                    :taggable="true"
+                    :close-on-select="false"
+                    :mode="mode"
+                    :multiple="true"
+                    :placeholder="t('fleet.clusterTargets.clusterGroups.byName.placeholder')"
+                    @update:value="selectClusterGroups"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col span-4">
               <TargetsList
-                :clusters="matchingByName"
-                :empty-label="t('fleet.clusterTargets.rules.matching.placeholderNames')"
-                :chips="true"
-                :hide-title="true"
+                class="target-list"
+                :clusters="matching"
+                :compact="compact"
+                :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
               />
-            </RcSection>
-            <RcSection
-              :title="t('fleet.clusterTargets.rules.matching.fromLabels')"
-              mode="with-header"
-              type="secondary"
-              expandable
-              :expanded="matchingByLabel.length > 0"
-              data-testid="fleet-target-matching-by-label"
-            >
-              <template #counter>
-                <RcCounterBadge
-                  :count="matchingByLabel.length"
-                  type="inactive"
-                />
-              </template>
-              <TargetsList
-                :clusters="matchingByLabel"
-                :empty-label="t('fleet.clusterTargets.rules.matching.placeholderLabels')"
-                :chips="true"
-                :hide-title="true"
-              />
-            </RcSection>
-            <RcSection
-              :title="t('fleet.clusterTargets.rules.matching.fromGroups')"
-              mode="with-header"
-              type="secondary"
-              expandable
-              :expanded="matchingByGroup.length > 0"
-              data-testid="fleet-target-matching-by-group"
-            >
-              <template #counter>
-                <RcCounterBadge
-                  :count="matchingByGroup.length"
-                  type="inactive"
-                />
-              </template>
-              <TargetsList
-                :clusters="matchingByGroup"
-                :empty-label="t('fleet.clusterTargets.rules.matching.placeholderGroups')"
-                :chips="true"
-                :hide-title="true"
-              />
-            </RcSection>
+            </div>
           </div>
         </RcSection>
       </div>
@@ -630,19 +511,19 @@ export default {
 
     <!-- Default: original layout -->
     <div
-      v-if="targetMode === 'clusters' && !isSuseAppCollection"
+      v-if="targetMode === 'clusters' && (!compact || (compact && isView))"
       class="row"
     >
-      <div class="col span-9">
-        <component
-          :is="compact ? 'h4' : 'h3'"
+      <div class="col span-8">
+        <h3
+          v-if="!compact"
           class="m-0"
         >
           {{ t('fleet.clusterTargets.clusters.title') }}
-        </component>
+        </h3>
         <LabeledSelect
           data-testid="fleet-target-cluster-name-selector"
-          class="mmt-4"
+          :class="{ 'mmt-4': !compact }"
           :value="selectedClusters"
           :label="t('fleet.clusterTargets.clusters.byName.label')"
           :options="clustersOptions"
@@ -721,7 +602,7 @@ export default {
           />
         </div>
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <TargetsList
           class="target-list"
           :clusters="matching"
@@ -730,44 +611,18 @@ export default {
       </div>
     </div>
 
-    <!-- AppCo: all mode with RcSection -->
+    <!-- All mode (default) -->
     <div
-      v-if="targetMode === 'all' && !isLocal && isSuseAppCollection"
-      class="row"
-    >
-      <div class="col span-12">
-        <RcSection
-          :title="t('fleet.clusterTargets.rules.matching.sectionTitle')"
-          mode="with-header"
-          type="secondary"
-          expandable
-          :expanded="false"
-          data-testid="fleet-target-targeted-clusters-section-all"
-        >
-          <template #counter>
-            <RcCounterBadge
-              :count="matching.length"
-              type="inactive"
-            />
-          </template>
-          <TargetsList
-            :clusters="matching"
-            :chips="true"
-            :hide-title="true"
-          />
-        </RcSection>
-      </div>
-    </div>
-
-    <!-- Default: all mode -->
-    <div
-      v-if="targetMode === 'all' && !isLocal && !isSuseAppCollection"
+      v-if="targetMode === 'all' && !isLocal"
       class="row"
     >
       <div class="col span-6">
         <TargetsList
           class="target-list"
           :clusters="matching"
+          :compact="compact"
+          :is-all="true"
+          :namespace="namespace"
         />
       </div>
     </div>
@@ -791,12 +646,6 @@ export default {
     }
   }
 
-  .matching-subsections {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
   .match-expressions-container {
     display: flex;
     align-items: start;
@@ -811,10 +660,6 @@ export default {
     .btn {
       margin: 5px;
     }
-  }
-
-  .target-list {
-    max-height: 320px;
   }
 
   .gap-24 {

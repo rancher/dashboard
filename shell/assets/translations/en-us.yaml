@@ -40,6 +40,7 @@ generic:
   descending: descending
   disabled: Disabled
   done: Done
+  download: Download
   enabled: Enabled
   error: Error
   here: here
@@ -3160,6 +3161,9 @@ fleet:
             =1 {1 cluster selected}
             other {{n, number} clusters selected}
             }
+        selectedClusters: Selected clusters
+        viewAllClusters: View all clusters
+        workspace: 'workspace:'
         placeholder: Select clusters by name, labels or groups
         placeholderNames: No clusters selected by name
         placeholderLabels: No clusters matched by labels
@@ -3334,6 +3338,20 @@ fleet:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+  appCo:
+    credentials:
+      title: SUSE Application Collection Charts
+      subtitle: Set up your credentials
+      infoText: An Application Collection access token is required to connect to the Helm Charts catalogue.
+      learnMoreAbout: 'Learn more about '
+      accessTokensLink: SUSE Application Collection access tokens
+      accessTokenLabel: Access token
+      addNewToken: Add a new access token...
+      chooseExisting: 'Choose an existing token:'
+      username: Username
+      usernamePlaceholder: user@domain.org
+      accessTokenField: Access Token
+      accessTokenPlaceholder: Your SUSE Application Collection access token
   helmOp:
     intro:
       add: Create Helm Op
@@ -3532,6 +3550,7 @@ fleet:
       cluster: Cluster
       clusterGroup: Cluster Group
       label: Deploy To
+      title: Select Clusters
       labelLocal: Deploy With
       additionalOptions: Additional Options
       targetAdditionalOptions: Target Additional Options

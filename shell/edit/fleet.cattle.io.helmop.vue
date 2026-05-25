@@ -31,7 +31,6 @@ import HelmOpChartTab from '@shell/components/fleet/HelmOpChartTab.vue';
 import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
-import HelmOpAppCoSelectionTab from '@shell/components/fleet/HelmOpAppCoSelectionTab.vue';
 import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
@@ -61,7 +60,6 @@ export default {
     HelmOpValuesTab,
     HelmOpTargetTab,
     HelmOpAdvancedTab,
-    HelmOpAppCoSelectionTab,
     HelmOpAppCoConfigTab,
   },
 
@@ -143,14 +141,37 @@ export default {
       const repo = this.value.spec?.helm?.repo || '';
 
       if (!repo) {
-        // Create flow: pre-fill the locked base URL
         set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
       } else if (repo.startsWith(SUSE_APP_COLLECTION_REPO_URL) && repo.length > SUSE_APP_COLLECTION_REPO_URL.length) {
-        // Edit flow: split "oci://dp.apps.rancher.io/charts/my-app" back into repo + chart
         const chart = repo.slice(SUSE_APP_COLLECTION_REPO_URL.length).replace(/^\//, '');
 
         set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
         set(this.value, 'spec.helm.chart', chart);
+      }
+
+      if (this.realMode === _CREATE) {
+        const queryChart = this.$route.query.chart;
+        const querySecret = this.$route.query.secret;
+        const queryVersion = this.$route.query.version;
+
+        if (queryChart) {
+          set(this.value, 'spec.helm.chart', queryChart);
+        }
+
+        if (queryVersion) {
+          set(this.value, 'spec.helm.version', queryVersion);
+        }
+
+        if (querySecret) {
+          const ns = this.value.metadata.namespace;
+
+          this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName', true);
+          this.addAppCoImagePullSecretToSpec(`${ querySecret }-image-pull-secret`);
+
+          const repoName = querySecret.replace('auth', 'repo');
+
+          this.fetchAppCoCharts(repoName);
+        }
       }
     }
   },
@@ -159,34 +180,7 @@ export default {
     ...mapGetters(['workspace']),
 
     steps() {
-      if (this.isSuseAppCollection && !this.isView) {
-        if (this.isEdit) {
-          return [];
-        }
-
-        // IsSuseAppCollection and Edit mode
-        return [
-          {
-            name:           'selection',
-            title:          this.t('fleet.helmOp.add.steps.selection.title'),
-            label:          this.t('fleet.helmOp.add.steps.selection.label'),
-            subtext:        this.t('fleet.helmOp.add.steps.selection.subtext'),
-            descriptionKey: 'fleet.helmOp.add.steps.selection.description',
-            ready:          this.isView || !!this.value.spec?.helm?.chart,
-            weight:         1
-          },
-          {
-            name:           'appcoConfig',
-            title:          this.t('fleet.helmOp.add.steps.appcoConfig.title'),
-            label:          this.t('fleet.helmOp.add.steps.appcoConfig.label'),
-            subtext:        this.t('fleet.helmOp.add.steps.appcoConfig.subtext'),
-            descriptionKey: 'fleet.helmOp.add.steps.appcoConfig.description',
-            ready:          !!this.value.metadata.name,
-            weight:         1,
-          },
-        ];
-      } else if (this.isSuseAppCollection && this.isView) {
-        // IsSuseAppCollection and View mode — steps not used (CruResource renders #single)
+      if (this.isSuseAppCollection) {
         return [];
       }
 
@@ -378,10 +372,6 @@ export default {
       if (!keepAppCoRepoState) {
         this.appCoRepoState = null;
       }
-    },
-
-    goToNextStep() {
-      this.$refs.cruResource?.$refs?.Wizard?.next();
     },
 
     onSourceTypeSelect(type) {
@@ -989,79 +979,6 @@ export default {
     </template>
 
     <template
-      v-if="isSuseAppCollection"
-      #selection
-    >
-      <HelmOpAppCoSelectionTab
-        :value="value"
-        :mode="mode"
-        :is-view="isView"
-        :temp-cached-values="tempCachedValues"
-        :create-errors="authCreateErrors"
-        :on-create-auth="onCreateAuth"
-        :register-before-hook="registerBeforeHook"
-        :app-co-chart-entries="appCoChartEntries"
-        :app-co-charts-loading="appCoChartsLoading"
-        :app-co-charts-fetch-error="appCoChartsFetchError"
-        :app-co-repo-state="appCoRepoState"
-        data-testid="helmop-appco-selection-tab"
-        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-        @update:auth="updateAuth($event.value, $event.key)"
-        @select-chart-next="goToNextStep"
-        @retry-fetch="retryAppCoChartsFetch"
-      />
-    </template>
-
-    <template
-      v-if="isSuseAppCollection"
-      #appcoConfig
-    >
-      <HelmOpAppCoConfigTab
-        :value="value"
-        :mode="mode"
-        :real-mode="realMode"
-        :app-co-chart-entries="appCoChartEntries"
-        :app-co-charts-loading="appCoChartsLoading"
-        :chart-values="chartValues"
-        :chart-values-init="chartValuesInit"
-        :yaml-form="yamlForm"
-        :yaml-form-options="yamlFormOptions"
-        :yaml-diff-mode-options="yamlDiffModeOptions"
-        :is-yaml-diff="isYamlDiff"
-        :editor-mode="editorMode"
-        :diff-mode="diffMode"
-        :is-real-mode-edit="isRealModeEdit"
-        :targets-created="targetsCreated"
-        :source-type="sourceType"
-        :is-suse-app-collection="isSuseAppCollection"
-        :temp-cached-values="tempCachedValues"
-        :correct-drift-enabled="correctDriftEnabled"
-        :polling-interval="pollingInterval"
-        :is-polling-enabled="isPollingEnabled"
-        :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-        :enable-polling-tooltip="enablePollingTooltip"
-        :is-null-or-static-version="isNullOrStaticVersion"
-        :downstream-secrets-list="downstreamSecretsList"
-        :downstream-config-maps-list="downstreamConfigMapsList"
-        :register-before-hook="registerBeforeHook"
-        data-testid="helmop-appco-config-tab"
-        @update:value="$emit('input', $event)"
-        @update:yaml-form="updateYamlForm"
-        @update:chart-values="updateChartValues"
-        @update:diff-mode="diffMode = $event"
-        @update:targets="updateTargets"
-        @targets-created="targetsCreated=$event"
-        @update:auth="updateAuth($event.value, $event.key)"
-        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-        @update:correct-drift="correctDriftEnabled = $event"
-        @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-        @toggle-polling="togglePolling"
-        @update:polling-interval="updatePollingInterval"
-        @update:validate-polling-interval="validatePollingInterval"
-      />
-    </template>
-
-    <template
       v-if="!isSuseAppCollection"
       #chart
     >
@@ -1156,7 +1073,7 @@ export default {
     </template>
 
     <template
-      v-if="isView || isEdit && isSuseAppCollection"
+      v-if="isView || isSuseAppCollection"
       #single
     >
       <!-- Non-AppCo view -->
@@ -1457,7 +1374,7 @@ export default {
         </Tab>
       </Tabbed>
       <div
-        v-else-if="isSuseAppCollection && isEdit"
+        v-else-if="isSuseAppCollection && (isEdit || isCreate)"
         data-testid="helmop-appco-edit"
       >
         <HelmOpAppCoConfigTab

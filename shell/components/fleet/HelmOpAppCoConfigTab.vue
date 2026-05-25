@@ -434,7 +434,7 @@ defineExpose({ refreshYamlEditor });
         />
       </div>
     </div>
-    <!-- Deploy To -->
+    <!-- Deploy To (standalone Target tab) -->
     <HelmOpTargetTab
       v-if="!hideTarget && isStandaloneTarget"
       :value="value"
@@ -444,20 +444,17 @@ defineExpose({ refreshYamlEditor });
       :targets-created="targetsCreated"
       :hide-additional-options="true"
       :compact="true"
-      :is-suse-app-collection="isSuseAppCollection"
       data-testid="appco-config-target"
       @update:targets="$emit('update:targets', $event)"
       @targets-created="$emit('targets-created', $event)"
     />
 
-    <!-- Deploy To (standalone tab) -->
+    <!-- Deploy To -->
     <RcSection
       v-if="!hideTarget && !isStandaloneTarget"
-      :title="t('fleet.helmOp.appCoView.targetDetails')"
+      :title="t('fleet.helmOp.target.title')"
       mode="with-header"
       type="primary"
-      expandable
-      :expanded="true"
       data-testid="appco-config-rcsection-target"
     >
       <HelmOpTargetTab
@@ -468,7 +465,6 @@ defineExpose({ refreshYamlEditor });
         :targets-created="targetsCreated"
         :hide-additional-options="true"
         :compact="true"
-        :is-suse-app-collection="isSuseAppCollection"
         data-testid="appco-config-target"
         @update:targets="$emit('update:targets', $event)"
         @targets-created="$emit('targets-created', $event)"
