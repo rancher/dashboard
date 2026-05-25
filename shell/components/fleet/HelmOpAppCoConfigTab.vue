@@ -305,16 +305,6 @@ defineExpose({ refreshYamlEditor });
         v-else-if="isCreate"
         class="appco-main-content"
       >
-        <div class="col span-3">
-          <AppCoVersionSelect
-            :value="selectedVersion"
-            :options="versionOptions"
-            :loading="appCoChartsLoading"
-            :mode="mode"
-            data-testid="appco-config-version"
-            @update:value="onVersionSelect"
-          />
-        </div>
         <!-- Name and Description -->
         <NameNsDescription
           :value="value"

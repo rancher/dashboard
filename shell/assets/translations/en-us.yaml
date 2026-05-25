@@ -3346,6 +3346,8 @@ fleet:
       usernamePlaceholder: user@domain.org
       accessTokenField: Access Token
       accessTokenPlaceholder: Your SUSE Application Collection access token
+    chart:
+      title: Charts
   helmOp:
     intro:
       add: Create Helm Op

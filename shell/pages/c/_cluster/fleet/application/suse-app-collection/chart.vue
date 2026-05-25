@@ -3,16 +3,16 @@ import { computed, ref, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
-import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
-import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import ChartDetailHeader from '@shell/components/ChartDetailHeader.vue';
 import ChartDetailBody from '@shell/components/ChartDetailBody.vue';
 import { RcButton } from '@components/RcButton';
 import isEqual from 'lodash/isEqual';
 import day from 'dayjs';
 import { REPO_TYPE, REPO, CHART, VERSION } from '@shell/config/query-params';
-import { FLEET, ZERO_TIME } from '@shell/config/types';
+import { FLEET, ZERO_TIME, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { addParams } from '@shell/utils/url';
 import { compareChartVersions } from '@shell/utils/chart';
 import { isPrerelease } from '@shell/utils/version';
 import { LINUX } from '@shell/store/catalog';
@@ -41,12 +41,7 @@ const query = computed(() => ({
 
 const secretName = computed(() => (route.query.secret as string) || '');
 
-const repo = computed(() => {
-  return store.getters['catalog/repo']({
-    repoType: query.value.repoType,
-    repoName: query.value.repoName,
-  });
-});
+const repoObj = ref<any>(null);
 
 const mappedVersions = computed(() => {
   const versions = (chart.value?.versions || []).slice();
@@ -55,8 +50,13 @@ const mappedVersions = computed(() => {
 
   const OSs = currentCluster.value?.workerOSs;
   const out: any[] = [];
+  const seen = new Set<string>();
 
   versions.forEach((v: any) => {
+    if (seen.has(v.version)) {
+      return;
+    }
+    seen.add(v.version);
     const nue: any = {
       label:           v.version,
       version:         v.version,
@@ -107,11 +107,13 @@ const headerSubItems = computed(() => {
 
   const items: any[] = [];
 
-  if (query.value.versionName) {
+  const versionLabel = activeVersionName.value || query.value.versionName;
+
+  if (versionLabel) {
     items.push({
       icon:        'icon-version-alt',
       iconTooltip: { key: 'tableHeaders.version' },
-      label:       query.value.versionName,
+      label:       versionLabel,
     });
   }
 
@@ -153,52 +155,49 @@ const fetchChartData = async(versionOverride?: string) => {
   versionInfoError.value = '';
 
   try {
-    await store.dispatch('catalog/load', { force: true });
+    await store.dispatch('catalog/loadRepo', { repoName: query.value.repoName });
 
-    if (repo.value && query.value.chartName) {
-      chart.value = store.getters['catalog/chart']({
-        repoType:      query.value.repoType,
-        repoName:      query.value.repoName,
-        chartName:     query.value.chartName,
-        includeHidden: true,
-      });
-    }
+    const inStore = store.getters.currentCluster ? store.getters['currentProduct'].inStore : 'management';
 
-    if (!chart.value) {
+    repoObj.value = store.getters[`${ inStore }/byId`](CATALOG_TYPES.CLUSTER_REPO, query.value.repoName);
+
+    const catalogChart = store.getters['catalog/chart']({
+      repoType:      query.value.repoType,
+      repoName:      query.value.repoName,
+      chartName:     query.value.chartName,
+      includeHidden: true,
+    });
+
+    const chartVersions = catalogChart?.versions;
+
+    if (!chartVersions?.length) {
       return;
     }
+
+    chart.value = {
+      chartNameDisplay: catalogChart.chartNameDisplay || query.value.chartName,
+      icon:             catalogChart.icon || chartVersions[0]?.icon || '',
+      versions:         chartVersions,
+      repoNameDisplay:  repoObj.value?.nameDisplay || query.value.repoName,
+    };
 
     let versionName = versionOverride || query.value.versionName;
 
-    if (!versionName && chart.value.versions?.length) {
-      const firstRelease = chart.value.versions.find((v: any) => !isPrerelease(v.version));
-
-      versionName = firstRelease?.version || chart.value.versions[0].version;
-    }
-
     if (!versionName) {
-      return;
+      const firstRelease = chartVersions.find((v: any) => !isPrerelease(v.version));
+
+      versionName = firstRelease?.version || chartVersions[0].version;
     }
 
     activeVersionName.value = versionName;
+    version.value = chartVersions.find((v: any) => v.version === versionName) || chartVersions[0];
 
     try {
-      version.value = store.getters['catalog/version']({
-        repoType:  query.value.repoType,
-        repoName:  query.value.repoName,
-        chartName: query.value.chartName,
-        versionName,
-      });
-    } catch (e) {
-      console.error('Unable to fetch version:', e); // eslint-disable-line no-console
-    }
-
-    try {
-      versionInfo.value = await store.dispatch('catalog/getVersionInfo', {
-        repoType:  query.value.repoType,
-        repoName:  query.value.repoName,
-        chartName: query.value.chartName,
-        versionName,
+      versionInfo.value = await repoObj.value.followLink('info', {
+        url: addParams(repoObj.value.links.info, {
+          chartName: query.value.chartName,
+          version:   versionName,
+        }),
       });
     } catch (e: any) {
       versionInfoError.value = e?.message || String(e);
@@ -252,44 +251,28 @@ onMounted(() => fetchChartData());
     v-else
     class="appco-chart-detail"
   >
-    <div
+    <ChartDetailHeader
       v-if="chart"
-      class="chart-header"
+      :icon="chart.icon"
+      :chart-name="chart.chartNameDisplay"
+      :sub-header-items="headerSubItems"
+      :description="version && version.description ? version.description : ''"
     >
-      <div class="logo-container">
-        <div class="logo-box">
-          <LazyImage
-            :src="chart.icon"
-            class="logo"
-            :alt="chart.chartNameDisplay"
-          />
-        </div>
-      </div>
-      <div class="header-body">
-        <div class="header-top">
-          <h1 class="title">
-            <router-link :to="{ name: 'c-cluster-fleet-application-appco-charts', params: { cluster: $route.params.cluster }, query: { secret: secretName } }">
-              {{ t('fleet.appCo.credentials.title') }}:
-            </router-link>
-            {{ chart.chartNameDisplay }}
-          </h1>
-        </div>
-        <AppChartCardSubHeader :items="headerSubItems" />
-        <p
-          v-if="version && version.description"
-          class="description"
+      <template #back-link>
+        <router-link :to="{ name: 'c-cluster-fleet-application-appco-charts', params: { cluster: $route.params.cluster }, query: { secret: secretName } }">
+          {{ t('fleet.appCo.chart.title') }}:
+        </router-link>
+      </template>
+      <template #action>
+        <RcButton
+          data-testid="appco-chart-install-btn"
+          @click.prevent="install"
         >
-          {{ version.description }}
-        </p>
-      </div>
-      <RcButton
-        data-testid="appco-chart-install-btn"
-        @click.prevent="install"
-      >
-        <i class="icon icon-plus mmr-2" />
-        {{ t('catalog.chart.chartButton.action.install') }}
-      </RcButton>
-    </div>
+          <i class="icon icon-plus mmr-2" />
+          {{ t('catalog.chart.chartButton.action.install') }}
+        </RcButton>
+      </template>
+    </ChartDetailHeader>
 
     <div class="dashed-spacer" />
 
@@ -298,7 +281,7 @@ onMounted(() => fetchChartData());
       :version-info="versionInfo"
       :version-info-error="versionInfoError"
       :versions="mappedVersions"
-      :repo="repo"
+      :repo="repoObj"
       :chart="chart"
       :app-version="appVersion || ''"
       :home="home || ''"
@@ -309,59 +292,8 @@ onMounted(() => fetchChartData());
 </template>
 
 <style lang="scss" scoped>
-$logo-box-width: 60px;
-
 .appco-chart-detail {
   display: flex;
   flex-direction: column;
-}
-
-.chart-header {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  gap: var(--gap-lg);
-
-  .logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .logo-box {
-      width: $logo-box-width;
-      height: $logo-box-width;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #fff;
-      border-radius: var(--border-radius);
-
-      .logo {
-        width: 48px;
-        height: 48px;
-        object-fit: contain;
-      }
-    }
-  }
-
-  .header-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--gap);
-
-    .title {
-      margin: 0;
-    }
-
-    .description {
-      line-height: 21px;
-    }
-  }
-
-  .btn {
-    margin-left: auto;
-    height: 40px;
-  }
 }
 </style>

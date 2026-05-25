@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
-import LazyImage from '@shell/components/LazyImage';
+import ChartDetailHeader from '@shell/components/ChartDetailHeader.vue';
 import ChartDetailBody from '@shell/components/ChartDetailBody.vue';
 import isEqual from 'lodash/isEqual';
 import {
@@ -13,7 +13,6 @@ import { ZERO_TIME } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
-import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
@@ -21,10 +20,9 @@ import { RcButton } from '@components/RcButton';
 export default {
   components: {
     Banner,
-    LazyImage,
     Loading,
+    ChartDetailHeader,
     ChartDetailBody,
-    AppChartCardSubHeader,
     AppChartCardFooter,
     RcButton
   },
@@ -228,18 +226,20 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <main v-else>
-    <div
+    <ChartDetailHeader
       v-if="chart"
-      class="chart-header"
+      :icon="chart.icon"
+      :icon-alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
+      :chart-name="chart.chartNameDisplay"
+      :sub-header-items="headerContent.subHeaderItems"
+      :description="version && version.description ? version.description : ''"
     >
-      <div class="logo-container">
-        <div class="logo-box">
-          <LazyImage
-            :src="chart.icon"
-            class="logo"
-            :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
-          />
-        </div>
+      <template #back-link>
+        <router-link :to="{ name: 'c-cluster-apps-charts' }">
+          {{ t('catalog.chart.header.charts') }}:
+        </router-link>
+      </template>
+      <template #after-logo>
         <div
           v-if="chart.featured"
           v-clean-tooltip="t('generic.featured')"
@@ -247,68 +247,48 @@ export default {
         >
           {{ t('generic.shortFeatured') }}
         </div>
-      </div>
-      <div class="header-body">
-        <div class="header-top">
-          <h1
-            class="title"
-            data-testid="chart-header-title"
-          >
-            <router-link :to="{ name: 'c-cluster-apps-charts' }">
-              {{ t('catalog.chart.header.charts') }}:
-            </router-link>
-            {{ chart.chartNameDisplay }}
-          </h1>
+      </template>
+      <template #statuses>
+        <div
+          v-if="headerContent.statuses.length"
+          class="statuses"
+        >
           <div
-            v-if="headerContent.statuses.length"
-            class="statuses"
+            v-for="(status, i) in headerContent.statuses"
+            :key="i"
+            class="status"
           >
-            <div
-              v-for="(status, i) in headerContent.statuses"
-              :key="i"
-              class="status"
-            >
-              <i
-                v-clean-tooltip="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
-                :class="['icon', status.icon, status.color]"
-                :style="{color: status.customColor}"
-                role="img"
-                :aria-label="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
-              />
-            </div>
+            <i
+              v-clean-tooltip="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
+              :class="['icon', status.icon, status.color]"
+              :style="{color: status.customColor}"
+              role="img"
+              :aria-label="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
+            />
           </div>
         </div>
-        <div class="header-sub-top">
-          <AppChartCardSubHeader :items="headerContent.subHeaderItems" />
-        </div>
-        <div class="header-middle">
-          <div
-            v-if="version && version.description"
-            class="description"
-          >
-            <p>{{ version.description }}</p>
-          </div>
-        </div>
-        <div class="header-bottom">
-          <AppChartCardFooter
-            :clickable="true"
-            :items="headerContent.footerItems"
-            @click:item="handleHeaderItemClick"
-          />
-        </div>
-      </div>
-      <RcButton
-        v-if="!requires.length"
-        data-testid="btn-chart-install"
-        class="btn role-primary"
-        @click.prevent="install"
-      >
-        <i
-          :class="['icon', action.icon, 'mmr-2']"
+      </template>
+      <template #after-description>
+        <AppChartCardFooter
+          :clickable="true"
+          :items="headerContent.footerItems"
+          @click:item="handleHeaderItemClick"
         />
-        {{ t(`catalog.chart.chartButton.action.${action.tKey}` ) }}
-      </RcButton>
-    </div>
+      </template>
+      <template #action>
+        <RcButton
+          v-if="!requires.length"
+          data-testid="btn-chart-install"
+          class="btn role-primary"
+          @click.prevent="install"
+        >
+          <i
+            :class="['icon', action.icon, 'mmr-2']"
+          />
+          {{ t(`catalog.chart.chartButton.action.${action.tKey}` ) }}
+        </RcButton>
+      </template>
+    </ChartDetailHeader>
 
     <div class="dashed-spacer" />
 
@@ -395,95 +375,39 @@ export default {
 
 <style lang="scss" scoped>
   $logo-box-width: 60px;
-  $name-height: 50px;
-  $padding: 5px;
 
-  .chart-header {
+  :deep(.featured-pill) {
     display: flex;
-    flex-direction: row;
-    width: 100%;
-    gap: var(--gap-lg);
+    width: $logo-box-width;
+    padding: 4px 8px;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--border-radius);
+    background: var(--default);
+    text-transform: uppercase;
+    color: var(--disabled-text);
+    font-size: 10px;
+    font-weight: 600;
+  }
 
-    .logo-container {
+  :deep(.statuses) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .status {
+      width: 24px;
+      height: 24px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
 
-      .logo-box {
-        width: $logo-box-width;
-        height: $logo-box-width;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #fff;
-        border-radius: var(--border-radius);
-
-        .logo {
-          width: 48px;
-          height: 48px;
-          object-fit: contain;
-        }
+      .icon {
+        font-size: 23px;
+        &.error    { color: var(--error); }
+        &.info     { color: var(--info); }
+        &.success  { color: var(--success); }
       }
-
-      .featured-pill {
-        display: flex;
-        width: $logo-box-width;
-        padding: 4px 8px;
-        justify-content: center;
-        align-items: center;
-        border-radius: var(--border-radius);
-        background: var(--default);
-        text-transform: uppercase;
-        color: var(--disabled-text);
-        font-size: 10px;
-        font-weight: 600;
-      }
-    }
-
-    .header-body {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--gap);
-
-      .header-top {
-        display: flex;
-
-        .title {
-          margin: 0 12px 0 0;
-        }
-
-        .statuses {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          .status {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            .icon {
-              font-size: 23px;
-              &.error    { color: var(--error); }
-              &.info     { color: var(--info); }
-              &.success  { color: var(--success); }
-            }
-          }
-        }
-      }
-    }
-
-    .btn {
-      margin-left: auto;
-      height: 40px;
-    }
-
-    .description {
-      line-height: 21px;
     }
   }
 

@@ -302,6 +302,16 @@ export const mutations = {
     state.namespacedRepos = namespaced;
   },
 
+  addClusterRepo(state, repo) {
+    if (!state.clusterRepos) {
+      state.clusterRepos = [];
+    }
+
+    if (!state.clusterRepos.find((r) => r.metadata?.name === repo.metadata?.name)) {
+      state.clusterRepos.push(repo);
+    }
+  },
+
   setCharts(state, { charts, errors = [], loaded = [] }) {
     state.charts = charts;
     state.errors = errors;
@@ -396,6 +406,53 @@ export const actions = {
 
     if (reset) {
       commit('setVersions', {});
+    }
+  },
+
+  async loadRepo(ctx, { repoName }) {
+    const {
+      state, getters, rootGetters, commit, dispatch
+    } = ctx;
+
+    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
+
+    let repo = rootGetters[`${ inStore }/byId`](CATALOG.CLUSTER_REPO, repoName);
+
+    if (!repo) {
+      try {
+        repo = await dispatch(`${ inStore }/find`, { type: CATALOG.CLUSTER_REPO, id: repoName }, { root: true });
+      } catch (e) {
+        return;
+      }
+    }
+
+    if (!repo) {
+      return;
+    }
+
+    commit('addClusterRepo', repo);
+
+    if (getters.isLoaded(repo)) {
+      return;
+    }
+
+    try {
+      const index = await repo.followLink('index');
+      const charts = { ...state.charts };
+
+      for (const k in index?.entries) {
+        for (const entry of index.entries[k]) {
+          addChart(ctx, charts, entry, repo);
+        }
+      }
+
+      commit('setCharts', {
+        charts,
+        errors: state.errors,
+        loaded: [repo],
+      });
+    } catch (e) {
+      console.error(`Failed to load repo ${ repoName }:`, e); // eslint-disable-line no-console
     }
   },
 

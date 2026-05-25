@@ -103,8 +103,6 @@ export default {
       targetsCreated:   '',
       fvFormRuleSets:   [],
 
-      // SUSE App Collection chart data — keyed by repoName to avoid re-fetching
-      appCoChartsCache:      {},
       // Dropdown options for chart names (label/value pairs)
       appCoChartOptions:     [],
       // Dropdown options for the selected chart's versions (label/value pairs)
@@ -115,9 +113,7 @@ export default {
       appCoChartsLoading:    false,
       // True when the chart index fetch failed (triggers the connection error empty state)
       appCoChartsFetchError: false,
-      // Current ClusterRepo state while polling (stateDisplay + stateBackground for BadgeState)
       // Previous repo name for detecting auth secret changes
-      oldAppCoRepoName:      '',
     };
   },
 
@@ -166,6 +162,15 @@ export default {
           this.addAppCoImagePullSecretToSpec(`${ querySecret }-image-pull-secret`);
 
           const repoName = querySecret.replace('auth', 'repo');
+
+          this.fetchAppCoCharts(repoName);
+        }
+      } else {
+        const rawSecret = this.value.spec?.helmSecretName || '';
+        const secretName = rawSecret.includes('/') ? rawSecret.split('/')[1] : rawSecret;
+
+        if (secretName) {
+          const repoName = secretName.replace('auth', 'repo');
 
           this.fetchAppCoCharts(repoName);
         }
@@ -237,17 +242,6 @@ export default {
 
       return this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
         (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
-    },
-
-    appCoRepoName() {
-      if (!this.isSuseAppCollection) {
-        return '';
-      }
-
-      const raw = this.value.spec?.helmSecretName || '';
-      const authName = raw.includes('/') ? raw.split('/')[1] : raw;
-
-      return authName ? authName.replace('auth', 'repo') : '';
     },
 
     sourceTypeOptions() {
@@ -350,22 +344,51 @@ export default {
   },
 
   methods: {
+    async appCoSave(btnCb) {
+      const origRepo = this.value.spec?.helm?.repo;
+      const origChart = this.value.spec?.helm?.chart;
+
+      if (this.sourceType === SOURCE_TYPE.OCI && origChart) {
+        const repo = (origRepo || '').replace(/\/$/, '');
+
+        set(this.value, 'spec.helm.repo', `${ repo }/${ origChart }`);
+        delete this.value.spec.helm.chart;
+      }
+
+      await this.save((success) => {
+        if (!success && origChart) {
+          set(this.value, 'spec.helm.repo', origRepo);
+          set(this.value, 'spec.helm.chart', origChart);
+        }
+        btnCb(success);
+      });
+    },
+
     refreshAppCoAdvancedYaml() {
       this.$refs.appCoAdvancedRef?.refreshYamlEditor?.();
     },
 
-    resetAppCoChartSelection() {
-      set(this.value, 'spec.helm.chart', '');
-      set(this.value, 'spec.helm.version', '');
-      set(this.value, 'spec.helm.values', {});
-      this.chartValues = '';
-    },
+    onCancel() {
+      if (this.isSuseAppCollection && this.realMode === _CREATE) {
+        const querySecret = this.$route.query.secret;
+        const queryChart = this.$route.query.chart;
+        const repoName = querySecret ? querySecret.replace('auth', 'repo') : '';
 
-    resetAppCoChartData({ error = false } = {}) {
-      this.appCoChartOptions = [];
-      this.appCoVersionOptions = [];
-      this.appCoChartEntries = {};
-      this.appCoChartsFetchError = error;
+        this.$router.push({
+          name:   'c-cluster-fleet-application-appco-chart',
+          params: { cluster: this.$route.params.cluster },
+          query:  {
+            'repo-type': 'cluster',
+            repo:        repoName,
+            chart:       queryChart,
+            secret:      querySecret,
+          },
+        });
+
+        return;
+      }
+
+      this.done();
     },
 
     onSourceTypeSelect(type) {
@@ -420,39 +443,13 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
-    async updateAuth(val, key) {
+    updateAuth(val, key) {
       const spec = this.value.spec;
 
       if ( val ) {
         spec[key] = val;
       } else {
         delete spec[key];
-      }
-
-      if (this.isSuseAppCollection) {
-        const newRepoName = this.appCoRepoName;
-
-        if (!newRepoName) {
-          if (this.oldAppCoRepoName) {
-            this.resetAppCoChartSelection();
-            this.resetAppCoChartData();
-            this.oldAppCoRepoName = '';
-          }
-
-          return;
-        }
-
-        if (newRepoName === this.oldAppCoRepoName) {
-          return;
-        }
-
-        if (this.oldAppCoRepoName) {
-          this.resetAppCoChartSelection();
-          this.resetAppCoChartData();
-        }
-
-        this.oldAppCoRepoName = newRepoName;
-        await this.fetchAppCoCharts(newRepoName);
       }
     },
 
@@ -590,14 +587,10 @@ export default {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
       }
 
-      // For OCI sources with a chart name, merge repo + chart into a single repo field
-      // e.g. oci://dp.apps.rancher.io/charts + my-app => oci://dp.apps.rancher.io/charts/my-app (SUSE App Collection)
-      if (this.sourceType === SOURCE_TYPE.OCI && this.value.spec?.helm?.chart) {
-        const repo = (this.value.spec.helm.repo || '').replace(/\/$/, '');
-        const chart = this.value.spec.helm.chart;
+      const helmSecret = this.value.spec?.helmSecretName || '';
 
-        set(this.value, 'spec.helm.repo', `${ repo }/${ chart }`);
-        delete this.value.spec.helm.chart;
+      if (helmSecret.includes('/')) {
+        this.value.spec.helmSecretName = helmSecret.split('/').pop();
       }
     },
 
@@ -644,88 +637,38 @@ export default {
 
     async fetchAppCoCharts(repoName) {
       if (!repoName) {
-        this.resetAppCoChartData();
-
         return;
       }
 
-      // Return cached data if available
-      if (this.appCoChartsCache[repoName]) {
-        const cached = this.appCoChartsCache[repoName];
-
-        this.appCoChartEntries = cached.entries;
-        this.appCoChartOptions = cached.chartOptions;
-        this.appCoChartsFetchError = false;
-
-        // Re-populate version options if a chart is already selected (e.g. edit mode)
-        const currentChart = this.value.spec?.helm?.chart;
-
-        if (currentChart && cached.entries[currentChart]) {
-          const versions = cached.entries[currentChart];
-
-          this.appCoVersionOptions = [
-            ...versions
-              .filter((entry) => !isPrerelease(entry.version))
-              .map((entry) => entry.version)
-              .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-              .map((v) => ({
-                label: v,
-                value: v
-              }))
-          ];
-        }
-
-        return;
-      }
-
+      this.appCoChartsLoading = true;
       this.appCoChartsFetchError = false;
 
       try {
-        this.appCoChartsLoading = true;
+        await this.$store.dispatch('catalog/loadRepo', { repoName });
 
-        const repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
-          type: CATALOG_TYPES.CLUSTER_REPO,
-          id:   repoName,
-          opt:  { force: true },
-        });
+        const chartName = this.value.spec.helm.chart;
+        const catalogChart = chartName ? this.$store.getters['catalog/chart']({
+          repoType:      'cluster',
+          repoName,
+          chartName,
+          includeHidden: true,
+        }) : null;
 
-        if (!repo) {
-          this.resetAppCoChartData({ error: true });
+        if (!catalogChart?.versions?.length) {
+          this.appCoChartsFetchError = true;
 
           return;
         }
 
-        const index = await repo.followLink('index');
-        const entries = index?.entries || {};
-
-        const chartOptions = Object.keys(entries).sort().map((name) => ({
-          label: name,
-          value: name
-        }));
-
-        this.appCoChartsCache[repoName] = { entries, chartOptions };
-        this.appCoChartEntries = entries;
-        this.appCoChartOptions = chartOptions;
-
-        const currentChart = this.value.spec?.helm?.chart;
-
-        if (currentChart && entries[currentChart]) {
-          const versions = entries[currentChart];
-
-          this.appCoVersionOptions = [
-            ...versions
-              .filter((entry) => !isPrerelease(entry.version))
-              .map((entry) => entry.version)
-              .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
-              .map((v) => ({
-                label: v,
-                value: v
-              }))
-          ];
-        }
+        this.appCoChartEntries = { [chartName]: catalogChart.versions };
+        this.appCoVersionOptions = catalogChart.versions
+          .filter((entry) => !isPrerelease(entry.version))
+          .map((entry) => entry.version)
+          .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+          .map((v) => ({ label: v, value: v }));
       } catch (e) {
         console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
-        this.resetAppCoChartData({ error: true });
+        this.appCoChartsFetchError = true;
       } finally {
         this.appCoChartsLoading = false;
       }
@@ -765,11 +708,12 @@ export default {
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
+    :cancel-event="true"
     class="wizard"
     data-testid="helmop-cru-resource"
-    @cancel="done"
+    @cancel="onCancel"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="appCoSave"
   >
     <template
       v-if="!isSuseAppCollection"

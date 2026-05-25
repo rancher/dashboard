@@ -67,7 +67,6 @@ const loadCharts = async() => {
   try {
     const result = await fetchAppCoCharts(store, repoName.value, (state) => {
       repoState.value = state;
-      chartsLoading.value = false;
     });
 
     repoState.value = result.repoState;
@@ -83,6 +82,8 @@ const loadCharts = async() => {
     }
 
     chartEntries.value = result.entries;
+
+    store.dispatch('catalog/loadRepo', { repoName: repoName.value });
   } catch (e) {
     console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
     chartsFetchError.value = true;
@@ -140,7 +141,6 @@ onMounted(async() => {
 
     <Loading
       v-if="chartsLoading"
-      mode="relative"
     />
 
     <AppCoEmptyState
