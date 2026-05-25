@@ -116,7 +116,6 @@ export default {
       // True when the chart index fetch failed (triggers the connection error empty state)
       appCoChartsFetchError: false,
       // Current ClusterRepo state while polling (stateDisplay + stateBackground for BadgeState)
-      appCoRepoState:        null,
       // Previous repo name for detecting auth secret changes
       oldAppCoRepoName:      '',
     };
@@ -362,14 +361,11 @@ export default {
       this.chartValues = '';
     },
 
-    resetAppCoChartData({ error = false, keepAppCoRepoState = false } = {}) {
+    resetAppCoChartData({ error = false } = {}) {
       this.appCoChartOptions = [];
       this.appCoVersionOptions = [];
       this.appCoChartEntries = {};
       this.appCoChartsFetchError = error;
-      if (!keepAppCoRepoState) {
-        this.appCoRepoState = null;
-      }
     },
 
     onSourceTypeSelect(type) {
@@ -683,17 +679,21 @@ export default {
       }
 
       this.appCoChartsFetchError = false;
-      this.appCoRepoState = null;
 
       try {
-        // Fetch the repo and wait for it to be ready (handles in-progress/transitioning state)
-        const repo = await this.waitForRepoReady(repoName);
+        this.appCoChartsLoading = true;
+
+        const repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
+          type: CATALOG_TYPES.CLUSTER_REPO,
+          id:   repoName,
+          opt:  { force: true },
+        });
 
         if (!repo) {
-          // waitForRepoReady returned null — the repo ended in an error state or was not found
+          this.resetAppCoChartData({ error: true });
+
           return;
         }
-        this.appCoChartsLoading = true;
 
         const index = await repo.followLink('index');
         const entries = index?.entries || {};
@@ -703,13 +703,10 @@ export default {
           value: name
         }));
 
-        // Cache the fetched data
         this.appCoChartsCache[repoName] = { entries, chartOptions };
-
         this.appCoChartEntries = entries;
         this.appCoChartOptions = chartOptions;
 
-        // If a chart is already selected (e.g. edit mode), populate its versions
         const currentChart = this.value.spec?.helm?.chart;
 
         if (currentChart && entries[currentChart]) {
@@ -732,56 +729,6 @@ export default {
       } finally {
         this.appCoChartsLoading = false;
       }
-    },
-
-    /**
-     * Polls the ClusterRepo until its metadata.state resolves from in-progress to
-     * either a ready or error state. Returns the repo when ready, or null on error.
-     */
-    async waitForRepoReady(repoName, { maxAttempts = 30, intervalMs = 3000 } = {}) {
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        let repo;
-
-        try {
-          repo = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
-            type: CATALOG_TYPES.CLUSTER_REPO,
-            id:   repoName,
-            opt:  { force: true },
-          });
-        } catch (e) {
-          this.resetAppCoChartData({ error: true });
-
-          return null;
-        }
-
-        const state = repo.metadata?.state;
-
-        // Expose the current state for the loading UI (badge label + color)
-        this.appCoRepoState = {
-          repoName,
-          stateDisplay:    repo.stateDisplay,
-          stateBackground: repo.stateBackground,
-          transitioning:   repo.metadata?.state?.transitioning,
-          error:           repo.metadata?.state?.error,
-          errorMessage:    repo.metadata?.state?.message,
-        };
-
-        if (state?.error) {
-          return null;
-        }
-
-        if (!state?.transitioning) {
-          return repo;
-        }
-
-        // Repo is still transitioning — wait before re-fetching
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-      }
-
-      // Timed out waiting for repo to become ready
-      this.resetAppCoChartData({ error: true });
-
-      return null;
     },
 
     updateDownstreamResources(kind, list) {

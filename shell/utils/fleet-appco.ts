@@ -196,23 +196,27 @@ export async function waitForRepoReady(
     }
 
     const state = repo.metadata?.state;
+    const conditions = repo.status?.conditions || [];
+    const ociCondition = conditions.find((c: any) => c.type === 'OCIDownloaded');
+    const isReady = ociCondition?.status === 'True';
+    const hasError = state?.error || ociCondition?.error;
 
     const repoState: RepoState = {
       repoName,
       stateDisplay:    repo.stateDisplay,
       stateBackground: repo.stateBackground,
-      transitioning:   state?.transitioning,
-      error:           state?.error,
-      errorMessage:    state?.message,
+      transitioning:   !isReady && !hasError,
+      error:           !!hasError,
+      errorMessage:    state?.message || ociCondition?.message || '',
     };
 
     onStateChange?.(repoState);
 
-    if (state?.error) {
+    if (hasError) {
       return { repo: null, state: repoState };
     }
 
-    if (!state?.transitioning) {
+    if (isReady) {
       return { repo, state: repoState };
     }
 
