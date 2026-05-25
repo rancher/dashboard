@@ -313,19 +313,6 @@ export default {
 
             return true;
           });
-      } else if (this.cacheSecrets && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET)) {
-        // When cacheSecrets is true, findPage stored data in the Vuex store and set up a watch.
-        // Read from the live store array so new secrets (e.g. created by a parent component) are
-        // picked up reactively, instead of relying on the static snapshot in this.filteredSecrets.
-        filteredSecrets = (this.$store.getters[`${ this.inStore }/all`](SECRET) || [])
-          .filter((x) => this.filterByNamespace ? x.metadata.namespace === this.namespace : true)
-          .filter((x) => {
-            if (this.secretTypes.length && !this.secretTypes.includes(x._type)) {
-              return false;
-            }
-
-            return true;
-          });
       } else if (this.filteredSecrets) {
         filteredSecrets = this.filteredSecrets;
       }
@@ -358,8 +345,6 @@ export default {
 
         addObjects(out, more);
       }
-
-      out = sortBy(out, 'label');
 
       if ( !this.limitToNamespace ) {
         out = sortBy(out, 'group');

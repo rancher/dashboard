@@ -385,6 +385,7 @@ defineExpose({ refreshYamlEditor });
       :title="t('fleet.helmOp.target.title')"
       mode="with-header"
       type="primary"
+      :expandable="false"
       data-testid="appco-config-rcsection-target"
     >
       <HelmOpTargetTab
