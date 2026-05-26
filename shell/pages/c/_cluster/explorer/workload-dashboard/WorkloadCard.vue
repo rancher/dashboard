@@ -14,6 +14,7 @@ export interface WorkloadCardRow {
 const { bodyColumns } = defineProps<{
   bodyColumns?: number;
   rows: WorkloadCardRow[];
+  ariaLabel?: string;
 }>();
 
 const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)` : 'none');
@@ -23,6 +24,7 @@ const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)`
   <div
     class="workload-card"
     role="group"
+    :aria-label="ariaLabel"
   >
     <ul
       class="body"

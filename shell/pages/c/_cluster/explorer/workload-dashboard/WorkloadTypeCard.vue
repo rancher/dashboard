@@ -119,6 +119,11 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     border-color: var(--primary);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+  }
+
   .heading {
     font-size: 18px;
     font-weight: 600;

@@ -36,12 +36,14 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       data-testid="workload-dashboard-state-card"
       :class="'state-card--' + card.color"
       :rows="toCardRows(card.rows)"
+      :aria-label="card.color + ' workloads'"
     />
     <WorkloadCard
       v-if="layout.subHero"
       class="state-card bento-sub-hero"
       :class="'state-card--' + layout.subHero.color"
       :rows="toCardRows(layout.subHero.rows)"
+      :aria-label="layout.subHero.color + ' workloads'"
     />
     <WorkloadCard
       v-if="layout.hero"
@@ -49,6 +51,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       :class="['state-card--' + layout.hero.color, 'bento-hero--' + layout.heroMode]"
       :body-columns="layout.heroMode === 'full' ? 3 : layout.heroMode === 'wide' ? 2 : undefined"
       :rows="toCardRows(layout.hero.rows)"
+      :aria-label="layout.hero.color + ' workloads'"
     />
   </div>
 </template>
