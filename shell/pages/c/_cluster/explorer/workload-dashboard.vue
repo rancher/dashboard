@@ -155,8 +155,8 @@ const {
     }
   }
 
-  :deep(.state-card) {
-    .body {
+  .state-card {
+    :deep(.body) {
       display: flex;
       flex-direction: column;
       gap: 4px;
