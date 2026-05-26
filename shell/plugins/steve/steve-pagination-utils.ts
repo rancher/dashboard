@@ -229,6 +229,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.namespace' },
       { field: 'id' },
       { field: 'metadata.state.name' },
+      { field: 'metadata.state.error' },
+      { field: 'metadata.state.transitioning' },
       { field: 'metadata.creationTimestamp' },
       { field: 'metadata.labels', startsWith: true },
     ],

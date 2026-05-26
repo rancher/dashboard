@@ -33,11 +33,10 @@ export const STEVE_ID_COL = {
 };
 
 export const STEVE_STATE_COL = {
-  ...STATE,
   // Note, we're show the 'state' as per model, not the 'metadata.state.name' that's available in the model to remotely sort/filter
-  // Need to investigate whether we should 'dumb down' the state we show to the native one (tracked via https://github.com/rancher/dashboard/issues/8527)
-  // This means we'll show something different to what we sort and filter on.
-  sort:   ['metadata.state.name'],
+  ...STATE,
+  // non vai sort works on colour --> name. the best we can do here is error --> transitioning --> name
+  sort:   ['metadata.state.error:desc', 'metadata.state.transitioning:desc', 'metadata.state.name'],
   search: 'metadata.state.name',
 };
 
