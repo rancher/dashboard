@@ -1,5 +1,5 @@
 import {
-  ref, computed, watch, onMounted, onBeforeUnmount
+  reactive, ref, computed, watch, onMounted, onBeforeUnmount
 } from 'vue';
 import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
@@ -7,8 +7,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { STATES, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
-import { STATE_COLOR_MAP, ALL_NAMESPACES } from '@shell/store/prefs';
-import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
@@ -16,17 +15,23 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
-import { PaginationFilterEquality } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import {
   WORKLOAD_RESOURCE_TYPES, COLOR_ORDER,
-  type SummaryEntry, type WorkloadEntry, type StateCard, type ByStateLayout, type ByTypeCard,
+  type WorkloadDashboardSummaryEntry,
+  type WorkloadDashboardEntry,
+  type WorkloadDashboardStateCard,
+  type WorkloadDashboardByStateLayout,
+  type WorkloadDashboardByTypeCard,
 } from './types';
+
+const stateColorCache = reactive<Record<string, StateColor>>({});
 
 export function useWorkloadDashboard() {
   const store = useStore();
   const { t } = useI18n(store);
 
-  const summaries = ref<SummaryEntry[]>([]);
+  const summaries = ref<WorkloadDashboardSummaryEntry[]>([]);
   const fetchError = ref<string | null>(null);
   const loading = ref(true);
   let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -35,41 +40,29 @@ export function useWorkloadDashboard() {
 
   // ── State color cache ──
 
-  const stateColorMap = computed<Record<string, StateColor>>(() => {
-    const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
-
-    return all[clusterId.value] || {};
-  });
-
-  function saveStateColorMap(updates: Record<string, StateColor>): void {
-    const all = store.getters['prefs/get'](STATE_COLOR_MAP) || {};
-    const current = all[clusterId.value] || {};
-
-    store.dispatch('prefs/set', {
-      key:   STATE_COLOR_MAP,
-      value: { ...all, [clusterId.value]: { ...current, ...updates } },
-    });
-  }
-
   function toStateColor(state: string): StateColor {
     const key = (state || '').toLowerCase();
-    const cached = stateColorMap.value[key];
 
-    if (cached) {
-      return cached;
+    if (stateColorCache[key]) {
+      return stateColorCache[key];
     }
 
     const config = STATES[key];
     const color = config?.color || 'info';
+    const resolved = (color === 'darker' ? 'disabled' : color) as StateColor;
 
-    return (color === 'darker' ? 'disabled' : color) as StateColor;
+    stateColorCache[key] = resolved;
+
+    return resolved;
   }
 
   // ── Namespace filtering ──
 
   const isAllNamespaces = computed<boolean>(() => store.getters['isAllNamespaces']);
 
-  const namespaceFilterParam = computed<string>(() => {
+  const namespaceFilterParam = ref('');
+
+  function buildNamespaceFilterParam(): string {
     const selection: string[] = store.getters['namespaceFilters'];
     const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
       allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
@@ -80,30 +73,32 @@ export function useWorkloadDashboard() {
       productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
     });
 
-    const parts: string[] = [];
+    // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
+    const schema = WORKLOAD_RESOURCE_TYPES
+      .map((type) => store.getters['cluster/schemaFor'](type))
+      .find((s) => !!s);
 
-    const nsValues = projectsOrNamespaces.flatMap((p) => p.fields.map((f) => f.value || ''));
-    const pAndN = pAndNFiltering.createParam(nsValues);
-
-    if (pAndN) {
-      parts.push(pAndN);
-    }
-
-    for (const f of filters) {
-      for (const field of f.fields) {
-        const equality = field.equality || '=';
-        const val = [PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality as PaginationFilterEquality) ? `(${ field.value })` : field.value;
-
-        parts.push(`filter=${ field.field }${ equality }${ val }`);
+    // To generate proper params path to be used
+    const path = stevePaginationUtils.createParamsForPagination({
+      schema,
+      opt: {
+        pagination: {
+          filters,
+          projectsOrNamespaces,
+          page: 1,
+          sort: [],
+        }
       }
-    }
+    }) || '';
 
-    return parts.join('&');
-  });
+    return path.replace(/page=\d+&?/g, '').replace(/pagesize=\d+&?/g, '').replace(/&$/, '');
+  }
+
+  watch(() => store.getters['namespaceFilters'], () => {
+    namespaceFilterParam.value = buildNamespaceFilterParam();
+  }, { immediate: true });
 
   // ── Subtitle ──
-
-  const namespaceMode = computed<string>(() => store.getters['namespaceMode']);
 
   const totalWorkloads = computed<number>(() => {
     return workloadData.value.reduce((sum, w) => sum + (w.error ? 0 : w.total), 0);
@@ -112,14 +107,6 @@ export function useWorkloadDashboard() {
   const namespaceSubtitle = computed<string>(() => {
     const count = totalWorkloads.value;
     const filters: string[] = store.getters['namespaceFilters'];
-
-    if (namespaceMode.value === 'namespaced') {
-      return t('workloadDashboard.subtitle.namespacedOnly', { count });
-    }
-
-    if (namespaceMode.value === 'cluster') {
-      return t('workloadDashboard.subtitle.clusterOnly', { count });
-    }
 
     if (isAllNamespaces.value) {
       return t('workloadDashboard.subtitle.allNamespaces', { count });
@@ -156,7 +143,7 @@ export function useWorkloadDashboard() {
 
   // ── Workload data ──
 
-  const workloadData = computed<WorkloadEntry[]>(() => {
+  const workloadData = computed<WorkloadDashboardEntry[]>(() => {
     return summaries.value.map((entry) => {
       const label = t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
       const stateCounts: Record<string, number> = {};
@@ -187,7 +174,7 @@ export function useWorkloadDashboard() {
 
   // ── By State cards ──
 
-  const byStateCards = computed<StateCard[]>(() => {
+  const byStateCards = computed<WorkloadDashboardStateCard[]>(() => {
     const colorGroups: Record<string, Record<string, { count: number; type: string; stateNames: Set<string> }>> = {
       error:    {},
       warning:  {},
@@ -228,7 +215,7 @@ export function useWorkloadDashboard() {
       }));
   });
 
-  const byStateLayout = computed<ByStateLayout>(() => {
+  const byStateLayout = computed<WorkloadDashboardByStateLayout>(() => {
     const cards = byStateCards.value;
     const hero = cards.find((c) => c.color === 'success') || null;
     const others = cards.filter((c) => c !== hero);
@@ -257,12 +244,12 @@ export function useWorkloadDashboard() {
 
   // ── By Type cards ──
 
-  const byTypeCards = computed<ByTypeCard[]>(() => {
+  const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => {
     return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
       const resources = Object.entries(w.stateCounts)
         .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5))
         .map(([state, count]) => ({
-          stateDisplay:     state?.charAt(0).toUpperCase() + state?.slice(1),
+          stateDisplay:     state ? state.charAt(0).toUpperCase() + state.slice(1) : '',
           stateId:          state,
           stateSimpleColor: toStateColor(state),
           count,
@@ -286,7 +273,7 @@ export function useWorkloadDashboard() {
   }
 
   function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
-    const loc: RouteLocationRaw = {
+    const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
       name:   'c-cluster-product-resource',
       params: {
         cluster:  clusterId.value,
@@ -298,7 +285,7 @@ export function useWorkloadDashboard() {
     if (stateNames?.length) {
       const q = stateNames.map((s) => `"metadata.state.name":"${ s }"`).join(',');
 
-      (loc as any).query = { q };
+      loc.query = { q };
     }
 
     return loc;
@@ -306,7 +293,7 @@ export function useWorkloadDashboard() {
 
   // ── State color resolution ──
 
-  async function resolveStateColors(entries: SummaryEntry[]): Promise<void> {
+  async function resolveStateColors(entries: WorkloadDashboardSummaryEntry[]): Promise<void> {
     const unresolvedStates = new Map<string, { originalName: string; type: string }>();
 
     for (const entry of entries) {
@@ -319,7 +306,7 @@ export function useWorkloadDashboard() {
           for (const stateName of Object.keys(s.counts)) {
             const key = stateName.toLowerCase();
 
-            if (!stateColorMap.value[key] && !unresolvedStates.has(key)) {
+            if (!stateColorCache[key] && !unresolvedStates.has(key)) {
               unresolvedStates.set(key, { originalName: stateName, type: entry.type });
             }
           }
@@ -340,7 +327,20 @@ export function useWorkloadDashboard() {
 
       await Promise.all(batch.map(async([stateKey, { originalName, type }]) => {
         try {
-          const url = `/v1/${ type }?limit=1&filter=metadata.state.name=${ originalName }`;
+          const schema = store.getters['cluster/schemaFor'](type);
+          const params = stevePaginationUtils.createParamsForPagination({
+            schema,
+            opt: {
+              pagination: {
+                page:                 1,
+                pageSize:             1,
+                sort:                 [],
+                filters:              [PaginationParamFilter.createSingleField({ field: 'metadata.state.name', value: originalName })],
+                projectsOrNamespaces: [],
+              }
+            }
+          });
+          const url = `/v1/${ type }?${ params }`;
           const res = await store.dispatch('cluster/request', { url });
           const resource = res?.data?.[0];
 
@@ -359,7 +359,7 @@ export function useWorkloadDashboard() {
     }
 
     if (Object.keys(newColors).length > 0) {
-      saveStateColorMap(newColors);
+      Object.assign(stateColorCache, newColors);
     }
   }
 
@@ -367,14 +367,12 @@ export function useWorkloadDashboard() {
 
   async function fetchSummaries(): Promise<void> {
     try {
-      const workloadPromises = WORKLOAD_RESOURCE_TYPES.map(async(type): Promise<SummaryEntry> => {
-        const schema = store.getters['cluster/schemaFor'](type);
+      const accessibleTypes = WORKLOAD_RESOURCE_TYPES.filter(
+        (type) => store.getters['cluster/canList'](type)
+      );
 
-        if (!schema) {
-          return {
-            type, summary: null, error: t('workloadDashboard.errors.noAccess', { type })
-          };
-        }
+      const workloadPromises = accessibleTypes.map(async(type): Promise<WorkloadDashboardSummaryEntry> => {
+        const schema = store.getters['cluster/schemaFor'](type);
 
         try {
           let url = `${ schema.links.collection }?summary=metadata.state.name`;
@@ -405,31 +403,45 @@ export function useWorkloadDashboard() {
     }
   }
 
-  function resetPollTimer(): void {
+  function stopPollTimer(): void {
     if (pollTimer) {
       clearInterval(pollTimer);
+      pollTimer = null;
     }
+  }
+
+  function startPollTimer(): void {
+    stopPollTimer();
 
     pollTimer = setInterval(() => {
       fetchSummaries();
     }, 5000);
   }
 
+  function handleVisibilityChange(): void {
+    if (document.hidden) {
+      stopPollTimer();
+    } else {
+      fetchSummaries();
+      startPollTimer();
+    }
+  }
+
   watch(namespaceFilterParam, () => {
     fetchSummaries();
-    resetPollTimer();
+    startPollTimer();
   });
 
   onMounted(async() => {
     await fetchSummaries();
     loading.value = false;
-    resetPollTimer();
+    startPollTimer();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
   });
 
   onBeforeUnmount(() => {
-    if (pollTimer) {
-      clearInterval(pollTimer);
-    }
+    stopPollTimer();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   });
 
   return {

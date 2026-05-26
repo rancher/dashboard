@@ -1,6 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import CardPo from '@/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export default class WorkloadDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -25,23 +27,27 @@ export default class WorkloadDashboardPagePo extends PagePo {
   }
 
   title() {
-    return cy.get('.workload-dashboard h1');
+    return cy.get('[data-testid="workload-dashboard-title"]');
   }
 
   subtitle() {
-    return cy.get('.workload-dashboard .sub-title');
+    return cy.get('[data-testid="workload-dashboard-subtitle"]');
   }
 
   byStateSection() {
-    return cy.get('.bento-grid');
+    return cy.get('[data-testid="workload-dashboard-by-state"]');
   }
 
   stateCards() {
-    return cy.get('.state-card');
+    return cy.get('[data-testid="workload-dashboard-state-card"]');
   }
 
   byTypeSection() {
-    return cy.get('.card-grid');
+    return cy.get('[data-testid="workload-dashboard-by-type"]');
+  }
+
+  byTypeCard(index = 0) {
+    return new CardPo(`[data-testid="resource-detail-status-card"]:eq(${ index })`);
   }
 
   byTypeCards() {
@@ -49,10 +55,10 @@ export default class WorkloadDashboardPagePo extends PagePo {
   }
 
   emptyState() {
-    return cy.get('.empty-state');
+    return cy.get('[data-testid="workload-dashboard-empty"]');
   }
 
   errorBanner() {
-    return cy.get('.banner.error');
+    return new BannersPo('.banner.error');
   }
 }

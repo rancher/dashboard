@@ -2,13 +2,13 @@ import { WORKLOAD_TYPES, POD } from '@shell/config/types';
 import { StateColor } from '@shell/utils/style';
 import type { RouteLocationRaw } from 'vue-router';
 
-export interface SummaryEntry {
+export interface WorkloadDashboardSummaryEntry {
   type: string;
   summary: { property: string; counts: Record<string, number> }[] | null;
   error: string | null;
 }
 
-export interface WorkloadEntry {
+export interface WorkloadDashboardEntry {
   type: string;
   label: string;
   total: number;
@@ -16,7 +16,7 @@ export interface WorkloadEntry {
   error: string | null;
 }
 
-export interface StateCardRow {
+export interface WorkloadDashboardStateCardRow {
   label: string;
   color: StateColor;
   type: string;
@@ -24,20 +24,20 @@ export interface StateCardRow {
   counts: { label: string; count: number }[];
 }
 
-export interface StateCard {
+export interface WorkloadDashboardStateCard {
   color: StateColor;
-  rows: StateCardRow[];
+  rows: WorkloadDashboardStateCardRow[];
 }
 
-export interface ByStateLayout {
-  hero: StateCard | null;
-  subHero: StateCard | null;
-  cards: StateCard[];
+export interface WorkloadDashboardByStateLayout {
+  hero: WorkloadDashboardStateCard | null;
+  subHero: WorkloadDashboardStateCard | null;
+  cards: WorkloadDashboardStateCard[];
   heroMode: string;
   gridRows: number;
 }
 
-export interface ByTypeCard {
+export interface WorkloadDashboardByTypeCard {
   title: string;
   type: string;
   resources: {
@@ -48,7 +48,7 @@ export interface ByTypeCard {
   }[];
 }
 
-export type ResourceRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
+export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
 
 export const WORKLOAD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.CRON_JOB,

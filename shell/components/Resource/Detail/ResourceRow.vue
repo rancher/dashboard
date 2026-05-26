@@ -7,7 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { Props } from './ResourceRow.types';
 const {
-  label, to, counts, color
+  label, to, counts, color, compact
 } = defineProps<Props>();
 
 const store = useStore();
@@ -37,7 +37,10 @@ const displayCounts = computed(() => {
 </script>
 
 <template>
-  <div class="resource-row">
+  <div
+    class="resource-row"
+    :class="{ 'compact': compact }"
+  >
     <div class="left">
       <SubtleLink
         v-if="to && (counts && counts.length > 0)"
@@ -84,6 +87,24 @@ const displayCounts = computed(() => {
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    &.compact {
+      position: relative;
+      padding-left: 20px;
+      line-height: 21px;
+      height: 24px;
+
+      .left {
+        flex-grow: 1;
+      }
+
+      .right .counts .state-dot {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
 
     .right {
       flex-grow: 1;

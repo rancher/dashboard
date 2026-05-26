@@ -8,9 +8,10 @@ describe('component: StateCard', () => {
   const title = 'TITLE';
   const counts = [{ label: 'label2', count: 3 }];
   const row: any = {
-    label: 'label',
-    to:    'to',
-    color: 'success',
+    label:   'label',
+    to:      'to',
+    color:   'success',
+    compact: false,
     counts,
   };
 

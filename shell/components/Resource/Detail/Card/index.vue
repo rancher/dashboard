@@ -7,15 +7,17 @@ import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue'
 export interface CardProps {
     title?: string;
     to?: RouteLocationRaw;
+    bodyColumns?: number;
 }
 
-const { title, to } = defineProps<CardProps>();
+const { title, to, bodyColumns } = defineProps<CardProps>();
 const slots = useSlots();
 const router = useRouter();
 
 const clickable = computed(() => !!to);
 const cursorValue = computed(() => clickable.value ? 'pointer' : 'auto');
 const showHeading = computed(() => !!title || !!slots.title || !!slots['heading-action']);
+const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)` : 'none');
 
 function handleClick(e: MouseEvent | KeyboardEvent): void {
   if (!to) {
@@ -36,7 +38,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   <div
     class="detail-card"
     :class="{ clickable: clickable }"
-    :role="clickable ? 'link' : undefined"
+    :role="clickable ? 'button' : undefined"
     :tabindex="clickable ? 0 : undefined"
     @click="handleClick"
     @keyup.enter="handleClick"
@@ -54,7 +56,10 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
       </div>
       <VerticalGap />
     </template>
-    <div class="body">
+    <div
+      class="body"
+      :class="{ 'body--grid': bodyColumns, 'body--grid-0': bodyColumns === 0 }"
+    >
       <slot name="default" />
     </div>
   </div>
@@ -88,6 +93,18 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+
+      &--grid-0 {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      &--grid {
+        display: grid;
+        grid-template-columns: v-bind(gridColumns);
+        gap: 4px 48px;
+      }
     }
 }
 </style>

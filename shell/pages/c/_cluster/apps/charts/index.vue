@@ -688,7 +688,7 @@ export default {
               <SubtleLink
                 :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
                 target="_blank"
-                :open-in-new-tab="true"
+                :open-in-new-tab-label="t('generic.opensInNewTab')"
               >
                 {{ content }}
               </SubtleLink>

@@ -43,6 +43,7 @@ const {
     <div
       v-if="!hasWorkloads"
       class="empty-state"
+      data-testid="workload-dashboard-empty"
     >
       <h1 class="m-0">
         {{ t('workloadDashboard.empty.title') }}
@@ -52,6 +53,7 @@ const {
           <template #resetLink="{ content }">
             <a
               role="button"
+              tabindex="0"
               class="link"
               @click="resetNamespaceFilter"
               @keyup.enter="resetNamespaceFilter"
@@ -66,7 +68,7 @@ const {
             <SubtleLink
               :href="`${DOCS_BASE}/how-to-guides/new-user-guides/kubernetes-resources-setup/workloads-and-pods`"
               target="_blank"
-              :open-in-new-tab="true"
+              :open-in-new-tab-label="t('generic.opensInNewTab')"
             >
               {{ content }}
             </SubtleLink>
@@ -78,18 +80,27 @@ const {
     <template v-else>
       <header class="row">
         <div class="col span-12 title">
-          <h1 class="m-0">
+          <h1
+            class="m-0"
+            data-testid="workload-dashboard-title"
+          >
             {{ t('workloadDashboard.title') }}
           </h1>
-          <div class="sub-title text-muted">
+          <div
+            class="sub-title text-muted"
+            data-testid="workload-dashboard-subtitle"
+          >
             {{ namespaceSubtitle }}
           </div>
         </div>
       </header>
 
       <!-- ━━━ By State ━━━ -->
-      <div class="section">
-        <h4 class="m-0 text-muted">
+      <div
+        class="section"
+        data-testid="workload-dashboard-by-state"
+      >
+        <h4 class="m-0 text-deemphasized">
           {{ t('workloadDashboard.sections.byState') }}
         </h4>
         <ByStateSection
@@ -99,8 +110,11 @@ const {
       </div>
 
       <!-- ━━━ By Type ━━━ -->
-      <div class="section">
-        <h4 class="m-0 text-muted">
+      <div
+        class="section"
+        data-testid="workload-dashboard-by-type"
+      >
+        <h4 class="m-0 text-deemphasized">
           {{ t('workloadDashboard.sections.byType') }}
         </h4>
         <ByTypeSection
@@ -155,12 +169,5 @@ const {
     }
   }
 
-  .state-card {
-    :deep(.body) {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-  }
 }
 </style>

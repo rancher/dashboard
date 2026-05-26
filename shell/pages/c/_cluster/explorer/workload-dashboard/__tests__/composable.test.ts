@@ -1,6 +1,6 @@
 import { useWorkloadDashboard } from '@shell/pages/c/_cluster/explorer/workload-dashboard/composable';
 import { WORKLOAD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
-import { defineComponent, effectScope, h } from 'vue';
+import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 
 const mockGetters: Record<string, any> = {};
@@ -21,7 +21,10 @@ jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: stri
 
 jest.mock('@shell/plugins/steve/steve-pagination-utils', () => ({
   __esModule: true,
-  default:    { createParamsFromNsFilter: jest.fn(() => ({ projectsOrNamespaces: [], filters: [] })) },
+  default:    {
+    createParamsFromNsFilter:  jest.fn(() => ({ projectsOrNamespaces: [], filters: [] })),
+    createParamsForPagination: jest.fn(() => ''),
+  },
 }));
 
 jest.mock('@shell/plugins/steve/projectAndNamespaceFiltering.utils', () => ({
@@ -49,13 +52,6 @@ function setupGetters(overrides: Record<string, any> = {}) {
   Object.assign(mockGetters, defaultGetters, overrides);
 }
 
-function withScope(fn: () => void): void {
-  const scope = effectScope();
-
-  scope.run(fn);
-  scope.stop();
-}
-
 const summaryResponse = {
   summary: [{ property: 'metadata.state.name', counts: { running: 5, error: 2 } }],
   data:    [],
@@ -64,6 +60,7 @@ const summaryResponse = {
 function mountComposable(getterOverrides: Record<string, any> = {}) {
   setupGetters({
     'cluster/schemaFor': () => ({ links: { collection: '/v1/test' } }),
+    'cluster/canList':   () => true,
     ...getterOverrides,
   });
 
@@ -101,68 +98,45 @@ describe('composable: useWorkloadDashboard', () => {
   });
 
   describe('namespaceSubtitle', () => {
-    it('should return namespacedOnly subtitle when namespaceMode is namespaced', () => {
-      setupGetters({ namespaceMode: 'namespaced' });
+    it('should return allNamespaces subtitle when isAllNamespaces is true', async() => {
+      const { wrapper, result } = mountComposable({ isAllNamespaces: true, namespaceMode: 'both' });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespacedOnly%{"count":0}');
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces%{"count":42}');
+      wrapper.unmount();
     });
 
-    it('should return clusterOnly subtitle when namespaceMode is cluster', () => {
-      setupGetters({ namespaceMode: 'cluster' });
-
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
-
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.clusterOnly%{"count":0}');
-      });
-    });
-
-    it('should return allNamespaces subtitle when isAllNamespaces is true', () => {
-      setupGetters({ isAllNamespaces: true, namespaceMode: 'both' });
-
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
-
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces%{"count":0}');
-      });
-    });
-
-    it('should return userNamespaces subtitle for ALL_USER filter', () => {
-      setupGetters({
+    it('should return userNamespaces subtitle for ALL_USER filter', async() => {
+      const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
         namespaceFilters: ['all://user'],
       });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.userNamespaces%{"count":0}');
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.userNamespaces%{"count":42}');
+      wrapper.unmount();
     });
 
-    it('should return systemNamespaces subtitle for ALL_SYSTEM filter', () => {
-      setupGetters({
+    it('should return systemNamespaces subtitle for ALL_SYSTEM filter', async() => {
+      const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
         namespaceFilters: ['all://system'],
       });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.systemNamespaces%{"count":0}');
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.systemNamespaces%{"count":42}');
+      wrapper.unmount();
     });
 
-    it('should return project subtitle for project filter', () => {
+    it('should return project subtitle for project filter', async() => {
       const projectId = 'p-12345';
 
-      setupGetters({
+      const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
         namespaceFilters: [`project://${ projectId }`],
@@ -171,62 +145,47 @@ describe('composable: useWorkloadDashboard', () => {
         }],
       });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.project%{"name":"My Project","count":0}`);
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.project%{"name":"My Project","count":42}`);
+      wrapper.unmount();
     });
 
-    it('should return namespace subtitle for namespace filter', () => {
-      setupGetters({
+    it('should return namespace subtitle for namespace filter', async() => {
+      const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
         namespaceFilters: ['ns://cattle-system'],
       });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespace%{"name":"cattle-system","count":0}');
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespace%{"name":"cattle-system","count":42}');
+      wrapper.unmount();
     });
 
-    it('should return multipleSelected subtitle for multiple filters', () => {
-      setupGetters({
+    it('should return multipleSelected subtitle for multiple filters', async() => {
+      const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
         namespaceFilters: ['ns://default', 'ns://kube-system'],
       });
 
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
+      await flushPromises();
 
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.multipleSelected%{"selected":2,"count":0}');
-      });
-    });
-
-    it('should check namespaceMode before isAllNamespaces', () => {
-      setupGetters({
-        isAllNamespaces: true,
-        namespaceMode:   'namespaced',
-      });
-
-      withScope(() => {
-        const { namespaceSubtitle } = useWorkloadDashboard();
-
-        expect(namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespacedOnly%{"count":0}');
-      });
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.multipleSelected%{"selected":2,"count":42}');
+      wrapper.unmount();
     });
   });
 
   describe('hasWorkloads', () => {
-    it('should return false when there are no summaries', () => {
-      withScope(() => {
-        const { hasWorkloads } = useWorkloadDashboard();
+    it('should return false when there are no summaries', async() => {
+      const { wrapper, result } = mountComposable({ 'cluster/canList': () => false });
 
-        expect(hasWorkloads.value).toStrictEqual(false);
-      });
+      await flushPromises();
+
+      expect(result.hasWorkloads.value).toStrictEqual(false);
+      wrapper.unmount();
     });
 
     it('should return true when summaries contain workloads', async() => {
@@ -240,50 +199,53 @@ describe('composable: useWorkloadDashboard', () => {
   });
 
   describe('resourceRoute', () => {
-    it('should return route without query when no stateNames provided', () => {
-      withScope(() => {
-        const { resourceRoute } = useWorkloadDashboard();
-        const route = resourceRoute('apps.deployment');
+    it('should return route without query when no stateNames provided', async() => {
+      const { wrapper, result } = mountComposable();
 
-        expect(route).toStrictEqual({
-          name:   'c-cluster-product-resource',
-          params: {
-            cluster:  'local',
-            product:  'explorer',
-            resource: 'apps.deployment',
-          },
-        });
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment');
+
+      expect(route).toStrictEqual({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  'explorer',
+          resource: 'apps.deployment',
+        },
       });
+      wrapper.unmount();
     });
 
-    it('should include state filter query when stateNames are provided', () => {
-      withScope(() => {
-        const { resourceRoute } = useWorkloadDashboard();
-        const route = resourceRoute('apps.deployment', ['running', 'active']);
+    it('should include state filter query when stateNames are provided', async() => {
+      const { wrapper, result } = mountComposable();
 
-        expect((route as any).query).toStrictEqual({ q: '"metadata.state.name":"running","metadata.state.name":"active"' });
-      });
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment', ['running', 'active']);
+
+      expect((route as any).query).toStrictEqual({ q: '"metadata.state.name":"running","metadata.state.name":"active"' });
+      wrapper.unmount();
     });
 
-    it('should not include query for empty stateNames array', () => {
-      withScope(() => {
-        const { resourceRoute } = useWorkloadDashboard();
-        const route = resourceRoute('apps.deployment', []);
+    it('should not include query for empty stateNames array', async() => {
+      const { wrapper, result } = mountComposable();
 
-        expect((route as any).query).toBeUndefined();
-      });
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment', []);
+
+      expect((route as any).query).toBeUndefined();
+      wrapper.unmount();
     });
   });
 
   describe('resetNamespaceFilter', () => {
-    it('should dispatch switchNamespaces with empty ids', () => {
-      withScope(() => {
-        const { resetNamespaceFilter } = useWorkloadDashboard();
+    it('should dispatch switchNamespaces with empty ids', async() => {
+      const { wrapper, result } = mountComposable();
 
-        resetNamespaceFilter();
+      await flushPromises();
+      result.resetNamespaceFilter();
 
-        expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', { ids: [], key: 'local' });
-      });
+      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', { ids: [], key: 'local' });
+      wrapper.unmount();
     });
   });
 

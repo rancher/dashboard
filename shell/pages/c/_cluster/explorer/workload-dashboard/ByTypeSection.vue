@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
-import type { ByTypeCard, ResourceRouteFn } from './types';
+import type { WorkloadDashboardByTypeCard, WorkloadDashboardResourceRouteFn } from './types';
 
 defineProps<{
-  cards: ByTypeCard[];
-  resourceRoute: ResourceRouteFn;
+  cards: WorkloadDashboardByTypeCard[];
+  resourceRoute: WorkloadDashboardResourceRouteFn;
 }>();
 </script>
 

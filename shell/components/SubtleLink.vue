@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useStore } from 'vuex';
 import { RouterLink, RouteLocationRaw } from 'vue-router';
-import { useI18n } from '@shell/composables/useI18n';
 
 export interface Props {
   to?: RouteLocationRaw;
   href?: string;
   target?: string;
-  openInNewTab?: boolean;
+  openInNewTabLabel?: string;
 }
 
-const store = useStore();
-const { t } = useI18n(store);
 const props = defineProps<Props>();
 
 const isExternal = computed(() => !!props.href);
@@ -27,11 +23,11 @@ const isExternal = computed(() => !!props.href);
       : { to }"
   >
     <span
-      v-if="openInNewTab"
+      v-if="openInNewTabLabel"
       class="sr-only"
-    >{{ t('generic.opensInNewTab') }}</span>
-    <slot name="default" /><span v-if="openInNewTab">&nbsp;</span><i
-      v-if="openInNewTab"
+    >{{ openInNewTabLabel }}</span>
+    <slot name="default" /><span v-if="openInNewTabLabel">&nbsp;</span><i
+      v-if="openInNewTabLabel"
       class="link-icon icon icon-external-link"
     />
   </component>

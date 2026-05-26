@@ -11,4 +11,5 @@ export interface Props {
   to?: RouteLocationRaw;
   color?: StateColor;
   counts?: Count[];
+  compact?: boolean;
 }

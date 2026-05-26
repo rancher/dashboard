@@ -9,6 +9,7 @@ import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality,
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
+// Validates overall shape only; capture groups beyond the first pair are discarded — actual extraction uses pairRegex in parseStructuredQuery
 const STRUCTURED_QUERY_REGEX = /^"([^"]+)":"([^"]*)"(?:,"([^"]+)":"([^"]*)")*$/;
 
 export function parseStructuredQuery(query) {
