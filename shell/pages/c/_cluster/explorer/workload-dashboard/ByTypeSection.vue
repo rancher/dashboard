@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
+import WorkloadTypeCard from './WorkloadTypeCard.vue';
 import type { WorkloadDashboardByTypeCard, WorkloadDashboardResourceRouteFn } from './types';
 
 defineProps<{
@@ -10,14 +10,12 @@ defineProps<{
 
 <template>
   <div class="card-grid">
-    <StatusCard
+    <WorkloadTypeCard
       v-for="card in cards"
       :key="card.title"
       :title="card.title"
       :to="resourceRoute(card.type)"
-      :row-to="resourceRoute(card.type)"
       :resources="card.resources"
-      :show-percent="false"
     />
   </div>
 </template>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
-import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
+import WorkloadCard from './WorkloadCard.vue';
 import type { WorkloadDashboardByStateLayout, WorkloadDashboardResourceRouteFn } from './types';
 
 const props = defineProps<{
@@ -14,6 +13,15 @@ const gridTemplateRows = computed(() => {
 
   return `repeat(${ props.layout.gridRows }, ${ unit })`;
 });
+
+function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
+  return rows.map((row) => ({
+    label:  row.label,
+    to:     props.resourceRoute(row.type, row.stateNames),
+    color:  row.color,
+    counts: row.counts,
+  }));
+}
 </script>
 
 <template>
@@ -21,54 +29,27 @@ const gridTemplateRows = computed(() => {
     class="bento-grid"
     :class="{ 'bento-grid--has-sub-hero': !!layout.subHero }"
   >
-    <Card
+    <WorkloadCard
       v-for="card in layout.cards"
       :key="card.color"
       class="state-card"
       data-testid="workload-dashboard-state-card"
       :class="'state-card--' + card.color"
-    >
-      <ResourceRow
-        v-for="(row, idx) in card.rows"
-        :key="idx"
-        :label="row.label"
-        :to="resourceRoute(row.type, row.stateNames)"
-        :color="row.color"
-        :counts="row.counts"
-        compact
-      />
-    </Card>
-    <Card
+      :rows="toCardRows(card.rows)"
+    />
+    <WorkloadCard
       v-if="layout.subHero"
       class="state-card bento-sub-hero"
       :class="'state-card--' + layout.subHero.color"
-    >
-      <ResourceRow
-        v-for="(row, idx) in layout.subHero.rows"
-        :key="idx"
-        :label="row.label"
-        :to="resourceRoute(row.type, row.stateNames)"
-        :color="row.color"
-        :counts="row.counts"
-        compact
-      />
-    </Card>
-    <Card
+      :rows="toCardRows(layout.subHero.rows)"
+    />
+    <WorkloadCard
       v-if="layout.hero"
       class="state-card bento-hero"
       :class="['state-card--' + layout.hero.color, 'bento-hero--' + layout.heroMode]"
       :body-columns="layout.heroMode === 'full' ? 3 : layout.heroMode === 'wide' ? 2 : undefined"
-    >
-      <ResourceRow
-        v-for="(row, idx) in layout.hero.rows"
-        :key="idx"
-        :label="row.label"
-        :to="resourceRoute(row.type, row.stateNames)"
-        :color="row.color"
-        :counts="row.counts"
-        compact
-      />
-    </Card>
+      :rows="toCardRows(layout.hero.rows)"
+    />
   </div>
 </template>
 
