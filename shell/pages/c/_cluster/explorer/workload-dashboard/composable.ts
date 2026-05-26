@@ -1,12 +1,12 @@
 import {
-  reactive, ref, computed, watch, onMounted, onBeforeUnmount
+  ref, computed, watch, onMounted, onBeforeUnmount
 } from 'vue';
 import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 import { NAMESPACE } from '@shell/config/types';
-import { STATES, colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import { StateColor } from '@shell/utils/style';
+import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
+import { useStateColor } from '@shell/composables/useStateColor';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
@@ -15,7 +15,6 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
-import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import {
   WORKLOAD_RESOURCE_TYPES, COLOR_ORDER,
   type WorkloadDashboardSummaryEntry,
@@ -25,11 +24,10 @@ import {
   type WorkloadDashboardByTypeCard,
 } from './types';
 
-const stateColorCache = reactive<Record<string, StateColor>>({});
-
 export function useWorkloadDashboard() {
   const store = useStore();
   const { t } = useI18n(store);
+  const { toStateColor, resolveStateColors } = useStateColor();
 
   const summaries = ref<WorkloadDashboardSummaryEntry[]>([]);
   const fetchError = ref<string | null>(null);
@@ -37,24 +35,6 @@ export function useWorkloadDashboard() {
   let pollTimer: ReturnType<typeof setInterval> | null = null;
 
   const clusterId = computed<string>(() => store.getters['clusterId']);
-
-  // ── State color cache ──
-
-  function toStateColor(state: string): StateColor {
-    const key = (state || '').toLowerCase();
-
-    if (stateColorCache[key]) {
-      return stateColorCache[key];
-    }
-
-    const config = STATES[key];
-    const color = config?.color || 'info';
-    const resolved = (color === 'darker' ? 'disabled' : color) as StateColor;
-
-    stateColorCache[key] = resolved;
-
-    return resolved;
-  }
 
   // ── Namespace filtering ──
 
@@ -289,78 +269,6 @@ export function useWorkloadDashboard() {
     }
 
     return loc;
-  }
-
-  // ── State color resolution ──
-
-  async function resolveStateColors(entries: WorkloadDashboardSummaryEntry[]): Promise<void> {
-    const unresolvedStates = new Map<string, { originalName: string; type: string }>();
-
-    for (const entry of entries) {
-      if (!entry.summary) {
-        continue;
-      }
-
-      for (const s of entry.summary) {
-        if (s.property === 'metadata.state.name') {
-          for (const stateName of Object.keys(s.counts)) {
-            const key = stateName.toLowerCase();
-
-            if (!stateColorCache[key] && !unresolvedStates.has(key)) {
-              unresolvedStates.set(key, { originalName: stateName, type: entry.type });
-            }
-          }
-        }
-      }
-    }
-
-    if (unresolvedStates.size === 0) {
-      return;
-    }
-
-    const newColors: Record<string, StateColor> = {};
-    const pending = Array.from(unresolvedStates.entries());
-    const concurrency = 10;
-
-    for (let i = 0; i < pending.length; i += concurrency) {
-      const batch = pending.slice(i, i + concurrency);
-
-      await Promise.all(batch.map(async([stateKey, { originalName, type }]) => {
-        try {
-          const schema = store.getters['cluster/schemaFor'](type);
-          const params = stevePaginationUtils.createParamsForPagination({
-            schema,
-            opt: {
-              pagination: {
-                page:                 1,
-                pageSize:             1,
-                sort:                 [],
-                filters:              [PaginationParamFilter.createSingleField({ field: 'metadata.state.name', value: originalName })],
-                projectsOrNamespaces: [],
-              }
-            }
-          });
-          const url = `${ schema.links.collection }?${ params }`;
-          const res = await store.dispatch('cluster/request', { url });
-          const resource = res?.data?.[0];
-
-          if (!resource?.metadata?.state) {
-            return;
-          }
-
-          const { error: isError, transitioning, name } = resource.metadata.state;
-          const rawColor = colorForState(name, isError, transitioning).replace('text-', '');
-
-          newColors[stateKey] = (rawColor === 'darker' ? 'disabled' : rawColor) as StateColor;
-        } catch {
-          // Fallback handled by toStateColor via STATES lookup
-        }
-      }));
-    }
-
-    if (Object.keys(newColors).length > 0) {
-      Object.assign(stateColorCache, newColors);
-    }
   }
 
   // ── Fetching & polling ──
