@@ -23,6 +23,7 @@ defineProps({
       <div class="appco-badge-container">
         <RcIcon
           v-if="badgeState?.transitioning"
+          class="icon-spin"
           type="spinner"
           size="large"
         />

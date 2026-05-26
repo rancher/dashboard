@@ -3341,6 +3341,7 @@ fleet:
       accessTokensLink: SUSE Application Collection access tokens
       accessTokenLabel: Access token
       addNewToken: Add a new access token...
+      noTokensYet: "You haven't added an access token yet."
       chooseExisting: 'Choose an existing token:'
       username: Username
       usernamePlaceholder: user@domain.org

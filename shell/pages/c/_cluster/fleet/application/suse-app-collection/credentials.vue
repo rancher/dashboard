@@ -81,6 +81,7 @@ const secretOptions = computed(() => {
 });
 
 const isAddNew = computed(() => selectedSecret.value === ADD_NEW_TOKEN);
+const hasNoSecrets = computed(() => !loading.value && existingSecrets.value.length === 0 && !route.query.secret);
 
 const canSave = computed(() => {
   if (isAddNew.value) {
@@ -90,11 +91,21 @@ const canSave = computed(() => {
   return !!selectedSecret.value;
 });
 
+const originalSecret = (route.query.secret as string) || '';
+
 const cancel = () => {
-  router.push({
-    name:   'c-cluster-fleet-application-create',
-    params: { cluster: route.params.cluster as string },
-  });
+  if (originalSecret) {
+    router.push({
+      name:   'c-cluster-fleet-application-appco-charts',
+      params: { cluster: route.params.cluster as string },
+      query:  { secret: originalSecret },
+    });
+  } else {
+    router.push({
+      name:   'c-cluster-fleet-application-create',
+      params: { cluster: route.params.cluster as string },
+    });
+  }
 };
 
 const save = async() => {
@@ -148,8 +159,16 @@ onMounted(async() => {
 
   if (querySecret && existingSecrets.value.find((s: any) => s.metadata.name === querySecret)) {
     selectedSecret.value = querySecret;
-  } else if (existingSecrets.value.length) {
-    selectedSecret.value = existingSecrets.value[0].metadata.name;
+  } else if (existingSecrets.value.length && !querySecret) {
+    router.replace({
+      name:   'c-cluster-fleet-application-appco-charts',
+      params: { cluster: route.params.cluster as string },
+      query:  { secret: existingSecrets.value[0].metadata.name },
+    });
+
+    return;
+  } else if (!existingSecrets.value.length) {
+    selectedSecret.value = ADD_NEW_TOKEN;
   }
 });
 </script>
@@ -187,7 +206,17 @@ onMounted(async() => {
           :label="err"
         />
 
-        <div class="row">
+        <p
+          v-if="hasNoSecrets"
+          class="no-secrets-message"
+        >
+          {{ t('fleet.appCo.credentials.noTokensYet') }}
+        </p>
+
+        <div
+          v-else
+          class="row"
+        >
           <div class="col span-6">
             <LabeledSelect
               v-model:value="selectedSecret"

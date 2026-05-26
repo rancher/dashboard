@@ -140,18 +140,18 @@ onMounted(async() => {
       @edit-credentials="editCredentials"
     />
 
-    <Loading
-      v-if="chartsLoading"
-    />
-
     <AppCoEmptyState
-      v-else-if="isRepoTransitioning"
+      v-if="true"
       :title="t('fleet.helmOp.add.steps.selection.repoLoading.title')"
       :badge-state="repoBadgeState"
       data-testid="appco-charts-repo-loading"
     >
       {{ t('fleet.helmOp.add.steps.selection.repoLoading.description') }}
     </AppCoEmptyState>
+
+    <Loading
+      v-else-if="chartsLoading"
+    />
 
     <AppCoEmptyState
       v-else-if="isRepoError"
