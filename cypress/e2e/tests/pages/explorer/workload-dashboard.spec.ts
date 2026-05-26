@@ -39,10 +39,11 @@ describe('Workload Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adm
   });
 
   it('should show empty state when namespace filter matches no workloads', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["ns://e2e-nonexistent-ns"]}');
+    workloadDashboard.interceptSummariesAsEmpty();
 
     WorkloadDashboardPagePo.navTo();
     workloadDashboard.waitForPage();
+    workloadDashboard.waitForEmptySummaries();
 
     workloadDashboard.emptyState().should('be.visible');
   });

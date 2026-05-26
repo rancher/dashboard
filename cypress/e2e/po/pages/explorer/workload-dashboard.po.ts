@@ -22,7 +22,7 @@ export default class WorkloadDashboardPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupOverviewByLabel('Workloads');
+    sideNav.navToSideMenuGroupByLabel('Workloads');
   }
 
   title() {
@@ -51,6 +51,16 @@ export default class WorkloadDashboardPagePo extends PagePo {
 
   byTypeCards() {
     return cy.get('[data-testid="resource-detail-status-card"]');
+  }
+
+  interceptSummariesAsEmpty() {
+    return cy.intercept('GET', '/v1/*?summary=*', {
+      summary: [], count: 0, data: []
+    }).as('emptySummary');
+  }
+
+  waitForEmptySummaries() {
+    return cy.wait('@emptySummary');
   }
 
   emptyState() {
