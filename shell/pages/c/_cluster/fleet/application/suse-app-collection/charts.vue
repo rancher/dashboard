@@ -56,6 +56,7 @@ const editCredentials = () => {
   router.push({
     name:   'c-cluster-fleet-application-appco-credentials',
     params: { cluster: route.params.cluster as string },
+    query:  { secret: secretName.value },
   });
 };
 

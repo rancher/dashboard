@@ -144,7 +144,11 @@ onMounted(async() => {
     loading.value = false;
   }
 
-  if (existingSecrets.value.length) {
+  const querySecret = route.query.secret as string;
+
+  if (querySecret && existingSecrets.value.find((s: any) => s.metadata.name === querySecret)) {
+    selectedSecret.value = querySecret;
+  } else if (existingSecrets.value.length) {
     selectedSecret.value = existingSecrets.value[0].metadata.name;
   }
 });
