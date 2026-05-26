@@ -180,7 +180,7 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get machineProvider() {
-    return this.status?.info.machineProvider;
+    return this.status?.info?.machineProvider;
   }
 
   get machineProviderDisplay() {
