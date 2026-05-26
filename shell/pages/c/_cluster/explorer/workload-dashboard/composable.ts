@@ -340,7 +340,7 @@ export function useWorkloadDashboard() {
               }
             }
           });
-          const url = `/v1/${ type }?${ params }`;
+          const url = `${ schema.links.collection }?${ params }`;
           const res = await store.dispatch('cluster/request', { url });
           const resource = res?.data?.[0];
 
