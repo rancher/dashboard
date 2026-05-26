@@ -361,7 +361,7 @@ export interface HeaderOptions {
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
    * It can be false to disable searching on this field
    */
-  search?: string | boolean;
+  search?: string | boolean | string[];
 
   /**
    * Number of pixels the column should be in the table
