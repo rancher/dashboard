@@ -699,4 +699,10 @@ defineExpose({ refreshYamlEditor });
   line-height: 24px;
   margin-bottom: 0;
 }
+
+.rc-section {
+  :deep(h3), :deep(h2) {
+    font-size: 16px;
+  }
+}
 </style>
