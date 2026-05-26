@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* @ts-nocheck */
 import { IExtension } from '@shell/core/types';
 import {
   ProductMetadata,

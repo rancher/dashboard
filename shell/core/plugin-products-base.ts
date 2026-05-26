@@ -16,8 +16,6 @@ import {
   hasTypeProperty,
 } from '@shell/core/plugin-products-type-guards';
 
-import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
-
 /**
  * Base class for product registration in extensions
  * @internal
@@ -140,9 +138,6 @@ export abstract class BasePluginProduct {
     if (this.product) {
       this.processProductLevelDSLOptions();
     }
-
-    DSLRegistrationsPerProduct(store, this.name);
-    registeredRoutes(store, this.name);
   }
 
   /**
