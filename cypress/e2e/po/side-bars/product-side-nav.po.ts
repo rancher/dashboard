@@ -45,6 +45,15 @@ export default class ProductNavPo extends ComponentPo {
     return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).click();
   }
 
+  /**
+   * Navigate to a group's overview page by clicking its header link
+   */
+  navToSideMenuGroupOverviewByLabel(label: string): Cypress.Chainable {
+    return this.self().should('exist', LONG_TIMEOUT_OPT)
+      .contains('.accordion.has-children .header a', label, LONG_TIMEOUT_OPT)
+      .click();
+  }
+
   sideMenuEntryByLabelCount(label: string): Cypress.Chainable {
     return this.sideMenuEntryByLabel(label).parent().find('.count').should('exist')
       .invoke('text');

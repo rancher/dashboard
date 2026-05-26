@@ -22,8 +22,7 @@ export default class WorkloadDashboardPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('Workloads');
+    sideNav.navToSideMenuGroupOverviewByLabel('Workloads');
   }
 
   title() {
