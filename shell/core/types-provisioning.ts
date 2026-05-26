@@ -224,6 +224,18 @@ export interface IClusterProvisioner {
    */
   detailTabs: ClusterProvisionerDetailTabs;
 
+  /**
+   * Optional component rendered under the appsOSWarning banner in the RKE2 cluster create/edit form.
+   *
+   * Props passed to the component:
+   * - value: cluster model
+   * - mode: create/edit/view mode
+   * - provider: current cluster provider
+   * - machinePools: machine pools for the cluster
+   * - warning: computed apps OS warning text (or null)
+   */
+  appsOSWarningComponent?: any;
+
   /* --------------------------------------------------------------------------------------
    * Getters / Functions for Managing Machine Configs
   * --------------------------------------------------------------------------------------- */

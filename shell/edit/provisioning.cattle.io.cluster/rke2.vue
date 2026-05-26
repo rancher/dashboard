@@ -96,7 +96,6 @@ const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 const REGISTRIES_TAB_NAME = 'registry';
-
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
@@ -300,6 +299,7 @@ export default {
       basicsValid:                              true,
       registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
+      capiCluster:                              null,
     };
   },
 
@@ -327,6 +327,18 @@ export default {
 
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
+    },
+    // TODO: improve
+
+    isUpstreamCAPIProvider() {
+      return this.provider === 'capa';
+      // Prefer an explicit declaration from the extension provisioner
+      // if (this.extensionProvider?.isUpstreamCAPIProvider !== undefined) {
+      //   return !!this.extensionProvider.isUpstreamCAPIProvider;
+      // }
+
+      // // Fall back to detecting the API group of the machine config schema
+      // return this.machineConfigSchema?.attributes?.group === UPSTREAM_CAPI_MACHINE_CONFIG_GROUP;
     },
 
     chartValues() {
@@ -562,6 +574,14 @@ export default {
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
     },
+    // TODO: improve
+    clusterSchema() {
+      if (this.isUpstreamCAPIProvider) {
+        return this.extensionProvider?.clusterSchema;
+      }
+
+      return null;
+    },
 
     machineConfigSchema() {
       let schema;
@@ -587,7 +607,18 @@ export default {
         schema = extensionSchema;
       }
 
-      return this.$store.getters['management/schemaFor'](schema);
+      const resolved = this.$store.getters['management/schemaFor'](schema);
+      const fallbackResolved = this.$store.getters['cluster/schemaFor'](schema, true, false);
+      const out = resolved || fallbackResolved;
+
+      if (!out) {
+        // eslint-disable-next-line no-console
+        console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
+      } else {
+        // TODO
+      }
+
+      return out;
     },
 
     nodeTotals() {
@@ -826,6 +857,10 @@ export default {
       return null;
     },
 
+    extensionInfrastructureSection() {
+      return this.extensionProvider?.extensionInfrastructureSection || null;
+    },
+
     showForm() {
       return !!this.credentialId || !this.needCredential;
     },
@@ -920,6 +955,9 @@ export default {
   },
 
   watch: {
+    'capiCluster.spec.region'() {
+      // console.log('region changed in rke2', this.capiCluster.spec.region);
+    },
     clusterBadgeAbbreviation: {
       immediate: true,
       handler(neu) {
@@ -1026,18 +1064,72 @@ export default {
 
     // Register any hooks for this extension provider
     if (this.extensionProvider?.registerSaveHooks) {
-      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
+      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value, () => this.capiCluster);
     }
   },
 
   methods: {
     set,
 
+    pruneMissingKeys(target, source) {
+      if (!target || !source || typeof target !== 'object' || typeof source !== 'object') {
+        return;
+      }
+
+      Object.keys(target).forEach((key) => {
+        if (!Object.prototype.hasOwnProperty.call(source, key)) {
+          delete target[key];
+
+          return;
+        }
+
+        const targetValue = target[key];
+        const sourceValue = source[key];
+
+        if (
+          targetValue &&
+          sourceValue &&
+          typeof targetValue === 'object' &&
+          typeof sourceValue === 'object' &&
+          !Array.isArray(targetValue) &&
+          !Array.isArray(sourceValue)
+        ) {
+          this.pruneMissingKeys(targetValue, sourceValue);
+        }
+      });
+    },
+
+    updateExtensionInfrastructureSection(neu) {
+      if (!neu || typeof neu !== 'object') {
+        return;
+      }
+
+      if (!this.capiCluster || typeof this.capiCluster !== 'object') {
+        this.capiCluster = neu;
+
+        return;
+      }
+
+      // Keep the spec tree in sync with the extension payload so omitted keys are actually removed.
+      this.pruneMissingKeys(this.capiCluster.spec, neu.spec);
+
+      // Preserve the original resource model instance while applying extension updates.
+      mergeWithReplace(this.capiCluster, neu, { mutateOriginal: true });
+    },
+
     async handleVsphereCpiSecret() {
+      if (this.isUpstreamCAPIProvider) {
+        return;
+      }
+
       return VsphereUtils.handleVsphereCpiSecret(this);
     },
 
     async handleVsphereCsiSecret() {
+      if (this.isUpstreamCAPIProvider) {
+        return;
+      }
+
       return VsphereUtils.handleVsphereCsiSecret(this);
     },
 
@@ -1057,7 +1149,7 @@ export default {
         this.value.spec.machineSelectorConfig.unshift({ config: {} });
       }
 
-      if (this.value.spec.cloudCredentialSecretName) {
+      if (this.value.spec.cloudCredentialSecretName && !this.isUpstreamCAPIProvider) {
         await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
         this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
       }
@@ -1105,6 +1197,10 @@ export default {
 
       if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
         set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
+      }
+
+      if (this.isUpstreamCAPIProvider) {
+        await this.initCapiCluster();
       }
     },
 
@@ -1267,6 +1363,48 @@ export default {
         this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
+    async initCapiCluster() {
+      // TODO handle edit
+      let config;
+      let configMissing = false;
+
+      if (!this.clusterSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped');
+      }
+
+      const clusterSchemaType = this.clusterSchema?.id || this.clusterSchema;
+
+      if (clusterSchemaType && this.$store.getters['management/canList'](clusterSchemaType)) {
+        try {
+          config = await this.$store.dispatch('management/find', {
+            type: clusterSchemaType,
+            // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+          });
+
+          if (!config) {
+            configMissing = true;
+          }
+          // TODO handle edit?? clone existing config?
+        } catch (e) {
+          configMissing = true;
+        }
+        if (configMissing) {
+          try {
+            config = await this.$store.dispatch('management/createPopulated', {
+              type:     clusterSchemaType,
+              metadata: { namespace: DEFAULT_WORKSPACE }
+            });
+          } catch (e) {
+            console.log('Error creating cluster config', e);
+          }
+        }
+        // TODO handle case where config is still missing and make sure spec is setup correctly
+        // TODO apply defaults
+        // console.log('config', config);
+        this.capiCluster = config || {};
+      }
+    },
 
     /**
      * Get machine pools from the cluster configuration
@@ -1281,6 +1419,13 @@ export default {
 
           if (this.isElementalCluster) {
             type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else if (pool.machineConfigRef?.apiVersion) {
+            // Upstream CAPI providers (and Elemental-style refs) store an explicit apiVersion
+            // in machineConfigRef.  Derive the management store type from the group portion
+            // of that apiVersion combined with the resource kind.
+            const [group] = (pool.machineConfigRef.apiVersion || '').split('/');
+
+            type = `${ group }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           } else {
             type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           }
@@ -1332,8 +1477,17 @@ export default {
     },
 
     async addMachinePool(idx) {
+      let machineConfigSchema = this.machineConfigSchema;
+
+      if (!machineConfigSchema && typeof this.extensionProvider?.machineConfigSchema === 'string') {
+        machineConfigSchema = this.machineConfigSchema;
+      }
+
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
-      if (!this.machineConfigSchema) {
+      if (!machineConfigSchema) {
+        // eslint-disable-next-line no-console
+        console.warn('addMachinePool: missing machineConfigSchema, pool creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
+
         return;
       }
 
@@ -1346,7 +1500,7 @@ export default {
       } else {
         // Default - use the schema
         config = await this.$store.dispatch('management/createPopulated', {
-          type:     this.machineConfigSchema.id,
+          type:     machineConfigSchema.id,
           metadata: { namespace: DEFAULT_WORKSPACE }
         });
 
@@ -1375,7 +1529,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: this.machineConfigSchema.attributes?.kind,
+            kind: machineConfigSchema.attributes?.kind, // TODO?
             name: null,
           },
           drainBeforeDelete: true
@@ -1387,7 +1541,17 @@ export default {
       }
 
       if (this.isElementalCluster) {
-        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+        pool.pool.machineConfigRef.apiVersion = `${ machineConfigSchema.attributes.group }/${ machineConfigSchema.attributes.version }`;
+      }
+
+      // Upstream CAPI MachineTemplate resources are referenced by full apiVersion so that
+      // initMachinePools can resolve the correct management store type on subsequent loads.
+      if (this.isUpstreamCAPIProvider && this.machineConfigSchema?.attributes) {
+        const { group, version } = this.machineConfigSchema.attributes;
+
+        if (group && version) {
+          pool.pool.machineConfigRef.apiVersion = `${ group }/${ version }`;
+        }
       }
 
       this.machinePools.push(pool);
@@ -1538,6 +1702,10 @@ export default {
     },
 
     async cleanupMachinePools() {
+      // Allow the extension provider to handle its own resource cleanup
+      if (this.extensionProvider?.cleanupMachinePools) {
+        return await this.extensionProvider.cleanupMachinePools(this.machinePools);
+      }
       for (const entry of this.machinePools) {
         if (entry.remove && entry.config) {
           try {
@@ -1554,7 +1722,7 @@ export default {
         await this.membershipUpdate.save(this.value.mgmt.id);
       }
     },
-
+    // TODO: check if we need to do anything for ipv6
     async showIpv6Warning(hookContext) {
       if (this.mode !== _CREATE || !this.machinePools?.length) {
         return;
@@ -1776,7 +1944,7 @@ export default {
     async setHarvesterChartValues() {
       const isHarvester = this.agentConfig?.['cloud-provider-name'] === HARVESTER;
 
-      if (!isHarvester) {
+      if (!isHarvester || this.isUpstreamCAPIProvider) {
         return;
       }
       try {
@@ -2349,7 +2517,9 @@ export default {
       if (this.errors) {
         clear(this.errors);
       }
-      if (this.value.cloudProvider === 'aws') {
+      // The IAM instance profile requirement is specific to CAPR (rancher-machine) AWS provisioning.
+      // Upstream CAPI providers on AWS use their own identity mechanisms and do not share this constraint.
+      if (!this.isUpstreamCAPIProvider && this.value.cloudProvider === 'aws') {
         const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
 
         if (missingProfileName) {
@@ -2358,7 +2528,7 @@ export default {
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
-        if (typeof this.$refs.pool[index]?.test === 'function') {
+        if (typeof this.$refs.pool?.[index]?.test === 'function') {
           try {
             const res = await this.$refs.pool[index].test();
 
@@ -2475,7 +2645,19 @@ export default {
         >
           {{ appsOSWarning }}
         </Banner>
-
+        <div class="span-12">
+          <component
+            :is="extensionInfrastructureSection"
+            v-if="extensionInfrastructureSection"
+            :value="capiCluster"
+            :mode="mode"
+            :provider="provider"
+            :credential-id="credentialId"
+            data-testid="extension-top-section"
+            class="span-12"
+            @update:value="updateExtensionInfrastructureSection"
+          />
+        </div>
         <!-- Pools Extras -->
         <template v-if="hasMachinePools">
           <div class="clearfix">
@@ -2509,7 +2691,6 @@ export default {
               />
             </div>
           </div>
-
           <!-- Extra Tabs for Machine Pool -->
           <Tabbed
             ref="pools"
@@ -2544,6 +2725,7 @@ export default {
                   :busy="busy"
                   :pool-id="obj.id"
                   :pool-create-mode="obj.create"
+                  :capi-cluster="capiCluster"
                   @error="handleMachinePoolError"
                   @validationChanged="v => machinePoolValidationChanged(obj.id, v)"
                 />

@@ -41,6 +41,11 @@ export default {
       default: () => ({})
     },
 
+    capiCluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
     // no credentials are required for elemental machine pools
     credentialId: {
       type:    String,
@@ -368,6 +373,7 @@ export default {
       v-model:is-ipv6="value.isIpv6"
       v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
+      :capi-cluster="capiCluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
@@ -394,7 +400,7 @@ export default {
       color="info"
       label-key="cluster.machinePool.noAccessBanner"
     />
-
+    <!---TODO Make it optional-->
     <AdvancedSection
       ref="advanced"
       :mode="mode"
