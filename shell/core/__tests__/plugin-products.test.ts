@@ -59,6 +59,7 @@ jest.mock('@shell/core/productDebugger', () => ({
 function createMockPlugin(): IExtension {
   return {
     _registerTopLevelProduct:   jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn((store, productName) => ({
@@ -3153,6 +3154,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3188,6 +3190,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3219,6 +3222,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -4602,6 +4606,191 @@ describe('pluginProduct', () => {
           expect(mockDSL.ignoreType).toHaveBeenCalledWith('custom.resource.type');
         });
       });
+    });
+  });
+
+  describe('customResourceConfig support', () => {
+    it('should call configureType for customResourceConfig when custom page has it', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
+        moveType:            jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'fleet',
+        label: 'Fleet',
+      };
+
+      const applicationPage: ProductChildCustomPage = {
+        name:                 'application',
+        label:                'Applications',
+        component:            { name: 'ApplicationPage' },
+        customResourceConfig: {
+          type:   'fleet-application',
+          config: { subTypes: ['fleet.cattle.io.gitrepo', 'fleet.cattle.io.helmop'] },
+        },
+      };
+
+      const config: ProductChild[] = [applicationPage];
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.virtualType).toHaveBeenCalledTimes(1);
+      expect(mockDSL.configureType).toHaveBeenCalledWith('fleet-application', expect.objectContaining({ subTypes: ['fleet.cattle.io.gitrepo', 'fleet.cattle.io.helmop'] }));
+    });
+
+    it('should not call configureType for customResourceConfig when custom page does not have it', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
+        moveType:            jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'my-product',
+        label: 'My Product',
+      };
+
+      const overviewPage: ProductChildCustomPage = {
+        name:      'overview',
+        label:     'Overview',
+        component: { name: 'OverviewPage' },
+      };
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, [overviewPage]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.virtualType).toHaveBeenCalledTimes(1);
+      expect(mockDSL.configureType).not.toHaveBeenCalled();
+    });
+
+    it('should pass all config options from customResourceConfig to configureType', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        headers:             jest.fn(),
+        hideBulkActions:     jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
+        moveType:            jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const productMetadata: ProductMetadata = {
+        name:  'fleet',
+        label: 'Fleet',
+      };
+
+      const applicationPage: ProductChildCustomPage = {
+        name:                 'application',
+        label:                'Applications',
+        component:            { name: 'ApplicationPage' },
+        customResourceConfig: {
+          type:   'fleet-application',
+          config: {
+            listGroups: [
+              {
+                icon:  'icon-list-flat',
+                value: 'none',
+              },
+            ],
+            listGroupsWillOverride: true,
+            subTypes:               ['fleet.cattle.io.gitrepo'],
+          },
+        },
+      };
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, [applicationPage]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.configureType).toHaveBeenCalledWith('fleet-application', expect.objectContaining({
+        listGroups:             expect.arrayContaining([expect.objectContaining({ icon: 'icon-list-flat', value: 'none' })]),
+        listGroupsWillOverride: true,
+        subTypes:               ['fleet.cattle.io.gitrepo'],
+      }));
+    });
+  });
+
+  describe('startRouteWithProduct', () => {
+    it('should call _setStartRouteWithProduct with true by default for new products', () => {
+      const mockPlugin = createMockPlugin();
+      const productMetadata: ProductMetadata = {
+        name:  'my-product',
+        label: 'My Product',
+      };
+
+      new PluginProduct(mockPlugin, productMetadata, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(true);
+    });
+
+    it('should call _setStartRouteWithProduct with false when product sets startRouteWithProduct: false', () => {
+      const mockPlugin = createMockPlugin();
+      const productMetadata: ProductMetadata = {
+        name:                  'fleet',
+        label:                 'Fleet',
+        startRouteWithProduct: false,
+      };
+
+      new PluginProduct(mockPlugin, productMetadata, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(false);
+    });
+
+    it('should call _setStartRouteWithProduct with false when extending an existing product', () => {
+      const mockPlugin = createMockPlugin();
+      const validStandardProduct = StandardProductNames.EXPLORER;
+
+      new PluginProduct(mockPlugin, validStandardProduct, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(false);
     });
   });
 

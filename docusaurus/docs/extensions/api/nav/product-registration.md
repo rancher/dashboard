@@ -341,6 +341,20 @@ A page inside a product that renders a Vue component you provide. Equivalent to 
 | `labelKey` | `string` | Yes* | Translation key for the label |
 | `component` | `RouteComponent` | Yes | Vue component to render |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
+| `config` | [`CustomPageConfiguration`](#CustomPageConfiguration) | No | Optional configuration for the page |
+
+### `CustomPageConfiguration`
+
+Configuration options for a custom page, passed via the `config` property of `ProductChildCustomPage`. These control visibility conditions, routing, and navigation behavior.
+
+| Property | Type | Required | Description |
+| --- | --- | --- | --- |
+| `ifHave` | `boolean` | No | Display only if a condition is met (relates to `IF_HAVE` in the store) |
+| `ifFeature` | `string` | No | Display only if the specified feature flag is present |
+| `ifHaveType` | `string` | No | Display only if the specified resource type exists |
+| `ifHaveVerb` | `string` | No | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
+| `namespaced` | `boolean` | No | Whether this custom page is namespaced |
+| `exact` | `boolean` | No | Whether this custom page requires an exact route match |
 
 ### `ProductChildResourcePage`
 
@@ -350,13 +364,31 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | --- | --- | --- | --- |
 | `type` | `string` | Yes | Kubernetes resource type (e.g. `'provisioning.cattle.io.cluster'`) |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | `ConfigureTypeConfiguration` | No | Resource page options (creatable, editable, removable, etc.) |
+| `config` | [`ResourcePageConfiguration`](#ResourcePageConfiguration) | No | Resource page options (creatable, editable, removable, etc.) |
 | `headers` | `HeaderOptions[]` | No | Custom table column headers for the list view (client-side pagination). See [Table headers](#table-headers-headers) |
 | `sspHeaders` | `PaginationHeaderOptions[]` | No | Custom table column headers for the list view (server-side pagination). See [Server-side pagination headers](#server-side-pagination-headers-sspheaders) |
 | `overrideListResourceName` | `string` | No | Override the display name for this resource type in the list view. See [Renaming types](#renaming-types-overridelistresourcename) |
 | `hideFromNav` | `boolean` | No | Hide this resource type from the side-menu entirely. See [Hiding types](#hiding-types-from-navigation-hidefromnav) |
 | `hideBulkActions` | `boolean` | No | Hide bulk action buttons (e.g. delete) for this resource type in the list view. See [Hiding bulk actions](#hiding-bulk-actions-hidebulkactions) |
 
+### `ResourcePageConfiguration`
+
+Configuration options for a resource page, passed via the `config` property of `ProductChildResourcePage`. These control how the resource behaves in list, detail, and edit views.
+
+| Property | Type | Required | Description |
+| --- | --- | --- | --- |
+| `listCreateButtonLabelKey` | `string` | No | Translation key to override the "Create" button label in the list view |
+| `isCreatable` | `boolean` | No | If `false`, disable creation even if the schema allows it |
+| `isEditable` | `boolean` | No | If `false`, disable editing |
+| `isRemovable` | `boolean` | No | If `false`, disable remove/delete |
+| `showState` | `boolean` | No | If `false`, hide state in columns and masthead |
+| `showAge` | `boolean` | No | If `false`, hide age in columns and masthead |
+| `showConfigView` | `boolean` | No | If `false`, hide the config button in the masthead when in view mode |
+| `showListMasthead` | `boolean` | No | If `false`, hide the masthead in the list view |
+| `canYaml` | `boolean` | No | If `false`, disable YAML editing and viewing |
+| `resourceEditMasthead` | `boolean` | No | Show the masthead in the edit resource component |
+| `localOnly` | `boolean` | No | Hide this type from the nav/search bar on downstream clusters (only show in the `local` cluster) |
+| `namespaced` | `boolean` | No | Whether this resource page is namespaced |
 
 ### `ProductChildGroup`
 

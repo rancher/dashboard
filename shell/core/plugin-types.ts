@@ -35,6 +35,12 @@ export type ProductRegistrationRouteGenerationOptions = {
    * Generated route should omit the path property
    */
   omitPath?: boolean;
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   * */
+  startRouteWithProduct?: boolean;
 }
 
 /**
@@ -72,7 +78,7 @@ export type ProductChildMetadata = {
 /**
  * Represents the allowed configuration for a custom page (virtualType)
  */
-export type VirtualTypeConfiguration = {
+export type CustomPageConfiguration = {
   /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
   ifHave?: boolean;
   /** Display only if feature is present (relates to shell/store/features) */
@@ -81,23 +87,44 @@ export type VirtualTypeConfiguration = {
   ifHaveType?: string;
   /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
   ifHaveVerb?: string;
-  /** Display label for the custom page */
+  /**
+   * @internal
+   * Display label for the custom page
+   */
   label?: string;
-  /** Translation key for the label */
+  /**
+   * @internal
+   * Translation key for the label
+   * */
   labelKey?: string;
-  /** Name of the page (unique identifier) */
+  /**
+   * @internal
+   * Name of the page (unique identifier)
+   */
   name?: string;
-  /** Entry route definition for this custom page */
+  /**
+   * @internal
+   * Entry route definition for this custom page
+   */
   route?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
-  /** Icon for the custom page (relates to icons in https://github.com/rancher/icons) */
+  /**
+   * @internal
+   * Icon for the custom page (relates to icons in https://github.com/rancher/icons)
+   */
   icon?: 'compass';
   /** Whether this custom page is namespaced or not */
   namespaced?: boolean;
-  /** Ordering weight for the custom page */
+  /**
+   * @internal
+   * Ordering weight for the custom page
+   */
   weight?: number;
   /** Whether this custom page is exact match */
   exact?: boolean;
-  /** Whether this custom page will act as an overview page */
+  /**
+   * @internal
+   * Whether this custom page will act as an overview page
+   * */
   overview?: boolean;
   /** Whether this custom page has an exact path match */
   'exact-path'?: boolean;
@@ -106,7 +133,11 @@ export type VirtualTypeConfiguration = {
 /**
  * Represents the allowed configuration for a resource page (configureType)
  */
-export type ConfigureTypeConfiguration = {
+export type ResourcePageConfiguration = {
+  /**
+   * @internal
+   * Entry route definition for this custom page
+   */
   /** Override for the name displayed */
   displayName?: string;
   /** Override for the create button string on a list view */
@@ -129,25 +160,47 @@ export type ConfigureTypeConfiguration = {
   canYaml?: boolean;
   /** Show the Masthead in the edit resource component */
   resourceEditMasthead?: boolean;
-  /** Entry route definition for this resource page */
+  /**
+   * @internal
+   * Entry route definition for this resource page
+   */
   customRoute?: RouteRecordRawWithParams;
   /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
   localOnly?: boolean;
+  /** Whether this custom page is namespaced or not */
+  namespaced?: boolean;
+  /**
+   * @internal
+   * Whether this custom page has list groups (definition for grouping items in the list view)
+   */
+  listGroups?: {
+    /** Icon for the group (relates to icons in rancher-icons */
+    icon?: string;
+    /** Value for the group (used for grouping items in the list view) */
+    value?: string;
+    /** Field for the group (used for grouping items in the list view) */
+    field?: string;
+    /** Column to hide when this group is active */
+    hideColumn?: string;
+    /** Tooltip key for the group */
+    tooltipKey?: string;
+  }[];
+  /**
+   * @internal
+   * Whether the provided list groups will override the default grouping options (e.g. group by namespace, group by cluster, etc.) or be added to them
+   */
+  listGroupsWillOverride?: boolean;
+  /**
+   * @internal
+   * Use this to configure subtypes that should be shown in the list view for this type (e.g. show "pods" and "deployments" in the list view for "workloads")
+   */
+  subTypes?: string[];
   // resource: undefined; // Use this resource in ResourceDetails instead
   // resourceDetail: undefined; // Use this resource specifically for ResourceDetail's detail component
   // resourceEdit: undefined; // Use this resource specifically for ResourceDetail's edit component
   // depaginate: undefined; // Use this to depaginate requests for this type
   // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
   // used in configureType options, to be typed later if needed
-  // listGroups: [
-  //       {
-  //         icon:       'icon-role-binding',
-  //         value:      'node',
-  //         field:      'roleDisplay',
-  //         hideColumn: ROLE.name,
-  //         tooltipKey: 'resourceTable.groupBy.role'
-  //       }
-  //     ]
 }
 
 /**
@@ -166,23 +219,13 @@ export type OverviewPageRoutingMetadata = {
 }
 
 /**
- * Represents a custom page with a component
- */
-export type ProductChildCustomPage = ProductChildMetadata & {
-  /** Component to render for this custom page */
-  component: VueRouteComponent;
-  /** Optional configuration for the page */
-  config?: VirtualTypeConfiguration;
-};
-
-/**
  * Represents a resource page with a type (K8s resource)
  */
 export type ProductChildResourcePage = {
   /** K8s resource type name for a resource page */
   type: string;
   /** Optional configuration for the resource page */
-  config?: ConfigureTypeConfiguration;
+  config?: ResourcePageConfiguration;
   /** Ordering weight for this page among its siblings */
   weight?: number;
   /** Use this to override the resource name used in the list view for this type */
@@ -195,6 +238,27 @@ export type ProductChildResourcePage = {
   headers?: HeaderOptions[];
   /** Table headers for this resource type (server-side pagination) */
   sspHeaders?: PaginationHeaderOptions[];
+};
+
+/**
+ * Represents a custom page with a component
+ */
+export type ProductChildCustomPage = ProductChildMetadata & {
+  /** Component to render for this custom page */
+  component: VueRouteComponent;
+  /** Optional configuration for the page */
+  config?: CustomPageConfiguration;
+  /**
+   * @internal
+   * Use `customResourceConfig` to provide an optional custom resource configuration for this custom page.
+   * Use this for special cases where you want to render a custom component for the resource page instead of the default generated one based on the resource schema.
+   *
+   * This allows you to specify a custom component, route, and other settings for the resource page. If `customResourceConfig` is not
+   * provided, the resource page will be rendered with default configuration.
+   *
+   * check "FLEET" product config for an example
+   */
+  customResourceConfig?: ProductChildResourcePage;
 };
 
 /**
@@ -228,6 +292,12 @@ export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey'
    * Product name (unique identifier)
    */
   name: string;
+   /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   */
+  startRouteWithProduct?: boolean;
   /**
    * @internal
    * Use `renameGroups` on the product metadata to remap group display names in the side-menu. Each entry matches a group's internal ID (via string or regex) and replaces its display label with a new name. This only changes how the group is labelled in the UI — it does not move resources between groups.

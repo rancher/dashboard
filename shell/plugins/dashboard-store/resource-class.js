@@ -1361,7 +1361,7 @@ export default class Resource {
     return window.$globalApp.$router;
   }
 
-  get isProdRegistrationV2TopLevelProductResoure() {
+  get isProdRegistrationV2TopLevelProductResource() {
     // this is the logic to determine if the resource is top level product or not
     // changes c-cluster-product-resource to product-c-cluster-resource
     // this is for the new extension product registration model
@@ -1375,11 +1375,12 @@ export default class Resource {
     });
 
     // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // same for the flag "startRouteWithProduct", we want to make sure both flags are true before we change the route structure
+    return (plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) || false;
   }
 
   get listLocation() {
-    if (this.isProdRegistrationV2TopLevelProductResoure) {
+    if (this.isProdRegistrationV2TopLevelProductResource) {
       return {
         name:   `${ this.$rootGetters['productId'] }-c-cluster-resource`,
         params: {
@@ -1406,7 +1407,7 @@ export default class Resource {
 
     const id = this.id?.replace(/.*\//, '');
 
-    if (this.isProdRegistrationV2TopLevelProductResoure) {
+    if (this.isProdRegistrationV2TopLevelProductResource) {
       return {
         name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
         params: {
@@ -1982,7 +1983,7 @@ export default class Resource {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
     let toRoute = null;
 
-    if (this.isProdRegistrationV2TopLevelProductResoure) {
+    if (this.isProdRegistrationV2TopLevelProductResource) {
       toRoute = {
         name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
         params: {

@@ -269,6 +269,11 @@ export default class FleetApplication extends SteveModel {
     };
   }
 
+  // this fixes the missing "product" param in the done route
+  get doneParams() {
+    return this.doneOverride?.params;
+  }
+
   get doneRoute() {
     return this.doneOverride?.name;
   }
