@@ -141,7 +141,7 @@ onMounted(async() => {
     />
 
     <AppCoEmptyState
-      v-if="true"
+      v-if="isRepoTransitioning"
       :title="t('fleet.helmOp.add.steps.selection.repoLoading.title')"
       :badge-state="repoBadgeState"
       data-testid="appco-charts-repo-loading"
