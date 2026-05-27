@@ -139,7 +139,7 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
 
 export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
