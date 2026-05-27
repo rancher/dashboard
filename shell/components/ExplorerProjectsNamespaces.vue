@@ -60,6 +60,14 @@ export default {
 
     await this.$fetchType(NAMESPACE);
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
+    // Populate the store so the auth/userHasAccessToProjectResource getter can check
+    // per-project namespace creation permissions. findAll is appropriate here because:
+    // - PRTBs are RBAC-scoped server-side to projects the user has access to
+    // - Role templates are a small, largely static set that benefit from caching
+    await Promise.all([
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING }),
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+    ]);
   },
 
   setup() {
@@ -414,6 +422,16 @@ export default {
       this.$refs.table.clearSelection();
     },
 
+    canCreateNsInProject(group) {
+      const project = group.rows[0]?.project;
+
+      if (!project) {
+        return false;
+      }
+
+      return this.$store.getters['auth/userHasAccessToProjectResource'](project.id, 'namespaces', 'create');
+    },
+
     sortGenerationFn() {
       // The sort generation function creates a unique value and is used to create a key including sort details.
       // The unique key determines if the list is redrawn or a cached version is shown.
@@ -496,7 +514,7 @@ export default {
           </div>
           <div class="right mr-10">
             <router-link
-              v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
+              v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || (group.group.key !== notInProjectKey && canCreateNsInProject(group.group)))"
               class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
