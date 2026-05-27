@@ -17,7 +17,7 @@ const isExternal = computed(() => !!props.href);
 <template>
   <component
     :is="isExternal ? 'a' : RouterLink"
-    class="subtle-link link-main secondary-text-link"
+    class="subtle-link"
     v-bind="isExternal
       ? { href, target, rel: target === '_blank' ? 'noopener noreferrer nofollow' : undefined }
       : { to }"

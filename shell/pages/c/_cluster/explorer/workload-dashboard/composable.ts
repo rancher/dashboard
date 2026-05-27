@@ -106,7 +106,7 @@ export function useWorkloadDashboard() {
       if (filter.startsWith(NAMESPACE_FILTER_P_FULL_PREFIX)) {
         const projectId = filter.replace(NAMESPACE_FILTER_P_FULL_PREFIX, '');
         const projects = store.getters['management/all']('management.cattle.io.project');
-        const project = projects.find((p: any) => p.id?.endsWith(`/${ projectId }`) || p.metadata?.name === projectId);
+        const project = projects.find((p: { id?: string; nameDisplay?: string; metadata?: { name: string } }) => p.id?.endsWith(`/${ projectId }`) || p.metadata?.name === projectId);
 
         return t('workloadDashboard.subtitle.project', { name: project?.nameDisplay || projectId, count });
       }
@@ -200,7 +200,7 @@ export function useWorkloadDashboard() {
     const hero = cards.find((c) => c.color === 'success') || null;
     const others = cards.filter((c) => c !== hero);
 
-    let heroMode = 'default';
+    let heroMode: 'default' | 'full' | 'wide' = 'default';
 
     if (cards.length === 1) {
       heroMode = 'full';
@@ -294,9 +294,11 @@ export function useWorkloadDashboard() {
           return {
             type, summary: res.summary || [], error: null
           };
-        } catch (e: any) {
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : t('workloadDashboard.errors.fetchType', { type });
+
           return {
-            type, summary: null, error: e.message || t('workloadDashboard.errors.fetchType', { type })
+            type, summary: null, error: message
           };
         }
       });
@@ -306,8 +308,8 @@ export function useWorkloadDashboard() {
       await resolveStateColors(results);
       summaries.value = results;
       fetchError.value = null;
-    } catch (e: any) {
-      fetchError.value = e.message || t('workloadDashboard.errors.fetchAll');
+    } catch (e: unknown) {
+      fetchError.value = e instanceof Error ? e.message : t('workloadDashboard.errors.fetchAll');
     }
   }
 

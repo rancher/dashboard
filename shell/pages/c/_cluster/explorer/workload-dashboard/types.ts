@@ -1,5 +1,5 @@
 import { WORKLOAD_TYPES, POD } from '@shell/config/types';
-import { StateColor } from '@shell/utils/style';
+import type { StateColor } from '@shell/utils/style';
 import type { RouteLocationRaw } from 'vue-router';
 
 export interface WorkloadDashboardSummaryEntry {
@@ -33,7 +33,7 @@ export interface WorkloadDashboardByStateLayout {
   hero: WorkloadDashboardStateCard | null;
   subHero: WorkloadDashboardStateCard | null;
   cards: WorkloadDashboardStateCard[];
-  heroMode: string;
+  heroMode: 'default' | 'full' | 'wide';
   gridRows: number;
 }
 
