@@ -38,14 +38,17 @@
 - gatekeeper/util.js: store mock via `{ getters: { ['cluster/all']: () => schemas }, dispatch: jest.fn() }`
 - gc-root-store.js: mock gc/gc-interval/gc-route-changed via jest.resetModules()+jest.mock() in beforeEach inside describe
 - versions.ts: singleton — use jest.resetModules()+jest.mock('@shell/config/version',...)` in beforeEach to reset; use makeStoreWithCalls(p1,p2) helper to control per-call dispatch results
+- string.js: escapeHtml regex `/[&<>"']/g` does NOT include `/`, so `/` is not escaped (even though entityMap has it); escapeRegex escapes all `.*+?^${}()|[\]` chars; formatPercent: value<1 AND maxPrecision>=2 → 2 decimal places; value<10 AND maxPrecision>=1 → 1 decimal place; else round
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
 2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
+3. `shell/utils/monitoring.js` — haveV2Monitoring(getters) testable with mocked getters; async canView* need store mock
 
 ## Completed Work (Summary)
 
+- 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined
 - 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics
 - 2026-05-24: PR #17806 (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics
 - 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics
@@ -60,6 +63,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-27: Task 3 (string.js, 116 tests) + Task 7
 - 2026-05-25: Task 3 (versions.ts, 10 tests) + Task 7
 - 2026-05-24: Task 3 (gc-root-store.js, 15 tests) + Task 7
 - 2026-05-23: Task 3 (gatekeeper/util.js, 14 tests) + Task 7
@@ -74,7 +78,6 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (open)
-- New PR (branch test-assist/versions-utils-tests) pending
 
 ## Maintainer Priorities
 
