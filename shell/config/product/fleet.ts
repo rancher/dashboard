@@ -7,9 +7,13 @@ import {
 } from '@shell/core/plugin-types';
 
 import { FLEET } from '@shell/config/types';
-import { STATE, NAME as NAME_COL, AGE, FLEET_APPLICATION_TYPE } from '@shell/config/table-headers';
+import {
+  STATE, NAME as NAME_COL, AGE, FLEET_APPLICATION_TYPE,
+  FLEET_GIT_REPOS, FLEET_HELM_OPS, FLEET_CLUSTERS, FLEET_CLUSTER_GROUPS
+} from '@shell/config/table-headers';
 import { FLEET as FLEET_FEATURE } from '@shell/store/features';
 
+// these consts are used in multiple places so we need to keep them here
 export const SOURCE_TYPE = {
   REPO:    'repo',
   OCI:     'oci',
@@ -46,9 +50,7 @@ export function $init(prodReg: IExtension) {
     component:            () => import('@shell/pages/c/_cluster/fleet/application/index.vue'),
     config:               { namespaced: true, exact: false },
     customResourceConfig: {
-      // should match the mashup of the type defined in "fleetDashboardPage"
-      // we can hardcode this because it's an edge case
-      type:   'fleet-application',
+      type:   FLEET.APPLICATION,
       config: {
         listGroups: [
           {
@@ -85,34 +87,10 @@ export function $init(prodReg: IExtension) {
     headers: [
       STATE,
       NAME_COL,
-      {
-        name:      'gitRepos',
-        labelKey:  'tableHeaders.gitRepos',
-        value:     'counts.gitRepos',
-        sort:      'counts.gitRepos',
-        formatter: 'Number',
-      },
-      {
-        name:      'helmOps',
-        labelKey:  'tableHeaders.helmOps',
-        value:     'counts.helmOps',
-        sort:      'counts.helmOps',
-        formatter: 'Number',
-      },
-      {
-        name:      'clusters',
-        labelKey:  'tableHeaders.clusters',
-        value:     'counts.clusters',
-        sort:      'counts.clusters',
-        formatter: 'Number',
-      },
-      {
-        name:      'clusterGroups',
-        labelKey:  'tableHeaders.clusterGroups',
-        value:     'counts.clusterGroups',
-        sort:      'counts.clusterGroups',
-        formatter: 'Number',
-      },
+      FLEET_GIT_REPOS,
+      FLEET_HELM_OPS,
+      FLEET_CLUSTERS,
+      FLEET_CLUSTER_GROUPS,
       AGE
     ]
   };

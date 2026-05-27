@@ -393,6 +393,11 @@ export abstract class BasePluginProduct {
       if (isProductChildWithComponentAndResourceConfig(item)) {
         const resourceConfig = item.customResourceConfig as NonNullable<ProductChildCustomPage['customResourceConfig']>;
 
+        // we need to register the configureType twice
+        // this first one binds the custom page with the resource page part (allows for count to be displayed on the side menu)
+        configureType(finalName, { ...resourceConfig.config });
+
+        // this second one is for the actual resource page configuration (CRUD operations, headers, etc.)
         configureType(resourceConfig.type, { ...resourceConfig.config });
       }
     } else if (isProductChildWithType(item)) {

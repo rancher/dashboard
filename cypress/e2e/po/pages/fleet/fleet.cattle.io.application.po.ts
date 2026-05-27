@@ -11,7 +11,7 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 
 export class FleetApplicationListPagePo extends BaseListPagePo {
-  static url = `/c/_/fleet/application`;
+  static url = `/c/_/fleet`;
 
   constructor() {
     super(FleetApplicationListPagePo.url);
@@ -41,7 +41,7 @@ export class FleetApplicationCreatePo extends BaseDetailPagePo {
   }
 
   constructor() {
-    super('/c/_/fleet/application/create');
+    super('/c/_/fleet/create');
   }
 
   createGitRepo() {
@@ -55,7 +55,7 @@ export class FleetApplicationCreatePo extends BaseDetailPagePo {
 
 export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace?: string, gitRepoName?: string) {
-    const root = `/c/_/fleet/application/fleet.cattle.io.gitrepo`;
+    const root = `/c/_/fleet/fleet.cattle.io.gitrepo`;
 
     return fleetWorkspace ? `${ root }/${ fleetWorkspace }/${ gitRepoName }` : `${ root }/create`;
   }
@@ -139,7 +139,7 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
 
 export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {

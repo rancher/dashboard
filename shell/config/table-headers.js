@@ -1175,6 +1175,36 @@ export const UI_PLUGIN_CATALOG = [
   }
 ];
 
+export const FLEET_GIT_REPOS = {
+  name:      'gitRepos',
+  labelKey:  'tableHeaders.gitRepos',
+  value:     'counts.gitRepos',
+  sort:      'counts.gitRepos',
+  formatter: 'Number',
+};
+
+export const FLEET_HELM_OPS = {
+  name:      'helmOps',
+  labelKey:  'tableHeaders.helmOps',
+  value:     'counts.helmOps',
+  sort:      'counts.helmOps',
+  formatter: 'Number',
+};
+export const FLEET_CLUSTERS = {
+  name:      'clusters',
+  labelKey:  'tableHeaders.clusters',
+  value:     'counts.clusters',
+  sort:      'counts.clusters',
+  formatter: 'Number',
+};
+export const FLEET_CLUSTER_GROUPS = {
+  name:      'clusterGroups',
+  labelKey:  'tableHeaders.clusterGroups',
+  value:     'counts.clusterGroups',
+  sort:      'counts.clusterGroups',
+  formatter: 'Number',
+};
+
 // SECRETS
 export const PROJECT = {
   name:     'project',
