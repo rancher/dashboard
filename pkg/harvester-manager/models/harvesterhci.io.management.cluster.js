@@ -26,16 +26,6 @@ export default class HciCluster extends ProvCluster {
     }
   }
 
-  get isReady() {
-    // If the Connected condition exists, use that (2.6+)
-    if ( this.hasCondition('Connected') ) {
-      return this.isCondition('Connected');
-    }
-
-    // Otherwise use Ready (older)
-    return this.isCondition('Ready');
-  }
-
   get canEdit() {
     return this.canUpdate && this.canCustomEdit;
   }
