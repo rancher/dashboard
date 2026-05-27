@@ -124,6 +124,10 @@ export default {
       return this.$store.getters['cluster/schemaFor'](SERVICE);
     },
 
+    relatedServices() {
+      return this.value.relatedServices;
+    },
+
     podTemplateSpec() {
       if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
         return this.value.spec.jobTemplate.spec.template.spec;
@@ -214,10 +218,15 @@ export default {
         return [];
       }
 
-      // Find Ingresses that forward traffic to Services
-      // that select this workload.
+      const workloadNamespace = this.value.metadata?.namespace;
+      const relatedServiceNames = new Set(
+        this.relatedServices.map((s) => s?.metadata?.name)
+      );
+
       const matchingIngresses = this.allIngresses.filter((ingress) => {
         try {
+          if (ingress.metadata?.namespace !== workloadNamespace) return false;
+
           const rules = ingress.spec.rules;
 
           if (!rules || !Array.isArray(rules)) return false;
@@ -226,21 +235,12 @@ export default {
             const paths = rules[i]?.http?.paths;
 
             if (!paths || !Array.isArray(paths)) continue;
-            // For each Ingress, check if any Services that match
-            // this workload are also target backends for the Ingress.
+
             for (let j = 0; j < paths.length; j++) {
-              const pathData = paths[j];
-              const targetServiceName = pathData?.backend?.service?.name;
+              const targetServiceName = paths[j]?.backend?.service?.name;
 
-              if (!targetServiceName) continue;
-
-              for (let k = 0; k < this.value.relatedServices.length; k++) {
-                const service = this.value.relatedServices[k];
-                const matchingServiceName = service?.metadata?.name;
-
-                if (ingress.metadata?.namespace === this.value.metadata?.namespace && matchingServiceName === targetServiceName) {
-                  return true;
-                }
+              if (targetServiceName && relatedServiceNames.has(targetServiceName)) {
+                return true;
               }
             }
           }
@@ -348,7 +348,7 @@ export default {
           {{ t('workload.detail.cannotViewServices') }}
         </p>
         <p
-          v-else-if="value.relatedServices.length === 0"
+          v-else-if="relatedServices.length === 0"
           class="caption"
         >
           {{ t('workload.detail.cannotFindServices') }}
@@ -360,8 +360,8 @@ export default {
           {{ t('workload.detail.serviceListCaption') }}
         </p>
         <ResourceTable
-          v-if="serviceSchema && value.relatedServices.length > 0"
-          :rows="value.relatedServices"
+          v-if="serviceSchema && relatedServices.length > 0"
+          :rows="relatedServices"
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"

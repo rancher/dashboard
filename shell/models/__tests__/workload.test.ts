@@ -160,12 +160,7 @@ describe('class: Workload', () => {
   });
 
   describe('getter: relatedServices', () => {
-    it('should return services that match workload pods', () => {
-      const mockPod = {
-        metadata: {
-          name: 'pod-1', namespace: 'default', labels: { app: 'my-app' }
-        }
-      };
+    it('should return services that match workload pod template labels', () => {
       const mockService = {
         metadata: { name: 'my-service', namespace: 'default' },
         spec:     { selector: { app: 'my-app' } }
@@ -173,7 +168,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -182,9 +177,6 @@ describe('class: Workload', () => {
           'cluster/all': (type: string) => (type === SERVICE ? [mockService] : [])
         },
       });
-
-      // Mock pods getter
-      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
 
       const related = workload.relatedServices;
 
@@ -192,11 +184,6 @@ describe('class: Workload', () => {
     });
 
     it('should not return services from different namespace', () => {
-      const mockPod = {
-        metadata: {
-          name: 'pod-1', namespace: 'default', labels: { app: 'my-app' }
-        }
-      };
       const mockService = {
         metadata: { name: 'my-service', namespace: 'other-namespace' },
         spec:     { selector: { app: 'my-app' } }
@@ -204,7 +191,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -213,8 +200,6 @@ describe('class: Workload', () => {
           'cluster/all': (type: string) => (type === SERVICE ? [mockService] : [])
         },
       });
-
-      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
 
       const related = workload.relatedServices;
 
@@ -222,11 +207,6 @@ describe('class: Workload', () => {
     });
 
     it('should not return services with non-matching selectors', () => {
-      const mockPod = {
-        metadata: {
-          name: 'pod-1', namespace: 'default', labels: { app: 'my-app' }
-        }
-      };
       const mockService = {
         metadata: { name: 'my-service', namespace: 'default' },
         spec:     { selector: { app: 'different-app' } }
@@ -234,7 +214,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -244,7 +224,28 @@ describe('class: Workload', () => {
         },
       });
 
-      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+      const related = workload.relatedServices;
+
+      expect(related).toHaveLength(0);
+    });
+
+    it('should return empty array when pod template has no labels', () => {
+      const mockService = {
+        metadata: { name: 'my-service', namespace: 'default' },
+        spec:     { selector: { app: 'my-app' } }
+      };
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { template: { metadata: {} } }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      jest.fn(),
+          'cluster/all': (type: string) => (type === SERVICE ? [mockService] : [])
+        },
+      });
 
       const related = workload.relatedServices;
 
