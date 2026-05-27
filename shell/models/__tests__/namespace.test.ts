@@ -171,19 +171,18 @@ describe('class Namespace', () => {
     it('should include the move action when user can update the namespace', () => {
       const namespace = makeNamespace({ canUpdate: true });
 
-      const moveAction = namespace._availableActions.find((a: any) => a.action === 'move');
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
 
       expect(moveAction).toBeDefined();
       expect(moveAction.enabled).toBe(true);
     });
 
-    it('should disable the move action when user cannot update the namespace', () => {
+    it('should exclude the move action when user cannot update the namespace', () => {
       const namespace = makeNamespace({ canUpdate: false });
 
-      const moveAction = namespace._availableActions.find((a: any) => a.action === 'move');
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
 
-      expect(moveAction).toBeDefined();
-      expect(moveAction.enabled).toBe(false);
+      expect(moveAction).toBeUndefined();
     });
   });
 
