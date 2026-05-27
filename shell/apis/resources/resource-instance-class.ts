@@ -6,7 +6,7 @@
  * to extension developers via IntelliSense and documentation.
  *
  */
-export class ResourceInstanceImpl {
+export class ResourceInstanceImpl implements ResourceInstanceApi {
   /**
    * The underlying store model instance (Resource/SteveModel).
    * Not exposed on the ResourceInstanceApi interface.
