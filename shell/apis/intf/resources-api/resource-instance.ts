@@ -25,6 +25,9 @@ export interface ResourceInstanceApi {
    * const configMap = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
    *
    * await configMap.patch({ newKey: 'newValue' });
+   * 
+   * const result = configMap.newKey === 'newValue' // true
+   
    * ```
    */
   patch(data: Record<string, any>): Promise<ResourceInstanceApi>;
