@@ -500,7 +500,7 @@ authConfig:
     unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: 'The {provider} account that is used to enable the external provider will be granted admin permissions. If you use a test account or non-admin account, that account will still be granted admin-level permissions. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
   githubapp:
     clientId:
       label: Client ID
@@ -734,6 +734,9 @@ authConfig:
       label: Token Endpoint
     authEndpoint:
       label: Auth Endpoint
+    endSessionEndpoint:
+      title: End Session Endpoint
+      tooltip: Azure AD URL used for logging a user out of their session (e.g. https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/logout)
     groupMembershipFilter:
       label: Group Membership Filter
       enable: Limit users by group membership
@@ -1514,9 +1517,12 @@ compliance:
       =1 { Any scheduled scans using this profile will no longer work. }
       other { Any scheduled scans using either of these profiles will no longer work. }
     }
-  downloadAllReports: Download All Saved Reports
-  downloadLatestReport: Download Latest Report
-  downloadReport: Download Report
+  downloadAllReports: Download All Saved Reports (CSV)
+  downloadAllReportsXCCDF: Download All Saved Reports (XCCDF)
+  downloadLatestReport: Download Latest Report (CSV)
+  downloadLatestReportXCCDF: Download Latest Report (XCCDF)
+  downloadReport: Download Report (CSV)
+  downloadReportXCCDF: Download Report (XCCDF)
   maxKubernetesVersion: Maximum allowed Kubernetes version
   minKubernetesVersion: Minimum required Kubernetes version
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
@@ -1525,6 +1531,8 @@ compliance:
   reports: Reports
   retention: Retention Count
   scan:
+    errorNoParsedNodes: No nodes were parsed from the scan results, so no report can be generated.
+    errorDownload: Error downloading file
     description: Description
     fail: Fail
     lastScanTime: Last Scan Time

@@ -270,20 +270,25 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/groupBy`, { type, field });
     },
 
-    headers(type, headers, paginationHeaders = []) {
-      headers.forEach((header) => {
+    headers(type, headers = [], paginationHeaders = []) {
+      if (headers.length) {
+        headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (header.getValue) {
+          if (header.getValue) {
           // we need to store the .value prop for the advanced filtering
-          header.valueProp = header.value;
-          header.value = header.getValue;
-        }
+            header.valueProp = header.value;
+            header.value = header.getValue;
+          }
 
-        delete header.getValue;
-      });
+          delete header.getValue;
+        });
 
-      store.commit(`${ module }/headers`, { type, headers });
-      store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
+        store.commit(`${ module }/headers`, { type, headers });
+      }
+
+      if (paginationHeaders.length) {
+        store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
+      }
     },
 
     hideBulkActions(type, field) {

@@ -69,6 +69,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      packages: write
     with:
       is_test:  'true'
       test_branch:  'release-2.8'
@@ -80,6 +81,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      packages: write
     with:
       is_test: 'true'
       test_branch: 'release-2.8'
