@@ -87,7 +87,7 @@ export interface ResourceInstanceApi {
  * import { useResources, K8S } from '@shell/apis';
  *
  * const resources = useResources();
- * const pod = await resources.cluster.find(K8S.POD, 'my-pod-123');
+ * const pod = await resources.cluster.find(K8S.POD, 'default/my-pod-123');
  *
  * // Access resource data directly
  * console.log(pod.metadata.name);
