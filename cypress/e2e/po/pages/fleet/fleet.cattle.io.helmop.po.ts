@@ -6,7 +6,7 @@ import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po'
 
 export class FleetHelmOpCreateEditPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace?: string, helmOpName?: string) {
-    const root = `/c/_/fleet/fleet.cattle.io.helmop`;
+    const root = `/c/_/fleet/application/fleet.cattle.io.helmop`;
 
     return fleetWorkspace ? `${ root }/${ fleetWorkspace }/${ helmOpName }` : `${ root }/create`;
   }

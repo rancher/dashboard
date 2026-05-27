@@ -5,7 +5,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
  */
 export default class FleetApplicationDetailsPo extends PagePo {
   private static createPath(fleetWorkspace: string, appName: string, type: string) {
-    return `/c/_/fleet/${ type }/${ fleetWorkspace }/${ appName }`;
+    return `/c/_/fleet/application/${ type }/${ fleetWorkspace }/${ appName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
