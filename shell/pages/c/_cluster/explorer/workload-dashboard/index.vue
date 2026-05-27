@@ -6,9 +6,9 @@ import SubtleLink from '@shell/components/SubtleLink.vue';
 import { DOCS_BASE } from '@shell/config/private-label';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
-import { useWorkloadDashboard } from './workload-dashboard/composable';
-import ByStateSection from './workload-dashboard/ByStateSection.vue';
-import ByTypeSection from './workload-dashboard/ByTypeSection.vue';
+import { useWorkloadDashboard } from './composable';
+import ByStateSection from './ByStateSection.vue';
+import ByTypeSection from './ByTypeSection.vue';
 
 const store = useStore();
 const { t } = useI18n(store);

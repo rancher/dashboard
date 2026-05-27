@@ -1,8 +1,8 @@
-import WorkloadDashboardPagePo from '@/cypress/e2e/po/pages/explorer/workload-dashboard.po';
+import WorkloadDashboardPagePo from '@/cypress/e2e/po/pages/explorer/workloads/workload-dashboard.po';
 
 const workloadDashboard = new WorkloadDashboardPagePo('local');
 
-describe('Workload Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Workload Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
