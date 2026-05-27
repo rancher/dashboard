@@ -220,8 +220,14 @@ export default {
 
       const workloadNamespace = this.value.metadata?.namespace;
       const relatedServiceNames = new Set(
-        this.relatedServices.map((s) => s?.metadata?.name)
+        this.relatedServices.map((s) => s?.metadata?.name).filter(Boolean)
       );
+
+      if (!workloadNamespace || relatedServiceNames.size === 0) {
+        this.matchingIngresses = [];
+
+        return;
+      }
 
       const matchingIngresses = this.allIngresses.filter((ingress) => {
         try {
