@@ -11,7 +11,8 @@ import {
   canViewPrometheusLink,
   getClusterMonitoringDashboardValues,
   getConfigMapMonitoringDashboardValues,
-  haveV2Monitoring
+  haveV2Monitoring,
+  isDashboardOnlyMode
 } from '@shell/utils/monitoring';
 
 describe('fx: haveV2Monitoring', () => {
@@ -96,9 +97,9 @@ describe('fx: canView monitoring links', () => {
     };
     dispatch: jest.Mock<Promise<any>, [string, { type: string; id?: string }]>;
   };
-  type MonitoringLinkFn = (store: MonitoringStore) => Promise<boolean>;
+  type MonitoringLinkFn = (store: MonitoringStore, dashboardValues?: Record<string, string>) => Promise<boolean>;
 
-  function createStore(dashboardValues = endpointUrls): MonitoringStore {
+  function createStore(dashboardValues = endpointUrls, appId = 'cattle-monitoring-system/rancher-monitoring'): MonitoringStore {
     return {
       getters: {
         'cluster/canList':   () => true,
@@ -106,7 +107,10 @@ describe('fx: canView monitoring links', () => {
       },
       dispatch: jest.fn(async(action: string, payload: { type: string; id?: string }) => {
         if (action === 'cluster/find' && payload.type === CATALOG.APP) {
-          return { status: { dashboardValues } };
+          if (payload.id === appId) {
+            return { status: { dashboardValues } };
+          }
+          throw new Error('not found');
         }
 
         if (action === 'cluster/find' && payload.type === CONFIG_MAP) {
@@ -139,6 +143,26 @@ describe('fx: canView monitoring links', () => {
     });
   });
 
+  it('discovers dashboard metadata from rancher-monitoring-dashboards app', async() => {
+    const dashboardValues = {
+      ...endpointUrls,
+      grafanaURL: 'https://grafana.example.com'
+    };
+    const store = createStore(dashboardValues, 'cattle-monitoring-system/rancher-monitoring-dashboards');
+
+    const result = await canViewGrafanaLink(store);
+
+    expect(result).toStrictEqual(true);
+    expect(store.dispatch).toHaveBeenCalledWith('cluster/find', {
+      type: CATALOG.APP,
+      id:   'cattle-monitoring-system/rancher-monitoring'
+    });
+    expect(store.dispatch).toHaveBeenCalledWith('cluster/find', {
+      type: CATALOG.APP,
+      id:   'cattle-monitoring-system/rancher-monitoring-dashboards'
+    });
+  });
+
   it('returns dashboard metadata from the ConfigMap when app status is empty', async() => {
     const dashboardValues = {
       ...endpointUrls,
@@ -147,10 +171,21 @@ describe('fx: canView monitoring links', () => {
     };
     const store = createStore(dashboardValues);
 
-    store.dispatch.mockImplementationOnce(async() => ({ status: { dashboardValues: {} } }));
+    // Both app lookups return empty dashboardValues
+    store.dispatch.mockImplementation(async(action: string, payload: { type: string; id?: string }) => {
+      if (action === 'cluster/find' && payload.type === CATALOG.APP) {
+        throw new Error('not found');
+      }
+
+      if (action === 'cluster/find' && payload.type === CONFIG_MAP) {
+        return { data: { 'values.json': JSON.stringify(dashboardValues) } };
+      }
+
+      return null;
+    });
 
     await expect(getClusterMonitoringDashboardValues(store)).resolves.toStrictEqual(dashboardValues);
-    expect(store.dispatch).toHaveBeenNthCalledWith(2, 'cluster/find', {
+    expect(store.dispatch).toHaveBeenCalledWith('cluster/find', {
       type: CONFIG_MAP,
       id:   'cattle-monitoring-system/rancher-monitoring-dashboard-values'
     });
@@ -172,5 +207,73 @@ describe('fx: getConfigMapMonitoringDashboardValues', () => {
       grafanaURL:        'https://grafana.example.com',
       rancherDashboards: { 'rancher-node-1': 'Rancher / Node' }
     });
+  });
+});
+
+describe('fx: isDashboardOnlyMode', () => {
+  it('returns true when only grafanaURL is configured', () => {
+    expect(isDashboardOnlyMode({ grafanaURL: 'https://grafana.example.com' })).toStrictEqual(true);
+  });
+
+  it('returns false when all URLs are configured', () => {
+    expect(isDashboardOnlyMode({
+      grafanaURL:      'https://grafana.example.com',
+      prometheusURL:   'https://prometheus.example.com',
+      alertmanagerURL: 'https://alertmanager.example.com'
+    })).toStrictEqual(false);
+  });
+
+  it('returns false when no URLs are configured', () => {
+    expect(isDashboardOnlyMode({})).toStrictEqual(false);
+  });
+
+  it('returns false when grafanaURL is empty', () => {
+    expect(isDashboardOnlyMode({ grafanaURL: '' })).toStrictEqual(false);
+  });
+});
+
+describe('fx: canViewGrafanaLink with pre-fetched dashboardValues', () => {
+  const endpointUrls = {
+    grafanaURL:      '',
+    alertmanagerURL: '',
+    prometheusURL:   ''
+  };
+
+  function createStore() {
+    return {
+      getters: {
+        'cluster/canList':   () => true,
+        'cluster/schemaFor': (type: string) => [ENDPOINTS].includes(type)
+      },
+      dispatch: jest.fn(async(action: string, payload: { type: string; id?: string }) => {
+        if (action === 'cluster/findAll' && payload.type === ENDPOINTS) {
+          return [];
+        }
+
+        return null;
+      })
+    };
+  }
+
+  it('uses pre-fetched dashboardValues without calling getClusterMonitoringDashboardValues', async() => {
+    const store = createStore();
+    const dashboardValues = {
+      ...endpointUrls,
+      grafanaURL: 'https://grafana.example.com'
+    };
+
+    const result = await canViewGrafanaLink(store, dashboardValues);
+
+    expect(result).toStrictEqual(true);
+    expect(store.dispatch).not.toHaveBeenCalledWith('cluster/find', expect.anything());
+  });
+
+  it('falls back to endpoint check when dashboardValues has no URL', async() => {
+    const store = createStore();
+    const dashboardValues = { ...endpointUrls };
+
+    const result = await canViewGrafanaLink(store, dashboardValues);
+
+    expect(result).toStrictEqual(false);
   });
 });

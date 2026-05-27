@@ -3,7 +3,7 @@ import AlertTable from '@shell/components/AlertTable';
 import { MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
-import { buildGrafanaUrl, getClusterPrefix } from '@shell/utils/grafana';
+import { buildMonitoringUrl, getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import {
@@ -12,7 +12,7 @@ import {
   canViewPrometheusLink,
   getClusterMonitoringDashboardValues,
   getMonitoringApp,
-  hasAlertManagerEndpoint
+  hasAlertManagerEndpoint,
 } from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
 import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
@@ -44,7 +44,6 @@ export default {
       externalLinks:  [
         {
           enabled:     false,
-          visible:     true,
           group:       'alertmanager',
           iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.alertManager.label',
@@ -54,7 +53,6 @@ export default {
         },
         {
           enabled:     false,
-          visible:     true,
           group:       'grafana',
           iconSrc:     grafanaSrc,
           label:       'monitoring.overview.linkedList.grafana.label',
@@ -63,7 +61,6 @@ export default {
         },
         {
           enabled:     false,
-          visible:     true,
           group:       'prometheus',
           iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusPromQl.label',
@@ -73,7 +70,6 @@ export default {
         },
         {
           enabled:     false,
-          visible:     true,
           group:       'prometheus',
           iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusRules.label',
@@ -83,7 +79,6 @@ export default {
         },
         {
           enabled:     false,
-          visible:     true,
           group:       'prometheus',
           iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusTargets.label',
@@ -106,10 +101,9 @@ export default {
 
       const rancherMonitoring = res.monitoringApp;
       const dashboardValues = res.dashboardValues || {};
-      const isDashboardOnly = !!dashboardValues.grafanaURL && !dashboardValues.prometheusURL && !dashboardValues.alertmanagerURL;
-      const canViewAlertManager = await canViewAlertManagerLink(this.$store);
-      const canViewGrafana = await canViewGrafanaLink(this.$store);
-      const canViewPrometheus = await canViewPrometheusLink(this.$store);
+      const canViewAlertManager = await canViewAlertManagerLink(this.$store, dashboardValues);
+      const canViewGrafana = await canViewGrafanaLink(this.$store, dashboardValues);
+      const canViewPrometheus = await canViewPrometheusLink(this.$store, dashboardValues);
       const canViewAlertTable = await hasAlertManagerEndpoint(this.$store);
       const alertmanagerMatch = findBy(externalLinks, 'group', 'alertmanager');
       const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
@@ -120,19 +114,14 @@ export default {
       if (dashboardValues.alertmanagerURL) {
         alertmanagerMatch.link = dashboardValues.alertmanagerURL;
         alertmanagerMatch.enabled = true;
-        alertmanagerMatch.visible = true;
       } else if (canViewAlertManager) {
         alertmanagerMatch.enabled = true;
-        alertmanagerMatch.visible = true;
-      } else if (isDashboardOnly) {
-        alertmanagerMatch.visible = false;
       }
 
       if (dashboardValues.grafanaURL) {
         grafanaMatch.link = dashboardValues.grafanaURL;
         grafanaMatch.enabled = true;
       } else if (canViewGrafana) {
-        // Generate Grafana link
         const currentCluster = this.$store.getters['currentCluster'];
         const clusterPrefix = getClusterPrefix(rancherMonitoring?.currentVersion || '', currentCluster.id);
 
@@ -144,27 +133,16 @@ export default {
         const prometheusLinks = ['/graph', '/rules', '/targets'];
 
         prometheusMatches.forEach((match, index) => {
-          match.link = buildGrafanaUrl(dashboardValues.prometheusURL, prometheusLinks[index]);
+          match.link = buildMonitoringUrl(dashboardValues.prometheusURL, prometheusLinks[index]);
           match.enabled = true;
-          match.visible = true;
         });
       } else if (canViewPrometheus) {
         prometheusMatches.forEach((match) => {
           match.enabled = true;
-          match.visible = true;
-        });
-      } else if (isDashboardOnly) {
-        prometheusMatches.forEach((match) => {
-          match.visible = false;
         });
       }
     },
   },
-  computed: {
-    visibleExternalLinks() {
-      return this.externalLinks.filter((link) => link.visible !== false);
-    }
-  }
 };
 </script>
 
@@ -188,7 +166,7 @@ export default {
       <div class="create-resource-container">
         <div class="subtypes-container">
           <a
-            v-for="(fel, i) in visibleExternalLinks"
+            v-for="(fel, i) in externalLinks"
             :key="i"
             v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined

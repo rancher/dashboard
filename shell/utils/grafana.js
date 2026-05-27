@@ -51,7 +51,7 @@ function hasDashboardInventoryEntry(dashboardValues, uid) {
   return Object.prototype.hasOwnProperty.call(dashboards, uid);
 }
 
-export function buildGrafanaUrl(baseUrl, path) {
+export function buildMonitoringUrl(baseUrl, path) {
   if (!baseUrl) {
     return '';
   }
@@ -67,18 +67,37 @@ export function buildMonitoringDashboardUrl(dashboardValues, uid, slug, fallback
     return fallbackUrl;
   }
 
-  return buildGrafanaUrl(dashboardValues.grafanaURL, `d/${ uid }/${ slug }?orgId=1`);
+  return buildMonitoringUrl(dashboardValues.grafanaURL, `d/${ uid }/${ slug }?orgId=1`);
 }
 
-export function canProxyGrafanaQueries(dashboardValues = {}) {
-  return !dashboardValues.grafanaURL || dashboardValues.grafanaURL.includes('/api/v1/namespaces/');
+export function isGrafanaProxied(dashboardValues = {}) {
+  const url = dashboardValues.grafanaURL;
+
+  if (!url) {
+    return true;
+  }
+
+  try {
+    new URL(url);
+
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
   const url = parseUrl(embedUrl);
-  const useAbsoluteUrl = !modifyPrefix && isAbsoluteUrl(url);
 
-  let newUrl = useAbsoluteUrl ? `${ url.protocol }://${ url.authority }${ url.path }` : (modifyPrefix ? `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }` : url.path);
+  let newUrl;
+
+  if (!modifyPrefix && isAbsoluteUrl(url)) {
+    newUrl = `${ url.protocol }://${ url.authority }${ url.path }`;
+  } else if (modifyPrefix) {
+    newUrl = `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }`;
+  } else {
+    newUrl = url.path;
+  }
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
@@ -95,7 +114,7 @@ export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, para
 }
 
 export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster', projectId = null, dashboardValues = {}) {
-  if (!projectId && dashboardValues.grafanaURL) {
+  if (!projectId && dashboardValues.rancherDashboards) {
     return hasDashboardInventoryEntry(dashboardValues, getDashboardUid(embedUrl));
   }
 
@@ -138,6 +157,18 @@ export async function allDashboardsExist(store, clusterId, embeddedUrls, storeNa
   const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId, dashboardValues));
 
   return (await Promise.all(existPromises)).every((exists) => exists);
+}
+
+export async function resolveMonitoringDashboardConfig(store, storeName = 'cluster') {
+  const dashboardValues = await getClusterMonitoringDashboardValues(store, storeName);
+  const monitoringApp = await getMonitoringApp(store, storeName);
+
+  return {
+    dashboardValues,
+    monitoringVersion: monitoringApp?.currentVersion || '',
+    modifyPrefix:      !dashboardValues.grafanaURL,
+    isGrafanaProxied:  isGrafanaProxied(dashboardValues),
+  };
 }
 
 export function queryGrafana(monitoringVersion, dispatch, clusterId, query, range, step) {

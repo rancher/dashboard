@@ -13,7 +13,16 @@ import { findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
 
 export const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
-export const MONITORING_DASHBOARD_VALUES_CONFIG_MAP = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboard-values`;
+
+const MONITORING_APP_IDS = [
+  `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`,
+  `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboards`,
+];
+
+const MONITORING_DASHBOARD_VALUES_CONFIG_MAP_IDS = [
+  `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboard-values`,
+  `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-dashboards-dashboard-values`,
+];
 
 // Can be used inside a components' computed property
 export function monitoringStatus() {
@@ -30,18 +39,16 @@ export function monitoringStatus() {
 
 export function haveV2Monitoring(getters) {
   const inStore = getters['getStoreNameByProductId'];
-  const monitoringAppId = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`;
   const apps = getters[`${ inStore }/all`](CATALOG.APP) || [];
 
   const counts = getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
   const monitoringApps = counts?.[CATALOG.APP]?.namespaces?.[CATTLE_MONITORING_NAMESPACE];
-  const monitoringApp = findBy(apps, 'id', monitoringAppId);
+  const monitoringApp = MONITORING_APP_IDS.some((id) => findBy(apps, 'id', id));
 
   if (monitoringApps || monitoringApp) {
     return true;
   }
 
-  // Fall back to the legacy CRD signal for older embedded monitoring installs.
   const schemas = getters[`${ inStore }/all`](SCHEMA);
   const exists = findBy(schemas, 'id', normalizeType(MONITORING.PODMONITOR));
 
@@ -53,17 +60,21 @@ export async function getMonitoringApp(store, storeName = 'cluster') {
     return null;
   }
 
-  try {
-    return await store.dispatch(`${ storeName }/find`, {
-      type: CATALOG.APP,
-      id:   `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring`
-    });
-  } catch {
-    return null;
+  for (const id of MONITORING_APP_IDS) {
+    console.log({ id });
+    try {
+      return await store.dispatch(`${ storeName }/find`, { type: CATALOG.APP, id });
+    } catch {
+      // App not found under this ID, try the next one
+    }
   }
+
+  return null;
 }
 
 export function getMonitoringDashboardValues(monitoringApp) {
+  console.log({ monitoringApp });
+
   return monitoringApp?.status?.dashboardValues || {};
 }
 
@@ -77,7 +88,7 @@ export function getConfigMapMonitoringDashboardValues(configMap) {
   try {
     return JSON.parse(rawValues) || {};
   } catch (e) {
-    console.error(`Failed to parse monitoring dashboard metadata from ConfigMap ${ MONITORING_DASHBOARD_VALUES_CONFIG_MAP }`, e); // eslint-disable-line no-console
+    console.error('Failed to parse monitoring dashboard metadata from ConfigMap', e); // eslint-disable-line no-console
 
     return {};
   }
@@ -88,14 +99,15 @@ export async function getMonitoringValuesConfigMap(store, storeName = 'cluster')
     return null;
   }
 
-  try {
-    return await store.dispatch(`${ storeName }/find`, {
-      type: CONFIG_MAP,
-      id:   MONITORING_DASHBOARD_VALUES_CONFIG_MAP
-    });
-  } catch {
-    return null;
+  for (const id of MONITORING_DASHBOARD_VALUES_CONFIG_MAP_IDS) {
+    try {
+      return await store.dispatch(`${ storeName }/find`, { type: CONFIG_MAP, id });
+    } catch {
+      // ConfigMap not found under this ID, try the next one
+    }
   }
+
+  return null;
 }
 
 export async function getClusterMonitoringDashboardValues(store, storeName = 'cluster') {
@@ -111,8 +123,8 @@ export async function getClusterMonitoringDashboardValues(store, storeName = 'cl
   return getConfigMapMonitoringDashboardValues(configMap);
 }
 
-async function hasConfiguredMonitoringUrl(store, urlKey) {
-  return !!(await getClusterMonitoringDashboardValues(store))?.[urlKey];
+export function isDashboardOnlyMode(dashboardValues) {
+  return !!dashboardValues?.grafanaURL && !dashboardValues?.prometheusURL && !dashboardValues?.alertmanagerURL;
 }
 
 async function hasEndpointSubsets(store, id) {
@@ -121,7 +133,7 @@ async function hasEndpointSubsets(store, id) {
 
     const endpoint = endpoints.find((ep) => ep.id === id);
 
-    return endpoint && !isEmpty(endpoint) && !isEmpty(endpoint.subsets);
+    return !!endpoint && !isEmpty(endpoint) && !isEmpty(endpoint.subsets);
   }
 
   return false;
@@ -139,16 +151,22 @@ export async function hasPrometheusEndpoint(store) {
   return await hasEndpointSubsets(store, `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-prometheus`);
 }
 
-export async function canViewGrafanaLink(store) {
-  return await hasConfiguredMonitoringUrl(store, 'grafanaURL') || await hasGrafanaEndpoint(store);
+export async function canViewGrafanaLink(store, dashboardValues) {
+  const values = dashboardValues ?? await getClusterMonitoringDashboardValues(store);
+
+  return !!values.grafanaURL || await hasGrafanaEndpoint(store);
 }
 
-export async function canViewAlertManagerLink(store) {
-  return await hasConfiguredMonitoringUrl(store, 'alertmanagerURL') || await hasAlertManagerEndpoint(store);
+export async function canViewAlertManagerLink(store, dashboardValues) {
+  const values = dashboardValues ?? await getClusterMonitoringDashboardValues(store);
+
+  return !!values.alertmanagerURL || await hasAlertManagerEndpoint(store);
 }
 
-export async function canViewPrometheusLink(store) {
-  return await hasConfiguredMonitoringUrl(store, 'prometheusURL') || await hasPrometheusEndpoint(store);
+export async function canViewPrometheusLink(store, dashboardValues) {
+  const values = dashboardValues ?? await getClusterMonitoringDashboardValues(store);
+
+  return !!values.prometheusURL || await hasPrometheusEndpoint(store);
 }
 
 // Other ways we check for monitoring:

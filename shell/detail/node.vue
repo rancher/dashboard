@@ -16,17 +16,11 @@ import createEditView from '@shell/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import {
-  allDashboardsExist,
-  buildMonitoringDashboardUrl
-} from '@shell/utils/grafana';
-import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
+import { allDashboardsExist, resolveMonitoringDashboardConfig } from '@shell/utils/grafana';
+import { GRAFANA_DASHBOARDS, resolveDashboardUrl } from '@shell/config/grafana-dashboards';
 import Loading from '@shell/components/Loading';
 import metricPoller from '@shell/mixins/metric-poller';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-
-const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
-const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
 
 export default {
   name: 'DetailNode',
@@ -74,11 +68,11 @@ export default {
       }
     }
 
-    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
+    const config = await resolveMonitoringDashboardConfig(this.$store);
 
-    this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
-    this.NODE_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-node-detail-1', 'rancher-node-detail', NODE_METRICS_DETAIL_URL);
-    this.NODE_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-node-1', 'rancher-node', NODE_METRICS_SUMMARY_URL);
+    this.modifyMetricsPrefix = config.modifyPrefix;
+    this.NODE_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'NODE_DETAIL');
+    this.NODE_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'NODE_SUMMARY');
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.NODE_METRICS_DETAIL_URL, this.NODE_METRICS_SUMMARY_URL]);
   },
 
@@ -109,12 +103,12 @@ export default {
         EFFECT
       ],
       podSchema,
-      podTableHeaders:     this.$store.getters['type-map/headersFor'](podSchema),
-      NODE_METRICS_DETAIL_URL,
-      NODE_METRICS_SUMMARY_URL,
-      modifyMetricsPrefix: true,
-      showMetrics:         false,
-      filterByApi:         undefined,
+      podTableHeaders:          this.$store.getters['type-map/headersFor'](podSchema),
+      NODE_METRICS_DETAIL_URL:  GRAFANA_DASHBOARDS.NODE_DETAIL.proxyUrl,
+      NODE_METRICS_SUMMARY_URL: GRAFANA_DASHBOARDS.NODE_SUMMARY.proxyUrl,
+      modifyMetricsPrefix:      true,
+      showMetrics:              false,
+      filterByApi:              undefined,
     };
   },
 

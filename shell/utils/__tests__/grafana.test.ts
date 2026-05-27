@@ -1,10 +1,11 @@
 import {
   buildMonitoringDashboardUrl,
-  canProxyGrafanaQueries,
   computeDashboardUrl,
   getDashboardUid,
-  getClusterPrefix
+  getClusterPrefix,
+  isGrafanaProxied
 } from '@shell/utils/grafana';
+import { GRAFANA_DASHBOARDS, resolveDashboardUrl } from '@shell/config/grafana-dashboards';
 
 describe('fx: getClusterPrefix', () => {
   it('old monitoring version, downstream cluster', () => {
@@ -81,12 +82,52 @@ describe('fx: getDashboardUid', () => {
   });
 });
 
-describe('fx: canProxyGrafanaQueries', () => {
+describe('fx: isGrafanaProxied', () => {
   it('returns false for external grafana urls', () => {
-    expect(canProxyGrafanaQueries({ grafanaURL: 'https://grafana.example.com' })).toStrictEqual(false);
+    expect(isGrafanaProxied({ grafanaURL: 'https://grafana.example.com' })).toStrictEqual(false);
   });
 
-  it('returns true for the legacy in-cluster proxy url', () => {
-    expect(canProxyGrafanaQueries({ grafanaURL: '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/' })).toStrictEqual(true);
+  it('returns true for the legacy in-cluster proxy url (relative path)', () => {
+    expect(isGrafanaProxied({ grafanaURL: '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/' })).toStrictEqual(true);
+  });
+
+  it('returns true when no grafanaURL is configured', () => {
+    expect(isGrafanaProxied({})).toStrictEqual(true);
+  });
+
+  it('returns false for absolute URL even if it contains /api/v1/namespaces/', () => {
+    expect(isGrafanaProxied({ grafanaURL: 'https://example.com/api/v1/namespaces/test' })).toStrictEqual(false);
+  });
+});
+
+describe('fx: resolveDashboardUrl', () => {
+  it('returns external url when grafanaURL is set', () => {
+    const url = resolveDashboardUrl({ grafanaURL: 'https://grafana.example.com/' }, 'NODE_DETAIL');
+
+    expect(url).toStrictEqual('https://grafana.example.com/d/rancher-node-detail-1/rancher-node-detail?orgId=1');
+  });
+
+  it('returns proxy fallback url when no grafanaURL is configured', () => {
+    const url = resolveDashboardUrl({}, 'NODE_DETAIL');
+
+    expect(url).toStrictEqual(GRAFANA_DASHBOARDS.NODE_DETAIL.proxyUrl);
+  });
+
+  it('has entries for all expected dashboard keys', () => {
+    const expectedKeys = [
+      'CLUSTER_DETAIL', 'CLUSTER_SUMMARY',
+      'K8S_DETAIL', 'K8S_SUMMARY',
+      'ETCD_DETAIL', 'ETCD_SUMMARY',
+      'NODE_DETAIL', 'NODE_SUMMARY',
+      'POD_DETAIL', 'POD_SUMMARY',
+      'WORKLOAD_DETAIL', 'WORKLOAD_SUMMARY',
+    ];
+
+    expectedKeys.forEach((key) => {
+      expect(GRAFANA_DASHBOARDS).toHaveProperty(key);
+      expect(GRAFANA_DASHBOARDS[key as keyof typeof GRAFANA_DASHBOARDS]).toHaveProperty('uid');
+      expect(GRAFANA_DASHBOARDS[key as keyof typeof GRAFANA_DASHBOARDS]).toHaveProperty('slug');
+      expect(GRAFANA_DASHBOARDS[key as keyof typeof GRAFANA_DASHBOARDS]).toHaveProperty('proxyUrl');
+    });
   });
 });

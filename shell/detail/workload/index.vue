@@ -11,16 +11,10 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import {
-  allDashboardsExist,
-  buildMonitoringDashboardUrl
-} from '@shell/utils/grafana';
+import { allDashboardsExist, resolveMonitoringDashboardConfig } from '@shell/utils/grafana';
+import { GRAFANA_DASHBOARDS, resolveDashboardUrl } from '@shell/config/grafana-dashboards';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { fetchNodesForServiceTargets } from '@shell/models/service';
-import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
-
-const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
-const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
 
 export default {
   components: {
@@ -61,11 +55,11 @@ export default {
     }
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
-    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
+    const config = await resolveMonitoringDashboardConfig(this.$store);
 
-    this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
-    this.WORKLOAD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-workload-pods-1', 'rancher-workload-pods', WORKLOAD_METRICS_DETAIL_URL);
-    this.WORKLOAD_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-workload-1', 'rancher-workload', WORKLOAD_METRICS_SUMMARY_URL);
+    this.modifyMetricsPrefix = config.modifyPrefix;
+    this.WORKLOAD_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'WORKLOAD_DETAIL');
+    this.WORKLOAD_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'WORKLOAD_SUMMARY');
     this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_METRICS_DETAIL_URL, this.WORKLOAD_METRICS_SUMMARY_URL]);
     if (!this.showMetrics) {
       const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
@@ -92,8 +86,8 @@ export default {
     return {
       allIngresses:                         [],
       matchingIngresses:                    [],
-      WORKLOAD_METRICS_DETAIL_URL,
-      WORKLOAD_METRICS_SUMMARY_URL,
+      WORKLOAD_METRICS_DETAIL_URL:          GRAFANA_DASHBOARDS.WORKLOAD_DETAIL.proxyUrl,
+      WORKLOAD_METRICS_SUMMARY_URL:         GRAFANA_DASHBOARDS.WORKLOAD_SUMMARY.proxyUrl,
       modifyMetricsPrefix:                  true,
       WORKLOAD_PROJECT_METRICS_DETAIL_URL:  '',
       WORKLOAD_PROJECT_METRICS_SUMMARY_URL: '',

@@ -8,19 +8,13 @@ import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import {
-  allDashboardsExist,
-  buildMonitoringDashboardUrl
-} from '@shell/utils/grafana';
+import { allDashboardsExist, resolveMonitoringDashboardConfig } from '@shell/utils/grafana';
+import { GRAFANA_DASHBOARDS, resolveDashboardUrl } from '@shell/config/grafana-dashboards';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
-import { getClusterMonitoringDashboardValues } from '@shell/utils/monitoring';
-
-const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
-const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
 
 export default {
   name: 'PodDetail',
@@ -35,11 +29,11 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
+    const config = await resolveMonitoringDashboardConfig(this.$store);
 
-    this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
-    this.POD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-pod-containers-1', 'rancher-pod-containers', POD_METRICS_DETAIL_URL);
-    this.POD_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-pod-1', 'rancher-pod', POD_METRICS_SUMMARY_URL);
+    this.modifyMetricsPrefix = config.modifyPrefix;
+    this.POD_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'POD_DETAIL');
+    this.POD_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'POD_SUMMARY');
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.POD_METRICS_DETAIL_URL, this.POD_METRICS_SUMMARY_URL]);
     if (!this.showMetrics) {
       const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
@@ -57,8 +51,8 @@ export default {
 
   data() {
     return {
-      POD_METRICS_DETAIL_URL,
-      POD_METRICS_SUMMARY_URL,
+      POD_METRICS_DETAIL_URL:          GRAFANA_DASHBOARDS.POD_DETAIL.proxyUrl,
+      POD_METRICS_SUMMARY_URL:         GRAFANA_DASHBOARDS.POD_SUMMARY.proxyUrl,
       modifyMetricsPrefix:             true,
       POD_PROJECT_METRICS_DETAIL_URL:  '',
       POD_PROJECT_METRICS_SUMMARY_URL: '',

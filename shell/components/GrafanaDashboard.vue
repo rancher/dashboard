@@ -51,7 +51,7 @@ export default {
   },
   data() {
     return {
-      loading: false, error: false, interval: null, errorTimer: null, monitoringVersion: ''
+      loading: false, error: false, interval: null, errorTimer: null, loadTimeout: null, monitoringVersion: ''
     };
   },
   computed: {
@@ -92,7 +92,7 @@ export default {
     },
 
     error(neu) {
-      if (neu) {
+      if (neu && !this.isCrossOrigin) {
         this.errorTimer = setInterval(() => {
           this.reload();
         }, 45000);
@@ -105,7 +105,17 @@ export default {
   mounted() {
     this.loading = true;
     this.$refs.frame.onload = this.handleLoad;
-    this.poll();
+
+    if (this.isCrossOrigin) {
+      this.loadTimeout = setTimeout(() => {
+        if (this.loading) {
+          this.error = true;
+          this.loading = false;
+        }
+      }, 30000);
+    } else {
+      this.poll();
+    }
   },
   beforeUnmount() {
     if (this.interval) {
@@ -115,9 +125,18 @@ export default {
     if (this.errorTimer) {
       clearInterval(this.errorTimer);
     }
+
+    if (this.loadTimeout) {
+      clearTimeout(this.loadTimeout);
+    }
   },
   methods: {
     handleLoad() {
+      if (this.loadTimeout) {
+        clearTimeout(this.loadTimeout);
+        this.loadTimeout = null;
+      }
+
       if (this.isCrossOrigin) {
         this.loading = false;
 
@@ -208,7 +227,13 @@ export default {
     },
     reload(ev) {
       ev && ev.preventDefault();
-      this.$refs.frame.contentWindow.location.reload();
+
+      if (this.isCrossOrigin) {
+        this.$refs.frame.src = this.currentUrl;
+      } else {
+        this.$refs.frame.contentWindow.location.reload();
+      }
+
       this.poll();
     },
     injectCss() {

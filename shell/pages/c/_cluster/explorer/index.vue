@@ -30,16 +30,12 @@ import {
 import {
   monitoringStatus,
   canViewGrafanaLink,
-  getClusterMonitoringDashboardValues,
   hasAlertManagerEndpoint
 } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import {
-  allDashboardsExist,
-  buildMonitoringDashboardUrl,
-  canProxyGrafanaQueries
-} from '@shell/utils/grafana';
+import { allDashboardsExist, resolveMonitoringDashboardConfig } from '@shell/utils/grafana';
+import { GRAFANA_DASHBOARDS, resolveDashboardUrl } from '@shell/config/grafana-dashboards';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
 import ResourceSummary, { resourceCounts } from '@shell/components/ResourceSummary';
@@ -57,13 +53,6 @@ import TabTitle from '@shell/components/TabTitle';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
-
-const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
-const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
-const K8S_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-k8s-components-nodes-1/rancher-kubernetes-components-nodes?orgId=1';
-const K8S_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-k8s-components-1/rancher-kubernetes-components?orgId=1';
-const ETCD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-nodes-1/rancher-etcd-nodes?orgId=1';
-const ETCD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-1/rancher-etcd?orgId=1';
 
 const CLUSTER_COMPONENTS = [
   'etcd',
@@ -109,39 +98,38 @@ export default {
     fetchClusterResources(this.$store, NODE);
 
     if (this.currentCluster) {
-      const dashboardValues = await getClusterMonitoringDashboardValues(this.$store);
+      const config = await resolveMonitoringDashboardConfig(this.$store);
 
-      this.modifyMetricsPrefix = !dashboardValues.grafanaURL;
-      this.showEtcdInfoBanner = canProxyGrafanaQueries(dashboardValues);
-      this.CLUSTER_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-cluster-nodes-1', 'rancher-cluster-nodes', CLUSTER_METRICS_DETAIL_URL);
-      this.CLUSTER_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-cluster-1', 'rancher-cluster', CLUSTER_METRICS_SUMMARY_URL);
-      this.K8S_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-k8s-components-nodes-1', 'rancher-kubernetes-components-nodes', K8S_METRICS_DETAIL_URL);
-      this.K8S_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-k8s-components-1', 'rancher-kubernetes-components', K8S_METRICS_SUMMARY_URL);
-      this.ETCD_METRICS_DETAIL_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-etcd-nodes-1', 'rancher-etcd-nodes', ETCD_METRICS_DETAIL_URL);
-      this.ETCD_METRICS_SUMMARY_URL = buildMonitoringDashboardUrl(dashboardValues, 'rancher-etcd-1', 'rancher-etcd', ETCD_METRICS_SUMMARY_URL);
+      this.modifyMetricsPrefix = config.modifyPrefix;
+      this.showEtcdInfoBanner = config.isGrafanaProxied;
+      this.CLUSTER_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'CLUSTER_DETAIL');
+      this.CLUSTER_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'CLUSTER_SUMMARY');
+      this.K8S_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'K8S_DETAIL');
+      this.K8S_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'K8S_SUMMARY');
+      this.ETCD_METRICS_DETAIL_URL = resolveDashboardUrl(config.dashboardValues, 'ETCD_DETAIL');
+      this.ETCD_METRICS_SUMMARY_URL = resolveDashboardUrl(config.dashboardValues, 'ETCD_SUMMARY');
 
       setPromiseResult(
         allDashboardsExist(this.$store, this.currentCluster.id, [this.CLUSTER_METRICS_DETAIL_URL, this.CLUSTER_METRICS_SUMMARY_URL]),
         this,
         'showClusterMetrics',
-        `Determine cluster metrics`
+        'Determine cluster metrics'
       );
       setPromiseResult(
         allDashboardsExist(this.$store, this.currentCluster.id, [this.K8S_METRICS_DETAIL_URL, this.K8S_METRICS_SUMMARY_URL]),
         this,
         'showK8sMetrics',
-        `Determine k8s metrics`
+        'Determine k8s metrics'
       );
       setPromiseResult(
         allDashboardsExist(this.$store, this.currentCluster.id, [this.ETCD_METRICS_DETAIL_URL, this.ETCD_METRICS_SUMMARY_URL]),
         this,
         'showEtcdMetrics',
-        `Determine etcd metrics`
+        'Determine etcd metrics'
       );
 
-      // It's not enough to check that the grafana links are working for the current user; embedded cluster-level dashboards should only be shown if the user can view the grafana endpoint
       // https://github.com/rancher/dashboard/issues/9792
-      setPromiseResult(canViewGrafanaLink(this.$store), this, 'canViewMetrics', 'Determine Grafana Permission');
+      setPromiseResult(canViewGrafanaLink(this.$store, config.dashboardValues), this, 'canViewMetrics', 'Determine Grafana Permission');
       setPromiseResult(hasAlertManagerEndpoint(this.$store), this, 'showAlerts', 'Determine Alertmanager Permission');
 
       if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
@@ -153,30 +141,30 @@ export default {
   data() {
     return {
       nodeHeaders,
-      constraints:             [],
-      cattleAgentResource:     'loading',
-      fleetControllerResource: 'loading',
-      fleetAgentResource:      'loading',
-      disconnected:            false,
-      events:                  [],
-      nodeMetrics:             [],
-      showClusterMetrics:      false,
-      showK8sMetrics:          false,
-      showEtcdMetrics:         false,
-      canViewMetrics:          false,
-      modifyMetricsPrefix:     true,
-      showAlerts:              false,
-      showEtcdInfoBanner:      true,
-      CLUSTER_METRICS_DETAIL_URL,
-      CLUSTER_METRICS_SUMMARY_URL,
-      K8S_METRICS_DETAIL_URL,
-      K8S_METRICS_SUMMARY_URL,
-      ETCD_METRICS_DETAIL_URL,
-      ETCD_METRICS_SUMMARY_URL,
+      constraints:                 [],
+      cattleAgentResource:         'loading',
+      fleetControllerResource:     'loading',
+      fleetAgentResource:          'loading',
+      disconnected:                false,
+      events:                      [],
+      nodeMetrics:                 [],
+      showClusterMetrics:          false,
+      showK8sMetrics:              false,
+      showEtcdMetrics:             false,
+      canViewMetrics:              false,
+      modifyMetricsPrefix:         true,
+      showAlerts:                  false,
+      showEtcdInfoBanner:          true,
+      CLUSTER_METRICS_DETAIL_URL:  GRAFANA_DASHBOARDS.CLUSTER_DETAIL.proxyUrl,
+      CLUSTER_METRICS_SUMMARY_URL: GRAFANA_DASHBOARDS.CLUSTER_SUMMARY.proxyUrl,
+      K8S_METRICS_DETAIL_URL:      GRAFANA_DASHBOARDS.K8S_DETAIL.proxyUrl,
+      K8S_METRICS_SUMMARY_URL:     GRAFANA_DASHBOARDS.K8S_SUMMARY.proxyUrl,
+      ETCD_METRICS_DETAIL_URL:     GRAFANA_DASHBOARDS.ETCD_DETAIL.proxyUrl,
+      ETCD_METRICS_SUMMARY_URL:    GRAFANA_DASHBOARDS.ETCD_SUMMARY.proxyUrl,
       STATES_ENUM,
-      selectedTab:             'cluster-events',
-      extensionCards:          getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
-      canViewEvents:           !!this.$store.getters['cluster/schemaFor'](EVENT),
+      selectedTab:                 'cluster-events',
+      extensionCards:              getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+      canViewEvents:               !!this.$store.getters['cluster/schemaFor'](EVENT),
       clusterServiceIcons,
     };
   },
