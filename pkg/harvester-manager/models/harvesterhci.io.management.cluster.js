@@ -27,13 +27,18 @@ export default class HciCluster extends ProvCluster {
   }
 
   get isReady() {
+    const conditions = this.mgmt?.status?.conditions || [];
+    const connected = conditions.find((c) => c.type === 'Connected');
+
     // If the Connected condition exists, use that (2.6+)
-    if ( this.hasCondition('Connected') ) {
-      return this.isCondition('Connected');
+    if (connected) {
+      return connected.status === 'True';
     }
 
     // Otherwise use Ready (older)
-    return this.isCondition('Ready');
+    const ready = conditions.find((c) => c.type === 'Ready');
+
+    return ready?.status === 'True';
   }
 
   get canEdit() {
