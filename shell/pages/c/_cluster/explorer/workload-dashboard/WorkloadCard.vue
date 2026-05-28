@@ -93,6 +93,7 @@ const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)`
     list-style: none;
     margin: 0;
     padding: 0;
+    gap: 4px;
 
     &--grid {
       display: grid;

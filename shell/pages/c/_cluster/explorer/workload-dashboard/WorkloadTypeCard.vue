@@ -68,14 +68,16 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     @click="handleClick"
     @keyup.enter="handleClick"
   >
-    <h5 class="heading">
-      {{ title }}
-    </h5>
-    <StatusBar
-      v-if="resources.length > 0"
-      :segments="segments"
-      aria-hidden="true"
-    />
+    <div>
+      <h5 class="heading">
+        {{ title }}
+      </h5>
+      <StatusBar
+        v-if="resources.length > 0"
+        :segments="segments"
+        aria-hidden="true"
+      />
+    </div>
     <ul
       v-if="resources.length > 0"
       class="rows"
@@ -114,6 +116,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  gap: 3px;
 
   &:hover {
     border-color: var(--primary);
@@ -138,15 +141,13 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     list-style: none;
     margin: 0;
     padding: 0;
+    gap: 4px;
   }
 
   .status-row {
     display: flex;
     align-items: center;
-
-    &:not(:first-of-type) {
-      margin-top: 8px;
-    }
+    line-height: 24px;
 
     .indicator {
       height: 4px;

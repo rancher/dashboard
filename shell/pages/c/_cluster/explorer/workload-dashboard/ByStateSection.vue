@@ -14,6 +14,35 @@ const gridTemplateRows = computed(() => {
   return `repeat(${ props.layout.gridRows }, ${ unit })`;
 });
 
+function gridColumnEnd(rowCount: number, maxSpan: number): string {
+  const span = Math.min(rowCount, maxSpan);
+
+  return `${ -(maxSpan - span + 1) }`;
+}
+
+function bodyColumns(rowCount: number, maxSpan: number): number | undefined {
+  const cols = Math.min(rowCount, maxSpan);
+
+  return cols >= 2 ? cols : undefined;
+}
+
+const heroFullGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 3, 3));
+const heroWideGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 2, 2));
+const subHeroGridColumnEnd = computed(() => gridColumnEnd(props.layout.subHero?.rows.length ?? 1, 2));
+
+const heroBodyColumns = computed(() => {
+  if (props.layout.heroMode === 'full') {
+    return bodyColumns(props.layout.hero?.rows.length ?? 0, 3);
+  }
+  if (props.layout.heroMode === 'wide') {
+    return bodyColumns(props.layout.hero?.rows.length ?? 0, 2);
+  }
+
+  return undefined;
+});
+
+const subHeroBodyColumns = computed(() => bodyColumns(props.layout.subHero?.rows.length ?? 0, 2));
+
 function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
   return rows.map((row) => ({
     label:  row.label,
@@ -43,6 +72,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       class="state-card bento-sub-hero"
       data-testid="workload-dashboard-state-card"
       :class="'state-card--' + layout.subHero.color"
+      :body-columns="subHeroBodyColumns"
       :rows="toCardRows(layout.subHero.rows)"
       :aria-label="layout.subHero.color + ' workloads'"
     />
@@ -51,7 +81,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       class="state-card bento-hero"
       data-testid="workload-dashboard-state-card"
       :class="['state-card--' + layout.hero.color, 'bento-hero--' + layout.heroMode]"
-      :body-columns="layout.heroMode === 'full' ? 3 : layout.heroMode === 'wide' ? 2 : undefined"
+      :body-columns="heroBodyColumns"
       :rows="toCardRows(layout.hero.rows)"
       :aria-label="layout.hero.color + ' workloads'"
     />
@@ -71,16 +101,16 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
     grid-row: 1 / -1;
 
     &--full {
-      grid-column: 1 / -1;
+      grid-column: 1 / v-bind(heroFullGridColumnEnd);
     }
 
     &--wide {
-      grid-column: 2 / -1;
+      grid-column: 2 / v-bind(heroWideGridColumnEnd);
     }
   }
 
   .bento-sub-hero {
-    grid-column: 2;
+    grid-column: 2 / v-bind(subHeroGridColumnEnd);
     grid-row: 1 / -1;
   }
 
