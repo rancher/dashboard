@@ -61,6 +61,10 @@ export default defineComponent({
           capacity:         { storage: '10Gi' },
           storageClassName: '',
         }
+      },
+      badData: {
+        type: 'pod',
+        spec: { template: {} }
       }
     };
   },
@@ -100,7 +104,8 @@ export default defineComponent({
       return this.$store.dispatch(`cluster/findPage`, { type: PVC, opt });
     },
     async createNewInstance() {
-      const data = await this.$resources.cluster.create(this.createInstanceData);
+      // const data = await this.$resources.cluster.create(this.createInstanceData);
+      const data = await this.$resources.cluster.create(this.badData);
 
       this.newPv = data;
 

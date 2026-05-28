@@ -33,14 +33,19 @@ export type ResourceType = K8SResourceType | string;
  *
  * const resources = useResources();
  *
- * await resources.cluster.create({
+ * const newConfigMap: CreateResourceData = {
  *   type: K8S.CONFIG_MAP,
  *   metadata: { name: 'my-config', namespace: 'default' },
  *   data: { key: 'value' }
- * });
+ * };
+ *
+ * await resources.cluster.create(newConfigMap);
  * ```
  */
-export type CreateResourceData = { type: ResourceType } & Record<string, any>;
+export type CreateResourceData = {
+  [key: string]: any,
+  type: ResourceType,
+};
 
 /**
  * @interface

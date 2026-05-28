@@ -1200,8 +1200,11 @@ export default class Resource {
 
   async _save(opt = { }) {
     const forNew = !this.id;
+    let errors;
 
-    const errors = this.validationErrors(this, opt);
+    if (!opt.skipUIValidation) {
+      errors = this.validationErrors(this, opt);
+    }
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);

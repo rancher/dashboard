@@ -101,4 +101,3 @@ const customResources = await resources.cluster.findFiltered('mycompany.io.custo
 | :--- | :--- |
 | [Cluster API](./resources-api/interfaces/ClusterApi) | Interact with cluster-scoped Kubernetes resources (Pods, Deployments, Services, etc.) |
 | [Management API](./resources-api/interfaces/MgmtApi) | Interact with global Rancher resources (Users, Clusters, Settings, etc.) |
-| [Resource Instance API](./resources-api/interfaces/ResourceInstanceApi) | Interact any given Kubernetes resource instance |

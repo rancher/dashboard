@@ -14,7 +14,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   private storeType: 'cluster' | 'management' | string;
 
   private surfaceError(message: string, e?: any): never {
-    console.error(`Resource API error - ${ this.storeType } - ${ message }`); // eslint-disable-line no-console
+    console.error(`Resource API error - ${ this.storeType } - ${ message }`, e); // eslint-disable-line no-console
     throw new Error(`Resource API error - ${ this.storeType } - ${ message }`, { cause: e });
   }
 
@@ -23,13 +23,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
       this.surfaceError(`Resource "${ resourceType }" is namespaced. The resourceId must be in "namespace/name" format, but received "${ resourceId }"`);
     }
 
-    const schema = this.store.getters[`${ this.storeType }/schemaFor`]?.(resourceType);
-
-    if (!schema) {
-      this.surfaceError(`No schema found for type "${ resourceType }"`);
-    }
-
-    return `${ schema.linkFor('collection') }/${ resourceId }`;
+    return this.store.getters[`${ this.storeType }/urlFor`](resourceType, resourceId);
   }
 
   private isNamespaced(resourceType: ResourceType): boolean {
@@ -249,7 +243,9 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         this.surfaceError(`Cannot create resource of type "${ data.type }": permission denied`);
       }
 
-      await model.save();
+      // skip UI validation since this is a raw API method
+      // we want the error thrown from the server as it's more meaningful to API consumers
+      await model.save({ skipUIValidation: true });
 
       return new ResourceInstanceImpl(model) as T;
     } catch (e: unknown) {
