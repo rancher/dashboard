@@ -48,17 +48,42 @@ export default {
    * BUT mgmt nodes are scoped to a cluster's namespace, so we can fetch only mgmt nodes in the cluster's namespace
    */
   async fetch() {
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      const hasAllMgmtNodes = this.$store.getters['management/haveAll'](MANAGEMENT.NODE);
+    try {
+      const canList = this.$store.getters['management/canList'](MANAGEMENT.NODE);
 
-      if (hasAllMgmtNodes) {
-        this.mgmtNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
-      } else {
-        this.mgmtNodes = await this.$store.dispatch('management/findLabelSelector', {
-          type:     MANAGEMENT.NODE,
-          matching: { namespace: this.resource.mgmtClusterId }
-        } );
+      console.log('*** MgmtNodeList fetch() canList:', canList);
+      if ( canList ) {
+        const hasAllMgmtNodes = this.$store.getters['management/haveAll'](MANAGEMENT.NODE);
+
+        console.log('*** MgmtNodeList hasAllMgmtNodes:', hasAllMgmtNodes);
+        console.log('*** MgmtNodeList resource.mgmtClusterId:', this.resource.mgmtClusterId);
+        if (hasAllMgmtNodes) {
+          this.mgmtNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
+          console.log('*** MgmtNodeList used all(), count:', this.mgmtNodes.length);
+        } else {
+          console.log('*** MgmtNodeList dispatching findLabelSelector');
+          const res = await this.$store.dispatch('management/findLabelSelector', {
+            type:     MANAGEMENT.NODE,
+            matching: {
+              namespace:     this.resource.mgmtClusterId,
+              labelSelector: {
+                matchExpressions: [
+                  {
+                    key:      'management.cattle.io/nodename',
+                    operator: 'Exists',
+                  }
+                ]
+              }
+            }
+          } );
+
+          console.log('*** res of findLabelSelector in MgmtNodeList', res);
+          this.mgmtNodes = res;
+        }
       }
+    } catch (e) {
+      console.log('*** error in mgmtnodelist fetch');
+      console.error(e);
     }
   },
 
@@ -104,6 +129,7 @@ export default {
     :schema="mgmtNodeSchema"
     :headers="headers"
     :rows="nodes"
+    :ignore-filter="true"
     group-ref="poolRef"
     data-testid="mgmt-node-table"
     :group-options="[noneGroupOption, poolGroupOption]"

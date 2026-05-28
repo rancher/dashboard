@@ -10,24 +10,90 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   const EKS_CLUSTER = 'c-4sjtl';
   const IMPORTED_CLUSTER = 'c-kkwv2';
 
-  const appendData = (url, data) => {
-    cy.intercept('GET', url, (req) => {
+  beforeEach(() => {
+    cy.intercept('GET', /\/v1\/provisioning\.cattle\.io\.clusters/, (req) => {
       req.continue((res) => {
-        const existingData = res?.body?.data || [];
-
-        res.body = {
+        res.send(200, {
           ...res.body,
-          data: [...existingData, ...data]
-        };
+          data: provisioningClusters
+        });
+      });
+    }).as('provClustersGet');
+
+    cy.intercept('GET', /\/v1\/management\.cattle\.io\.clusters/, (req) => {
+      req.continue((res) => {
+        res.send(200, {
+          ...res.body,
+          data: managementClusters
+        });
+      });
+    }).as('mgmtClustersGet');
+
+    cy.intercept('GET', /\/v1\/namespaces/, (req) => {
+      req.continue((res) => {
+        res.send(200, {
+          ...res.body,
+          data: namespaces
+        });
       });
     });
-  };
 
-  beforeEach(() => {
-    appendData('/v1/provisioning.cattle.io.clusters*', provisioningClusters);
-    appendData('/v1/management.cattle.io.clusters*', managementClusters);
-    appendData('/v1/management.cattle.io.nodes*', nodes);
-    appendData('/v1/namespaces*', namespaces);
+    // using pathname and a more generic url for nodes because the other intercept format had issues parsing query params w/ brackets
+    cy.intercept({ method: 'GET', pathname: '/v1/management.cattle.io.nodes/*' }, (req) => {
+      const urlPath = new URL(req.url).pathname;
+      const clusterId = urlPath.split('/').pop();
+      const filteredNodes = nodes.filter((n) => n.id.startsWith(`${ clusterId }/`));
+
+      req.reply({
+        statusCode: 200,
+        body:       {
+          data:     filteredNodes,
+          count:    filteredNodes.length,
+          revision: '1'
+        }
+      });
+    }).as('mgmtNodesGet');
+
+    // Intercept individual cluster requests
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/fleet-default/${ AKS_CLUSTER }*`, {
+      statusCode: 200,
+      body:       provisioningClusters.find((c) => c.id === `fleet-default/${ AKS_CLUSTER }`)
+    });
+
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/fleet-default/${ GKE_CLUSTER }*`, {
+      statusCode: 200,
+      body:       provisioningClusters.find((c) => c.id === `fleet-default/${ GKE_CLUSTER }`)
+    });
+
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/fleet-default/${ EKS_CLUSTER }*`, {
+      statusCode: 200,
+      body:       provisioningClusters.find((c) => c.id === `fleet-default/${ EKS_CLUSTER }`)
+    });
+
+    cy.intercept('GET', `/v1/management.cattle.io.clusters/${ AKS_CLUSTER }*`, {
+      statusCode: 200,
+      body:       managementClusters.find((c) => c.id === AKS_CLUSTER)
+    });
+
+    cy.intercept('GET', `/v1/management.cattle.io.clusters/${ GKE_CLUSTER }*`, {
+      statusCode: 200,
+      body:       managementClusters.find((c) => c.id === GKE_CLUSTER)
+    });
+
+    cy.intercept('GET', `/v1/management.cattle.io.clusters/${ EKS_CLUSTER }*`, {
+      statusCode: 200,
+      body:       managementClusters.find((c) => c.id === EKS_CLUSTER)
+    });
+
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters/fleet-default/${ IMPORTED_CLUSTER }*`, {
+      statusCode: 200,
+      body:       provisioningClusters.find((c) => c.id === `fleet-default/${ IMPORTED_CLUSTER }`)
+    });
+
+    cy.intercept('GET', `/v1/management.cattle.io.clusters/${ IMPORTED_CLUSTER }*`, {
+      statusCode: 200,
+      body:       managementClusters.find((c) => c.id === IMPORTED_CLUSTER)
+    });
 
     cy.login();
     HomePagePo.goTo();
@@ -35,11 +101,12 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
   it('should show a node pool tab in AKS cluster details', () => {
     const clusterList = new ClusterManagerListPagePo();
-
     const aksDetailsPage = new ClusterManagerDetailHostedPagePo('_', AKS_CLUSTER);
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
 
     clusterList.list().name('aks-mock-cluster').click();
     aksDetailsPage.waitForPage();
@@ -48,7 +115,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     // ensure the node pool tab is the first tab
     aksDetailsPage.nodePoolTable().self().should('be.visible');
-
+    cy.wait('@mgmtNodesGet');
     aksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
     aksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
@@ -77,11 +144,12 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
   it('should show a node pool tab in EKS cluster details', () => {
     const clusterList = new ClusterManagerListPagePo();
-
     const eksDetailsPage = new ClusterManagerDetailHostedPagePo('_', EKS_CLUSTER);
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
 
     clusterList.list().name('eks-mock-cluster').click();
     eksDetailsPage.waitForPage();
@@ -89,7 +157,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     // ensure the node pool tab is the first tab
     eksDetailsPage.nodePoolTable().self().should('be.visible');
-
+    cy.wait('@mgmtNodesGet');
     eksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 3);
 
     eksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
@@ -116,11 +184,12 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
   it('should show a node pool tab in GKE cluster details', () => {
     const clusterList = new ClusterManagerListPagePo();
-
     const gkeDetailsPage = new ClusterManagerDetailHostedPagePo('_', GKE_CLUSTER);
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
 
     clusterList.list().name('gke-mock-cluster').click();
     gkeDetailsPage.waitForPage();
@@ -128,6 +197,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     // ensure the node pool tab is the first tab
     gkeDetailsPage.nodePoolTable().self().should('be.visible');
+    cy.wait('@mgmtNodesGet');
     gkeDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
     gkeDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
@@ -173,6 +243,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
       ClusterManagerListPagePo.navTo();
       clusterList.waitForPage();
+      cy.wait('@provClustersGet');
+      cy.wait('@mgmtClustersGet');
 
       clusterList.list().name(name).click();
       hostedDetailsPage.waitForPage();
@@ -187,6 +259,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    cy.wait('@provClustersGet');
+    cy.wait('@mgmtClustersGet');
 
     clusterList.list().name('imported-mock-cluster').click();
     importDetailsPage.waitForPage();

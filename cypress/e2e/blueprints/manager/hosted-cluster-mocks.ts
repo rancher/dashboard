@@ -670,7 +670,15 @@ export const managementClusters = [
       serviceAccountTokenSecret: 'cluster-serviceaccounttoken-fxs8x',
       version:                   {
         buildDate: '2026-02-20T18:26:27Z', compiler: 'gc', emulationMajor: '1', emulationMinor: '35', gitCommit: '66452049f3d692768c39c797b21b793dce80314e', gitTreeState: 'clean', gitVersion: 'v1.35.0', goVersion: 'go1.25.7', major: '1', minCompatibilityMajor: '1', minCompatibilityMinor: '34', minor: '35', platform: 'linux/amd64'
+      },
+
+      info: {
+        arch:              'amd64',
+        kubernetesVersion: '1.35.0',
+        machineProvider:   'aks',
+        nodeCount:         2
       }
+
     }
   }, {
     id:    'c-4sjtl',
@@ -898,6 +906,12 @@ export const managementClusters = [
       serviceAccountTokenSecret: 'cluster-serviceaccounttoken-j22lf',
       version:                   {
         buildDate: '2026-02-15T06:31:55Z', compiler: 'gc', emulationMajor: '1', emulationMinor: '35', gitCommit: '99fc4a6d03122c35c20fe1a658a03b6bfefc681e', gitTreeState: 'clean', gitVersion: 'v1.35.0-eks-3a10415', goVersion: 'go1.25.7', major: '1', minCompatibilityMajor: '1', minCompatibilityMinor: '34', minor: '35', platform: 'linux/amd64'
+      },
+      info: {
+        arch:              'amd64',
+        kubernetesVersion: '1.35.0',
+        machineProvider:   'eks',
+        nodeCount:         2
       }
     }
   }, {
@@ -1198,6 +1212,12 @@ export const managementClusters = [
       serviceAccountTokenSecret: 'cluster-serviceaccounttoken-5x8hx',
       version:                   {
         buildDate: '2026-02-13T20:16:51Z', compiler: 'gc', emulationMajor: '1', emulationMinor: '35', gitCommit: 'f8f53d264a0ff4653ba48c7ae66a0cea11c11399', gitTreeState: 'clean', gitVersion: 'v1.35.1-gke.1396000', goVersion: 'go1.25.6 X:boringcrypto', major: '1', minCompatibilityMajor: '1', minCompatibilityMinor: '34', minor: '35', platform: 'linux/amd64'
+      },
+      info: {
+        arch:              'amd64',
+        kubernetesVersion: '1.35.0',
+        machineProvider:   'gke',
+        nodeCount:         2
       }
     }
   }, {
@@ -1320,6 +1340,12 @@ export const managementClusters = [
       serviceAccountTokenSecret: 'cluster-serviceaccounttoken-8dpb4',
       version:                   {
         buildDate: '2026-02-12T23:46:53Z', compiler: 'gc', emulationMajor: '1', emulationMinor: '34', gitCommit: 'c6017918a65c824ce8d321db15267c8a317cd39d', gitTreeState: 'clean', gitVersion: 'v1.34.4+k3s1', goVersion: 'go1.24.12', major: '1', minCompatibilityMajor: '1', minCompatibilityMinor: '33', minor: '34', platform: 'linux/amd64'
+      },
+      info: {
+        arch:              'amd64',
+        kubernetesVersion: '1.35.0',
+        machineProvider:   'k3s',
+        nodeCount:         2
       }
     }
   }
@@ -1334,6 +1360,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-4sjtl',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T14:58:36Z',
@@ -1394,6 +1421,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-4sjtl',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T14:35:45Z',
@@ -1457,6 +1485,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-4sjtl',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T14:35:42Z',
@@ -1517,6 +1546,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-5hrg8',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T15:06:00Z',
@@ -1592,6 +1622,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-5hrg8',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T15:06:00Z',
@@ -1667,6 +1698,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-9zj2b',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T15:03:09Z',
@@ -1742,6 +1774,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-9zj2b',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T15:03:09Z',
@@ -1817,6 +1850,7 @@ export const nodes = [
     },
     apiVersion: 'management.cattle.io/v3',
     kind:       'Node',
+    namespace:  'c-kkwv2',
     metadata:   {
       annotations:       { 'cleanup.cattle.io/user-node-remove': 'true', 'management.cattle.io/nodesyncer': 'true' },
       creationTimestamp: '2026-02-27T15:04:19Z',

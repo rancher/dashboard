@@ -474,6 +474,7 @@ export default {
     console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort?.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
+    console.log(`Find Page URL: ${ opt.url }`); // eslint-disable-line no-console
 
     let out;
 
