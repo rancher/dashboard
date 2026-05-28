@@ -100,7 +100,7 @@ export default {
     },
 
     routeComboActive() {
-      if (!this.routeCombo) {
+      if (!this.routeCombo || !this.isCurrRouteClusterExplorer) {
         return false;
       }
 
