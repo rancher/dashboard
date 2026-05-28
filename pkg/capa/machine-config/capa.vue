@@ -5,7 +5,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { HTTP_TOKENS_VALUES } from './constants';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { convertStringToKV, convertKVToString } from '@shell/utils/object';
+import { convertStringToKV, convertKVToString, isEmpty } from '@shell/utils/object';
 import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';
 import InstanceConfigSection from './InstanceConfigSection.vue';
@@ -120,36 +120,39 @@ export default {
         region,
         cloudCredentialId: this.credentialId
       });
-      this.kmsClient = await this.$store.dispatch('aws/kms', {
-        region,
-        cloudCredentialId: this.credentialId
-      });
+      // this.kmsClient = await this.$store.dispatch('aws/kms', {
+      //   region,
+      //   cloudCredentialId: this.credentialId
+      // });
 
       if ( !this.instanceInfo ) {
-        this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client });
+        // this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client });
+        this.loadInstanceInfo();
       }
 
-      const hash = {};
+      // const hash = {};
 
       if ( this.loadedRegionalFor !== region ) {
-        hash.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
-        hash.vpcInfo = await this.ec2Client.describeVpcs({});
-        hash.subnetInfo = await this.ec2Client.describeSubnets({});
-        hash.securityGroupInfo = await this.ec2Client.describeSecurityGroups({});
+        this.loadAvailabilityZones();
+        this.loadSubnets();
+        // hash.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
+        // hash.vpcInfo = await this.ec2Client.describeVpcs({});
+        // hash.subnetInfo = await this.ec2Client.describeSubnets({});
+        // hash.securityGroupInfo = await this.ec2Client.describeSecurityGroups({});
       }
 
-      const res = await allHash(hash);
+      // const res = await allHash(hash);
 
-      for ( const k in res ) {
-        this[k] = res[k];
-      }
+      // for ( const k in res ) {
+      //   this[k] = res[k];
+      // }
 
-      try {
-        this.kmsInfo = await this.kmsClient.listKeys({});
-        this.canReadKms = true;
-      } catch (e) {
-        this.canReadKms = false;
-      }
+      // try {
+      //   this.kmsInfo = await this.kmsClient.listKeys({});
+      //   this.canReadKms = true;
+      // } catch (e) {
+      //   this.canReadKms = false;
+      // }
 
       if ( !this.value.instanceType ) {
         this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
@@ -170,21 +173,24 @@ export default {
 
   data() {
     return {
-      ec2Client:         null,
-      kmsClient:         null,
-      credential:        null,
-      instanceInfo:      null,
-      regionInfo:        null,
-      canReadKms:        null,
-      kmsInfo:           null,
-      tags:              null,
-      loadedRegionalFor: null,
-      zoneInfo:          null,
-      vpcInfo:           null,
-      subnetInfo:        null,
-      securityGroupInfo: null,
-      selectedNetwork:   null,
-      securityGroupMode: null,
+      ec2Client:           null,
+      kmsClient:           null,
+      credential:          null,
+      instanceInfo:        null,
+      regionInfo:          null,
+      // canReadKms:        null,
+      // kmsInfo:           null,
+      tags:                null,
+      loadedRegionalFor:   null,
+      zoneInfo:            null,
+      // vpcInfo:           null,
+      subnetInfo:          null,
+      // securityGroupInfo: null,
+      selectedNetwork:     null,
+      securityGroupMode:   null,
+      loadingInstanceInfo: false,
+      loadingSubnets:      false,
+      loadingZones:        false
     };
   },
 
@@ -209,6 +215,9 @@ export default {
     },
 
     instanceTypeOptions() {
+      if (!this.instanceInfo || isEmpty(this.instanceInfo)) {
+        return [];
+      }
       let lastGroup;
 
       const out = [];
@@ -280,6 +289,39 @@ export default {
   methods: {
     stringify,
 
+    async loadInstanceInfo() {
+      this.loadingInstanceInfo = true;
+      try {
+        this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client });
+      } catch (e) {
+        // TODO nb error loading instance info
+        console.error(e);
+      }
+      this.loadingInstanceInfo = false;
+    },
+
+    async loadSubnets() {
+      this.loadingSubnets = true;
+      try {
+        this.subnetInfo = await this.ec2Client.describeSubnets({});
+      } catch (e) {
+        // TODO nb error loading ubnet info
+        console.error(e);
+      }
+      this.loadingSubnets = false;
+    },
+
+    async loadAvailabilityZones() {
+      this.loadingZones = true;
+      try {
+        this.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
+      } catch (e) {
+        // TODO nb error loading zone info
+        console.error(e);
+      }
+      this.loadingZones = false;
+    },
+
     initTags() {
       this.tags = convertStringToKV(this.value.tags);
     },
@@ -311,7 +353,9 @@ export default {
         <InstanceConfigSection
           v-model:value="spec"
           :instance-type-options="instanceTypeOptions"
+          :loading-instance-type-options="loadingInstanceInfo"
           :subnet-options="subnetOptions"
+          :loading-subnets="loadingSubnets"
           :mode="mode"
           :disabled="disabled"
         />

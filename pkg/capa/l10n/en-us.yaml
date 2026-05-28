@@ -11,11 +11,18 @@ capa:
       title: Network configuration
       label: Network
       placeholder: Select a network
+      strategy:
+        label: Strategy
+        managed: Managed network
+        unmanaged: Unmanaged network (manual configuration)
       vpc:
         label: VPC
       subnets:
         label: Subnets
         placeholder: Select one or more subnets
+    sshKeyName:
+      label: SSH Key Name
+      noneLabel: None
   machineConfig:
     instanceConfiguration:
       title: Instance configuration

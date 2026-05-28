@@ -10,6 +10,8 @@ import { _CREATE } from '@shell/config/query-params';
 import merge from 'lodash/merge';
 import Networking from '.././components/Networking.vue';
 import { removeEmptyFields } from '../utils';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { set } from '@shell/utils/object.js';
 
 defineOptions({ name: 'ClusterConfiguration' });
 
@@ -20,14 +22,15 @@ const emit = defineEmits<{(e: 'update:value', value: any): void }>();
 
 const defaultConfig = {
   spec: {
-    region:  'us-west-2',
+    // region:  'us-west-2',
     network: {
       additionalControlPlaneIngressRules: [{ protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'] }], // allow all traffic from control plane security groups
       additionalNodeIngressRules:         [{ protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'] }],
       cni:                                { cniIngressRules: [] },
       securityGroupOverrides:             {},
-      vpc:                                { id: 'vpc-07cdd250a077f6773' }, // id: '', cidrBlock: '', ipv6: {},
-      subnets:                            [{ id: 'subnet-02e4caf6f4ee75111' }]
+      vpc:                                {},
+      // vpc:                                { id: 'vpc-07cdd250a077f6773' }, // id: '', cidrBlock: '', ipv6: {},
+      // subnets:                            [{ id: 'subnet-02e4caf6f4ee75111' }]
     },
     sshKeyName:               '',
     additionalTags:           {},
@@ -69,17 +72,56 @@ const { t } = useI18n(store);
 // const config = ref({});
 const ec2Client = ref(null);
 const regionInfo = ref(null);
+const sshKeyInfo = ref(null);
+const loadingRegions = ref(false);
+const loadingSshKeys = ref(false);
 
-// const clusterSchema = computed(() => {
-//   return store.getters['management/schemaFor'](AWS_CLUSTER_SCHEMA, true, false);
-// });
-
+// TODO nb generic set-if-not-set for region, sshKeyName, vpcId, firstSubnetId
 const region: WritableComputedRef<string> = computed({
-  get: () => value.value?.spec?.region || '',
+  get: () => value?.value?.spec?.region || '',
   set: (newRegion: string) => {
     if (value.value) {
       value.value.spec = value.value.spec || {};
       value.value.spec.region = newRegion;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const sshKeyName: WritableComputedRef<string> = computed({
+  get: () => value?.value?.spec?.sshKeyName || '',
+  set: (newKey: string) => {
+    if (value.value) {
+      value.value.spec = value.value.spec || {};
+      value.value.spec.sshKeyName = newKey;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const vpcId: WritableComputedRef<string> = computed({
+  get: () => value?.value?.spec?.network?.vpc?.id || '',
+  set: (vpc: string) => {
+    if (value.value) {
+      if (!value.value?.spec?.network?.vpc) {
+        set(value.value, 'spec.network.vpc', { id: vpc });
+      } else {
+        value.value.spec.network.vpc.id = vpc;
+      }
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const firstSubnetId: WritableComputedRef<string> = computed({
+  get: () => value?.value?.spec?.network?.subnets?.[0]?.id || '',
+  set: (sn: string) => {
+    if (value.value) {
+      if (!value.value?.spec?.network?.subnets?.[0]) {
+        set(value.value, 'spec.network.subnets', [{ id: sn }]);
+      } else {
+        value.value.spec.network.subnets[0].id = sn;
+      }
     }
     emit('update:value', value.value);
   },
@@ -95,58 +137,27 @@ const regionOptions = computed(() => {
   }).sort();
 });
 
-const network = computed({
-  get: () => value.value?.spec?.network || '',
-  set: (newNetwork: string) => {
-    if (value.value) {
-      value.value.spec = value.value.spec || {};
-      value.value.spec.network = newNetwork;
-    }
-    emit('update:value', value.value);
-  },
+const sshKeyOptions = computed(() => {
+  const noneOption = { label: t('capa.clusterConfig.sshKeyName.noneLabel'), value: '' };
+
+  if (!sshKeyInfo.value) {
+    return [noneOption];
+  }
+
+  return [noneOption, ...sshKeyInfo.value.map((k) => {
+    return { label: k.KeyName, value: k.KeyPairId };
+  })];
 });
-// async function initCapiCluster() {
-//   // TODO handle edit
-//   let configMissing = false;
-
-//   if (!clusterSchema.value) {
-//     // eslint-disable-next-line no-console
-//     console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped');
-//   }
-
-//   const clusterSchemaType = clusterSchema.value?.id || clusterSchema.value;
-
-//   if (clusterSchemaType && store.getters['management/canList'](clusterSchemaType)) {
-//     try {
-//       config.value = await store.dispatch('management/find', {
-//         type: clusterSchemaType,
-//         // id: `${ value.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
-//       });
-//       if (!config.value) {
-//         configMissing = true;
-//       }
-//       // TODO handle edit?? clone existing config?
-//     } catch (e) {
-//       configMissing = true;
-//     }
-//     if (configMissing) {
-//       try {
-//         config.value = await store.dispatch('management/createPopulated', {
-//           type:     clusterSchemaType,
-//           metadata: { namespace: DEFAULT_WORKSPACE }
-//         });
-//       } catch (e) {
-//         console.log('Error creating cluster config', e);
-//       }
-//     }
-//     // TODO handle case where config is still missing and make sure spec is setup correctly
-//     // TODO apply defaults
-//     console.log('config', config.value);
-//   }
-// }
 
 function initDefaultRegion() {
-  const region = value.value?.spec?.region || credentialId.value?.decodedData?.defaultRegion || store.getters['aws/defaultRegion'];
+  let cloudCredential;
+
+  try {
+    cloudCredential = credentialId.value ? store.getters['rancher/byId']( NORMAN.CLOUD_CREDENTIAL, credentialId.value ) : {};
+  } catch {
+    // TODO nb cant load default region?
+  }
+  const region = value.value?.spec?.region || cloudCredential?.amazonec2credentialConfig?.defaultRegion || store.getters['aws/defaultRegion'];
 
   if (!value.value?.spec?.region) {
     value.value.spec.region = region;
@@ -154,6 +165,7 @@ function initDefaultRegion() {
 }
 
 async function getRegions() {
+  loadingRegions.value = true;
   // TODO get regions based on credentials
   if (!ec2Client.value || !region.value || !credentialId.value) {
     regionInfo.value = [];
@@ -164,11 +176,24 @@ async function getRegions() {
   const regions = await ec2Client.value.describeRegions({});
 
   regionInfo.value = regions?.Regions || [];
+  loadingRegions.value = false;
 }
 
-onMounted(async() => {
-  // await initCapiCluster();
+async function getSshKeys() {
+  loadingSshKeys.value = true;
+  if (!ec2Client.value || !region.value || !credentialId.value) {
+    sshKeyInfo.value = [];
 
+    return;
+  }
+  const keys = await ec2Client.value.describeKeyPairs({});
+
+  sshKeyInfo.value = keys.KeyPairs || [];
+  loadingSshKeys.value = false;
+}
+
+// TODO nb re-fetch regions and sshKeys when cloud cred id changes
+onMounted(async() => {
   initDefaultRegion();
 
   ec2Client.value = await store.dispatch('aws/ec2', {
@@ -176,7 +201,9 @@ onMounted(async() => {
     cloudCredentialId: credentialId.value
   });
   getRegions();
+  getSshKeys();
   // TODO remove non-required field
+  // TODO nb make template paths work regardless of initialized cluster shape eg shouldn't error if vpc is undefined instead of {}
   const valueWithDefaults = merge({}, defaultConfig, value.value);
   const cleanedValueWithDefaults = removeEmptyFields(valueWithDefaults);
 
@@ -195,18 +222,36 @@ onMounted(async() => {
       mode="with-header"
       type="primary"
     >
-      <div class="mb-20 span-4">
-        <LabeledSelect
-          v-model:value="region"
-          :mode="mode"
-          :options="regionOptions"
-          required
-          :label="t('capa.clusterConfig.region.label')"
-          :placeholder="t('capa.clusterConfig.region.placeholder')"
-        />
+      <div class="row mb-20">
+        <div class="span-4">
+          <LabeledSelect
+            v-model:value="region"
+            :loading="loadingRegions"
+            :mode="mode"
+            :options="regionOptions"
+            required
+            :label="t('capa.clusterConfig.region.label')"
+            :placeholder="t('capa.clusterConfig.region.placeholder')"
+          />
+        </div>
       </div>
+
+      <div class="row mb-20">
+        <div class="span-4">
+          <LabeledSelect
+            v-model:value="sshKeyName"
+            :loading="loadingSshKeys"
+            :mode="mode"
+            :options="sshKeyOptions"
+            :label="t('capa.clusterConfig.sshKeyName.label')"
+            :placeholder="t('capa.clusterConfig.sshKeyName.placeholder')"
+          />
+        </div>
+      </div>
+
       <Networking
-        v-model:value="network"
+        v-model:vpc-id="vpcId"
+        v-model:subnet-id="firstSubnetId"
         :mode="mode"
         :region="region"
         :credentialId="credentialId"

@@ -6,8 +6,12 @@ import { formatAWSError } from '@shell/utils/error';
 
 export const state = () => {
   return {
-    instanceTypes: [],
-    clientInfo:    null
+    instanceTypes:    [],
+    clientInfo:       null,
+    vpcs:             [],
+    vpcClientInfo:    null,
+    subnets:          [],
+    subnetClientInfo: null
   };
 };
 
@@ -90,6 +94,22 @@ export const getters = {
 
   clientInfo(state) {
     return state.clientInfo;
+  },
+
+  vpcs(state) {
+    return state.vpcs;
+  },
+
+  vpcClientInfo(state) {
+    return state.vpcClientInfo;
+  },
+
+  subnets(state) {
+    return state.subnets;
+  },
+
+  subnetClientInfo(state) {
+    return state.subnetClientInfo;
   }
 };
 
@@ -97,6 +117,16 @@ export const mutations = {
   setInstanceTypes(state, { types, clientInfo }) {
     state.instanceTypes = types;
     state.clientInfo = clientInfo;
+  },
+
+  setVpcs(state, { vpcs, clientInfo }) {
+    state.vpcs = vpcs;
+    state.vpcClientInfo = clientInfo;
+  },
+
+  setSubnets(state, { subnets, clientInfo }) {
+    state.subnets = subnets;
+    state.subnetClientInfo = clientInfo;
   }
 };
 
@@ -248,6 +278,42 @@ export const actions = {
     commit('setInstanceTypes', { types: out, clientInfo: { region, cloudCredentialId } });
 
     return out;
+  },
+
+  async describeVpcs({
+    dispatch, rootGetters, state, commit
+  }, { client }) {
+    const cloudCredentialId = client?.config?.requestHandler?.cloudCredentialId;
+    const region = await client.config.region();
+
+    if (cloudCredentialId === rootGetters['aws/vpcClientInfo']?.cloudCredentialId && region === rootGetters['aws/vpcClientInfo']?.region) {
+      return rootGetters['aws/vpcs'];
+    }
+
+    const data = await dispatch('depaginateList', { client, cmd: 'describeVpcs' });
+
+    commit('setVpcs', { vpcs: data, clientInfo: { region, cloudCredentialId } });
+
+    return data;
+  },
+
+  async describeSubnets({
+    dispatch, rootGetters, state, commit
+  }, { client, opt }) {
+    const cloudCredentialId = client?.config?.requestHandler?.cloudCredentialId;
+    const region = await client.config.region();
+
+    if (cloudCredentialId === rootGetters['aws/subnetClientInfo']?.cloudCredentialId && region === rootGetters['aws/subnetClientInfo']?.region) {
+      return rootGetters['aws/subnets'];
+    }
+
+    const data = await dispatch('depaginateList', {
+      client, cmd: 'describeSubnets', opt
+    });
+
+    commit('setSubnets', { subnets: data, clientInfo: { region, cloudCredentialId } });
+
+    return data;
   },
 
   async depaginateList(ctx, {

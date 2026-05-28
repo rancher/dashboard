@@ -15,6 +15,16 @@ export default {
       required: true,
     },
 
+    loadingInstanceTypeOptions: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadingSubnets: {
+      type:    Boolean,
+      default: false
+    },
+
     instanceTypeOptions: {
       type:    Array,
       default: () => [],
@@ -62,11 +72,13 @@ export default {
       label-key="capa.machineConfig.instanceConfiguration.instanceType.label"
       option-key="apiName"
       option-label="label"
+      :loading="loadingInstanceTypeOptions"
       required
     />
     <LabeledSelect
       v-model:value="value.subnet.id"
       :options="subnetOptions"
+      :loading="loadingSubnets"
       label-key="capa.machineConfig.instanceConfiguration.subnet.label"
       required
     />
