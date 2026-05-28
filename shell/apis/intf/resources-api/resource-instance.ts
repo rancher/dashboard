@@ -7,7 +7,8 @@ import { SteveGetResponse } from '@shell/types/rancher/steve.api';
  */
 export interface ResourceInstanceApi {
   /**
-   * Applies a partial update to a resource using HTTP PATCH (merge-patch).
+   * Applies a partial update to a resource using HTTP PATCH
+   * with merge-patch semantics (`application/merge-patch+json`).
    *
    * Only the fields provided in `data` are sent to the server — the rest of the resource
    * remains unchanged. The server response is merged back into this instance.
@@ -24,13 +25,13 @@ export interface ResourceInstanceApi {
    * const resources = useResources();
    * const configMap = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
    *
-   * await configMap.patch({ newKey: 'newValue' });
-   * 
+   * await configMap.patchMerge({ newKey: 'newValue' });
+   *
    * const result = configMap.newKey === 'newValue' // true
-   
+
    * ```
    */
-  patch(data: Record<string, any>): Promise<ResourceInstanceApi>;
+  patchMerge(data: Record<string, any>): Promise<ResourceInstanceApi>;
 
   /**
    * Performs a full replacement update of a resource using HTTP PUT.

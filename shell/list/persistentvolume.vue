@@ -104,8 +104,8 @@ export default defineComponent({
       return this.$store.dispatch(`cluster/findPage`, { type: PVC, opt });
     },
     async createNewInstance() {
-      // const data = await this.$resources.cluster.create(this.createInstanceData);
-      const data = await this.$resources.cluster.create(this.badData);
+      const data = await this.$resources.cluster.create(this.createInstanceData);
+      // const data = await this.$resources.cluster.create(this.badData);
 
       this.newPv = data;
 
@@ -113,7 +113,7 @@ export default defineComponent({
     },
     async patchInstance() {
       const newData = { spec: { capacity: { storage: '111Gi' } } };
-      const data = await this.$resources.cluster.patch(K8S.PV, this.newPv.id, newData);
+      const data = await this.$resources.cluster.patchMerge(K8S.PV, this.newPv.id, newData);
 
       console.error('PATCH instance via RESOURCES API:', data); // eslint-disable-line no-console
     },
@@ -134,7 +134,7 @@ export default defineComponent({
     },
     async patchInstanceApi() {
       const newData = { spec: { capacity: { storage: '11Gi' } } };
-      const data = await this.newPv.patch(newData);
+      const data = await this.newPv.patchMerge(newData);
 
       console.error('Patched instance via Instance API:', data); // eslint-disable-line no-console
     },

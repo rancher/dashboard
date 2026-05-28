@@ -4,7 +4,6 @@ import {
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
-import { ResourceInstanceImpl } from '@shell/apis/resources/resource-instance-class';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 import { Store } from 'vuex';
 
@@ -75,7 +74,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return resource ? new ResourceInstanceImpl(resource) as T : null;
+      return resource ? resource as T : null;
     } catch (e: unknown) {
       this.surfaceError(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
@@ -135,14 +134,6 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           opt:  safeOption
         });
 
-        if (Array.isArray(response)) {
-          return response.map((r: any) => new ResourceInstanceImpl(r)) as FindFilteredPageResponse<T>;
-        }
-
-        if (response?.data) {
-          response.data = response.data.map((r: any) => new ResourceInstanceImpl(r));
-        }
-
         return response as FindFilteredPageResponse<T>;
       } else if ('labelSelector' in options) { // label selector mode
         const safeOption = options as FindFilteredLabelSelectorOptions;
@@ -155,14 +146,6 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           },
           opt: rest
         });
-
-        if (Array.isArray(resources)) {
-          return resources.map((r: any) => new ResourceInstanceImpl(r)) as FindFilteredLabelSelectorResponse<T>;
-        }
-
-        if (resources?.data) {
-          resources.data = resources.data.map((r: any) => new ResourceInstanceImpl(r));
-        }
 
         return resources as FindFilteredLabelSelectorResponse<T>;
       } else {
@@ -205,7 +188,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return (resources || []).map((r: any) => new ResourceInstanceImpl(r)) as T[];
+      return (resources || []) as T[];
     } catch (e: unknown) {
       this.surfaceError(`Failed to find all resources ${ resourceType }: ${ (e as Error).message }`, e);
     }
@@ -247,7 +230,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
       // we want the error thrown from the server as it's more meaningful to API consumers
       await model.save({ skipUIValidation: true });
 
-      return new ResourceInstanceImpl(model) as T;
+      return model as T;
     } catch (e: unknown) {
       this.surfaceError(`Failed to create resource of type "${ data.type }": ${ (e as Error).message }`, e);
     }
@@ -271,12 +254,12 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const result = await resources.cluster.patch(K8S.CONFIG_MAP, 'default/my-config', {
+   * const result = await resources.cluster.patchMerge(K8S.CONFIG_MAP, 'default/my-config', {
    *   data: { newKey: 'newValue' }
    * });
    * ```
    */
-  async patch<T = ResourceInstance>(
+  async patchMerge<T = ResourceInstance>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
@@ -287,14 +270,14 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt: {
           url,
           method:  'patch',
-          headers: { 'content-type': 'application/merge-patch+json' },
+          headers: { 'content-type': 'application/strategic-merge-patch+json' },
           data,
         }
       });
 
       return res as T;
     } catch (e: unknown) {
-      this.surfaceError(`Failed to patch resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
+      this.surfaceError(`Failed to patchMerge resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
   }
 

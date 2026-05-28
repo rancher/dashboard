@@ -187,12 +187,12 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const result = await resources.cluster.patch(K8S.CONFIG_MAP, 'default/my-config', {
+   * const result = await resources.cluster.patchMerge(K8S.CONFIG_MAP, 'default/my-config', {
    *   data: { newKey: 'newValue' }
    * });
    * ```
    */
-  patch<T = ResourceInstance>(
+  patchMerge<T = ResourceInstance>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
