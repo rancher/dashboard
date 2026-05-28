@@ -126,6 +126,7 @@
     "vue3-virtual-scroll-list": "0.2.1",
     "vuedraggable": "4.1.0",
     "vuex": "4.1.0",
+    "xmlbuilder2": "4.0.1",
     "@xterm/xterm": "6.0.0",
     "@xterm/addon-fit": "0.11.0",
     "@xterm/addon-search": "0.16.0",
