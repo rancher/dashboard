@@ -7445,7 +7445,7 @@ workloadDashboard:
     fetchAll: Failed to fetch workload summaries
   empty:
     title: No workloads to show
-    message: "Tips: undo the last namespace filter you applied or <resetLink>reset the namespaces filter</resetLink>."
+    message: "Tips: Update the namespace filter above or <resetLink>reset the namespaces filter</resetLink>."
     docsMessage: "Want to learn more about Workloads? Read our <docsLink>documentation</docsLink>."
 
 workload:
