@@ -36,7 +36,7 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get detailTabs(): ClusterProvisionerDetailTabs {
     return {
-      nodes:        true,
+      nodes:        false,
       machines:     false,
       logs:         false,
       registration: true,
