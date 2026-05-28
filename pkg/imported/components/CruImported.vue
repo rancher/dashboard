@@ -207,11 +207,13 @@ export default defineComponent({
     },
     enableNetworkPolicySupported() {
       // https://github.com/rancher/rancher/pull/33070/files
-      // Also check mgmt status provider for local clusters where spec.rkeConfig may not be set (rke2)
-      // or where isK3s may not be set correctly
+      // Also check mgmt status provider for local clusters where spec.rkeConfig may not be set
+      // (local RKE2 clusters have no spec.rkeConfig so isRke2 is false, but status.provider is 'rke2')
       const mgmtProvider = this.value.mgmt?.status?.provider;
+      const isK3sCluster = this.isK3s || mgmtProvider === 'k3s';
+      const isRke2Cluster = this.isRke2 || mgmtProvider?.startsWith('rke2');
 
-      return !this.isK3s && !this.isRke2 && !mgmtProvider?.startsWith('rke2') && mgmtProvider !== 'k3s';
+      return !isK3sCluster && !isRke2Cluster;
     },
     isLocal() {
       return !!this.value.isLocal;
