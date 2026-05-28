@@ -197,23 +197,23 @@ export default defineComponent({
       return this.mode === _CREATE;
     },
     isK3s() {
-      return !!this.value.isK3s;
+      const mgmtProvider = this.value.mgmt?.status?.provider;
+
+      return !!(this.value.isK3s || mgmtProvider === 'k3s');
     },
     isRKE1() {
       return !!this.value.isRke1;
     },
     isRke2() {
-      return !!this.value.isRke2;
-    },
-    enableNetworkPolicySupported() {
-      // https://github.com/rancher/rancher/pull/33070/files
       // Also check mgmt status provider for local clusters where spec.rkeConfig may not be set
       // (local RKE2 clusters have no spec.rkeConfig so isRke2 is false, but status.provider is 'rke2')
       const mgmtProvider = this.value.mgmt?.status?.provider;
-      const isK3sCluster = this.isK3s || mgmtProvider === 'k3s';
-      const isRke2Cluster = this.isRke2 || mgmtProvider?.startsWith('rke2');
 
-      return !isK3sCluster && !isRke2Cluster;
+      return !!(this.value.isRke2 || mgmtProvider?.startsWith('rke2'));
+    },
+    enableNetworkPolicySupported() {
+      // https://github.com/rancher/rancher/pull/33070/files
+      return !this.isK3s && !this.isRke2;
     },
     isLocal() {
       return !!this.value.isLocal;
