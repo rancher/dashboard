@@ -60,6 +60,7 @@ const summaryResponse = {
 function mountComposable(getterOverrides: Record<string, any> = {}) {
   setupGetters({
     'cluster/schemaFor': () => ({ links: { collection: '/v1/test' } }),
+    'cluster/urlFor':    () => '/v1/test',
     'cluster/canList':   () => true,
     ...getterOverrides,
   });

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
+import Masthead from '@shell/components/ResourceList/Masthead';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
+import { WORKLOAD_DASHBOARD } from '@shell/config/types';
 import { DOCS_BASE } from '@shell/config/private-label';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
@@ -78,49 +80,51 @@ const {
     </div>
 
     <template v-else>
-      <header class="row">
-        <div class="col span-12 title">
-          <h1
-            class="m-0"
-            data-testid="workload-dashboard-title"
-          >
-            {{ t('workloadDashboard.title') }}
-          </h1>
+      <Masthead
+        resource="workload"
+        :favorite-resource="WORKLOAD_DASHBOARD"
+        :type-display="t('workloadDashboard.title')"
+        :is-creatable="false"
+        :show-favorite="false"
+        component-testid="workload-dashboard"
+      >
+        <template #subHeader>
           <div
-            class="sub-title text-muted"
+            class="text-muted mmt-1"
             data-testid="workload-dashboard-subtitle"
           >
             {{ namespaceSubtitle }}
           </div>
+        </template>
+      </Masthead>
+      <div class="workload-content">
+        <!-- ━━━ By State ━━━ -->
+        <div
+          class="section"
+          data-testid="workload-dashboard-by-state"
+        >
+          <h4 class="m-0 text-deemphasized">
+            {{ t('workloadDashboard.sections.byState') }}
+          </h4>
+          <ByStateSection
+            :layout="byStateLayout"
+            :resource-route="resourceRoute"
+          />
         </div>
-      </header>
 
-      <!-- ━━━ By State ━━━ -->
-      <div
-        class="section"
-        data-testid="workload-dashboard-by-state"
-      >
-        <h4 class="m-0 text-deemphasized">
-          {{ t('workloadDashboard.sections.byState') }}
-        </h4>
-        <ByStateSection
-          :layout="byStateLayout"
-          :resource-route="resourceRoute"
-        />
-      </div>
-
-      <!-- ━━━ By Type ━━━ -->
-      <div
-        class="section"
-        data-testid="workload-dashboard-by-type"
-      >
-        <h4 class="m-0 text-deemphasized">
-          {{ t('workloadDashboard.sections.byType') }}
-        </h4>
-        <ByTypeSection
-          :cards="byTypeCards"
-          :resource-route="resourceRoute"
-        />
+        <!-- ━━━ By Type ━━━ -->
+        <div
+          class="section"
+          data-testid="workload-dashboard-by-type"
+        >
+          <h4 class="m-0 text-deemphasized">
+            {{ t('workloadDashboard.sections.byType') }}
+          </h4>
+          <ByTypeSection
+            :cards="byTypeCards"
+            :resource-route="resourceRoute"
+          />
+        </div>
       </div>
     </template>
   </div>
@@ -130,7 +134,12 @@ const {
 .workload-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+
+  .workload-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
   .section {
     h4 {
@@ -139,18 +148,6 @@ const {
     gap: 16px;
     display: flex;
     flex-direction: column;
-  }
-
-  .title {
-    gap: 4px;
-
-    h1 {
-      line-height: 32px;
-    }
-
-    .sub-title {
-      line-height: 21px;
-    }
   }
 
   .empty-state {

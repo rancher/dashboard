@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { RouteLocationRaw } from 'vue-router';
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import { stateColorCssVar, type StateColor } from '@shell/utils/style';
@@ -59,8 +60,9 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
 </script>
 
 <template>
-  <div
+  <Card
     class="workload-type-card"
+    :title="title"
     data-testid="resource-detail-status-card"
     role="button"
     tabindex="0"
@@ -68,16 +70,11 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     @click="handleClick"
     @keyup.enter="handleClick"
   >
-    <div>
-      <h5 class="heading">
-        {{ title }}
-      </h5>
-      <StatusBar
-        v-if="resources.length > 0"
-        :segments="segments"
-        aria-hidden="true"
-      />
-    </div>
+    <StatusBar
+      v-if="resources.length > 0"
+      :segments="segments"
+      aria-hidden="true"
+    />
     <ul
       v-if="resources.length > 0"
       class="rows"
@@ -105,18 +102,12 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
         </span>
       </li>
     </ul>
-  </div>
+  </Card>
 </template>
 
 <style lang="scss" scoped>
 .workload-type-card {
-  padding: 16px;
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--border);
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
 
   &:hover {
     border-color: var(--primary);
@@ -125,14 +116,6 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   &:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: -2px;
-  }
-
-  .heading {
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 21px;
-    height: 32px;
-    margin: 0;
   }
 
   .rows {

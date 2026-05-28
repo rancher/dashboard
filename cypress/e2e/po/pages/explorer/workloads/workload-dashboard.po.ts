@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 import CardPo from '@/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
@@ -25,12 +26,16 @@ export default class WorkloadDashboardPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Workloads');
   }
 
+  masthead() {
+    return new ResourceListMastheadPo(this.self());
+  }
+
   title() {
-    return cy.get('[data-testid="workload-dashboard-title"]');
+    return this.masthead().self().find('.title h1');
   }
 
   subtitle() {
-    return cy.get('[data-testid="workload-dashboard-subtitle"]');
+    return this.masthead().self().find('.sub-header');
   }
 
   byStateSection() {

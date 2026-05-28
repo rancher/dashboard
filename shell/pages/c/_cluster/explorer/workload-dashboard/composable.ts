@@ -280,14 +280,13 @@ export function useWorkloadDashboard() {
       );
 
       const workloadPromises = accessibleTypes.map(async(type): Promise<WorkloadDashboardSummaryEntry> => {
-        const schema = store.getters['cluster/schemaFor'](type);
-
         try {
-          let url = `${ schema.links.collection }?summary=metadata.state.name`;
+          let url = `${ store.getters['cluster/urlFor'](type) }`;
 
           if (namespaceFilterParam.value) {
             url += `&${ namespaceFilterParam.value }`;
           }
+          url += `&summary=metadata.state.name`;
 
           const res = await store.dispatch('cluster/request', { url });
 

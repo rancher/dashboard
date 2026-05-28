@@ -74,6 +74,11 @@ export default {
       default: false
     },
 
+    showFavorite: {
+      type:    Boolean,
+      default: true
+    },
+
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -202,7 +207,7 @@ export default {
     <div class="title">
       <h1 class="m-0">
         <TabTitle>{{ _typeDisplay }}</TabTitle> <Favorite
-          v-if="isExplorer"
+          v-if="isExplorer && showFavorite"
           :resource="favoriteResource || resource"
         />
       </h1>

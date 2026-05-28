@@ -91,6 +91,7 @@ describe('composable: useStateColor', () => {
 
     beforeEach(() => {
       mockGetters['cluster/schemaFor'] = () => schema;
+      mockGetters['cluster/urlFor'] = () => schema.links.collection;
     });
 
     it('should not make requests when all states are already known', async() => {
@@ -251,6 +252,7 @@ describe('composable: useStateColor', () => {
       const customSchema = { links: { collection: '/k8s/clusters/c-m-abc123/v1/apps.deployments' } };
 
       mockGetters['cluster/schemaFor'] = () => customSchema;
+      mockGetters['cluster/urlFor'] = () => customSchema.links.collection;
       mockDispatch.mockResolvedValueOnce({ data: [] });
 
       const entries: StateSummaryEntry[] = [{
