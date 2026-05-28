@@ -89,9 +89,10 @@ export default {
       return this.mgmtNodes.filter((x) => x.mgmtClusterId === this.resource.mgmtClusterId).map((node) => {
         const poolRef = typeof this.getNodeGroup === 'function' ? this.getNodeGroup(node) : null;
 
-        node.poolRef = poolRef;
-
-        return node;
+        return {
+          ...node,
+          poolRef
+        };
       });
     },
   },
