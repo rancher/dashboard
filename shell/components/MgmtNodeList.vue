@@ -48,42 +48,31 @@ export default {
    * BUT mgmt nodes are scoped to a cluster's namespace, so we can fetch only mgmt nodes in the cluster's namespace
    */
   async fetch() {
-    try {
-      const canList = this.$store.getters['management/canList'](MANAGEMENT.NODE);
+    const canList = this.$store.getters['management/canList'](MANAGEMENT.NODE);
 
-      console.log('*** MgmtNodeList fetch() canList:', canList);
-      if ( canList ) {
-        const hasAllMgmtNodes = this.$store.getters['management/haveAll'](MANAGEMENT.NODE);
+    if ( canList ) {
+      const hasAllMgmtNodes = this.$store.getters['management/haveAll'](MANAGEMENT.NODE);
 
-        console.log('*** MgmtNodeList hasAllMgmtNodes:', hasAllMgmtNodes);
-        console.log('*** MgmtNodeList resource.mgmtClusterId:', this.resource.mgmtClusterId);
-        if (hasAllMgmtNodes) {
-          this.mgmtNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
-          console.log('*** MgmtNodeList used all(), count:', this.mgmtNodes.length);
-        } else {
-          console.log('*** MgmtNodeList dispatching findLabelSelector');
-          const res = await this.$store.dispatch('management/findLabelSelector', {
-            type:     MANAGEMENT.NODE,
-            matching: {
-              namespace:     this.resource.mgmtClusterId,
-              labelSelector: {
-                matchExpressions: [
-                  {
-                    key:      'management.cattle.io/nodename',
-                    operator: 'Exists',
-                  }
-                ]
-              }
+      if (hasAllMgmtNodes) {
+        this.mgmtNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
+      } else {
+        const res = await this.$store.dispatch('management/findLabelSelector', {
+          type:     MANAGEMENT.NODE,
+          matching: {
+            namespace:     this.resource.mgmtClusterId,
+            labelSelector: {
+              matchExpressions: [
+                {
+                  key:      'management.cattle.io/nodename',
+                  operator: 'Exists',
+                }
+              ]
             }
-          } );
+          }
+        } );
 
-          console.log('*** res of findLabelSelector in MgmtNodeList', res);
-          this.mgmtNodes = res;
-        }
+        this.mgmtNodes = res;
       }
-    } catch (e) {
-      console.log('*** error in mgmtnodelist fetch');
-      console.error(e);
     }
   },
 
