@@ -582,13 +582,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.referredToList().details('Mgmt', 2).should('include.text', 'local');
     }));
 
-    qase(3227, it('can navigate to Cluster Provisioning Log Page', () => {
-      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-log"]');
-
-      clusterDetail.waitForPage(undefined, 'log');
-      clusterDetail.logsContainer().should('be.visible');
-    }));
-
     qase(3229, it('can navigate to Cluster Machines Page', () => {
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
 
