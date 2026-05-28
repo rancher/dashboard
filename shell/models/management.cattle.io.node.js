@@ -10,7 +10,8 @@ import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 const RKE1_ALLOWED_ACTIONS = [
   'goToViewYaml',
   'download',
-  'viewInApi'
+  'viewInApi',
+  'showConfiguration'
 ];
 
 export default class MgmtNode extends HybridModel {
