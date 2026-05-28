@@ -416,8 +416,6 @@ export default {
 
           return this.$router.push(clusterRoute);
         }
-
-        return;
       }
 
       return this.$router.push(cluster.clusterRoute);
