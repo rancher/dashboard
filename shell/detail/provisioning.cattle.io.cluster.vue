@@ -402,8 +402,23 @@ export default {
 
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
+        // The MachineDeployment still exists for empty pools. The
+        // infrastructureRef points to the template that matches the current
+        // config. Fallback to the prefix-match to return an arbitrary template
+        // when multiple exist
+        const machineDeployment = this.allMachineDeployments.find(
+          (d) => d.metadata.name === pool.metadata.name && d.metadata.namespace === pool.metadata.namespace
+        );
+        const activeTemplateName = machineDeployment?.spec?.template?.spec?.infrastructureRef?.name;
+
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => {
+          if (activeTemplateName) {
+            return t.metadata.name === activeTemplateName;
+          }
+
+          return t.metadata.name.startsWith(templateNamePrefix);
+        });
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 
