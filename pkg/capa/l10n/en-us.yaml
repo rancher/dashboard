@@ -20,9 +20,14 @@ capa:
       subnets:
         label: Subnets
         placeholder: Select one or more subnets
+      securityGroups:
+        label: Security Group Overrides
+        description: Select existing security groups instead of using the CAPA controller to automatically create new ones. Only applies when using an unmanaged network.
+        selectVpc: Pick a VPC first
     sshKeyName:
       label: SSH Key Name
       noneLabel: None
+   
   machineConfig:
     instanceConfiguration:
       title: Instance configuration

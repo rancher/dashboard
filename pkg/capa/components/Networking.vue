@@ -11,17 +11,37 @@ import { RcSection } from '@components/RcSection';
 import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
 import * as AWS from '@shell/types/aws-sdk';
 
+const SECURITY_GROUP_ROLES = {
+  // SSH bastion role
+  BASTION: 'bastion',
+
+  // Kubernetes workload node role
+  NODE: 'node',
+
+  // Kubernetes control plane node role
+  CONTROL_PLANE: 'controlplane',
+
+  // Kubernetes API Server Load Balancer role
+  API_SERVER_LB: 'apiserver-lb',
+
+  // container for the cloud provider to inject its load balancer ingress rules
+  LB: 'lb'
+};
+
 defineOptions({ name: 'Networking' });
 
 defineEmits([
   'update:vpcId',
   'update:subnetId',
-  'validationChanged'
+  'validationChanged',
+  'update:securityGroupOverrides'
 ]);
 
 interface Props {
   vpcId: string;
   subnetId: string;
+  // TODO nb type as map
+  securityGroupOverrides: {};
   mode?: string;
   credentialId: any;
   region?: string;
@@ -41,8 +61,10 @@ const { t } = useI18n(store);
 const ec2Client = ref(null);
 const vpcInfo = ref<AWS.VPC[]>([]);
 const subnetInfo = ref<AWS.Subnet[]>([]);
+const securityGroupInfo = ref<AWS.SecurityGroup[]>([]);
 const loadingVpcs = ref(false);
 const loadingSubnets = ref(false);
+const loadingSecurityGroups = ref(false);
 
 // TODO nb managed network should have a label applied by capi - check for this so edit loads the right strategy
 const useUnmanagedNetwork = ref(false);
@@ -77,6 +99,21 @@ const subnetOptions = computed(() => {
   }, [] as {label: string, value: string}[]);
 });
 
+const securityGroupOptions = computed(() => {
+  if (!vpcId.value) {
+    return [t('capa.clusterConfig.network.securityGroups.selectVpc')];
+  }
+
+  return securityGroupInfo.value.reduce((opts, sg) => {
+    if (sg.VpcId === vpcId.value) {
+      opts.push({ label: `${ sg.GroupName } (${ sg.Description })`, value: sg.SecurityGroupArn });
+    }
+    console.log('**** security group ', sg);
+
+    return opts;
+  }, [] as any);
+});
+
 async function getVpcs() {
   loadingVpcs.value = true;
 
@@ -108,6 +145,22 @@ async function getSubnets() {
   loadingSubnets.value = false;
 }
 
+async function getSecurityGroups() {
+  loadingSecurityGroups.value = true;
+
+  if (!ec2Client.value) {
+    securityGroupInfo.value = [];
+    loadingSecurityGroups.value = false;
+
+    return;
+  }
+  // TODO nb store method with caching
+  const securityGroups = await ec2Client.value.describeSecurityGroups({ });
+
+  securityGroupInfo.value = securityGroups?.SecurityGroups || [];
+  loadingSecurityGroups.value = false;
+}
+
 watch([
   () => region.value,
   () => credentialId.value,
@@ -119,6 +172,7 @@ watch([
     });
     getVpcs();
     getSubnets();
+    getSecurityGroups();
   } else {
     vpcInfo.value = [];
     subnetInfo.value = [];
@@ -167,6 +221,27 @@ watch([
           :loading="loadingSubnets"
           @update:value="$emit('update:subnetId', $event)"
         />
+      </div>
+      <h4>{{ t('capa.clusterConfig.network.securityGroups.label') }}</h4>
+      <div class="row mb-20">
+        <div class="col span-4">
+          <LabeledSelect
+            :disabled="!vpcId"
+            :value="securityGroupOverrides"
+            :options="Object.values(SECURITY_GROUP_ROLES)"
+            :loading="loadingSecurityGroups"
+            @update:value="$emit('update:securityGroupOverrides', $event)"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledSelect
+            :disabled="!vpcId"
+            :value="vpcId ? securityGroupOverrides: t('capa.clusterConfig.network.securityGroups.selectVpc')"
+            :options="securityGroupOptions"
+            :loading="loadingSecurityGroups"
+            @update:value="$emit('update:securityGroupOverrides', $event)"
+          />
+        </div>
       </div>
     </RcSection>
   </RcSection>
