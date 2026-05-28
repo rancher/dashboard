@@ -40,15 +40,18 @@ describe('Support Page', () => {
       });
     });
 
-    it('can click on Contact us for pricing link', { tags: '@noPrime' }, () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/pricing');
+    // TODO: Issue #17869 - Re-enable and fix 'can click on Contact us for
+    // pricing link' support page test.
+    // https://github.com/rancher/dashboard/issues/17869
+    // it('can click on Contact us for pricing link', { tags: '@noPrime' }, () => {
+    //   catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/pricing');
 
-      supportPage.clickExternalSupportLinks(1);
+    //   supportPage.clickExternalSupportLinks(1);
 
-      cy.origin('https://www.rancher.com/pricing', () => {
-        cy.url().should('include', 'pricing');
-      });
-    });
+    //   cy.origin('https://www.rancher.com/pricing', () => {
+    //     cy.url().should('include', 'pricing');
+    //   });
+    // });
 
     it('can click on Suse Customer Center link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://scc.suse.com/');
