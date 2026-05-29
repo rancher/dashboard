@@ -11,7 +11,7 @@ on:
     types: [opened, reopened]
   reaction: eyes
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_ISSUE_TRIAGE != 'true'
 
 permissions: read-all
 
