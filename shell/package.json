@@ -40,6 +40,7 @@
     "@types/semver": "^7.5.8",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
+    "@vee-validate/zod": "4.15.0",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-typescript": "~5.0.0",
     "@vue/cli-service": "5.0.8",
@@ -130,7 +131,8 @@
     "xterm-addon-search": "0.13.0",
     "xterm-addon-web-links": "0.9.0",
     "xterm-addon-webgl": "0.16.0",
-    "yarn": "1.22.22"
+    "yarn": "1.22.22",
+    "zod": "3.24.3"
   },
   "resolutions": {
     "d3-color": "3.1.0",
