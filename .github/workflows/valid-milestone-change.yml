@@ -4,12 +4,16 @@ on:
   issues:
     types: [milestoned, demilestoned]
 
+# Restrictive baseline permissions for all jobs
 permissions:
   issues: read
  
 jobs:
   notify-on-milestone-change:
     if: github.repository_owner == 'rancher'
+    permissions:
+      issues: read
+      id-token: write
 
     runs-on: ubuntu-latest
     env:
@@ -18,6 +22,8 @@ jobs:
       ISSUE_URL: ''
       NEW_MILESTONE: ''
       OLD_MILESTONE: ''
+      APPID: ''
+      PRIVATEKEY: ''
     steps:
     - name: Set Event Data
       id: event_data
