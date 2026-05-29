@@ -40,14 +40,17 @@
 - versions.ts: singleton — use jest.resetModules()+jest.mock('@shell/config/version',...)` in beforeEach to reset; use makeStoreWithCalls(p1,p2) helper to control per-call dispatch results
 - string.js: escapeHtml regex `/[&<>"']/g` does NOT include `/`, so `/` is not escaped (even though entityMap has it); escapeRegex escapes all `.*+?^${}()|[\]` chars; formatPercent: value<1 AND maxPrecision>=2 → 2 decimal places; value<10 AND maxPrecision>=1 → 1 decimal place; else round
 - monitoring.js: hasEndpointSubsets returns `undefined` (not `false`) when endpoint not found or subsets undefined — short-circuit &&; use toBeFalsy() for those cases; haveV2Monitoring mocks: getters['getStoreNameByProductId']=storeName, getters[`${storeName}/all`]=(type)=>schemas
+- position.js: fitOnScreen uses `triggerElemOrEvent instanceof Event` — must pass real `new MouseEvent(...)` not plain object; use `useDefaults=true` to avoid needing real DOM contentElem; mock window.innerWidth/Height with Object.defineProperty; TOP→BOTTOM fallback IS implemented when gapIf.top<0
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
 2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
+3. `shell/utils/dom.js` — DOM manipulation utilities
 
 ## Completed Work (Summary)
 
+- 2026-05-29: PR (branch test-assist/position-utils-tests): 21 tests for position.js; 87.2% stmts, 67.5% branches, 75% fns
 - 2026-05-28: PR (branch test-assist/monitoring-utils-tests): 14 tests for monitoring.js; 84.1% stmts, 92.3% branches, 87.5% fns
 - 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined
 - 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics
@@ -64,6 +67,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-29: Task 3 (position.js, 21 tests) + Task 7
 - 2026-05-28: Task 3 (monitoring.js, 14 tests) + Task 7
 - 2026-05-27: Task 3 (string.js, 116 tests) + Task 7
 - 2026-05-25: Task 3 (versions.ts, 10 tests) + Task 7
