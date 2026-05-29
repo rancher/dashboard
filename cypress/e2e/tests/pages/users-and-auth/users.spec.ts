@@ -91,59 +91,58 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   it('can un-assign a global role from a user', () => {
-    const unassignUsername = `${ runPrefix }-unassign-role`;
-    const unassignPassword = 'unassign-password';
     let unassignUserId: string;
+    let unassignUsername: string;
 
     // Create a standard user via API
     cy.createUser({
-      username:   unassignUsername,
-      password:   unassignPassword,
+      username:   'unassign-role',
       globalRole: { role: 'user' }
     }).then((resp: Cypress.Response<any>) => {
       unassignUserId = resp.body.id;
+      unassignUsername = resp.body.username;
 
       // Assign an additional global role (User-Base)
       return cy.setGlobalRoleBinding(unassignUserId, 'user-base');
+    }).then(() => {
+      // Navigate to users list and edit the user
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().clickRowActionMenuItem(unassignUsername, 'Edit Config');
+
+      const userEdit = new MgmtUserEditPo();
+
+      userEdit.waitForPage();
+
+      // Refresh the page — critical to reproduce the bug
+      cy.reload();
+      userEdit.waitForPage();
+
+      // Verify both roles are checked
+      userEdit.selectCheckbox('Standard User').isChecked();
+      userEdit.selectCheckbox('User-Base').isChecked();
+
+      // Uncheck User-Base — only role change, no credentials change
+      userEdit.selectCheckbox('User-Base').set();
+      userEdit.selectCheckbox('User-Base').isNotChecked();
+
+      // Save — should trigger DELETE for the User-Base binding
+      cy.intercept('DELETE', '/v1/management.cattle.io.globalrolebindings/*').as('deleteGrb');
+      userEdit.resourceDetail().cruResource().saveOrCreate().click();
+      cy.wait('@deleteGrb', { timeout: 10000 }).its('response.statusCode').should('be.oneOf', [200, 204]);
+
+      // Verify no error banner appeared
+      const banner = new FixedBannerPo('#cru-errors');
+
+      banner.checkNotExists();
+
+      // Verify we navigated back to the users list
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(unassignUsername).should('be.visible');
+
+      // Cleanup
+      cy.deleteRancherResource('v1', 'management.cattle.io.users', unassignUserId, false);
     });
-
-    // Navigate to users list and edit the user
-    usersPo.goTo();
-    usersPo.waitForPage();
-    usersPo.list().clickRowActionMenuItem(unassignUsername, 'Edit Config');
-
-    const userEdit = new MgmtUserEditPo();
-
-    userEdit.waitForPage();
-
-    // Refresh the page — critical to reproduce the bug
-    cy.reload();
-    userEdit.waitForPage();
-
-    // Verify both roles are checked
-    userEdit.selectCheckbox('Standard User').isChecked();
-    userEdit.selectCheckbox('User-Base').isChecked();
-
-    // Uncheck User-Base — only role change, no credentials change
-    userEdit.selectCheckbox('User-Base').set();
-    userEdit.selectCheckbox('User-Base').isNotChecked();
-
-    // Save — should trigger DELETE for the User-Base binding
-    cy.intercept('DELETE', '/v1/management.cattle.io.globalrolebindings/*').as('deleteGrb');
-    userEdit.resourceDetail().cruResource().saveOrCreate().click();
-    cy.wait('@deleteGrb', { timeout: 10000 }).its('response.statusCode').should('be.oneOf', [200, 204]);
-
-    // Verify no error banner appeared
-    const banner = new FixedBannerPo('#cru-errors');
-
-    banner.checkNotExists();
-
-    // Verify we navigated back to the users list
-    usersPo.waitForPage();
-    usersPo.list().elementWithName(unassignUsername).should('be.visible');
-
-    // Cleanup
-    cy.deleteRancherResource('v1', 'management.cattle.io.users', unassignUserId, false);
   });
 
   it('shows global roles in specific order', () => {
