@@ -102,7 +102,7 @@ export default {
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+    if (currPluginName && plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) {
       // override create route for extension resource lists
       formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
       overrideCreateLocationByExtension = true;

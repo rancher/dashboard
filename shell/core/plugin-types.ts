@@ -35,6 +35,12 @@ export type ProductRegistrationRouteGenerationOptions = {
    * Generated route should omit the path property
    */
   omitPath?: boolean;
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   */
+  startRouteWithProduct?: boolean;
 }
 
 /**
@@ -223,11 +229,17 @@ export type ProductChildGroup = ProductChildMetadata & {
 /**
  * Represents the allowed configuration for a product
  */
-export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey' | 'category' | 'to' | 'version' | 'inStore'> & {
+export type ProductMetadata = Omit<ProductOptions, 'name' | 'label' | 'labelKey' | 'category' | 'to' | 'version'> & {
   /**
    * Product name (unique identifier)
    */
   name: string;
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   */
+  startRouteWithProduct?: boolean;
   /**
    * @internal
    * Use `renameGroups` on the product metadata to remap group display names in the side-menu. Each entry matches a group's internal ID (via string or regex) and replaces its display label with a new name. This only changes how the group is labelled in the UI — it does not move resources between groups.
@@ -345,3 +357,14 @@ export type ProductSinglePage = ProductMetadata & {
   /** Component to render for this product (single page product) */
   component: VueRouteComponent;
 };
+
+/**
+ * @internal
+ * Advanced configuration options for product registration
+ */
+export type AdvancedProductConfigOptions = {
+  /**
+   * @internal
+   * If console debugging is enabled */
+  debuggerEnabled: boolean;
+}

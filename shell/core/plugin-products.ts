@@ -2,6 +2,7 @@ import { IExtension } from '@shell/core/types';
 import {
   StandardProductName, ProductChild,
   ProductMetadata, ProductSinglePage,
+  AdvancedProductConfigOptions
 } from '@shell/core/plugin-types';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
@@ -15,13 +16,13 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
-      this.instance = new TopLevelPluginProduct(plugin, product, config);
+      this.instance = new TopLevelPluginProduct(plugin, product, config, advancedProdConfig);
     } else if (typeof product === 'string') {
       // This is extending an existing standard product
-      this.instance = new ExtendingPluginProduct(plugin, product, config);
+      this.instance = new ExtendingPluginProduct(plugin, product, config, advancedProdConfig);
     } else {
       // at this point we may not know the product name
       throw new Error('Extensions product registration error ::: Invalid product');
@@ -32,10 +33,10 @@ export class PluginProduct {
    * Convenience/bridge method: create a new top-level product from just a name string.
    * The product will use EmptyProductPage as its default page.
    */
-  static fromName(plugin: IExtension, productName: string): PluginProduct {
+  static fromName(plugin: IExtension, productName: string, advancedProdConfig: AdvancedProductConfigOptions): PluginProduct {
     const instance = Object.create(PluginProduct.prototype);
 
-    instance.instance = new TopLevelPluginProduct(plugin, productName, []);
+    instance.instance = new TopLevelPluginProduct(plugin, productName, [], advancedProdConfig);
 
     return instance;
   }

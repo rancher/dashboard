@@ -1375,7 +1375,9 @@ export default class Resource {
     });
 
     // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // if the flag "startRouteWithProduct" is true, it means the product wants to use the new route format with product at the beginning
+    // otherwise it will use the old route format with "cluster" at the beginning
+    return (plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) || false;
   }
 
   get listLocation() {

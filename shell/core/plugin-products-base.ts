@@ -3,7 +3,7 @@ import {
   ProductChild, ProductMetadata,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
   ProductChildCustomPage, VueRouteComponent,
-  OverviewPageRoutingMetadata
+  OverviewPageRoutingMetadata, AdvancedProductConfigOptions
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
@@ -14,6 +14,7 @@ import {
   hasNameProperty,
   hasTypeProperty,
 } from '@shell/core/plugin-products-type-guards';
+import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 
 /**
  * Base class for product registration in extensions
@@ -25,6 +26,10 @@ export abstract class BasePluginProduct {
   protected product?: ProductMetadata;
 
   protected addedResourceRoutes = false;
+
+  protected advIsDebuggerEnabled?: boolean = false;
+
+  protected startRouteWithProduct?: boolean;
 
   protected registeredPageNames: Set<string> = new Set();
 
@@ -42,8 +47,12 @@ export abstract class BasePluginProduct {
 
   protected config: ProductChild[];
 
-  constructor(config: ProductChild[]) {
+  constructor(config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
     this.config = config;
+
+    if (advancedProdConfig?.debuggerEnabled) {
+      this.advIsDebuggerEnabled = advancedProdConfig?.debuggerEnabled;
+    }
   }
 
   /**
@@ -128,6 +137,11 @@ export abstract class BasePluginProduct {
     if (this.product) {
       this.processProductLevelDSLOptions();
     }
+
+    if (this.advIsDebuggerEnabled) {
+      DSLRegistrationsPerProduct(store, this.name);
+      registeredRoutes(store, this.name);
+    }
   }
 
   /**
@@ -209,7 +223,7 @@ export abstract class BasePluginProduct {
   /**
    * Handles product registration via DSL (we also define entry route for the product here based on the config of the product - ordering)
    */
-  protected handleProductRegistration(): void {
+  protected handleProductRegistration(bypassedProdConfig?: ProductMetadata): void {
     const { basicType, product } = this.DSLMethods;
 
     let defaultRoute;
@@ -225,46 +239,61 @@ export abstract class BasePluginProduct {
         if (firstConfig.children.length > 0) {
           const entryChild = firstConfig.children[0];
 
+          const routeGenConfig = {
+            omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          };
+
           if (!firstConfig.component) {
             // Group without component - route to first child
             if (isProductChildWithType(entryChild)) {
-              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
+              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, routeGenConfig);
             } else if (isProductChildWithComponent(entryChild)) {
-              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
+              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, routeGenConfig);
             }
           } else {
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
-            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
+            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), routeGenConfig);
           }
         } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
+          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), {
+            omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          });
         }
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
-        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
+        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, {
+          omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+        });
       } else if (isProductChildWithComponent(firstConfig)) {
         // Simple virtual type page (custom page)
-        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
+        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig, {
+          omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+        });
       }
     } else if (this.isNewProduct) {
       // this is the "to" route for a simple page product (no config items)
-      defaultRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { omitPath: true });
+      defaultRoute = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { omitPath: true, startRouteWithProduct: this.startRouteWithProduct });
       basicType(names);
     }
 
-    // register the product via DSL
-    product({
-      showClusterSwitcher: false,
-      extendable:          false,
-      ...this.product,
-      category:            'global',
-      to:                  defaultRoute,
-      icon:                this.product?.icon || 'extension',
-      version:             2,
-      inStore:             'management',
-      name:                this.name,
-    });
+    if (bypassedProdConfig) {
+      // very advanced use case: check APPS prod config
+      product(bypassedProdConfig);
+    } else {
+      // register the product via DSL
+      product({
+        showClusterSwitcher: false,
+        extendable:          false,
+        ...this.product,
+        category:            'global',
+        to:                  defaultRoute,
+        icon:                this.product?.icon || 'extension',
+        version:             2,
+        inStore:             this.product?.inStore || 'management',
+        name:                this.name,
+      });
+    }
   }
 
   /**
@@ -357,9 +386,9 @@ export abstract class BasePluginProduct {
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(item.name, item.component as ProductChildCustomPage['component']), { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(item.name, item.component as ProductChildCustomPage['component']), { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
       } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
       }
 
       virtualType({ ...virtualTypeConfig, ...(isProductChildWithComponent(item) ? item.config || {} : {}) });
@@ -375,7 +404,7 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(typeValue);
       this.pageIdMap.set(typeValue, typeValue);
 
-      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
+      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
 
       const configureTypeConfig: ConfigureTypeConfiguration = {
         isCreatable: true,
@@ -431,9 +460,11 @@ export abstract class BasePluginProduct {
             component: EmptyProductPage
           };
 
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute, { extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
         } else {
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(child.name, child.component), { component: child.component, extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(child.name, child.component), {
+            component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          });
         }
 
         // add the route for the group page/parent
@@ -447,7 +478,9 @@ export abstract class BasePluginProduct {
           this.surfaceError('Custom pages cannot have a "type" property - only resource pages can use "type".');
         }
 
-        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child, { component: child.component, extendProduct: !this.isNewProduct });
+        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child, {
+          component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+        });
 
         plugin.addRoute(route);
       } else if (isProductChildWithType(child)) {
@@ -459,7 +492,7 @@ export abstract class BasePluginProduct {
         if (!this.addedResourceRoutes) {
           this.addedResourceRoutes = true;
 
-          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct });
+          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
 
           resourceRoutes.forEach((resRoute) => {
             plugin.addRoute(resRoute);

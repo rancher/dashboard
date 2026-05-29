@@ -2,7 +2,8 @@ import { IExtension } from '@shell/core/types';
 import {
   ProductChildCustomPage,
   ProductChildResourcePage,
-  ProductChildGroup
+  ProductChildGroup,
+  ProductMetadata
 } from '@shell/core/plugin-types';
 
 import {
@@ -27,6 +28,19 @@ import { STEVE_AGE_COL, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL } f
 export const NAME = 'apps';
 
 export function $init(prodReg: IExtension) {
+  const product: ProductMetadata = {
+    name:                  NAME,
+    removable:             false,
+    labelKey:              'product.apps',
+    weight:                97,
+    ifHaveGroup:           'catalog.cattle.io',
+    icon:                  'marketplace',
+    showNamespaceFilter:   true,
+    extendable:            true,
+    inStore:               'cluster', // this is the KEY to register a new prod, but show it in "explorer"
+    startRouteWithProduct: false
+  };
+
   const appsChartsPage: ProductChildCustomPage = {
     labelKey:  'catalog.charts.header',
     name:      'charts',
@@ -93,7 +107,6 @@ export function $init(prodReg: IExtension) {
   const resourcesGroup: ProductChildGroup = {
     name:     'apps',
     labelKey: 'product.apps',
-    weight:   97,
     children: [
       appsChartsPage,
       appsInstalledAppsPage,
@@ -102,5 +115,35 @@ export function $init(prodReg: IExtension) {
     ],
   };
 
-  prodReg.extendProduct('explorer', [resourcesGroup]);
+  prodReg.addProduct(
+    product,
+    [resourcesGroup]
+  );
+
+  // Additional routes for the product that are not tied to a specific page,
+  // ex: routes for details pages that can be accessed from multiple places in the UI
+  prodReg.addRoute({
+    path:      '/c/:cluster/apps/chart',
+    component: () => import('@shell/pages/c/_cluster/apps/charts/chart.vue'),
+    name:      'c-cluster-apps-charts-chart',
+  });
+  prodReg.addRoute({
+    path:      '/c/:cluster/apps/install',
+    component: () => import('@shell/pages/c/_cluster/apps/charts/install.vue'),
+    name:      'c-cluster-apps-charts-install',
+  });
+  prodReg.addRoute({
+    path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+    name: 'c-cluster-apps-catalog-repo',
+    redirect(to) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          ...to.params,
+          product:  NAME,
+          resource: 'catalog.cattle.io.clusterrepo',
+        }
+      };
+    },
+  });
 }
