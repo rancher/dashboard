@@ -16,7 +16,7 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
       this.instance = new TopLevelPluginProduct(plugin, product, config, advancedProdConfig);
@@ -33,7 +33,7 @@ export class PluginProduct {
    * Convenience/bridge method: create a new top-level product from just a name string.
    * The product will use EmptyProductPage as its default page.
    */
-  static fromName(plugin: IExtension, productName: string, advancedProdConfig: AdvancedProductConfigOptions): PluginProduct {
+  static fromName(plugin: IExtension, productName: string, advancedProdConfig?: AdvancedProductConfigOptions): PluginProduct {
     const instance = Object.create(PluginProduct.prototype);
 
     instance.instance = new TopLevelPluginProduct(plugin, productName, [], advancedProdConfig);

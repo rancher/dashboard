@@ -26,6 +26,8 @@ import {
   ProductMetadata,
   ProductSinglePage,
   ProductChild,
+  ProductChildPage,
+  ProductChildGroup,
   StandardProductName,
   RouteRecordRawWithParams
 } from './plugin-types';
@@ -140,16 +142,26 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void {
+  addProduct(product: ProductMetadata, config: ProductChildPage[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, config: ProductChildGroup[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductSinglePage, advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(productName: string, advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(importFn: ProductFunction): void;
+  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptions, advancedProdConfig?: AdvancedProductConfigOptions): void {
     let pluginProduct: PluginProduct;
 
+    // Disambiguate: for string/SinglePage overloads, the 2nd arg is AdvancedProductConfigOptions, not config
+    const resolvedConfig = Array.isArray(config) ? config : undefined;
+    const resolvedAdvConfig = Array.isArray(config) ? advancedProdConfig : config as AdvancedProductConfigOptions | undefined;
+
     if (typeof product === 'string') {
-      pluginProduct = PluginProduct.fromName(this, product, advancedProdConfig);
+      pluginProduct = PluginProduct.fromName(this, product, resolvedAdvConfig);
     } else if (product?.name) {
-      if (!config) {
-        pluginProduct = new PluginProduct(this, product as ProductSinglePage, [], advancedProdConfig);
+      if (!resolvedConfig) {
+        pluginProduct = new PluginProduct(this, product as ProductSinglePage, [], resolvedAdvConfig);
       } else {
-        pluginProduct = new PluginProduct(this, product as ProductMetadata, config, advancedProdConfig);
+        pluginProduct = new PluginProduct(this, product as ProductMetadata, resolvedConfig, resolvedAdvConfig);
       }
     } else {
       this.products.push(product as ProductFunction);

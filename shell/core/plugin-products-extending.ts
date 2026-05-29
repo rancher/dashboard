@@ -12,7 +12,7 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     return false;
   }
 
-  constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
+  constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
     super(config, advancedProdConfig);
 
     // existing standard product - no need to add routes

@@ -47,7 +47,7 @@ export abstract class BasePluginProduct {
 
   protected config: ProductChild[];
 
-  constructor(config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
+  constructor(config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
     this.config = config;
 
     if (advancedProdConfig?.debuggerEnabled) {

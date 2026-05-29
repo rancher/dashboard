@@ -1,4 +1,3 @@
-import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import {
   CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES

@@ -14,7 +14,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[], advancedProdConfig: AdvancedProductConfigOptions) {
+  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
     super(config, advancedProdConfig);
 
     // Convenience/bridge method: create a basic product from just a name string

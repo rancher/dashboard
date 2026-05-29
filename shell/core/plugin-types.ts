@@ -366,5 +366,5 @@ export type AdvancedProductConfigOptions = {
   /**
    * @internal
    * If console debugging is enabled */
-  debuggerEnabled: boolean;
+  debuggerEnabled?: boolean;
 }
