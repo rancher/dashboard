@@ -1,5 +1,5 @@
 <script lang="ts">
-import { TIMESTAMP } from '@shell/config/labels-annotations';
+import { TIMESTAMP, RESTARTED_AT } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
@@ -83,6 +83,7 @@ export default {
           const annotations = metadata.annotations ??= {};
 
           annotations[TIMESTAMP] = now;
+          annotations[RESTARTED_AT] = now;
 
           await workload.save();
         }
