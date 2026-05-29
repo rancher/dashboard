@@ -165,7 +165,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .btn.rc-button.btn-medium.btn-user-retention:not(.btn-sm) {
+  a.rc-button.variant-link.btn-user-retention {
     padding: 0; //retain the padding override for left-alignment with the header
   }
 </style>

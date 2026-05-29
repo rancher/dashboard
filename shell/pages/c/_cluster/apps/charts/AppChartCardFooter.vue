@@ -195,7 +195,7 @@ function getTooltip(key: string, fallback?: string): string | undefined {
   }
 }
 
-button.variant-ghost.app-chart-card-footer-button {
+button.rc-button.variant-ghost.app-chart-card-footer-button {
   padding: 0;
   gap: 0;
   min-height: 20px;
