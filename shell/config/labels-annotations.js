@@ -167,14 +167,18 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLOUD_INIT:          'harvesterhci.io/cloud-init-template',
-  CLOUD_PROVIDER_IPAM: 'cloudprovider.harvesterhci.io/ipam',
-  NETWORK_ROUTE:       'network.harvesterhci.io/route',
-  IMAGE_NAME:          'harvesterhci.io/image-name',
-  NETWORK_TYPE:        'network.harvesterhci.io/type',
-  CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
-  PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
-  CPU_MANAGER:         'cpumanager',
+  CLOUD_INIT:             'harvesterhci.io/cloud-init-template',
+  CLOUD_PROVIDER_IPAM:    'cloudprovider.harvesterhci.io/ipam',
+  CLOUD_PROVIDER_NETWORK: 'cloudprovider.harvesterhci.io/network',
+  NETWORK_ROUTE:          'network.harvesterhci.io/route',
+  IMAGE_NAME:             'harvesterhci.io/image-name',
+  NETWORK_TYPE:           'network.harvesterhci.io/type',
+  CLUSTER_NETWORK:        'network.harvesterhci.io/clusternetwork',
+  PRIMARY_SERVICE:        'cloudprovider.harvesterhci.io/primary-service',
+  INTERFACE_NAD_MAPPING:  'cloudprovider.harvesterhci.io/interface-nad-mapping',
+  IPPOOL_NETWORK_MAPPING: 'cloudprovider.harvesterhci.io/ippool-network-mapping',
+  KUBE_VIP_SERVICE_IFACE: 'kube-vip.io/serviceInterface',
+  CPU_MANAGER:            'cpumanager',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
