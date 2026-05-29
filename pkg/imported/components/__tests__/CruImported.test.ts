@@ -147,6 +147,27 @@ describe('cruImported component', () => {
 
       expect(networkAccordion.exists()).toBe(false);
     });
+    it('should hide the networking tab for local K3s clusters detected via mgmt status provider', () => {
+      const wrapper = shallowMount(CruImported, {
+        propsData: {
+          mode:  _EDIT,
+          value: {
+            id:                'cluster-id',
+            isRke1:            false,
+            isLocal:           true,
+            isK3s:             false,
+            isRke2:            false,
+            mgmt:              { status: { provider: 'k3s' } },
+            findNormanCluster: jest.fn().mockResolvedValue({})
+          }
+        },
+        ...defaultSetup
+      });
+
+      const networkAccordion = wrapper.find('[data-testid="network-accordion"]');
+
+      expect(networkAccordion.exists()).toBe(false);
+    });
 
     it('should not display the ACE component if cluster is local', () => {
       const wrapper = shallowMount(CruImported, {
