@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   schedule: daily
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_DUPLICATE_CODE_DETECTOR != 'true'
 
 permissions:
   contents: read

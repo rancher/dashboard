@@ -17,7 +17,7 @@ on:
   #schedule: daily
   reaction: "eyes"
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_STALE_ISSUE_MANAGER != 'true'
 
 timeout-minutes: 15
 
