@@ -6,7 +6,7 @@ import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import Banner from '@components/Banner/Banner.vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
@@ -14,7 +14,7 @@ export default {
   emits: ['add', 'remove', 'update:value'],
 
   components: {
-    TextAreaAutoGrow, LabeledInput, LabeledTooltip
+    TextAreaAutoGrow, LabeledInput, Banner
   },
   props: {
     value: {
@@ -329,6 +329,12 @@ export default {
         </h3>
       </slot>
     </div>
+    <Banner
+      v-if="effectiveValidationMessage"
+      class="validation-banner"
+      color="error"
+      :label="effectiveValidationMessage"
+    />
 
     <div>
       <template v-if="rows.length">
@@ -478,24 +484,20 @@ export default {
         </slot>
       </div>
     </div>
-    <LabeledTooltip
-      v-if="effectiveValidationMessage"
-      :value="effectiveValidationMessage"
-    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .array-list-main-container {
-    position: relative;
-  }
-
   .title {
     margin-bottom: 10px;
   }
 
   .required {
     color: var(--error);
+  }
+
+  .validation-banner {
+    margin-top: 0;
   }
 
   .box {
