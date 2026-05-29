@@ -94,9 +94,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     let unassignUserId: string;
     let unassignUsername: string;
 
-    // Create a standard user via API
+    // Create a standard user via API with a unique name to avoid collisions
+    const uniqueName = Cypress._.uniqueId(Date.now().toString());
+
     cy.createUser({
-      username:   'unassign-role',
+      username:   uniqueName,
       globalRole: { role: 'user' }
     }).then((resp: Cypress.Response<any>) => {
       unassignUserId = resp.body.id;
@@ -110,7 +112,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(unassignUsername, 'Edit Config');
 
-      const userEdit = new MgmtUserEditPo();
+      const userEdit = usersPo.createEdit(unassignUserId);
 
       userEdit.waitForPage();
 
