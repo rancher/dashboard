@@ -96,7 +96,18 @@ export default {
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
-    const extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
+    let extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
+    let provider = this.value.machineProvider;
+
+    if (!extClass) {
+      extClass = this.$extension.getDynamic('provisioner', this.value.provisioner.toLowerCase());
+      provider = this.value.provisioner.toLowerCase();
+    }
+
+    if (!extClass && this.value.isImported) {
+      extClass = this.$extension.getDynamic('provisioner', 'imported');
+      provider = 'imported';
+    }
 
     if (extClass) {
       this.extProvider = new extClass({
@@ -111,7 +122,7 @@ export default {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     // Support for a model extension
@@ -120,7 +131,7 @@ export default {
         ...this.extDetailTabs,
         ...this.value.customProvisionerHelper.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
