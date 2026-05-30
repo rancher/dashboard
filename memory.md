@@ -41,15 +41,19 @@
 - string.js: escapeHtml regex `/[&<>"']/g` does NOT include `/`, so `/` is not escaped (even though entityMap has it); escapeRegex escapes all `.*+?^${}()|[\]` chars; formatPercent: value<1 AND maxPrecision>=2 → 2 decimal places; value<10 AND maxPrecision>=1 → 1 decimal place; else round
 - monitoring.js: hasEndpointSubsets returns `undefined` (not `false`) when endpoint not found or subsets undefined — short-circuit &&; use toBeFalsy() for those cases; haveV2Monitoring mocks: getters['getStoreNameByProductId']=storeName, getters[`${storeName}/all`]=(type)=>schemas
 - position.js: fitOnScreen uses `triggerElemOrEvent instanceof Event` — must pass real `new MouseEvent(...)` not plain object; use `useDefaults=true` to avoid needing real DOM contentElem; mock window.innerWidth/Height with Object.defineProperty; TOP→BOTTOM fallback IS implemented when gapIf.top<0
+- dom.js: getParent() traverses DOM upward; el.matchesSelector branch (line 8) not coverable in jsdom (legacy API absent) — skip it
+- width.js: getWidth() uses `el.length` check; jsdom getComputedStyle returns '0px' for unstiled elements — test null/undefined/empty cases only
+- title.ts: updatePageTitle filters falsy values; empty string is falsy so it gets filtered out
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
 2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-3. `shell/utils/dom.js` — DOM manipulation utilities
+3. `shell/utils/platform.js` — isAlternate, isMore, isRange, suppressContextMenu, version() (module-level constants tricky due to caching)
 
 ## Completed Work (Summary)
 
+- 2026-05-30: PR (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts; 100% stmts/fns/lines, 94.11% branches
 - 2026-05-29: PR (branch test-assist/position-utils-tests): 21 tests for position.js; 87.2% stmts, 67.5% branches, 75% fns
 - 2026-05-28: PR (branch test-assist/monitoring-utils-tests): 14 tests for monitoring.js; 84.1% stmts, 92.3% branches, 87.5% fns
 - 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined
@@ -67,6 +71,7 @@
 
 ## Task Round-Robin History
 
+- 2026-05-30: Task 3 (dom.js + width.js + title.ts, 26 tests) + Task 7
 - 2026-05-29: Task 3 (position.js, 21 tests) + Task 7
 - 2026-05-28: Task 3 (monitoring.js, 14 tests) + Task 7
 - 2026-05-27: Task 3 (string.js, 116 tests) + Task 7
