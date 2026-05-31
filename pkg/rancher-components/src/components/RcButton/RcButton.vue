@@ -142,7 +142,19 @@ const focus = () => {
   RcFocusTarget?.value?.focus();
 };
 
+const preventScroll = (event: KeyboardEvent) => {
+  if (tag.value === 'button') {
+    return;
+  }
+
+  event.preventDefault();
+};
+
 const handleSpace = (event: KeyboardEvent) => {
+  if (tag.value === 'button') {
+    return;
+  }
+
   (event.target as HTMLElement).click();
 };
 
@@ -156,7 +168,8 @@ defineExpose({ focus });
     :role="role"
     v-bind="linkProps"
     :class="{ ...buttonClass }"
-    @keydown.space.prevent="handleSpace"
+    @keydown.space="preventScroll"
+    @keyup.space="handleSpace"
   >
     <slot
       v-if="$slots.before || props.leftIcon"
