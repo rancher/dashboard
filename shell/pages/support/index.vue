@@ -114,12 +114,6 @@ export default {
     }
   },
 
-  methods: {
-    downloadSupportConfig() {
-      window.location.href = this.supportConfigLink;
-    },
-  },
-
 };
 </script>
 <template>
@@ -167,7 +161,7 @@ export default {
                 v-if="hasAWSSupport"
                 variant="secondary"
                 class="mr-5"
-                @click="downloadSupportConfig"
+                :href="supportConfigLink"
               >
                 {{ t('support.suse.access.aws.generateConfig') }}
               </rc-button>
