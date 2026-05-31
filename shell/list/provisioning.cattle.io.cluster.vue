@@ -296,7 +296,7 @@ export default {
         >
           <rc-button
             size="large"
-            class="mr10"
+            class="mr-10"
             :to="importLocation"
             data-testid="cluster-manager-list-import"
           >
