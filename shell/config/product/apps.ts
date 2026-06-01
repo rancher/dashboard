@@ -137,12 +137,12 @@ export function $init(prodReg: IExtension) {
   });
 
   prodReg.addRoute({
-    path:      '/c/:cluster/apps/chart',
+    path:      '/c/:cluster/apps/charts/chart',
     component: () => import('@shell/pages/c/_cluster/apps/charts/chart.vue'),
     name:      'c-cluster-apps-charts-chart',
   });
   prodReg.addRoute({
-    path:      '/c/:cluster/apps/install',
+    path:      '/c/:cluster/apps/charts/install',
     component: () => import('@shell/pages/c/_cluster/apps/charts/install.vue'),
     name:      'c-cluster-apps-charts-install',
   });
