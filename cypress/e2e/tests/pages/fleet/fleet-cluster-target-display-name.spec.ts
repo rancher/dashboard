@@ -55,12 +55,17 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
     it('should display cluster nameDisplay (not metadata.name) in the target selector dropdown', () => {
       interceptFleetClustersWithDisplayName();
 
+      // Select workspace from list page first, then navigate to create
+      const listPage = new FleetApplicationListPagePo();
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
       const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
-
-      headerPo.selectWorkspace(workspace);
 
       // Step 1: Metadata
       cy.createE2EResourceName('display-name-dropdown').then((name) => {
@@ -101,12 +106,17 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
     it('should use display name as clusterName value when selecting a cluster target', () => {
       interceptFleetClustersWithDisplayName();
 
+      // Select workspace from list page first, then navigate to create
+      const listPage = new FleetApplicationListPagePo();
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
       const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
-
-      headerPo.selectWorkspace(workspace);
 
       // Step 1: Metadata
       cy.createE2EResourceName('display-name-value').as('createRepoName');
