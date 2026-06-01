@@ -51,7 +51,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
 
 <template>
   <div
-    class="gap-16"
+    class="gap-md"
     data-testid="helmop-appco-resources-section"
   >
     <!-- Helm chart resources settings -->
@@ -111,7 +111,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
             /></a>
         </p>
 
-        <div class="gap-12">
+        <div class="gap-sm">
           <Banner
             v-if="lockedSecrets.length > 0"
             color="info"
@@ -161,15 +161,15 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
   gap: 5px;
 }
 
-.gap-12 {
+.gap-sm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--gap-sm);
 }
 
-.gap-16 {
+.gap-md {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--gap-md);
 }
 </style>

@@ -73,7 +73,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
 .gap-16 {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .cluster-deployment-settings-input {

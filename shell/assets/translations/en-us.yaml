@@ -164,8 +164,6 @@ generic:
     genericRow: row {index}
   showLess: Show less
   showMore: Show more
-  showAll: Show all
-  hide: Hide
   externalIps: External IPs
   internalIps: Internal IPs
   opensInNewTab: Opens in a new tab
@@ -850,14 +848,6 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
-  createAppCoAuth:
-    action: Create Secret
-    success: Secret Saved
-    waiting: Saving&hellip;
-  setAppCoDefault:
-    action: Set as Default
-    success: Default Saved
-    waiting: Saving&hellip;
   registerApplication:
     action: Add Application
     success: Added
@@ -3185,9 +3175,6 @@ fleet:
             other {{n, number} clusters selected}
             }
         selectedClusters: Selected clusters
-        viewAllClusters: View all clusters
-        hideAllClusters: Hide all clusters
-        workspace: 'workspace:'
         placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
         plusMore: |-
@@ -3451,9 +3438,6 @@ fleet:
     appCoConfig:
       chartVersion: Chart version
       name: App Bundle name
-      namePlaceholder: A unique name
-      description: Description
-      descriptionPlaceholder: Any text you want that better describes this resource
       advanced: Advanced
     appCoView:
       chartConfig: Chart config
@@ -3480,9 +3464,6 @@ fleet:
         chart:
           label: OCI Registry URL
           placeholder: e.g. oci://foo.bar/baz
-        chartName:
-          label: Application Name
-          placeholder: e.g. my-application
       version:
         label: Version
         placeholder: The Chart version
@@ -3576,9 +3557,6 @@ fleet:
       label: Authentication
       helm: Helm Authentication
       appco: SUSE App Collection Authentication
-      setDefault: Set as default for this workspace
-      setDefaultTooltip: When enabled, this secret will be pre-selected for new SUSE Application Collection App Bundles in this workspace.
-      alreadyDefault: This secret is already set as the default for this workspace.
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"

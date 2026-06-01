@@ -86,6 +86,7 @@ export default {
           v-for="(cluster, i) in clustersRenderList"
           :key="i"
           type="inactive"
+          class="do-not-shrink"
         >
           {{ cluster.name }}
         </RcTag>
@@ -184,8 +185,13 @@ export default {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
-    max-height: 90vh;
-    overflow: auto;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    .do-not-shrink {
+      flex-shrink: 0;
+    }
   }
 
   .view-all-link {
