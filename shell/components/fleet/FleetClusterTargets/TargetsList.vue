@@ -85,15 +85,9 @@ export default {
         <RcTag
           v-for="(cluster, i) in clustersRenderList"
           :key="i"
-          type="active"
+          type="inactive"
         >
-          <router-link
-            :to="cluster.detailLocation"
-            target="_blank"
-            class="chip-link"
-          >
-            {{ cluster.name }}&nbsp;<i class="icon icon-external-link chip-icon" />
-          </router-link>
+          {{ cluster.name }}
         </RcTag>
         <span
           v-if="!clustersRenderList.length"
@@ -192,22 +186,6 @@ export default {
     align-items: flex-start;
     max-height: 90vh;
     overflow: auto;
-
-    :deep(.rc-tag) {
-      flex-shrink: 0;
-    }
-  }
-
-  .chip-icon {
-    font-size: 11px;
-    display: none;
-  }
-  .chip-link:hover .chip-icon {
-    display: inline;
-  }
-  .chip-link {
-    text-decoration: none;
-    color: inherit;
   }
 
   .view-all-link {
