@@ -8,7 +8,7 @@ describe('class FleetBundle', () => {
   describe('targetClusters', () => {
     function createFleetBundle(targets: any[], clusters: any[], workspaceId = 'fleet-default', groups: any[] = []) {
       const workspace = {
-        id: workspaceId,
+        id:            workspaceId,
         clusters,
         clusterGroups: groups,
       };
@@ -25,14 +25,22 @@ describe('class FleetBundle', () => {
       [
         'metadata.name',
         [{ clusterName: 'c-m-abc123' }],
-        [{ id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-cluster' }],
-        [{ id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-cluster' }],
+        [{
+          id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-cluster'
+        }],
+        [{
+          id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-cluster'
+        }],
       ],
       [
         'nameDisplay when metadata.name does not match',
         [{ clusterName: 'my-display-name' }],
-        [{ id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-display-name' }],
-        [{ id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-display-name' }],
+        [{
+          id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-display-name'
+        }],
+        [{
+          id: 'fleet-default/c-m-abc123', metadata: { name: 'c-m-abc123' }, nameDisplay: 'my-display-name'
+        }],
       ],
     ])('should find cluster by %s', (_label, targets, clusters, expected) => {
       const bundle = createFleetBundle(targets, clusters);

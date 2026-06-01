@@ -1852,7 +1852,8 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1873,7 +1874,8 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1894,7 +1896,8 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1923,7 +1926,8 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1936,8 +1940,12 @@ describe('component: FleetClusterTargets', () => {
       const options = wrapper.vm.clustersOptions;
 
       expect(options).toStrictEqual([
-        { label: 'my-production-cluster', value: 'my-production-cluster' },
-        { label: 'my-staging-cluster', value: 'my-staging-cluster' }
+        {
+          label: 'my-production-cluster', value: 'my-production-cluster', disabled: false
+        },
+        {
+          label: 'my-staging-cluster', value: 'my-staging-cluster', disabled: false
+        }
       ]);
     });
 
@@ -1955,7 +1963,8 @@ describe('component: FleetClusterTargets', () => {
         }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets:   [],
           namespace: 'fleet-default',
@@ -1966,7 +1975,9 @@ describe('component: FleetClusterTargets', () => {
       wrapper.setData({ allClusters: mockClusters });
 
       expect(wrapper.vm.clustersOptions).toStrictEqual([
-        { label: 'my-cluster', value: 'my-cluster' }
+        {
+          label: 'my-cluster', value: 'my-cluster', disabled: false
+        }
       ]);
     });
   });
@@ -1989,7 +2000,8 @@ describe('component: FleetClusterTargets', () => {
         { clusterName: 'c-m-def456' }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets,
           namespace: 'fleet-default',
@@ -2015,7 +2027,8 @@ describe('component: FleetClusterTargets', () => {
 
       const targets = [{ clusterName: 'my-cluster' }];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets,
           namespace: 'fleet-default',
@@ -2042,7 +2055,8 @@ describe('component: FleetClusterTargets', () => {
         { clusterName: 'unknown-name' }
       ];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets,
           namespace: 'fleet-default',
@@ -2059,7 +2073,8 @@ describe('component: FleetClusterTargets', () => {
     it('should not resolve when clusters array is empty', async() => {
       const targets = [{ clusterName: 'c-m-abc123' }];
 
-      const wrapper = mountWithSetup(FleetClusterTargets, {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
         props: {
           targets,
           namespace: 'fleet-default',
