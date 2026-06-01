@@ -9,7 +9,7 @@ import { RcSection } from '@components/RcSection';
 import { getSubnetDisplayName, getVpcDisplayName } from '@shell/utils/aws';
 import * as AWS from '@shell/types/aws-sdk';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import SecurityOverrides from './SecurityOverrides.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 defineOptions({ name: 'Networking' });
 
@@ -17,14 +17,14 @@ const emit = defineEmits([
   'update:vpcId',
   'update:subnetId',
   'validationChanged',
-  'update:securityGroupOverrides',
-  'update:ipv6'
+  'update:ipv6',
+  'update:cidrBlock'
 ]);
 
 interface Props {
   vpcId: string;
   subnetId: string;
-  securityGroupOverrides: {};
+  cidrBlock?: string;
   ipv6?: {};
   mode?: string;
   credentialId: any;
@@ -50,6 +50,7 @@ const loadingVpcs = ref(false);
 const loadingSubnets = ref(false);
 
 // TODO nb managed network should have a label applied by capi - check for this so edit loads the right strategy
+// sigs.k8s.io/cluster-api-provider-aws/cluster/<cluster-name> (where <cluster-name> matches the metadata.name field of the Cluster object) tag, with a value of owned
 const useUnmanagedNetwork = ref(false);
 
 const enableIpv6 = computed({
@@ -134,6 +135,13 @@ async function getSubnets() {
   loadingSubnets.value = false;
 }
 
+watch(useUnmanagedNetwork, (neu) => {
+  if (!neu) {
+    emit('update:vpcId', '');
+    emit('update:subnetId', '');
+  }
+});
+
 watch([
   () => region.value,
   () => credentialId.value,
@@ -145,7 +153,6 @@ watch([
     });
     getVpcs();
     getSubnets();
-    // getSecurityGroups();
   } else {
     vpcInfo.value = [];
     subnetInfo.value = [];
@@ -177,7 +184,7 @@ watch([
       :expandable="true"
     >
       <!-- //TODO nb make these inputs required when unmanagednetwork is true -->
-      <div class="mb-20 span-6">
+      <div class="span-6">
         <LabeledSelect
           :value="vpcId"
           :label="t('capa.clusterConfig.network.vpc.label')"
@@ -186,7 +193,7 @@ watch([
           @update:value="$emit('update:vpcId', $event)"
         />
       </div>
-      <div class="mb-20 span-6">
+      <div class="span-6">
         <LabeledSelect
           :value="subnetId"
           :label="t('capa.clusterConfig.network.subnets.label')"
@@ -195,18 +202,18 @@ watch([
           @update:value="$emit('update:subnetId', $event)"
         />
       </div>
-      <div>
-        <h4>{{ t('capa.clusterConfig.network.securityGroups.label') }}</h4>
-        <h5>{{ t('capa.clusterConfig.network.securityGroups.description') }}</h5>
-        <SecurityOverrides
-          :vpc-id="vpcId"
-          :region="region"
-          :credential-id="credentialId"
-          :value="securityGroupOverrides"
-          @update:value="$emit('update:securityGroupOverrides', $event)"
+    </RcSection>
+    <div v-else>
+      <div class="col span-6">
+        <LabeledInput
+          :value="cidrBlock"
+          :label="t('capa.clusterConfig.network.vpc.cidrBlock.label')"
+          :placeholder="t('capa.clusterConfig.network.vpc.cidrBlock.placeholder')"
+          :mode="mode"
+          @update:value="$emit('update:cidrBlock', $event)"
         />
       </div>
-    </RcSection>
+    </div>
     <div class="row">
       <!-- TODO nb localization -->
       <Checkbox

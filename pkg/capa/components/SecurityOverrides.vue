@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { toRefs, ref, watch, computed } from 'vue';
 import { _CREATE } from '@shell/config/query-params';
@@ -136,7 +137,7 @@ watch(vpcId, (neu, old) => {
 
 watch(localValue, (neu) => {
   value.value = neu;
-  emit('update:value', value);
+  emit('update:value', neu);
 });
 
 watch([
@@ -158,7 +159,10 @@ watch([
 </script>
 
 <template>
-  <div class="row">
+  <div
+    v-if="Object.keys(localValue || {}).length"
+    class="row"
+  >
     <div class="col span-12">
       <KeyValue
         :value="localValue"
@@ -173,6 +177,7 @@ watch([
           <LabeledSelect
             :value="row.key"
             :options="securityGroupRoleOptions"
+            :mode="mode"
             @update:value="(newKey) => updateRowKey(row.key, newKey, row.value)"
           >
             <template #selected-option>
@@ -185,6 +190,7 @@ watch([
             :value="row.value"
             :options="securityGroupOptions"
             :loading="loadingSecurityGroups"
+            :mode="mode"
             @update:value="(newValue) => updateRowValue(row.key, newValue)"
           />
         </template>
@@ -196,6 +202,7 @@ watch([
       v-if="securityGroupRoleOptions.length && vpcId"
       type="button"
       class="btn btn-sm role-secondary"
+      :mode="mode"
       @click="addOverride"
     >
       {{ t('capa.clusterConfig.network.securityGroups.addOverride') }}

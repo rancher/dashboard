@@ -5,11 +5,12 @@ import {
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { RcSection } from '@components/RcSection';
+import { RcSection, RcSectionBadges } from '@components/RcSection';
 import { _CREATE } from '@shell/config/query-params';
 import merge from 'lodash/merge';
-import Networking from '.././components/Networking.vue';
-import IngressRules from '.././components/IngressRules.vue';
+import Networking from './Networking.vue';
+import IngressRules from './IngressRules.vue';
+import SecurityOverrides from './SecurityOverrides.vue';
 import { removeEmptyFields } from '../utils';
 import { NORMAN } from '@shell/config/types';
 import { set } from '@shell/utils/object.js';
@@ -76,8 +77,10 @@ const regionInfo = ref(null);
 const sshKeyInfo = ref(null);
 const loadingRegions = ref(false);
 const loadingSshKeys = ref(false);
+const allowAdditionalCPRules = ref(true);
+const allowAdditionalNodeRules = ref(true);
 
-// TODO nb generic set-if-not-set for region, sshKeyName, vpcId, firstSubnetId
+// TODO nb generic set-if-not-set for region, sshKeyName, vpcId, firstSubnetId, se3curityGroupOverrides, xyzIngressRules
 const region: WritableComputedRef<string> = computed({
   get: () => value?.value?.spec?.region || '',
   set: (newRegion: string) => {
@@ -129,15 +132,18 @@ const ipv6: WritableComputedRef<string> = computed({
   },
 });
 
-const securityGroupOverrides: WritableComputedRef<string> = computed({
+const securityGroupOverrides: WritableComputedRef<{}> = computed({
   get: () => value?.value?.spec?.network?.securityGroupOverrides || {},
-  set: (neu: string) => {
+  set: (neu: any) => {
+    console.log('*** securityGroupOverrides setter');
     if (value.value) {
       if (!value.value?.spec?.network) {
         set(value.value, 'spec.network', { securityGroupOverrides: neu });
       } else {
         value.value.spec.network.securityGroupOverrides = neu;
       }
+      allowAdditionalNodeRules.value = !neu.node;
+      allowAdditionalCPRules.value = !neu.controlplane;
     }
     emit('update:value', value.value);
   },
@@ -324,7 +330,6 @@ onMounted(async() => {
       <Networking
         v-model:vpc-id="vpcId"
         v-model:subnet-id="firstSubnetId"
-        v-model:security-group-overrides="securityGroupOverrides"
         v-model:ipv6="ipv6"
         :mode="mode"
         :region="region"
@@ -338,17 +343,49 @@ onMounted(async() => {
         type="secondary"
         class="mt-20"
       >
+        <!-- //TODO nb distinguish between vpc selected on create and prefilled vpc on edit; do not show in latter case -->
+        <RcSection
+          :title="t('capa.clusterConfig.network.securityGroups.label')"
+          :expandable="true"
+          mode="with-header"
+          type="secondary"
+          class="mt-20"
+          :expanded="!!vpcId"
+        >
+          <h5>{{ t('capa.clusterConfig.network.securityGroups.description') }}</h5>
+          <SecurityOverrides
+            v-if="vpcId"
+            v-model:value="securityGroupOverrides"
+            :vpc-id="vpcId"
+            :region="region"
+            :credential-id="credentialId"
+            :mode="mode"
+          />
+        </RcSection>
         <RcSection
           title="Additional Control Plane Ingress Rules"
           :expandable="true"
           mode="with-header"
           type="secondary"
+          class="mt-20"
+          :expanded="allowAdditionalCPRules"
         >
+          <template
+            v-if="!allowAdditionalCPRules"
+            #badges
+          >
+            <RcSectionBadges
+              :badges="[
+                { label: 'Overriden', status: 'warning', tooltip: 'Additional control plane ingress rules will be overriden by a security group override configured above.' },
+              ]"
+            />
+          </template>
           <IngressRules
             v-model:value="additionalControlPlaneIngressRules"
-            :mode="mode"
+            :mode="allowAdditionalCPRules ? mode: 'view'"
             :region="region"
             :credential-id="credentialId"
+            :vpc-id="vpcId"
           />
         </RcSection>
 
@@ -358,12 +395,24 @@ onMounted(async() => {
           mode="with-header"
           type="secondary"
           class="mt-20"
+          :expanded="allowAdditionalNodeRules"
         >
+          <template
+            v-if="!allowAdditionalNodeRules"
+            #badges
+          >
+            <RcSectionBadges
+              :badges="[
+                { label: 'Overriden', status: 'warning', tooltip: 'Additional node ingress rules will be overriden by a security group override configured above.' },
+              ]"
+            />
+          </template>
           <IngressRules
             v-model:value="additionalNodeIngressRules"
-            :mode="mode"
+            :mode="allowAdditionalNodeRules ? mode: 'view'"
             :region="region"
             :credential-id="credentialId"
+            :vpc-id="vpcId"
           />
         </RcSection>
 
@@ -379,6 +428,8 @@ onMounted(async() => {
             :mode="mode"
             :region="region"
             :credential-id="credentialId"
+            :vpc-id="vpcId"
+            :allow-targets="false"
           />
         </RcSection>
       </RcSection>
