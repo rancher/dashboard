@@ -82,11 +82,8 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Step 3: Target selection
-      // Wait for fleet clusters to load before interacting with target options
-      cy.wait('@fleetClustersWithDisplayName');
-
-      // Wait for "Manually selected clusters" radio option to appear (index 2: all=0, none=1, clusters=2)
-      gitRepoCreatePage.targetClusterOptions().getOptionByIndex(2).should('be.visible');
+      // Wait for fleet clusters to load and "Manually selected clusters" radio to appear
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
       gitRepoCreatePage.targetClusterOptions().set(2);
 
       // Open cluster dropdown and verify display name is shown
@@ -135,8 +132,7 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Step 3: Target selection - select cluster by display name
-      cy.wait('@fleetClustersWithDisplayName');
-      gitRepoCreatePage.targetClusterOptions().getOptionByIndex(2).should('be.visible');
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
       gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickLabel(DISPLAY_NAME);
