@@ -1,11 +1,11 @@
 <script lang="ts">
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AsyncButton from '@shell/components/AsyncButton.vue';
-import Footer from '@shell/components/form/Footer';
+import Footer from '@shell/components/form/Footer.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import NameNsDescription from '@shell/components/form/NameNsDescription';
-import Labels from '@shell/components/form/Labels';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
+import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
+import Labels from '@shell/components/form/Labels.vue';
+import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import {
@@ -13,9 +13,11 @@ import {
   CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CLUSTER_REPO_AUTH_GENERATE_NAME
 } from '@shell/config/types';
 import UnitInput from '@shell/components/form/UnitInput.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { getVersionData } from '@shell/config/version';
+import { secondsToLargestUnit } from '@shell/utils/time';
 import { RcItemCard } from '@components/RcItemCard';
-import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params.js';
 import { RcIconType } from '@components/RcIcon/types';
 import { requireAsset } from '@shell/utils/require-asset';
 
@@ -34,6 +36,7 @@ export default {
     Banner,
     Checkbox,
     UnitInput,
+    LabeledSelect,
     RcItemCard,
   },
 
@@ -82,6 +85,19 @@ export default {
       });
     }
 
+    const storedInterval = this.value.spec.refreshInterval;
+    const refreshEnabled = storedInterval === undefined || storedInterval >= 0;
+
+    let refreshDisplayValue = null;
+    let refreshUnit = 3600;
+
+    if (storedInterval && storedInterval > 0) {
+      const parsed = secondsToLargestUnit(storedInterval);
+
+      refreshDisplayValue = parsed.value;
+      refreshUnit = parsed.unit;
+    }
+
     return {
       CLUSTER_REPO_TYPES,
       AUTH_TYPE,
@@ -97,6 +113,9 @@ export default {
       clusterRepoTargets,
       previousName:        '',
       previousDescription: '',
+      refreshEnabled,
+      refreshDisplayValue,
+      refreshUnit,
     };
   },
 
@@ -113,6 +132,22 @@ export default {
   computed: {
     inStore() {
       return this.$store.getters['currentProduct']?.inStore || MANAGEMENT;
+    },
+    unitOptions() {
+      return [
+        { label: this.t('unit.sec'), value: 1 },
+        { label: this.t('unit.min'), value: 60 },
+        { label: this.t('unit.hour', { count: 2 }), value: 3600 },
+        { label: this.t('unit.day', { count: 2 }), value: 86400 },
+      ];
+    },
+    refreshIntervalPlaceholder() {
+      const defaultHours = this.clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 1;
+
+      return this.t('catalog.repo.refreshInterval.placeholder', {
+        value: defaultHours,
+        unit:  this.t('unit.hour', { count: defaultHours }),
+      });
     },
     secretNamespace() {
       const tryNames = ['cattle-system', 'default'];
@@ -174,20 +209,40 @@ export default {
 
       this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
-    updateRefreshInterval(newVal) {
-      // when user removes the value we don't send refreshInterval along with the payload
-      if (newVal === null) {
+    syncRefreshIntervalToSpec() {
+      if (!this.refreshEnabled) {
+        this.value.spec.refreshInterval = -1;
+
+        return;
+      }
+
+      if (this.refreshDisplayValue === null || this.refreshDisplayValue === '') {
         delete this.value.spec.refreshInterval;
 
         return;
       }
 
-      this.value.spec.refreshInterval = newVal;
+      this.value.spec.refreshInterval = Number(this.refreshDisplayValue) * this.refreshUnit;
+    },
+    onRefreshEnabledChange(val) {
+      this.refreshEnabled = val;
+      this.syncRefreshIntervalToSpec();
+    },
+    onRefreshValueChange(val) {
+      this.refreshDisplayValue = val === '' || val === null ? null : val;
+      this.syncRefreshIntervalToSpec();
+    },
+    onRefreshUnitChange(val) {
+      this.refreshUnit = val;
+      this.syncRefreshIntervalToSpec();
     },
     resetGitRepoValues() {
       delete this.value.spec['gitRepo'];
       delete this.value.spec['gitBranch'];
       delete this.value.spec['refreshInterval'];
+      this.refreshEnabled = true;
+      this.refreshDisplayValue = null;
+      this.refreshUnit = 3600;
     },
     resetOciValues() {
       delete this.value.spec['url'];
@@ -199,6 +254,9 @@ export default {
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
+      this.refreshEnabled = true;
+      this.refreshDisplayValue = null;
+      this.refreshUnit = 3600;
     },
     resetHelmValues() {
       delete this.value.spec['url'];
@@ -335,18 +393,42 @@ export default {
       </div>
 
       <div
-        class="col span-3"
+        :class="clusterRepoType === CLUSTER_REPO_TYPES.GIT_REPO ? 'col span-3' : 'col span-6'"
         data-testid="clusterrepo-refresh-interval"
       >
-        <UnitInput
-          v-model:value.trim="value.spec.refreshInterval"
-          :label="t('catalog.repo.refreshInterval.label')"
-          :mode="mode"
-          min="0"
-          :suffix="t('unit.hour', { count: value.spec.refreshInterval })"
-          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
-          @update:value="updateRefreshInterval($event)"
-        />
+        <div class="refresh-interval-controls">
+          <LabeledInput
+            :tooltip="t('catalog.repo.refreshInterval.tooltip')"
+            class="refresh-interval-value"
+            :value="refreshDisplayValue"
+            :label="t('catalog.repo.refreshInterval.label')"
+            :mode="mode"
+            type="number"
+            min="0"
+            :disabled="!refreshEnabled || isView"
+            :placeholder="refreshIntervalPlaceholder"
+            data-testid="clusterrepo-refresh-interval-input"
+            @update:value="onRefreshValueChange"
+          />
+          <LabeledSelect
+            :value="refreshUnit"
+            :label="t('catalog.repo.refreshInterval.unitLabel')"
+            :mode="mode"
+            :options="unitOptions"
+            :disabled="!refreshEnabled || isView"
+            :clearable="false"
+            :searchable="false"
+            data-testid="clusterrepo-refresh-interval-unit"
+            @update:value="onRefreshUnitChange"
+          />
+          <Checkbox
+            :value="refreshEnabled"
+            :label="t('generic.enabled')"
+            :disabled="isView"
+            data-testid="clusterrepo-refresh-interval-checkbox"
+            @update:value="onRefreshEnabledChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -468,7 +550,7 @@ export default {
   </form>
 </template>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .target-groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -477,4 +559,11 @@ export default {
   height: max-content;
   overflow: hidden;
 }
+
+.refresh-interval-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
 </style>
