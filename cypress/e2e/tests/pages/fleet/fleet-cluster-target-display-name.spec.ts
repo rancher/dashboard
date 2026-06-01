@@ -159,12 +159,9 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
         gitRepoName = name;
 
         // Create a gitrepo with cluster target using metadata.name
-        const gitRepoBody = gitRepoTargetAllClustersRequest(workspace, name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths);
-
-        // Override targets to reference the cluster by metadata.name
-        gitRepoBody.spec.targets = [{ clusterName: METADATA_NAME }];
-
-        cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoBody);
+        cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos',
+          gitRepoTargetAllClustersRequest(workspace, name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths, [{ clusterName: METADATA_NAME }])
+        );
       });
     });
 
