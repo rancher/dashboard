@@ -8,6 +8,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppCoEmptyState from '@shell/components/fleet/AppCoEmptyState.vue';
 import Loading from '@shell/components/Loading';
 import Select from '@shell/components/form/Select';
+import { RcIcon } from '@components/RcIcon';
 
 interface ChartEntry {
   name: string;
@@ -224,96 +225,100 @@ const onKeydown = (e: KeyboardEvent) => {
           :aria-label="placeholderText"
           data-testid="chart-card-grid-search"
         >
-        <i
+        <RcIcon
           v-if="!searchQuery"
-          class="icon icon-search"
+          type="search"
+          size="medium"
+          class="icon-search"
         />
       </div>
 
-      <div class="total-and-sort">
-        <p
-          class="total-message"
-          data-testid="chart-card-grid-total"
-        >
-          {{ totalMessage }}
-        </p>
-        <Select
-          v-model:value="selectedSortOption"
-          :clearable="false"
-          :searchable="false"
-          :options="sortOptions"
-          placement="bottom"
-          class="charts-sort-select"
-        >
-          <template #selected-option="{ label }">
-            <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
-          </template>
-
-          <template #option="{ label, kind }">
-            <span
-              v-if="kind === 'group'"
-              class="mml-2 mmr-2"
-            >
-              {{ label }}:
-            </span>
-            <span
-              v-else
-              class="mml-6"
-            >
-              {{ label }}
-            </span>
-          </template>
-        </Select>
-      </div>
-
-      <div
-        v-if="chartCards.length"
-        class="chart-cards"
-        data-testid="chart-card-grid-cards"
-      >
-        <rc-item-card
-          v-for="card in chartCards"
-          :id="card.id"
-          :key="card.id"
-          :header="card.header"
-          :image="card.image"
-          :content="card.content"
-          :value="card.rawChart"
-          variant="medium"
-          :clickable="true"
-          :class="{ 'single-card': chartCards.length === 1 }"
-          data-testid="chart-card-grid-card"
-          @card-click="emit('select-chart', $event)"
-        >
-          <template #item-card-sub-header>
-            <AppChartCardSubHeader :items="card.subHeaderItems" />
-          </template>
-          <template
-            v-if="$slots['card-footer']"
-            #item-card-footer
+      <div class="chart-grid-content">
+        <div class="total-and-sort">
+          <p
+            class="total-message"
+            data-testid="chart-card-grid-total"
           >
-            <slot
-              name="card-footer"
-              :card="card"
-            />
-          </template>
-        </rc-item-card>
+            {{ totalMessage }}
+          </p>
+          <Select
+            v-model:value="selectedSortOption"
+            :clearable="false"
+            :searchable="false"
+            :options="sortOptions"
+            placement="bottom"
+            class="charts-sort-select"
+          >
+            <template #selected-option="{ label }">
+              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+            </template>
+
+            <template #option="{ label, kind }">
+              <span
+                v-if="kind === 'group'"
+                class="mml-2 mmr-2"
+              >
+                {{ label }}:
+              </span>
+              <span
+                v-else
+                class="mml-6"
+              >
+                {{ label }}
+              </span>
+            </template>
+          </Select>
+        </div>
+
+        <div
+          v-if="chartCards.length"
+          class="chart-cards"
+          data-testid="chart-card-grid-cards"
+        >
+          <rc-item-card
+            v-for="card in chartCards"
+            :id="card.id"
+            :key="card.id"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :value="card.rawChart"
+            variant="medium"
+            :clickable="true"
+            :class="{ 'single-card': chartCards.length === 1 }"
+            data-testid="chart-card-grid-card"
+            @card-click="emit('select-chart', $event)"
+          >
+            <template #item-card-sub-header>
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
+            </template>
+            <template
+              v-if="$slots['card-footer']"
+              #item-card-footer
+            >
+              <slot
+                name="card-footer"
+                :card="card"
+              />
+            </template>
+          </rc-item-card>
+        </div>
+
+        <AppCoEmptyState
+          v-else
+          :title="t('fleet.helmOp.add.steps.selection.emptyState.noMatch.title')"
+          data-testid="chart-card-grid-no-match"
+        >
+          {{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.descriptionPre') }}
+          <a
+            href="#"
+            @click.prevent="clearSearch"
+          >{{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.clearSearch') }}</a>
+          {{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.descriptionPost') }}
+        </AppCoEmptyState>
+
+        <slot name="after-cards" />
       </div>
-
-      <AppCoEmptyState
-        v-else
-        :title="t('fleet.helmOp.add.steps.selection.emptyState.noMatch.title')"
-        data-testid="chart-card-grid-no-match"
-      >
-        {{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.descriptionPre') }}
-        <a
-          href="#"
-          @click.prevent="clearSearch"
-        >{{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.clearSearch') }}</a>
-        {{ t('fleet.helmOp.add.steps.selection.emptyState.noMatch.descriptionPost') }}
-      </AppCoEmptyState>
-
-      <slot name="after-cards" />
     </template>
   </div>
 </template>
@@ -322,8 +327,9 @@ const onKeydown = (e: KeyboardEvent) => {
 .chart-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-lg);
   outline: none;
+
 }
 
 .search-input {
@@ -340,17 +346,19 @@ const onKeydown = (e: KeyboardEvent) => {
     position: absolute;
     top: 16px;
     right: 16px;
-    font-size: 16px;
   }
 }
 
+.chart-grid-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
 .total-and-sort {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--gap-md);
-  padding: 8px 0;
 
   .total-message {
     font-size: 16px;

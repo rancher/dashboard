@@ -20,11 +20,6 @@ export default {
       default: ''
     },
 
-    isAll: {
-      type:    Boolean,
-      default: false
-    },
-
     compact: {
       type:    Boolean,
       default: false
@@ -66,7 +61,7 @@ export default {
 <template>
   <div
     class="targets-list-main"
-    :class="{ 'compact': compact, 'compact-bg': compact && !isAll, 'is-all': isAll }"
+    :class="{ 'compact': compact }"
   >
     <h3
       v-if="!compact"
@@ -81,65 +76,11 @@ export default {
       <h3>{{ t('fleet.clusterTargets.rules.matching.selectedClusters') }}</h3>
       <RcCounterBadge
         :count="clustersRenderList.length"
-        :class="{ 'badge-white': isAll }"
         type="inactive"
       />
     </div>
 
-    <template v-if="isAll && compact">
-      <a
-        v-if="!showAllClusters"
-        href="#"
-        class="view-all-link"
-        @click.prevent="showAllClusters = true"
-      >
-        {{ t('fleet.clusterTargets.rules.matching.viewAllClusters') }}
-      </a>
-      <div
-        v-else
-        class="targets-list-chips"
-      >
-        <RcTag
-          v-for="(cluster, i) in clustersRenderList"
-          :key="i"
-          type="active"
-        >
-          <router-link
-            :to="cluster.detailLocation"
-            target="_blank"
-            class="chip-link"
-          >
-            {{ cluster.name }}&nbsp;<i class="icon icon-external-link chip-icon" />
-          </router-link>
-        </RcTag>
-        <span
-          v-if="!clustersRenderList.length"
-          class="text-label"
-        >
-          {{ emptyLabel || t('fleet.clusterTargets.rules.matching.empty') }}
-        </span>
-      </div>
-      <a
-        v-if="showAllClusters"
-        href="#"
-        class="view-all-link"
-        @click.prevent="showAllClusters = false"
-      >
-        {{ t('fleet.clusterTargets.rules.matching.hideAllClusters') }}
-      </a>
-      <div class="workspace-footer">
-        <span class="workspace-label">{{ t('fleet.clusterTargets.rules.matching.workspace') }}</span>
-        <router-link
-          :to="workspaceRoute"
-          target="_blank"
-          class="link-main"
-        >
-          {{ namespace }}&nbsp;<i class="link-icon icon icon-external-link" />
-        </router-link>
-      </div>
-    </template>
-
-    <template v-else-if="compact">
+    <template v-if="compact">
       <div class="targets-list-chips">
         <RcTag
           v-for="(cluster, i) in clustersRenderList"
@@ -197,28 +138,12 @@ export default {
     background-color: var(--tabbed-sidebar-bg);
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-height: 320px;
-
-    &.is-all {
-      max-height: 500px;
-
-      .workspace-footer {
-        line-height: 20px;
-
-        .workspace-label {
-          margin-right: 4px;
-        }
-      }
-    }
-
-    &.compact-bg {
-      background-color: var(--body-bg);
-      min-height: 500px;
-      max-height: none;
-    }
+    gap: var(--gap-md);
 
     &.compact {
+      background-color: var(--body-bg);
+      max-height: none;
+
       .targets-list-content {
         display: flex;
         flex-direction: column;
@@ -243,10 +168,6 @@ export default {
 
       h3 {
         margin: 0;
-      }
-
-      :deep(.badge-white.rc-counter-badge) {
-        background: var(--body-bg);
       }
     }
   }

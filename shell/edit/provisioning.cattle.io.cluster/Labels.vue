@@ -13,6 +13,11 @@ export default {
       required: true,
     },
 
+    compact: {
+      type:    Boolean,
+      default: false
+    },
+
     value: {
       type:     Object,
       required: true,

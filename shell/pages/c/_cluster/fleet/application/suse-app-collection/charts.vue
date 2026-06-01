@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { FLEET_APPCO_AUTH_GENERATE_NAME, SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
@@ -11,6 +11,7 @@ import Loading from '@shell/components/Loading';
 import { useI18n } from '@shell/composables/useI18n';
 import { fetchAppCoCharts, deriveRepoName } from '@shell/utils/fleet-appco';
 import type { RepoState } from '@shell/utils/fleet-appco';
+import { RcIcon } from '@components/RcIcon';
 
 const store = useStore();
 const route = useRoute();
@@ -21,6 +22,11 @@ const chartsLoading = ref(true);
 const chartsFetchError = ref(false);
 const repoState = ref<RepoState | null>(null);
 const secretName = ref((route.query.secret as string) || '');
+let abortController = null as AbortController | null;
+
+onBeforeUnmount(() => {
+  abortController?.abort();
+});
 
 const namespace = computed(() => store.getters.workspace);
 const repoName = computed(() => deriveRepoName(secretName.value));
@@ -61,6 +67,8 @@ const editCredentials = () => {
 };
 
 const loadCharts = async() => {
+  abortController?.abort();
+  abortController = new AbortController();
   chartsLoading.value = true;
   chartsFetchError.value = false;
   repoState.value = null;
@@ -68,7 +76,7 @@ const loadCharts = async() => {
   try {
     const result = await fetchAppCoCharts(store, repoName.value, (state) => {
       repoState.value = state;
-    });
+    }, abortController.signal);
 
     repoState.value = result.repoState;
 
@@ -135,6 +143,7 @@ onMounted(async() => {
 <template>
   <div class="appco-charts-page">
     <AppCoPageHeader
+      :subtitle="false"
       :show-secret-info="true"
       :secret-label="secretUsername"
       @edit-credentials="editCredentials"
@@ -162,6 +171,10 @@ onMounted(async() => {
       {{ t('fleet.helmOp.add.steps.selection.repoError.description') }}
       <router-link :to="repoListRoute">
         {{ t('fleet.helmOp.add.steps.selection.repoError.link') }}
+        <RcIcon
+          type="external-link"
+          size="small"
+        />
       </router-link>
     </AppCoEmptyState>
 

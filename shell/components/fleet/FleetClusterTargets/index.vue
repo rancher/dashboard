@@ -11,7 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
-import { RcCounterBadge } from '@components/Pill';
+
 import { RcSection } from '@components/RcSection';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
@@ -49,7 +49,6 @@ export default {
     RcButton,
     RcSection,
     TargetsList,
-    RcCounterBadge,
   },
 
   props: {
@@ -142,25 +141,27 @@ export default {
     targetModeOptions(): { label: string, value: TargetMode }[] {
       if (this.namespace === 'fleet-local') {
         return [{
-          label: 'local cluster',
+          label: this.t('fleet.clusterTargets.targetMode.local'),
           value: 'local'
         }];
       }
 
+      const allLabel = this.compact ? this.t('fleet.clusterTargets.targetMode.allCompact', { namespace: this.namespace, count: this.clustersOptions.length }, { raw: true }) : this.t('fleet.clusterTargets.targetMode.all');
+
       const out: { label: string, value: TargetMode }[] = [
         {
-          label: 'All Clusters in the workspace',
+          label: allLabel,
           value: 'all',
         },
         {
-          label: 'No clusters',
+          label: this.t('fleet.clusterTargets.targetMode.none'),
           value: 'none'
         },
       ];
 
       if (this.clustersOptions.length) {
         out.push({
-          label: 'Manually selected clusters',
+          label: this.t('fleet.clusterTargets.targetMode.clusters'),
           value: 'clusters'
         });
       }
@@ -375,7 +376,7 @@ export default {
 </script>
 
 <template>
-  <div :class="compact ? 'gap-24' : 'gap-20'">
+  <div :class="compact ? 'gap-md' : 'gap-20'">
     <div
       v-if="targetMode !== 'advanced'"
       class="row"
@@ -387,6 +388,7 @@ export default {
         :mode="mode"
         :options="targetModeOptions"
         :disabled="isView"
+        :use-body-text-color="compact"
         @update:value="selectTargetMode"
       />
     </div>
@@ -414,12 +416,11 @@ export default {
         >
           <template
             v-if="!clustersExpanded"
-            #counter
+            #badges
           >
-            <RcCounterBadge
-              :count="matching.length"
-              type="inactive"
-            />
+            <span class="cluster-count-badge">
+              {{ t('fleet.clusterTargets.rules.matching.title', { n: matching.length }) }}
+            </span>
           </template>
           <div class="row">
             <div class="col span-8">
@@ -613,7 +614,7 @@ export default {
 
     <!-- All mode (default) -->
     <div
-      v-if="targetMode === 'all' && !isLocal"
+      v-if="targetMode === 'all' && !isLocal && !compact"
       class="row"
     >
       <div class="col span-6">
@@ -621,7 +622,6 @@ export default {
           class="target-list"
           :clusters="matching"
           :compact="compact"
-          :is-all="true"
           :namespace="namespace"
         />
       </div>
@@ -633,13 +633,13 @@ export default {
   .content-group {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--gap-md);
   }
 
   .appco-select-clusters {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--gap-lg);
 
     h4 {
       margin: 0 0 12px 0;
@@ -662,14 +662,26 @@ export default {
     }
   }
 
-  .gap-24 {
+  .gap-md {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--gap-md);
   }
   .gap-20 {
     display: flex;
     flex-direction: column;
     gap: 20px;
+  }
+
+  .cluster-count-badge {
+    display: inline-flex;
+    padding: 2px 8px;
+    align-items: center;
+    border-radius: 30px;
+    border: 1px solid var(--rc-inactive-border);
+    background: var(--body-bg);
+    font-size: 12px;
+    line-height: 17px;
+    color: var(--body-text);
   }
 </style>

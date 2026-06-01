@@ -4,17 +4,29 @@ import { set } from '@shell/utils/object';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import FleetUtils from '@shell/utils/fleet';
 import { FLEET } from '@shell/config/types';
-import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG, FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
 import { isRancherPrime } from '@shell/config/version';
 
 const SUSE_APP_COLLECTION_HOST = 'oci://dp.apps.rancher.io';
 
 export default class HelmOp extends FleetApplication {
-  get applicationType() {
-    const repo = this.spec?.helm?.repo || '';
+  get isSuseAppCollectionFromUI() {
+    return !!this.metadata?.annotations?.[CATALOG.SUSE_APP_COLLECTION];
+  }
 
-    if (isRancherPrime() && repo.startsWith(SUSE_APP_COLLECTION_HOST)) {
+  get isSuseAppCollection() {
+    if (!isRancherPrime()) {
+      return false;
+    }
+
+    // Annotation set by the UI on create, or fallback to URL check for older resources
+    return this.isSuseAppCollectionFromUI ||
+      (this.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_HOST);
+  }
+
+  get applicationType() {
+    if (this.isSuseAppCollectionFromUI) {
       return 'SUSE AppCo';
     }
 

@@ -174,9 +174,14 @@ export async function ensureAppCoClusterRepo(store: VuexStore, authSecretName: s
 export async function waitForRepoReady(
   store: VuexStore,
   repoName: string,
-  { maxAttempts = 30, intervalMs = 3000, onStateChange }: { maxAttempts?: number; intervalMs?: number; onStateChange?: (state: RepoState) => void } = {}
+  {
+    maxAttempts = 30, intervalMs = 3000, onStateChange, signal
+  }: { maxAttempts?: number; intervalMs?: number; onStateChange?: (state: RepoState) => void; signal?: AbortSignal } = {}
 ): Promise<WaitResult> {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (signal?.aborted) {
+      return { repo: null, state: null };
+    }
     let repo;
 
     try {
@@ -214,6 +219,10 @@ export async function waitForRepoReady(
       return { repo, state: repoState };
     }
 
+    if (signal?.aborted) {
+      return { repo: null, state: null };
+    }
+
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 
@@ -228,9 +237,11 @@ interface FetchChartsResult {
 export async function fetchAppCoCharts(
   store: VuexStore,
   repoName: string,
-  onStateChange?: (state: RepoState) => void
+  onStateChange?: (state: RepoState) => void,
+  // Used to stop on unmount or when repoName changes
+  signal?: AbortSignal
 ): Promise<FetchChartsResult> {
-  const { repo, state: repoState } = await waitForRepoReady(store, repoName, { onStateChange });
+  const { repo, state: repoState } = await waitForRepoReady(store, repoName, { onStateChange, signal });
 
   if (!repo) {
     return { entries: null, repoState };

@@ -41,6 +41,7 @@ withDefaults(defineProps<{
   isSuseAppCollection?: boolean;
   bgBorder?: boolean;
   hideBanner?: boolean;
+  compact?: boolean;
 }>(), {
   isView:              false,
   hideTitle:           false,
@@ -73,68 +74,74 @@ const updateDiffMode = (value: string) => {
 </script>
 
 <template>
-  <div data-testid="helmop-values-tab">
-    <Banner
-      v-if="!hideBanner"
-      color="info"
-      class="description mt-0"
-      :label-key="isSuseAppCollection ? 'fleet.helmOp.values.appCoDescription' : 'fleet.helmOp.values.description'"
-      data-testid="helmop-values-info-banner"
-    />
+  <div class="helmop-values-tab-container">
+    <div v-if="compact">
+      {{ t('fleet.helmOp.values.descriptionCompact') }}
+    </div>
+    <div data-testid="helmop-values-tab">
+      <Banner
+        v-if="!hideBanner"
+        color="info"
+        class="description mt-0"
+        :label-key="isSuseAppCollection ? 'fleet.helmOp.values.appCoDescription' : 'fleet.helmOp.values.description'"
+        data-testid="helmop-values-info-banner"
+      />
 
-    <h2 v-if="!hideTitle">
-      {{ t('fleet.helmOp.values.title') }}
-    </h2>
+      <h2 v-if="!hideTitle">
+        {{ t('fleet.helmOp.values.title') }}
+      </h2>
 
-    <div class="mb-15">
-      <div
-        v-if="isRealModeEdit"
-        class="yaml-form-controls"
-      >
-        <ButtonGroup
-          :value="yamlForm"
-          inactive-class="bg-disabled btn-sm"
-          active-class="bg-primary btn-sm"
-          :options="yamlFormOptions"
-          @update:value="updateYamlForm"
-        />
+      <div class="mb-15">
         <div
-          class="yaml-form-controls-spacer"
-          style="flex:1"
+          v-if="isRealModeEdit"
+          class="yaml-form-controls"
         >
+          <ButtonGroup
+            :value="yamlForm"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :options="yamlFormOptions"
+            @update:value="updateYamlForm"
+          />
+          <div
+            class="yaml-form-controls-spacer"
+            style="flex:1"
+          >
           &nbsp;
+          </div>
+          <ButtonGroup
+            v-if="isYamlDiff"
+            :value="diffMode"
+            :options="yamlDiffModeOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            @update:value="updateDiffMode"
+          />
         </div>
-        <ButtonGroup
-          v-if="isYamlDiff"
-          :value="diffMode"
-          :options="yamlDiffModeOptions"
-          inactive-class="bg-disabled btn-sm"
-          active-class="bg-primary btn-sm"
-          @update:value="updateDiffMode"
+
+        <YamlEditor
+          ref="yaml"
+          :class="{ 'bg-border': bgBorder }"
+          :value="chartValues"
+          :mode="mode"
+          :initial-yaml-values="chartValuesInit"
+          :scrolling="true"
+          :editor-mode="editorMode"
+          :hide-preview-buttons="true"
+          data-testid="helmop-values-yaml-editor"
+          @update:value="updateChartValues"
         />
       </div>
 
-      <YamlEditor
-        ref="yaml"
-        :class="{ 'bg-border': bgBorder }"
-        :value="chartValues"
-        :mode="mode"
-        :initial-yaml-values="chartValuesInit"
-        :scrolling="true"
-        :editor-mode="editorMode"
-        :hide-preview-buttons="true"
-        data-testid="helmop-values-yaml-editor"
-        @update:value="updateChartValues"
-      />
-    </div>
-
-    <div class="mb-20">
-      <FleetValuesFrom
-        :value="value.spec.helm.valuesFrom"
-        :namespace="value.metadata.namespace"
-        :mode="realMode"
-        data-testid="helmop-values-from"
-      />
+      <div class="mb-20">
+        <FleetValuesFrom
+          :value="value.spec.helm.valuesFrom"
+          :namespace="value.metadata.namespace"
+          :mode="realMode"
+          :compact="compact"
+          data-testid="helmop-values-from"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -147,5 +154,11 @@ const updateDiffMode = (value: string) => {
 
 .bg-border {
   border: 2px solid var(--body-bg);
+}
+
+.helmop-values-tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg)
 }
 </style>

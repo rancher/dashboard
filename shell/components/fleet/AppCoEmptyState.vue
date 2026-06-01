@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { BadgeState } from '@components/BadgeState';
 import { RcIcon } from '@components/RcIcon';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
   title: {
     type:     String,
     required: true,
@@ -12,13 +13,19 @@ defineProps({
     default: null,
   },
 });
+
+const emptyState = computed(() => !props.badgeState?.transitioning && !props.badgeState?.error);
+
 </script>
 
 <template>
-  <div class="appco-empty-state">
-    <h1 class="appco-empty-state-title">
+  <div :class="[{'appco-empty-state': emptyState, 'appco-transitioning-error-state': !emptyState}]">
+    <component
+      :is="emptyState ? 'h1' : 'h2'"
+      class="appco-empty-state-title m-0"
+    >
       {{ title }}
-    </h1>
+    </component>
     <div :class="['appco-empty-state-body', { 'has-badge': badgeState, 'direction-column': badgeState?.error }]">
       <div class="appco-badge-container">
         <RcIcon
@@ -27,17 +34,17 @@ defineProps({
           type="spinner"
           size="large"
         />
+        <RcIcon
+          v-else-if="badgeState?.error"
+          type="alert-alt"
+          status="error"
+          size="large"
+        />
         <BadgeState
           v-if="badgeState"
           :color="badgeState.stateBackground"
           :label="badgeState.stateDisplay"
         />
-        <p
-          v-if="badgeState?.error && badgeState?.errorMessage"
-          class="error-message"
-        >
-          {{ badgeState.errorMessage }}
-        </p>
       </div>
       <p>
         <slot />
@@ -47,35 +54,63 @@ defineProps({
 </template>
 
 <style lang="scss" scoped>
-.appco-empty-state {
-  text-align: center;
-  padding: 56px 56px;
+.appco-transitioning-error-state {
+  padding: 0px;
+  gap: var(--gap-md);
+  padding: 24px 0;
+}
 
+.appco-empty-state {
+  padding: 56px 56px;
+  text-align: center;
+  align-items: center;
+
+  gap: var(--gap-lg);
+
+  .appco-empty-state-body {
+    max-width: 400px;
+    margin: 0 auto;
+
+    &.direction-column {
+      flex-direction: column;
+    }
+  }
+
+  .appco-transitioning-error-state {
+    .appco-empty-state-body {
+      max-width: none;
+      margin: 0;
+    }
+  }
+  .appco-empty-state-title {
+    margin-bottom: 24px;
+  }
+  .appco-empty-state-body {
+    &.has-badge {
+      justify-content: center;
+    }
+  }
+
+}
+
+.appco-empty-state, .appco-transitioning-error-state {
+  display: flex;
+  flex-direction: column;
   .appco-empty-state-title {
     display: inline-flex;
     align-items: center;
-    margin-bottom: 24px;
   }
 
   .appco-empty-state-body {
     &.has-badge {
       display: flex;
+      gap: var(--gap-md);
       align-items: center;
-      justify-content: center;
-      gap: 16px;
-    }
-
-    &.direction-column {
-      flex-direction: column;
     }
 
     p {
       font-size: 16px;
       line-height: normal;
-
-      &.error-message {
-        color: var(--error);
-      }
     }
   }
 
@@ -83,7 +118,8 @@ defineProps({
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 16px;
+    gap: var(--gap-md);
   }
+
 }
 </style>

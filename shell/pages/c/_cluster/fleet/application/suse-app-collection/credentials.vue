@@ -18,7 +18,6 @@ import {
   ensureAppCoClusterRepo,
 } from '@shell/utils/fleet-appco';
 
-const SUSE_ACCESS_TOKENS_URL = 'https://scc.suse.com/access-tokens';
 const ADD_NEW_TOKEN = '__add_new__';
 
 const store = useStore();
@@ -165,8 +164,6 @@ onMounted(async() => {
       params: { cluster: route.params.cluster as string },
       query:  { secret: existingSecrets.value[0].metadata.name },
     });
-
-    return;
   } else if (!existingSecrets.value.length) {
     selectedSecret.value = ADD_NEW_TOKEN;
   }
@@ -181,23 +178,12 @@ onMounted(async() => {
     class="appco-credentials-page"
   >
     <div class="appco-credentials-page-content">
-      <AppCoPageHeader />
+      <AppCoPageHeader :subtitle="true" />
 
       <div class="credentials-content">
         <h2 class="subtitle">
           {{ t('fleet.appCo.credentials.subtitle') }}
         </h2>
-
-        <p class="info-text">
-          {{ t('fleet.appCo.credentials.infoText') }}<br>
-          {{ t('fleet.appCo.credentials.learnMoreAbout') }}<a
-            :href="SUSE_ACCESS_TOKENS_URL"
-            target="_blank"
-            rel="noopener noreferrer"
-          >{{ t('fleet.appCo.credentials.accessTokensLink') }}
-            <i class="icon icon-external-link" />
-          </a>
-        </p>
 
         <Banner
           v-for="(err, i) in createErrors"
@@ -210,7 +196,7 @@ onMounted(async() => {
           v-if="hasNoSecrets"
           class="no-secrets-message"
         >
-          {{ t('fleet.appCo.credentials.noTokensYet') }}
+          {{ t('fleet.appCo.credentials.noTokensYet', {}, true) }}
         </p>
 
         <div
@@ -229,7 +215,7 @@ onMounted(async() => {
           </div>
         </div>
 
-        <template v-if="isAddNew">
+        <template v-if="isAddNew || hasNoSecrets">
           <div class="row">
             <div class="col span-6">
               <LabeledInput
@@ -300,7 +286,7 @@ onMounted(async() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .subtitle {
@@ -310,12 +296,6 @@ onMounted(async() => {
 .info-text {
   color: var(--input-label);
   margin: 0;
-}
-
-.access-token-input :deep(textarea) {
-  height: 100px;
-  min-height: 100px;
-  resize: none;
 }
 
 .footer-divider {

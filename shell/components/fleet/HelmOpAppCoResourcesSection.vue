@@ -6,6 +6,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RcSection } from '@components/RcSection';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import { RcIcon } from '@components/RcIcon';
 
 const props = withDefaults(defineProps<{
   value: Record<string, any>;
@@ -14,11 +15,7 @@ const props = withDefaults(defineProps<{
   downstreamSecretsList: string[];
   downstreamConfigMapsList: string[];
   lockedSecrets?: string[];
-  compact?: boolean;
-}>(), {
-  lockedSecrets: () => [],
-  compact:       false,
-});
+}>(), { lockedSecrets: () => [] });
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
@@ -29,7 +26,7 @@ const emit = defineEmits<{
 const store = useStore();
 const { t } = useI18n(store);
 
-const DOCS_URL = t('fleet.helmOp.appCoResources.additionalResourcesDocsUrl');
+const DOCS_URL = 'https://fleet.rancher.io/experimental-features/experimental-downstream-resource';
 
 const updateCorrectDrift = (value: boolean) => {
   emit('update:correct-drift', value);
@@ -72,6 +69,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
           :tooltip="t('fleet.helmOp.resources.correctDriftTooltip')"
           type="checkbox"
           label-key="fleet.helmOp.resources.correctDrift"
+          :use-body-text-color="true"
           :mode="mode"
           data-testid="helmop-appco-resources-correct-drift"
           @update:value="updateCorrectDrift"
@@ -81,6 +79,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
           :tooltip="t('fleet.helmOp.resources.keepResourcesTooltip')"
           type="checkbox"
           label-key="fleet.helmOp.resources.keepResources"
+          :use-body-text-color="true"
           :mode="mode"
           data-testid="helmop-appco-resources-keep-resources"
         />
@@ -104,7 +103,12 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
             :href="DOCS_URL"
             target="_blank"
             rel="noopener noreferrer nofollow"
-          >{{ t('fleet.helmOp.appCoResources.additionalResourcesLink') }} <i class="icon icon-external-link" /></a>
+          >
+            {{ t('fleet.helmOp.appCoResources.additionalResourcesLink') }}
+            <RcIcon
+              type="external-link"
+              size="small"
+            /></a>
         </p>
 
         <div class="gap-12">

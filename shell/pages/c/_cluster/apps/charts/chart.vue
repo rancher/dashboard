@@ -1,230 +1,206 @@
-<script>
+<script setup lang="ts">
+import { computed, ref, watch, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from '@shell/composables/useI18n';
+import { useChart } from '@shell/composables/useChart';
 import Loading from '@shell/components/Loading';
-import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
 import ChartDetailHeader from '@shell/components/ChartDetailHeader.vue';
 import ChartDetailBody from '@shell/components/ChartDetailBody.vue';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
+import { RcButton } from '@components/RcButton';
 import isEqual from 'lodash/isEqual';
 import {
-  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED
+  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG,
+  DEPRECATED as DEPRECATED_QUERY
 } from '@shell/config/query-params';
-import { DATE_FORMAT } from '@shell/store/prefs';
-import { ZERO_TIME } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
-import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
-import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
-import day from 'dayjs';
-import { RcButton } from '@components/RcButton';
 
-export default {
-  components: {
-    Banner,
-    Loading,
-    ChartDetailHeader,
-    ChartDetailBody,
-    AppChartCardFooter,
-    RcButton
-  },
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n(store);
 
-  mixins: [
-    ChartMixin
-  ],
+const loading = ref(true);
 
-  async fetch() {
-    await this.fetchChart();
-  },
+const {
+  chart,
+  version,
+  versionInfo,
+  versionInfoError,
+  existing,
+  query,
+  repo,
+  mappedVersions,
+  currentVersion,
+  targetVersion,
+  action,
+  isChartTargeted,
+  warnings,
+  requires,
+  showPreRelease,
+  currentCluster,
+  appLocation,
+  fetchChart: doFetchChart,
+} = useChart(store, route, router, t);
 
-  data() {
+const headerContent = computed(() => {
+  if (!chart.value?.cardContent) {
     return {
-      SEARCH_QUERY,
-      ZERO_TIME,
-      showLastVersions: 7,
-      showMoreVersions: false,
+      subHeaderItems: [], statuses: [], footerItems: []
     };
-  },
+  }
 
-  computed: {
-    ...mapGetters(['currentCluster']),
+  return {
+    ...chart.value.cardContent,
+    subHeaderItems: chart.value.cardContent.subHeaderItems.map((item: any, i: number) => (i === 0 ? ({
+      icon:        'icon-version-alt',
+      iconTooltip: { key: 'tableHeaders.version' },
+      label:       query.value.versionName,
+    }) : item)),
+  };
+});
 
-    headerContent() {
-      return {
-        ...this.chart.cardContent,
-        subHeaderItems: this.chart.cardContent.subHeaderItems.map((item, i) => i === 0 ? ({
-          icon:        'icon-version-alt',
-          iconTooltip: { key: 'tableHeaders.version' },
-          label:       this.query.versionName
-        }) : item)
-      };
-    },
+const appVersion = computed(() => version.value?.appVersion || versionInfo.value?.chart?.appVersion);
+const home = computed(() => version.value?.home || versionInfo.value?.chart?.home);
 
-    versions() {
-      return this.showMoreVersions ? this.mappedVersions : this.mappedVersions.slice(0, this.showLastVersions);
-    },
+const maintainers = computed(() => {
+  const list = version.value?.maintainers || versionInfo.value?.chart?.maintainers || [];
 
-    targetedAppWarning() {
-      if (!this.existing) {
-        return;
-      }
-      const url = this.$router.resolve(this.appLocation()).href;
+  return list.map((m: any, i: number) => {
+    const label = m.name || m.url || m.email || t('generic.unknown');
+    let href: string | null = null;
 
-      return this.isChartTargeted ? this.t('catalog.chart.errors.clusterToolExists', { url }, true) : '';
-    },
+    if (m.url) {
+      href = m.url;
+    } else if (m.email) {
+      href = `mailto:${ m.email }`;
+    }
 
-    appVersion() {
-      return this.version.appVersion || this.versionInfo?.chart?.appVersion;
-    },
+    return {
+      id: `${ m.name }-${ i }`, name: m.name, label, href
+    };
+  });
+});
 
-    home() {
-      return this.version.home || this.versionInfo?.chart?.home;
-    },
+const osWarning = computed(() => {
+  if (chart.value) {
+    const compatible = compatibleVersionsFor(chart.value, currentCluster.value.workerOSs, showPreRelease.value);
+    const currentlyCompatible = !!compatible.find((v: any) => v.version === targetVersion.value);
 
-    maintainers() {
-      const maintainers = this.version.maintainers || this.versionInfo?.chart?.maintainers || [];
-
-      return maintainers.map((m, i) => {
-        const label = m.name || m.url || m.email || this.t('generic.unknown');
-        let href = null;
-
-        if (m.url) {
-          href = m.url;
-        } else if (m.email) {
-          href = `mailto:${ m.email }`;
-        }
-
-        return {
-          id:   `${ m.name }-${ i }`,
-          name: m.name,
-          label,
-          href
-        };
-      });
-    },
-
-    osWarning() {
-      if (this.chart) {
-        const compatible = compatibleVersionsFor(this.chart, this.currentCluster.workerOSs, this.showPreRelease );
-
-        const currentlyCompatible = !!compatible.find((version) => {
-          return version.version === this.targetVersion;
-        });
-
-        if (currentlyCompatible) {
-          return false;
-        } else if (compatible.length > 0) {
-          return this.t('catalog.os.versionIncompatible');
-        } else {
-          return this.t('catalog.os.chartIncompatible');
-        }
-      }
-
+    if (currentlyCompatible) {
       return false;
-    },
-
-    warningMessage() {
-      const {
-        deprecated, experimental, chartName: name, chartNameDisplay
-      } = this.chart;
-      const chartName = chartNameDisplay || name;
-
-      if (deprecated && experimental) {
-        return this.t('catalog.chart.deprecatedAndExperimentalWarning', { chartName });
-      } else if (deprecated) {
-        return this.t('catalog.chart.deprecatedWarning', { chartName });
-      } else if (experimental) {
-        return this.t('catalog.chart.experimentalWarning', { chartName });
-      }
-
-      return '';
+    } else if (compatible.length > 0) {
+      return t('catalog.os.versionIncompatible');
+    } else {
+      return t('catalog.os.chartIncompatible');
     }
+  }
 
-  },
+  return false;
+});
 
-  watch: {
-    '$route.query'(neu, old) {
-      // If the query changes, refetch the chart
-      // When going back to app list, the query is empty and we don't want to refetch
-      if ( !isEqual(neu, old) && Object.keys(neu).length > 0 ) {
-        this.$fetch();
-      }
+const warningMessage = computed(() => {
+  if (!chart.value) {
+    return '';
+  }
+
+  const {
+    deprecated, experimental, chartName: name, chartNameDisplay
+  } = chart.value;
+  const chartName = chartNameDisplay || name;
+
+  if (deprecated && experimental) {
+    return t('catalog.chart.deprecatedAndExperimentalWarning', { chartName });
+  } else if (deprecated) {
+    return t('catalog.chart.deprecatedWarning', { chartName });
+  } else if (experimental) {
+    return t('catalog.chart.experimentalWarning', { chartName });
+  }
+
+  return '';
+});
+
+const targetedAppWarning = computed(() => {
+  if (!existing.value) {
+    return '';
+  }
+
+  const url = router.resolve(appLocation()).href;
+
+  return isChartTargeted.value ? t('catalog.chart.errors.clusterToolExists', { url }, true) : '';
+});
+
+async function fetchChart() {
+  loading.value = true;
+
+  try {
+    await doFetchChart();
+  } finally {
+    loading.value = false;
+  }
+}
+
+function install() {
+  router.push({
+    name:   'c-cluster-apps-charts-install',
+    params: {
+      cluster: route.params.cluster as string,
+      product: store.getters['productId'],
     },
-  },
-
-  methods: {
-    install() {
-      this.$router.push({
-        name:   'c-cluster-apps-charts-install',
-        params: {
-          cluster: this.$route.params.cluster,
-          product: this.$store.getters['productId'],
-        },
-        query: {
-          [REPO_TYPE]:  this.query.repoType,
-          [REPO]:       this.query.repoName,
-          [CHART]:      this.query.chartName,
-          [VERSION]:    this.query.versionName,
-          [DEPRECATED]: this.query.deprecated,
-        }
-      });
+    query: {
+      [REPO_TYPE]:        query.value.repoType,
+      [REPO]:             query.value.repoName,
+      [CHART]:            query.value.chartName,
+      [VERSION]:          query.value.versionName,
+      [DEPRECATED_QUERY]: query.value.deprecated,
     },
-    handleHeaderItemClick(type, value) {
-      const params = {
-        cluster: this.$route.params.cluster,
-        product: this.$store.getters['productId'],
-      };
+  });
+}
 
-      let queryValue;
+function handleHeaderItemClick(type: string, value: string) {
+  let queryValue: string | undefined;
 
-      if (type === REPO) {
-        const repos = this.$store.getters['catalog/repos'];
+  if (type === REPO) {
+    const repos = store.getters['catalog/repos'];
 
-        queryValue = repos.find((r) => r.nameDisplay === value)?.metadata?.uid;
-      } else if (type === CATEGORY || type === TAG) {
-        queryValue = value.toLowerCase();
-      }
+    queryValue = repos.find((r: any) => r.nameDisplay === value)?.metadata?.uid;
+  } else if (type === CATEGORY || type === TAG) {
+    queryValue = value.toLowerCase();
+  }
 
-      if (queryValue) {
-        this.$router.push({
-          name:  'c-cluster-apps-charts',
-          params,
-          query: { [type]: queryValue },
-        });
-      }
-    },
-    formatVersionDate(date) {
-      if (date === ZERO_TIME) {
-        return this.t('generic.na');
-      }
+  if (queryValue) {
+    router.push({
+      name:   'c-cluster-apps-charts',
+      params: {
+        cluster: route.params.cluster as string,
+        product: store.getters['productId'],
+      },
+      query: { [type]: queryValue },
+    });
+  }
+}
 
-      return day(date).format('MMM D, YYYY');
-    },
-    getVersionDateTooltip(date) {
-      if (date === ZERO_TIME) {
-        return this.t('catalog.chart.info.chartVersions.missingVersionDate');
-      }
+function getVersionRoute(vers: any) {
+  return {
+    name:   route.name as string,
+    params: route.params,
+    query:  { ...route.query, [VERSION]: vers.id },
+  };
+}
 
-      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+watch(() => route.query, (neu, old) => {
+  if (!isEqual(neu, old) && Object.keys(neu).length > 0) {
+    fetchChart();
+  }
+});
 
-      return day(date).format(dateFormat);
-    },
-    getVersionRoute(vers) {
-      const version = vers.id;
-
-      return {
-        name:   this.$route.name,
-        params: this.$route.params,
-        query:  {
-          ...this.$route.query,
-          [VERSION]: version,
-        }
-      };
-    }
-  },
-};
+onMounted(() => fetchChart());
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="loading" />
   <main v-else>
     <ChartDetailHeader
       v-if="chart"

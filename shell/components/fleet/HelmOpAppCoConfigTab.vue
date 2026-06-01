@@ -302,12 +302,13 @@ defineExpose({ refreshYamlEditor });
         v-else-if="isCreate"
         class="appco-main-content"
       >
-        <!-- Name and Description -->
+        <!-- Name and Description: !important overrides NameNsDescription's mb-20 utility class on the root element -->
         <NameNsDescription
           :value="value"
           :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
+          style="margin-bottom: 0 !important;"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
@@ -443,7 +444,7 @@ defineExpose({ refreshYamlEditor });
           />
         </RcSection>
         <RcSection
-          :title="t('fleet.helmOp.target.targetAdditionalOptions')"
+          :title="t('fleet.helmOp.target.clusterDeploymentSettings')"
           mode="with-header"
           type="secondary"
           expandable
@@ -453,7 +454,7 @@ defineExpose({ refreshYamlEditor });
           <HelmOpTargetOptionsSection
             :value="value"
             :mode="mode"
-            :stacked="true"
+            :compact="true"
             data-testid="appco-config-target-options-section"
           />
         </RcSection>
@@ -471,6 +472,7 @@ defineExpose({ refreshYamlEditor });
             :display-side-by-side="false"
             :add-icon="'icon-plus'"
             :use-rc-button="true"
+            :compact="true"
             data-testid="appco-config-labels-section"
           />
         </RcSection>
@@ -500,6 +502,7 @@ defineExpose({ refreshYamlEditor });
             :hide-title="true"
             :is-suse-app-collection="true"
             :bg-border="true"
+            :compact="true"
             data-testid="appco-config-values-tab"
             @update:yaml-form="$emit('update:yaml-form', $event)"
             @update:chart-values="$emit('update:chart-values', $event)"
@@ -551,7 +554,7 @@ defineExpose({ refreshYamlEditor });
         />
       </RcSection>
       <RcSection
-        :title="t('fleet.helmOp.target.targetAdditionalOptions')"
+        :title="t('fleet.helmOp.target.clusterDeploymentSettings')"
         mode="with-header"
         type="secondary"
         background="secondary"
@@ -562,7 +565,7 @@ defineExpose({ refreshYamlEditor });
         <HelmOpTargetOptionsSection
           :value="value"
           :mode="mode"
-          :stacked="true"
+          :compact="true"
           data-testid="appco-config-target-options-section"
         />
       </RcSection>
@@ -581,6 +584,7 @@ defineExpose({ refreshYamlEditor });
           :display-side-by-side="false"
           :add-icon="'icon-plus'"
           :use-rc-button="true"
+          :compact="true"
           data-testid="appco-config-labels-section"
         />
       </RcSection>
@@ -612,6 +616,7 @@ defineExpose({ refreshYamlEditor });
           :hide-banner="true"
           :is-suse-app-collection="true"
           :bg-border="true"
+          :compact="true"
           data-testid="appco-config-values-tab"
           @update:yaml-form="$emit('update:yaml-form', $event)"
           @update:chart-values="$emit('update:chart-values', $event)"
@@ -626,31 +631,31 @@ defineExpose({ refreshYamlEditor });
 .appco-config-tab {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .content-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .appco-main-section {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-lg);
 }
 
 .appco-main-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .chart-header {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--gap-lg);
   height: 50px;
 }
 
@@ -698,11 +703,5 @@ defineExpose({ refreshYamlEditor });
   font-weight: 600;
   line-height: 24px;
   margin-bottom: 0;
-}
-
-.rc-section {
-  :deep(h3), :deep(h2) {
-    font-size: 16px;
-  }
 }
 </style>

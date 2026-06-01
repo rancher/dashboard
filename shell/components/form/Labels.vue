@@ -127,6 +127,11 @@ export default {
       default: '',
     },
 
+    compact: {
+      type:    Boolean,
+      default: false
+    },
+
     useRcButton: {
       type:    Boolean,
       default: false
@@ -167,9 +172,12 @@ export default {
     <div :class="defaultSectionClass">
       <div class="labels">
         <div class="labels__header">
-          <h3 v-if="showLabelTitle">
+          <component
+            :is="!compact ? 'h3' : 'h4'"
+            v-if="showLabelTitle"
+          >
             <t k="labels.labels.title" />
-          </h3>
+          </component>
           <ToggleSwitch
             v-if="showToggler"
             v-model:value="toggler"

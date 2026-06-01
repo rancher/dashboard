@@ -40,11 +40,11 @@ const onTargetsCreated = (value: string) => {
 <template>
   <div data-testid="helmop-target-tab">
     <div :class="compact ? 'gap-6' : ''">
-      <component
-        :is="compact && isView || !compact ? 'h2' : 'h4'"
+      <h2
+        v-if="!compact"
       >
         {{ t('fleet.helmOp.target.label') }}
-      </component>
+      </h2>
       <FleetClusterTargets
         :targets="value.spec.targets"
         :matching="value.targetClusters"

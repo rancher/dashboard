@@ -8,7 +8,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
-  AUTH_TYPE, CATALOG as CATALOG_TYPES, CONFIG_MAP, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
+  AUTH_TYPE, CONFIG_MAP, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
 } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -31,6 +31,7 @@ import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
 import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
+import { SUSE_APP_COLLECTION_REPO_URL } from '@shell/utils/fleet-appco';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -39,7 +40,25 @@ const VALUES_STATE = {
   DIFF: 'DIFF'
 };
 
-const SUSE_APP_COLLECTION_REPO_URL = 'oci://dp.apps.rancher.io/charts';
+function checkIsSuseAppCollection(route, value) {
+  if (!isRancherPrime()) {
+    return false;
+  }
+
+  // CREATE: route query param set by the subtype selector
+  // EDIT: annotation set on the resource during create, or URL fallback for older resources
+  return route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
+    value.isSuseAppCollectionFromUI;
+}
+
+function getInitialSourceType(route, value, modelSourceType) {
+  if (checkIsSuseAppCollection(route, value)) {
+    return SOURCE_TYPE.OCI;
+  }
+
+  // REPO is the default value
+  return modelSourceType || SOURCE_TYPE.REPO;
+}
 
 export default {
   name: 'CruHelmOp',
@@ -90,7 +109,7 @@ export default {
       SOURCE_TYPE,
       pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
-      sourceType:       this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION || (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL) ? SOURCE_TYPE.OCI : (this.value.sourceType || SOURCE_TYPE.REPO),
+      sourceType:       getInitialSourceType(this.$route, this.value, this.value.sourceType),
       helmSpecInit:     clone(this.value.spec.helm),
       yamlForm:         VALUES_STATE.YAML,
       chartValues,
@@ -231,12 +250,7 @@ export default {
     },
 
     isSuseAppCollection() {
-      if (!isRancherPrime()) {
-        return false;
-      }
-
-      return this.$route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
-        (this.value.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
+      return checkIsSuseAppCollection(this.$route, this.value);
     },
 
     sourceTypeOptions() {
@@ -580,6 +594,14 @@ export default {
 
       if (this.mode === _CREATE) {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
+
+        if (this.isSuseAppCollection) {
+          if (!this.value.metadata.annotations) {
+            this.value.metadata.annotations = {};
+          }
+
+          this.value.metadata.annotations[CATALOG.SUSE_APP_COLLECTION] = 'true';
+        }
       }
 
       const helmSecret = this.value.spec?.helmSecretName || '';

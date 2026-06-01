@@ -55,6 +55,7 @@ generic:
   labels: Labels
   labelsAndAnnotations: Labels & Annotations
   podSecurityAdmission: Pod Security Admission
+  learnMoreAbout: 'Learn more about '
   links: Links
   loading: Loading&hellip;
   members: Members
@@ -3134,8 +3135,14 @@ fleet:
       waitApplied: Wait Applied
   clusterTargets:
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
+    targetMode:
+      local: local cluster
+      all: All Clusters in the workspace
+      allCompact: 'All Clusters in the <b>{namespace}</b> workspace ({count})'
+      none: No clusters
+      clusters: Manually selected clusters
     clusters:
-      title: Select clusters
+      title: Cluster selection
       byName:
         title: Select by cluster name
         placeholder: Select Multiple Clusters
@@ -3334,10 +3341,9 @@ fleet:
     helmRepoURLRegex: Helm Repos (URL Regex)
   appCo:
     credentials:
-      title: SUSE Application Collection Charts
+      title: Create an App Bundle from SUSE Application Collection
       subtitle: Set up your credentials
       infoText: An Application Collection access token is required to connect to the Helm Charts catalogue.
-      learnMoreAbout: 'Learn more about '
       accessTokensLink: SUSE Application Collection access tokens
       accessTokenLabel: Access token
       addNewToken: Add a new access token...
@@ -3418,7 +3424,7 @@ fleet:
               descriptionPost: ' and explore the catalogue.'
           repoLoading:
             title: Creating SUSE Application Collection repository...
-            description: Please wait while the repository is created
+            description: Please, wait while the repository is created
           repoError:
             description: 'Please, check your credentials or the repository in the upstream cluster:'
             link: SUSE App Collection
@@ -3469,6 +3475,7 @@ fleet:
       title: Values
       selectLabel: Values
       description: Configure Values used by Helm that help define the App.
+      descriptionCompact: Values defined in this section will be applied to the chart in every selected cluster.
       appCoDescription: The predefined global imagePullSecret should not be modified, otherwise the connection with SUSE Application Collection will fail.
       types:
         values: Values
@@ -3496,19 +3503,25 @@ fleet:
     serviceAccount:
       label: Service Account Name
       placeholder: "Optional: Use a service account in the target clusters"
+      compactPlaceholder: "Use a service account in the selected clusters"
+      compactDescription: "When provided, this ServiceAccount will be used to perform the deployment."
     targetNamespace:
       label: Target Namespace
       placeholder: "Optional: Require all resources to be in this namespace"
+      compactPlaceholder: "Require all resources to be in this namespace"
+      compactDescription: "This will assign all resources to the specified namespace. If any cluster scoped resource exists, the deployment will fail."
     target:
       selectLabel: Target
       advanced: Advanced
       cluster: Cluster
       clusterGroup: Cluster Group
       label: Deploy To
-      title: Select Clusters
+      title: Deploy chart to
       labelLocal: Deploy With
       additionalOptions: Additional Options
-      targetAdditionalOptions: Target Additional Options
+      clusterDeploymentSettings: Cluster deployment settings
+      clusterDeploymentDescription: "Here you can set a ServiceAccount or force a target Namespace for the deployments."
+      clusterDeploymentLink: Bundle Deployment Options
     targetDisplay:
       advanced: Advanced
       clusters: Clusters
@@ -3528,7 +3541,6 @@ fleet:
       additionalResourcesDescription: You can add Secrets and ConfigMaps to copy those resources to each targeted downstream cluster before deploying the Helm chart.
       additionalResourcesLinkDescription: Learn more about
       additionalResourcesLink: Automated propagation of resources to downstream clusters
-      additionalResourcesDocsUrl: https://fleet.rancher.io/experimental-features/experimental-downstream-resource
     polling:
       label: Polling
       enable: Enable Polling
