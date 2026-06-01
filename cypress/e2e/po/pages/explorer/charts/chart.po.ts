@@ -44,7 +44,7 @@ export class ChartPage extends PagePo {
   }
 
   goToInstall() {
-    const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
+    const btn = new AsyncButtonPo('[data-testid="btn-chart-install"]');
 
     btn.checkVisible(MEDIUM_TIMEOUT_OPT);
     btn.click(true);

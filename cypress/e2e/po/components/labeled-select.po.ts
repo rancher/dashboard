@@ -13,7 +13,7 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   clickOption(optionIndex: number) {
-    return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click();
+    return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click({ force: true });
   }
 
   clickOptionWithLabel(label: string) {

@@ -21,8 +21,8 @@ const store = useStore();
 const i18n = useI18n(store);
 
 const checked = computed(() => props.value === true || props.value === 'true');
-const actionIcon = computed(() => props.row.isAutoscalerPaused ? 'icon-play' : 'icon-pause');
-const actionText = computed(() => props.row.isAutoscalerPaused ? i18n.t('autoscaler.card.resume') : i18n.t('autoscaler.card.pause'));
+const actionIcon = computed(() => props.row.provCluster.isAutoscalerPaused ? 'icon-play' : 'icon-pause');
+const actionText = computed(() => props.row.provCluster.isAutoscalerPaused ? i18n.t('autoscaler.card.resume') : i18n.t('autoscaler.card.pause'));
 const stopPropagation = (event: Event) => {
   // This is to prevent click events from getting to the table row which ends up selecting the row
   event.stopPropagation();
@@ -45,7 +45,7 @@ const stopPropagation = (event: Event) => {
         #heading-action="{close}"
       >
         <RcButton
-          v-if="row.canPauseResumeAutoscaler"
+          v-if="row.provCluster.canPauseResumeAutoscaler"
           variant="secondary"
           size="small"
           class="action"
@@ -56,7 +56,7 @@ const stopPropagation = (event: Event) => {
         </RcButton>
       </template>
       <template #card-body>
-        <AutoscalerCard :value="props.row" />
+        <AutoscalerCard :value="props.row.provCluster" />
       </template>
     </PopoverCard>
   </span>

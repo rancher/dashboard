@@ -90,36 +90,36 @@ describe('component: FleetClusters', () => {
       const wrapper = createWrapper();
       const reposReady = wrapper.vm.headers.find((h: any) => h.name === 'reposReady');
 
-      expect(reposReady.labelKey).toBe('tableHeaders.reposReady');
-      expect(reposReady.value).toBe('status.readyGitRepos');
-      expect(reposReady.search).toBe(false);
+      expect(reposReady?.labelKey).toBe('tableHeaders.reposReady');
+      expect(reposReady?.value).toBe('status.readyGitRepos');
+      expect(reposReady?.search).toBe(false);
     });
 
     it('should configure helmOpsReady column correctly', () => {
       const wrapper = createWrapper();
       const helmOpsReady = wrapper.vm.headers.find((h: any) => h.name === 'helmOpsReady');
 
-      expect(helmOpsReady.labelKey).toBe('tableHeaders.helmOpsReady');
-      expect(helmOpsReady.value).toBe('status.readyHelmOps');
-      expect(helmOpsReady.search).toBe(false);
+      expect(helmOpsReady?.labelKey).toBe('tableHeaders.helmOpsReady');
+      expect(helmOpsReady?.value).toBe('status.readyHelmOps');
+      expect(helmOpsReady?.search).toBe(false);
     });
 
     it('should configure bundlesReady column correctly', () => {
       const wrapper = createWrapper();
       const bundlesReady = wrapper.vm.headers.find((h: any) => h.name === 'bundlesReady');
 
-      expect(bundlesReady.labelKey).toBe('tableHeaders.bundlesReady');
-      expect(bundlesReady.value).toBe('status.display.readyBundles');
-      expect(bundlesReady.search).toBe(false);
+      expect(bundlesReady?.labelKey).toBe('tableHeaders.bundlesReady');
+      expect(bundlesReady?.value).toBe('status.display.readyBundles');
+      expect(bundlesReady?.search).toBe(false);
     });
 
     it('should configure lastSeen column with LiveDate formatter', () => {
       const wrapper = createWrapper();
       const lastSeen = wrapper.vm.headers.find((h: any) => h.name === 'lastSeen');
 
-      expect(lastSeen.formatter).toBe('LiveDate');
-      expect(lastSeen.formatterOpts).toStrictEqual({ addSuffix: true });
-      expect(lastSeen.width).toBe(120);
+      expect(lastSeen?.formatter).toBe('LiveDate');
+      expect(lastSeen?.formatterOpts).toStrictEqual({ addSuffix: true });
+      expect(lastSeen?.width).toBe(120);
     });
   });
 

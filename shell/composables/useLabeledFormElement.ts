@@ -6,7 +6,7 @@ import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
   mode: string;
-  value: string | number | Record<string, any>
+  value: string | number | Record<string, any> | null
   required: boolean;
   disabled: boolean;
   rules: Array<any>;
@@ -18,6 +18,8 @@ interface UseLabeledFormElement {
   focused: Ref<boolean>;
   blurred: Ref<number | null>;
   requiredField: ComputedRef<any>;
+  empty: ComputedRef<boolean>;
+  isView: ComputedRef<boolean>;
   isDisabled: ComputedRef<any>;
   validationMessage: ComputedRef<any>;
   onFocusLabeled: () => void;
@@ -46,7 +48,7 @@ export const labeledFormElementProps = {
     default: null
   },
   value: {
-    type:    [String, Number, Object],
+    type:    [String, Number, Object, null],
     default: ''
   },
   mode: {
@@ -80,6 +82,10 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
 
   const requiredField = computed(() => {
     return props.required || props.rules?.some((rule: any) => rule?.name === 'required');
+  });
+
+  const empty = computed(() => {
+    return !!`${ props.value }`;
   });
 
   const isView = computed(() => {
@@ -143,6 +149,8 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
     raised,
     focused,
     blurred,
+    empty,
+    isView,
     onFocusLabeled,
     onBlurLabeled,
     isDisabled,

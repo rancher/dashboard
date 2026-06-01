@@ -14,7 +14,6 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
-import WindowManager from '@shell/components/nav/WindowManager';
 import { Layout } from '@shell/types/window-manager';
 
 export default {
@@ -31,23 +30,27 @@ export default {
     SlideInPanelManager,
     AwsComplianceBanner,
     Inactivity,
-    WindowManager
   },
 
   mixins: [Brand, BrowserTabVisibility],
+
+  inject: ['notifyWmContainerReady'],
 
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name:             this.$route.name,
-      noLocaleShortcut: process.env.dev || false,
-      layout:           Layout.plain,
+      noLocaleShortcut: process.env.dev || false
     };
   },
 
   computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapGetters(['showTopLevelMenu']),
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.plain);
   },
 
   methods: {
@@ -63,6 +66,10 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <a
+      href="#main-content"
+      class="skip-to-content btn role-primary"
+    >{{ t('nav.skipToContent') }}</a>
     <FixedBanner :header="true" />
     <AwsComplianceBanner />
 
@@ -72,8 +79,10 @@ export default {
     >
       <Header :simple="true" />
       <main
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.plain')"
+        tabindex="-1"
       >
         <IndentedPanel class="pt-20">
           <router-view
@@ -98,7 +107,12 @@ export default {
           @shortkey="toggleNoneLocale()"
         />
       </main>
-      <WindowManager :layout="layout" />
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-plain"
+        style="display: contents;"
+      />
     </div>
 
     <FixedBanner :footer="true" />
@@ -130,27 +144,6 @@ export default {
     }
   }
 
-  .wm {
-    grid-area: wm;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
-  .wm-vr {
-    grid-area: wm-vr;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
-  .wm-vl {
-    grid-area: wm-vl;
-    overflow-y: hidden;
-    z-index: z-index('windowsManager');
-    position: relative;
-  }
-
   MAIN {
     grid-area: main;
     overflow: auto;
@@ -158,6 +151,18 @@ export default {
     .outlet {
       min-height: 100%;
       padding: 0;
+    }
+  }
+
+  .skip-to-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transform: translateY(-100%);
+
+    &:focus {
+      transform: translate(1rem, 1rem);
     }
   }
 </style>

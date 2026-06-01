@@ -30,7 +30,7 @@ import {
   AUTH_TYPE, NAMESPACE as NAMESPACE_TYPE
 } from '@shell/config/types';
 import {
-  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
+  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NEW_APP_INSTANCE, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
@@ -41,7 +41,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -602,8 +602,11 @@ export default {
     },
 
     showSelectVersionOrChart() {
-      // Allow the user to choose a version if the app exists OR they've come from tools
-      return this.existing || (FROM_TOOLS in this.$route.query);
+      // Allow the user to choose a version if:
+      // - the app exists (editing/upgrading)
+      // - OR they've come from tools
+      // - OR they're installing a new instance of an already-installed chart
+      return this.existing || (FROM_TOOLS in this.$route.query) || (NEW_APP_INSTANCE in this.$route.query);
     },
 
     showNameEditor() {
@@ -763,14 +766,17 @@ export default {
     },
 
     windowsIncompatible() {
-      if (this.chart?.windowsIncompatible) {
-        return this.t('catalog.charts.windowsIncompatible');
-      }
       if (this.versionInfo) {
-        const incompatibleVersion = !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
+        const isRancher = isRancherRepo(this.repo, this.chart);
+        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
+        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
 
-        if (incompatibleVersion && !this.chart.windowsIncompatible) {
-          return this.t('catalog.charts.versionWindowsIncompatible');
+        if (incompatibleVersion) {
+          if (!this.chart?.windowsIncompatible) {
+            return this.t('catalog.charts.versionWindowsIncompatible');
+          }
+
+          return this.t('catalog.charts.windowsIncompatible');
         }
       }
 
@@ -1110,6 +1116,8 @@ export default {
         this.$router.replace(this.clusterToolsLocation());
       } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
         this.$router.replace(this.clustersLocation());
+      } else if (!this.chart) {
+        this.$router.replace(this.appLocation());
       } else {
         this.$router.replace(this.chartLocation(false));
       }

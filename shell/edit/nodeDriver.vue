@@ -21,7 +21,6 @@ export default {
     return {
       fvFormRuleSets: [
         { path: 'url', rules: ['required', 'url'] },
-        { path: 'uiUrl', rules: ['url'] },
         { path: 'checksum', rules: ['alphanumeric'] },
         { path: 'whitelistDomains', rules: ['wildcardHostname'] }
       ]
@@ -63,7 +62,6 @@ export default {
       :value="value"
       :rules="{
         url: fvGetAndReportPathRules('url'),
-        uiUrl: fvGetAndReportPathRules('uiUrl'),
         checksum: fvGetAndReportPathRules('checksum'),
         whitelistDomains: fvGetAndReportPathRules('whitelistDomains')
       }"

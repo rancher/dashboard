@@ -87,15 +87,14 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
     driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
 
+    // Verify the driver tile appears on the cluster create page.
+    // Legacy ember-based kontainer drivers are shown disabled with an informational tooltip
+    // (no functional UI remains), so we only assert the tile is present.
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
     createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'exist').invoke('index').then((index) => {
-      createCluster.selectKubeProvider(index);
-    });
-    createCluster.waitForPage('type=example');
-    createCluster.mastheadTitle().should('contain', 'example');
+    createCluster.gridElementExistanceByName('example', 'exist');
   });
 
   it('can activate drivers in bulk', () => {
@@ -384,5 +383,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('kontainer drivers list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

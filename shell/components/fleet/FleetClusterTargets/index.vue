@@ -3,6 +3,7 @@ import { PropType } from 'vue';
 import { isEmpty } from 'lodash';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { isHarvesterCluster } from '@shell/utils/cluster';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 import { FLEET } from '@shell/config/types';
 import FleetUtils from '@shell/utils/fleet';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
@@ -31,9 +32,11 @@ interface DataType {
   clusterSelectors: Selector[],
   key: number,
   clustersExpanded: boolean,
+  areHarvesterHostsVisible: boolean,
 }
 
 const excludeHarvesterRule = FleetUtils.Application.excludeHarvesterRule;
+const includeAllWorkgroupRule = FleetUtils.Application.includeAllWorkgroupRule;
 
 export default {
 
@@ -102,18 +105,24 @@ export default {
 
   data(): DataType {
     return {
-      targetMode:            'all',
-      allClusters:           [],
-      allClusterGroups:      [],
-      selectedClusters:      [],
-      selectedClusterGroups: [],
-      clusterSelectors:      [],
-      key:                   0, // Generates a unique key to handle Targets
-      clustersExpanded:      true,
+      targetMode:               'all',
+      allClusters:              [],
+      allClusterGroups:         [],
+      selectedClusters:         [],
+      selectedClusterGroups:    [],
+      clusterSelectors:         [],
+      key:                      0, // Generates a unique key to handle Targets
+      clustersExpanded:         true,
+      /**
+       * Are host harvesters treated as normal clusters... or are they hidden
+       */
+      areHarvesterHostsVisible: false,
     };
   },
 
   mounted() {
+    this.areHarvesterHostsVisible = this.$store.getters['features/get'](HARVESTER_CONTAINER);
+
     this.fromTargets();
 
     if (this.mode === _CREATE) {
@@ -121,7 +130,11 @@ export default {
       this.targetMode = this.created || 'all';
       this.update();
     } else {
-      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
+      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace, this.areHarvesterHostsVisible);
+      // We only want to update the information from the new target mode if it is EDIT, if CREATE, if VIEW we want to keep as it is
+      if (this.mode === _EDIT) {
+        this.update();
+      }
     }
   },
 
@@ -133,6 +146,15 @@ export default {
 
       if (this.mode !== _VIEW) {
         this.update();
+      }
+    },
+
+    allClusters(clusters: any[]) {
+      if (clusters.length) {
+        // Resolve metadata.name values to nameDisplay for UI display
+        this.selectedClusters = this.selectedClusters.map(
+          (name) => this.resolveClusterDisplayName(name)
+        );
       }
     },
   },
@@ -171,8 +193,12 @@ export default {
 
     clustersOptions() {
       return this.allClusters
-        .filter((x) => x.metadata.namespace === this.namespace && !isHarvesterCluster(x))
-        .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
+        .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x) || this.selectedClusters.includes(x.name)))
+        .map((x) => ({
+          label:    x.nameDisplay,
+          value:    x.nameDisplay,
+          disabled: !this.areHarvesterHostsVisible && isHarvesterCluster(x)
+        }));
     },
 
     clusterGroupsOptions() {
@@ -289,14 +315,19 @@ export default {
 
     toTargets(): Target[] | undefined {
       switch (this.targetMode) {
-      case 'none':
+      case 'none': // No clusters
         return undefined;
-      case 'all':
+      case 'all': // All clusters in workspace
+        if (this.areHarvesterHostsVisible) {
+          // set it to empty to clear any previous and hidden harvester omission
+          return [includeAllWorkgroupRule];
+        }
+
         return [excludeHarvesterRule];
-      case 'clusters':
+      case 'clusters': // 'Manually selected clusters'
         return this.normalizeTargets(this.selectedClusters, this.clusterSelectors, this.selectedClusterGroups);
-      case 'advanced':
-      case 'local':
+      case 'advanced': // no longer in use?
+      case 'local': // only option for fleet-local workspace
         return this.targets;
       }
     },
@@ -363,6 +394,14 @@ export default {
       }
 
       return undefined;
+    },
+
+    resolveClusterDisplayName(name: string): string {
+      const cluster = this.allClusters.find(
+        (c: any) => c.metadata.namespace === this.namespace && c.metadata.name === name
+      );
+
+      return cluster ? cluster.nameDisplay : name;
     },
 
     reset() {

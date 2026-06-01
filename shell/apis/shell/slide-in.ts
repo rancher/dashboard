@@ -14,9 +14,12 @@ export class SlideInApiImpl implements SlideInApi {
    *
    * Example:
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
    *
-   * this.$shell.slideIn.open(MyCustomSlideIn, {
+   * const shell = useShell();
+   *
+   * shell.slideIn.open(MyCustomSlideIn, {
    *   title: 'Hello from SlideIn panel!'
    * });
    * ```

@@ -78,28 +78,32 @@ export default class CatalogApp extends SteveModel {
       return [];
     }
 
-    // Filtering matches by verifying if the current version is in the matched chart's available versions, and that the home value matches as well
-    const thisHome = chart?.metadata?.home;
-    const bestMatches = matchingCharts.filter(({ versions }) => {
-      // First checking if the latest version has the same home value
-      if (thisHome === versions[0]?.home) {
-        return true;
-      }
-
-      for (let i = 1; i < versions.length; i++) {
-        const { version, home } = versions[i];
-
-        // Finding the exact version, if the version is not there, then most likely it's not a match
-        // if the exact version is found, then we can compare the home value
-        if (version === this.currentVersion && (home === thisHome)) {
+    if (!repoName || matchingCharts.length > 1) {
+      // Filtering matches by verifying if the current version is in the matched chart's available versions, and that the home value matches as well
+      const thisHome = chart?.metadata?.home;
+      const bestMatches = matchingCharts.filter(({ versions }) => {
+        // First checking if the latest version has the same home value
+        if (thisHome === versions[0]?.home) {
           return true;
         }
-      }
 
-      return false;
-    });
+        for (let i = 1; i < versions.length; i++) {
+          const { version, home } = versions[i];
 
-    return bestMatches;
+          // Finding the exact version, if the version is not there, then most likely it's not a match
+          // if the exact version is found, then we can compare the home value
+          if (version === this.currentVersion && (home === thisHome)) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
+      return bestMatches;
+    }
+
+    return matchingCharts;
   }
 
   get currentVersion() {

@@ -5,6 +5,13 @@ export default class KontainerDriver extends Driver {
     return 'c-cluster-manager-driver-kontainerdriver';
   }
 
+  get parentLocationOverride() {
+    return {
+      name:   'c-cluster-manager-driver-kontainerdriver',
+      params: { cluster: this.$rootGetters['clusterId'] }
+    };
+  }
+
   get _availableActions() {
     const out = [
       {
@@ -52,6 +59,10 @@ export default class KontainerDriver extends Driver {
     ];
 
     return out;
+  }
+
+  get isEmber() {
+    return !this.builtIn && !this.builtin;
   }
 
   deactivate(resources = [this]) {

@@ -485,8 +485,6 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     // check table headers
     const expectedHeadersDetailsView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-    headerPo.selectWorkspace(workspace);
-
     // Select flat list
     fleetClusterDetailsPage.appBundlesList().sortableTable().groupByButtons(0).click();
 
@@ -522,5 +520,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('fleet clusters list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

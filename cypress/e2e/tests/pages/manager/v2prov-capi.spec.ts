@@ -1,5 +1,6 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import { qase } from '@/cypress/support/qase';
 
 import { mockCapiMgmtCluster, mockCapiProvCluster } from '@/cypress/e2e/blueprints/manager/v2prov-capi-cluster-mocks';
@@ -10,20 +11,7 @@ describe('Cluster List - v2 Provisioning CAPI Clusters', { tags: ['@manager', '@
 
   // add mocked CAPI cluster to provisioning and management cluster lists
   beforeEach(() => {
-    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
-      req.continue((res) => {
-        res.body.data.push(mockCapiProvCluster);
-
-        res.send(res.body);
-      });
-    }).as('provClusters');
-
-    cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
-      req.continue((res) => {
-        res.body.data.push(mockCapiMgmtCluster);
-        res.send(res.body);
-      });
-    }).as('mgmtClusters');
+    ClusterManagerListPagePo.supplementListRequests(mockCapiProvCluster, mockCapiMgmtCluster);
 
     cy.login();
     HomePagePo.goTo();
@@ -38,13 +26,13 @@ describe('Cluster List - v2 Provisioning CAPI Clusters', { tags: ['@manager', '@
 
     // Close the first row action menu so its overlay does not block subsequent row actions.
     clusterList.list().actionMenuClose(clusterName);
-    cy.get('body').find('[dropdown-menu-collection]:visible').should('have.length', 0);
+    ActionMenuPo.checkNoActionMenuIsVisible();
 
     clusterList.list().actionMenu('local').getMenuItem('Edit Config').should('exist');
   }));
 
   qase(18528, it('should not report a machine provider for CAPI clusters', () => {
-    clusterList.list().provider(clusterName).should('have.text', ' RKE2');
+    clusterList.list().provider(clusterName).should('contain.text', 'RKE2');
 
     clusterList.list().provider('local').invoke('text').should('match', /^Local (K3s|RKE2)$/);
   }));

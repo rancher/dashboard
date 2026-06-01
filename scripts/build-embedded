@@ -23,6 +23,10 @@ OUTPUT_DIR=dist/${DIR}-embedded
 echo "Building..."
 COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
 
+# Write the version beside the other static files at the root of the build.
+# Strip the leading `v` from tags (e.g. v2.14.0-alpha7 -> 2.14.0-alpha7) to match the old Ember UI format.
+echo "${VERSION#v}" > ${OUTPUT_DIR}/VERSION.txt
+
 echo "Destroying..."
 find $OUTPUT_DIR -name "index.html" -mindepth 2 -exec rm {} \;
 find $OUTPUT_DIR -type d -empty -depth -exec rmdir {} \;

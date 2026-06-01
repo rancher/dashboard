@@ -1,4 +1,6 @@
-import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
+import {
+  AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+} from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
@@ -16,6 +18,9 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
+import {
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+} from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
 
@@ -73,6 +78,7 @@ export function init(store) {
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
+  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
@@ -159,7 +165,16 @@ export function init(store) {
     width:     100,
   };
 
-  headers(CAPI.RANCHER_CLUSTER, [
+  const EXPLORER = {
+    name:   'explorer',
+    label:  ' ',
+    align:  'right',
+    width:  65,
+    sort:   false,
+    search: false
+  };
+
+  headers(MANAGEMENT.CLUSTER, [
     STATE,
     {
       name:          'name',
@@ -169,35 +184,61 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    MGMT_CLUSTER_PROVIDER,
+    MGMT_CLUSTER_KUBE_VERSION,
     {
-      name:     'kubernetesVersion',
-      labelKey: 'tableHeaders.version',
-      subLabel: 'Architecture',
-      value:    'kubernetesVersion',
-      sort:     'kubernetesVersion',
-      search:   'kubernetesVersion',
+      ...MACHINE_SUMMARY,
+      sort: 'statusInfo.nodeCount'
     },
-    {
-      name:      'provider',
-      labelKey:  'tableHeaders.provider',
-      subLabel:  'Distro',
-      value:     'machineProvider',
-      sort:      ['machineProvider', 'provisioner'],
-      formatter: 'ClusterProvider',
-    },
-    MACHINE_SUMMARY,
     AGE,
+    EXPLORER,
+  ], [
+    STEVE_STATE_COL,
     {
-      name:  'explorer',
-      label: ' ',
-      align: 'right',
-      width: 65,
+      name:          'name',
+      labelKey:      'tableHeaders.name',
+      value:         'spec.displayName',
+      sort:          ['spec.displayName'],
+      search:        ['spec.displayName'],
+      formatter:     'ClusterLink',
+      canBeVariable: true,
     },
+    STEVE_MGMT_CLUSTER_PROVIDER,
+    STEVE_MGMT_CLUSTER_KUBE_VERSION,
+    {
+      ...MACHINE_SUMMARY,
+      sort: 'status.info.nodeCount'
+    },
+    STEVE_AGE_COL,
+    EXPLORER
   ]);
+
+  configureType(MANAGEMENT.CLUSTER, {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:          'icon-folder',
+      // Given management.cattle.io.cluster is not namespaced we group by fleet workspace
+      value:         'spec.fleetWorkspaceName',
+      field:         'spec.fleetWorkspaceName',
+      hideColumn:    STEVE_NAMESPACE_COL.name,
+      tooltipKey:    'resourceTable.groupBy.workspace',
+      groupLabelKey: 'groupByLabel',
+    }],
+    listGroupsWillOverride: true,
+  });
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
-    NAME_COL,
+    NAME_COL, {
+      name:     'cluster',
+      labelKey: 'tableHeaders.cluster',
+      value:    'clusterName',
+      getValue: (row) => row.clusterName,
+      sort:     ['clusterName'],
+    },
     MACHINE_SUMMARY,
     AGE
   ]);
@@ -236,4 +277,24 @@ export function init(store) {
       })
     }
   });
+
+  const clusterGroupConfig = {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:          'icon-folder',
+      value:         'clusterName',
+      field:         'clusterName',
+      hideColumn:    'cluster',
+      tooltipKey:    'resourceTable.groupBy.cluster',
+      groupLabelKey: 'groupByLabel',
+    }],
+    listGroupsWillOverride: true,
+  };
+
+  configureType(CAPI.MACHINE_DEPLOYMENT, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE_SET, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE, { ...clusterGroupConfig });
 }

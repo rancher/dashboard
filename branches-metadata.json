@@ -9,7 +9,7 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "v2.15-a5b2d1827f563747ddd896e81af8aada5d8c57e7-head"
+          "tag": "v2.15-2cc6c46753bc8de0aa2f603515ffa854d1a6963d-head"
         }
       },
       "rancher-rancher-repo": {
@@ -20,7 +20,7 @@
     },
     "release-2.14": {
       "milestone": {
-        "version": "v2.14.1",
+        "version": "v2.14.3",
         "codeFreeze": false
       },
       "e2e": {
@@ -38,7 +38,7 @@
     },
     "release-2.13": {
       "milestone": {
-        "version": "v2.13.5",
+        "version": "v2.13.7",
         "codeFreeze": false
       },
       "e2e": {
@@ -57,7 +57,7 @@
     },
     "release-2.12": {
       "milestone": {
-        "version": "v2.12.9",
+        "version": "v2.12.11",
         "codeFreeze": false
       },
       "e2e": {
@@ -76,7 +76,7 @@
     },
     "release-2.11": {
       "milestone": {
-        "version": "v2.11.13",
+        "version": "v2.11.15",
         "codeFreeze": false
       },
       "e2e": {

@@ -10,6 +10,7 @@
 
 # Typedoc integration
 docs/extensions/shell-api
+docs/extensions/resources-api
 
 # Misc
 .DS_Store

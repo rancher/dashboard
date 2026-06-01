@@ -267,4 +267,8 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
       }
     });
   });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
+  });
 });

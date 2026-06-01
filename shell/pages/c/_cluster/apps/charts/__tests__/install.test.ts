@@ -91,4 +91,57 @@ describe('page: Install', () => {
     expect(wrapper.vm.forceNamespace).toBe('custom-ns');
     expect(wrapper.vm.value.metadata.name).toBe('custom-name');
   });
+
+  describe('cancel()', () => {
+    it('should route to appLocation if chart is not defined and specific query flags are absent', () => {
+      const mockReplace = jest.fn();
+      const expectedLocation = { name: 'app-location' };
+
+      const wrapper = mount(Install, {
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/t':     (key: string) => key,
+                'cluster/id': 'cluster-id',
+              }
+            },
+            $route:      { query: {} },
+            $router:     { replace: mockReplace },
+            $fetchState: { pending: false },
+          },
+          stubs: {
+            Loading:             true,
+            Wizard:              true,
+            Banner:              true,
+            Checkbox:            true,
+            LabeledInput:        true,
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            Tabbed:              true,
+            Questions:           true,
+            YamlEditor:          true,
+            ResourceCancelModal: true,
+            UnitInput:           true,
+            TypeDescription:     true,
+            LazyImage:           true,
+            ChartReadme:         true,
+            ButtonGroup:         true,
+          }
+        },
+        data() {
+          return {
+            existing: false,
+            chart:    null,
+          };
+        }
+      });
+
+      jest.spyOn((wrapper.vm as any), 'appLocation').mockReturnValue(expectedLocation);
+
+      (wrapper.vm as any).cancel();
+
+      expect(mockReplace).toHaveBeenCalledWith(expectedLocation);
+    });
+  });
 });

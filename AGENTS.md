@@ -141,6 +141,7 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - `TEST_SKIP` - Comma-separated test directories to skip (e.g., setup,extensions)
 - `TEST_ONLY` - Comma-separated test directories to run exclusively
 - `GREP_TAGS` - Filter tests by tags
+- `CYPRESS_ALLOW_FILTERED_CATALOG_SKIP` - When `true`, chart tests may skip if a chart is hidden in the UI filtered catalog but present in the unfiltered index. When unset or not `true`, those tests fail.
 
 ## Agentic Workflows
 

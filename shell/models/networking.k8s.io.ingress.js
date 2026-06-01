@@ -1,5 +1,5 @@
 import { SECRET, SERVICE } from '@shell/config/types';
-import isUrl from 'is-url';
+import { isValidUrl } from '@shell/utils/validators/setting';
 import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -76,15 +76,15 @@ export default class Ingress extends SteveModel {
     const fullPath = this.fullPath(rule, path);
 
     return {
-      // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
-      isUrl:           isUrl(fullPath) && !fullPath.includes('*'),
+      // is-url thinks urls which contain '*' are valid so adding an additional check for '*'
+      isUrl:           isValidUrl(fullPath) && !fullPath.includes('*'),
       pathType:        path.pathType,
       fullPath,
       serviceName,
       serviceTargetTo: this.targetTo(workloads, serviceName),
       certs:           this.certLinks(rule, certificates),
       targetLink:      this.targetLink(workloads, serviceName),
-      port:            get(path?.backend, this.servicePortPath)
+      port:            get(path?.backend, this.servicePortPath) || get(path?.backend, this.servicePortNamePath)
     };
   }
 
@@ -179,6 +179,14 @@ export default class Ingress extends SteveModel {
 
   get servicePortPath() {
     const nestedPath = 'service.port.number';
+    const flatPath = 'servicePort';
+
+    return this.useNestedBackendField ? nestedPath : flatPath;
+  }
+
+  get servicePortNamePath() {
+    const nestedPath = 'service.port.name';
+    // Flat API has a single `servicePort` field for both name and number.
     const flatPath = 'servicePort';
 
     return this.useNestedBackendField ? nestedPath : flatPath;

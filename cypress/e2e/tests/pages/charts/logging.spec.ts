@@ -11,6 +11,7 @@ import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
 describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   const kubectl = new Kubectl();
@@ -25,6 +26,8 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
   before(() => {
     cy.login();
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     HomePagePo.goTo();
 
     cy.createE2EResourceName('logging-flow').then((name) => {
@@ -36,145 +39,149 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     });
   });
 
-  it('is installed and a rule created', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
-    const installChartPage = new InstallChartPage();
-    const chartPage = new ChartPage();
-    const sideNav = new ProductNavPo();
-    const loggingOutputList = new LoggingClusteroutputListPagePo();
-    const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
+  it('is installed and a rule created', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      const installChartPage = new InstallChartPage();
+      const chartPage = new ChartPage();
+      const sideNav = new ProductNavPo();
+      const loggingOutputList = new LoggingClusteroutputListPagePo();
+      const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
-    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-    ChartPage.navTo(null, 'Logging');
-    chartPage.waitForChartHeader('Logging', { timeout: 20000 });
-    chartPage.waitForPage();
-    chartPage.goToInstall();
-    installChartPage.nextPage();
-    installChartPage.installChart();
+      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+      ChartPage.navTo(null, 'Logging');
+      chartPage.waitForChartHeader('Logging', { timeout: 20000 });
+      chartPage.waitForPage();
+      chartPage.goToInstall();
+      installChartPage.nextPage();
+      installChartPage.installChart();
 
-    cy.wait('@chartInstall', { timeout: 10000 }).its('response.statusCode').should('eq', 201);
-    kubectl.waitForTerminalStatus('Disconnected');
-    kubectl.closeTerminal();
+      cy.wait('@chartInstall', { timeout: 10000 }).its('response.statusCode').should('eq', 201);
+      kubectl.waitForTerminalStatus('Disconnected');
+      kubectl.closeTerminal();
 
-    LoggingClusteroutputListPagePo.navTo();
-    loggingOutputList.waitForPage();
-    loggingOutputList.baseResourceList().masthead().create();
-    loggingOutputEdit.waitForPage();
-    loggingOutputEdit.resourceDetail().createEditView().nameNsDescription().name()
-      .set(outputName);
-    loggingOutputEdit.target().set('random.domain.site');
-    loggingOutputEdit.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusteroutputs')
-      .then(({ response }) => {
-        expect(response?.statusCode).to.eq(201);
-        expect(response?.body.metadata).to.have.property('name', outputName);
-      });
-    loggingOutputList.waitForPage();
-    loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
-      .should('exist');
+      LoggingClusteroutputListPagePo.navTo();
+      loggingOutputList.waitForPage();
+      loggingOutputList.baseResourceList().masthead().create();
+      loggingOutputEdit.waitForPage();
+      loggingOutputEdit.resourceDetail().createEditView().nameNsDescription().name()
+        .set(outputName);
+      loggingOutputEdit.target().set('random.domain.site');
+      loggingOutputEdit.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusteroutputs')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', outputName);
+        });
+      loggingOutputList.waitForPage();
+      loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
+        .should('exist');
 
-    sideNav.navToSideMenuEntryByLabel('ClusterFlow');
-    loggingFlowList.baseResourceList().masthead().create();
-    loggingFlowCreate.waitForPage();
-    loggingFlowCreate.resourceDetail().createEditView()
-      .nameNsDescription().name()
-      .set(flowName);
-    loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
-    loggingFlowCreate.waitForPage(null, 'outputs');
-    loggingFlowCreate.outputSelector().toggle();
-    loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
+      sideNav.navToSideMenuEntryByLabel('ClusterFlow');
+      loggingFlowList.baseResourceList().masthead().create();
+      loggingFlowCreate.waitForPage();
+      loggingFlowCreate.resourceDetail().createEditView()
+        .nameNsDescription().name()
+        .set(flowName);
+      loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
+      loggingFlowCreate.waitForPage(null, 'outputs');
+      loggingFlowCreate.outputSelector().toggle();
+      loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
 
-    // Configure namespaces during creation
-    // testing https://github.com/rancher/dashboard/issues/13845
-    loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-match"]');
-    loggingFlowCreate.waitForPage(null, 'match');
-    const namespaces = ['fleet-default', 'cattle-system'];
+      // Configure namespaces during creation
+      // testing https://github.com/rancher/dashboard/issues/13845
+      loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-match"]');
+      loggingFlowCreate.waitForPage(null, 'match');
+      const namespaces = ['fleet-default', 'cattle-system'];
 
-    loggingFlowCreate.setNamespaceValueByLabel(0, namespaces);
-    loggingFlowCreate.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusterflows')
-      .then(({ response }) => {
-        expect(response?.statusCode).to.eq(201);
-        expect(response?.body.metadata).to.have.property('name', flowName);
-        expect(response?.body.spec.match[0].select.namespaces[0]).to.contain(namespaces[0]);
-        expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
-      });
-    loggingFlowList.waitForPage();
-    loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)
-      .should('exist');
-    loggingFlowList.list().resourceTable().goToDetailsPage(flowName);
-    const loggingFlowDetail = new LoggingClusterFlowDetailPagePo('local', 'cattle-logging-system', flowName);
+      loggingFlowCreate.setNamespaceValueByLabel(0, namespaces);
+      loggingFlowCreate.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusterflows')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', flowName);
+          expect(response?.body.spec.match[0].select.namespaces[0]).to.contain(namespaces[0]);
+          expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
+        });
+      loggingFlowList.waitForPage();
+      loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)
+        .should('exist');
+      loggingFlowList.list().resourceTable().goToDetailsPage(flowName);
+      const loggingFlowDetail = new LoggingClusterFlowDetailPagePo('local', 'cattle-logging-system', flowName);
 
-    loggingFlowDetail.ruleItem(0).should('be.visible');
+      loggingFlowDetail.ruleItem(0).should('be.visible');
+    });
   });
 
   // testing https://github.com/rancher/dashboard/issues/4849
-  it('can uninstall both chart and crd at once', () => {
-    cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
+  it('can uninstall both chart and crd at once', function() {
+    runTestWhenChartAvailable('rancher-charts', 'rancher-logging', this, () => {
+      cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
 
-    const clusterTools = new ClusterToolsPagePo('local');
-    const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
+      const clusterTools = new ClusterToolsPagePo('local');
+      const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-    installedAppsPage.goTo('local', 'apps');
-    installedAppsPage.waitForPage();
-    cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-    installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-
-    // Wait for table to load and check if charts exist before attempting uninstall
-    installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
-    installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail').then((rowNames: string[]) => {
-      // Check if both charts exist, fail test if they don't
-      const hasLoggingChart = rowNames.includes(chartApp);
-      const hasCrdChart = rowNames.includes(chartCrd);
-
-      if (!hasLoggingChart || !hasCrdChart) {
-        throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
-      }
-
-      // Charts exist, verify they are properly displayed
-      installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
-      installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
-
-      // Proceed with uninstallation
-      clusterTools.goTo();
-      clusterTools.waitForPage();
-      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      clusterTools.deleteChart(chartAppDisplayName);
-
-      const promptRemove = new PromptRemove();
-
-      cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging?action=uninstall`).as('chartUninstall');
-      cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging-crd?action=uninstall`).as('crdUninstall');
-      promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
-
-      promptRemove.checkbox().set();
-      promptRemove.checkbox().isChecked();
-      promptRemove.remove();
-
-      const card = new CardPo();
-
-      card.checkNotExists(MEDIUM_TIMEOUT_OPT);
-      cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-      cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
-
-      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-      kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
-      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
-      kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
-
-      // Verify charts are removed after uninstallation
       installedAppsPage.goTo('local', 'apps');
       installedAppsPage.waitForPage();
       cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
       installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-      installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
-        .should('not.contain', chartApp);
-      // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
-      installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+
+      // Wait for table to load and check if charts exist before attempting uninstall
+      installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
+      installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail').then((rowNames: string[]) => {
+        // Check if both charts exist, fail test if they don't
+        const hasLoggingChart = rowNames.includes(chartApp);
+        const hasCrdChart = rowNames.includes(chartCrd);
+
+        if (!hasLoggingChart || !hasCrdChart) {
+          throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
+        }
+
+        // Charts exist, verify they are properly displayed
+        installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
+        installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
+
+        // Proceed with uninstallation
+        clusterTools.goTo();
+        clusterTools.waitForPage();
+        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+        clusterTools.deleteChart(chartAppDisplayName);
+
+        const promptRemove = new PromptRemove();
+
+        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging?action=uninstall`).as('chartUninstall');
+        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/cattle-logging-system/rancher-logging-crd?action=uninstall`).as('crdUninstall');
+        promptRemove.checkbox().shouldContainText('Delete the CRD associated with this app');
+
+        promptRemove.checkbox().set();
+        promptRemove.checkbox().isChecked();
+        promptRemove.remove();
+
+        const card = new CardPo();
+
+        card.checkNotExists(MEDIUM_TIMEOUT_OPT);
+        cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+        cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
+
+        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+        kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging');
+        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+        kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
+
+        // Verify charts are removed after uninstallation
+        installedAppsPage.goTo('local', 'apps');
+        installedAppsPage.waitForPage();
+        cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+        installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
+        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+        installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
+          .should('not.contain', chartApp);
+        // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
+        installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+      });
     });
   });
 
   after('clean up', () => {
+    cy.setUserPreference({ 'show-pre-release': false });
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');

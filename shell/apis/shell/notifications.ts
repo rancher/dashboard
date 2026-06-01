@@ -14,12 +14,13 @@ export class NotificationApiImpl implements NotificationApi {
    *
    * Example:
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import { NotificationLevel } from '@shell/types/notifications';
    *
-   * this.$shell.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
-   * ```
+   * const shell = useShell();
    *
-   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   * shell.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
+   * ```
    *
    * @param level The `level` specifies the importance of the notification and determines the icon that is shown in the notification
    * @param title The notification title
@@ -45,10 +46,12 @@ export class NotificationApiImpl implements NotificationApi {
    *
    * Example:
    * ```ts
-   * this.$shell.notification.updateProgress('some-notification-id', 80)
-   * ```
+   * import { useShell } from '@shell/apis';
    *
-   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   * const shell = useShell();
+   *
+   * shell.notification.updateProgress('some-notification-id', 80)
+   * ```
    *
    * @param notificationId Unique ID for the notification
    * @param progress Progress (0-100) for notifications of type `Task`

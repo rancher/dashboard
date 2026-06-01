@@ -8,7 +8,7 @@ import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/reg
 import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
 
 export default {
-  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed'],
+  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed', 'registry-validation-changed'],
   components: {
     LabeledInput,
     Banner,
@@ -142,6 +142,7 @@ export default {
           :cluster-register-before-hook="registerBeforeHook"
           @update:value="$emit('input', $event)"
           @updateConfigs="$emit('update-configs-changed', $event)"
+          @validation-changed="$emit('registry-validation-changed', $event)"
         />
       </AdvancedSection>
     </div>

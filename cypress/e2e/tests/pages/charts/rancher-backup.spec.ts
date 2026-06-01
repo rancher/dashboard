@@ -5,6 +5,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
@@ -14,6 +15,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
     before(() => {
       cy.login();
+      cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
       HomePagePo.goTo();
     });
 
@@ -31,50 +33,56 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.deleteRancherResource('v1', STORAGE_CLASS_RESOURCE, 'test-no-annotations');
       });
 
-      it('Should auto-select default storage class', () => {
-        ChartPage.navTo(null, 'Rancher Backups');
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
+      it('Should auto-select default storage class', function() {
+        runTestWhenChartAvailable('rancher-charts', 'rancher-backup', this, () => {
+          ChartPage.navTo(null, 'Rancher Backups');
+          chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
-        const installPage = new InstallChartPage();
+          const installPage = new InstallChartPage();
 
-        chartPage.goToInstall();
-        installPage.nextPage();
-        cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-        cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+          chartPage.goToInstall();
+          installPage.nextPage();
+          cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+          cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
 
-        installPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
+          installPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
-        // Scroll into view - scroll to bottom of view
-        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
+          // Scroll into view - scroll to bottom of view
+          cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
 
-        // Select the 'Use an existing storage class' option
-        const storageOptions = new RadioGroupInputPo('[chart="[chart: cluster/rancher-charts/rancher-backup]"]');
+          // Select the 'Use an existing storage class' option
+          const storageOptions = new RadioGroupInputPo('[chart="[chart: cluster/rancher-charts/rancher-backup]"]');
 
-        // Check that the control exists
-        storageOptions.checkExists();
+          // Check that the control exists
+          storageOptions.checkExists();
 
-        storageOptions.set(2);
+          storageOptions.set(2);
 
-        // Scroll into view - scroll to bottom of view
-        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
+          // Scroll into view - scroll to bottom of view
+          cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
 
-        // Verify that the drop-down exists and has the default storage class selected
-        const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');
+          // Verify that the drop-down exists and has the default storage class selected
+          const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');
 
-        select.checkExists();
-        select.toggle();
-        select.clickOptionWithLabel('test-default-storage-class'); // in k3s there's a different default storage class (local-path)
-        select.checkOptionSelected('test-default-storage-class');
+          select.checkExists();
+          select.toggle();
+          select.clickOptionWithLabel('test-default-storage-class'); // in k3s there's a different default storage class (local-path)
+          select.checkOptionSelected('test-default-storage-class');
 
-        // Verify that changing tabs doesn't reset the last selected storage class option
-        installPage.editYaml();
-        const tabbedOptions = new TabbedPo();
+          // Verify that changing tabs doesn't reset the last selected storage class option
+          installPage.editYaml();
+          const tabbedOptions = new TabbedPo();
 
-        installPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
+          installPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
 
-        select.checkExists();
-        select.checkOptionSelected('test-default-storage-class');
+          select.checkExists();
+          select.checkOptionSelected('test-default-storage-class');
+        });
       });
+    });
+
+    after(() => {
+      cy.setUserPreference({ 'show-pre-release': false });
     });
   });
 });

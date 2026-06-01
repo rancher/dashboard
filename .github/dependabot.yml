@@ -6,9 +6,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    default-days: 7
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     labels: ["component/dependencies"]
+    ignore:
+      - dependency-name: "github/gh-aw-actions"
+      - dependency-name: "github/gh-aw"
 
   # Maintain dependencies for dashboard, shell, and packages
   - package-ecosystem: "npm"
@@ -22,6 +26,7 @@ updates:
       - "/pkg/*"
     schedule:
       interval: "weekly"
-    default-days: 7
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     labels: ["area/dependencies"]

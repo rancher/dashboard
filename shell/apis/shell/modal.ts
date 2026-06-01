@@ -14,9 +14,12 @@ export class ModalApiImpl implements ModalApi {
    *
    * Example:
    * ```ts
+   * import { useShell } from '@shell/apis';
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * this.$shell.modal.open(MyCustomModal, {
+   * const shell = useShell();
+   *
+   * shell.modal.open(MyCustomModal, {
    *   props: { title: 'Hello Modal' }
    * });
    * ```
