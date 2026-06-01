@@ -71,7 +71,7 @@ export default class Namespace extends SteveModel {
         label:      this.t('namespace.move'),
         bulkable:   true,
         bulkAction: 'move',
-        enabled:    true,
+        enabled:    this.canUpdate,
         icon:       'icon icon-fork',
         weight:     3,
       });

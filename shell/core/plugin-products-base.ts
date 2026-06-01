@@ -2,7 +2,8 @@ import { IExtension } from '@shell/core/types';
 import {
   ProductChild, ProductMetadata,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
-  ProductChildCustomPage, VueRouteComponent, OverviewPageRoutingMetadata
+  ProductChildCustomPage, VueRouteComponent,
+  OverviewPageRoutingMetadata
 } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
@@ -11,7 +12,7 @@ import {
   isProductChildWithComponent,
   isProductChildWithType,
   hasNameProperty,
-  hasTypeProperty
+  hasTypeProperty,
 } from '@shell/core/plugin-products-type-guards';
 
 /**
@@ -27,6 +28,16 @@ export abstract class BasePluginProduct {
 
   protected registeredPageNames: Set<string> = new Set();
 
+  // Maps user-friendly group name → internal resolved name (e.g. 'monitoring' → 'myapp-monitoring')
+  // Populated during processGroupRecursively, consumed by moveToGroup resolution in processProductLevelDSLOptions
+  protected groupNameMap: Map<string, string> = new Map();
+
+  // Maps user-facing page identifier → internal basicType key
+  // Resource pages: type → type (identity, e.g. 'pod' → 'pod')
+  // Custom pages: name → prefixed name (e.g. 'myPage' → 'product1-myPage')
+  // Populated during configurePageItem, consumed by moveToGroup resolution in processProductLevelDSLOptions
+  protected pageIdMap: Map<string, string> = new Map();
+
   protected DSLMethods: any;
 
   protected config: ProductChild[];
@@ -39,6 +50,10 @@ export abstract class BasePluginProduct {
    * Indicates whether this is a new product or extending an existing one
    */
   abstract get isNewProduct(): boolean;
+
+  get productName(): string {
+    return this.name;
+  }
 
   /**
    * Helper to throw errors during product registration
@@ -107,6 +122,12 @@ export abstract class BasePluginProduct {
         this.processGroupRecursively(item, this.name);
       }
     });
+
+    // Process product-level DSL options after all groups are registered
+    // so that the groupNameMap is fully populated for moveToGroup resolution
+    if (this.product) {
+      this.processProductLevelDSLOptions();
+    }
   }
 
   /**
@@ -124,6 +145,10 @@ export abstract class BasePluginProduct {
 
     const itemGroup = item;
     const groupName = parentGroupName ? `${ productName }-${ parentGroupName }-${ itemGroup.name }` : `${ productName }-${ itemGroup.name }`;
+
+    // Map the user's friendly group name to the resolved internal name
+    // so that moveToGroup can translate friendly names automatically
+    this.groupNameMap.set(itemGroup.name, groupName);
 
     if (!Array.isArray(itemGroup.children)) {
       this.surfaceError('Children defined for group are not in an array format');
@@ -182,7 +207,7 @@ export abstract class BasePluginProduct {
   }
 
   /**
-   * Handles product registration via DSL
+   * Handles product registration via DSL (we also define entry route for the product here based on the config of the product - ordering)
    */
   protected handleProductRegistration(): void {
     const { basicType, product } = this.DSLMethods;
@@ -197,7 +222,7 @@ export abstract class BasePluginProduct {
 
       if (isProductChildGroup(firstConfig)) {
         // First config item is a group
-        if (firstConfig.children.length) {
+        if (firstConfig.children.length > 0) {
           const entryChild = firstConfig.children[0];
 
           if (!firstConfig.component) {
@@ -243,10 +268,66 @@ export abstract class BasePluginProduct {
   }
 
   /**
+   * Process product-level DSL options: renameGroups, ignoreGroups, moveToGroup.
+   * Called after all config items and groups are registered so that the groupNameMap is fully populated.
+   */
+  protected processProductLevelDSLOptions(): void {
+    const {
+      mapGroup, ignoreGroup, moveType, basicType
+    } = this.DSLMethods;
+
+    if (this.product?.renameGroups?.length) {
+      this.product.renameGroups.forEach((mapping) => {
+        mapGroup(mapping.groupSelector, mapping.newName);
+      });
+    }
+
+    if (this.product?.ignoreGroups?.length) {
+      this.product.ignoreGroups.forEach((ignore) => {
+        if (ignore.condition) {
+          ignoreGroup(ignore.groupSelector, ignore.condition);
+        } else {
+          ignoreGroup(ignore.groupSelector);
+        }
+      });
+    }
+
+    if (this.product?.moveToGroup?.length) {
+      this.product.moveToGroup.forEach((move) => {
+        const resolvedGroup = this.groupNameMap.get(move.groupName);
+
+        if (!resolvedGroup) {
+          this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
+        }
+
+        const resolvedPageId = this.pageIdMap.get(move.entryId);
+
+        if (!resolvedPageId) {
+          this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
+        }
+
+        // Re-register via basicType to move the page in the nav tree (basic view mode)
+        basicType([resolvedPageId], resolvedGroup);
+
+        // Also register via moveType for non-basic view modes (e.g. "in use" mode).
+        // moveType uses regex matching against schema IDs, so it only works for resource types.
+        const isResourceType = resolvedPageId === move.entryId;
+
+        if (isResourceType) {
+          moveType(move.entryId, resolvedGroup, move.weight);
+        }
+      });
+    }
+  }
+
+  /**
    * Configure virtualType (custom page) or configureType (resource page) for a page item
    */
   protected configurePageItem(parentName: string, item: ProductChild, groupNaming?: string): void {
-    const { configureType, virtualType, weightType } = this.DSLMethods;
+    const {
+      configureType, virtualType, weightType,
+      mapType, ignoreType, hideBulkActions, headers
+    } = this.DSLMethods;
 
     // Page with a "component" specified maps to a virtualType
     if (isProductChildWithComponent(item) || (isProductChildGroup(item) && item.component)) {
@@ -260,6 +341,7 @@ export abstract class BasePluginProduct {
       }
 
       this.registeredPageNames.add(finalName);
+      this.pageIdMap.set(item.name, finalName);
 
       const virtualTypeConfig: VirtualTypeConfiguration = {
         label:      item.label,
@@ -291,6 +373,7 @@ export abstract class BasePluginProduct {
       }
 
       this.registeredPageNames.add(typeValue);
+      this.pageIdMap.set(typeValue, typeValue);
 
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
 
@@ -301,6 +384,22 @@ export abstract class BasePluginProduct {
         canYaml:     true,
         customRoute: route
       };
+
+      if (item.headers || item.sspHeaders) {
+        headers(item.type, item.headers, item.sspHeaders);
+      }
+
+      if (item.overrideListResourceName) {
+        mapType(item.type, item.overrideListResourceName);
+      }
+
+      if (item.hideFromNav) {
+        ignoreType(item.type);
+      }
+
+      if (item.hideBulkActions) {
+        hideBulkActions(item.type, true);
+      }
 
       configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
 

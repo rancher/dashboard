@@ -164,6 +164,42 @@ describe('class Namespace', () => {
   it.todo('should disableAutoInjection');
   it.todo('should check if confirmRemove');
 
+  describe('move action availability', () => {
+    const SteveModelProto = Object.getPrototypeOf(Namespace.prototype);
+
+    const makeNamespace = ({ canUpdate }: { canUpdate: boolean }) => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:       true,
+        isSingleProduct: false,
+        'i18n/t':        (key: string) => key,
+      });
+      Object.defineProperty(namespace, 'istioInstalled', { get: () => false, configurable: true });
+      Object.defineProperty(namespace, 'canUpdate', { get: () => canUpdate, configurable: true });
+      jest.spyOn(SteveModelProto, '_availableActions', 'get').mockReturnValue([]);
+
+      return namespace;
+    };
+
+    it('should include the move action when user can update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: true });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeDefined();
+      expect(moveAction.enabled).toBe(true);
+    });
+
+    it('should exclude the move action when user cannot update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: false });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeUndefined();
+    });
+  });
+
   describe('handling listLocation', () => {
     it.each([
       ['c-cluster-product-projectsnamespaces', true],

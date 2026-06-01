@@ -96,7 +96,18 @@ export default {
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
-    const extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
+    let extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
+    let provider = this.value.machineProvider;
+
+    if (!extClass) {
+      extClass = this.$extension.getDynamic('provisioner', this.value.provisioner.toLowerCase());
+      provider = this.value.provisioner.toLowerCase();
+    }
+
+    if (!extClass && this.value.isImported) {
+      extClass = this.$extension.getDynamic('provisioner', 'imported');
+      provider = 'imported';
+    }
 
     if (extClass) {
       this.extProvider = new extClass({
@@ -111,7 +122,7 @@ export default {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     // Support for a model extension
@@ -120,7 +131,7 @@ export default {
         ...this.extDetailTabs,
         ...this.value.customProvisionerHelper.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
@@ -402,8 +413,23 @@ export default {
 
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
+        // The MachineDeployment still exists for empty pools. The
+        // infrastructureRef points to the template that matches the current
+        // config. Fallback to the prefix-match to return an arbitrary template
+        // when multiple exist
+        const machineDeployment = this.allMachineDeployments.find(
+          (d) => d.metadata.name === pool.metadata.name && d.metadata.namespace === pool.metadata.namespace
+        );
+        const activeTemplateName = machineDeployment?.spec?.template?.spec?.infrastructureRef?.name;
+
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => {
+          if (activeTemplateName) {
+            return t.metadata.name === activeTemplateName;
+          }
+
+          return t.metadata.name.startsWith(templateNamePrefix);
+        });
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 

@@ -41,7 +41,7 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     }
   });
 
-  console.error('*** PRODUCT DATA DEBUGGER **** DSLRegistrationsPerProduct', parsedData); // eslint-disable-line no-console
+  console.error(`*** PRODUCT DATA DEBUGGER ${ prodName } **** DSLRegistrationsPerProduct`, parsedData); // eslint-disable-line no-console
 }
 
 export function registeredRoutes(store, prodName) {
@@ -49,5 +49,5 @@ export function registeredRoutes(store, prodName) {
 
   const parsedData = routes.filter((route) => route.path.includes(prodName));
 
-  console.error('*** PRODUCT DATA DEBUGGER **** registeredRoutes', parsedData); // eslint-disable-line no-console
+  console.error(`*** PRODUCT DATA DEBUGGER ${ prodName } **** registeredRoutes`, parsedData); // eslint-disable-line no-console
 }

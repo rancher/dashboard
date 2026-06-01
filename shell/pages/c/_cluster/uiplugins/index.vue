@@ -256,224 +256,51 @@ export default {
     },
 
     available() {
-      let all = this.charts.filter((c) => isUIPlugin(c));
+      let all = this.charts
+        .filter((c) => isUIPlugin(c))
+        .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'))
+        .map((chart) => this.mapChartToPluginItem(chart))
+        .filter((c) => c.versions.length > 0);
 
-      // Filter out hidden charts
-      all = all.filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
-
-      all = all.map((chart) => {
-        // Label can be overridden by chart annotation
-        const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
-        const item = {
-          name:        chart.chartName,
-          label,
-          description: chart.chartDescription,
-          id:          chart.id,
-          versions:    [],
-          installed:   false,
-          builtin:     false,
-        };
-
-        item.versions = [...chart.versions];
-        item.chart = chart;
-        item.incompatibilityMessage = '';
-
-        // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
-          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
-        }));
-
-        // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isSupportedChartVersion({
-          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
-        }, true));
-
-        const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
-
-        if (latestCompatible) {
-          item.primeOnly = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
-          item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
-          item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-
-          item.displayVersion = latestCompatible.version;
-          item.displayVersionLabel = getPluginChartVersionLabel(latestCompatible);
-          item.icon = latestCompatible.icon;
-          item.created = latestCompatible.created;
-        } else {
-          item.primeOnly = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.PRIME_ONLY, 'true');
-          item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
-          item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
-
-          item.displayVersion = item.versions?.[0]?.version;
-          item.displayVersionLabel = getPluginChartVersionLabel(item.versions?.[0]);
-          item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
-          item.created = item.versions?.[0]?.created;
-        }
-
-        // add message of extension card if there's a newer version of the extension, but it's not available to be installed
-        if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          switch (latestNotCompatible.versionIncompatibilityData?.type) {
-          case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
-            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
-              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: latestNotCompatible.versionIncompatibilityData?.mainHost
-            }, true);
-            break;
-          default:
-            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
-              version:  latestNotCompatible.version,
-              required: latestNotCompatible.versionIncompatibilityData?.required
-            }, true);
-            break;
-          }
-        }
-
-        if (this.installing[item.id]) {
-          item.installing = this.installing[item.id];
-        }
-
-        return item;
-      });
-
-      // Remove charts with no installable versions
-      all = all.filter((c) => c.versions.length > 0);
-
-      // Check that all of the loaded plugins are represented
       this.uiplugins.forEach((p) => {
-        const chart = all.find((c) => c.name === p.name);
+        if (!all.find((c) => c.name === p.name)) {
+          const item = this.buildLoadedPluginItem(p);
 
-        if (!chart) {
-          // A plugin is loaded, but there is no chart, so add an item so that it shows up
-          const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
-
-          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
-          const item = {
-            name:                p.name,
-            label,
-            description:         p.metadata?.description,
-            icon:                p.metadata?.icon,
-            id:                  p.id,
-            versions:            [],
-            displayVersion:      p.metadata?.version,
-            displayVersionLabel: p.metadata?.version || '-',
-            installed:           true,
-            installedVersion:    p.metadata?.version,
-            builtin:             !!p.builtin,
-            primeOnly:           rancher?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
-            experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
-            certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
-          };
-
-          // Built-in plugins can chose to be hidden - used where we implement as extensions
-          // but don't want to shows them individually on the extensions page
-          if (!(item.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN])) {
+          if (item) {
             all.push(item);
           }
         }
       });
 
-      // Go through the CRs for the plugins and wire them into the catalog
-      this.plugins.forEach((p) => {
-        let chart;
-        const app = this.apps.find((a) => a.metadata.name === p.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
-        const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+      this.plugins.forEach((p) => this.wirePluginCRToChart(p, all));
 
-        // Find the chart from the original repo to avoid picking a wrong chart with the same name
-        if (originalRepoName) {
-          chart = all.find((c) => c.name === p.name && c.chart?.repoName === originalRepoName);
-        }
+      this.mergePluginErrors(all);
 
-        // If original repo was removed, don't fall back to another repo's chart (would break Available tab)
-        if (chart) {
-          chart.installed = true;
-          chart.uiplugin = p;
-          chart.installedVersion = p.version;
-
-          // Can't do this here
-          chart.installing = this.installing[chart.id];
-
-          // Check for upgrade
-          const latestInstallableVersion = chart.installableVersions?.[0];
-
-          if (latestInstallableVersion && p.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
-            // Use the currently installed version's metadata to show/hide the experimental and certified labels
-            const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === p.version);
-
-            if (installedVersion) {
-              chart.primeOnly = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
-              chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
-              chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-            }
-
-            chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
-          }
-        } else {
-          // No chart available - original repo was removed or developer-loaded plugin
-          const appChartMeta = app?.spec?.chart?.metadata;
-          const appAnnotations = appChartMeta?.annotations || {};
-          let originalRepoDisplayName = null;
-
-          if (originalRepoName) {
-            originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
-          }
-
-          const item = {
-            name:                    p.name,
-            label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || p.name,
-            description:             appChartMeta?.description || p.description || '-',
-            icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
-            id:                      `${ p.name }-${ p.version }`,
-            versions:                [],
-            displayVersion:          p.version,
-            displayVersionLabel:     p.version || '-',
-            isDeveloper:             p.isDeveloper,
-            installed:               true,
-            installedVersion:        p.version,
-            installing:              false,
-            builtin:                 false,
-            uiplugin:                p,
-            primeOnly:               appAnnotations[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
-            experimental:            appAnnotations[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
-            certified:               appAnnotations[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
-            originalRepoNameDisplay: originalRepoDisplayName,
-          };
-
-          all.push(item);
-        }
-      });
-
-      // Merge in the plugin load errors
-      Object.keys(this.uiErrors).forEach((e) => {
-        const chart = all.find((c) => c.name === e);
-
-        if (chart) {
-          const error = this.uiErrors[e];
-
-          if (error && typeof error === 'string') {
-            chart.installedError = this.t(this.uiErrors[e]);
-          } else {
-            chart.installedError = '';
-          }
-        }
-      });
-
-      // Merge in the plugin load errors from help ops
-      Object.keys(this.errors).forEach((e) => {
-        const chart = all.find((c) => c.id === e);
-
-        if (chart) {
-          chart.helmError = !!this.errors[e];
-        }
-      });
+      // Remove duplicate installed plugins - keep only ones with uiplugin (correct CR data)
+      const installedByName = {};
 
       all.forEach((plugin) => {
-        // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
         }
+
+        if (plugin.installed) {
+          const existing = installedByName[plugin.name];
+
+          if (!existing || plugin.uiplugin) {
+            installedByName[plugin.name] = plugin;
+          }
+        }
       });
 
-      // Sort by name
+      all = all.filter((plugin) => {
+        if (!plugin.installed) {
+          return true;
+        }
+
+        return installedByName[plugin.name] === plugin;
+      });
+
       return sortBy(all, 'name', false);
     }
   },
@@ -1021,6 +848,185 @@ export default {
       }
 
       return statuses;
+    },
+
+    extractCertificationFlags(annotations) {
+      return {
+        primeOnly:    annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
+        experimental: annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+        certified:    annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
+      };
+    },
+
+    buildIncompatibilityMessage(versionData) {
+      const { versionIncompatibilityData, version } = versionData;
+      const params = {
+        version,
+        required: versionIncompatibilityData?.required,
+      };
+
+      if (versionIncompatibilityData?.type === EXTENSIONS_INCOMPATIBILITY_TYPES.HOST) {
+        params.mainHost = versionIncompatibilityData?.mainHost;
+      }
+
+      return this.t(versionIncompatibilityData?.cardMessageKey, params, true);
+    },
+
+    mapChartToPluginItem(chart) {
+      const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
+      const item = {
+        name:                   chart.chartName,
+        label,
+        description:            chart.chartDescription,
+        id:                     chart.id,
+        versions:               [...chart.versions],
+        installed:              false,
+        builtin:                false,
+        chart,
+        incompatibilityMessage: '',
+      };
+
+      item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
+        version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+      }));
+
+      item.versions = item.versions.map((version) => isSupportedChartVersion({
+        version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+      }, true));
+
+      const latestCompatible = item.installableVersions?.[0];
+      const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
+
+      if (latestCompatible) {
+        Object.assign(item, {
+          ...this.extractCertificationFlags(latestCompatible?.annotations),
+          displayVersion:      latestCompatible.version,
+          displayVersionLabel: getPluginChartVersionLabel(latestCompatible),
+          icon:                latestCompatible.icon,
+          created:             latestCompatible.created,
+        });
+      } else {
+        Object.assign(item, {
+          primeOnly:           uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.PRIME_ONLY, 'true'),
+          experimental:        uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
+          certified:           uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
+          displayVersion:      item.versions?.[0]?.version,
+          displayVersionLabel: getPluginChartVersionLabel(item.versions?.[0]),
+          icon:                chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'],
+          created:             item.versions?.[0]?.created,
+        });
+      }
+
+      if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
+        item.incompatibilityMessage = this.buildIncompatibilityMessage(latestNotCompatible);
+      }
+
+      if (this.installing[item.id]) {
+        item.installing = this.installing[item.id];
+      }
+
+      return item;
+    },
+
+    buildLoadedPluginItem(plugin) {
+      const rancher = typeof plugin.metadata?.rancher === 'object' ? plugin.metadata.rancher : {};
+      const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || plugin.name;
+
+      if (plugin.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN]) {
+        return null;
+      }
+
+      return {
+        name:                plugin.name,
+        label,
+        description:         plugin.metadata?.description,
+        icon:                plugin.metadata?.icon,
+        id:                  plugin.id,
+        versions:            [],
+        displayVersion:      plugin.metadata?.version,
+        displayVersionLabel: plugin.metadata?.version || '-',
+        installed:           true,
+        installedVersion:    plugin.metadata?.version,
+        builtin:             !!plugin.builtin,
+        ...this.extractCertificationFlags(rancher?.annotations),
+      };
+    },
+
+    wirePluginCRToChart(pluginCR, all) {
+      const app = this.apps.find((a) => a.metadata.name === pluginCR.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+
+      let chart;
+
+      if (originalRepoName) {
+        chart = all.find((c) => c.name === pluginCR.name && c.chart?.repoName === originalRepoName);
+      }
+
+      if (chart) {
+        chart.installed = true;
+        chart.uiplugin = pluginCR;
+        chart.installedVersion = pluginCR.version;
+        chart.installing = this.installing[chart.id];
+
+        const latestInstallableVersion = chart.installableVersions?.[0];
+
+        if (latestInstallableVersion && pluginCR.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
+          const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+
+          if (installedVersion) {
+            Object.assign(chart, this.extractCertificationFlags(installedVersion?.annotations));
+          }
+
+          chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
+        }
+      } else {
+        const appChartMeta = app?.spec?.chart?.metadata;
+        const appAnnotations = appChartMeta?.annotations || {};
+        let originalRepoDisplayName = null;
+
+        if (originalRepoName) {
+          originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
+        }
+
+        all.push({
+          name:                    pluginCR.name,
+          label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || pluginCR.name,
+          description:             appChartMeta?.description || pluginCR.description || '-',
+          icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
+          id:                      `${ pluginCR.name }-${ pluginCR.version }`,
+          versions:                [],
+          displayVersion:          pluginCR.version,
+          displayVersionLabel:     pluginCR.version || '-',
+          isDeveloper:             pluginCR.isDeveloper,
+          installed:               true,
+          installedVersion:        pluginCR.version,
+          installing:              false,
+          builtin:                 false,
+          uiplugin:                pluginCR,
+          originalRepoNameDisplay: originalRepoDisplayName,
+          ...this.extractCertificationFlags(appAnnotations),
+        });
+      }
+    },
+
+    mergePluginErrors(all) {
+      Object.keys(this.uiErrors).forEach((errorName) => {
+        const chart = all.find((c) => c.name === errorName);
+
+        if (chart) {
+          const error = this.uiErrors[errorName];
+
+          chart.installedError = (error && typeof error === 'string') ? this.t(error) : '';
+        }
+      });
+
+      Object.keys(this.errors).forEach((errorId) => {
+        const chart = all.find((c) => c.id === errorId);
+
+        if (chart) {
+          chart.helmError = !!this.errors[errorId];
+        }
+      });
     }
   }
 };

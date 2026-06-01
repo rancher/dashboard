@@ -109,7 +109,8 @@ type Metadata = {
   fields: string[];
   generation: number;
   managedFields: ManagedFields[];
-  name: string;
+  name?: string;
+  generateName?: string;
   relationships: null;
   resourceVersion: string;
   state: {
