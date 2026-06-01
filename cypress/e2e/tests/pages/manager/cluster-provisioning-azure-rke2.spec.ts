@@ -5,7 +5,8 @@ import ClusterManagerDetailRke2AzurePagePo from '@/cypress/e2e/po/detail/provisi
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import { MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning'] }, () => {
@@ -42,7 +43,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
 
-  it('can not create an Azure RKE2 cluster if invalid Azure credentials are provided', function() {
+  qase(7401, it('can not create an Azure RKE2 cluster if invalid Azure credentials are provided', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -77,9 +78,9 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
 
     // verify that the rke2 provisioning form is not shown
     createRKE2ClusterPage.nameNsDescription().description().checkNotVisible();
-  });
+  }));
 
-  it('can create a RKE2 cluster using Azure cloud provider', function() {
+  qase(5602, it('can create a RKE2 cluster using Azure cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -162,9 +163,9 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
           expect(['Reconciling', 'Updating']).to.include(status);
         });
     });
-  });
+  }));
 
-  it('can see details of cluster in cluster list', function() {
+  qase(5603, it('can see details of cluster in cluster list', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
@@ -183,9 +184,9 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
 
     // check machines
     clusterList.list().machines(this.rke2AzureClusterName).should('contain.text', '1');
-  });
+  }));
 
-  it('cluster details page', function() {
+  qase(5604, it('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AzurePagePo(undefined, this.rke2AzureClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -206,9 +207,9 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
     clusterDetails.waitForPage(null, 'events');
     clusterDetails.recentEventsList().checkTableIsEmpty();
-  });
+  }));
 
-  it('can create snapshot', function() {
+  qase(5605, it('can create snapshot', function() {
     const clusterDetails = new ClusterManagerDetailRke2AzurePagePo(undefined, this.rke2AzureClusterName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
@@ -236,33 +237,35 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`);
-  });
+  }));
 
-  it('can delete an Azure RKE2 cluster', function() {
+  qase(5606, it('can delete an Azure RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    cy.intercept('DELETE', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2AzureClusterName }`).as('deleteRke2Cluster');
     clusterList.list().actionMenu(this.rke2AzureClusterName).getMenuItem('Delete').click();
 
-    clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
-      const promptRemove = new PromptRemove();
+    const promptRemove = new PromptRemove();
 
-      promptRemove.confirm(this.rke2AzureClusterName);
-      promptRemove.remove();
+    promptRemove.confirm(this.rke2AzureClusterName);
+    promptRemove.remove();
+    cy.wait('@deleteRke2Cluster').its('response.statusCode').should('eq', 200);
 
-      clusterList.waitForPage();
-      clusterList.list().state(this.rke2AzureClusterName).should('contain.text', 'Removing');
-      clusterList.list().state(this.rke2AzureClusterName).contains('Removing', { timeout: 200000 }).should('not.exist');
-      clusterList.sortableTable().checkRowCount(false, rows.length - 1, MEDIUM_TIMEOUT_OPT);
-      clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke2AzureClusterName);
+    clusterList.waitForPage();
+    clusterList.list().state(this.rke2AzureClusterName).should('contain.text', 'Removing');
+    clusterList.sortableTable().rowElements(VERY_LONG_TIMEOUT_OPT).should(($rows) => {
+      const tableText = Cypress.$.makeArray<any>($rows).map((row) => row.innerText).join(' ');
+
+      expect(tableText).to.not.contain(this.rke2AzureClusterName);
     });
-  });
+  }));
 
   after('clean up', () => {
     // delete cluster: needed here in case the delete test fails
     cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', clusterId, false);
     if (removeCloudCred) {
       //  delete cloud cred
-      cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId);
+      cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId, false);
     }
   });
 });
