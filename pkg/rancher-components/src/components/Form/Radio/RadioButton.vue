@@ -197,8 +197,7 @@ export default defineComponent({
     />
     <div class="labeling">
       <label
-        :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
-        :style="useBodyTextColor ? { color: 'var(--body-text)' } : {}"
+        :class="[ muteLabel ? 'text-muted' : '', useBodyTextColor ? 'body-text-color' : '', 'radio-label', 'm-0']"
         :for="name"
       >
         <slot
@@ -268,6 +267,10 @@ $fontColor: var(--input-label);
   .radio-label,
   .radio-button-outer-container-description {
     cursor: pointer;
+  }
+
+  .body-text-color {
+    color: var(--body-text);
   }
 
   &.disabled,

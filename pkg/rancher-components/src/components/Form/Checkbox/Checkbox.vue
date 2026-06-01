@@ -324,7 +324,7 @@ export default defineComponent({
           <span
             v-if="labelKey"
             :id="idForLabel"
-            :style="useBodyTextColor ? { color: 'var(--body-text)' } : {}"
+            :class="{ 'body-text-color': useBodyTextColor }"
           >
             <t
               :k="labelKey"
@@ -334,7 +334,7 @@ export default defineComponent({
           <span
             v-else-if="label"
             :id="idForLabel"
-            :style="useBodyTextColor ? { color: 'var(--body-text)' } : {}"
+            :class="{ 'body-text-color': useBodyTextColor }"
           >{{ label }}</span>
           <i
             v-if="tooltipKey"
@@ -412,6 +412,10 @@ $fontColor: var(--input-label);
     color: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
+
+    .body-text-color {
+      color: var(--body-text);
+    }
 
     &.checkbox-primary {
       color: inherit;
