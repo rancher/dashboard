@@ -203,7 +203,7 @@ export default class Namespace extends SteveModel {
     // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       listLocation.name = `${ HARVESTER }-${ listLocation.name }`.replace('-product', '');
-      listLocation.params = { ...listLocation.params, resource: 'namespace' };
+      listLocation.params = { resource: 'namespace' };
     }
 
     return listLocation;
