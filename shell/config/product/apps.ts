@@ -123,6 +123,20 @@ export function $init(prodReg: IExtension) {
   // Additional routes for the product that are not tied to a specific page,
   // ex: routes for details pages that can be accessed from multiple places in the UI
   prodReg.addRoute({
+    path: '/c/:cluster/apps',
+    name: 'c-cluster-apps',
+    redirect(to) {
+      return {
+        name:   'c-cluster-apps-charts',
+        params: {
+          ...(to?.params || {}),
+          product: NAME,
+        }
+      };
+    },
+  });
+
+  prodReg.addRoute({
     path:      '/c/:cluster/apps/chart',
     component: () => import('@shell/pages/c/_cluster/apps/charts/chart.vue'),
     name:      'c-cluster-apps-charts-chart',
