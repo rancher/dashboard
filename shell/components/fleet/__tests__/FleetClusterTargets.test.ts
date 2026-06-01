@@ -1835,4 +1835,242 @@ describe('component: FleetClusterTargets', () => {
       expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
     });
   });
+
+  describe('resolveClusterDisplayName', () => {
+    it.each([
+      ['c-m-abc123', 'my-production-cluster'],
+      ['c-m-def456', 'my-staging-cluster'],
+    ])('should return nameDisplay for metadata.name "%s"', (metadataName, expectedDisplay) => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'my-production-cluster'
+        },
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-def456' },
+          nameDisplay: 'my-staging-cluster'
+        }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+
+      expect(wrapper.vm.resolveClusterDisplayName(metadataName)).toStrictEqual(expectedDisplay);
+    });
+
+    it('should return the original name when no cluster matches', () => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'my-production-cluster'
+        }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+
+      expect(wrapper.vm.resolveClusterDisplayName('non-existent')).toStrictEqual('non-existent');
+    });
+
+    it('should not resolve cluster from a different namespace', () => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'other-namespace', name: 'c-m-abc123' },
+          nameDisplay: 'my-production-cluster'
+        }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+
+      expect(wrapper.vm.resolveClusterDisplayName('c-m-abc123')).toStrictEqual('c-m-abc123');
+    });
+  });
+
+  describe('clustersOptions', () => {
+    it('should use nameDisplay for both label and value', () => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'my-production-cluster',
+          status:      { provider: 'rke2' }
+        },
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-def456' },
+          nameDisplay: 'my-staging-cluster',
+          status:      { provider: 'rke2' }
+        }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+
+      const options = wrapper.vm.clustersOptions;
+
+      expect(options).toStrictEqual([
+        { label: 'my-production-cluster', value: 'my-production-cluster' },
+        { label: 'my-staging-cluster', value: 'my-staging-cluster' }
+      ]);
+    });
+
+    it('should filter out clusters from other namespaces', () => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'my-cluster',
+          status:      { provider: 'rke2' }
+        },
+        {
+          metadata:    { namespace: 'other-namespace', name: 'c-m-other' },
+          nameDisplay: 'other-cluster',
+          status:      { provider: 'rke2' }
+        }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+
+      expect(wrapper.vm.clustersOptions).toStrictEqual([
+        { label: 'my-cluster', value: 'my-cluster' }
+      ]);
+    });
+  });
+
+  describe('allClusters watcher', () => {
+    it('should resolve selectedClusters metadata.name values to nameDisplay when clusters load', async() => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'my-production-cluster'
+        },
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-def456' },
+          nameDisplay: 'my-staging-cluster'
+        }
+      ];
+
+      const targets = [
+        { clusterName: 'c-m-abc123' },
+        { clusterName: 'c-m-def456' }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['c-m-abc123', 'c-m-def456']);
+
+      wrapper.setData({ allClusters: mockClusters });
+      await flushPromises();
+
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['my-production-cluster', 'my-staging-cluster']);
+    });
+
+    it('should keep names that already match nameDisplay unchanged', async() => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'my-cluster' },
+          nameDisplay: 'my-cluster'
+        }
+      ];
+
+      const targets = [{ clusterName: 'my-cluster' }];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+      await flushPromises();
+
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['my-cluster']);
+    });
+
+    it('should keep unresolvable names as-is', async() => {
+      const mockClusters = [
+        {
+          metadata:    { namespace: 'fleet-default', name: 'c-m-abc123' },
+          nameDisplay: 'known-cluster'
+        }
+      ];
+
+      const targets = [
+        { clusterName: 'c-m-abc123' },
+        { clusterName: 'unknown-name' }
+      ];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: mockClusters });
+      await flushPromises();
+
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['known-cluster', 'unknown-name']);
+    });
+
+    it('should not resolve when clusters array is empty', async() => {
+      const targets = [{ clusterName: 'c-m-abc123' }];
+
+      const wrapper = mountWithSetup(FleetClusterTargets, {
+        props: {
+          targets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusters: [] });
+      await flushPromises();
+
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['c-m-abc123']);
+    });
+  });
 });
