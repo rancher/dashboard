@@ -41,7 +41,11 @@ export type ClusterDetailTabs = {
   /**
    * Kube conditions of the provisioning.cattle.io.cluster instance
    */
-  conditions: boolean
+  conditions: boolean,
+  /**
+   * RKE2 autoscaler
+   */
+  autoscaler: boolean
 };
 
 /**

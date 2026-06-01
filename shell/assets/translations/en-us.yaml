@@ -2737,6 +2737,7 @@ cluster:
     registry: Registries
     upgrade: Upgrade Strategy
     registration: Registration
+    nodePools: Node Pools
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
