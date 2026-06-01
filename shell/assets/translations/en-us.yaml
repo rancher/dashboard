@@ -1389,8 +1389,6 @@ catalog:
       releaseName: Release Name
       releaseNamespace: Release Namespace
   repo:
-    type:
-      label: Type
     add: Add Repository
     action:
       refresh: Refresh

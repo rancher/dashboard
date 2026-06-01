@@ -240,7 +240,7 @@ export default class ClusterRepo extends SteveModel {
   get details() {
     return [
       {
-        label:   this.t('catalog.repo.type.label'),
+        label:   this.t('generic.type'),
         content: this.typeDisplay,
       },
       {
