@@ -9,8 +9,9 @@ import { RcSection } from '@components/RcSection';
 import { _CREATE } from '@shell/config/query-params';
 import merge from 'lodash/merge';
 import Networking from '.././components/Networking.vue';
+import IngressRules from '.././components/IngressRules.vue';
 import { removeEmptyFields } from '../utils';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import { set } from '@shell/utils/object.js';
 
 defineOptions({ name: 'ClusterConfiguration' });
@@ -113,6 +114,35 @@ const vpcId: WritableComputedRef<string> = computed({
   },
 });
 
+const ipv6: WritableComputedRef<string> = computed({
+  get: () => value?.value?.spec?.network?.ipv6 || null,
+  set: (neu: object | undefined) => {
+    if (value.value && neu) {
+      if (!value.value.spec.network) {
+        set(value.value, 'spec.network', {});
+      }
+      value.value.spec.network.ipv6 = neu;
+    } else {
+      delete value.value.spec.network.ipv6;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const securityGroupOverrides: WritableComputedRef<string> = computed({
+  get: () => value?.value?.spec?.network?.securityGroupOverrides || {},
+  set: (neu: string) => {
+    if (value.value) {
+      if (!value.value?.spec?.network) {
+        set(value.value, 'spec.network', { securityGroupOverrides: neu });
+      } else {
+        value.value.spec.network.securityGroupOverrides = neu;
+      }
+    }
+    emit('update:value', value.value);
+  },
+});
+
 const firstSubnetId: WritableComputedRef<string> = computed({
   get: () => value?.value?.spec?.network?.subnets?.[0]?.id || '',
   set: (sn: string) => {
@@ -122,6 +152,48 @@ const firstSubnetId: WritableComputedRef<string> = computed({
       } else {
         value.value.spec.network.subnets[0].id = sn;
       }
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const additionalControlPlaneIngressRules = computed({
+  get: () => value?.value?.spec?.network?.additionalControlPlaneIngressRules || [],
+  set: (rules: any[]) => {
+    if (value.value) {
+      if (!value.value?.spec?.network) {
+        set(value.value, 'spec.network', {});
+      }
+      value.value.spec.network.additionalControlPlaneIngressRules = rules;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const additionalNodeIngressRules = computed({
+  get: () => value?.value?.spec?.network?.additionalNodeIngressRules || [],
+  set: (rules: any[]) => {
+    if (value.value) {
+      if (!value.value?.spec?.network) {
+        set(value.value, 'spec.network', {});
+      }
+      value.value.spec.network.additionalNodeIngressRules = rules;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const cniIngressRules = computed({
+  get: () => value?.value?.spec?.network?.cni?.cniIngressRules || [],
+  set: (rules: any[]) => {
+    if (value.value) {
+      if (!value.value?.spec?.network) {
+        set(value.value, 'spec.network', {});
+      }
+      if (!value.value.spec.network.cni) {
+        value.value.spec.network.cni = {};
+      }
+      value.value.spec.network.cni.cniIngressRules = rules;
     }
     emit('update:value', value.value);
   },
@@ -252,10 +324,64 @@ onMounted(async() => {
       <Networking
         v-model:vpc-id="vpcId"
         v-model:subnet-id="firstSubnetId"
+        v-model:security-group-overrides="securityGroupOverrides"
+        v-model:ipv6="ipv6"
         :mode="mode"
         :region="region"
         :credentialId="credentialId"
       />
+
+      <RcSection
+        title="Network Security"
+        :expandable="true"
+        mode="with-header"
+        type="secondary"
+        class="mt-20"
+      >
+        <RcSection
+          title="Additional Control Plane Ingress Rules"
+          :expandable="true"
+          mode="with-header"
+          type="secondary"
+        >
+          <IngressRules
+            v-model:value="additionalControlPlaneIngressRules"
+            :mode="mode"
+            :region="region"
+            :credential-id="credentialId"
+          />
+        </RcSection>
+
+        <RcSection
+          title="Additional Node Ingress Rules"
+          :expandable="true"
+          mode="with-header"
+          type="secondary"
+          class="mt-20"
+        >
+          <IngressRules
+            v-model:value="additionalNodeIngressRules"
+            :mode="mode"
+            :region="region"
+            :credential-id="credentialId"
+          />
+        </RcSection>
+
+        <RcSection
+          title="CNI Ingress Rules"
+          :expandable="true"
+          mode="with-header"
+          type="secondary"
+          class="mt-20"
+        >
+          <IngressRules
+            v-model:value="cniIngressRules"
+            :mode="mode"
+            :region="region"
+            :credential-id="credentialId"
+          />
+        </RcSection>
+      </RcSection>
     </RcSection>
   </div>
 </template>

@@ -1,47 +1,31 @@
 <script setup lang="ts">
-import {
-  toRefs, ref, watch, computed, WritableComputedRef
-} from 'vue';
+import { toRefs, ref, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { _CREATE } from '@shell/config/query-params';
 import { RcSection } from '@components/RcSection';
-import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
+import { getSubnetDisplayName, getVpcDisplayName } from '@shell/utils/aws';
 import * as AWS from '@shell/types/aws-sdk';
-
-const SECURITY_GROUP_ROLES = {
-  // SSH bastion role
-  BASTION: 'bastion',
-
-  // Kubernetes workload node role
-  NODE: 'node',
-
-  // Kubernetes control plane node role
-  CONTROL_PLANE: 'controlplane',
-
-  // Kubernetes API Server Load Balancer role
-  API_SERVER_LB: 'apiserver-lb',
-
-  // container for the cloud provider to inject its load balancer ingress rules
-  LB: 'lb'
-};
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import SecurityOverrides from './SecurityOverrides.vue';
 
 defineOptions({ name: 'Networking' });
 
-defineEmits([
+const emit = defineEmits([
   'update:vpcId',
   'update:subnetId',
   'validationChanged',
-  'update:securityGroupOverrides'
+  'update:securityGroupOverrides',
+  'update:ipv6'
 ]);
 
 interface Props {
   vpcId: string;
   subnetId: string;
-  // TODO nb type as map
   securityGroupOverrides: {};
+  ipv6?: {};
   mode?: string;
   credentialId: any;
   region?: string;
@@ -49,11 +33,12 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   mode:   _CREATE,
-  region: ''
+  region: '',
+  ipv6:   undefined
 });
 
 const {
-  vpcId, subnetId, credentialId, region
+  vpcId, subnetId, credentialId, region, ipv6
 } = toRefs(props);
 
 const store = useStore();
@@ -61,17 +46,36 @@ const { t } = useI18n(store);
 const ec2Client = ref(null);
 const vpcInfo = ref<AWS.VPC[]>([]);
 const subnetInfo = ref<AWS.Subnet[]>([]);
-const securityGroupInfo = ref<AWS.SecurityGroup[]>([]);
 const loadingVpcs = ref(false);
 const loadingSubnets = ref(false);
-const loadingSecurityGroups = ref(false);
 
 // TODO nb managed network should have a label applied by capi - check for this so edit loads the right strategy
 const useUnmanagedNetwork = ref(false);
 
+const enableIpv6 = computed({
+  get() {
+    return !!ipv6?.value;
+  },
+  set(value: boolean) {
+    if (value) {
+      emit('update:ipv6', {});
+    } else {
+      emit('update:ipv6', undefined);
+    }
+  }
+});
+
 const networkStrategyOptions = [
-  { label: t('capa.clusterConfig.network.strategy.managed'), value: false },
-  { label: t('capa.clusterConfig.network.strategy.unmanaged'), value: true }
+  {
+    label:       t('capa.clusterConfig.network.strategy.managed.label'),
+    value:       false,
+    description: t('capa.clusterConfig.network.strategy.managed.description')
+  },
+  {
+    label:       t('capa.clusterConfig.network.strategy.unmanaged.label'),
+    value:       true,
+    description: t('capa.clusterConfig.network.strategy.unmanaged.description')
+  }
 ];
 
 const vpcOptions = computed(() => {
@@ -97,21 +101,6 @@ const subnetOptions = computed(() => {
 
     return opts;
   }, [] as {label: string, value: string}[]);
-});
-
-const securityGroupOptions = computed(() => {
-  if (!vpcId.value) {
-    return [t('capa.clusterConfig.network.securityGroups.selectVpc')];
-  }
-
-  return securityGroupInfo.value.reduce((opts, sg) => {
-    if (sg.VpcId === vpcId.value) {
-      opts.push({ label: `${ sg.GroupName } (${ sg.Description })`, value: sg.SecurityGroupArn });
-    }
-    console.log('**** security group ', sg);
-
-    return opts;
-  }, [] as any);
 });
 
 async function getVpcs() {
@@ -145,22 +134,6 @@ async function getSubnets() {
   loadingSubnets.value = false;
 }
 
-async function getSecurityGroups() {
-  loadingSecurityGroups.value = true;
-
-  if (!ec2Client.value) {
-    securityGroupInfo.value = [];
-    loadingSecurityGroups.value = false;
-
-    return;
-  }
-  // TODO nb store method with caching
-  const securityGroups = await ec2Client.value.describeSecurityGroups({ });
-
-  securityGroupInfo.value = securityGroups?.SecurityGroups || [];
-  loadingSecurityGroups.value = false;
-}
-
 watch([
   () => region.value,
   () => credentialId.value,
@@ -172,7 +145,7 @@ watch([
     });
     getVpcs();
     getSubnets();
-    getSecurityGroups();
+    // getSecurityGroups();
   } else {
     vpcInfo.value = [];
     subnetInfo.value = [];
@@ -204,7 +177,7 @@ watch([
       :expandable="true"
     >
       <!-- //TODO nb make these inputs required when unmanagednetwork is true -->
-      <div class="mb-20 span-4">
+      <div class="mb-20 span-6">
         <LabeledSelect
           :value="vpcId"
           :label="t('capa.clusterConfig.network.vpc.label')"
@@ -213,7 +186,7 @@ watch([
           @update:value="$emit('update:vpcId', $event)"
         />
       </div>
-      <div class="mb-20 span-4">
+      <div class="mb-20 span-6">
         <LabeledSelect
           :value="subnetId"
           :label="t('capa.clusterConfig.network.subnets.label')"
@@ -222,28 +195,26 @@ watch([
           @update:value="$emit('update:subnetId', $event)"
         />
       </div>
-      <h4>{{ t('capa.clusterConfig.network.securityGroups.label') }}</h4>
-      <div class="row mb-20">
-        <div class="col span-4">
-          <LabeledSelect
-            :disabled="!vpcId"
-            :value="securityGroupOverrides"
-            :options="Object.values(SECURITY_GROUP_ROLES)"
-            :loading="loadingSecurityGroups"
-            @update:value="$emit('update:securityGroupOverrides', $event)"
-          />
-        </div>
-        <div class="col span-4">
-          <LabeledSelect
-            :disabled="!vpcId"
-            :value="vpcId ? securityGroupOverrides: t('capa.clusterConfig.network.securityGroups.selectVpc')"
-            :options="securityGroupOptions"
-            :loading="loadingSecurityGroups"
-            @update:value="$emit('update:securityGroupOverrides', $event)"
-          />
-        </div>
+      <div>
+        <h4>{{ t('capa.clusterConfig.network.securityGroups.label') }}</h4>
+        <h5>{{ t('capa.clusterConfig.network.securityGroups.description') }}</h5>
+        <SecurityOverrides
+          :vpc-id="vpcId"
+          :region="region"
+          :credential-id="credentialId"
+          :value="securityGroupOverrides"
+          @update:value="$emit('update:securityGroupOverrides', $event)"
+        />
       </div>
     </RcSection>
+    <div class="row">
+      <!-- TODO nb localization -->
+      <Checkbox
+        v-model:value="enableIpv6"
+        :mode="mode"
+        label="Enable IPv6"
+      />
+    </div>
   </RcSection>
 </template>
 

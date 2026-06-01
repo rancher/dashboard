@@ -13,17 +13,30 @@ capa:
       placeholder: Select a network
       strategy:
         label: Strategy
-        managed: Managed network
-        unmanaged: Unmanaged network (manual configuration)
+        managed: 
+          label: Managed network
+          description: CAPA will automatically create a completely new, fully configured VPC for this cluster (including Subnets and Security Groups).
+        unmanaged: 
+          label: Unmanaged network (manual configuration)
+          description: Bring your own AWS Instrastructure. Select an existing VPC and Subnets. By default, CAPA will still create Security Groups and a Control Plane Load Balancer.
       vpc:
         label: VPC
       subnets:
-        label: Subnets
+        label: Subnet
         placeholder: Select one or more subnets
       securityGroups:
         label: Security Group Overrides
         description: Select existing security groups instead of using the CAPA controller to automatically create new ones. Only applies when using an unmanaged network.
         selectVpc: Pick a VPC first
+        roles:
+          bastion: Bastion SSH
+          node: Workload nodes
+          controlplane: Control plane nodes
+          apiserver-lb: Kubernetes API server load balancer
+          lb: Load balancer
+        role: Role
+        securityGroupId: Security Group ID
+        addOverride: Add SG override
     sshKeyName:
       label: SSH Key Name
       noneLabel: None
