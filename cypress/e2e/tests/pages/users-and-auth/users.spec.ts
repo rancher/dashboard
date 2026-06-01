@@ -95,7 +95,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     let unassignUsername: string;
 
     // Create a standard user via API with a unique name to avoid collisions
-    const uniqueName = Cypress._.uniqueId(Date.now().toString());
+    const uniqueName = `e2e-test-un-assign-global-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
     cy.createUser({
       username:   uniqueName,
@@ -120,16 +120,19 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.reload();
       userEdit.waitForPage();
 
-      // Verify both roles are checked
-      userEdit.selectCheckbox('Standard User').isChecked();
-      userEdit.selectCheckbox('User-Base').isChecked();
+      // Scroll global permissions into view and wait for checkboxes to render
+      userEdit.globalRoleBindings().self().scrollIntoView().should('be.visible');
+
+      // Verify both roles are checked (use real input state — aria-checked is unreliable for array v-models)
+      userEdit.globalRoleBindings().roleCheckbox('user').isInputChecked();
+      userEdit.globalRoleBindings().roleCheckbox('user-base').isInputChecked();
 
       // Uncheck User-Base — only role change, no credentials change
-      userEdit.selectCheckbox('User-Base').set();
-      userEdit.selectCheckbox('User-Base').isNotChecked();
+      userEdit.globalRoleBindings().roleCheckbox('user-base').set();
+      userEdit.globalRoleBindings().roleCheckbox('user-base').isInputNotChecked();
 
-      // Save — should trigger DELETE for the User-Base binding
-      cy.intercept('DELETE', '/v1/management.cattle.io.globalrolebindings/*').as('deleteGrb');
+      // Save — should trigger DELETE for the User-Base binding (match either v1 steve or v3 norman path)
+      cy.intercept('DELETE', /globalrolebinding/i).as('deleteGrb');
       userEdit.resourceDetail().cruResource().saveOrCreate().click();
       cy.wait('@deleteGrb', { timeout: 10000 }).its('response.statusCode').should('be.oneOf', [200, 204]);
 
