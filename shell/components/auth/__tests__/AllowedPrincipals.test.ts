@@ -1,4 +1,3 @@
-import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 
