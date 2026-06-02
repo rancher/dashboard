@@ -18,7 +18,7 @@ export class ExtendingPluginProduct extends BasePluginProduct {
     // existing standard product - no need to add routes
     this.name = productName;
     this.startRouteWithProduct = false;
-    plugin._setStartRouteWithProduct(false);
+    plugin._setStartRouteWithProduct(this.name, false);
 
     if (this.config?.length > 0) {
       this.processConfigChildren();

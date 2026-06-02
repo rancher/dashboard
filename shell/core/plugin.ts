@@ -53,8 +53,8 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
-  public topLevelProduct = false;
-  public startRouteWithProduct = false;
+  public topLevelProducts: Set<string> = new Set();
+  public startRouteWithProductByProduct: Record<string, boolean> = {};
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -124,12 +124,12 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
-  _registerTopLevelProduct() {
-    this.topLevelProduct = true;
+  _registerTopLevelProduct(productName: string) {
+    this.topLevelProducts.add(productName);
   }
 
-  _setStartRouteWithProduct(val: boolean) {
-    this.startRouteWithProduct = val;
+  _setStartRouteWithProduct(productName: string, val: boolean) {
+    this.startRouteWithProductByProduct[productName] = val;
   }
 
   // Track which products the plugin creates

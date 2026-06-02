@@ -95,16 +95,20 @@ export default {
     let formRoute;
     let overrideCreateLocationByExtension = false;
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$store.getters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$store.getters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) {
+    const isTopLevel = plugins[currPluginName]?.topLevelProducts?.has(currentProductId);
+    const startsWithProduct = plugins[currPluginName]?.startRouteWithProductByProduct?.[currentProductId];
+
+    if (currPluginName && isTopLevel && startsWithProduct) {
       // override create route for extension resource lists
-      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: currentProductId } };
       overrideCreateLocationByExtension = true;
     } else {
       // this was the original logic before the topLevelProduct override was added

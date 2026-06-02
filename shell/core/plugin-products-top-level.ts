@@ -40,8 +40,8 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     this.startRouteWithProduct = product.startRouteWithProduct ?? true;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
-    plugin._registerTopLevelProduct();
-    plugin._setStartRouteWithProduct(this.startRouteWithProduct);
+    plugin._registerTopLevelProduct(this.name);
+    plugin._setStartRouteWithProduct(this.name, this.startRouteWithProduct);
 
     this.processConfigChildren();
 

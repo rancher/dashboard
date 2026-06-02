@@ -1367,17 +1367,21 @@ export default class Resource {
     // this is for the new extension product registration model
     let currPluginName = '';
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$rootGetters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    // the flag "topLevelProduct" only exists in the V2 product registration model
-    // if the flag "startRouteWithProduct" is true, it means the product wants to use the new route format with product at the beginning
-    // otherwise it will use the old route format with "cluster" at the beginning
-    return (plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) || false;
+    // Both flags are tracked per-product so that a single plugin registering multiple
+    // products (some top-level, some extending) gets the correct answer for whichever
+    // product is currently active.
+    const isTopLevel = plugins[currPluginName]?.topLevelProducts?.has(currentProductId);
+    const startsWithProduct = plugins[currPluginName]?.startRouteWithProductByProduct?.[currentProductId];
+
+    return Boolean(isTopLevel && startsWithProduct);
   }
 
   get listLocation() {

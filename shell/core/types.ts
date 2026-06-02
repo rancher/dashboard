@@ -709,15 +709,16 @@ export type ModelExtensionConstructor = (context: ModelExtensionContext) => Obje
  */
 export interface IExtension {
   /**
-   * Register a top-level product as a flag on the plugin
+   * Register a product as a top-level product on the plugin (keyed by product name).
    * @internal - DO NOT USE - Internal API only
    */
-  _registerTopLevelProduct(): void;
+  _registerTopLevelProduct(productName: string): void;
 
   /**
+   * Record whether a product's routes start with the product name (keyed by product name).
    * @internal - DO NOT USE - Internal API only
    */
-  _setStartRouteWithProduct(value: boolean): void;
+  _setStartRouteWithProduct(productName: string, value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages

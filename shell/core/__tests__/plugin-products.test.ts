@@ -4619,7 +4619,7 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, productMetadata, []);
 
-      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(true);
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith('myproduct', true);
     });
 
     it('should call _setStartRouteWithProduct with false when product sets startRouteWithProduct: false', () => {
@@ -4632,7 +4632,7 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, productMetadata, []);
 
-      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(false);
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith('fleet', false);
     });
 
     it('should call _setStartRouteWithProduct with false when extending an existing product', () => {
@@ -4641,7 +4641,33 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, validStandardProduct, []);
 
-      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(false);
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(validStandardProduct, false);
+    });
+  });
+
+  describe('per-product flag isolation', () => {
+    it('tracks topLevelProducts and startRouteWithProductByProduct independently when a plugin registers multiple products', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct({
+        name: 'alpha', label: 'Alpha', startRouteWithProduct: true,
+      }, []);
+
+      plugin.addProduct({
+        name: 'beta', label: 'Beta', startRouteWithProduct: false,
+      }, []);
+
+      plugin.extendProduct(StandardProductNames.EXPLORER, []);
+
+      // top-level products are tracked by name
+      expect(plugin.topLevelProducts.has('alpha')).toBe(true);
+      expect(plugin.topLevelProducts.has('beta')).toBe(true);
+      expect(plugin.topLevelProducts.has(StandardProductNames.EXPLORER)).toBe(false);
+
+      // startRouteWithProduct is recorded per product, so a later registration cannot stomp earlier values
+      expect(plugin.startRouteWithProductByProduct.alpha).toBe(true);
+      expect(plugin.startRouteWithProductByProduct.beta).toBe(false);
+      expect(plugin.startRouteWithProductByProduct[StandardProductNames.EXPLORER]).toBe(false);
     });
   });
 
