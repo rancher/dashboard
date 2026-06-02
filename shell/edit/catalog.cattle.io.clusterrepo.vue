@@ -391,11 +391,13 @@ export default {
           data-testid="clusterrepo-helm-url-input"
         />
       </div>
+    </div>
 
-      <div
-        :class="clusterRepoType === CLUSTER_REPO_TYPES.GIT_REPO ? 'col span-3' : 'col span-6'"
-        data-testid="clusterrepo-refresh-interval"
-      >
+    <div
+      class="row mb-10 mt-20"
+      data-testid="clusterrepo-refresh-interval"
+    >
+      <div class="col span-6">
         <div class="refresh-interval-controls">
           <LabeledInput
             :tooltip="t('catalog.repo.refreshInterval.tooltip')"
@@ -411,6 +413,7 @@ export default {
             @update:value="onRefreshValueChange"
           />
           <LabeledSelect
+            class="refresh-interval-unit"
             :value="refreshUnit"
             :label="t('catalog.repo.refreshInterval.unitLabel')"
             :mode="mode"
@@ -564,6 +567,14 @@ export default {
   display: flex;
   align-items: flex-end;
   gap: 16px;
+}
+
+.refresh-interval-value {
+  flex: 2;
+}
+
+.refresh-interval-unit, .refresh-interval-toggle {
+  flex: 1;
 }
 
 </style>
