@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
@@ -81,23 +81,27 @@ const emit = defineEmits([
 const store = useStore();
 const { t } = useI18n(store);
 
-const updateAuth = (value, key) => {
+const updateAuth = (value: string, key: string) => {
   emit('update:auth', { value, key });
 };
 
-const updateCachedAuthVal = (value, key) => {
+const updateCachedAuthVal = (value: string, key: string) => {
   emit('update:cached-auth', { value, key });
 };
 
-const updateCorrectDrift = (value) => {
+const updateCorrectDrift = (value: boolean) => {
   emit('update:correct-drift', value);
 };
 
-const togglePolling = (value) => {
+const updateDownstreamResources = (event: { kind: string; list: string[] }) => {
+  emit('update:downstream-resources', event);
+};
+
+const togglePolling = (value: boolean) => {
   emit('toggle-polling', value);
 };
 
-const updatePollingInterval = (value) => {
+const updatePollingInterval = (value: number) => {
   emit('update:polling-interval', value);
 };
 
@@ -154,7 +158,7 @@ const validatePollingInterval = () => {
       :downstream-config-maps-list="downstreamConfigMapsList"
       class="mb-30"
       @update:correct-drift="updateCorrectDrift"
-      @update:downstream-resources="emit('update:downstream-resources', $event)"
+      @update:downstream-resources="updateDownstreamResources"
     />
 
     <template v-if="sourceType === SOURCE_TYPE.REPO">

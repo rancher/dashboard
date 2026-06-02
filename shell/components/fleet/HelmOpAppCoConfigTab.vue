@@ -42,15 +42,7 @@ const props = withDefaults(defineProps<{
   diffMode?: string;
   isRealModeEdit?: boolean;
   targetsCreated?: string;
-  sourceType: string;
-  isSuseAppCollection?: boolean;
-  tempCachedValues?: Record<string, any>;
   correctDriftEnabled?: boolean;
-  pollingInterval?: number;
-  isPollingEnabled?: boolean;
-  showPollingIntervalMinValueWarning?: boolean;
-  enablePollingTooltip?: string | null;
-  isNullOrStaticVersion?: boolean;
   downstreamSecretsList?: string[];
   downstreamConfigMapsList?: string[];
   registerBeforeHook:(...args: any[]) => void;
@@ -58,31 +50,24 @@ const props = withDefaults(defineProps<{
   hideAdvanced?: boolean;
   hideChartConfig?: boolean;
 }>(), {
-  appCoChartEntries:                  () => ({} as Record<string, ChartEntry[]>),
-  appCoChartsLoading:                 false,
-  chartValues:                        '',
-  chartValuesInit:                    '',
-  yamlForm:                           '',
-  yamlFormOptions:                    () => [],
-  yamlDiffModeOptions:                () => [],
-  isYamlDiff:                         false,
-  editorMode:                         '',
-  diffMode:                           '',
-  isRealModeEdit:                     false,
-  targetsCreated:                     '',
-  isSuseAppCollection:                false,
-  tempCachedValues:                   () => ({}),
-  correctDriftEnabled:                false,
-  pollingInterval:                    undefined,
-  isPollingEnabled:                   false,
-  showPollingIntervalMinValueWarning: false,
-  enablePollingTooltip:               null,
-  isNullOrStaticVersion:              false,
-  downstreamSecretsList:              () => [],
-  downstreamConfigMapsList:           () => [],
-  hideTarget:                         false,
-  hideAdvanced:                       false,
-  hideChartConfig:                    false,
+  appCoChartEntries:        () => ({} as Record<string, ChartEntry[]>),
+  appCoChartsLoading:       false,
+  chartValues:              '',
+  chartValuesInit:          '',
+  yamlForm:                 '',
+  yamlFormOptions:          () => [],
+  yamlDiffModeOptions:      () => [],
+  isYamlDiff:               false,
+  editorMode:               '',
+  diffMode:                 '',
+  isRealModeEdit:           false,
+  targetsCreated:           '',
+  correctDriftEnabled:      false,
+  downstreamSecretsList:    () => [],
+  downstreamConfigMapsList: () => [],
+  hideTarget:               false,
+  hideAdvanced:             false,
+  hideChartConfig:          false,
 });
 
 // eslint-disable-next-line func-call-spacing
@@ -97,9 +82,6 @@ const emit = defineEmits<{
   (e: 'update:cached-auth', value: { value: any; key: string }): void;
   (e: 'update:correct-drift', value: boolean): void;
   (e: 'update:downstream-resources', value: { kind: string; list: string[] }): void;
-  (e: 'toggle-polling', value: boolean): void;
-  (e: 'update:polling-interval', value: number): void;
-  (e: 'update:validate-polling-interval'): void;
 }>();
 
 const store = useStore();

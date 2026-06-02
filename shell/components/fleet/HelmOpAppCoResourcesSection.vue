@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { toRef } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { useHelmOpResources } from '@shell/composables/useHelmOpResources';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -28,25 +30,7 @@ const { t } = useI18n(store);
 
 const DOCS_URL = 'https://fleet.rancher.io/experimental-features/experimental-downstream-resource';
 
-const updateCorrectDrift = (value: boolean) => {
-  emit('update:correct-drift', value);
-};
-
-const updateSecrets = (list: string[]) => {
-  const newList = [...list];
-
-  for (const locked of props.lockedSecrets) {
-    if (!newList.includes(locked)) {
-      newList.push(locked);
-    }
-  }
-
-  emit('update:downstream-resources', { kind: 'Secret', list: newList });
-};
-
-const updateDownstreamResources = (kind: string, list: string[]) => {
-  emit('update:downstream-resources', { kind, list });
-};
+const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelmOpResources(emit, toRef(props, 'lockedSecrets'));
 </script>
 
 <template>
@@ -95,7 +79,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
       :expanded="true"
       data-testid="helmop-appco-resources-additional"
     >
-      <div class="gap-16">
+      <div class="gap-md">
         <p>
           {{ t('fleet.helmOp.appCoResources.additionalResourcesDescription') }}<br>
           {{ t('fleet.helmOp.appCoResources.additionalResourcesLinkDescription') }}
@@ -115,7 +99,7 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
           <Banner
             v-if="lockedSecrets.length > 0"
             color="info"
-            :class="'mb-0 mt-0'"
+            class="mb-0 mt-0"
             data-testid="helmop-appco-resources-locked-secret-banner"
           >
             {{ t('fleet.helmOp.resources.lockedSecretBanner') }}
@@ -168,8 +152,8 @@ const updateDownstreamResources = (kind: string, list: string[]) => {
 }
 
 .gap-md {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
 }
 </style>
