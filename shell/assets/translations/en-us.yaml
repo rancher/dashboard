@@ -3353,6 +3353,7 @@ fleet:
       infoText: An Application Collection access token is required to connect to the Helm Charts catalogue.
       accessTokensLink: SUSE Application Collection access tokens
       accessTokenLabel: Access token
+      editCredentials: Edit credentials
       addNewToken: Add a new access token...
       noTokensYet: "You haven't added an access token yet."
       chooseExisting: 'Choose an existing token:'

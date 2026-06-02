@@ -22,8 +22,9 @@ const props = defineProps({
     default: false,
   },
 });
-const SUSE_ACCESS_TOKENS_URL = 'https://docs.apps.rancher.io/get-started/authentication#create-an-access-token';
 const emit = defineEmits(['edit-credentials']);
+
+const SUSE_ACCESS_TOKENS_URL = 'https://docs.apps.rancher.io/get-started/authentication#create-an-access-token';
 </script>
 
 <template>
@@ -66,6 +67,7 @@ const emit = defineEmits(['edit-credentials']);
               class="edit-btn"
               variant="secondary"
               size="medium"
+              :aria-label="t('fleet.appCo.credentials.editCredentials')"
               data-testid="appco-header-edit-credentials"
               @click="emit('edit-credentials')"
             >
@@ -74,17 +76,11 @@ const emit = defineEmits(['edit-credentials']);
           </div>
         </div>
       </template>
-    </masthead>
+    </Masthead>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.appco-page-header {
-  h1 {
-    margin-bottom: 0;
-  }
-}
-
 .secret-info {
   display: grid;
   grid-template-columns: auto auto;
@@ -111,15 +107,6 @@ const emit = defineEmits(['edit-credentials']);
 
 .edit-btn {
   width: 40px;
-  .icon {
-    font-size: 14px;
-  }
-}
-
-.title-divider {
-  margin: 15px 0 20px;
-  border: none;
-  border-top: 1px solid var(--border);
 }
 
 .align-end {

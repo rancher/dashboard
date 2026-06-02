@@ -10,32 +10,42 @@ import Loading from '@shell/components/Loading';
 import Select from '@shell/components/form/Select';
 import { RcIcon } from '@components/RcIcon';
 
+interface ChartVersion {
+  version: string;
+  description?: string;
+  icon?: string;
+  appVersion?: string;
+  created?: string;
+}
+
 interface ChartEntry {
   name: string;
   description: string;
   icon: string;
   version: string;
-  appVersion: string;
   created: string;
-  versions: any[];
+  versions: ChartVersion[];
 }
 
-const props = defineProps({
-  charts: {
-    type:    Object,
-    default: () => ({}),
-  },
-  loading: {
-    type:    Boolean,
-    default: false,
-  },
-  searchPlaceholder: {
-    type:    String,
-    default: '',
-  },
+interface SubHeaderItem {
+  icon: string;
+  iconTooltip: { key: string };
+  label: string;
+}
+
+const props = withDefaults(defineProps<{
+  charts: Record<string, ChartVersion[]>;
+  loading?: boolean;
+  searchPlaceholder?: string;
+}>(), {
+  charts:            () => ({}),
+  loading:           false,
+  searchPlaceholder: '',
 });
 
-const emit = defineEmits(['select-chart']);
+const emit = defineEmits<{
+  'select-chart': [value: unknown];
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -69,7 +79,6 @@ const allCharts = computed<ChartEntry[]>(() => {
       description: latest.description || '',
       icon:        latest.icon || '',
       version:     latest.version || '',
-      appVersion:  latest.appVersion || '',
       created:     latest.created || '',
       versions,
     };
@@ -138,7 +147,7 @@ const formatDate = (dateString: string): string => {
 const chartCards = computed(() => {
   return sortedCharts.value.map((chart) => {
     const dateStr = chart.created ? formatDate(chart.created) : '';
-    const subHeaderItems: any[] = [];
+    const subHeaderItems: SubHeaderItem[] = [];
 
     if (chart.version) {
       subHeaderItems.push({
@@ -329,7 +338,6 @@ const onKeydown = (e: KeyboardEvent) => {
   flex-direction: column;
   gap: var(--gap-lg);
   outline: none;
-
 }
 
 .search-input {
@@ -379,7 +387,7 @@ const onKeydown = (e: KeyboardEvent) => {
 .chart-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  grid-gap: var(--gap-md);
+  gap: var(--gap-md);
   width: 100%;
   height: max-content;
   overflow: hidden;
@@ -389,8 +397,4 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-.no-match {
-  text-align: center;
-  padding: 24px;
-}
 </style>

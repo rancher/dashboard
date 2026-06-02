@@ -3,7 +3,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
-interface VersionOption {
+export interface VersionOption {
   label: string;
   value: string;
   date?: string;
@@ -34,7 +34,6 @@ const { t } = useI18n(store);
     :label="t('fleet.helmOp.appCoConfig.chartVersion')"
     :searchable="true"
     option-key="value"
-    data-testid="appco-config-version-select"
     @update:value="emit('update:value', $event)"
   >
     <template #option="opt">

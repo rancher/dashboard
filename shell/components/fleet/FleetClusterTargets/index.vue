@@ -545,7 +545,6 @@ export default {
           class="target-list"
           :clusters="matching"
           :compact="compact"
-          :namespace="namespace"
         />
       </div>
     </div>

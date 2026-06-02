@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { BadgeState } from '@components/BadgeState';
 import { RcIcon } from '@components/RcIcon';
-import { computed } from 'vue';
+import { computed, type PropType } from 'vue';
+
+interface BadgeStateProps {
+  transitioning?: boolean;
+  error?: boolean;
+  stateBackground: string;
+  stateDisplay: string;
+}
 
 const props = defineProps({
   title: {
@@ -9,13 +16,12 @@ const props = defineProps({
     required: true,
   },
   badgeState: {
-    type:    Object,
+    type:    Object as PropType<BadgeStateProps | null>,
     default: null,
   },
 });
 
 const emptyState = computed(() => !props.badgeState?.transitioning && !props.badgeState?.error);
-
 </script>
 
 <template>
@@ -27,21 +33,23 @@ const emptyState = computed(() => !props.badgeState?.transitioning && !props.bad
       {{ title }}
     </component>
     <div :class="['appco-empty-state-body', { 'has-badge': badgeState, 'direction-column': badgeState?.error }]">
-      <div class="appco-badge-container">
+      <div
+        v-if="badgeState"
+        class="appco-badge-container"
+      >
         <RcIcon
-          v-if="badgeState?.transitioning"
+          v-if="badgeState.transitioning"
           class="icon-spin"
           type="spinner"
           size="large"
         />
         <RcIcon
-          v-else-if="badgeState?.error"
+          v-else-if="badgeState.error"
           type="alert-alt"
           status="error"
           size="large"
         />
         <BadgeState
-          v-if="badgeState"
           :color="badgeState.stateBackground"
           :label="badgeState.stateDisplay"
         />
@@ -55,13 +63,12 @@ const emptyState = computed(() => !props.badgeState?.transitioning && !props.bad
 
 <style lang="scss" scoped>
 .appco-transitioning-error-state {
-  padding: 0px;
   gap: var(--gap-md);
   padding: 24px 0;
 }
 
 .appco-empty-state {
-  padding: 56px 56px;
+  padding: 56px;
   text-align: center;
   align-items: center;
 
@@ -74,23 +81,15 @@ const emptyState = computed(() => !props.badgeState?.transitioning && !props.bad
     &.direction-column {
       flex-direction: column;
     }
-  }
 
-  .appco-transitioning-error-state {
-    .appco-empty-state-body {
-      max-width: none;
-      margin: 0;
-    }
-  }
-  .appco-empty-state-title {
-    margin-bottom: 24px;
-  }
-  .appco-empty-state-body {
     &.has-badge {
       justify-content: center;
     }
   }
 
+  .appco-empty-state-title {
+    margin-bottom: 24px;
+  }
 }
 
 .appco-empty-state, .appco-transitioning-error-state {

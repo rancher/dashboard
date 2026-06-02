@@ -2,7 +2,6 @@
 import { PropType } from 'vue';
 import { Cluster } from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { RcTag, RcCounterBadge } from '@components/Pill';
-import { FLEET } from '@shell/config/types';
 
 export default {
   name: 'FleetTargetsList',
@@ -17,22 +16,13 @@ export default {
 
     emptyLabel: {
       type:    String,
-      default: ''
+      default: '',
     },
 
     compact: {
       type:    Boolean,
       default: false
     },
-
-    namespace: {
-      type:    String,
-      default: ''
-    },
-  },
-
-  data() {
-    return { showAllClusters: false };
   },
 
   computed: {
@@ -41,18 +31,6 @@ export default {
         name: nameDisplay || name,
         detailLocation,
       }));
-    },
-
-    workspaceRoute() {
-      return {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  '_',
-          product:  'fleet',
-          resource: FLEET.WORKSPACE,
-          id:       this.namespace,
-        },
-      };
     },
   },
 };
@@ -83,8 +61,8 @@ export default {
     <template v-if="compact">
       <div class="targets-list-chips">
         <RcTag
-          v-for="(cluster, i) in clustersRenderList"
-          :key="i"
+          v-for="cluster in clustersRenderList"
+          :key="cluster.name"
           type="inactive"
           class="do-not-shrink"
         >
@@ -102,8 +80,8 @@ export default {
     <template v-else>
       <div class="targets-list-list">
         <span
-          v-for="(cluster, i) in clustersRenderList"
-          :key="i"
+          v-for="cluster in clustersRenderList"
+          :key="cluster.name"
           class="row"
         >
           <router-link
@@ -138,12 +116,6 @@ export default {
     &.compact {
       background-color: var(--body-bg);
       max-height: none;
-
-      .targets-list-content {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
 
       .targets-list-list {
         display: flex;
@@ -194,7 +166,4 @@ export default {
     }
   }
 
-  .view-all-link {
-    margin-top: 8px;
-  }
 </style>
