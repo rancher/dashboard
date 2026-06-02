@@ -2,7 +2,7 @@ import { LeasesPagePo } from '@/cypress/e2e/po/pages/explorer/coordination.k8s.i
 
 const leasesPage = new LeasesPagePo();
 
-describe('No Custom Form Resource', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('No Custom Form Resource', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

@@ -11,7 +11,7 @@ let removeMappings = false;
 const mappingsNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Bundle Namespace Mappings', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetBundleNsMappingsListPage = new FleetBundleNamespaceMappingListPagePo();
   const headerPo = new HeaderPo();
 

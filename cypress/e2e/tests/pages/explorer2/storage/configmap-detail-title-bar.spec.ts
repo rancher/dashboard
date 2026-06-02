@@ -5,7 +5,7 @@ const namespace = 'default';
 const shortName = `a`;
 const longName = `e2e-test-long-configmap-name-that-should-truncate-with-ellipsis`;
 
-describe('ConfigMap Detail Title Bar', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('ConfigMap Detail Title Bar', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.createConfigMap(namespace, shortName);

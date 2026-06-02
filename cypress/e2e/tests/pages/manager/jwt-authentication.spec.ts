@@ -20,7 +20,7 @@ function goToJWTAuthenticationPageAndSettle() {
   jwtAuthenticationPage.list().resourceTable().sortableTable().resetFilter();
 }
 
-describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('JWT Authentication', { testIsolation: false, tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   let instance0 = '';
   let instance1 = '';
   let removeCluster0 = false;
@@ -167,7 +167,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 });
 
-describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
+describe('JWT Authentication (Standard User)', { testIsolation: false, tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

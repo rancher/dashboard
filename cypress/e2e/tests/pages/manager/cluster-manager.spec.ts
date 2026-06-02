@@ -44,7 +44,7 @@ let originalSettings = '[{"name":"aks","active":true},{"name":"alibaba","active"
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -195,17 +195,17 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           cy.exec('chmod 600 custom_node.key').then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
           cy.exec(`head custom_node.key`).then((result) => {
             cy.log(result.stdout);
             cy.log(result.stderr);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
           cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand)).then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
         });
         ClusterManagerListPagePo.navTo();
@@ -445,7 +445,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             cy.exec(kubectlCommand, { failOnNonZeroExit: false, timeout: RESTART_TIMEOUT_OPT.timeout }).then((result) => {
               cy.log(result.stderr);
               cy.log(result.stdout);
-              expect(result.code).to.eq(0);
+              expect(result.exitCode).to.eq(0);
             });
           });
         });
@@ -803,7 +803,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 });
 
-describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+describe('Cluster Manager as standard user', { testIsolation: false, tags: ['@manager', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });

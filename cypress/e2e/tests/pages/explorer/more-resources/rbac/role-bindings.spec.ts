@@ -3,7 +3,7 @@ import { generateRoleBindingDataSmall, roleBindingNoData } from '@/cypress/e2e/b
 
 const roleBindingsPage = new RoleBindingsPagePo();
 
-describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('RoleBindings', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

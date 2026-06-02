@@ -77,6 +77,14 @@ declare global {
       RancherPrime?: string;
     }
 
+    interface SuiteConfigOverrides {
+      tags?: string | string[];
+    }
+
+    interface TestConfigOverrides {
+      tags?: string | string[];
+    }
+
     interface Chainable {
       setupWebSocket: any;
       hideElementBySelector(...selectors: string[]): Chainable<void>;

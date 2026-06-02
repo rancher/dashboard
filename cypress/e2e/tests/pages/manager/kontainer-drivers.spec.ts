@@ -7,7 +7,7 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
   const createDriverPage = new KontainerDriverEditPo();
   const clusterList = new ClusterManagerListPagePo();

@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Global Settings Index', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
+describe('Global Settings Index', { testIsolation: false, tags: ['@globalSettings', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

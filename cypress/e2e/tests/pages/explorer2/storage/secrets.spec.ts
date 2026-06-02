@@ -2,7 +2,7 @@ import { SecretsListPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
 
 const secretsListPage = new SecretsListPagePo('local');
 
-describe('Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Secrets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

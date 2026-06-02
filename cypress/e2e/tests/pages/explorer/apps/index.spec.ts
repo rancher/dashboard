@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Apps Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Apps Index', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
