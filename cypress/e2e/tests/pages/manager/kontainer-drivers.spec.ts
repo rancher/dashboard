@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverD
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -145,8 +145,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
     // wait for drivers to be active
-    driversPage.list().details(openTelekomDriver, 1).contains('Active', VERY_LONG_TIMEOUT_OPT);
-    driversPage.list().details(oracleDriver, 1).contains('Active', VERY_LONG_TIMEOUT_OPT);
+    driversPage.list().details(openTelekomDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
+    driversPage.list().details(oracleDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
