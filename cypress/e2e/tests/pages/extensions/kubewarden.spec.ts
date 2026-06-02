@@ -5,7 +5,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
-const extensionName = 'kubewarden';
+const extensionName = 'SUSE Security Admission Controller';
 const gitRepoName = 'rancher-extensions';
 let removeExtensions = false;
 
