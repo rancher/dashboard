@@ -138,27 +138,37 @@ export function $init(prodReg: IExtension) {
   });
 
   prodReg.addRoute({
-    path:      '/c/:cluster/apps/charts/chart',
-    component: () => import('@shell/pages/c/_cluster/apps/charts/chart.vue'),
-    name:      'c-cluster-apps-charts-chart',
-  });
-  prodReg.addRoute({
-    path:      '/c/:cluster/apps/charts/install',
-    component: () => import('@shell/pages/c/_cluster/apps/charts/install.vue'),
-    name:      'c-cluster-apps-charts-install',
-  });
-  prodReg.addRoute({
-    path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
-    name: 'c-cluster-apps-catalog-repo',
-    redirect(to) {
-      return {
-        name:   'c-cluster-product-resource',
-        params: {
-          ...to.params,
-          product:  NAME,
-          resource: 'catalog.cattle.io.clusterrepo',
-        }
-      };
-    },
+    path:     '/c/:cluster/apps/charts',
+    children: [
+      {
+        path:      '',
+        component: () => import('@shell/pages/c/_cluster/apps/charts/index.vue'),
+        name:      'c-cluster-apps-charts',
+      },
+      {
+        path:      'chart',
+        component: () => import('@shell/pages/c/_cluster/apps/charts/chart.vue'),
+        name:      'c-cluster-apps-charts-chart',
+      },
+      {
+        path:      'install',
+        component: () => import('@shell/pages/c/_cluster/apps/charts/install.vue'),
+        name:      'c-cluster-apps-charts-install',
+      },
+      {
+        path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+        name: 'c-cluster-apps-catalog-repo',
+        redirect(to) {
+          return {
+            name:   'c-cluster-product-resource',
+            params: {
+              ...to.params,
+              product:  NAME,
+              resource: 'catalog.cattle.io.clusterrepo',
+            }
+          };
+        },
+      },
+    ],
   });
 }
