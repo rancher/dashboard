@@ -5,7 +5,7 @@ import {
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { RcSection, RcSectionBadges } from '@components/RcSection';
+import { RcSection } from '@components/RcSection';
 import { _CREATE } from '@shell/config/query-params';
 import merge from 'lodash/merge';
 import Networking from './Networking.vue';
@@ -26,11 +26,15 @@ const defaultConfig = {
   spec: {
     // region:  'us-west-2',
     network: {
-      additionalControlPlaneIngressRules: [{ protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'] }], // allow all traffic from control plane security groups
-      additionalNodeIngressRules:         [{ protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'] }],
-      cni:                                { cniIngressRules: [] },
-      securityGroupOverrides:             {},
-      vpc:                                {},
+      additionalControlPlaneIngressRules: [{
+        protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'], description: 'Allow all traffic between control plane and node security groups'
+      }],
+      additionalNodeIngressRules: [{
+        protocol: '-1', sourceSecurityGroupRoles: ['controlplane', 'node'], description: 'Allow all traffic between control plane and node security groups'
+      }],
+      cni:                    { cniIngressRules: [] },
+      securityGroupOverrides: {},
+      vpc:                    {},
       // vpc:                                { id: 'vpc-07cdd250a077f6773' }, // id: '', cidrBlock: '', ipv6: {},
       // subnets:                            [{ id: 'subnet-02e4caf6f4ee75111' }]
     },
@@ -135,7 +139,6 @@ const ipv6: WritableComputedRef<string> = computed({
 const securityGroupOverrides: WritableComputedRef<{}> = computed({
   get: () => value?.value?.spec?.network?.securityGroupOverrides || {},
   set: (neu: any) => {
-    console.log('*** securityGroupOverrides setter');
     if (value.value) {
       if (!value.value?.spec?.network) {
         set(value.value, 'spec.network', { securityGroupOverrides: neu });
@@ -370,16 +373,6 @@ onMounted(async() => {
           class="mt-20"
           :expanded="allowAdditionalCPRules"
         >
-          <template
-            v-if="!allowAdditionalCPRules"
-            #badges
-          >
-            <RcSectionBadges
-              :badges="[
-                { label: 'Overriden', status: 'warning', tooltip: 'Additional control plane ingress rules will be overriden by a security group override configured above.' },
-              ]"
-            />
-          </template>
           <IngressRules
             v-model:value="additionalControlPlaneIngressRules"
             :mode="allowAdditionalCPRules ? mode: 'view'"
@@ -397,16 +390,6 @@ onMounted(async() => {
           class="mt-20"
           :expanded="allowAdditionalNodeRules"
         >
-          <template
-            v-if="!allowAdditionalNodeRules"
-            #badges
-          >
-            <RcSectionBadges
-              :badges="[
-                { label: 'Overriden', status: 'warning', tooltip: 'Additional node ingress rules will be overriden by a security group override configured above.' },
-              ]"
-            />
-          </template>
           <IngressRules
             v-model:value="additionalNodeIngressRules"
             :mode="allowAdditionalNodeRules ? mode: 'view'"

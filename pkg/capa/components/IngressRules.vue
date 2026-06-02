@@ -153,8 +153,12 @@ function allowCidr({ cidrBlocks = [], sourceSecurityGroupIDs = [], sourceSecurit
   return (!sourceSecurityGroupIDs.length && !sourceSecurityGroupRoles.length) || cidrBlocks.length;
 }
 
-function allowSecurityGroups({ cidrBlocks = [], sourceSecurityGroupIDs = [], sourceSecurityGroupRoles = [] }) {
+function allowSecurityGroups({ cidrBlocks = [], sourceSecurityGroupIDs = [] }) {
   return vpcId.value && (!cidrBlocks.length || sourceSecurityGroupIDs.length);
+}
+
+function allowSecurityGroupRoles({ cidrBlocks = [], sourceSecurityGroupRoles = [] }) {
+  return !cidrBlocks.length || sourceSecurityGroupRoles.length;
 }
 
 watch([
@@ -292,6 +296,7 @@ watch([
             class="col span-3"
           >
             <LabeledSelect
+              :disabled="!allowSecurityGroupRoles(rule)"
               :value="rule.sourceSecurityGroupRoles || []"
               :mode="mode"
               :options="SECURITY_GROUP_ROLES"
