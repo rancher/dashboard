@@ -1,8 +1,49 @@
 import { mount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 import childHook from '@shell/mixins/child-hook';
-//
+
 describe('mixin: authConfigMixin', () => {
+  const FakeComponent = {
+    render() {},
+    mixins:  [authConfigMixin, childHook],
+    methods: { applyHooks: jest.fn() },
+  };
+
+  describe('method: applyDefaults', () => {
+    const createInstance = (configType: string, model: any = {}) => {
+      const instance = mount(FakeComponent, {
+        data: () => ({
+          value: { configType },
+          model: { id: configType, ...model },
+        }),
+        computed: { principal: () => ({ me: {} }) },
+        global:   {
+          mocks: {
+            $store: { dispatch: () => model },
+            $route: {
+              params: { id: configType },
+              query:  { mode: 'edit' },
+            },
+          }
+        }
+      }).vm as any;
+
+      instance.applyDefaults();
+
+      return instance;
+    };
+
+    it.each([
+      'oidc',
+      'saml',
+      'ldap',
+    ])('should set accessMode to required for %s config type', (configType) => {
+      const instance = createInstance(configType);
+
+      expect(instance.model.accessMode).toStrictEqual('required');
+    });
+  });
+
   describe('method: save', () => {
     const componentMock = (model: any) => ({
       data: () => ({
@@ -20,11 +61,6 @@ describe('mixin: authConfigMixin', () => {
         }
       }
     });
-    const FakeComponent = {
-      render() {},
-      mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
-    };
 
     it('should return error', async() => {
       const instance = mount(FakeComponent, componentMock({
