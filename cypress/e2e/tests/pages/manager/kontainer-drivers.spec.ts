@@ -85,7 +85,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     });
 
     driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Active', LONG_TIMEOUT_OPT );
+    driversPage.list().details(exampleDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
 
     // Verify the driver tile appears on the cluster create page.
     // Legacy ember-based kontainer drivers are shown disabled with an informational tooltip
@@ -145,8 +145,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activateOpenTelekomDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
     // wait for drivers to be active
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active', VERY_LONG_TIMEOUT_OPT);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active', VERY_LONG_TIMEOUT_OPT);
+    driversPage.list().details(openTelekomDriver, 1).contains('Active', VERY_LONG_TIMEOUT_OPT);
+    driversPage.list().details(oracleDriver, 1).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
