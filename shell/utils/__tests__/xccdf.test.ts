@@ -157,34 +157,154 @@ describe('xccdf util: generateXCCDF', () => {
     expect(xml).toContain('<Group id="not-applicable">');
   });
 
-  it('uses STIG metadata to override rule id, version, severity, fix, check system, and CCI idents', () => {
+  it('applies a per-check decoration verbatim when the decoration key matches the check id exactly', () => {
     const xml = generateXCCDF({
       report: {
         ...baseReport,
         results: [{
-          id:          'g1',
+          id:          '5.1',
           description: 'g',
+          checks:      [{
+            id: '5.1.1', description: 'exact', scored: true, state: 'pass',
+          }],
+        }],
+      },
+      benchmarkVersion: 'cis-1.7',
+      decorations:      {
+        '5.1.1': {
+          ruleId: 'CIS-5.1.1-rule', version: '2024-01', severity: 'high', fixId: 'F-5.1.1', checkId: 'C-5.1.1',
+        },
+      },
+    });
+
+    expect(xml).toContain('id="CIS-5.1.1-rule"');
+    expect(xml).toContain('idref="CIS-5.1.1-rule"');
+    expect(xml).toMatch(/id="CIS-5\.1\.1-rule"[^>]*severity="high"/);
+    expect(xml).toContain('<version>2024-01</version>');
+    expect(xml).toContain('fixref="F-5.1.1"');
+    expect(xml).toContain('<check system="C-5.1.1">');
+  });
+
+  it('applies a group-keyed decoration with a suffix derived from the check id', () => {
+    const xml = generateXCCDF({
+      report: {
+        ...baseReport,
+        results: [{
+          id:          'V-254553',
+          description: 'STIG group',
           checks:      [{
             id: 'V-254553-TLS-apiserver', description: 'STIG check', scored: true, state: 'pass',
           }],
         }],
       },
       benchmarkVersion: 'rke2-stig-1.31',
-      stigChecks:       {
+      decorations:      {
         'V-254553': {
-          ruleId: 'SV-254553r1016525_rule', version: 'SV-254553r1016525_rule', severity: 'high', fixId: 'F-254553', checkId: 'C-254553', cci: ['CCI-000366'],
+          ruleId: 'SV-254553r1016525_rule', version: 'SV-254553r1016525_rule', severity: 'high', fixId: 'F-254553', checkId: 'C-254553',
         },
       },
     });
 
+    expect(xml).toContain('id="SV-254553r1016525_rule_TLS-apiserver"');
     expect(xml).toContain('idref="SV-254553r1016525_rule_TLS-apiserver"');
     expect(xml).toContain('severity="high"');
-    expect(xml).toContain('<ident system="http://cyber.mil/cci">CCI-000366</ident>');
     expect(xml).toContain('fixref="F-254553"');
     expect(xml).toContain('<check system="C-254553">');
   });
 
-  it('preserves the operator-style rule id when there is no STIG metadata', () => {
+  it('falls back to the full check id as suffix when the check id does not start with the group id', () => {
+    const xml = generateXCCDF({
+      report: {
+        ...baseReport,
+        results: [{
+          id:          'group-a',
+          description: 'g',
+          checks:      [{
+            id: 'unrelated-check', description: 'c', scored: true, state: 'pass',
+          }],
+        }],
+      },
+      benchmarkVersion: 'cis-1.7',
+      decorations:      { 'group-a': { ruleId: 'GROUP-A-rule' } },
+    });
+
+    expect(xml).toContain('id="GROUP-A-rule_unrelated-check"');
+    expect(xml).toContain('idref="GROUP-A-rule_unrelated-check"');
+  });
+
+  it('emits generic XCCDF idents from the decoration with their declared system unchanged', () => {
+    const xml = generateXCCDF({
+      report: {
+        ...baseReport,
+        results: [{
+          id:          '5.1.1',
+          description: 'g',
+          checks:      [{
+            id: '5.1.1', description: 'c', scored: true, state: 'pass',
+          }],
+        }],
+      },
+      benchmarkVersion: 'cis-1.7',
+      decorations:      {
+        '5.1.1': {
+          idents: [
+            { system: 'https://www.cisecurity.org/controls/', value: 'CIS-CSC-3' },
+            { system: 'http://cyber.mil/cci', value: 'CCI-000366' },
+          ],
+        },
+      },
+    });
+
+    expect(xml).toContain('<ident system="https://www.cisecurity.org/controls/">CIS-CSC-3</ident>');
+    expect(xml).toContain('<ident system="http://cyber.mil/cci">CCI-000366</ident>');
+  });
+
+  it('emits a not-applicable ident placeholder when the decoration has no idents', () => {
+    const xml = generateXCCDF({
+      report:           baseReport,
+      benchmarkVersion: 'cis-1.7',
+      decorations:      { '5.1.1': { ruleId: 'r-5.1.1' } },
+    });
+
+    expect(xml).toMatch(/id="r-5\.1\.1"[\s\S]*?<ident system="not-applicable">not-applicable<\/ident>/);
+  });
+
+  it('falls back to the operator-style rule id when no decoration matches either the check id or the group id', () => {
+    const xml = generateXCCDF({
+      report:           baseReport,
+      benchmarkVersion: 'cis-1.7',
+      decorations:      { 'no-match': { ruleId: 'should-not-apply' } },
+    });
+
+    expect(xml).toContain('id="xccdf_compliance-operator_rule_5.1.1"');
+    expect(xml).not.toContain('should-not-apply');
+  });
+
+  it('prefers a per-check decoration over a group-keyed decoration when both are present', () => {
+    const xml = generateXCCDF({
+      report: {
+        ...baseReport,
+        results: [{
+          id:          '5.1',
+          description: 'g',
+          checks:      [{
+            id: '5.1.1', description: 'c', scored: true, state: 'pass',
+          }],
+        }],
+      },
+      benchmarkVersion: 'cis-1.7',
+      decorations:      {
+        '5.1':   { ruleId: 'group-rule', severity: 'low' },
+        '5.1.1': { ruleId: 'check-rule', severity: 'high' },
+      },
+    });
+
+    expect(xml).toContain('id="check-rule"');
+    expect(xml).not.toContain('id="group-rule_5.1.1"');
+    expect(xml).toMatch(/id="check-rule"[^>]*severity="high"/);
+  });
+
+  it('preserves the operator-style rule id when no decorations are supplied', () => {
     const xml = generateXCCDF({
       report:           baseReport,
       benchmarkVersion: 'cis-1.7',

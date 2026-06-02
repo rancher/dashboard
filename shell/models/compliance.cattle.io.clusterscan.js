@@ -190,20 +190,52 @@ export default class ClusterScan extends SteveModel {
     return this.$dispatch('find', { type: COMPLIANCE.BENCHMARK, id: benchmarkId });
   }
 
+  // Fetches the kube-bench profile ConfigMap referenced by the benchmark and
+  // parses its metadata.yaml data key. Top-level fields become the XCCDF
+  // benchmark metadata; the checks: map becomes per-check decorations
+  // (framework-agnostic; STIG, CIS, BSI, etc. all populate the same shape).
+  async _resolveExportMetadata(benchmark) {
+    const name = benchmark?.spec?.customBenchmarkConfigMapName;
+    const namespace = benchmark?.spec?.customBenchmarkConfigMapNamespace;
+    const empty = { metadata: {}, decorations: {} };
+
+    if (!name || !namespace) {
+      return empty;
+    }
+
+    try {
+      const cm = await this.$dispatch('find', { type: 'configmap', id: `${ namespace }/${ name }` });
+      const raw = cm?.data?.['metadata.yaml'];
+
+      if (!raw) {
+        return empty;
+      }
+
+      const jsyaml = await import(/* webpackChunkName: "js-yaml" */'js-yaml');
+      const parsed = jsyaml.load(raw) || {};
+      const { checks = {}, ...rest } = parsed;
+
+      return { metadata: rest, decorations: checks };
+    } catch (e) {
+      return empty;
+    }
+  }
+
   async downloadLatestReportXCCDF() {
     const reports = await this.getReports() || [];
     const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
 
     try {
       const benchmark = await this._resolveBenchmark();
+      const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
       const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
 
       const parsed = report.parsedReport || {};
       const common = {
         report:           parsed,
         benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
-        metadata:         benchmark?.spec?.benchmarkMetadata || {},
-        stigChecks:       benchmark?.spec?.stigChecks || {},
+        metadata,
+        decorations,
       };
 
       const toZip = {};
@@ -238,6 +270,7 @@ export default class ClusterScan extends SteveModel {
 
     try {
       const benchmark = await this._resolveBenchmark();
+      const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
       const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
 
       const hasParsedNodes = reports.some((report) => Object.entries(report.parsedReport?.nodes || {}).length);
@@ -251,8 +284,8 @@ export default class ClusterScan extends SteveModel {
             const common = {
               report:           parsed,
               benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
-              metadata:         benchmark?.spec?.benchmarkMetadata || {},
-              stigChecks:       benchmark?.spec?.stigChecks || {},
+              metadata,
+              decorations,
             };
             const folder = labelFor(report);
 
