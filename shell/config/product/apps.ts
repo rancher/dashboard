@@ -37,6 +37,7 @@ export function $init(prodReg: IExtension) {
     icon:                  'marketplace',
     showNamespaceFilter:   true,
     extendable:            true,
+    showClusterSwitcher:   true, // this used to be the default behavior, now being overridden in the new prod registration format
     inStore:               'cluster', // this is the KEY to register a new prod, but show it in "explorer"
     startRouteWithProduct: false
   };
@@ -104,20 +105,21 @@ export function $init(prodReg: IExtension) {
     ]
   };
 
-  const resourcesGroup: ProductChildGroup = {
-    name:     'apps',
-    labelKey: 'product.apps',
-    children: [
-      appsChartsPage,
-      appsInstalledAppsPage,
-      appsReposPage,
-      appsOperationsPage
-    ],
+  // this has impact in some e2e tests related to extensions
+  const appsRepoPage: ProductChildResourcePage = {
+    type:    CATALOG.REPO,
+    headers: [STATE, NAME_COL, NAMESPACE, APPS_REPO_TYPE, APPS_REPO_URL, APPS_REPO_BRANCH, AGE],
   };
 
   prodReg.addProduct(
     product,
-    [resourcesGroup]
+    [
+      appsChartsPage,
+      appsInstalledAppsPage,
+      appsReposPage,
+      appsOperationsPage,
+      appsRepoPage
+    ]
   );
 
   // Additional routes for the product that are not tied to a specific page,
