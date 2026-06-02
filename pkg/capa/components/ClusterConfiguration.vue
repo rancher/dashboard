@@ -14,6 +14,7 @@ import SecurityOverrides from './SecurityOverrides.vue';
 import { removeEmptyFields } from '../utils';
 import { NORMAN } from '@shell/config/types';
 import { set } from '@shell/utils/object.js';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 
 defineOptions({ name: 'ClusterConfiguration' });
 
@@ -152,14 +153,14 @@ const securityGroupOverrides: WritableComputedRef<{}> = computed({
   },
 });
 
-const firstSubnetId: WritableComputedRef<string> = computed({
-  get: () => value?.value?.spec?.network?.subnets?.[0]?.id || '',
-  set: (sn: string) => {
+const subnets: WritableComputedRef<{id: string}[]> = computed({
+  get: () => value?.value?.spec?.network?.subnets || [],
+  set: (neu: {id: string}[]) => {
     if (value.value) {
-      if (!value.value?.spec?.network?.subnets?.[0]) {
-        set(value.value, 'spec.network.subnets', [{ id: sn }]);
+      if (!value.value?.spec?.network) {
+        set(value.value, 'spec.network', { subnets: neu });
       } else {
-        value.value.spec.network.subnets[0].id = sn;
+        value.value.spec.network.subnets = neu;
       }
     }
     emit('update:value', value.value);
@@ -187,6 +188,16 @@ const additionalNodeIngressRules = computed({
         set(value.value, 'spec.network', {});
       }
       value.value.spec.network.additionalNodeIngressRules = rules;
+    }
+    emit('update:value', value.value);
+  },
+});
+
+const additionalTags = computed({
+  get: () => value?.value?.spec?.additionalTags || {},
+  set: (tags: {}) => {
+    if (value.value) {
+      set(value.value, 'spec.additionalTags', tags);
     }
     emit('update:value', value.value);
   },
@@ -309,7 +320,7 @@ onMounted(async() => {
         mode="with-header"
         type="secondary"
       >
-        <div class="row mb-20">
+        <div class="row">
           <div class="span-4">
             <LabeledSelect
               v-model:value="region"
@@ -322,7 +333,6 @@ onMounted(async() => {
             />
           </div>
         </div>
-
         <div class="row mb-20">
           <div class="span-4">
             <LabeledSelect
@@ -337,21 +347,27 @@ onMounted(async() => {
         </div>
       </RcSection>
 
-      <Networking
-        v-model:vpc-id="vpcId"
-        v-model:subnet-id="firstSubnetId"
-        v-model:ipv6="ipv6"
-        :mode="mode"
-        :region="region"
-        :credentialId="credentialId"
-      />
+      <RcSection
+        :title="t('capa.clusterConfig.network.title')"
+        :expandable="true"
+        mode="with-header"
+        type="secondary"
+      >
+        <Networking
+          v-model:vpc-id="vpcId"
+          v-model:subnets="subnets"
+          v-model:ipv6="ipv6"
+          :mode="mode"
+          :region="region"
+          :credentialId="credentialId"
+        />
+      </RcSection>
 
       <RcSection
         title="Network Security"
         :expandable="true"
         mode="with-header"
         type="secondary"
-        class="mt-20"
       >
         <!-- //TODO nb distinguish between vpc selected on create and prefilled vpc on edit; do not show in latter case -->
         <RcSection
@@ -359,7 +375,6 @@ onMounted(async() => {
           :expandable="true"
           mode="with-header"
           type="secondary"
-          class="mt-20"
           :expanded="!!vpcId"
         >
           <h5>{{ t('capa.clusterConfig.network.securityGroups.description') }}</h5>
@@ -372,14 +387,15 @@ onMounted(async() => {
             :mode="mode"
           />
         </RcSection>
+
         <RcSection
-          title="Additional Control Plane Ingress Rules"
+          :title="t('capa.clusterConfig.network.additionalControlPlaneIngressRules.label')"
           :expandable="true"
           mode="with-header"
           type="secondary"
-          class="mt-20"
           :expanded="allowAdditionalCPRules"
         >
+          <h5>{{ t('capa.clusterConfig.network.additionalControlPlaneIngressRules.description') }}</h5>
           <IngressRules
             v-model:value="additionalControlPlaneIngressRules"
             :mode="allowAdditionalCPRules ? mode: 'view'"
@@ -390,13 +406,13 @@ onMounted(async() => {
         </RcSection>
 
         <RcSection
-          title="Additional Node Ingress Rules"
+          :title="t('capa.clusterConfig.network.additionalNodeIngressRules.label')"
           :expandable="true"
           mode="with-header"
           type="secondary"
-          class="mt-20"
           :expanded="allowAdditionalNodeRules"
         >
+          <h5>{{ t('capa.clusterConfig.network.additionalNodeIngressRules.description') }}</h5>
           <IngressRules
             v-model:value="additionalNodeIngressRules"
             :mode="allowAdditionalNodeRules ? mode: 'view'"
@@ -407,12 +423,12 @@ onMounted(async() => {
         </RcSection>
 
         <RcSection
-          title="CNI Ingress Rules"
+          :title="t('capa.clusterConfig.network.cniIngressRules.label')"
           :expandable="true"
           mode="with-header"
           type="secondary"
-          class="mt-20"
         >
+          <h5>{{ t('capa.clusterConfig.network.cniIngressRules.description') }}</h5>
           <IngressRules
             v-model:value="cniIngressRules"
             :mode="mode"
@@ -422,6 +438,23 @@ onMounted(async() => {
             :allow-targets="false"
           />
         </RcSection>
+      </RcSection>
+
+      <RcSection
+        :title="t('capa.machineConfig.advanced.tags.title')"
+        :expandable="true"
+        mode="with-header"
+        type="secondary"
+      >
+        <h5>{{ t('capa.machineConfig.advanced.tags.description') }}</h5>
+        <KeyValue
+          v-model:value="additionalTags"
+          :mode="mode"
+          :read-allowed="false"
+          :as-map="true"
+          :add-label="t('capa.machineConfig.advanced.tags.add')"
+          data-testid="capa-resource-tags-input"
+        />
       </RcSection>
     </RcSection>
   </div>

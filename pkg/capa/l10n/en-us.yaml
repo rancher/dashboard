@@ -41,6 +41,15 @@ capa:
         role: Role
         securityGroupId: Security Group ID
         addOverride: Add SG override
+      additionalControlPlaneIngressRules:
+        description: Set ingress rules for the control plane. Only CIDR blocks or Security Groups may be set, not both.
+        label: Additional Control Plane Ingress Rules
+      additionalNodeIngressRules:
+        description: Set ingress rules for the control plane. Only CIDR blocks or Security Groups may be set, not both.
+        label: Additional Node Ingress Rules
+      cniIngressRules:
+        description: CNI rules apply to both node and control plane security groups. The source for each rule will be set to the node and control plane security groups.
+        label: CNI Ingress Rules
     sshKeyName:
       label: SSH Key Name
       noneLabel: None

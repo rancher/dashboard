@@ -15,7 +15,7 @@ defineOptions({ name: 'Networking' });
 
 const emit = defineEmits([
   'update:vpcId',
-  'update:subnetId',
+  'update:subnets',
   'validationChanged',
   'update:ipv6',
   'update:cidrBlock'
@@ -23,7 +23,7 @@ const emit = defineEmits([
 
 interface Props {
   vpcId: string;
-  subnetId: string;
+  subnets: {id: string}[];
   cidrBlock?: string;
   ipv6?: {};
   mode?: string;
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const {
-  vpcId, subnetId, credentialId, region, ipv6
+  vpcId, subnets, credentialId, region, ipv6
 } = toRefs(props);
 
 const store = useStore();
@@ -52,6 +52,13 @@ const loadingSubnets = ref(false);
 // TODO nb managed network should have a label applied by capi - check for this so edit loads the right strategy
 // sigs.k8s.io/cluster-api-provider-aws/cluster/<cluster-name> (where <cluster-name> matches the metadata.name field of the Cluster object) tag, with a value of owned
 const useUnmanagedNetwork = ref(false);
+
+const selectedSubnetIds = computed({
+  get: () => (subnets.value || []).map((s) => s.id),
+  set: (ids: string[]) => {
+    emit('update:subnets', ids.map((id) => ({ id })));
+  }
+});
 
 const enableIpv6 = computed({
   get() {
@@ -138,7 +145,7 @@ async function getSubnets() {
 watch(useUnmanagedNetwork, (neu) => {
   if (!neu) {
     emit('update:vpcId', '');
-    emit('update:subnetId', '');
+    emit('update:subnets', []);
   }
 });
 
@@ -162,71 +169,64 @@ watch([
 </script>
 
 <template>
+  <RadioGroup
+    v-model:value="useUnmanagedNetwork"
+    :label="t('capa.clusterConfig.network.strategy.label')"
+    name="network-strategy"
+    :options="networkStrategyOptions"
+    :mode="mode"
+  />
+  <!-- TODO nb add localization -->
   <RcSection
-    :title="t('capa.clusterConfig.network.title')"
-    :expandable="true"
-    mode="with-header"
+    v-if="useUnmanagedNetwork"
+    title="Unmanaged Network Settings"
     type="secondary"
+    mode="with-header"
+    :expandable="true"
   >
-    <RadioGroup
-      v-model:value="useUnmanagedNetwork"
-      :label="t('capa.clusterConfig.network.strategy.label')"
-      name="network-strategy"
-      :options="networkStrategyOptions"
-      :mode="mode"
-    />
-    <!-- TODO nb add localization -->
-    <RcSection
-      v-if="useUnmanagedNetwork"
-      title="Unmanaged Network Settings"
-      type="secondary"
-      mode="with-header"
-      :expandable="true"
-    >
-      <!-- //TODO nb make these inputs required when unmanagednetwork is true -->
-      <div class="span-6">
-        <LabeledSelect
-          :value="vpcId"
-          :label="t('capa.clusterConfig.network.vpc.label')"
-          :options="vpcOptions"
-          :loading="loadingVpcs"
-          @update:value="$emit('update:vpcId', $event)"
-        />
-      </div>
-      <div class="span-6">
-        <LabeledSelect
-          :value="subnetId"
-          :label="t('capa.clusterConfig.network.subnets.label')"
-          :options="subnetOptions"
-          :loading="loadingSubnets"
-          @update:value="$emit('update:subnetId', $event)"
-        />
-      </div>
-    </RcSection>
-    <div
-      v-else
-      class="row mb-20"
-    >
-      <div class="col span-6">
-        <LabeledInput
-          :value="cidrBlock"
-          :label="t('capa.clusterConfig.network.vpc.cidrBlock.label')"
-          :placeholder="t('capa.clusterConfig.network.vpc.cidrBlock.placeholder')"
-          :sub-label="t('capa.clusterConfig.network.vpc.cidrBlock.description')"
-          :mode="mode"
-          @update:value="$emit('update:cidrBlock', $event)"
-        />
-      </div>
+    <!-- //TODO nb make these inputs required when unmanagednetwork is true -->
+    <div class="span-6">
+      <LabeledSelect
+        :value="vpcId"
+        :label="t('capa.clusterConfig.network.vpc.label')"
+        :options="vpcOptions"
+        :loading="loadingVpcs"
+        @update:value="$emit('update:vpcId', $event)"
+      />
     </div>
-    <div class="row">
-      <!-- TODO nb localization -->
-      <Checkbox
-        v-model:value="enableIpv6"
-        :mode="mode"
-        label="Enable IPv6"
+    <div class="span-6">
+      <LabeledSelect
+        v-model:value="selectedSubnetIds"
+        :label="t('capa.clusterConfig.network.subnets.label')"
+        :options="subnetOptions"
+        :loading="loadingSubnets"
+        :multiple="true"
       />
     </div>
   </RcSection>
+  <div
+    v-else
+    class="row mb-20"
+  >
+    <div class="col span-6">
+      <LabeledInput
+        :value="cidrBlock"
+        :label="t('capa.clusterConfig.network.vpc.cidrBlock.label')"
+        :placeholder="t('capa.clusterConfig.network.vpc.cidrBlock.placeholder')"
+        :sub-label="t('capa.clusterConfig.network.vpc.cidrBlock.description')"
+        :mode="mode"
+        @update:value="$emit('update:cidrBlock', $event)"
+      />
+    </div>
+  </div>
+  <div class="row">
+    <!-- TODO nb localization -->
+    <Checkbox
+      v-model:value="enableIpv6"
+      :mode="mode"
+      label="Enable IPv6"
+    />
+  </div>
 </template>
 
 <style scoped lang="scss">
