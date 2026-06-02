@@ -498,6 +498,7 @@ authConfig:
     required: Restrict access to only the authorized users & groups
     restricted: 'Allow members of clusters and projects, plus authorized users & groups'
     unrestricted: Allow any valid user
+    unrestrictedWarning: '"Allow any valid user" allows any user who can authenticate with the external provider to log in to Rancher. Consider restricting access to only authorized users and groups to limit access.'
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
