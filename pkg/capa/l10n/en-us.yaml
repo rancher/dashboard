@@ -21,13 +21,14 @@ capa:
           description: Bring your own AWS Instrastructure. Select an existing VPC and Subnets. By default, CAPA will still create Security Groups and a Control Plane Load Balancer.
       vpc:
         label: VPC
+        description: VPC to use with your cluster resources.
         cidrBlock: 
           label: VPC CIDR Block
           description: Configure a CIDR block for the CAPA-created VPC, divided between subnets.
           placeholder: 10.0.0.0/16
       subnets:
-        label: Subnet
-        placeholder: Select one or more subnets
+        label: Subnets
+        description: In umanaged network mode, at least one subnet must be selected.
       securityGroups:
         label: Security Group Overrides
         description: Select existing security groups instead of using the CAPA controller to automatically create new ones. Only applies when using an unmanaged network.

@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const {
-  vpcId, subnets, credentialId, region, ipv6
+  vpcId, subnets, credentialId, region, ipv6, cidrBlock
 } = toRefs(props);
 
 const store = useStore();
@@ -142,6 +142,7 @@ async function getSubnets() {
   loadingSubnets.value = false;
 }
 
+// TODO nb select first VPC when switching to unmanaged network?
 watch(useUnmanagedNetwork, (neu) => {
   if (!neu) {
     emit('update:vpcId', '');
@@ -185,19 +186,21 @@ watch([
     :expandable="true"
   >
     <!-- //TODO nb make these inputs required when unmanagednetwork is true -->
-    <div class="span-6">
+    <div class="mb-10 span-6">
       <LabeledSelect
         :value="vpcId"
         :label="t('capa.clusterConfig.network.vpc.label')"
         :options="vpcOptions"
         :loading="loadingVpcs"
+        :sub-label="t('capa.clusterConfig.network.vpc.description')"
         @update:value="$emit('update:vpcId', $event)"
       />
     </div>
-    <div class="span-6">
+    <div class="mb-20 span-6">
       <LabeledSelect
         v-model:value="selectedSubnetIds"
         :label="t('capa.clusterConfig.network.subnets.label')"
+        :sub-label="t('capa.clusterConfig.network.subnets.description')"
         :options="subnetOptions"
         :loading="loadingSubnets"
         :multiple="true"
