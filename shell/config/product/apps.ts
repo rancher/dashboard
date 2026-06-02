@@ -2,7 +2,6 @@ import { IExtension } from '@shell/core/types';
 import {
   ProductChildCustomPage,
   ProductChildResourcePage,
-  ProductChildGroup,
   ProductMetadata
 } from '@shell/core/plugin-types';
 
