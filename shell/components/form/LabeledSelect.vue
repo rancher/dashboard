@@ -97,6 +97,10 @@ export default {
       default: null,
       type:    [String, Object]
     },
+    subLabel: {
+      default: null,
+      type:    String
+    },
     options: {
       type:    Array,
       default: () => ([])
@@ -582,6 +586,11 @@ export default {
       v-if="!!validationMessage"
       :hover="hoverTooltip"
       :value="validationMessage"
+    />
+    <div
+      v-if="subLabel"
+      v-clean-html="subLabel"
+      class="sub-label"
     />
   </div>
 </template>

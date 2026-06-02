@@ -303,32 +303,39 @@ onMounted(async() => {
       mode="with-header"
       type="primary"
     >
-      <div class="row mb-20">
-        <div class="span-4">
-          <LabeledSelect
-            v-model:value="region"
-            :loading="loadingRegions"
-            :mode="mode"
-            :options="regionOptions"
-            required
-            :label="t('capa.clusterConfig.region.label')"
-            :placeholder="t('capa.clusterConfig.region.placeholder')"
-          />
+      <RcSection
+        title="General & Identity Configuration"
+        :expandable="true"
+        mode="with-header"
+        type="secondary"
+      >
+        <div class="row mb-20">
+          <div class="span-4">
+            <LabeledSelect
+              v-model:value="region"
+              :loading="loadingRegions"
+              :mode="mode"
+              :options="regionOptions"
+              required
+              :label="t('capa.clusterConfig.region.label')"
+              :placeholder="t('capa.clusterConfig.region.placeholder')"
+            />
+          </div>
         </div>
-      </div>
 
-      <div class="row mb-20">
-        <div class="span-4">
-          <LabeledSelect
-            v-model:value="sshKeyName"
-            :loading="loadingSshKeys"
-            :mode="mode"
-            :options="sshKeyOptions"
-            :label="t('capa.clusterConfig.sshKeyName.label')"
-            :placeholder="t('capa.clusterConfig.sshKeyName.placeholder')"
-          />
+        <div class="row mb-20">
+          <div class="span-4">
+            <LabeledSelect
+              v-model:value="sshKeyName"
+              :loading="loadingSshKeys"
+              :mode="mode"
+              :options="sshKeyOptions"
+              :label="t('capa.clusterConfig.sshKeyName.label')"
+              :sub-label="t('capa.clusterConfig.sshKeyName.description')"
+            />
+          </div>
         </div>
-      </div>
+      </RcSection>
 
       <Networking
         v-model:vpc-id="vpcId"

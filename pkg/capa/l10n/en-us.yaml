@@ -44,6 +44,7 @@ capa:
     sshKeyName:
       label: SSH Key Name
       noneLabel: None
+      description: A default SSH key to attach to instances.
    
   machineConfig:
     instanceConfiguration:

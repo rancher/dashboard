@@ -203,12 +203,16 @@ watch([
         />
       </div>
     </RcSection>
-    <div v-else>
+    <div
+      v-else
+      class="row mb-20"
+    >
       <div class="col span-6">
         <LabeledInput
           :value="cidrBlock"
           :label="t('capa.clusterConfig.network.vpc.cidrBlock.label')"
           :placeholder="t('capa.clusterConfig.network.vpc.cidrBlock.placeholder')"
+          :sub-label="t('capa.clusterConfig.network.vpc.cidrBlock.description')"
           :mode="mode"
           @update:value="$emit('update:cidrBlock', $event)"
         />
