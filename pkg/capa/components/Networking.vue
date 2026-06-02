@@ -10,6 +10,7 @@ import { getSubnetDisplayName, getVpcDisplayName } from '@shell/utils/aws';
 import * as AWS from '@shell/types/aws-sdk';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { CAPA } from '../labels-annotations';
 
 defineOptions({ name: 'Networking' });
 
@@ -147,6 +148,14 @@ watch(useUnmanagedNetwork, (neu) => {
   if (!neu) {
     emit('update:vpcId', '');
     emit('update:subnets', []);
+  }
+});
+
+watch(vpcOptions, () => {
+  if (vpcId.value && vpcInfo.value) {
+    const vpc = vpcInfo.value.find((v) => v.VpcId === vpcId.value);
+
+    useUnmanagedNetwork.value = !vpc?.Tags?.some((tag) => tag.Key.startsWith(CAPA.CAPA_CLUSTER_PREFIX));
   }
 });
 

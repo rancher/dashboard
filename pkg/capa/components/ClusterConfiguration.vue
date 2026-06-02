@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  computed, onMounted, toRefs, ref, WritableComputedRef
+  computed, onMounted, toRefs, ref, WritableComputedRef, watch
 } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
@@ -78,8 +78,8 @@ const store = useStore();
 const { t } = useI18n(store);
 // const config = ref({});
 const ec2Client = ref(null);
-const regionInfo = ref(null);
-const sshKeyInfo = ref(null);
+const regionInfo = ref([]);
+const sshKeyInfo = ref([]);
 const loadingRegions = ref(false);
 const loadingSshKeys = ref(false);
 const allowAdditionalCPRules = ref(true);
@@ -284,7 +284,6 @@ async function getSshKeys() {
   loadingSshKeys.value = false;
 }
 
-// TODO nb re-fetch regions and sshKeys when cloud cred id changes
 onMounted(async() => {
   initDefaultRegion();
 
@@ -294,15 +293,34 @@ onMounted(async() => {
   });
   getRegions();
   getSshKeys();
-  // TODO remove non-required field
-  // TODO nb make template paths work regardless of initialized cluster shape eg shouldn't error if vpc is undefined instead of {}
-  const valueWithDefaults = merge({}, defaultConfig, value.value);
-  const cleanedValueWithDefaults = removeEmptyFields(valueWithDefaults);
 
-  delete cleanedValueWithDefaults.spec.s3Bucket;
+  // TODO nb remove non-required field
+  if (mode.value === _CREATE) {
+    const valueWithDefaults = merge({}, defaultConfig, value.value);
+    const cleanedValueWithDefaults = removeEmptyFields(valueWithDefaults);
 
-  emit('update:value', cleanedValueWithDefaults || {});
+    delete cleanedValueWithDefaults.spec.s3Bucket;
+
+    emit('update:value', cleanedValueWithDefaults || {});
+  }
 });
+
+watch([
+  () => region.value,
+  () => credentialId.value,
+], async([newRegion, newCredentialId]) => {
+  if (!!newRegion && !!newCredentialId) {
+    ec2Client.value = await store.dispatch('aws/ec2', {
+      region:            region.value,
+      cloudCredentialId: credentialId.value
+    });
+    getRegions();
+    getSshKeys();
+  } else {
+    regionInfo.value = [];
+    sshKeyInfo.value = [];
+  }
+}, { immediate: true });
 
 </script>
 

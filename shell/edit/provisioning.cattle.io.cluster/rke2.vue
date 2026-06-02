@@ -1380,6 +1380,7 @@ export default {
           config = await this.$store.dispatch('management/find', {
             type: clusterSchemaType,
             // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+            id:   this.value.id,
           });
 
           if (!config) {

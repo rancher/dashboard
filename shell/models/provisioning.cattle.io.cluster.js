@@ -96,17 +96,24 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canEdit() {
+    // TODO nb disable capi?
     // If the cluster is a KEV1 cluster, Harvester cluster, or v2 provisioning cluster that uses upstream capi infrastructure providers, then prevent edit
-    if (this.isKev1 || this.isHarvester || this.isCapiHybrid) {
+    // if (this.isKev1 || this.isHarvester || this.isCapiHybrid) {
+    //   return false;
+    // }
+
+    if (this.isKev1 || this.isHarvester) {
       return false;
     }
 
     return super.canEdit;
   }
 
-  get canCustomEdit() {
-    return !this.isCapiHybrid && super.canCustomEdit;
-  }
+  // TODO nb disable capi?
+  // get canCustomEdit() {
+  //   // return !this.isCapiHybrid && super.canCustomEdit;
+
+  // }
 
   get _availableActions() {
     const out = super._availableActions;

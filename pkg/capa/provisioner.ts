@@ -3,6 +3,7 @@ import { mapDriver } from '@shell/store/plugins';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { saveMachinePoolConfigs } from './machine-config/utils';
 import ClusterConfiguration from './components/ClusterConfiguration.vue';
+import { CAPI } from '@shell/config/labels-annotations';
 
 const AWS_MACHINE_TEMPLATE_SCHEMA = 'infrastructure.cluster.x-k8s.io.awsmachinetemplate';
 const AWS_CLUSTER_SCHEMA = 'infrastructure.cluster.x-k8s.io.awscluster';
@@ -104,6 +105,13 @@ export class CAPAProvisioner implements IClusterProvisioner {
       value.spec.rkeConfig.additionalManifest = ADDITIONAL_MANIFEST;
       value.spec.rkeConfig.machineGlobalConfig['cloud-provider-name'] = 'external';
       value.spec.rkeConfig.machineGlobalConfig['node-name-from-cloud-provider-metadata'] = true;
+
+      if (!value.metadata.annotations) {
+        value.metadata.annotations = {};
+      }
+      // set an annotation to tell the ui that the 'Provider' is 'capa' so the right edit components load
+      // and so the Provider column in the mgmt list says capa instead of awsmachinetemplate
+      value.metadata.annotations[CAPI.UI_CUSTOM_PROVIDER] = this.id;
     }, 'save-capi-cluster', 1);
   }
 
