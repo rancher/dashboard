@@ -174,7 +174,7 @@ export default {
         await wait(5000);
       }
 
-      const user = this.value.save();
+      const user = await this.value.save();
 
       return user;
     },
@@ -214,8 +214,10 @@ export default {
         return;
       }
 
+      const userId = user?.id || this.value.id;
+
       try {
-        await this.$refs.grb.save(user.id);
+        await this.$refs.grb.save(userId);
       } catch (err) {
         if (this.isCreate) {
           try {
