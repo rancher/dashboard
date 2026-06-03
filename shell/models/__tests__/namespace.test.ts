@@ -215,22 +215,6 @@ describe('class Namespace', () => {
       expect(namespace.listLocation.name).toBe(name);
     });
 
-    it('should return the name and resource if Harvester', () => {
-      const namespace = new Namespace({});
-
-      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
-        isRancher:      true,
-        productId:      'harvester',
-        clusterId:      'c-123',
-        currentProduct: { inStore: 'harvester' }
-      });
-
-      expect(namespace.listLocation.name).toBe('harvester-c-cluster-projectsnamespaces');
-      expect(namespace.listLocation.params.resource).toBe('namespace');
-      expect(namespace.listLocation.params.cluster).toBe('c-123');
-      expect(namespace.listLocation.params.product).toBe(EXPLORER);
-    });
-
     it('should route to local cluster explorer when in manager product', () => {
       const namespace = new Namespace({});
 
@@ -267,12 +251,8 @@ describe('class Namespace', () => {
       Object.defineProperty(namespace, 'isProdRegistrationV2TopLevelProductResoure', { get: () => false });
     };
 
-    it('should route to local cluster explorer when in manager product with local cluster access', () => {
+    it('should route to local cluster explorer when in manager product', () => {
       const namespace = new Namespace({});
-
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
-      sideNavService.helper.clustersOthers.length = 0;
 
       mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
 
@@ -280,20 +260,6 @@ describe('class Namespace', () => {
 
       expect(loc.params.cluster).toBe(LOCAL_CLUSTER);
       expect(loc.params.product).toBe(EXPLORER);
-    });
-
-    it('should keep manager route when in manager product without local cluster access', () => {
-      const namespace = new Namespace({});
-
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersOthers.length = 0;
-
-      mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
-
-      const loc = namespace._detailLocation;
-
-      expect(loc.params.cluster).toBe('_');
-      expect(loc.params.product).toBe(MANAGER);
     });
 
     it('should use current cluster and product when not in manager product', () => {

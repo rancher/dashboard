@@ -212,13 +212,8 @@ export default class Namespace extends SteveModel {
   get _detailLocation() {
     const _detailLocation = super._detailLocation;
 
-    // In Cluster Management, namespace details belong to the local cluster's explorer.
-    // Only redirect if the user has access to the local cluster, otherwise keep the manager route.
-    const productId = this.$rootGetters['productId'];
-    const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
-      sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
-
-    if (productId === MANAGER && hasLocalCluster) {
+    // Namespace detail pages belong to the local cluster's explorer, not Cluster Management
+    if (this.$rootGetters['productId'] === MANAGER) {
       _detailLocation.params.cluster = LOCAL_CLUSTER;
       _detailLocation.params.product = EXPLORER;
     }
