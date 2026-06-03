@@ -148,7 +148,7 @@ const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelm
 .gap-12 {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-12);
+  gap: 12px;
 }
 
 .gap-md {
