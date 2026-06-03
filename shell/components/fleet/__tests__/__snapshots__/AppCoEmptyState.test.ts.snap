@@ -14,6 +14,7 @@ exports[`component: AppCoEmptyState should match snapshot with error badge state
   >
     <div
       class="appco-badge-container"
+      role="status"
     >
       <rc-icon-stub
         ariahidden="true"
@@ -70,7 +71,9 @@ exports[`component: AppCoEmptyState should match snapshot with transitioning bad
     class="appco-empty-state-body has-badge"
   >
     <div
+      aria-live="polite"
       class="appco-badge-container"
+      role="status"
     >
       <rc-icon-stub
         ariahidden="true"

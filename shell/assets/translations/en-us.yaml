@@ -3160,6 +3160,7 @@ fleet:
       byLabel:
         title: Select by labels
         addSelector: Add cluster selector
+        removeSelector: Remove cluster selector
         labelKey: Label
     clusterGroups:
       title: Select by cluster groups

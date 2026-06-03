@@ -19,9 +19,7 @@ describe('component: ClusterSelectionFields', () => {
   });
 
   it('should match snapshot with appco variant', () => {
-    const wrapper = shallowMount(ClusterSelectionFields, {
-      props: { ...defaultProps, variant: 'appco' }
-    });
+    const wrapper = shallowMount(ClusterSelectionFields, { props: { ...defaultProps, variant: 'appco' } });
 
     expect(wrapper.element).toMatchSnapshot();
   });
@@ -52,11 +50,13 @@ describe('component: ClusterSelectionFields', () => {
 
   it('should hide add button in view mode', () => {
     const wrapper = shallowMount(ClusterSelectionFields, {
-      props: { ...defaultProps, mode: _VIEW, isView: true }
+      props: {
+        ...defaultProps, mode: _VIEW, isView: true
+      }
     });
 
     const addButtons = wrapper.findAllComponents({ name: 'RcButton' });
 
-    expect(addButtons.length).toStrictEqual(0);
+    expect(addButtons).toHaveLength(0);
   });
 });

@@ -89,7 +89,10 @@ export default {
             target="_blank"
             class="link-main"
           >
-            {{ cluster.name }}&nbsp;<i class="link-icon icon icon-external-link" />
+            {{ cluster.name }}&nbsp;<i
+              class="link-icon icon icon-external-link"
+              aria-hidden="true"
+            />
           </router-link>
         </span>
         <span

@@ -239,6 +239,7 @@ const onKeydown = (e: KeyboardEvent) => {
           type="search"
           size="medium"
           class="icon-search"
+          aria-hidden="true"
         />
       </div>
 
@@ -396,5 +397,6 @@ const onKeydown = (e: KeyboardEvent) => {
     max-width: 500px;
   }
 }
+
 
 </style>

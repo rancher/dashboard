@@ -4,10 +4,10 @@ import { _EDIT } from '@shell/config/query-params';
 
 describe('component: HelmOpResourcesSection', () => {
   const props = {
-    value:                   { metadata: { namespace: 'fleet-default' }, spec: { keepResources: false } },
-    mode:                    _EDIT,
-    correctDriftEnabled:     false,
-    downstreamSecretsList:   ['secret-1'],
+    value:                    { metadata: { namespace: 'fleet-default' }, spec: { keepResources: false } },
+    mode:                     _EDIT,
+    correctDriftEnabled:      false,
+    downstreamSecretsList:    ['secret-1'],
     downstreamConfigMapsList: ['cm-1'],
   };
 

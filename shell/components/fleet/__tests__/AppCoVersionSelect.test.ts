@@ -4,8 +4,12 @@ import { _EDIT } from '@shell/config/query-params';
 
 describe('component: AppCoVersionSelect', () => {
   const options = [
-    { label: '1.2.0', value: '1.2.0', date: 'Jan 1, 2025' },
-    { label: '1.1.0', value: '1.1.0', date: 'Dec 1, 2024' },
+    {
+      label: '1.2.0', value: '1.2.0', date: 'Jan 1, 2025'
+    },
+    {
+      label: '1.1.0', value: '1.1.0', date: 'Dec 1, 2024'
+    },
   ];
 
   it('should match snapshot', () => {

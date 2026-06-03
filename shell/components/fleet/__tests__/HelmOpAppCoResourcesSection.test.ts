@@ -14,7 +14,7 @@ describe('component: HelmOpAppCoResourcesSection', () => {
 
   const shallowMountWithSlots = (overrides = {}) => {
     return shallowMount(HelmOpAppCoResourcesSection, {
-      props: { ...props, ...overrides },
+      props:  { ...props, ...overrides },
       global: {
         stubs: {
           RcSection: { template: '<div><slot /></div>' },

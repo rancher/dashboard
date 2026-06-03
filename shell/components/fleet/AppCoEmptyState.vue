@@ -36,18 +36,22 @@ const emptyState = computed(() => !props.badgeState?.transitioning && !props.bad
       <div
         v-if="badgeState"
         class="appco-badge-container"
+        role="status"
+        :aria-live="badgeState.transitioning ? 'polite' : undefined"
       >
         <RcIcon
           v-if="badgeState.transitioning"
           class="icon-spin"
           type="spinner"
           size="large"
+          aria-hidden="true"
         />
         <RcIcon
           v-else-if="badgeState.error"
           type="alert-alt"
           status="error"
           size="large"
+          aria-hidden="true"
         />
         <BadgeState
           :color="badgeState.stateBackground"
@@ -75,7 +79,6 @@ const emptyState = computed(() => !props.badgeState?.transitioning && !props.bad
   gap: var(--gap-lg);
 
   .appco-empty-state-body {
-    max-width: 400px;
     margin: 0 auto;
 
     &.direction-column {

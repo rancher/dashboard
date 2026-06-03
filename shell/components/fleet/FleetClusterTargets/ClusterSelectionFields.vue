@@ -142,9 +142,13 @@ defineExpose({ focusMatchExpression });
           v-if="!isView"
           size="small"
           variant="link"
+          :aria-label="t('fleet.clusterTargets.clusters.byLabel.removeSelector')"
           @click="emit('remove-match-expressions', selector.key)"
         >
-          <i class="icon icon-x" />
+          <i
+            class="icon icon-x"
+            aria-hidden="true"
+          />
         </RcButton>
       </div>
       <RcButton

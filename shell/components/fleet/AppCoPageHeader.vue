@@ -49,7 +49,10 @@ const SUSE_ACCESS_TOKENS_URL = 'https://docs.apps.rancher.io/get-started/authent
             rel="noopener noreferrer"
           >
             {{ t('fleet.appCo.credentials.accessTokensLink') }}
-            <RcIcon type="external-link" />
+            <RcIcon
+              type="external-link"
+              aria-hidden="true"
+            />
           </a>
         </p>
       </template>

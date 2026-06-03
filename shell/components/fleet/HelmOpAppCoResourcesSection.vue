@@ -92,6 +92,7 @@ const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelm
             <RcIcon
               type="external-link"
               size="small"
+              aria-hidden="true"
             /></a>
         </p>
 

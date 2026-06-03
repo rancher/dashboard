@@ -33,6 +33,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
         <RcIcon
           type="external-link"
           size="small"
+          aria-hidden="true"
         />
       </a>
     </p>

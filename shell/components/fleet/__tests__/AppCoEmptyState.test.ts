@@ -46,9 +46,7 @@ describe('component: AppCoEmptyState', () => {
   });
 
   it('should render h1 when no badge state', () => {
-    const wrapper = shallowMount(AppCoEmptyState, {
-      props: { title: 'Empty' },
-    });
+    const wrapper = shallowMount(AppCoEmptyState, { props: { title: 'Empty' } });
 
     expect(wrapper.find('h1').exists()).toBe(true);
     expect(wrapper.find('h2').exists()).toBe(false);
