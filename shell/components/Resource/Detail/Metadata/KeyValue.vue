@@ -110,9 +110,12 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     }
 
     .row {
-        display: block;
-        width: 100%;
         display: inline-block;
+        width: 100%;
+
+        &::before, &::after {
+            display: none;
+        }
 
         &:not(:nth-child(2)) {
             margin-top: 4px;

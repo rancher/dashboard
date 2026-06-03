@@ -92,18 +92,13 @@ const previewId = randomStr();
     max-width: calc(100%);
   }
 
-  .rc-tag {
-    display: inline-block;
-    line-height: normal;
-  }
-
   .tag-data {
     display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: calc(100%);
-    line-height: normal;
+    line-height: 1;
   }
 
   & .btn.btn-medium.rc-button.variant-ghost {
