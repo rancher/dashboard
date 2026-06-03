@@ -7,14 +7,11 @@ It can be achieved by using annotations on the `index.yaml` and `chart.yaml` fil
 
 Here are the annotations you can modify:
 
-| API | Rancher Version support (Minimum version)| Effect
-| --- | --- | --- |
-| `catalog.cattle.io/kube-version` | v2.7.0 | Defines a possible minimum and maximum Kubernetes version for the extension to work with. Prevents extension version from being loaded on the UI
-| `catalog.cattle.io/rancher-version` | v2.7.0 | Defines a possible minimum and maximum Rancher version for the extension to work with. Prevents extension version from being loaded on the UI
-| `catalog.cattle.io/host` | v2.7.0 | Defines the host for the extension, which should have the value `rancher-manager`. Prevents extension version from being loaded on the UI
-| `catalog.cattle.io/ui-extensions-version` | v2.9.0 | Defines a possible minimum and maximum Extensions API version for the extension to work with. Prevents extension version from being loaded on the UI
+| Annotation | Value | Rancher Version support (Minimum version) | Description |
+| --- | --- | --- | --- |
+| `catalog.cattle.io/kube-version` | `Range` | v2.7.0 | Semver range of Kubernetes versions the extension supports. Prevents loading on clusters running a version outside the range. |
+| `catalog.cattle.io/rancher-version` | `Range` | v2.7.0 | Semver range of Rancher Manager versions the extension supports. Prevents loading on a Rancher version outside the range. |
+| `catalog.cattle.io/ui-extensions-host` | `String` | v2.7.0 | Host application the extension targets (e.g. `rancher-manager`). Prevents loading when the host doesn't match. |
+| `catalog.cattle.io/ui-extensions-version` | `Range` | v2.9.0 | Semver range of the Extensions API (Shell package) the extension is built against for compatibility purposes. Some Rancher versions might bump it to a fixed major due to architectural changes: 2.8 → v1, 2.9 → v2, 2.10 → v3. Pin to the major you built against (e.g. `>= 3.0.0 < 4.0.0`). **Mandatory from Rancher 2.10 onwards — extensions without this annotation will not be loaded.** |
 
- 
-**NOTE: The annotation `catalog.cattle.io/ui-extensions-version` will become mandatory from Rancher 2.10 and onwards. If the annotation is not present on a given extension Helm Chart, the extension itself will not be loaded**
- 
 All annotations will prevent the loading of an extension into Rancher.

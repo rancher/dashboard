@@ -292,6 +292,11 @@ export interface ProductOptions {
   to?: PluginRouteRecordRaw;
 
   /**
+   * Whether the product can be removed by users (default: false — products are built-in/not removable unless explicitly set to true)
+   */
+  removable?: boolean;
+
+  /**
    * Alternative to the icon property. Uses require
    */
   svg?: Function;
@@ -300,6 +305,11 @@ export interface ProductOptions {
    * Product name
    */
   name?: string;
+
+  /**
+   *  controls whether a workspace switcher dropdown appears in the header (instead of the namespace filter) if set to true
+   */
+  showWorkspaceSwitcher?: boolean;
 
   /**
    *
@@ -317,8 +327,6 @@ export interface ProductOptions {
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
   // supportRoute: string;
   // typeStoreMap: string;
 }
@@ -694,6 +702,11 @@ export interface IExtension {
    * @internal - DO NOT USE - Internal API only
    */
   _registerTopLevelProduct(): void;
+  /**
+   *
+   * @internal - DO NOT USE - Internal API only
+   */
+  _setStartRouteWithProduct(value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
