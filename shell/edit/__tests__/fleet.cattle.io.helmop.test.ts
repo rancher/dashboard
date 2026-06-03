@@ -28,11 +28,16 @@ const mocks = {
   $fetchState: { pending: false },
   $route:      {
     query: { AS: '' },
+    hash:  '',
     name:  {
       endsWith: () => {
         return false;
       }
     }
+  },
+  $router: {
+    currentRoute: { _value: { hash: '' } },
+    replace:      jest.fn(),
   },
 };
 
