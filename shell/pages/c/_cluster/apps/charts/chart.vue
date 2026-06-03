@@ -882,7 +882,7 @@ export default {
 
     &__readme {
       flex: 1;
-      min-width: 400px;
+      min-width: 0;
       padding: 12px 24px;
     }
     &__info {
