@@ -7,6 +7,13 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import YamlEditor from '@shell/components/YamlEditor';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
 
+import type { ButtonGroupOption } from '@shell/types/components/buttonGroup';
+
+interface HelmOpResource {
+  spec: { helm: { valuesFrom?: unknown } };
+  metadata: { namespace: string };
+}
+
 const yaml = ref<{ refresh?:() => void } | null>(null);
 
 const refreshYaml = () => {
@@ -17,17 +24,10 @@ const refreshYaml = () => {
 
 defineExpose({ refreshYaml });
 
-interface ButtonGroupOption {
-  labelKey: string;
-  value: string;
-  disabled?: boolean;
-}
-
 withDefaults(defineProps<{
-  value: Record<string, any>;
+  value: HelmOpResource;
   mode: string;
   realMode: string;
-  isView?: boolean;
   chartValues: string;
   chartValuesInit: string;
   yamlForm: string;
@@ -43,7 +43,6 @@ withDefaults(defineProps<{
   hideBanner?: boolean;
   compact?: boolean;
 }>(), {
-  isView:              false,
   hideTitle:           false,
   isSuseAppCollection: false,
   bgBorder:            false,
@@ -105,7 +104,6 @@ const updateDiffMode = (value: string) => {
           />
           <div
             class="yaml-form-controls-spacer"
-            style="flex:1"
           >
           &nbsp;
           </div>
@@ -152,6 +150,10 @@ const updateDiffMode = (value: string) => {
   margin-bottom: 15px;
 }
 
+.yaml-form-controls-spacer {
+  flex: 1;
+}
+
 .bg-border {
   border: 2px solid var(--body-bg);
 }
@@ -159,6 +161,6 @@ const updateDiffMode = (value: string) => {
 .helmop-values-tab-container {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-lg)
+  gap: var(--gap-lg);
 }
 </style>

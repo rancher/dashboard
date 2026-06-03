@@ -131,7 +131,7 @@ export default {
     .compact-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--gap);
 
       h3 {
         margin: 0;
@@ -155,7 +155,7 @@ export default {
   .targets-list-chips {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--gap);
     align-items: flex-start;
     flex: 1;
     min-height: 0;

@@ -4,16 +4,26 @@ import { useStore } from 'vuex';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import HelmOpTargetOptionsSection from '@shell/components/fleet/HelmOpTargetOptionsSection.vue';
 
+import type { Target } from '@shell/types/fleet';
+
+interface HelmOpValue {
+  spec: {
+    targets: Target[];
+    serviceAccount?: string;
+    namespace?: string;
+  };
+  metadata: { namespace: string };
+  targetClusters: object[];
+}
+
 withDefaults(defineProps<{
-  value: Record<string, any>;
+  value: HelmOpValue;
   mode: string;
   realMode: string;
-  isView?: boolean;
   targetsCreated?: string;
   hideAdditionalOptions?: boolean;
   compact?: boolean;
 }>(), {
-  isView:                false,
   targetsCreated:        '',
   hideAdditionalOptions: false,
   compact:               false,
@@ -21,14 +31,14 @@ withDefaults(defineProps<{
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
-  (e: 'update:targets', value: any): void;
+  (e: 'update:targets', value: Target[]): void;
   (e: 'targets-created', value: string): void;
 }>();
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const updateTargets = (value: any) => {
+const updateTargets = (value: Target[]) => {
   emit('update:targets', value);
 };
 
@@ -39,10 +49,8 @@ const onTargetsCreated = (value: string) => {
 
 <template>
   <div data-testid="helmop-target-tab">
-    <div :class="compact ? 'gap-6' : ''">
-      <h2
-        v-if="!compact"
-      >
+    <div :class="{ 'gap-6': compact }">
+      <h2 v-if="!compact">
         {{ t('fleet.helmOp.target.label') }}
       </h2>
       <FleetClusterTargets

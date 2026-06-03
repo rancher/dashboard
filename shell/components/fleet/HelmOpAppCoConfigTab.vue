@@ -75,7 +75,7 @@ const emit = defineEmits<{
   (e: 'update:value', value: any): void;
   (e: 'update:targets', value: any): void;
   (e: 'targets-created', value: string): void;
-  (e: 'update:yaml-form', value: any): void;
+  (e: 'update:yaml-form'): void;
   (e: 'update:chart-values', value: string): void;
   (e: 'update:diff-mode', value: string): void;
   (e: 'update:auth', value: { value: any; key: string }): void;
@@ -233,7 +233,10 @@ defineExpose({ refreshYamlEditor });
             v-else
             class="chart-icon-placeholder"
           >
-            <i class="icon icon-helm" aria-hidden="true" />
+            <i
+              class="icon icon-helm"
+              aria-hidden="true"
+            />
           </div>
         </div>
         <div class="chart-header-info">
@@ -361,7 +364,6 @@ defineExpose({ refreshYamlEditor });
       :value="value"
       :mode="mode"
       :real-mode="realMode"
-      :is-view="isView"
       :targets-created="targetsCreated"
       :hide-additional-options="true"
       :compact="true"
@@ -383,7 +385,6 @@ defineExpose({ refreshYamlEditor });
         :value="value"
         :mode="mode"
         :real-mode="realMode"
-        :is-view="isView"
         :targets-created="targetsCreated"
         :hide-additional-options="true"
         :compact="true"
@@ -486,7 +487,6 @@ defineExpose({ refreshYamlEditor });
             :value="value"
             :mode="mode"
             :real-mode="realMode"
-            :is-view="isView"
             :chart-values="chartValues"
             :chart-values-init="chartValuesInit"
             :yaml-form="yamlForm"
@@ -502,7 +502,7 @@ defineExpose({ refreshYamlEditor });
             :bg-border="true"
             :compact="true"
             data-testid="appco-config-values-tab"
-            @update:yaml-form="emit('update:yaml-form', $event)"
+            @update:yaml-form="emit('update:yaml-form')"
             @update:chart-values="emit('update:chart-values', $event)"
             @update:diff-mode="emit('update:diff-mode', $event)"
           />

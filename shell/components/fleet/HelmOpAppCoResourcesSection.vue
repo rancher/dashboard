@@ -95,7 +95,7 @@ const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelm
             /></a>
         </p>
 
-        <div class="gap-sm">
+        <div class="gap-12">
           <Banner
             v-if="lockedSecrets.length > 0"
             color="info"
@@ -145,10 +145,10 @@ const { updateCorrectDrift, updateSecrets, updateDownstreamResources } = useHelm
   gap: 5px;
 }
 
-.gap-sm {
+.gap-12 {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-sm);
+  gap: var(--gap-12);
 }
 
 .gap-md {

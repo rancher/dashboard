@@ -84,7 +84,7 @@ const SUSE_ACCESS_TOKENS_URL = 'https://docs.apps.rancher.io/get-started/authent
 .secret-info {
   display: grid;
   grid-template-columns: auto auto;
-  gap: 8px;
+  gap: var(--gap);
   align-items: center;
 
   .secret-text {

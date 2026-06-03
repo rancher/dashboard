@@ -5,7 +5,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { RcIcon } from '@components/RcIcon';
 
 withDefaults(defineProps<{
-  value: Record<string, any>;
+  value: { spec: { serviceAccount?: string; namespace?: string } };
   mode: string;
   compact?: boolean;
 }>(), { compact: false });
@@ -18,7 +18,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
 
 <template>
   <div
-    :class="{ row: !compact, 'col gap-16': compact }"
+    :class="{ row: !compact, 'col gap-md': compact }"
     data-testid="helmop-target-options-section"
   >
     <p v-if="compact">
@@ -36,7 +36,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
         />
       </a>
     </p>
-    <div :class="'col span-6 cluster-deployment-settings-input'">
+    <div class="col span-6 cluster-deployment-settings-input">
       <LabeledInput
         v-model:value="value.spec.serviceAccount"
         :mode="mode"
@@ -51,7 +51,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
         {{ t('fleet.helmOp.serviceAccount.compactDescription') }}
       </p>
     </div>
-    <div :class="'col span-6 cluster-deployment-settings-input'">
+    <div class="col span-6 cluster-deployment-settings-input">
       <LabeledInput
         v-model:value="value.spec.namespace"
         :mode="mode"
@@ -70,9 +70,7 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
 </template>
 
 <style lang="scss" scoped>
-.gap-16 {
-  display: flex;
-  flex-direction: column;
+.gap-md {
   gap: var(--gap-md);
 }
 

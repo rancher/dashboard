@@ -206,7 +206,7 @@ export default {
         </div>
       </div>
     </div>
-    <div :class="useRcButton ? 'compact-spacer' : 'spacer'" />
+    <div :class="compact ? 'compact-spacer' : 'spacer'" />
     <div
       v-if="showAnnotations"
       :class="sectionClass"
