@@ -34,13 +34,18 @@ describe('mixin: authConfigMixin', () => {
     };
 
     it.each([
-      'oidc',
       'saml',
       'ldap',
     ])('should set accessMode to required for %s config type', (configType) => {
       const instance = createInstance(configType);
 
       expect(instance.model.accessMode).toStrictEqual('required');
+    });
+
+    it('should set accessMode to unrestricted for oidc config type', () => {
+      const instance = createInstance('oidc');
+
+      expect(instance.model.accessMode).toStrictEqual('unrestricted');
     });
   });
 
