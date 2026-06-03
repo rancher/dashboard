@@ -31,7 +31,7 @@ export default {
         return this.getCustomDetailLink(this.row);
       }
 
-      return this.row?.detailLocation;
+      return this.row?.provCluster?.detailLocation;
     },
 
     statusErrorConditions() {
@@ -76,12 +76,6 @@ export default {
       v-clean-tooltip="row.unavailableMachines"
       class="conditions-alert-icon icon-alert icon"
       data-testid="unavailable-machines-alert-icon"
-    />
-    <i
-      v-if="row.isRke1"
-      v-clean-tooltip="t('cluster.rke1Unsupported')"
-      class="rke1-unsupported-icon icon-warning icon"
-      data-testid="rke1-unsupported-icon"
     />
     <i
       v-if="row.hasError && statusErrorConditions.length > 0"

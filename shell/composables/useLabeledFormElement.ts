@@ -18,6 +18,8 @@ interface UseLabeledFormElement {
   focused: Ref<boolean>;
   blurred: Ref<number | null>;
   requiredField: ComputedRef<any>;
+  empty: ComputedRef<boolean>;
+  isView: ComputedRef<boolean>;
   isDisabled: ComputedRef<any>;
   validationMessage: ComputedRef<any>;
   onFocusLabeled: () => void;
@@ -82,6 +84,10 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
     return props.required || props.rules?.some((rule: any) => rule?.name === 'required');
   });
 
+  const empty = computed(() => {
+    return !!`${ props.value }`;
+  });
+
   const isView = computed(() => {
     return props.mode === _VIEW;
   });
@@ -143,6 +149,8 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
     raised,
     focused,
     blurred,
+    empty,
+    isView,
     onFocusLabeled,
     onBlurLabeled,
     isDisabled,

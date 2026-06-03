@@ -1005,8 +1005,8 @@ export default {
     .ns-filter-clear {
       cursor: pointer;
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: 12px;
+      top: 5px;
       line-height: 24px;
       text-align: center;
       width: 14px;

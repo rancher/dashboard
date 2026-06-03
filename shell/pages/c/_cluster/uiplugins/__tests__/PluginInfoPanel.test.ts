@@ -1,5 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import PluginInfoPanel from '@shell/pages/c/_cluster/uiplugins/PluginInfoPanel.vue';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 jest.mock('@shell/config/uiplugins', () => ({
   ...jest.requireActual('@shell/config/uiplugins'),
@@ -97,6 +98,66 @@ describe('component: PluginInfoPanel', () => {
       const label = wrapper.vm.getVersionLabel(version);
 
       expect(label).toBe('1.0.0 (plugins.labels.current)');
+    });
+  });
+
+  describe('errorMessage', () => {
+    beforeEach(() => {
+      wrapper = mountComponent();
+    });
+
+    it('should return installedError if present', () => {
+      wrapper.vm.info = { installedError: 'install error' };
+
+      expect(wrapper.vm.errorMessage).toBe('install error');
+    });
+
+    it('should return translated helmError if present', () => {
+      wrapper.vm.info = { helmError: true };
+
+      expect(wrapper.vm.errorMessage).toBe('plugins.helmError');
+    });
+
+    it('should return null if no error', () => {
+      wrapper.vm.info = {};
+
+      expect(wrapper.vm.errorMessage).toBeNull();
+    });
+  });
+
+  describe('warningMessages', () => {
+    beforeEach(() => {
+      wrapper = mountComponent();
+    });
+
+    it('should include deprecated message if the extension chart has the deprecated annotation', () => {
+      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] } };
+
+      expect(wrapper.vm.warningMessages).toContain('plugins.deprecatedExtension');
+    });
+
+    it('should include incompatibilityMessage if present', () => {
+      wrapper.vm.info = { incompatibilityMessage: 'incompatibility error' };
+
+      expect(wrapper.vm.warningMessages).toContain('incompatibility error');
+    });
+
+    it('should include both deprecated and incompatibility messages if both are present', () => {
+      wrapper.vm.info = {
+        chart:                  { versions: [{ annotations: { [CATALOG_ANNOTATIONS.DEPRECATED]: 'true' } }] },
+        incompatibilityMessage: 'incompatibility error'
+      };
+
+      expect(wrapper.vm.warningMessages).toStrictEqual([
+        'plugins.deprecatedExtension',
+        'incompatibility error'
+      ]);
+    });
+
+    it('should return an empty array if neither is present', () => {
+      wrapper.vm.info = { chart: { versions: [{ annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: 'rancher' } }] } };
+
+      expect(wrapper.vm.warningMessages).toStrictEqual([]);
     });
   });
 });

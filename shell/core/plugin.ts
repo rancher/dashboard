@@ -135,21 +135,29 @@ export class Plugin implements IPlugin {
   }
 
   addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[]): void {
+    let pluginProduct: PluginProduct;
+
     if (typeof product === 'string') {
-      this.productConfigs.push(PluginProduct.fromName(this, product));
+      pluginProduct = PluginProduct.fromName(this, product);
     } else if (product?.name) {
       if (!config) {
-        const p = product as ProductSinglePage;
-
-        this.productConfigs.push(new PluginProduct(this, p, []));
+        pluginProduct = new PluginProduct(this, product as ProductSinglePage, []);
       } else {
-        const p = product as ProductMetadata;
-
-        this.productConfigs.push(new PluginProduct(this, p, config));
+        pluginProduct = new PluginProduct(this, product as ProductMetadata, config);
       }
     } else {
       this.products.push(product as ProductFunction);
+
+      return;
     }
+
+    const existingProduct = this.productConfigs.find((p) => p.newProduct && p.productName === pluginProduct.productName);
+
+    if (existingProduct) {
+      throw new Error(`Extensions - product "${ pluginProduct.productName }" registration error ::: addProduct can only be called once per product. Use extendProduct to add pages to an existing product.`);
+    }
+
+    this.productConfigs.push(pluginProduct);
   }
 
   extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {

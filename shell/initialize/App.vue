@@ -1,10 +1,16 @@
 <script>
 import GlobalLoading from '@shell/components/nav/GlobalLoading.vue';
+import WindowManager from '@shell/components/nav/WindowManager';
 
 import '@shell/assets/styles/app.scss';
 
 export default {
-  data: () => ({ isOnline: true }),
+  data() {
+    return {
+      isOnline:      true,
+      currentLayout: null,
+    };
+  },
 
   created() {
     // add to window so we can listen when ready
@@ -36,6 +42,14 @@ export default {
     this.$loading = this.$refs.loading;
   },
 
+  provide() {
+    return {
+      notifyWmContainerReady: (layout) => {
+        this.currentLayout = layout;
+      }
+    };
+  },
+
   computed: {
     isOffline() {
       return !this.isOnline;
@@ -55,7 +69,10 @@ export default {
     },
   },
 
-  components: { GlobalLoading }
+  components: {
+    GlobalLoading,
+    WindowManager,
+  }
 };
 </script>
 <template>
@@ -65,6 +82,16 @@ export default {
       id="__layout"
     >
       <router-view />
+      <!--
+        WindowManager is teleported into each template's wm-container
+        This keeps a single instance that never re-mounts while appearing in each template
+      -->
+      <Teleport
+        v-if="currentLayout"
+        :to="`#wm-container-${currentLayout}`"
+      >
+        <WindowManager :layout="currentLayout" />
+      </Teleport>
     </div>
   </div>
 </template>

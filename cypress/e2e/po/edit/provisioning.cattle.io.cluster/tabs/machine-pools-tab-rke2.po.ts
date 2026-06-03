@@ -25,6 +25,10 @@ export default class MachinePoolRke2 extends ComponentPo {
     return new LabeledSelectPo('[data-testid="amazonEc2__selectedNetwork"]');
   }
 
+  region(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="amazonEc2__region"]');
+  }
+
   enableDualStack(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="amazonEc2__enableIpv6"]');
   }

@@ -2,7 +2,7 @@ import { FleetApplicationCreatePo, FleetApplicationListPagePo } from '~/cypress/
 import { FleetHelmOpCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.helmop.po';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const fakeProvClusterId = 'fake-cluster-id';
 const fakeMgmtClusterId = 'fake-mgmt-id';
@@ -262,20 +262,7 @@ describe('Fleet HelmOps', { testIsolation: 'off', tags: ['@fleet', '@adminUser']
       helmOpEditPage.resourceDetail().createEditView().save();
 
       // Wait for successful update request
-      // Dashboard automatically retries on 409 conflicts, so we wait for requests until we get a 200
-      cy.wait('@updateHelmOp').then((interception) => {
-        if (interception.response?.statusCode === 200) {
-          return cy.wrap(interception);
-        }
-
-        return cy.wait('@updateHelmOp', MEDIUM_TIMEOUT_OPT);
-      }).then((interception) => {
-        // Verify we got a successful response
-        // If Dashboard's automatic retry didn't work, this will fail
-        expect(interception.response?.statusCode).to.eq(200);
-
-        return interception;
-      }).then(({ request, response }: any) => {
+      cy.waitForInterceptWithConflictRetry('@updateHelmOp').then(({ request, response }: any) => {
         // Verify request payload contains downstreamResources in spec (not spec.helm)
         // testing: https://github.com/rancher/dashboard/pull/15921
         expect(request.body.spec.downstreamResources).to.be.an('array');

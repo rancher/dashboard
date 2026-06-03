@@ -82,6 +82,12 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 
 <style lang="scss" scoped>
 .metadata {
+    .identifying-info {
+      // Allow the grid cell to shrink below its content size without
+      // using overflow:hidden, which would clip the namespace popover
+      min-width: 0;
+    }
+
     .labels-and-annotations-empty {
       grid-column: span 2;
     }

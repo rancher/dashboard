@@ -1,6 +1,7 @@
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
+import { qase } from '@/cypress/support/qase';
 
 describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@provisioning'] }, () => {
   const providersPage = new HostedProvidersPagePo();
@@ -23,7 +24,7 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     providersPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
   });
 
-  it('can deactivate provider', () => {
+  qase(16620, it('can deactivate provider', () => {
     const expected = {
       aks: false, eks: true, gke: true
     };
@@ -54,7 +55,7 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName(AKS, 'not.exist');
-  });
+  }));
 
   it('can activate provider', () => {
     const expected = {
@@ -195,6 +196,9 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
       .isChecked();
 
+    // Ensure no loading indicator is visible after interactions
+    providersPage.list().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
     cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('updateProviders');
 
     providersPage.list().activate().click();

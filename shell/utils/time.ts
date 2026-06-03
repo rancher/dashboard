@@ -2,6 +2,11 @@ import day from 'dayjs';
 import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { type Store } from 'vuex';
+import { ZERO_TIME } from '@shell/config/types';
+
+export function isMissingDate(date: string | undefined | null): boolean {
+  return !date || date === ZERO_TIME;
+}
 
 const FACTORS = [60, 60, 24];
 const LABELS = ['sec', 'min', 'hour', 'day'];

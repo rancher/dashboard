@@ -94,6 +94,9 @@ jobs:
   test-release-shell-pkg-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    permissions:
+      id-token: write
+      contents: read
     with:
       is_test:  'true'
       test_branch:  'master'
@@ -102,13 +105,16 @@ jobs:
   test-release-creators-pkg-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    permissions:
+      id-token: write
+      contents: read
     with:
       is_test: 'true'
       test_branch: 'master'
       tag: ${{ needs.retrieve-tags-master.outputs.CREATORS_TAG }}
 
   slack-message:
-    if: ${{ always() }}
+    if: ${{ always() && github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     needs: [creators-shipped-worflows-checks, test-extensions-creators-and-update-paths, retrieve-tags-master, test-build-extension-charts-master, test-build-extension-catalog-master, test-release-shell-pkg-master, test-release-creators-pkg-master]
     steps: 

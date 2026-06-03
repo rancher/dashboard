@@ -103,12 +103,26 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     flex-direction: column;
 
     .row {
+      gap: 8px;
+
+      // Hide clearfix pseudo-elements inherited from the global .row class
+      &::before, &::after {
+        display: none;
+      }
+
       &:not(:last-of-type) {
         margin-bottom: 8px;
       }
 
       .full-custom-value {
         flex: 1;
+        min-width: 0;
+
+        // Override inline-block on .popover-card-target so it respects the
+        // parent's width constraint instead of sizing to its content
+        :deep(.popover-card-target) {
+          width: 100%;
+        }
       }
 
       .value {
@@ -128,7 +142,7 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
 
       .label {
         width: 30%;
-        min-width: 120px;
+        min-width: min-content;
       }
 
       .status {

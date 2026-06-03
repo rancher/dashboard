@@ -1,9 +1,18 @@
 import { mount } from '@vue/test-utils';
 import NodeScheduling from '@shell/components/form/NodeScheduling.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { createStore } from 'vuex';
 
 const requiredSetup = () => {
   return {
+    provide: {
+      store: createStore({
+        getters: {
+          currentStore:                () => 'cluster',
+          'cluster/paginationEnabled': () => () => false,
+        },
+      }),
+    },
     global: {
       mocks: {
         $fetchState: { pending: false },

@@ -1,4 +1,4 @@
-import { defineComponent, nextTick } from 'vue';
+import { defineComponent, nextTick, provide, ref } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { useForm } from 'vee-validate';
 import { LabeledInput } from './index';
@@ -195,21 +195,27 @@ describe('component: LabeledInput', () => {
 
     it('with name prop: form-level validation schema error is shown when the form validates', async() => {
       const errorMessage = 'Username is required';
+      const showAllErrors = ref(false);
       let triggerFormValidation!: () => Promise<unknown>;
 
       const TestWrapper = defineComponent({
         components: { LabeledInput },
         setup() {
+          provide('vee-show-all-errors', showAllErrors);
+
           const { validate } = useForm({
             validationSchema: { username: (v: string) => (!v ? errorMessage : true) },
-            initialValues:    { username: '' }
+            initialValues:    { username: '' },
           });
 
-          triggerFormValidation = validate;
+          triggerFormValidation = async() => {
+            await validate();
+            showAllErrors.value = true;
+          };
 
           return {};
         },
-        template: '<LabeledInput name="username" value="" />'
+        template: '<LabeledInput name="username" value="" />',
       });
 
       const wrapper = mount(TestWrapper, { global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } } });

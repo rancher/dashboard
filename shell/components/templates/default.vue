@@ -9,7 +9,6 @@ import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
-import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
@@ -39,7 +38,6 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    WindowManager,
     FixedBanner,
     AwsComplianceBanner,
     Inactivity,
@@ -48,10 +46,11 @@ export default {
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
+  inject: ['notifyWmContainerReady'],
+
   // Note - This will not run on route change
   data() {
     return {
-      layout:           Layout.default,
       noLocaleShortcut: process.env.dev || false,
       wantNavSync:      false,
     };
@@ -102,6 +101,10 @@ export default {
       return this.clusterReady &&
         this.clusterId === getClusterFromRoute(this.$route) && routeReady;
     },
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.default);
   },
 
   methods: {
@@ -227,7 +230,12 @@ export default {
           class="outlet"
         />
       </main>
-      <WindowManager :layout="layout" />
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-default"
+        style="display: contents;"
+      />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

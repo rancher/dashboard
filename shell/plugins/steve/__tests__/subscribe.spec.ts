@@ -14,7 +14,8 @@ describe('steve: subscribe', () => {
         schemaFor:       () => null,
         inError:         () => false,
         watchStarted:    () => false,
-        listenerManager: state.listenerManager
+        listenerManager: state.listenerManager,
+        typeRegistered:  () => true,
       };
       const rootGetters = {
         'type-map/isSpoofed': () => false,
@@ -343,7 +344,7 @@ describe('steve: subscribe', () => {
 
         // call watch
         actions.watch({
-          state, dispatch, getters, rootGetters
+          state, dispatch, getters, rootGetters, commit
         }, {
           ...obj,
           revision,
@@ -488,6 +489,7 @@ describe('steve: subscribe', () => {
         const state = {
           started:         [],
           inError:         {},
+          queue:           [],
           listenerManager: new SteveWatchEventListenerManager()
         };
         const _getters = {
@@ -498,7 +500,8 @@ describe('steve: subscribe', () => {
           watchStarted:    (...args) => getters.watchStarted(state)(...args),
           backOffId:       (...args) => getters.backOffId()(...args),
           canBackoff:      () => true,
-          listenerManager: state.listenerManager
+          listenerManager: state.listenerManager,
+          typeRegistered:  () => true,
         };
         const commit = (type, ...args) => mutations[type](state, ...args);
 

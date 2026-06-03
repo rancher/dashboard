@@ -17,8 +17,7 @@ import BrandImage from '@shell/components/BrandImage';
 import { waitFor } from '@shell/utils/async';
 import { Banner } from '@components/Banner';
 import FormValidation from '@shell/mixins/form-validation';
-import isUrl from 'is-url';
-import { isLocalhost } from '@shell/utils/validators/setting';
+import { isLocalhost, isValidUrl } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
 import { getBrandMeta } from '@shell/utils/brand';
 
@@ -171,7 +170,7 @@ export default {
         }
       }
 
-      if (!isUrl(this.serverUrl) || this.fvGetPathErrors(['serverUrl']).length > 0) {
+      if (!isValidUrl(this.serverUrl) || this.fvGetPathErrors(['serverUrl']).length > 0) {
         return false;
       }
 

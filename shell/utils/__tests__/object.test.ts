@@ -210,6 +210,105 @@ describe('fx: diff', () => {
 
     expect(result).toStrictEqual(expected);
   });
+  it('should preserve nested object values when transitioning from empty object to populated object', () => {
+    const from = { parent: { child: { config: {} } } };
+    const to = {
+      parent: {
+        child: {
+          config: {
+            annotations: { hello: 'world' },
+            labels:      { key: 'value' }
+          }
+        }
+      }
+    };
+
+    const result = diff(from, to);
+    const expected = {
+      parent: {
+        child: {
+          config: {
+            annotations: { hello: 'world' },
+            labels:      { key: 'value' }
+          }
+        }
+      }
+    };
+
+    expect(result).toStrictEqual(expected);
+  });
+
+  it('should preserve explicit empty object when clearing nested object values', () => {
+    const from = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+    const to = { parent: { child: { config: {} } } };
+
+    const result = diff(from, to);
+    const expected = { parent: { child: { config: {} } } };
+
+    expect(result).toStrictEqual(expected);
+  });
+
+  it('should not emit nested empty objects when there are no differences', () => {
+    const from = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+    const to = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+
+    const result = diff(from, to);
+    const expected = {};
+
+    expect(result).toStrictEqual(expected);
+  });
+
+  it('should correctly nullify nested keys when removed', () => {
+    const from = {
+      parent: {
+        child: {
+          config: {
+            annotations: { hello: 'world' },
+            labels:      { key: 'value' }
+          }
+        }
+      }
+    };
+    const to = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+
+    const result = diff(from, to);
+    const expected = { parent: { child: { config: { labels: { key: null } } } } };
+
+    expect(result).toStrictEqual(expected);
+  });
+
+  it('should not nullify child keys when parent object is updated', () => {
+    const from = { parent: { child: { config: {} } } };
+    const to = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+
+    const result = diff(from, to);
+    const expected = { parent: { child: { config: { annotations: { hello: 'world' } } } } };
+
+    expect(result).toStrictEqual(expected);
+    expect(result.parent.child.config).not.toHaveProperty('annotations', null);
+  });
+
+  it('should handle type change from object in from to primitive in to without throwing', () => {
+    // from[k] is an object, to[k] is a string (e.g. a pre-existing secret name).
+    // The whole value was replaced; nested keys from from should not be nulled out.
+    const from = {
+      githubConfigSecret: { github_token: '' },
+      githubConfigUrl:    '',
+    };
+    const to = {
+      githubConfigUrl:    'https://github.com/abc',
+      githubConfigSecret: 'preexisting-secret',
+    };
+
+    expect(() => diff(from, to)).not.toThrow();
+
+    const result = diff(from, to);
+
+    expect(result.githubConfigSecret).toStrictEqual('preexisting-secret');
+    expect(result.githubConfigUrl).toStrictEqual('https://github.com/abc');
+    // No garbage nested null should be injected under the replaced key
+    expect(Object.keys(result)).not.toContain('githubConfigSecret.github_token');
+  });
 });
 
 describe('fx: definedKeys', () => {

@@ -5,8 +5,9 @@ import {
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { getLatestCompatibleVersion } from '@shell/utils/chart';
+import { isMissingDate } from '@shell/utils/time';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { CATALOG, ZERO_TIME } from '@shell/config/types';
+import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import day from 'dayjs';
 
@@ -151,25 +152,19 @@ export default class Chart extends SteveModel {
     const subHeaderItems = [];
 
     if (latestVersion) {
-      const hasZeroTime = latestVersion.created === ZERO_TIME;
-
       subHeaderItems.push({
         icon:        'icon-version-alt',
         iconTooltip: { key: 'tableHeaders.version' },
         label:       latestVersion.version
       });
 
-      const lastUpdatedItem = {
-        icon:        'icon-refresh-alt',
-        iconTooltip: { key: 'tableHeaders.lastUpdated' },
-        label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY')
-      };
-
-      if (hasZeroTime) {
-        lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+      if (!isMissingDate(latestVersion.created)) {
+        subHeaderItems.push({
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       day(latestVersion.created).format('MMM D, YYYY')
+        });
       }
-
-      subHeaderItems.push(lastUpdatedItem);
     }
 
     const footerItems = [

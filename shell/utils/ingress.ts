@@ -56,7 +56,15 @@ class IngressDetailEditHelper {
     return services.map((service) => ({
       label: service.metadata.name,
       value: service.metadata.name,
-      ports: service.spec.ports?.map((p: any) => p.port)
+      ports: service.spec.ports?.flatMap((p: any) => {
+        const options = [p.port];
+
+        if (p.name) {
+          options.push(p.name);
+        }
+
+        return options;
+      })
     }));
   }
 }

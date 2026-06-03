@@ -17,7 +17,7 @@ type MockChartContext = {
 };
 
 interface CardContent {
-  subHeaderItems: { label: string, labelTooltip?: string}[];
+  subHeaderItems: { label: string, labelTooltip?: string, icon?: string, iconTooltip?: string }[];
   footerItems: { labels: string[]; icon?: string }[];
   statuses: { tooltip: { key?: string; text?: string }; color: string }[];
 }
@@ -403,10 +403,32 @@ describe('class Chart', () => {
       });
 
       const result = chart.cardContent as CardContent;
-      const lastUpdatedItem = result.subHeaderItems[1];
 
-      expect(lastUpdatedItem.label).toBe('generic.na');
-      expect(lastUpdatedItem.labelTooltip).toBe('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+      expect(result.subHeaderItems).toHaveLength(1);
+      expect(result.subHeaderItems[0].icon).toBe('icon-version-alt');
+    });
+
+    it('handles falsy time for last updated date', () => {
+      const chartWithFalsyTime = {
+        ...base,
+        versions: [{
+          ...base.versions[0],
+          created: '',
+        }]
+      };
+      const chart = new Chart(chartWithFalsyTime, {
+        rootGetters: {
+          'cluster/all':  () => [],
+          'i18n/t':       (key: string) => key,
+          currentCluster: { workerOSs: [] },
+          'prefs/get':    () => false,
+        },
+      });
+
+      const result = chart.cardContent as CardContent;
+
+      expect(result.subHeaderItems).toHaveLength(1);
+      expect(result.subHeaderItems[0].icon).toBe('icon-version-alt');
     });
   });
 });

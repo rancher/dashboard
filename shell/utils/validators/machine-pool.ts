@@ -12,7 +12,7 @@ const RULESETS = [
   },
   {
     path:  FIELDS.NAME,
-    rules: ['required'],
+    rules: ['required', 'uniquePoolName'],
   },
   {
     path:  FIELDS.AUTOSCALER_MIN,

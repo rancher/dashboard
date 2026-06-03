@@ -17,6 +17,19 @@ Different button variants for different purposes and visual hierarchy:
 
 <Canvas of={RcButtonStories.AllVariants} />
 
+## As Router Link
+
+When the `to` prop is provided, RcButton renders as an `<a>` tag (via Vue Router's `<RouterLink>`) instead of a `<button>`.
+This enables client-side navigation while preserving all button styling.
+
+The rendered HTML changes from:
+- **Without `to`:** `<button class="rc-button btn variant-primary ...">` 
+- **With `to`:** `<a class="rc-button btn variant-primary ..." href="/path">`
+
+This improves accessibility and enables standard link behaviors like ctrl+click to open in a new tab.
+
+<Canvas of={RcButtonStories.AsRouterLink} />
+
 ## Button Sizes
 
 Buttons are available in three sizes: small, medium (default), and large:

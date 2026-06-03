@@ -40,7 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS, LINUX } from '@shell/store/catalog';
+import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -763,6 +763,24 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
+    windowsIncompatible() {
+      if (this.versionInfo) {
+        const isRancher = isRancherRepo(this.repo, this.chart);
+        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
+        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
+
+        if (incompatibleVersion) {
+          if (!this.chart?.windowsIncompatible) {
+            return this.t('catalog.charts.versionWindowsIncompatible');
+          }
+
+          return this.t('catalog.charts.windowsIncompatible');
+        }
+      }
+
+      return null;
+    },
+
     /**
      * Check if the chart contains `systemDefaultRegistry` properties.
      * If not we shouldn't apply the setting, because if the option
@@ -1104,6 +1122,8 @@ export default {
         this.$router.replace(this.clusterToolsLocation());
       } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
         this.$router.replace(this.clustersLocation());
+      } else if (!this.chart) {
+        this.$router.replace(this.appLocation());
       } else {
         this.$router.replace(this.chartLocation(false));
       }

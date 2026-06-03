@@ -8,6 +8,7 @@ const targetProject = {
 };
 const projectScopedSecretName = 'e2e-project-scoped-secret-name';
 const username = 'test';
+const password = 'test-password';
 
 describe('Project Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -45,6 +46,7 @@ describe('Project Secrets', { testIsolation: 'off', tags: ['@explorer2', '@admin
     secretCreatePage.projectSelect().clickOptionWithLabel(targetProject.label);
     secretCreatePage.nameNsDescription().name().set(projectScopedSecretName);
     secretCreatePage.basicAuthUsernameInput().set(username);
+    secretCreatePage.basicAuthPasswordInput().set(password, true);
     secretCreatePage.saveOrCreate().click();
 
     cy.wait('@createProjectScopedSecret', { requestTimeout: 10000 }).then((req) => {

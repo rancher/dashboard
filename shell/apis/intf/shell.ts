@@ -1,13 +1,14 @@
 
 import { NotificationApi } from '@shell/types/notifications';
-import { ModalApi } from '@shell/apis/intf/modal';
-import { SlideInApi } from '@shell/apis/intf/slide-in';
-import { SystemApi } from '@shell/apis/intf/system';
+import { ModalApi } from '@shell/apis/intf/shell-api/modal';
+import { SlideInApi } from '@shell/apis/intf/shell-api/slide-in';
+import { SystemApi } from '@shell/apis/intf/shell-api/system';
+import { ProxyApi } from '@shell/apis/intf/shell-api/proxy';
 
 export * from '@shell/types/notifications';
-export * from '@shell/apis/intf/modal';
-export * from '@shell/apis/intf/slide-in';
-export * from '@shell/apis/intf/system';
+export * from '@shell/apis/intf/shell-api/modal';
+export * from '@shell/apis/intf/shell-api/slide-in';
+export * from '@shell/apis/intf/shell-api/system';
 
 /**
  * @internal
@@ -33,4 +34,9 @@ export interface ShellApi {
    * Provides access to the system API which providers information about the current system
    */
   get system(): SystemApi;
+
+  /**
+   * Provides access to the proxy API which can be used to make http requests via Rancher
+   */
+  get proxy(): ProxyApi;
 }

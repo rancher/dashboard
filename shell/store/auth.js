@@ -8,7 +8,7 @@ import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
 
 // configuration for Single Logout/SLO
 // admissable auth providers compatible with SLO, based on shell/models/management.cattle.io.authconfig "configType"
-export const SLO_AUTH_PROVIDERS = ['oidc', 'saml'];
+export const SLO_AUTH_PROVIDERS = ['oidc', 'saml', 'oauth'];
 
 // this is connected to the redirect url, for which the logic can be found in "shell/store/auth"
 const SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE = ['authConfigLogoutOutput'];

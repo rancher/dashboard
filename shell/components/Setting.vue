@@ -29,6 +29,7 @@ export default {
           <span
             v-if="value.fromEnv"
             class="modified"
+            :data-testid="`advanced-setting-env-label-${value.id}`"
           >{{ t('advancedSettings.setEnv') }}</span>
           <span
             v-else-if="value.customized"
