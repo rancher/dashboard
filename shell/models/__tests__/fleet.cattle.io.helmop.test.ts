@@ -246,14 +246,14 @@ describe('class HelmOp', () => {
   });
 
   describe('isSuseAppCollection', () => {
-    it('should return false when not Rancher Prime', () => {
+    it('should return true even when not Rancher Prime if annotation is set', () => {
       mockIsRancherPrime.mockReturnValue(false);
       instance = new HelmOp({
         metadata: { annotations: { 'catalog.cattle.io/suse-application-collection': 'true' } },
         spec:     { helm: {} }
       });
 
-      expect(instance.isSuseAppCollection).toBe(false);
+      expect(instance.isSuseAppCollection).toBe(true);
     });
 
     it('should return true when annotation is set and Rancher Prime', () => {

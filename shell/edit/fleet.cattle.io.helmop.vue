@@ -12,7 +12,6 @@ import {
 } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
-import { isRancherPrime } from '@shell/config/version';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
@@ -41,10 +40,6 @@ const VALUES_STATE = {
 };
 
 function checkIsSuseAppCollection(route, value) {
-  if (!isRancherPrime()) {
-    return false;
-  }
-
   // CREATE: route query param set by the subtype selector
   // EDIT: annotation set on the resource during create, or URL fallback for older resources
   return route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
@@ -437,6 +432,7 @@ export default {
             'repo-type': 'cluster',
             repo:        repoName,
             chart:       queryChart,
+            version:     this.$route.query.version,
             secret:      querySecret,
           },
         });
