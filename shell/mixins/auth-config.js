@@ -326,8 +326,7 @@ export default {
         const serverUrl = this.serverUrl.endsWith('/') ? this.serverUrl.slice(0, this.serverUrl.length - 1) : this.serverUrl;
 
         // AuthConfig
-        // testAndApply enforces accessMode before the user's principal is in allowedPrincipalIds
-        this.model.accessMode = 'unrestricted';
+        this.model.accessMode = 'unrestricted'; // testAndApply enforces accessMode before the user's principal is in allowedPrincipalIds
 
         // KeyCloakOIDCConfig --> OIDCConfig
         this.model.rancherUrl = `${ serverUrl }/verify-auth`;
