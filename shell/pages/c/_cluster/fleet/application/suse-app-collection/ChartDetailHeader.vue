@@ -8,7 +8,6 @@ interface SubHeaderItem {
   iconTooltip?: Record<string, string>;
   label: string;
   labelTooltip?: string;
-  removeMarginBottom?: boolean;
 }
 
 defineProps({
@@ -41,7 +40,6 @@ defineProps({
           :alt="chartName"
         />
       </div>
-      <slot name="after-logo" />
     </div>
     <div class="header-body">
       <div class="header-top">
@@ -49,7 +47,6 @@ defineProps({
           <slot name="back-link" />
           {{ chartName }}
         </h1>
-        <slot name="statuses" />
       </div>
       <AppChartCardSubHeader :items="subHeaderItems" />
       <p
@@ -58,7 +55,6 @@ defineProps({
       >
         {{ description }}
       </p>
-      <slot name="after-description" />
     </div>
     <div class="header-action">
       <slot name="action" />

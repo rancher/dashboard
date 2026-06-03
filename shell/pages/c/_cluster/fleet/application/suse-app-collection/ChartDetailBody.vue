@@ -13,7 +13,7 @@ interface ChartVersionEntry {
   id: string;
   originalVersion: string;
   label: string;
-  created: string;
+  created: string | null;
 }
 
 interface ChartVersion {
@@ -97,7 +97,7 @@ const visibleVersions = computed(() => {
 
 const canShowMore = computed(() => props.versions.length > showLastVersions);
 
-const formatVersionDate = (date: string): string => {
+const formatVersionDate = (date: string | null): string => {
   if (!date || date === ZERO_TIME) {
     return t('generic.na');
   }
@@ -113,8 +113,6 @@ const formatVersionDate = (date: string): string => {
       color="error"
       :label="versionInfoError"
     />
-
-    <slot name="banners" />
 
     <div class="chart-body">
       <ChartReadme
@@ -268,8 +266,6 @@ const formatVersionDate = (date: string): string => {
             target="_blank"
           >{{ version.urls.length === 1 ? t('generic.download') : url }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
-
-        <slot name="sidebar-extra" />
       </aside>
     </div>
   </div>
@@ -332,12 +328,6 @@ const formatVersionDate = (date: string): string => {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-          }
-
-          .icon-confirmation-alt {
-            color: var(--success);
-            margin-left: 12px;
-            font-size: 19px;
           }
         }
       }

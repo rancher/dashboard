@@ -2,13 +2,15 @@
 import { computed, ref, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import type { RouteLocationRaw } from 'vue-router';
+
 import { useI18n } from '@shell/composables/useI18n';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import ChartDetailHeader from './ChartDetailHeader.vue';
 import ChartDetailBody from './ChartDetailBody.vue';
-import { RcButton } from '@components/RcButton';
-import isEqual from 'lodash/isEqual';
-import day from 'dayjs';
+
 import { REPO_TYPE, REPO, CHART, VERSION } from '@shell/config/query-params';
 import { FLEET, ZERO_TIME, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -16,7 +18,58 @@ import { addParams } from '@shell/utils/url';
 import { compareChartVersions } from '@shell/utils/chart';
 import { isPrerelease } from '@shell/utils/version';
 import { LINUX } from '@shell/store/catalog';
+
+import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
+import day from 'dayjs';
+
+interface CatalogVersion {
+  version: string;
+  created?: string;
+  icon?: string;
+  description?: string;
+  appVersion?: string;
+  home?: string;
+  maintainers?: Array<{ name?: string; url?: string; email?: string }>;
+  sources?: string[];
+  urls?: string[];
+  keywords?: string[];
+  annotations?: Record<string, string>;
+}
+
+interface ChartData {
+  chartNameDisplay: string;
+  icon: string;
+  versions: CatalogVersion[];
+  repoNameDisplay: string;
+}
+
+interface MappedVersion {
+  label: string;
+  version: string;
+  originalVersion: string;
+  id: string;
+  created: string | null;
+  disabled: boolean;
+  keywords: string[];
+}
+
+interface VersionInfo {
+  appReadme?: string;
+  readme?: string;
+  chart?: {
+    appVersion?: string;
+    home?: string;
+    maintainers?: Array<{ name?: string; url?: string; email?: string }>;
+  };
+}
+
+interface RepoObj {
+  nameDisplay?: string;
+  detailLocation: RouteLocationRaw;
+  links: { info: string };
+  followLink: (rel: string, opts: { url: string }) => Promise<VersionInfo>;
+}
 
 const store = useStore();
 const route = useRoute();
@@ -24,10 +77,11 @@ const router = useRouter();
 const { t } = useI18n(store);
 
 const loading = ref(true);
-const chart = ref<any>(null);
-const version = ref<any>(null);
-const versionInfo = ref<any>(null);
+const chart = ref<ChartData | null>(null);
+const version = ref<CatalogVersion | null>(null);
+const versionInfo = ref<VersionInfo | null>(null);
 const versionInfoError = ref('');
+const chartLoadError = ref(false);
 const activeVersionName = ref('');
 
 const currentCluster = computed(() => store.getters.currentCluster);
@@ -41,44 +95,45 @@ const query = computed(() => ({
 
 const secretName = computed(() => (route.query.secret as string) || '');
 
-const repoObj = ref<any>(null);
+const repoObj = ref<RepoObj | null>(null);
 
-const mappedVersions = computed(() => {
+const mappedVersions = computed((): MappedVersion[] => {
   const versions = (chart.value?.versions || []).slice();
 
-  versions.sort((a: any, b: any) => compareChartVersions(b.version, a.version));
+  versions.sort((a, b) => compareChartVersions(b.version, a.version));
 
   const OSs = currentCluster.value?.workerOSs;
-  const out: any[] = [];
+  const out: MappedVersion[] = [];
   const seen = new Set<string>();
 
-  versions.forEach((v: any) => {
+  versions.forEach((v) => {
     if (seen.has(v.version)) {
       return;
     }
     seen.add(v.version);
-    const nue: any = {
+
+    if (isPrerelease(v.version)) {
+      return;
+    }
+
+    const nue: MappedVersion = {
       label:           v.version,
       version:         v.version,
       originalVersion: v.version,
       id:              v.version,
-      created:         v.created,
+      created:         v.created || null,
       disabled:        false,
-      keywords:        v.keywords,
+      keywords:        v.keywords || [],
     };
 
     const permittedSystems = (v?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
 
-    if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
+    if (difference(OSs, permittedSystems).length > 0) {
       nue.disabled = true;
     }
 
     if (permittedSystems.length === 1) {
       nue.label = t(`catalog.install.versions.${ permittedSystems[0] }`, { ver: v.version });
-    }
-
-    if (isPrerelease(v.version)) {
-      return;
     }
 
     out.push(nue);
@@ -89,6 +144,7 @@ const mappedVersions = computed(() => {
   if (!selectedMatch && query.value.versionName) {
     out.unshift({
       label:           query.value.versionName,
+      version:         query.value.versionName,
       originalVersion: query.value.versionName,
       id:              query.value.versionName,
       created:         null,
@@ -105,7 +161,7 @@ const headerSubItems = computed(() => {
     return [];
   }
 
-  const items: any[] = [];
+  const items: { icon: string; iconTooltip: { key: string }; label: string }[] = [];
 
   const versionLabel = activeVersionName.value || query.value.versionName;
 
@@ -134,7 +190,7 @@ const home = computed(() => version.value?.home || versionInfo.value?.chart?.hom
 const maintainers = computed(() => {
   const list = version.value?.maintainers || versionInfo.value?.chart?.maintainers || [];
 
-  return list.map((m: any, i: number) => {
+  return list.map((m, i) => {
     const label = m.name || m.url || m.email || t('generic.unknown');
     let href: string | null = null;
 
@@ -153,6 +209,7 @@ const maintainers = computed(() => {
 const fetchChartData = async(versionOverride?: string) => {
   loading.value = true;
   versionInfoError.value = '';
+  chartLoadError.value = false;
 
   try {
     await store.dispatch('catalog/loadRepo', { repoName: query.value.repoName });
@@ -168,9 +225,11 @@ const fetchChartData = async(versionOverride?: string) => {
       includeHidden: true,
     });
 
-    const chartVersions = catalogChart?.versions;
+    const chartVersions = catalogChart?.versions as CatalogVersion[] | undefined;
 
     if (!chartVersions?.length) {
+      chartLoadError.value = true;
+
       return;
     }
 
@@ -184,23 +243,27 @@ const fetchChartData = async(versionOverride?: string) => {
     let versionName = versionOverride || query.value.versionName;
 
     if (!versionName) {
-      const firstRelease = chartVersions.find((v: any) => !isPrerelease(v.version));
+      const firstRelease = chartVersions.find((v) => !isPrerelease(v.version));
 
       versionName = firstRelease?.version || chartVersions[0].version;
     }
 
-    activeVersionName.value = versionName;
-    version.value = chartVersions.find((v: any) => v.version === versionName) || chartVersions[0];
+    const matchedVersion = chartVersions.find((v) => v.version === versionName);
 
-    try {
-      versionInfo.value = await repoObj.value.followLink('info', {
-        url: addParams(repoObj.value.links.info, {
-          chartName: query.value.chartName,
-          version:   versionName,
-        }),
-      });
-    } catch (e: any) {
-      versionInfoError.value = e?.message || String(e);
+    version.value = matchedVersion || chartVersions[0];
+    activeVersionName.value = version.value.version;
+
+    if (repoObj.value) {
+      try {
+        versionInfo.value = await repoObj.value.followLink('info', {
+          url: addParams(repoObj.value.links.info, {
+            chartName: query.value.chartName,
+            version:   activeVersionName.value,
+          }),
+        });
+      } catch (e: unknown) {
+        versionInfoError.value = e instanceof Error ? e.message : String(e);
+      }
     }
   } finally {
     loading.value = false;
@@ -223,7 +286,7 @@ const install = () => {
   });
 };
 
-const onSelectVersion = (vers: any) => {
+const onSelectVersion = (vers: MappedVersion) => {
   router.push({
     name:   route.name as string,
     params: route.params,
@@ -251,6 +314,12 @@ onMounted(() => fetchChartData());
     v-else
     class="appco-chart-detail"
   >
+    <Banner
+      v-if="chartLoadError"
+      color="error"
+      :label="t('fleet.appCo.chart.loadError')"
+    />
+
     <ChartDetailHeader
       v-if="chart"
       :icon="chart.icon"
@@ -259,8 +328,8 @@ onMounted(() => fetchChartData());
       :description="version && version.description ? version.description : ''"
     >
       <template #back-link>
-        <router-link :to="{ name: 'c-cluster-fleet-application-appco-charts', params: { cluster: $route.params.cluster }, query: { secret: secretName } }">
-          {{ t('fleet.appCo.chart.title') }}:
+        <router-link :to="{ name: 'c-cluster-fleet-application-appco-charts', params: { cluster: route.params.cluster }, query: { secret: secretName } }">
+          {{ t('fleet.appCo.chart.title') }}
         </router-link>
       </template>
       <template #action>

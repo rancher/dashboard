@@ -7,8 +7,7 @@ import { FLEET } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
 import { isRancherPrime } from '@shell/config/version';
-
-const SUSE_APP_COLLECTION_HOST = 'oci://dp.apps.rancher.io';
+import { SUSE_APP_COLLECTION_REPO_URL } from '@shell/utils/fleet-appco';
 
 export default class HelmOp extends FleetApplication {
   get isSuseAppCollectionFromUI() {
@@ -22,7 +21,7 @@ export default class HelmOp extends FleetApplication {
 
     // Annotation set by the UI on create, or fallback to URL check for older resources
     return this.isSuseAppCollectionFromUI ||
-      (this.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_HOST);
+      (this.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
   }
 
   get applicationType() {

@@ -27,8 +27,12 @@ interface WaitResult {
   state: RepoState | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type VuexStore = any;
+interface VuexStore {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dispatch: (action: string, payload?: any) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getters: Record<string, any>;
+}
 
 export async function createAppCoAuthSecret(store: VuexStore, credentials: AuthCredentials, namespace: string) {
   const {
@@ -104,6 +108,8 @@ export async function ensureAppCoImagePullSecret(store: VuexStore, authSecretNam
       try {
         authSecret = await store.dispatch(`${ CATALOG._MANAGEMENT }/find`, { type: SECRET, id: `${ namespace }/${ authSecretName }` });
       } catch (_) {
+        console.warn(`AppCo: auth secret "${ authSecretName }" not found in namespace "${ namespace }", skipping image-pull-secret creation`); // eslint-disable-line no-console
+
         return;
       }
 
@@ -131,7 +137,7 @@ export async function ensureAppCoImagePullSecret(store: VuexStore, authSecretNam
 }
 
 export async function ensureAppCoClusterRepo(store: VuexStore, authSecretName: string, namespace: string, t: (key: string) => string): Promise<string> {
-  const repoName = authSecretName.replace('auth', 'repo');
+  const repoName = deriveRepoName(authSecretName);
   let repo = store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
 
   if (!repo) {
@@ -171,7 +177,7 @@ export async function ensureAppCoClusterRepo(store: VuexStore, authSecretName: s
   return repoName;
 }
 
-export async function waitForRepoReady(
+async function waitForRepoReady(
   store: VuexStore,
   repoName: string,
   {

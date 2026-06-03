@@ -20,6 +20,13 @@ import {
 
 const ADD_NEW_TOKEN = '__add_new__';
 
+interface SelectOption {
+  label: string;
+  value?: string;
+  disabled?: boolean;
+  kind?: string;
+}
+
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -54,7 +61,7 @@ const secretOptions = computed(() => {
     return { label, value: name };
   });
 
-  const out: any[] = [
+  const out: SelectOption[] = [
     {
       label: t('fleet.appCo.credentials.addNewToken'),
       value: ADD_NEW_TOKEN,
@@ -83,7 +90,7 @@ const isAddNew = computed(() => selectedSecret.value === ADD_NEW_TOKEN);
 const hasNoSecrets = computed(() => !loading.value && existingSecrets.value.length === 0 && !route.query.secret);
 
 const canSave = computed(() => {
-  if (isAddNew.value) {
+  if (isAddNew.value || hasNoSecrets.value) {
     return !!username.value && !!accessToken.value;
   }
 
@@ -136,8 +143,8 @@ const save = async() => {
       params: { cluster: route.params.cluster as string },
       query:  { secret: secretName },
     });
-  } catch (e: any) {
-    const msg = e?.message || String(e);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
 
     createErrors.value = [msg];
   } finally {
@@ -177,7 +184,7 @@ onMounted(async() => {
     v-else
     class="appco-credentials-page"
   >
-    <div class="appco-credentials-page-content">
+    <div>
       <AppCoPageHeader :subtitle="true" />
 
       <div class="credentials-content">
@@ -192,10 +199,7 @@ onMounted(async() => {
           :label="err"
         />
 
-        <p
-          v-if="hasNoSecrets"
-          class="no-secrets-message"
-        >
+        <p v-if="hasNoSecrets">
           {{ t('fleet.appCo.credentials.noTokensYet', {}, true) }}
         </p>
 
@@ -231,7 +235,6 @@ onMounted(async() => {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="accessToken"
-                class="access-token-input"
                 :label="t('fleet.appCo.credentials.accessTokenField')"
                 :required="true"
                 type="multiline"
@@ -279,7 +282,6 @@ onMounted(async() => {
   flex-direction: column;
   min-height: 100%;
   justify-content: space-between;
-
 }
 
 .credentials-content {
@@ -290,11 +292,6 @@ onMounted(async() => {
 }
 
 .subtitle {
-  margin: 0;
-}
-
-.info-text {
-  color: var(--input-label);
   margin: 0;
 }
 
@@ -311,6 +308,6 @@ onMounted(async() => {
   display: flex;
   justify-content: flex-end;
   gap: 20px;
-  padding: 10px 24px;
+  padding: $space-s $space-m;
 }
 </style>

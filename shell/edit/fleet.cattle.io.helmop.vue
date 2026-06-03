@@ -31,7 +31,7 @@ import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
 import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
-import { SUSE_APP_COLLECTION_REPO_URL } from '@shell/utils/fleet-appco';
+import { SUSE_APP_COLLECTION_REPO_URL, deriveRepoName } from '@shell/utils/fleet-appco';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -107,6 +107,7 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
+      currentUser:      null,
       pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
       sourceType:       getInitialSourceType(this.$route, this.value, this.value.sourceType),
@@ -122,12 +123,9 @@ export default {
       fvFormRuleSets:   [],
 
       // Raw chart index entries from the ClusterRepo, keyed by chart name
-      appCoChartEntries:     {},
+      appCoChartEntries:  {},
       // True while fetching the chart index from the ClusterRepo
-      appCoChartsLoading:    false,
-      // True when the chart index fetch failed (triggers the connection error empty state)
-      appCoChartsFetchError: false,
-      // Previous repo name for detecting auth secret changes
+      appCoChartsLoading: false,
     };
   },
 
@@ -175,18 +173,14 @@ export default {
           this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName');
           this.addAppCoImagePullSecretToSpec(`${ querySecret }-image-pull-secret`);
 
-          const repoName = querySecret.replace('auth', 'repo');
-
-          this.fetchAppCoCharts(repoName);
+          this.fetchAppCoCharts(deriveRepoName(querySecret));
         }
       } else {
         const rawSecret = this.value.spec?.helmSecretName || '';
         const secretName = rawSecret.includes('/') ? rawSecret.split('/')[1] : rawSecret;
 
         if (secretName) {
-          const repoName = secretName.replace('auth', 'repo');
-
-          this.fetchAppCoCharts(repoName);
+          this.fetchAppCoCharts(deriveRepoName(secretName));
         }
       }
     }
@@ -323,6 +317,51 @@ export default {
       return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
     },
 
+    appCoConfigProps() {
+      return {
+        value:                    this.value,
+        mode:                     this.mode,
+        realMode:                 this.realMode,
+        appCoChartEntries:        this.appCoChartEntries,
+        appCoChartsLoading:       this.appCoChartsLoading,
+        chartValues:              this.chartValues,
+        chartValuesInit:          this.chartValuesInit,
+        yamlForm:                 this.yamlForm,
+        yamlFormOptions:          this.yamlFormOptions,
+        yamlDiffModeOptions:      this.yamlDiffModeOptions,
+        isYamlDiff:               this.isYamlDiff,
+        editorMode:               this.editorMode,
+        diffMode:                 this.diffMode,
+        isRealModeEdit:           this.isRealModeEdit,
+        targetsCreated:           this.targetsCreated,
+        correctDriftEnabled:      this.correctDriftEnabled,
+        downstreamSecretsList:    this.downstreamSecretsList,
+        downstreamConfigMapsList: this.downstreamConfigMapsList,
+        registerBeforeHook:       this.registerBeforeHook,
+      };
+    },
+
+    appCoConfigListeners() {
+      return {
+        'update:value':        this.emitInput,
+        'update:yaml-form':    this.updateYamlForm,
+        'update:chart-values': this.updateChartValues,
+        'update:diff-mode':    (e) => {
+          this.diffMode = e;
+        },
+        'update:targets':  this.updateTargets,
+        'targets-created': (e) => {
+          this.targetsCreated = e;
+        },
+        'update:auth':          (e) => this.updateAuth(e.value, e.key),
+        'update:cached-auth':   (e) => this.updateCachedAuthVal(e.value, e.key),
+        'update:correct-drift': (e) => {
+          this.correctDriftEnabled = e;
+        },
+        'update:downstream-resources': (e) => this.updateDownstreamResources(e.kind, e.list),
+      };
+    },
+
     appCoViewTabs() {
       return [
         {
@@ -353,7 +392,15 @@ export default {
   },
 
   methods: {
-    async appCoSave(btnCb) {
+    emitInput(e) {
+      this.$emit('input', e);
+    },
+
+    async handleSave(btnCb) {
+      if (!this.isSuseAppCollection) {
+        return this.save(btnCb);
+      }
+
       const origRepo = this.value.spec?.helm?.repo;
       const origChart = this.value.spec?.helm?.chart;
 
@@ -381,7 +428,7 @@ export default {
       if (this.isSuseAppCollection && this.realMode === _CREATE) {
         const querySecret = this.$route.query.secret;
         const queryChart = this.$route.query.chart;
-        const repoName = querySecret ? querySecret.replace('auth', 'repo') : '';
+        const repoName = deriveRepoName(querySecret || '');
 
         this.$router.push({
           name:   'c-cluster-fleet-application-appco-chart',
@@ -658,7 +705,6 @@ export default {
       }
 
       this.appCoChartsLoading = true;
-      this.appCoChartsFetchError = false;
 
       try {
         await this.$store.dispatch('catalog/loadRepo', { repoName });
@@ -671,16 +717,11 @@ export default {
           includeHidden: true,
         }) : null;
 
-        if (!catalogChart?.versions?.length) {
-          this.appCoChartsFetchError = true;
-
-          return;
+        if (catalogChart?.versions?.length) {
+          this.appCoChartEntries = { [chartName]: catalogChart.versions };
         }
-
-        this.appCoChartEntries = { [chartName]: catalogChart.versions };
       } catch (e) {
         console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
-        this.appCoChartsFetchError = true;
       } finally {
         this.appCoChartsLoading = false;
       }
@@ -725,7 +766,7 @@ export default {
     data-testid="helmop-cru-resource"
     @cancel="onCancel"
     @error="e=>errors = e"
-    @finish="appCoSave"
+    @finish="handleSave"
   >
     <template
       v-if="!isSuseAppCollection"
@@ -872,6 +913,7 @@ export default {
               :value="value"
               :mode="mode"
               :real-mode="realMode"
+              :is-view="isView"
               :chart-values="chartValues"
               :chart-values-init="chartValuesInit"
               :yaml-form="yamlForm"
@@ -965,50 +1007,12 @@ export default {
           :show-header="false"
         >
           <HelmOpAppCoConfigTab
-            :value="value"
-            :mode="mode"
-            :real-mode="realMode"
-            :app-co-chart-entries="appCoChartEntries"
-            :app-co-charts-loading="appCoChartsLoading"
-            :chart-values="chartValues"
-            :chart-values-init="chartValuesInit"
-            :yaml-form="yamlForm"
-            :yaml-form-options="yamlFormOptions"
-            :yaml-diff-mode-options="yamlDiffModeOptions"
-            :is-yaml-diff="isYamlDiff"
-            :editor-mode="editorMode"
-            :diff-mode="diffMode"
-            :is-real-mode-edit="isRealModeEdit"
-            :targets-created="targetsCreated"
-            :source-type="sourceType"
-            :is-suse-app-collection="isSuseAppCollection"
-            :temp-cached-values="tempCachedValues"
-            :correct-drift-enabled="correctDriftEnabled"
-            :polling-interval="pollingInterval"
-            :is-polling-enabled="isPollingEnabled"
-            :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-            :enable-polling-tooltip="enablePollingTooltip"
-            :is-null-or-static-version="isNullOrStaticVersion"
-            :downstream-secrets-list="downstreamSecretsList"
-            :downstream-config-maps-list="downstreamConfigMapsList"
-            :register-before-hook="registerBeforeHook"
+            v-bind="appCoConfigProps"
             :hide-target="true"
             :hide-advanced="true"
             :hide-chart-config="false"
             data-testid="helmop-appco-view-chart-config"
-            @update:value="$emit('input', $event)"
-            @update:yaml-form="updateYamlForm"
-            @update:chart-values="updateChartValues"
-            @update:diff-mode="diffMode = $event"
-            @update:targets="updateTargets"
-            @targets-created="targetsCreated=$event"
-            @update:auth="updateAuth($event.value, $event.key)"
-            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-            @update:correct-drift="correctDriftEnabled = $event"
-            @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-            @toggle-polling="togglePolling"
-            @update:polling-interval="updatePollingInterval"
-            @update:validate-polling-interval="validatePollingInterval"
+            v-on="appCoConfigListeners"
           />
         </Tab>
 
@@ -1019,49 +1023,11 @@ export default {
           :show-header="false"
         >
           <HelmOpAppCoConfigTab
-            :value="value"
-            :mode="mode"
-            :real-mode="realMode"
-            :app-co-chart-entries="appCoChartEntries"
-            :app-co-charts-loading="appCoChartsLoading"
-            :chart-values="chartValues"
-            :chart-values-init="chartValuesInit"
-            :yaml-form="yamlForm"
-            :yaml-form-options="yamlFormOptions"
-            :yaml-diff-mode-options="yamlDiffModeOptions"
-            :is-yaml-diff="isYamlDiff"
-            :editor-mode="editorMode"
-            :diff-mode="diffMode"
-            :is-real-mode-edit="isRealModeEdit"
-            :targets-created="targetsCreated"
-            :source-type="sourceType"
-            :is-suse-app-collection="isSuseAppCollection"
-            :temp-cached-values="tempCachedValues"
-            :correct-drift-enabled="correctDriftEnabled"
-            :polling-interval="pollingInterval"
-            :is-polling-enabled="isPollingEnabled"
-            :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-            :enable-polling-tooltip="enablePollingTooltip"
-            :is-null-or-static-version="isNullOrStaticVersion"
-            :downstream-secrets-list="downstreamSecretsList"
-            :downstream-config-maps-list="downstreamConfigMapsList"
-            :register-before-hook="registerBeforeHook"
+            v-bind="appCoConfigProps"
             :hide-chart-config="true"
             :hide-advanced="true"
             data-testid="helmop-appco-view-target-details"
-            @update:value="$emit('input', $event)"
-            @update:yaml-form="updateYamlForm"
-            @update:chart-values="updateChartValues"
-            @update:diff-mode="diffMode = $event"
-            @update:targets="updateTargets"
-            @targets-created="targetsCreated=$event"
-            @update:auth="updateAuth($event.value, $event.key)"
-            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-            @update:correct-drift="correctDriftEnabled = $event"
-            @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-            @toggle-polling="togglePolling"
-            @update:polling-interval="updatePollingInterval"
-            @update:validate-polling-interval="validatePollingInterval"
+            v-on="appCoConfigListeners"
           />
         </Tab>
 
@@ -1073,49 +1039,11 @@ export default {
         >
           <HelmOpAppCoConfigTab
             ref="appCoAdvancedRef"
-            :value="value"
-            :mode="mode"
-            :real-mode="realMode"
-            :app-co-chart-entries="appCoChartEntries"
-            :app-co-charts-loading="appCoChartsLoading"
-            :chart-values="chartValues"
-            :chart-values-init="chartValuesInit"
-            :yaml-form="yamlForm"
-            :yaml-form-options="yamlFormOptions"
-            :yaml-diff-mode-options="yamlDiffModeOptions"
-            :is-yaml-diff="isYamlDiff"
-            :editor-mode="editorMode"
-            :diff-mode="diffMode"
-            :is-real-mode-edit="isRealModeEdit"
-            :targets-created="targetsCreated"
-            :source-type="sourceType"
-            :is-suse-app-collection="isSuseAppCollection"
-            :temp-cached-values="tempCachedValues"
-            :correct-drift-enabled="correctDriftEnabled"
-            :polling-interval="pollingInterval"
-            :is-polling-enabled="isPollingEnabled"
-            :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-            :enable-polling-tooltip="enablePollingTooltip"
-            :is-null-or-static-version="isNullOrStaticVersion"
-            :downstream-secrets-list="downstreamSecretsList"
-            :downstream-config-maps-list="downstreamConfigMapsList"
-            :register-before-hook="registerBeforeHook"
+            v-bind="appCoConfigProps"
             :hide-chart-config="true"
             :hide-target="true"
             data-testid="helmop-appco-view-advanced"
-            @update:value="$emit('input', $event)"
-            @update:yaml-form="updateYamlForm"
-            @update:chart-values="updateChartValues"
-            @update:diff-mode="diffMode = $event"
-            @update:targets="updateTargets"
-            @targets-created="targetsCreated=$event"
-            @update:auth="updateAuth($event.value, $event.key)"
-            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-            @update:correct-drift="correctDriftEnabled = $event"
-            @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-            @toggle-polling="togglePolling"
-            @update:polling-interval="updatePollingInterval"
-            @update:validate-polling-interval="validatePollingInterval"
+            v-on="appCoConfigListeners"
           />
         </Tab>
       </Tabbed>
@@ -1124,47 +1052,9 @@ export default {
         data-testid="helmop-appco-edit"
       >
         <HelmOpAppCoConfigTab
-          :value="value"
-          :mode="mode"
-          :real-mode="realMode"
-          :app-co-chart-entries="appCoChartEntries"
-          :app-co-charts-loading="appCoChartsLoading"
-          :chart-values="chartValues"
-          :chart-values-init="chartValuesInit"
-          :yaml-form="yamlForm"
-          :yaml-form-options="yamlFormOptions"
-          :yaml-diff-mode-options="yamlDiffModeOptions"
-          :is-yaml-diff="isYamlDiff"
-          :editor-mode="editorMode"
-          :diff-mode="diffMode"
-          :is-real-mode-edit="isRealModeEdit"
-          :targets-created="targetsCreated"
-          :source-type="sourceType"
-          :is-suse-app-collection="isSuseAppCollection"
-          :temp-cached-values="tempCachedValues"
-          :correct-drift-enabled="correctDriftEnabled"
-          :polling-interval="pollingInterval"
-          :is-polling-enabled="isPollingEnabled"
-          :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-          :enable-polling-tooltip="enablePollingTooltip"
-          :is-null-or-static-version="isNullOrStaticVersion"
-          :downstream-secrets-list="downstreamSecretsList"
-          :downstream-config-maps-list="downstreamConfigMapsList"
-          :register-before-hook="registerBeforeHook"
+          v-bind="appCoConfigProps"
           data-testid="helmop-appco-edit-config-tab"
-          @update:value="$emit('input', $event)"
-          @update:yaml-form="updateYamlForm"
-          @update:chart-values="updateChartValues"
-          @update:diff-mode="diffMode = $event"
-          @update:targets="updateTargets"
-          @targets-created="targetsCreated=$event"
-          @update:auth="updateAuth($event.value, $event.key)"
-          @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-          @update:correct-drift="correctDriftEnabled = $event"
-          @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-          @toggle-polling="togglePolling"
-          @update:polling-interval="updatePollingInterval"
-          @update:validate-polling-interval="validatePollingInterval"
+          v-on="appCoConfigListeners"
         />
       </div>
     </template>
@@ -1172,23 +1062,4 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .yaml-form-controls {
-    display: flex;
-    margin-bottom: 15px;
-  }
-  :deep() .yaml-editor {
-    .root {
-      height: auto !important;
-    }
-  }
-  .resource-handling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .polling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
 </style>

@@ -3363,6 +3363,7 @@ fleet:
       accessTokenPlaceholder: Your SUSE Application Collection access token
     chart:
       title: Charts
+      loadError: Chart not found or has no available versions.
   helmOp:
     intro:
       add: Create Helm Op

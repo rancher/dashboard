@@ -30,7 +30,7 @@ const router = useRouter();
 const { t } = useI18n(store);
 
 const resource = FLEET.APPLICATION;
-const application = { parentNameOverride: store.getters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim() };
+const application = computed(() => ({ parentNameOverride: store.getters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim() }));
 const abbrSizes: Record<number, string> = {
   3: '24px',
   4: '18px',
@@ -47,42 +47,54 @@ const selectedSubtype = computed(() => route.query[SUB_TYPE] as string);
 const types = computed<Subtype[]>(() => {
   return [
     FLEET.GIT_REPO,
-    FLEET.HELM_OP
+    FLEET.HELM_OP,
+    FLEET.SUSE_APP_COLLECTION,
   ].reduce((acc: Subtype[], type: string) => {
+    if (type === FLEET.SUSE_APP_COLLECTION) {
+      if (!isRancherPrime()) {
+        return acc;
+      }
+
+      const helmOpSchema = store.getters['management/schemaFor'](FLEET.HELM_OP);
+
+      if (!helmOpSchema) {
+        return acc;
+      }
+
+      const label = store.getters['type-map/labelFor'](helmOpSchema, 2) || '';
+      const canCreate = !!helmOpSchema.resourceMethods?.includes('PUT');
+
+      return [
+        ...acc,
+        {
+          id:                  type,
+          label:               `fleet.application.subTypes.'${ type }'.label`,
+          description:         `fleet.application.subTypes.'${ type }'.description`,
+          bannerImage:         isDarkMode.value ? suseLogoDark : suseLogo,
+          disabled:            !canCreate,
+          tooltip:             canCreate ? null : t('fleet.application.noPermissions', { label }, true),
+          isSuseAppCollection: true,
+        }
+      ];
+    }
+
     const schema = store.getters['management/schemaFor'](type);
 
     if (schema) {
       const label = store.getters['type-map/labelFor'](schema, 2) || '';
       const canCreate = !!schema.resourceMethods?.includes('PUT');
 
-      let out: Subtype[] = [
+      return [
         ...acc,
         {
           id:          type,
           label,
           description: `fleet.application.subTypes.'${ type }'.description`,
-          icon:        (FleetUtils as any).dashboardIcons[type],
+          icon:        FleetUtils.dashboardIcons[type],
           disabled:    !canCreate,
           tooltip:     canCreate ? null : t('fleet.application.noPermissions', { label }, true),
         }
       ];
-
-      if (type === FLEET.HELM_OP && isRancherPrime()) {
-        out = [
-          ...out,
-          {
-            id:                  type,
-            label:               `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.label`,
-            description:         `fleet.application.subTypes.'${ FLEET.SUSE_APP_COLLECTION }'.description`,
-            bannerImage:         isDarkMode.value ? suseLogoDark : suseLogo,
-            disabled:            !canCreate,
-            tooltip:             canCreate ? null : t('fleet.application.noPermissions', { label }, true),
-            isSuseAppCollection: true,
-          }
-        ];
-      }
-
-      return out;
     }
 
     return acc;
@@ -121,7 +133,6 @@ const selectType = (subtype: Subtype, event?: Event) => {
       product:  store.getters.productId,
       resource: subtype.id,
     },
-    query: { [SUB_TYPE]: subtype.id },
   });
 };
 
@@ -156,73 +167,71 @@ const cancel = () => {
         @click="selectType(subtype, $event)"
         @keyup.enter.space="selectType(subtype, $event)"
       >
-        <slot name="subtype-content">
-          <div class="subtype-container">
-            <div class="subtype-logo">
-              <img
-                v-if="subtype.bannerImage"
-                :src="subtype.bannerImage"
-                :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
-              >
-              <div v-else-if="subtype.icon">
-                <i
-                  class="icon icon-image"
-                  :class="subtype.icon"
-                />
-              </div>
-              <div
-                v-else
-                class="round-image"
-              >
-                <div
-                  v-if="subtype.bannerAbbrv"
-                  class="banner-abbrv"
-                >
-                  <span v-if="i18nExists(subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                  <span
-                    v-else
-                    :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
-                  >{{ subtype.bannerAbbrv }}</span>
-                </div>
-                <div v-else>
-                  {{ subtype.id.slice(0, 1).toUpperCase() }}
-                </div>
-              </div>
+        <div class="subtype-container">
+          <div class="subtype-logo">
+            <img
+              v-if="subtype.bannerImage"
+              :src="subtype.bannerImage"
+              :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
+            >
+            <div v-else-if="subtype.icon">
+              <i
+                class="icon icon-image"
+                :class="subtype.icon"
+              />
             </div>
-            <div class="subtype-body">
+            <div
+              v-else
+              class="round-image"
+            >
               <div
-                class="title"
-                :class="{'with-description': !!subtype.description}"
+                v-if="subtype.bannerAbbrv"
+                class="banner-abbrv"
               >
-                <h5>
-                  <span
-                    v-if="i18nExists(subtype.label)"
-                    v-clean-html="t(subtype.label)"
-                  />
-                  <span v-else>{{ subtype.label }}</span>
-                </h5>
-                <a
-                  v-if="subtype.docLink"
-                  :href="subtype.docLink"
-                  target="_blank"
-                  rel="noopener nofollow"
-                  class="flex-right"
-                >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
-              </div>
-              <hr v-if="subtype.description">
-              <div
-                v-if="subtype.description"
-                class="description"
-              >
+                <span v-if="i18nExists(subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
                 <span
-                  v-if="i18nExists(subtype.description)"
-                  v-clean-html="t(subtype.description, {}, true)"
-                />
-                <span v-else>{{ subtype.description }}</span>
+                  v-else
+                  :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
+                >{{ subtype.bannerAbbrv }}</span>
+              </div>
+              <div v-else>
+                {{ subtype.id.slice(0, 1).toUpperCase() }}
               </div>
             </div>
           </div>
-        </slot>
+          <div class="subtype-body">
+            <div
+              class="title"
+              :class="{'with-description': !!subtype.description}"
+            >
+              <h5>
+                <span
+                  v-if="i18nExists(subtype.label)"
+                  v-clean-html="t(subtype.label)"
+                />
+                <span v-else>{{ subtype.label }}</span>
+              </h5>
+              <a
+                v-if="subtype.docLink"
+                :href="subtype.docLink"
+                target="_blank"
+                rel="noopener nofollow"
+                class="flex-right"
+              >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
+            </div>
+            <hr v-if="subtype.description">
+            <div
+              v-if="subtype.description"
+              class="description"
+            >
+              <span
+                v-if="i18nExists(subtype.description)"
+                v-clean-html="t(subtype.description, {}, true)"
+              />
+              <span v-else>{{ subtype.description }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="footer">
@@ -253,10 +262,6 @@ const cancel = () => {
     align-content: baseline;
     justify-content: space-between;
   }
-  .subtype-content {
-    width: 100%;
-  }
-
   .subtype-banner {
     border: 1px solid var(--border);
     border-radius: 0;
@@ -338,7 +343,7 @@ const cancel = () => {
     position: relative;
     display: flex;
     height: 100%;
-  };
+  }
 
   .subtype-body {
     flex: 1;

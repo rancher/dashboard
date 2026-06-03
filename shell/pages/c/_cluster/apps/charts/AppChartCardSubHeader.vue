@@ -5,7 +5,6 @@ interface SubHeaderItem {
   iconTooltip?: Record<{key?: string, text?: string}>;
   label: string;
   labelTooltip?: string;
-  removeMarginBottom?: boolean;
 }
 
 defineProps<{

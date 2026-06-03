@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import {
+  computed, ref, shallowRef, onMounted, onBeforeUnmount
+} from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
 import { FLEET_APPCO_AUTH_GENERATE_NAME, SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { CATALOG } from '@shell/config/labels-annotations';
+import { REPO_TYPE, REPO, CHART } from '@shell/config/query-params';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
 import AppCoChartGrid from '@shell/components/fleet/AppCoChartGrid.vue';
 import AppCoEmptyState from '@shell/components/fleet/AppCoEmptyState.vue';
@@ -13,23 +17,33 @@ import { fetchAppCoCharts, deriveRepoName } from '@shell/utils/fleet-appco';
 import type { RepoState } from '@shell/utils/fleet-appco';
 import { RcIcon } from '@components/RcIcon';
 
+interface ChartVersion {
+  version: string;
+  description?: string;
+  icon?: string;
+  appVersion?: string;
+  created?: string;
+}
+
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n(store);
-const chartEntries = ref<Record<string, any[]>>({});
+const chartEntries = ref<Record<string, ChartVersion[]>>({});
 const chartsLoading = ref(true);
 const chartsFetchError = ref(false);
 const repoState = ref<RepoState | null>(null);
 const secretName = ref((route.query.secret as string) || '');
-let abortController = null as AbortController | null;
+const abortController = shallowRef<AbortController | null>(null);
 
 onBeforeUnmount(() => {
-  abortController?.abort();
+  abortController.value?.abort();
 });
 
 const namespace = computed(() => store.getters.workspace);
 const repoName = computed(() => deriveRepoName(secretName.value));
+
+const getSecrets = () => store.getters[`${ CATALOG._MANAGEMENT }/all`](SECRET) || [];
 
 const secretUsername = computed(() => {
   if (!secretName.value) {
@@ -37,8 +51,7 @@ const secretUsername = computed(() => {
   }
 
   const ns = namespace.value;
-  const allSecrets = store.getters[`${ CATALOG._MANAGEMENT }/all`](SECRET) || [];
-  const match = allSecrets.find((s: any) => s.metadata?.namespace === ns && s.metadata?.name === secretName.value);
+  const match = getSecrets().find((s: any) => s.metadata?.namespace === ns && s.metadata?.name === secretName.value);
 
   return match?.decodedData?.username || '';
 });
@@ -55,7 +68,7 @@ const repoListRoute = computed(() => ({
 
 const repoBadgeState = computed(() => repoState.value || undefined);
 
-const isRepoTransitioning = computed(() => repoState.value?.transitioning && !chartsFetchError.value && !Object.keys(chartEntries.value).length);
+const isRepoTransitioning = computed(() => repoState.value?.transitioning && !chartsFetchError.value);
 const isRepoError = computed(() => repoState.value?.error && !chartsFetchError.value);
 
 const editCredentials = () => {
@@ -67,8 +80,8 @@ const editCredentials = () => {
 };
 
 const loadCharts = async() => {
-  abortController?.abort();
-  abortController = new AbortController();
+  abortController.value?.abort();
+  abortController.value = new AbortController();
   chartsLoading.value = true;
   chartsFetchError.value = false;
   repoState.value = null;
@@ -76,7 +89,7 @@ const loadCharts = async() => {
   try {
     const result = await fetchAppCoCharts(store, repoName.value, (state) => {
       repoState.value = state;
-    }, abortController.signal);
+    }, abortController.value.signal);
 
     repoState.value = result.repoState;
 
@@ -92,7 +105,7 @@ const loadCharts = async() => {
 
     chartEntries.value = result.entries;
 
-    store.dispatch('catalog/loadRepo', { repoName: repoName.value });
+    await store.dispatch('catalog/loadRepo', { repoName: repoName.value });
   } catch (e) {
     console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
     chartsFetchError.value = true;
@@ -101,7 +114,7 @@ const loadCharts = async() => {
   }
 };
 
-const selectChart = (chartValue: any) => {
+const selectChart = (chartValue: { name: string }) => {
   if (!chartValue) {
     return;
   }
@@ -110,9 +123,9 @@ const selectChart = (chartValue: any) => {
     name:   'c-cluster-fleet-application-appco-chart',
     params: { cluster: route.params.cluster as string },
     query:  {
-      'repo-type': 'cluster',
-      repo:        repoName.value,
-      chart:       chartValue.name,
+      [REPO_TYPE]: 'cluster',
+      [REPO]:      repoName.value,
+      [CHART]:     chartValue.name,
       secret:      secretName.value,
     },
   });
@@ -121,8 +134,7 @@ const selectChart = (chartValue: any) => {
 onMounted(async() => {
   if (!secretName.value) {
     const ns = namespace.value;
-    const allSecrets = store.getters[`${ CATALOG._MANAGEMENT }/all`](SECRET) || [];
-    const match = allSecrets.find((s: any) => s.metadata?.namespace === ns && s.metadata?.name?.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME));
+    const match = getSecrets().find((s: any) => s.metadata?.namespace === ns && s.metadata?.name?.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME));
 
     if (match) {
       secretName.value = match.metadata.name;
