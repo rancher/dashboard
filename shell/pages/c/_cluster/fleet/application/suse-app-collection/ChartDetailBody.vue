@@ -1,19 +1,54 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import type { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { Banner } from '@components/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
 import { ZERO_TIME } from '@shell/config/types';
 import day from 'dayjs';
+import type { RouteLocationRaw } from 'vue-router';
+
+interface ChartVersionEntry {
+  id: string;
+  originalVersion: string;
+  label: string;
+  created: string;
+}
+
+interface ChartVersion {
+  version: string;
+  sources?: string[];
+  urls?: string[];
+}
+
+interface VersionInfo {
+  appReadme?: string;
+  readme?: string;
+}
+
+interface ChartRepo {
+  detailLocation: RouteLocationRaw;
+}
+
+interface Chart {
+  repoNameDisplay?: string;
+}
+
+interface ChartMaintainer {
+  id: string;
+  name?: string;
+  href?: string;
+  label: string;
+}
 
 const props = defineProps({
   version: {
-    type:    Object,
+    type:    Object as PropType<ChartVersion | null>,
     default: null,
   },
   versionInfo: {
-    type:    Object,
+    type:    Object as PropType<VersionInfo | null>,
     default: null,
   },
   versionInfoError: {
@@ -21,24 +56,16 @@ const props = defineProps({
     default: '',
   },
   versions: {
-    type:    Array,
+    type:    Array as PropType<ChartVersionEntry[]>,
     default: () => [],
   },
-  totalVersions: {
-    type:    Number,
-    default: 0,
-  },
   repo: {
-    type:    Object,
+    type:    Object as PropType<ChartRepo | null>,
     default: null,
   },
   chart: {
-    type:    Object,
+    type:    Object as PropType<Chart | null>,
     default: null,
-  },
-  currentVersion: {
-    type:    String,
-    default: '',
   },
   appVersion: {
     type:    String,
@@ -49,12 +76,12 @@ const props = defineProps({
     default: '',
   },
   maintainers: {
-    type:    Array,
+    type:    Array as PropType<ChartMaintainer[]>,
     default: () => [],
   },
 });
 
-const emit = defineEmits(['toggle-versions', 'select-version']);
+const emit = defineEmits(['select-version']);
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -64,19 +91,11 @@ const showLastVersions = 7;
 
 const hasReadme = computed(() => !!props.versionInfo?.appReadme || !!props.versionInfo?.readme);
 
-const displayedVersions = computed(() => {
-  if (props.versions.length) {
-    return props.versions;
-  }
-
-  return [];
-});
-
 const visibleVersions = computed(() => {
-  return showMoreVersions.value ? displayedVersions.value : displayedVersions.value.slice(0, showLastVersions);
+  return showMoreVersions.value ? props.versions : props.versions.slice(0, showLastVersions);
 });
 
-const canShowMore = computed(() => displayedVersions.value.length > showLastVersions);
+const canShowMore = computed(() => props.versions.length > showLastVersions);
 
 const formatVersionDate = (date: string): string => {
   if (!date || date === ZERO_TIME) {
@@ -129,14 +148,7 @@ const formatVersionDate = (date: string): string => {
               v-clean-tooltip="vers.label"
               class="current-version"
             >
-              <template v-if="currentVersion && vers.originalVersion === currentVersion">
-                <span class="ellipsis">{{ currentVersion }}</span>
-                <i class="icon icon-confirmation-alt" />
-              </template>
-              <span
-                v-else
-                class="ellipsis"
-              >
+              <span class="ellipsis">
                 {{ vers.originalVersion }}
               </span>
             </b>
@@ -151,12 +163,8 @@ const formatVersionDate = (date: string): string => {
                 data-testid="chart-version-link"
                 @click.prevent="emit('select-version', vers)"
               >
-                {{ currentVersion && vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
+                {{ vers.originalVersion }}
               </a>
-              <i
-                v-if="currentVersion && vers.originalVersion === currentVersion"
-                class="icon icon-confirmation-alt"
-              />
             </div>
             <p
               v-clean-tooltip="{ content: formatVersionDate(vers.created), placement: 'left' }"
@@ -334,22 +342,6 @@ const formatVersionDate = (date: string): string => {
         }
       }
 
-      &--keywords {
-        color: var(--link-text-secondary);
-        padding-bottom: 0;
-
-        .keyword-links {
-          .keyword-item {
-            display: inline-block;
-            white-space: nowrap;
-
-            span {
-              margin-right: 4px;
-              margin-left: -2px;
-            }
-          }
-        }
-      }
     }
   }
 }

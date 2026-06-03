@@ -4,8 +4,8 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import Loading from '@shell/components/Loading';
-import ChartDetailHeader from '@shell/components/ChartDetailHeader.vue';
-import ChartDetailBody from '@shell/components/ChartDetailBody.vue';
+import ChartDetailHeader from './ChartDetailHeader.vue';
+import ChartDetailBody from './ChartDetailBody.vue';
 import { RcButton } from '@components/RcButton';
 import isEqual from 'lodash/isEqual';
 import day from 'dayjs';
@@ -266,6 +266,7 @@ onMounted(() => fetchChartData());
       <template #action>
         <RcButton
           data-testid="appco-chart-install-btn"
+          size="large"
           @click.prevent="install"
         >
           <i class="icon icon-plus mmr-2" />

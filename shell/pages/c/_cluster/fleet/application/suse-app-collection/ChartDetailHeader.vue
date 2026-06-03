@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import type { PropType } from 'vue';
 import LazyImage from '@shell/components/LazyImage';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 
+interface SubHeaderItem {
+  icon: string;
+  iconTooltip?: Record<string, string>;
+  label: string;
+  labelTooltip?: string;
+  removeMarginBottom?: boolean;
+}
+
 defineProps({
   icon: {
-    type:    String,
-    default: '',
-  },
-  iconAlt: {
     type:    String,
     default: '',
   },
@@ -16,7 +21,7 @@ defineProps({
     default: '',
   },
   subHeaderItems: {
-    type:    Array,
+    type:    Array as PropType<SubHeaderItem[]>,
     default: () => [],
   },
   description: {
@@ -33,7 +38,7 @@ defineProps({
         <LazyImage
           :src="icon"
           class="logo"
-          :alt="iconAlt || chartName"
+          :alt="chartName"
         />
       </div>
       <slot name="after-logo" />
@@ -82,7 +87,7 @@ $logo-box-width: 60px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #fff;
+      background: var(--card-bg);
       border-radius: var(--border-radius);
 
       .logo {
@@ -115,10 +120,6 @@ $logo-box-width: 60px;
   .header-action {
     margin-left: auto;
     flex-shrink: 0;
-
-    :deep(.btn) {
-      height: 40px;
-    }
   }
 }
 </style>
