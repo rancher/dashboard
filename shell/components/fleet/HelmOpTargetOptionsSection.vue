@@ -71,6 +71,8 @@ const DOCS_URL = 'https://fleet.rancher.io/reference/ref-crds#_bundledeploymento
 
 <style lang="scss" scoped>
 .gap-md {
+  display: flex;
+  flex-direction: column;
   gap: var(--gap-md);
 }
 
