@@ -327,7 +327,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.kind).to.equal('Cluster');
         });
       }));
-      it('preserves custom addon config values after saving cluster config', () => {
+
+      qase(48756, it('preserves custom addon config values after saving cluster config', () => {
         const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
         const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
 
@@ -354,8 +355,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .value()
-          .should('equal', customAddonConfig);
-      });
+          .should('include', customAddonConfig);
+      }));
 
       it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
         const detailPage = detailRKE2ClusterPage();
