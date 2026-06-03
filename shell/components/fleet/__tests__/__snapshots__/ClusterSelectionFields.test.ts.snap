@@ -1,0 +1,209 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: ClusterSelectionFields should match snapshot with appco variant 1`] = `
+<div
+  class="appco-select-clusters"
+>
+  <!-- Select by cluster name -->
+  <div>
+    <h4>
+      %fleet.clusterTargets.clusters.byName.title%
+    </h4>
+    <labeled-select-stub
+      appendtobody="true"
+      class=""
+      clearable="false"
+      closeonselect="false"
+      data-testid="fleet-target-cluster-name-selector"
+      disabled="false"
+      filterable="true"
+      hovertooltip="true"
+      instore="cluster"
+      label="%fleet.clusterTargets.clusters.byName.label%"
+      loading="false"
+      localizedlabel="false"
+      lockedoptions=""
+      mode="edit"
+      multiple="true"
+      nooptionslabelkey="labelSelect.noOptions.empty"
+      optionlabel="label"
+      options="[object Object]"
+      placeholder="%fleet.clusterTargets.clusters.byName.placeholder%"
+      reduce="[Function]"
+      required="false"
+      requiredirty="true"
+      rules=""
+      searchable="false"
+      selectable="[Function]"
+      taggable="true"
+      value="cluster-1"
+    />
+  </div>
+  <!-- Select by labels -->
+  <div
+    class=""
+  >
+    <h4
+      class=""
+    >
+      %fleet.clusterTargets.clusters.byLabel.title%
+    </h4>
+    
+    
+    <rc-button-stub
+      class="mmt-3"
+      ghost="false"
+      link="false"
+      multiaction="false"
+      primary="false"
+      secondary="false"
+      size="small"
+      small="false"
+      tertiary="false"
+      variant="secondary"
+    />
+  </div>
+  <!-- Select by cluster groups -->
+  <div
+    class=""
+  >
+    <h4
+      class=""
+    >
+      %fleet.clusterTargets.clusterGroups.title%
+    </h4>
+    <labeled-select-stub
+      appendtobody="true"
+      class=""
+      clearable="false"
+      closeonselect="false"
+      data-testid="fleet-target-cluster-group-selector"
+      disabled="false"
+      filterable="true"
+      hovertooltip="true"
+      instore="cluster"
+      label="%fleet.clusterTargets.clusterGroups.byName.label%"
+      loading="false"
+      localizedlabel="false"
+      lockedoptions=""
+      mode="edit"
+      multiple="true"
+      nooptionslabelkey="labelSelect.noOptions.empty"
+      optionlabel="label"
+      options=""
+      placeholder="%fleet.clusterTargets.clusterGroups.byName.placeholder%"
+      reduce="[Function]"
+      required="false"
+      requiredirty="true"
+      rules=""
+      searchable="false"
+      selectable="[Function]"
+      taggable="true"
+      value=""
+    />
+  </div>
+</div>
+`;
+
+exports[`component: ClusterSelectionFields should match snapshot with default variant 1`] = `
+<div
+  class=""
+>
+  <!-- Select by cluster name -->
+  <div>
+    <!--v-if-->
+    <labeled-select-stub
+      appendtobody="true"
+      class="mmt-4"
+      clearable="false"
+      closeonselect="false"
+      data-testid="fleet-target-cluster-name-selector"
+      disabled="false"
+      filterable="true"
+      hovertooltip="true"
+      instore="cluster"
+      label="%fleet.clusterTargets.clusters.byName.label%"
+      loading="false"
+      localizedlabel="false"
+      lockedoptions=""
+      mode="edit"
+      multiple="true"
+      nooptionslabelkey="labelSelect.noOptions.empty"
+      optionlabel="label"
+      options="[object Object]"
+      placeholder="%fleet.clusterTargets.clusters.byName.placeholder%"
+      reduce="[Function]"
+      required="false"
+      requiredirty="true"
+      rules=""
+      searchable="false"
+      selectable="[Function]"
+      taggable="true"
+      value="cluster-1"
+    />
+  </div>
+  <!-- Select by labels -->
+  <div
+    class="mmt-6"
+  >
+    <h4
+      class="m-0"
+    >
+      %fleet.clusterTargets.clusters.byLabel.title%
+    </h4>
+    
+    
+    <rc-button-stub
+      class="mmt-4"
+      ghost="false"
+      link="false"
+      multiaction="false"
+      primary="false"
+      secondary="false"
+      size="small"
+      small="false"
+      tertiary="false"
+      variant="secondary"
+    />
+  </div>
+  <!-- Select by cluster groups -->
+  <div
+    class="mmt-8"
+  >
+    <h3
+      class="m-0"
+    >
+      %fleet.clusterTargets.clusterGroups.title%
+    </h3>
+    <labeled-select-stub
+      appendtobody="true"
+      class="mmt-4"
+      clearable="false"
+      closeonselect="false"
+      data-testid="fleet-target-cluster-group-selector"
+      disabled="false"
+      filterable="true"
+      hovertooltip="true"
+      instore="cluster"
+      label="%fleet.clusterTargets.clusterGroups.byName.label%"
+      loading="false"
+      localizedlabel="false"
+      lockedoptions=""
+      mode="edit"
+      multiple="true"
+      nooptionslabelkey="labelSelect.noOptions.empty"
+      optionlabel="label"
+      options=""
+      placeholder="%fleet.clusterTargets.clusterGroups.byName.placeholder%"
+      reduce="[Function]"
+      required="false"
+      requiredirty="true"
+      rules=""
+      searchable="false"
+      selectable="[Function]"
+      taggable="true"
+      value=""
+    />
+  </div>
+</div>
+`;

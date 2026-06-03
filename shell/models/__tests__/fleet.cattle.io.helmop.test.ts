@@ -1,7 +1,16 @@
 import HelmOp from '@shell/models/fleet.cattle.io.helmop.js';
+import { SUSE_APP_COLLECTION_REPO_URL } from '@shell/utils/fleet-appco';
+
+const mockIsRancherPrime = jest.fn(() => true);
+
+jest.mock('@shell/config/version', () => ({ isRancherPrime: () => mockIsRancherPrime() }));
 
 describe('class HelmOp', () => {
   let instance;
+
+  beforeEach(() => {
+    mockIsRancherPrime.mockReturnValue(true);
+  });
 
   describe('source getter', () => {
     it('should return correct source for SOURCE_TYPE.REPO (HTTPS)', () => {
@@ -219,6 +228,81 @@ describe('class HelmOp', () => {
 
       expect(sourceSub.value).toBe('');
       expect(sourceSub.display).toBe('');
+    });
+  });
+
+  describe('isSuseAppCollectionFromUI', () => {
+    it('should return true when annotation is set', () => {
+      instance = new HelmOp({ metadata: { annotations: { 'catalog.cattle.io/suse-application-collection': 'true' } }, spec: { helm: {} } });
+
+      expect(instance.isSuseAppCollectionFromUI).toBe(true);
+    });
+
+    it('should return false when annotation is missing', () => {
+      instance = new HelmOp({ metadata: { annotations: {} }, spec: { helm: {} } });
+
+      expect(instance.isSuseAppCollectionFromUI).toBe(false);
+    });
+  });
+
+  describe('isSuseAppCollection', () => {
+    it('should return false when not Rancher Prime', () => {
+      mockIsRancherPrime.mockReturnValue(false);
+      instance = new HelmOp({
+        metadata: { annotations: { 'catalog.cattle.io/suse-application-collection': 'true' } },
+        spec:     { helm: {} }
+      });
+
+      expect(instance.isSuseAppCollection).toBe(false);
+    });
+
+    it('should return true when annotation is set and Rancher Prime', () => {
+      instance = new HelmOp({
+        metadata: { annotations: { 'catalog.cattle.io/suse-application-collection': 'true' } },
+        spec:     { helm: {} }
+      });
+
+      expect(instance.isSuseAppCollection).toBe(true);
+    });
+
+    it('should return true when repo URL starts with SUSE_APP_COLLECTION_REPO_URL', () => {
+      instance = new HelmOp({
+        metadata: {},
+        spec:     { helm: { repo: `${ SUSE_APP_COLLECTION_REPO_URL }/my-chart` } }
+      });
+
+      expect(instance.isSuseAppCollection).toBe(true);
+    });
+
+    it('should return false when no annotation and different repo URL', () => {
+      instance = new HelmOp({
+        metadata: {},
+        spec:     { helm: { repo: 'oci://other-registry.io/charts' } }
+      });
+
+      expect(instance.isSuseAppCollection).toBe(false);
+    });
+  });
+
+  describe('applicationType', () => {
+    it('should return "SUSE AppCo" when isSuseAppCollectionFromUI is true', () => {
+      instance = new HelmOp({
+        metadata: { annotations: { 'catalog.cattle.io/suse-application-collection': 'true' } },
+        spec:     { helm: {} },
+        kind:     'HelmOp'
+      });
+
+      expect(instance.applicationType).toStrictEqual('SUSE AppCo');
+    });
+
+    it('should return kind when not SUSE App Collection from UI', () => {
+      instance = new HelmOp({
+        metadata: {},
+        spec:     { helm: {} },
+        kind:     'HelmOp'
+      });
+
+      expect(instance.applicationType).toStrictEqual('HelmOp');
     });
   });
 });

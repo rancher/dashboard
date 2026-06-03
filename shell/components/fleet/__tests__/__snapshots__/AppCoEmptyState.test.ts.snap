@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: AppCoEmptyState should match snapshot with error badge state 1`] = `
+<div
+  class="appco-transitioning-error-state"
+>
+  <h2
+    class="appco-empty-state-title m-0"
+  >
+    Error
+  </h2>
+  <div
+    class="appco-empty-state-body has-badge direction-column"
+  >
+    <div
+      class="appco-badge-container"
+    >
+      <rc-icon-stub
+        ariahidden="true"
+        size="large"
+        status="error"
+        type="alert-alt"
+      />
+      <anonymous-stub
+        color="bg-error"
+        label="Failed"
+      />
+    </div>
+    <p>
+      
+      Something went wrong
+      
+    </p>
+  </div>
+</div>
+`;
+
+exports[`component: AppCoEmptyState should match snapshot with no badge state 1`] = `
+<div
+  class="appco-empty-state"
+>
+  <h1
+    class="appco-empty-state-title m-0"
+  >
+    No charts found
+  </h1>
+  <div
+    class="appco-empty-state-body"
+  >
+    <!--v-if-->
+    <p>
+      
+      Try a different search
+      
+    </p>
+  </div>
+</div>
+`;
+
+exports[`component: AppCoEmptyState should match snapshot with transitioning badge state 1`] = `
+<div
+  class="appco-transitioning-error-state"
+>
+  <h2
+    class="appco-empty-state-title m-0"
+  >
+    Loading charts
+  </h2>
+  <div
+    class="appco-empty-state-body has-badge"
+  >
+    <div
+      class="appco-badge-container"
+    >
+      <rc-icon-stub
+        ariahidden="true"
+        class="icon-spin"
+        size="large"
+        status="inherit"
+        type="spinner"
+      />
+      <anonymous-stub
+        color="bg-info"
+        label="In Progress"
+      />
+    </div>
+    <p>
+      
+      Please wait...
+      
+    </p>
+  </div>
+</div>
+`;
