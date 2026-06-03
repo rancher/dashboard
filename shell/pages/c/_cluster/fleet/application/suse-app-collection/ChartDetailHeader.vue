@@ -83,7 +83,7 @@ $logo-box-width: 60px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: var(--card-bg);
+      background: var(--rc-image-bg);
       border-radius: var(--border-radius);
 
       .logo {
