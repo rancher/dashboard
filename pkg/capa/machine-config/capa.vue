@@ -1,10 +1,11 @@
+<!-- eslint-disable no-console -->
 <script lang="ts">
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { HTTP_TOKENS_VALUES } from './constants';
 import { NORMAN } from '@shell/config/types';
-import { allHash } from '@shell/utils/promise';
+// import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString, isEmpty } from '@shell/utils/object';
 import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';

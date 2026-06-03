@@ -33,9 +33,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mode:   _CREATE,
-  region: '',
-  ipv6:   undefined
+  mode:      _CREATE,
+  region:    '',
+  ipv6:      undefined,
+  cidrBlock: ''
 });
 
 const {

@@ -1397,6 +1397,7 @@ export default {
               metadata: { namespace: DEFAULT_WORKSPACE }
             });
           } catch (e) {
+            // eslint-disable-next-line no-console
             console.log('Error creating cluster config', e);
           }
         }

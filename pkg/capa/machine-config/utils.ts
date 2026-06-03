@@ -1,11 +1,12 @@
 import { normalizeName } from '@shell/utils/kube';
-import {
-  clone, diff, set, get, isEmpty, mergeWithReplace
-} from '@shell/utils/object';
+// import {
+//   clone, diff, set, get, isEmpty, mergeWithReplace
+// } from '@shell/utils/object';
 
 export async function saveMachinePoolConfigs(pools: any[], cluster: any) {
   const finalPools = [];
 
+  // eslint-disable-next-line no-console
   console.log('Saving machine pool configs', pools, cluster);
 
   for (const entry of pools) {
