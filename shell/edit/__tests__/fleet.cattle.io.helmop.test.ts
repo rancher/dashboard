@@ -164,7 +164,7 @@ describe('onCancel', () => {
       ...mocks,
       $route: {
         ...mocks.$route,
-        query:  {
+        query: {
           AS:      '',
           type:    'suse-application-collection',
           chart:   'alertmanager',
@@ -209,7 +209,7 @@ describe('onCancel', () => {
       ...mocks,
       $route: {
         ...mocks.$route,
-        query:  {
+        query: {
           AS:     '',
           type:   'suse-application-collection',
           chart:  'alertmanager',
@@ -250,7 +250,7 @@ describe('onCancel', () => {
   it('should call done() when not a SuseAppCollection', () => {
     const wrapper = mount(HelmOpComponent, initHelmOp({ mode: _CREATE, realMode: _CREATE }));
 
-    wrapper.vm.done = jest.fn();
+    jest.spyOn(wrapper.vm, 'done').mockImplementation(jest.fn());
     wrapper.vm.onCancel();
 
     expect(wrapper.vm.done).toHaveBeenCalledWith();
