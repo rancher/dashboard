@@ -68,7 +68,7 @@ export default {
   <div>
     <Banner
       v-if="accessMode === 'unrestricted'"
-      color="error"
+      color="warning"
       data-testid="auth-unrestricted-warning-banner"
     >
       <span v-clean-html="t('authConfig.accessMode.unrestrictedWarning', {}, true)" />

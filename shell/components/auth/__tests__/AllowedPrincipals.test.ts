@@ -76,11 +76,11 @@ describe('component: AllowedPrincipals', () => {
       expect(banner.exists()).toStrictEqual(false);
     });
 
-    it('should show error banner with error color', () => {
+    it('should show warning banner with warning color', () => {
       const wrapper = createWrapper({ accessMode: 'unrestricted' });
       const banner = wrapper.findComponent('[data-testid="auth-unrestricted-warning-banner"]');
 
-      expect(banner.props('color')).toStrictEqual('error');
+      expect(banner.props('color')).toStrictEqual('warning');
     });
   });
 });
