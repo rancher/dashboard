@@ -97,6 +97,7 @@ const previewId = randomStr();
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
     max-width: calc(100%);
     line-height: 1;
   }
