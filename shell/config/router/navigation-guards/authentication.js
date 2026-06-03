@@ -1,5 +1,7 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
+import {
+  isLoggedIn, notLoggedIn, noAuth, findMe, isLocalPrincipal
+} from '@shell/utils/auth';
 import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
@@ -61,18 +63,21 @@ export async function authenticate(to, from, next, { store }) {
     await store.dispatch('auth/getUser');
     const user = store.getters['auth/user'] || {};
 
-    if (user?.mustChangePassword) {
-      return next({ name: 'auth-setup' });
-    }
-
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
+
+    // #15461 - only force password change for local sessions
+    const mustChangePasswordFor = (me) => user?.mustChangePassword && isLocalPrincipal(me?.id);
 
     if ( fromHeader === 'none' ) {
       noAuth(store);
       handleOidcRedirectToCallbackUrl();
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
+
+      if (mustChangePasswordFor(me)) {
+        return next({ name: 'auth-setup' });
+      }
 
       await isLoggedIn(store, getUserObject(user, me));
       handleOidcRedirectToCallbackUrl();
@@ -84,6 +89,10 @@ export async function authenticate(to, from, next, { store }) {
       // Older versions look at principals and see what happens
       try {
         const me = await findMe(store);
+
+        if (mustChangePasswordFor(me)) {
+          return next({ name: 'auth-setup' });
+        }
 
         await isLoggedIn(store, getUserObject(user, me));
         handleOidcRedirectToCallbackUrl();

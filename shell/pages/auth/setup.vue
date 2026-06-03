@@ -20,6 +20,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { isLocalhost, isValidUrl } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
 import { getBrandMeta } from '@shell/utils/brand';
+import { isLocalPrincipal } from '@shell/utils/auth';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -77,6 +78,13 @@ export default {
       // Always show setup if this is the first log in
       return;
     } else if (mustChangePassword) {
+      // #15461 - skip password change for non-local sessions
+      const principalId = this.$store.getters['auth/principalId'];
+
+      if (principalId && !isLocalPrincipal(principalId)) {
+        return this.$router.replace('/');
+      }
+
       // If the password needs changing and this isn't the first log in ensure we have the password
       if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
