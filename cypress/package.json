@@ -54,7 +54,7 @@
     "sha.js": "^2.4.12",
     "ts-node": "10.9.2",
     "typescript": "^5.9.3",
-    "ws": "8.18.0"
+    "ws": "8.20.1"
   },
   "devDependencies": {},
   "repository": {
