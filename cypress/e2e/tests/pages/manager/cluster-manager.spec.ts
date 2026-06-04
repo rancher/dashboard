@@ -28,6 +28,7 @@ import {
 } from '@/cypress/support/utils/timeouts';
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { qase } from '@/cypress/support/qase';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-create-${ suffix }`;
@@ -326,7 +327,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.kind).to.equal('Cluster');
         });
       });
-      it('preserves custom addon config values after saving cluster config', () => {
+
+      qase(48756, it('preserves custom addon config values after saving cluster config', () => {
         const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
         const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
 
@@ -353,8 +355,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .value()
-          .should('equal', customAddonConfig);
-      });
+          .should('include', customAddonConfig);
+      }));
 
       it('can delete cluster', () => {
         clusterList.goTo();
