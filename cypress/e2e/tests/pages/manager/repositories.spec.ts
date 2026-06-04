@@ -233,6 +233,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 
   it('can create an oci repository with basic auth', function() {
+    const ociRepoName = `${ this.repoName }oci`;
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
@@ -243,8 +245,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     const ociMaxWait = '7';
     const refreshInterval = '12';
 
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(ociRepoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ ociRepoName }-description`);
     repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
     repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
@@ -262,7 +264,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.url).to.equal(ociUrl);
       expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(Number(ociMinWait));
-      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
+      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(Number(ociMaxWait));
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
       // check refreshInterval
@@ -272,10 +274,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().details(ociRepoName, 2).should('be.visible');
 
     // delete repo
-    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', ociRepoName);
   });
 });
 
