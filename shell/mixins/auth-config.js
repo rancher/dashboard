@@ -188,7 +188,7 @@ export default {
 
           if (configType === 'saml') {
             if (!this.model.accessMode) {
-              this.model.accessMode = 'unrestricted';
+              this.model.accessMode = 'required';
             }
             if (this.model.openLdapConfig && !this.showLdap) {
               this.model.openLdapConfig = null;
@@ -199,7 +199,7 @@ export default {
           } else {
             this.model.enabled = true;
             if (!this.model.accessMode) {
-              this.model.accessMode = 'unrestricted';
+              this.model.accessMode = 'required';
             }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
@@ -326,7 +326,7 @@ export default {
         const serverUrl = this.serverUrl.endsWith('/') ? this.serverUrl.slice(0, this.serverUrl.length - 1) : this.serverUrl;
 
         // AuthConfig
-        this.model.accessMode = 'unrestricted'; // This should remain as unrestricted, enabling will fail otherwise
+        this.model.accessMode = 'unrestricted'; // This should remain as unrestricted, enabling will fail otherwise. testAndApply enforces accessMode before the user's principal is in allowedPrincipalIds.
 
         // KeyCloakOIDCConfig --> OIDCConfig
         this.model.rancherUrl = `${ serverUrl }/verify-auth`;
@@ -342,11 +342,11 @@ export default {
       }
 
       case 'saml':
-        this.model.accessMode = 'unrestricted';
+        this.model.accessMode = 'required';
         break;
       case 'ldap':
         this.model.servers = [];
-        this.model.accessMode = 'unrestricted';
+        this.model.accessMode = 'required';
         this.model.starttls = false;
         if (this.model.id === 'activedirectory') {
           this.model.disabledStatusBitmask = 2;

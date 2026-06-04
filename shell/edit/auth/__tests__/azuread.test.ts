@@ -65,6 +65,30 @@ const requiredSetup = (modelOverrides = {}) => ({
   },
 });
 
+describe('edit: azureAD accessMode default', () => {
+  let wrapper: any;
+
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  it('should default accessMode to required when not set', async() => {
+    wrapper = mount(AzureAD, { ...requiredSetup({ accessMode: '' }) });
+    wrapper.vm.model.tenantId = 'trigger-watcher';
+    await nextTick();
+
+    expect(wrapper.vm.model.accessMode).toStrictEqual('required');
+  });
+
+  it('should not override accessMode when already set', async() => {
+    wrapper = mount(AzureAD, { ...requiredSetup({ accessMode: 'unrestricted' }) });
+    wrapper.vm.model.tenantId = 'trigger-watcher';
+    await nextTick();
+
+    expect(wrapper.vm.model.accessMode).toStrictEqual('unrestricted');
+  });
+});
+
 describe('edit: azureAD should', () => {
   let wrapper: any;
 

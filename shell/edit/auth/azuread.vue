@@ -232,7 +232,7 @@ export default {
     model: {
       deep: true,
       handler() {
-        this.model.accessMode = this.model.accessMode || 'unrestricted';
+        this.model.accessMode = this.model.accessMode || 'required';
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
 
         if (this.model.applicationSecret) {
