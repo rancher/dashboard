@@ -16,10 +16,9 @@ export const routerOptions = {
       return savedPosition;
     }
 
-    // Simulate the "scroll to anchor" behavior when the hash changes.
-    // For example, the skip to content link
-    if (to.hash) {
-      const el = document.getElementById(to.hash.slice(1));
+    // Handle the "skip to main content" link
+    if (to.hash === '#main-content') {
+      const el = document.getElementById('main-content');
 
       el?.focus();
 
