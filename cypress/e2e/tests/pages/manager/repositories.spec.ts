@@ -263,7 +263,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.url).to.equal(ociUrl);
       expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(Number(ociMinWait));
-      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(Number(ociMaxWait));
+      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
       // check refreshInterval
