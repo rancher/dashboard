@@ -296,19 +296,6 @@ export function noAuth(store) {
   store.commit('auth/hasAuth', false);
 }
 
-// #15461 - true when principalId belongs to the local auth provider
 export function isLocalPrincipal(principalId) {
-  if (typeof principalId !== 'string') {
-    return false;
-  }
-
-  const idx = principalId.indexOf(':');
-
-  if (idx === -1) {
-    return false;
-  }
-
-  const driver = principalId.substring(0, idx).toLowerCase().split('_')[0];
-
-  return driver === 'local';
+  return typeof principalId === 'string' && principalId.startsWith('local://');
 }

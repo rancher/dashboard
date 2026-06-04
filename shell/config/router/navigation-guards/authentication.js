@@ -66,7 +66,6 @@ export async function authenticate(to, from, next, { store }) {
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
 
-    // #15461 - only force password change for local sessions
     const mustChangePasswordFor = (me) => user?.mustChangePassword && isLocalPrincipal(me?.id);
 
     if ( fromHeader === 'none' ) {

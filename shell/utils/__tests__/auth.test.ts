@@ -19,15 +19,22 @@ describe('utils/auth: isLocalPrincipal', () => {
     expect(isLocalPrincipal(principalId)).toStrictEqual(expected);
   });
 
-  it('returns true regardless of casing of the driver prefix', () => {
-    expect(isLocalPrincipal('LOCAL://admin')).toStrictEqual(true);
-    expect(isLocalPrincipal('Local://admin')).toStrictEqual(true);
+  it('returns false for non-standard casing', () => {
+    expect(isLocalPrincipal('LOCAL://admin')).toStrictEqual(false);
+    expect(isLocalPrincipal('Local://admin')).toStrictEqual(false);
   });
 
-  it('returns false for malformed principals without a colon separator', () => {
+  it('returns false for strings without the local:// prefix', () => {
     expect(isLocalPrincipal('local')).toStrictEqual(false);
     expect(isLocalPrincipal('admin')).toStrictEqual(false);
     expect(isLocalPrincipal('')).toStrictEqual(false);
+  });
+
+  it('returns false when local:// appears but not as the prefix', () => {
+    expect(isLocalPrincipal('notlocal://admin')).toStrictEqual(false);
+    expect(isLocalPrincipal('github_user://local://admin')).toStrictEqual(false);
+    expect(isLocalPrincipal('prefix-local://user')).toStrictEqual(false);
+    expect(isLocalPrincipal('some-local://user-628fh')).toStrictEqual(false);
   });
 
   it.each([
