@@ -45,7 +45,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
-    cy.createE2EResourceName('repoOci').as('ociRepoName');
+    cy.createE2EResourceName('repo-oci').as('ociRepoName');
   });
 
   it('can create a repository', function() {
