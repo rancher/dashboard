@@ -150,19 +150,19 @@ describe('rcButton.vue', () => {
       const link = wrapper.findComponent(RouterLinkStub);
       const clickSpy = jest.spyOn(link.element, 'click');
 
-      await link.trigger('keydown', { key: ' ' });
+      await link.trigger('keyup', { key: ' ' });
 
       expect(clickSpy).toHaveBeenCalledWith();
     });
 
-    it('triggers click when Space is pressed on a regular button', async() => {
+    it('does not manually trigger click when Space is pressed on a regular button', async() => {
       const wrapper = mount(RcButton);
       const button = wrapper.find('button');
       const clickSpy = jest.spyOn(button.element, 'click');
 
-      await button.trigger('keydown', { key: ' ' });
+      await button.trigger('keyup', { key: ' ' });
 
-      expect(clickSpy).toHaveBeenCalledWith();
+      expect(clickSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -236,7 +236,7 @@ describe('rcButton.vue', () => {
       const anchor = wrapper.find('a');
       const clickSpy = jest.spyOn(anchor.element, 'click');
 
-      await anchor.trigger('keydown', { key: ' ' });
+      await anchor.trigger('keyup', { key: ' ' });
 
       expect(clickSpy).toHaveBeenCalledWith();
     });
