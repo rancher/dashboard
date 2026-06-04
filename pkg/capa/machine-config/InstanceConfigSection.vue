@@ -60,7 +60,7 @@ export default {
       v-model:value="value.instanceType"
       :options="instanceTypeOptions"
       label-key="capa.machineConfig.instanceConfiguration.instanceType.label"
-      option-key="apiName"
+      option-key="value"
       option-label="label"
       required
     />

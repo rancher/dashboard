@@ -1,32 +1,15 @@
 import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import { mapDriver } from '@shell/store/plugins';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
-import { saveMachinePoolConfigs } from './machine-config/utils';
+import { initInfrastructureCluster, saveMachinePoolConfigs, saveInfrastructureCluster, updateProvCluster } from './utils';
+
 import ClusterConfiguration from './components/ClusterConfiguration.vue';
 
 const AWS_MACHINE_TEMPLATE_SCHEMA = 'infrastructure.cluster.x-k8s.io.awsmachinetemplate';
 const AWS_CLUSTER_SCHEMA = 'infrastructure.cluster.x-k8s.io.awscluster';
-const ADDITIONAL_MANIFEST = `apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: aws-cloud-controller-manager
-  namespace: kube-system
-spec:
-  chart: aws-cloud-controller-manager
-  repo: https://kubernetes.github.io/cloud-provider-aws
-  targetNamespace: kube-system
-  bootstrap: true
-  valuesContent: |-
-    hostNetworking: true
-    nodeSelector:
-      node-role.kubernetes.io/control-plane: "true"
-    args:
-      - --configure-cloud-routes=false
-      - --v=5
-      - --cloud-provider=aws`;
 
 export class CAPAProvisioner implements IClusterProvisioner {
-  static ID = 'capa'
+  static ID = 'awsmachinetemplate';
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'aws' );
@@ -37,21 +20,21 @@ export class CAPAProvisioner implements IClusterProvisioner {
   }
 
   get machineConfigSchema(): { [key: string]: any } {
-    return this.context.getters['management/schemaFor'](AWS_MACHINE_TEMPLATE_SCHEMA, true, false); // ||
+    return this.context.getters['management/schemaFor'](AWS_MACHINE_TEMPLATE_SCHEMA, true, false);
   }
 
   get clusterSchema(): { [key: string]: any } {
-    return this.context.getters['management/schemaFor'](AWS_CLUSTER_SCHEMA, true, false); // ||
+    return this.context.getters['management/schemaFor'](AWS_CLUSTER_SCHEMA, true, false);
   }
 
-  get createMachinePoolMachineConfig(): (idx: number, pools: any[], cluster: any) => Promise<{[key: string]: any}> {
-    return async(idx: number, pools: any[], cluster: any) => {
+  get createMachinePoolMachineConfig(): () => Promise<{[key: string]: any}> {
+    return async() => {
       const machineConfigType = this.machineConfigSchema?.id || AWS_MACHINE_TEMPLATE_SCHEMA;
 
       await this.context.dispatch('management/waitForSchema', { type: machineConfigType });
 
       const createConfig = await this.context.dispatch('management/createPopulated', {
-        type:     machineConfigType,
+        type:     AWS_MACHINE_TEMPLATE_SCHEMA,
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
 
@@ -63,48 +46,17 @@ export class CAPAProvisioner implements IClusterProvisioner {
   }
 
   get saveMachinePoolConfigs(): (pools: any[], cluster: any) => Promise<any> {
-    return async(pools: any[], cluster: any) => await saveMachinePoolConfigs(pools, cluster);
+    return async(pools: any[], cluster: any) => await saveMachinePoolConfigs(pools, cluster, this.context.dispatch);
   }
 
-  registerSaveHooks(
-    registerBeforeHook: (fn: () => Promise<void>, name: string, priority?: number) => void,
-    _registerAfterHook: any,
-    value: any,
-    getCapiCluster: () => any
-  ): void {
-    registerBeforeHook(async() => {
-      const capiCluster = getCapiCluster();
+  get saveInfrastructureCluster(): (value: any, infrastructureCluster: any, isEdit: boolean) => Promise<void> {
+    return async(value, infrastructureCluster, isEdit) => await saveInfrastructureCluster(value, infrastructureCluster, isEdit);
+  }
 
-      if (!capiCluster) {
-        return;
-      }
+  get initInfrastructureCluster(): (value: any, infrastructureCluster: any, isEdit: boolean) => Promise<void> {
+    const clusterSchemaType = this.clusterSchema?.id || this.clusterSchema;
 
-      const clusterName = value.metadata?.name;
-
-      if (!clusterName) {
-        return;
-      }
-
-      capiCluster.metadata = capiCluster.metadata || {};
-      capiCluster.metadata.name = clusterName;
-      capiCluster.metadata.namespace = capiCluster.metadata.namespace || DEFAULT_WORKSPACE;
-
-      await capiCluster.save();
-
-      if (!value.spec.rkeConfig) {
-        value.spec.rkeConfig = {};
-      }
-
-      value.spec.rkeConfig.infrastructureRef = {
-        kind:       'AWSCluster',
-        name:       clusterName,
-        namespace:  DEFAULT_WORKSPACE,
-        apiVersion: 'infrastructure.cluster.x-k8s.io/v1beta2',
-      };
-      value.spec.rkeConfig.additionalManifest = ADDITIONAL_MANIFEST;
-      value.spec.rkeConfig.machineGlobalConfig['cloud-provider-name'] = 'external';
-      value.spec.rkeConfig.machineGlobalConfig['node-name-from-cloud-provider-metadata'] = true;
-    }, 'save-capi-cluster', 1);
+    return async(value, isEdit) => await initInfrastructureCluster(value, clusterSchemaType, this.context, isEdit);
   }
 
   get icon(): any {
@@ -145,5 +97,18 @@ export class CAPAProvisioner implements IClusterProvisioner {
 
   get showImport(): boolean {
     return false;
+  }
+
+  get isUpstreamCAPIProvider(): boolean {
+    return true;
+  }
+
+  registerSaveHooks(
+    registerBeforeHook: (fn: () => Promise<void>, name: string, priority?: number) => void,
+    _registerAfterHook: any,
+    value: any,
+  ): void {
+    registerBeforeHook(() => updateProvCluster(value), 'update-prov-cluster-for-capi', 4);
+    // TODO after hook to delete infra cluster
   }
 }

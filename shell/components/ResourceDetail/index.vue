@@ -169,7 +169,7 @@ export default {
     } else {
       let fqid = id;
 
-      if ( schema.attributes?.namespaced && namespace ) {
+      if ( schema?.attributes?.namespaced && namespace ) {
         fqid = `${ namespace }/${ fqid }`;
       }
 

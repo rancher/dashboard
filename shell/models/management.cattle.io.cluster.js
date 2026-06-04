@@ -17,7 +17,7 @@ import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
-import { isHostedProvider } from '@shell/utils/provider';
+import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 
@@ -259,6 +259,22 @@ export default class MgmtCluster extends SteveModel {
     const capiMachines = machineReferences.find((r) => r?.apiVersion?.includes('cluster.x-k8s.io'));
 
     return !!capiMachines;
+  }
+
+  get isCAPIProvider() {
+    if (!this.isCapiHybrid || !this.machineProvider) {
+      return false;
+    }
+
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
+
+    return isCAPIProvider(context, this.machineProvider.toLowerCase());
   }
 
   get isHostedKubernetesProvider() {

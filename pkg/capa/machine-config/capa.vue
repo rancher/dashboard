@@ -217,7 +217,7 @@ export default {
         if ( row.groupLabel !== lastGroup ) {
           out.push({
             kind:     'group',
-            disabled: true,
+            disabled: false,
             label:    row.groupLabel
           });
 

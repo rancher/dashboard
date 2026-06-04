@@ -77,7 +77,7 @@ watch([
         v-model:value="value.vpc.id"
         :label="t('capa.clusterConfig.network.vpc.label')"
         :placeholder="t('capa.clusterConfig.network.vpc.placeholder')"
-        :options="vpcInfo.map(vpc => ({ label: vpc.VpcId, value: vpc.VpcId }))"
+        :options="(vpcInfo||[]).map(vpc => ({ label: vpc.VpcId, value: vpc.VpcId }))"
       />
     </div>
   </RcSection>

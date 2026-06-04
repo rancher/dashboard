@@ -24,7 +24,7 @@ import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { findBy, removeObject, clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
-  clone, diff, set, get, isEmpty, mergeWithReplace
+  clone, diff, set, get, isEmpty, mergeWithReplace, cleanUp
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
@@ -273,6 +273,7 @@ export default {
       truncateLimit:                            this.value.defaultHostnameLengthLimit || 0,
       busy:                                     false,
       machinePoolValidation:                    {}, // map of validation states for each machine pool
+      infrastructureClusterValid:               true,
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
@@ -299,7 +300,7 @@ export default {
       basicsValid:                              true,
       registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
-      capiCluster:                              null,
+      infrastructureCluster:                    null,
     };
   },
 
@@ -328,17 +329,13 @@ export default {
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
-    // TODO: improve
 
     isUpstreamCAPIProvider() {
-      return this.provider === 'capa';
-      // Prefer an explicit declaration from the extension provisioner
-      // if (this.extensionProvider?.isUpstreamCAPIProvider !== undefined) {
-      //   return !!this.extensionProvider.isUpstreamCAPIProvider;
-      // }
+      if (this.extensionProvider?.isUpstreamCAPIProvider !== undefined) {
+        return !!this.extensionProvider.isUpstreamCAPIProvider;
+      }
 
-      // // Fall back to detecting the API group of the machine config schema
-      // return this.machineConfigSchema?.attributes?.group === UPSTREAM_CAPI_MACHINE_CONFIG_GROUP;
+      return false;
     },
 
     chartValues() {
@@ -574,14 +571,6 @@ export default {
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
     },
-    // TODO: improve
-    clusterSchema() {
-      if (this.isUpstreamCAPIProvider) {
-        return this.extensionProvider?.clusterSchema;
-      }
-
-      return null;
-    },
 
     machineConfigSchema() {
       let schema;
@@ -614,8 +603,6 @@ export default {
       if (!out) {
         // eslint-disable-next-line no-console
         console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
-      } else {
-        // TODO
       }
 
       return out;
@@ -914,7 +901,9 @@ export default {
 
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
 
-      return validRequiredPools && base && !hasAddonConfigErrors && !this.stackPreferenceError;
+      const hasInfrastructureClusterError = this.isUpstreamCAPIProvider ? !this.infrastructureClusterValid : false;
+
+      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !this.stackPreferenceError;
     },
 
     currentCluster() {
@@ -955,9 +944,6 @@ export default {
   },
 
   watch: {
-    'capiCluster.spec.region'() {
-      // console.log('region changed in rke2', this.capiCluster.spec.region);
-    },
     clusterBadgeAbbreviation: {
       immediate: true,
       handler(neu) {
@@ -1054,7 +1040,10 @@ export default {
 
   created() {
     this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
+    if (this.isUpstreamCAPIProvider) {
+      this.registerBeforeHook(this.saveInfrastructureCluster, 'update-capi-cluster', 2);
+    }
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 3);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
@@ -1064,57 +1053,29 @@ export default {
 
     // Register any hooks for this extension provider
     if (this.extensionProvider?.registerSaveHooks) {
-      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value, () => this.capiCluster);
+      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
     }
   },
 
   methods: {
     set,
 
-    pruneMissingKeys(target, source) {
-      if (!target || !source || typeof target !== 'object' || typeof source !== 'object') {
-        return;
-      }
-
-      Object.keys(target).forEach((key) => {
-        if (!Object.prototype.hasOwnProperty.call(source, key)) {
-          delete target[key];
-
-          return;
-        }
-
-        const targetValue = target[key];
-        const sourceValue = source[key];
-
-        if (
-          targetValue &&
-          sourceValue &&
-          typeof targetValue === 'object' &&
-          typeof sourceValue === 'object' &&
-          !Array.isArray(targetValue) &&
-          !Array.isArray(sourceValue)
-        ) {
-          this.pruneMissingKeys(targetValue, sourceValue);
-        }
-      });
-    },
-
     updateExtensionInfrastructureSection(neu) {
       if (!neu || typeof neu !== 'object') {
         return;
       }
 
-      if (!this.capiCluster || typeof this.capiCluster !== 'object') {
-        this.capiCluster = neu;
+      if (!this.infrastructureCluster || typeof this.infrastructureCluster !== 'object') {
+        this.infrastructureCluster = neu;
 
         return;
       }
 
       // Keep the spec tree in sync with the extension payload so omitted keys are actually removed.
-      this.pruneMissingKeys(this.capiCluster.spec, neu.spec);
+      this.infrastructureCluster.spec = cleanUp(neu.spec);
 
       // Preserve the original resource model instance while applying extension updates.
-      mergeWithReplace(this.capiCluster, neu, { mutateOriginal: true });
+      mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
     },
 
     async handleVsphereCpiSecret() {
@@ -1148,8 +1109,8 @@ export default {
       if (!this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector)) {
         this.value.spec.machineSelectorConfig.unshift({ config: {} });
       }
-
-      if (this.value.spec.cloudCredentialSecretName && !this.isUpstreamCAPIProvider) {
+      // TODO handle upstream capi once credentials part is clear
+      if (this.value.spec.cloudCredentialSecretName ) {
         await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
         this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
       }
@@ -1200,7 +1161,7 @@ export default {
       }
 
       if (this.isUpstreamCAPIProvider) {
-        await this.initCapiCluster();
+        this.infrastructureCluster = await this.initInfrastructureCluster(this.value);
       }
     },
 
@@ -1363,48 +1324,6 @@ export default {
         this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
-    async initCapiCluster() {
-      // TODO handle edit
-      let config;
-      let configMissing = false;
-
-      if (!this.clusterSchema) {
-        // eslint-disable-next-line no-console
-        console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped');
-      }
-
-      const clusterSchemaType = this.clusterSchema?.id || this.clusterSchema;
-
-      if (clusterSchemaType && this.$store.getters['management/canList'](clusterSchemaType)) {
-        try {
-          config = await this.$store.dispatch('management/find', {
-            type: clusterSchemaType,
-            // id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
-          });
-
-          if (!config) {
-            configMissing = true;
-          }
-          // TODO handle edit?? clone existing config?
-        } catch (e) {
-          configMissing = true;
-        }
-        if (configMissing) {
-          try {
-            config = await this.$store.dispatch('management/createPopulated', {
-              type:     clusterSchemaType,
-              metadata: { namespace: DEFAULT_WORKSPACE }
-            });
-          } catch (e) {
-            console.log('Error creating cluster config', e);
-          }
-        }
-        // TODO handle case where config is still missing and make sure spec is setup correctly
-        // TODO apply defaults
-        // console.log('config', config);
-        this.capiCluster = config || {};
-      }
-    },
 
     /**
      * Get machine pools from the cluster configuration
@@ -1529,7 +1448,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: machineConfigSchema.attributes?.kind, // TODO?
+            kind: machineConfigSchema.attributes?.kind,
             name: null,
           },
           drainBeforeDelete: true
@@ -1540,7 +1459,7 @@ export default {
         pool.pool.machineOS = 'linux';
       }
 
-      if (this.isElementalCluster) {
+      if (this.isElementalCluster && machineConfigSchema?.attributes) {
         pool.pool.machineConfigRef.apiVersion = `${ machineConfigSchema.attributes.group }/${ machineConfigSchema.attributes.version }`;
       }
 
@@ -1605,6 +1524,16 @@ export default {
         if (conflict) {
           throw Error(conflict);
         }
+      }
+    },
+    async initInfrastructureCluster() {
+      if (this.extensionProvider?.initInfrastructureCluster) {
+        return await this.extensionProvider.initInfrastructureCluster( this.value, this.infrastructureCluster, this.isEdit);
+      }
+    },
+    async saveInfrastructureCluster() {
+      if (this.extensionProvider?.saveInfrastructureCluster) {
+        return await this.extensionProvider.saveInfrastructureCluster( this.value, this.infrastructureCluster, this.isEdit);
       }
     },
 
@@ -1722,7 +1651,7 @@ export default {
         await this.membershipUpdate.save(this.value.mgmt.id);
       }
     },
-    // TODO: check if we need to do anything for ipv6
+
     async showIpv6Warning(hookContext) {
       if (this.mode !== _CREATE || !this.machinePools?.length) {
         return;
@@ -2649,13 +2578,15 @@ export default {
           <component
             :is="extensionInfrastructureSection"
             v-if="extensionInfrastructureSection"
-            :value="capiCluster"
+            :value="infrastructureCluster"
             :mode="mode"
             :provider="provider"
             :credential-id="credentialId"
             data-testid="extension-top-section"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"
+            @error="e => errors.push(e)"
+            @validationChanged="(val) => infrastructureClusterValid = val"
           />
         </div>
         <!-- Pools Extras -->
@@ -2725,7 +2656,8 @@ export default {
                   :busy="busy"
                   :pool-id="obj.id"
                   :pool-create-mode="obj.create"
-                  :capi-cluster="capiCluster"
+                  :capi-cluster="infrastructureCluster"
+                  :hide-advanced="isUpstreamCAPIProvider"
                   @error="handleMachinePoolError"
                   @validationChanged="v => machinePoolValidationChanged(obj.id, v)"
                 />

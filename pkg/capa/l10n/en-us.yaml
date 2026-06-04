@@ -1,7 +1,7 @@
 ---
 capa:
   description: Provision new CAPA (Cluster API Provider AWS) clusters or register existing ones.
-  label: CAPA
+  label: CAPI AWS
   clusterConfig:
     title: CAPI Cluster Configuration
     region:

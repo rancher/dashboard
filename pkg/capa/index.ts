@@ -17,7 +17,9 @@ export default function(plugin: IPlugin): void {
   plugin.metadata.icon = require('./assets/amazonecapa.svg');
   // Register machine config component for CAPA.
   // Some flows can surface the provider as aws for credential reuse,
-  // so register both keys to avoid falling back to generic config.
+  // so register all relevant keys to avoid falling back to generic config.
   plugin.register('machine-config', 'capa', () => import('./machine-config/capa.vue'));
   plugin.register('machine-config', 'aws', () => import('./machine-config/capa.vue'));
+  // Also register under the provisioner ID so MachinePool.vue finds it directly
+  plugin.register('machine-config', CAPAProvisioner.ID, () => import('./machine-config/capa.vue'));
 }

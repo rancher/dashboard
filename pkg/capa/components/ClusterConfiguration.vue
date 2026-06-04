@@ -10,6 +10,7 @@ import { _CREATE } from '@shell/config/query-params';
 import merge from 'lodash/merge';
 import Networking from '.././components/Networking.vue';
 import { removeEmptyFields } from '../utils';
+import { NORMAN } from '@shell/config/types';
 
 defineOptions({ name: 'ClusterConfiguration' });
 
@@ -17,6 +18,7 @@ const emit = defineEmits<{(e: 'update:value', value: any): void }>();
 
 // const AWS_CLUSTER_SCHEMA = 'infrastructure.cluster.x-k8s.io.awscluster';
 // const DEFAULT_WORKSPACE = 'fleet-default'; // TODO
+const IDENTITY_ANNOTATION = 'identity-ref';
 
 const defaultConfig = {
   spec: {
@@ -105,45 +107,6 @@ const network = computed({
     emit('update:value', value.value);
   },
 });
-// async function initCapiCluster() {
-//   // TODO handle edit
-//   let configMissing = false;
-
-//   if (!clusterSchema.value) {
-//     // eslint-disable-next-line no-console
-//     console.warn('initCapiCluster: missing clusterSchema, cluster object creation skipped');
-//   }
-
-//   const clusterSchemaType = clusterSchema.value?.id || clusterSchema.value;
-
-//   if (clusterSchemaType && store.getters['management/canList'](clusterSchemaType)) {
-//     try {
-//       config.value = await store.dispatch('management/find', {
-//         type: clusterSchemaType,
-//         // id: `${ value.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
-//       });
-//       if (!config.value) {
-//         configMissing = true;
-//       }
-//       // TODO handle edit?? clone existing config?
-//     } catch (e) {
-//       configMissing = true;
-//     }
-//     if (configMissing) {
-//       try {
-//         config.value = await store.dispatch('management/createPopulated', {
-//           type:     clusterSchemaType,
-//           metadata: { namespace: DEFAULT_WORKSPACE }
-//         });
-//       } catch (e) {
-//         console.log('Error creating cluster config', e);
-//       }
-//     }
-//     // TODO handle case where config is still missing and make sure spec is setup correctly
-//     // TODO apply defaults
-//     console.log('config', config.value);
-//   }
-// }
 
 function initDefaultRegion() {
   const region = value.value?.spec?.region || credentialId.value?.decodedData?.defaultRegion || store.getters['aws/defaultRegion'];
@@ -166,10 +129,23 @@ async function getRegions() {
   regionInfo.value = regions?.Regions || [];
 }
 
-onMounted(async() => {
-  // await initCapiCluster();
+async function getIdentityRef() {
+  if (!credentialId.value) {
+    return null;
+  }
 
+  const credential = await store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: credentialId.value });
+
+  if (!credential || !credential.annotations[IDENTITY_ANNOTATION]) {
+    return null;
+  }
+
+  return credential.annotations[IDENTITY_ANNOTATION];
+}
+
+onMounted(async() => {
   initDefaultRegion();
+  const identityRef = await getIdentityRef();
 
   ec2Client.value = await store.dispatch('aws/ec2', {
     region:            region.value,
@@ -178,6 +154,9 @@ onMounted(async() => {
   getRegions();
   // TODO remove non-required field
   const valueWithDefaults = merge({}, defaultConfig, value.value);
+
+  valueWithDefaults.spec.identityRef.name = identityRef;
+
   const cleanedValueWithDefaults = removeEmptyFields(valueWithDefaults);
 
   delete cleanedValueWithDefaults.spec.s3Bucket;

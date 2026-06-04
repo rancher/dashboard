@@ -91,6 +91,10 @@ export default {
     poolCreateMode: {
       type:     Boolean,
       required: true,
+    },
+    hideAdvanced: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -400,8 +404,9 @@ export default {
       color="info"
       label-key="cluster.machinePool.noAccessBanner"
     />
-    <!---TODO Make it optional-->
+
     <AdvancedSection
+      v-if="!hideAdvanced"
       ref="advanced"
       :mode="mode"
       class="advanced"
