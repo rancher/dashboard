@@ -45,6 +45,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
+    cy.createE2EResourceName('repoOci').as('ociRepoName');
   });
 
   it('can create a repository', function() {
@@ -233,8 +234,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 
   it('can create an oci repository with basic auth', function() {
-    const ociRepoName = `${ this.repoName }oci`;
-
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
@@ -245,8 +244,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     const ociMaxWait = '7';
     const refreshInterval = '12';
 
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(ociRepoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ ociRepoName }-description`);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.ociRepoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.ociRepoName }-description`);
     repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
     repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
@@ -274,10 +273,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(ociRepoName, 2).should('be.visible');
+    repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
 
     // delete repo
-    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', ociRepoName);
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName);
   });
 });
 
