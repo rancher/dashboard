@@ -62,10 +62,13 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <a
-      href="#main-content"
-      class="skip-to-content btn role-primary"
-    >{{ t('nav.skipToContent') }}</a>
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <PromptModal />
     <div
