@@ -1,5 +1,5 @@
 <script>
-import { isV4Format, isV6Format } from 'ip';
+import { isV4Format, isV6Format } from '@shell/utils/ip';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge';
