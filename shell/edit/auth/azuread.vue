@@ -84,7 +84,7 @@ export default {
       sloTypeRef.value === SLO_OPTION_VALUES.all || sloTypeRef.value === SLO_OPTION_VALUES.both
     ));
 
-    const urlRule = formRulesGenerator(t, {}).url;
+    const urlRule = formRulesGenerator(t, {}).genericUrl;
 
     const extraRules = {
       applicationSecretRequired: (value) => {
