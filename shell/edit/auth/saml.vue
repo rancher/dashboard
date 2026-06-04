@@ -1,4 +1,9 @@
 <script>
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -13,6 +18,7 @@ import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
+import { useI18n } from '@shell/composables/useI18n';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -53,6 +59,42 @@ export default {
   },
 
   mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
+    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        displayNameField:   requiredField('authConfig.saml.displayName'),
+        userNameField:      requiredField('authConfig.saml.userName'),
+        uidField:           requiredField('authConfig.saml.UID'),
+        groupsField:        requiredField('authConfig.saml.groups'),
+        rancherApiHost:     requiredField('authConfig.saml.api'),
+        spKey:              requiredField('authConfig.saml.key.label'),
+        spCert:             requiredField('authConfig.saml.cert.label'),
+        idpMetadataContent: requiredField('authConfig.saml.metadata.label'),
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
+    return { isFormValid, validateAllFields };
+  },
+
   data() {
     return {
       showLdap:        false,
@@ -60,7 +102,19 @@ export default {
     };
   },
 
+  created() {
+    this.registerBeforeHook(this.validateAllFields, 'willSave');
+  },
+
   computed: {
+    validationPassed() {
+      if (this.model?.enabled && !this.editConfig) {
+        return true;
+      }
+
+      return this.isFormValid;
+    },
+
     tArgs() {
       return {
         baseUrl:  this.serverSetting,
@@ -154,7 +208,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -250,6 +304,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.displayNameField"
+              name="displayNameField"
               :label="t(`authConfig.saml.displayName`)"
               :mode="mode"
               required
@@ -258,6 +313,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.userNameField"
+              name="userNameField"
               :label="t(`authConfig.saml.userName`)"
               :mode="mode"
               required
@@ -269,6 +325,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.uidField"
+              name="uidField"
               :label="t(`authConfig.saml.UID`)"
               :mode="mode"
               required
@@ -277,6 +334,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.groupsField"
+              name="groupsField"
               :label="t(`authConfig.saml.groups`)"
               :mode="mode"
               required
@@ -298,6 +356,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.rancherApiHost"
+              name="rancherApiHost"
               :label="t(`authConfig.saml.api`)"
               :mode="mode"
               required
@@ -309,6 +368,7 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model:value="model.spKey"
+              name="spKey"
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
@@ -325,6 +385,7 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model:value="model.spCert"
+              name="spCert"
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
@@ -341,6 +402,7 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model:value="model.idpMetadataContent"
+              name="idpMetadataContent"
               :label="t(`authConfig.saml.metadata.label`)"
               :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
