@@ -1448,7 +1448,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:35:45Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '123', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.92.1', type: 'InternalIP' }, { address: '192.168.92.1', type: 'ExternalIP' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371436Ki', pods: '17'
         },
@@ -1512,7 +1512,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:35:42Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '234', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.92.1', type: 'InternalIP' }, { address: '192.168.92.1', type: 'ExternalIP' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371440Ki', pods: '17'
         },
