@@ -103,7 +103,7 @@ describe('utils/provider', () => {
 
       expect(isHostedProvider(context, 'AKS')).toBe(true);
       expect(isHostedProvider(context, 'eks')).toBe(true);
-      expect(isCAPIProvider(context, 'capa')).toBe(false);
+      expect(isHostedProvider(context, 'capa')).toBe(false);
       expect(isHostedProvider(context, 'different')).toBe(false); // case-insensitive check
       expect(isHostedProvider(context, 'other')).toBe(false); // case-insensitive check
     });

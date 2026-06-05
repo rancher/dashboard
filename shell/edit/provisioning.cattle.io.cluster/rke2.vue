@@ -1066,10 +1066,10 @@ export default {
       }
 
       // Keep the spec tree in sync with the extension payload so omitted keys are actually removed.
-      const cleanedUpSpec = cleanUp(neu.spec);
+      this.infrastructureCluster.spec = cleanUp(neu.spec);
 
       // Preserve the original resource model instance while applying extension updates.
-      mergeWithReplace(this.infrastructureCluster, { ...neu, spec: cleanedUpSpec }, { mutateOriginal: true });
+      mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
     },
 
     async handleVsphereCpiSecret() {
@@ -1379,7 +1379,6 @@ export default {
     },
 
     async addMachinePool(idx) {
-      // TODO
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if (!this.machineConfigSchema) {
         return;
