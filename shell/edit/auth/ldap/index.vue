@@ -1,4 +1,9 @@
 <script>
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -9,6 +14,7 @@ import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import { useI18n } from '@shell/composables/useI18n';
 
 const AUTH_TYPE = 'ldap';
 
@@ -26,6 +32,49 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
 
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    const coerce = (schema) => z.preprocess((v) => (v === null || v === undefined) ? '' : String(v), schema);
+    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+    const optionalField = coerce(z.string());
+
+    const tlsEnabledRef = ref(false);
+    const isActiveDirectoryRef = ref(false);
+
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        hostname:                        requiredField('authConfig.ldap.hostname.label'),
+        port:                            requiredField('authConfig.ldap.port'),
+        certificate:                     tlsEnabledRef.value ? requiredField('authConfig.ldap.cert') : optionalField,
+        connectionTimeout:               requiredField('authConfig.ldap.serverConnectionTimeout'),
+        serviceAccountUsername:          isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
+        serviceAccountDistinguishedName: !isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
+        serviceAccountPassword:          requiredField('authConfig.ldap.serviceAccountPassword'),
+        userSearchBase:                  requiredField('authConfig.ldap.userSearchBase.label'),
+        username:                        requiredField(`authConfig.${ AUTH_TYPE }.username`),
+        password:                        requiredField(`authConfig.${ AUTH_TYPE }.password`),
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
+    return {
+      isFormValid, validateAllFields, tlsEnabledRef, isActiveDirectoryRef
+    };
+  },
+
   data() {
     return {
       username: null,
@@ -33,7 +82,21 @@ export default {
     };
   },
 
+  created() {
+    this.tlsEnabledRef = !!(this.model?.tls || this.model?.starttls);
+    this.isActiveDirectoryRef = this.NAME === 'activedirectory';
+    this.registerBeforeHook(this.validateAllFields, 'willSave');
+  },
+
   computed: {
+    validationPassed() {
+      if (this.model?.enabled && !this.editConfig) {
+        return true;
+      }
+
+      return this.isFormValid;
+    },
+
     tArgs() {
       return {
         provider: this.displayName,
@@ -66,6 +129,15 @@ export default {
     },
   },
 
+  watch: {
+    'model.tls'(neu) {
+      this.tlsEnabledRef = !!(neu || this.model?.starttls);
+    },
+    'model.starttls'(neu) {
+      this.tlsEnabledRef = !!(this.model?.tls || neu);
+    },
+  },
+
 };
 </script>
 
@@ -78,7 +150,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -126,6 +198,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="username"
+              name="username"
               :label="t(`authConfig.${AUTH_TYPE}.username`)"
               :mode="mode"
               required
@@ -134,6 +207,7 @@ export default {
           <div class="col span-6">
             <Password
               v-model:value="password"
+              name="password"
               :label="t(`authConfig.${AUTH_TYPE}.password`)"
               :mode="mode"
               required
