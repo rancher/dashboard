@@ -44,33 +44,30 @@
 - dom.js: getParent() traverses DOM upward; el.matchesSelector branch (line 8) not coverable in jsdom (legacy API absent) — skip it
 - width.js: getWidth() uses `el.length` check; jsdom getComputedStyle returns '0px' for unstiled elements — test null/undefined/empty cases only
 - title.ts: updatePageTitle filters falsy values; empty string is falsy so it gets filtered out
+- platform.js: jsdom gives `navigator.platform=''` → isMac=false → alternateKey='ctrlKey'; use exported `alternateKey`/`moreKey`/`rangeKey` constants as event keys for platform-agnostic tests; module-level boolean branches (isMac/isLinuxy/etc.) are not coverable without module reset
+- window.js: mock `window.screen` via Object.defineProperty(window,'screen',{writable:true,configurable:true,value:{width,height}}); spy on `window.open`; use jest.useFakeTimers() for Popup.open setInterval polling
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
 2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-3. `shell/utils/platform.js` — isAlternate, isMore, isRange, suppressContextMenu, version() (module-level constants tricky due to caching)
+3. `shell/utils/computed.js` — integerString and keyValueStrings computed-property factories
 
 ## Completed Work (Summary)
 
-- 2026-05-30: PR (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts; 100% stmts/fns/lines, 94.11% branches
-- 2026-05-29: PR (branch test-assist/position-utils-tests): 21 tests for position.js; 87.2% stmts, 67.5% branches, 75% fns
-- 2026-05-28: PR (branch test-assist/monitoring-utils-tests): 14 tests for monitoring.js; 84.1% stmts, 92.3% branches, 87.5% fns
-- 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined
-- 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics
-- 2026-05-24: PR #17806 (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics
-- 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics
-- 2026-05-22: PR (branch test-assist/sort-utils-tests): 47 tests for sort.js utility fns; ~86% stmts, ~94% branches
-- 2026-05-21: PR (branch test-assist/banners-utils-tests): 15 tests for banners.js; 100% all metrics
-- 2026-05-20: PR (branch test-assist/poller-tests): 32 tests for Poller and PollerSequential; 98.9% stmts, 75% branches, 89.5% fns
-- 2026-05-19: PR #17729 (branch test-assist/svg-filter-tests): 18 tests for svg-filter.js Solver class — MERGED ✅
-- 2026-05-18: PR #17712 (branch test-assist/alertmanagerconfig-tests): 12 tests for alertmanagerconfig.js pure fns — MERGED ✅
-- 2026-05-17: PR #17699 (branch test-assist/aws-kube-utils-tests): 29 tests for aws.ts + kube.js; 100% all metrics — MERGED ✅
-- 2026-05-16: PR #17692 (branch test-assist/namespace-filter-async-tests): 20 tests for namespace-filter.js + async.ts — MERGED ✅
-- All PRs #17431–#17729: merged ✅
+- 2026-06-05: PR (branch test-assist/platform-window-utils-tests): 22 tests for platform.js, window.js; platform.js 96.87% stmts/100% fns; window.js 100% all metrics
+- 2026-05-30: PR (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts; 100% stmts/fns/lines, 94.11% branches — merged ✅
+- 2026-05-29: PR (branch test-assist/position-utils-tests): 21 tests for position.js; 87.2% stmts, 67.5% branches, 75% fns — merged ✅
+- 2026-05-28: PR (branch test-assist/monitoring-utils-tests): 14 tests for monitoring.js; 84.1% stmts, 92.3% branches, 87.5% fns — merged ✅
+- 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined — merged ✅
+- 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics — merged ✅
+- 2026-05-24: PR #17806 (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics — merged ✅
+- 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics — merged ✅
+- All earlier PRs #17692–#17904: merged or in review
 
 ## Task Round-Robin History
 
+- 2026-06-05: Task 3 (platform.js + window.js, 22 tests) + Task 7
 - 2026-05-30: Task 3 (dom.js + width.js + title.ts, 26 tests) + Task 7
 - 2026-05-29: Task 3 (position.js, 21 tests) + Task 7
 - 2026-05-28: Task 3 (monitoring.js, 14 tests) + Task 7
@@ -88,7 +85,8 @@
 
 ## Monthly Activity Issue
 
-- May 2026 issue: #17452 (open)
+- May 2026 issue: #17452 (closed)
+- June 2026 issue: new (just created this run)
 
 ## Maintainer Priorities
 
