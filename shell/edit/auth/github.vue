@@ -46,6 +46,7 @@ export default {
 
     const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
     const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
     const optionalField = coerce(z.string());
 
     const validationSchema = computed(() => toTypedSchema(
@@ -54,7 +55,7 @@ export default {
         clientSecret: requiredField('authConfig.github.clientSecret.label'),
         appId:        isGithubAppRef.value ? requiredField('authConfig.githubapp.githubAppId.label') : optionalField,
         privateKey:   isGithubAppRef.value ? requiredField('authConfig.githubapp.privateKey.label') : optionalField,
-        targetUrl:    !isPublicRef.value ? requiredField('authConfig.github.host.label') : optionalField,
+        targetUrl:    !isPublicRef.value ? requiredUrlField('authConfig.github.host.label') : optionalField,
       })
     ));
 
