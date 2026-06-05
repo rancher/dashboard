@@ -1,98 +1,25 @@
 <script>
-import { CAPI, CATALOG } from '@shell/config/types';
-import { STATE, NAME } from '@shell/config/table-headers';
+import { CAPI } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading.vue';
 
 export default {
-  name:       'HostedProviders',
+  name:       'CAPIProviders',
   components: {
     ResourceTable, Masthead, Loading
   },
   data() {
     return {
-      errors:           [],
-      rows:             [],
-      allProviders:     null,
-      turtlesChart:     null,
-      resource:         CAPI.CAPI_PROVIDER,
-      resourceApp:      CATALOG.APP,
-      schema:           this.$store.getters['management/schemaFor'](CAPI.CAPI_PROVIDER),
-      schemaApp:        this.$store.getters['currentProduct'].inStore ? this.$store.getters[`${ this.$store.getters['currentProduct'].inStore }/schemaFor`](CATALOG.APP) : null,
-      settingResource:  null,
-      providersFromApp: null,
-      appRows:          []
+      errors:   [],
+      rows:     [],
+      resource: CAPI.CAPI_PROVIDER,
+      schema:   this.$store.getters['management/schemaFor'](CAPI.CAPI_PROVIDER),
     };
   },
   async fetch() {
-    this.allProviders = await this.$store.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER });
-    await this.$store.dispatch('catalog/load');
-    this.turtlesChart = this.$store.getters['catalog/chart']({ chartName: 'rancher-turtles-providers' });
-
-    await this.getApp();
-
-    this.rows = this.allProviders;
+    this.rows = await this.$store.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER });
   },
-  watch:    {},
-  computed: {
-    headers() {
-      return [
-        STATE,
-        NAME,
-      ];
-    },
-    appHeaders() {
-      return [
-        {
-          name:     'id',
-          labelKey: 'tableHeaders.name',
-          value:    'id',
-          sort:     'id',
-        },
-        {
-          name:  'enabled',
-          label: 'Enabled',
-          value: 'enabled',
-          sort:  'enabled',
-        },
-        {
-          name:  'enableAutomaticUpdate',
-          label: 'Enable Automatic Update',
-          value: 'enableAutomaticUpdate',
-          sort:  'enableAutomaticUpdate',
-        }
-      ];
-    }
-  },
-  methods: {
-
-    async getApp() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      if (this.$store.getters[`${ inStore }/canList`](CATALOG.APP)) {
-        try {
-          const apps = await this.$store.dispatch(`${ inStore }/findAll`, { type: CATALOG.APP });
-          const res = apps.find((a) => a.spec?.chart?.metadata?.name === 'rancher-turtles-providers');
-
-          if (res) {
-            await res.fetchValues(true);
-            this.providersFromApp = res;
-            const providersObj = res.chartValues?.providers || {};
-
-            this.appRows = Object.entries(providersObj).map(([id, provider]) => ({
-              id,
-              enabled:               provider.enabled,
-              enableAutomaticUpdate: provider.enableAutomaticUpdate,
-              ...provider
-            }));
-          }
-        } catch (err) {
-          // console.error(`Failed to fetch apps`, err);
-        }
-      }
-    },
-  }
 };
 </script>
 

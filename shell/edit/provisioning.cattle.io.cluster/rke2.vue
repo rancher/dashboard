@@ -94,8 +94,8 @@ const NODE_TOTAL = {
 };
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
-
 const REGISTRIES_TAB_NAME = 'registry';
+
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
@@ -596,16 +596,7 @@ export default {
         schema = extensionSchema;
       }
 
-      const resolved = this.$store.getters['management/schemaFor'](schema);
-      const fallbackResolved = this.$store.getters['cluster/schemaFor'](schema, true, false);
-      const out = resolved || fallbackResolved;
-
-      if (!out) {
-        // eslint-disable-next-line no-console
-        console.warn('machineConfigSchema: schema lookup failed', this.provider, schema, extensionSchema);
-      }
-
-      return out;
+      return this.$store.getters['management/schemaFor'](schema);
     },
 
     nodeTotals() {
@@ -1040,10 +1031,13 @@ export default {
 
   created() {
     this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
-    if (this.isUpstreamCAPIProvider) {
+    if (!this.isUpstreamCAPIProvider) {
+      this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
+    } else {
       this.registerBeforeHook(this.saveInfrastructureCluster, 'update-capi-cluster', 2);
+      this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 3);
     }
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 3);
+
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
@@ -1079,18 +1073,10 @@ export default {
     },
 
     async handleVsphereCpiSecret() {
-      if (this.isUpstreamCAPIProvider) {
-        return;
-      }
-
       return VsphereUtils.handleVsphereCpiSecret(this);
     },
 
     async handleVsphereCsiSecret() {
-      if (this.isUpstreamCAPIProvider) {
-        return;
-      }
-
       return VsphereUtils.handleVsphereCsiSecret(this);
     },
 
@@ -1338,10 +1324,7 @@ export default {
 
           if (this.isElementalCluster) {
             type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
-          } else if (pool.machineConfigRef?.apiVersion) {
-            // Upstream CAPI providers (and Elemental-style refs) store an explicit apiVersion
-            // in machineConfigRef.  Derive the management store type from the group portion
-            // of that apiVersion combined with the resource kind.
+          } else if (this.isUpstreamCAPIProvider && pool.machineConfigRef?.apiVersion) {
             const [group] = (pool.machineConfigRef.apiVersion || '').split('/');
 
             type = `${ group }.${ pool.machineConfigRef.kind.toLowerCase() }`;
@@ -1396,17 +1379,9 @@ export default {
     },
 
     async addMachinePool(idx) {
-      let machineConfigSchema = this.machineConfigSchema;
-
-      if (!machineConfigSchema && typeof this.extensionProvider?.machineConfigSchema === 'string') {
-        machineConfigSchema = this.machineConfigSchema;
-      }
-
+      // TODO
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
-      if (!machineConfigSchema) {
-        // eslint-disable-next-line no-console
-        console.warn('addMachinePool: missing machineConfigSchema, pool creation skipped', this.provider, this.extensionProvider?.machineConfigSchema);
-
+      if (!this.machineConfigSchema) {
         return;
       }
 
@@ -1419,7 +1394,7 @@ export default {
       } else {
         // Default - use the schema
         config = await this.$store.dispatch('management/createPopulated', {
-          type:     machineConfigSchema.id,
+          type:     this.machineConfigSchema.id,
           metadata: { namespace: DEFAULT_WORKSPACE }
         });
 
@@ -1448,7 +1423,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: machineConfigSchema.attributes?.kind,
+            kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
           drainBeforeDelete: true
@@ -1459,8 +1434,8 @@ export default {
         pool.pool.machineOS = 'linux';
       }
 
-      if (this.isElementalCluster && machineConfigSchema?.attributes) {
-        pool.pool.machineConfigRef.apiVersion = `${ machineConfigSchema.attributes.group }/${ machineConfigSchema.attributes.version }`;
+      if (this.isElementalCluster && this.machineConfigSchema?.attributes) {
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
       }
 
       // Upstream CAPI MachineTemplate resources are referenced by full apiVersion so that
@@ -1873,7 +1848,7 @@ export default {
     async setHarvesterChartValues() {
       const isHarvester = this.agentConfig?.['cloud-provider-name'] === HARVESTER;
 
-      if (!isHarvester || this.isUpstreamCAPIProvider) {
+      if (!isHarvester) {
         return;
       }
       try {
@@ -2446,9 +2421,8 @@ export default {
       if (this.errors) {
         clear(this.errors);
       }
-      // The IAM instance profile requirement is specific to CAPR (rancher-machine) AWS provisioning.
-      // Upstream CAPI providers on AWS use their own identity mechanisms and do not share this constraint.
-      if (!this.isUpstreamCAPIProvider && this.value.cloudProvider === 'aws') {
+
+      if ( this.value.cloudProvider === 'aws') {
         const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
 
         if (missingProfileName) {
@@ -2656,7 +2630,7 @@ export default {
                   :busy="busy"
                   :pool-id="obj.id"
                   :pool-create-mode="obj.create"
-                  :capi-cluster="infrastructureCluster"
+                  :infrastructure-cluster="infrastructureCluster"
                   :hide-advanced="isUpstreamCAPIProvider"
                   @error="handleMachinePoolError"
                   @validationChanged="v => machinePoolValidationChanged(obj.id, v)"

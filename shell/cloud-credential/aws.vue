@@ -20,9 +20,6 @@ export default {
       cur = this.$store.getters['aws/defaultRegion'];
       this.value.setData('defaultRegion', cur);
     }
-    this.value.annotations['identity-ref'] = 'cluster-identity';
-    this.value.metadata.annotations['identity-ref'] = 'cluster-identity';
-    console.log(this.value);
 
     this.knownRegions = await this.$store.dispatch('aws/defaultRegions');
 

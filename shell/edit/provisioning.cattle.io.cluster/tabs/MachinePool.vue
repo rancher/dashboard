@@ -41,7 +41,7 @@ export default {
       default: () => ({})
     },
 
-    capiCluster: {
+    infrastructureCluster: {
       type:    Object,
       default: () => ({})
     },
@@ -377,7 +377,7 @@ export default {
       v-model:is-ipv6="value.isIpv6"
       v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
-      :capi-cluster="capiCluster"
+      :infrastructure-cluster="infrastructureCluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"

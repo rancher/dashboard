@@ -172,6 +172,7 @@ export const getters = {
     return async(name) => {
       const schema = getters.schemaForDriver(name);
 
+      await schema.fetchResourceFields();
       if ( !schema ) {
         // eslint-disable-next-line no-console
         console.error(`Machine Driver Config schema not found for ${ name }`);
@@ -179,7 +180,6 @@ export const getters = {
         return [];
       }
 
-      await schema.fetchResourceFields();
       // This is used in places where `createPopulated` has been called, which has called fetchResourceFields to populate resourceFields
       const out = Object.keys(schema?.resourceFields || {});
 
@@ -192,10 +192,6 @@ export const getters = {
   fieldsForDriver(state, getters) {
     return async(name) => {
       const schema = getters.schemaForDriver(name);
-
-      if ( !schema ) {
-        return {};
-      }
 
       await schema.fetchResourceFields();
       const names = await getters.fieldNamesForDriver(name);

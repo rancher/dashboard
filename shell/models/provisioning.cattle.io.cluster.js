@@ -718,7 +718,6 @@ export default class ProvCluster extends SteveModel {
     if (this.customProvisionerHelper?.postDelete) {
       return this.customProvisionerHelper?.postDelete(this);
     }
-    // TODO ???
   }
 
   /**
