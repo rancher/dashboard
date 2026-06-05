@@ -9,7 +9,7 @@ import { isRancherPrime } from '@shell/config/version';
 import FleetUtils from '@shell/utils/fleet';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import suseLogo from '@shell/assets/images/content/suse.svg';
-import suseLogoDark from '@shell/assets/images/vendor/suse-app-collection-dark-mode.svg';
+import suseLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
 interface Subtype {
   id: string;
