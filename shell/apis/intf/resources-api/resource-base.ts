@@ -5,6 +5,7 @@ import {
   ActionFindPageArgs,
   ActionFindPageResponse, ActionFindMatchingResponse
 } from '@shell/types/store/dashboard-store.types';
+import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 
 /**
  * @interface
@@ -129,3 +130,17 @@ export type FindFilteredPageResponse<T = any> = ActionFindPageResponse<T>;
  * Can be either a transient response object (with data and pagination) or an array of resources.
  */
 export type FindFilteredLabelSelectorResponse<T = any> = ActionFindMatchingResponse<T>;
+
+/**
+ * @interface
+ * Steve API JSON response for GET requests for a resource
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export type SteveResource = SteveGetResponse;
+
+/**
+ * @interface
+ * Steve API JSON response for LIST resource requests
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export type SteveList = SteveListResponse;

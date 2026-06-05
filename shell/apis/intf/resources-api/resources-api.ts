@@ -1,9 +1,8 @@
 import {
   ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
-  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource, SteveList
 } from './resource-base';
 import { ResourceInstance } from './resource-instance';
-import { SteveListResponse } from '@shell/types/rancher/steve.api';
 
 /**
  * Base interface for all resource API operations.
@@ -25,7 +24,7 @@ export interface ResourcesApi {
   /**
    * Finds a specific resource by its type and ID.
    *
-   * @template T - The type of the resource (defaults to ResourceInstance)
+   * @template T - The type of the resource (defaults to SteveResource)
    * @param resourceType - The type of the resource to find (use **{@link K8S}** constant). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
@@ -44,18 +43,18 @@ export interface ResourcesApi {
    * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
    * ```
    */
-  find<T = ResourceInstance>(
+  find<T = SteveResource>(
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<T | null>;
+  ): Promise<T>;
 
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
    *
    * Requires `ui-sql-cache` to be enabled.
    *
-   * @template T - The type of the resources (defaults to ResourceInstance)
+   * @template T - The type of the resources (defaults to SteveList)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items (may be transient if requested, otherwise cached array).
@@ -77,7 +76,7 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findFiltered<T = SteveListResponse>(
+  findFiltered<T = SteveList>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions
   ): Promise<FindFilteredPageResponse<T>>;
@@ -89,7 +88,7 @@ export interface ResourcesApi {
    * - If `ui-sql-cache` is enabled: uses server-side pagination
    * - Otherwise: uses native Kubernetes API pagination
    *
-   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @template T - The type of the resources (defaults to SteveList)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
    * @param options - Label selector options for filtering. See {@link FindFilteredLabelSelectorOptions}.
    * @returns Response containing resource items (may be transient if requested, otherwise cached array).
@@ -105,7 +104,7 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findFiltered<T = SteveListResponse>(
+  findFiltered<T = SteveList>(
     resourceType: ResourceType,
     options: FindFilteredLabelSelectorOptions
   ): Promise<FindFilteredLabelSelectorResponse<T>>;
@@ -113,7 +112,7 @@ export interface ResourcesApi {
   /**
    * @internal Implementation - use one of the overloads above
    */
-  findFiltered<T = SteveListResponse>(
+  findFiltered<T = SteveList>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
   ): Promise<FindFilteredPageResponse<T> | FindFilteredLabelSelectorResponse<T>>;
@@ -122,7 +121,7 @@ export interface ResourcesApi {
    * Fetches all resources of a specific type with advanced options.
    * This method provides additional capabilities like incremental loading and namespace filtering.
    *
-   * @template T - The type of the resources (defaults to SteveListResponse)
+   * @template T - The type of the resources (defaults to SteveList)
    * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
    * @param options - Optional advanced fetch options (incremental loading, namespace filtering, etc.)
    * @returns An array of resource items or an empty array if none are found.
@@ -137,7 +136,7 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findAll<T = SteveListResponse>(
+  findAll<T = SteveList>(
     resourceType: ResourceType,
     options?: FindAllMethodOptions
   ): Promise<T[]>;
@@ -146,7 +145,7 @@ export interface ResourcesApi {
    * Creates a new resource.
    *
    * The `data` object must include a `type` property identifying the resource type.
-   * Checks `canCreate` permissions before saving.
+   * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - The type of the resource (defaults to ResourceInstance)
    * @param data - The resource data to create. Must include a `type` property (use **{@link K8S}** constant). See also {@link CreateResourceData}.
@@ -187,12 +186,12 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const result = await resources.cluster.patchMerge(K8S.CONFIG_MAP, 'default/my-config', {
-   *   data: { newKey: 'newValue' }
+   * const result = await resources.cluster.update(K8S.CONFIG_MAP, 'default/my-config', {
+   *   someField: { newKey: 'newValue' }
    * });
    * ```
    */
-  patchMerge<T = ResourceInstance>(
+  update<T = ResourceInstance>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
@@ -215,15 +214,13 @@ export interface ResourcesApi {
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
+   * const configMapData = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
+   * configMapData.someField = { newKey: 'newValue' };
    *
-   * const result = await resources.cluster.update(K8S.CONFIG_MAP, 'default/my-config', {
-   *   type:     'configmap',
-   *   metadata: { name: 'my-config', namespace: 'default', resourceVersion: '12345' },
-   *   data:     { key: 'replacedValue' }
-   * });
+   * const result = await resources.cluster.replace(K8S.CONFIG_MAP, 'default/my-config', configMapData);
    * ```
    */
-  update<T = ResourceInstance>(
+  replace<T = ResourceInstance>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>

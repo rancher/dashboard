@@ -7,13 +7,12 @@ export * from '@shell/apis/intf/resources-api/cluster-api';
 export * from '@shell/apis/intf/resources-api/mgmt-api';
 export type {
   ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
-  FindFilteredPageResponse, FindFilteredLabelSelectorResponse
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource, SteveList
 } from '@shell/apis/intf/resources-api/resource-base';
 export * from '@shell/apis/intf/resources-api/resource-constants';
 
 export * from '@shell/apis/intf/resources-api/resource-instance';
 
-export type { SteveGetResponse, SteveListResponse } from '@shell/types/rancher/steve.api';
 export type { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 export type { PaginationSort } from '@shell/types/store/pagination.types';
 export {

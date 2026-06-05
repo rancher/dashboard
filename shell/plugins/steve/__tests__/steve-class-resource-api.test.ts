@@ -44,7 +44,7 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
     return { model: model as any, dispatch };
   }
 
-  describe('patchMerge', () => {
+  describe('update', () => {
     it('should send a merge-patch request and load the response into the store', async() => {
       const patchResponse = {
         type: 'configmap', id: 'default/my-config', kind: 'ConfigMap', data: { key: 'patched' }
@@ -55,16 +55,15 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
         .mockResolvedValueOnce(patchResponse)
         .mockResolvedValueOnce(undefined);
 
-      const result = await model.patchMerge({ data: { key: 'patched' } });
+      const result = await model.update({ data: { key: 'patched' } });
 
       expect(result).toStrictEqual(model);
       expect(dispatch).toHaveBeenCalledWith('request', {
         opt: expect.objectContaining({
-          url:                'https://rancher/v1/configmaps/default/my-config',
-          method:             'patch',
-          headers:            expect.objectContaining({ 'content-type': 'application/strategic-merge-patch+json' }),
-          data:               { data: { key: 'patched' } },
-          sendingPartialData: true,
+          url:     'https://rancher/v1/configmaps/default/my-config',
+          method:  'patch',
+          headers: expect.objectContaining({ 'content-type': 'application/strategic-merge-patch+json' }),
+          data:    { data: { key: 'patched' } },
         }),
         type: 'configmap'
       });
@@ -80,7 +79,7 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
 
       dispatch.mockResolvedValueOnce(tableResponse);
 
-      await model.patchMerge({ data: { key: 'value' } });
+      await model.update({ data: { key: 'value' } });
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch).not.toHaveBeenCalledWith('load', expect.anything());
@@ -89,20 +88,20 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
     it('should throw when canEdit is false', async() => {
       const { model, dispatch } = createSteveModel({ links: {} });
 
-      await expect(model.patchMerge({ data: {} })).rejects.toThrow(
+      await expect(model.update({ data: {} })).rejects.toThrow(
         'ResourceInstance API error - configmap/default/my-config - Cannot patch: permission denied'
       );
       expect(dispatch).not.toHaveBeenCalled();
     });
   });
 
-  describe('update', () => {
+  describe('replace', () => {
     it('should call save() and return the instance', async() => {
       const { model, dispatch } = createSteveModel();
 
       dispatch.mockResolvedValueOnce(undefined);
 
-      const result = await model.update();
+      const result = await model.replace();
 
       expect(result).toStrictEqual(model);
       expect(dispatch).toHaveBeenCalledWith('request', expect.objectContaining({ opt: expect.objectContaining({ method: 'put' }) }));
@@ -111,7 +110,7 @@ describe('class: Steve — ResourceInstanceApi methods', () => {
     it('should throw when canEdit is false', async() => {
       const { model, dispatch } = createSteveModel({ links: {} });
 
-      await expect(model.update()).rejects.toThrow(
+      await expect(model.replace()).rejects.toThrow(
         'ResourceInstance API error - configmap/default/my-config - Cannot update: permission denied'
       );
       expect(dispatch).not.toHaveBeenCalled();

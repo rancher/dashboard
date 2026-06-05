@@ -27,7 +27,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         throw new Error(`No schema found for type "${ type }"`);
       }
 
-      return `${ schema.linkFor() }/${ id }`;
+      return id ? `${ schema.linkFor() }/${ id }` : schema.linkFor();
     });
 
     mockStore = {
@@ -576,69 +576,66 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   });
 
   describe('create', () => {
-    it('should create a resource when canCreate is true', async() => {
+    it('should send a POST request with the resource data', async() => {
       // Arrange
-      const mockModel = {
-        canCreate: true,
-        save:      jest.fn<any, any[]>().mockResolvedValue(undefined),
-        type:      'configmap',
-        metadata:  { name: 'my-config', namespace: 'default' },
+      const inputData = {
+        type:     'configmap',
+        metadata: { name: 'my-config', namespace: 'default' },
+      };
+      const mockResponse = {
+        type:     'configmap',
+        metadata: { name: 'my-config', namespace: 'default' },
       };
 
-      mockDispatch.mockResolvedValue(mockModel);
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await resourcesApi.create({
-        type:     'configmap',
-        metadata: { name: 'my-config', namespace: 'default' },
-      });
+      const result = await resourcesApi.create(inputData);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/create`, {
-        type:     'configmap',
-        metadata: { name: 'my-config', namespace: 'default' },
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps',
+          method:  'POST',
+          headers: { 'content-type': 'application/json' },
+          data:    inputData,
+        }
       });
-      expect(mockModel.save).toHaveBeenCalledTimes(1);
-      expect(result).toBeDefined();
+      expect(result).toStrictEqual(mockResponse);
     });
 
-    it('should throw when canCreate is false', async() => {
-      // Arrange
-      const mockModel = {
-        canCreate: false,
-        save:      jest.fn(),
-      };
-
-      mockDispatch.mockResolvedValue(mockModel);
-
+    it('should throw when data.type is missing', async() => {
       // Act & Assert
-      await expect(resourcesApi.create({ type: 'configmap' })).rejects.toThrow(
-        `Resource API error - ${ storeType } - Cannot create resource of type "configmap": permission denied`
+      await expect(resourcesApi.create({} as any)).rejects.toThrow(
+        `Resource API error - ${ storeType } - Resource data must include a "type" property`
       );
-      expect(mockModel.save).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('should throw error and log when save fails', async() => {
+    it('should throw error and log when request fails', async() => {
       // Arrange
-      const mockModel = {
-        canCreate: true,
-        save:      jest.fn<any, any[]>().mockRejectedValue(new Error('Save failed')),
-      };
-
-      mockDispatch.mockResolvedValue(mockModel);
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockRejectedValue(new Error('Request failed'));
 
       // Act & Assert
       await expect(resourcesApi.create({ type: 'configmap' })).rejects.toThrow(
-        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Save failed`
+        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Request failed`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Save failed`,
+        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Request failed`,
         expect.any(Error)
       );
     });
   });
 
-  describe('patchMerge', () => {
+  describe('update', () => {
     it('should send a PATCH request with strategic-merge-patch content type', async() => {
       // Arrange
       const mockResponse = { metadata: { name: 'my-config' }, data: { key: 'patched' } };
@@ -650,7 +647,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       mockDispatch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await resourcesApi.patchMerge('configmap', 'default/my-config', { data: { key: 'patched' } });
+      const result = await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
 
       // Assert
       expect(result).toStrictEqual(mockResponse);
@@ -669,7 +666,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
 
       // Act & Assert
-      await expect(resourcesApi.patchMerge('configmap', 'my-config', {})).rejects.toThrow(
+      await expect(resourcesApi.update('configmap', 'my-config', {})).rejects.toThrow(
         `Resource API error - ${ storeType } - Resource "configmap" is namespaced. The resourceId must be in "namespace/name" format, but received "my-config"`
       );
     });
@@ -679,7 +676,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       mockSchemaFor.mockReturnValue(null);
 
       // Act & Assert
-      await expect(resourcesApi.patchMerge('configmap', 'default/my-config', {})).rejects.toThrow(
+      await expect(resourcesApi.update('configmap', 'default/my-config', {})).rejects.toThrow(
         'No schema found for type "configmap"'
       );
     });
@@ -693,17 +690,17 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       mockDispatch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
-      await expect(resourcesApi.patchMerge('node', 'worker-1', {})).rejects.toThrow(
-        `Resource API error - ${ storeType } - Failed to patchMerge resource node/worker-1: Network error`
+      await expect(resourcesApi.update('node', 'worker-1', {})).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Network error`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Failed to patchMerge resource node/worker-1: Network error`,
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Network error`,
         expect.any(Error)
       );
     });
   });
 
-  describe('update', () => {
+  describe('replace', () => {
     it('should send a PUT request with cleanForSave applied', async() => {
       // Arrange
       const inputData = {
@@ -725,7 +722,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         .mockResolvedValueOnce(mockResponse);
 
       // Act
-      const result = await resourcesApi.update('configmap', 'default/my-config', inputData);
+      const result = await resourcesApi.replace('configmap', 'default/my-config', inputData);
 
       // Assert
       expect(result).toStrictEqual(mockResponse);
@@ -746,7 +743,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
 
       // Act & Assert
-      await expect(resourcesApi.update('configmap', 'my-config', {})).rejects.toThrow(
+      await expect(resourcesApi.replace('configmap', 'my-config', {})).rejects.toThrow(
         `Resource API error - ${ storeType } - Resource "configmap" is namespaced. The resourceId must be in "namespace/name" format, but received "my-config"`
       );
     });
@@ -764,7 +761,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         .mockRejectedValueOnce(new Error('Conflict'));
 
       // Act & Assert
-      await expect(resourcesApi.update('node', 'worker-1', {})).rejects.toThrow(
+      await expect(resourcesApi.replace('node', 'worker-1', {})).rejects.toThrow(
         `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Conflict`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(

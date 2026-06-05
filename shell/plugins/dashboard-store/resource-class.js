@@ -1248,7 +1248,7 @@ export default class Resource {
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
     // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
-    if (!opt.sendingPartialData) {
+    if (!(opt.method === 'patch')) {
       opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
     }
 
@@ -1268,7 +1268,7 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
-    if (!opt.preventCleanForSave) {
+    if (!(opt.method === 'patch')) {
       opt.data = this.cleanForSave(opt.data, forNew);
     }
 

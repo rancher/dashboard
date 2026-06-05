@@ -93,19 +93,19 @@ export default class SteveModel extends HybridModel {
   }
 
   /**
-   * RESOURCES API - ResourceInstance patchMerge method to send a PATCH request
+   * RESOURCES API - ResourceInstance update method to send a PATCH request
    */
-  async patchMerge(data) {
+  async update(data) {
     if (!this.canEdit) {
       throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot patch: permission denied`);
     }
 
+    console.error('Updating instance with data:', data); // eslint-disable-line no-console
+
     await this.save({
       data,
-      method:              'patch',
-      sendingPartialData:  true,
-      preventCleanForSave: true,
-      headers:             { 'content-type': 'application/strategic-merge-patch+json' }
+      method:  'patch',
+      headers: { 'content-type': 'application/strategic-merge-patch+json' }
     });
 
     return this;
@@ -114,7 +114,7 @@ export default class SteveModel extends HybridModel {
   /**
    * RESOURCES API - ResourceInstance update method to send a PUT request
    */
-  async update() {
+  async replace() {
     if (!this.canEdit) {
       throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot update: permission denied`);
     }

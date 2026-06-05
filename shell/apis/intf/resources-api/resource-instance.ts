@@ -1,4 +1,4 @@
-import { SteveGetResponse } from '@shell/types/rancher/steve.api';
+import { SteveResource } from '@shell/apis/intf/resources-api/resource-base';
 
 /**
  * Instance-level operations available on resources returned by the Resources API.
@@ -8,7 +8,7 @@ import { SteveGetResponse } from '@shell/types/rancher/steve.api';
 export interface ResourceInstanceApi {
   /**
    * Applies a partial update to a resource using HTTP PATCH
-   * with merge-patch semantics (`application/merge-patch+json`).
+   * with merge-patch semantics (`application/strategic-merge-patch+json`).
    *
    * Only the fields provided in `data` are sent to the server — the rest of the resource
    * remains unchanged. The server response is merged back into this instance.
@@ -25,13 +25,13 @@ export interface ResourceInstanceApi {
    * const resources = useResources();
    * const configMap = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
    *
-   * await configMap.patchMerge({ newKey: 'newValue' });
+   * await configMap.update({ newKey: 'newValue' });
    *
    * const result = configMap.newKey === 'newValue' // true
 
    * ```
    */
-  patchMerge(data: Record<string, any>): Promise<ResourceInstanceApi>;
+  update(data: Record<string, any>): Promise<ResourceInstanceApi>;
 
   /**
    * Performs a full replacement update of a resource using HTTP PUT.
@@ -50,10 +50,10 @@ export interface ResourceInstanceApi {
    * const configMap = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
    *
    * configMap.data.myKey = 'updatedValue';
-   * await configMap.update();
+   * await configMap.replace();
    * ```
    */
-  update(): Promise<ResourceInstanceApi>;
+  replace(): Promise<ResourceInstanceApi>;
 
   /**
    * Deletes a resource instance.
@@ -81,7 +81,7 @@ export interface ResourceInstanceApi {
  * Provides instance-level operations such as deleting or updating a resource instance.
  * The resource data (metadata, spec, status, etc.) is accessible directly on the instance.
  *
- * @template T - The shape of the underlying resource data (defaults to SteveGetResponse)
+ * @template T - The shape of the underlying resource data (defaults to SteveResource)
  *
  * @example
  * ```ts
@@ -97,4 +97,4 @@ export interface ResourceInstanceApi {
  * await pod.delete();
  * ```
  */
-export type ResourceInstance<T = SteveGetResponse> = T & ResourceInstanceApi;
+export type ResourceInstance<T = SteveResource> = T & ResourceInstanceApi;

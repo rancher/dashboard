@@ -105,49 +105,51 @@ export default defineComponent({
     },
     async createNewInstance() {
       const data = await this.$resources.cluster.create(this.createInstanceData);
-      // const data = await this.$resources.cluster.create(this.badData);
 
       this.newPv = data;
 
       console.error('Created new instance:', data); // eslint-disable-line no-console
     },
-    async patchInstance() {
-      const newData = { spec: { capacity: { storage: '111Gi' } } };
-      const data = await this.$resources.cluster.patchMerge(K8S.PV, this.newPv.id, newData);
-
-      console.error('PATCH instance via RESOURCES API:', data); // eslint-disable-line no-console
-    },
     async updateInstance() {
-      // doesn't work because of the non-enumerable _model property on ResourceInstanceImpl, which causes structuredClone to throw a DataCloneError
-      // const newData = structuredClone(this.newPv);
-      const newData = structuredClone(this.newPv.toJSON());
-      // or simply
-      // const newData = JSON.parse(JSON.stringify(this.newPv));
-
-      newData.spec.capacity.storage = '1222Gi';
+      const newData = { spec: { capacity: { storage: '111Gi' } } };
       const data = await this.$resources.cluster.update(K8S.PV, this.newPv.id, newData);
 
       console.error('UPDATE instance via RESOURCES API:', data); // eslint-disable-line no-console
     },
+    async replaceInstance() {
+      const newData = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
+
+      newData.spec.capacity.storage = '1222Gi';
+      const data = await this.$resources.cluster.replace(K8S.PV, this.newPv.id, newData);
+
+      console.error('REPLACE instance via RESOURCES API:', data); // eslint-disable-line no-console
+    },
     async deleteInstance() {
       await this.$resources.cluster.delete(K8S.PV, this.newPv.id);
     },
-    async patchInstanceApi() {
-      const newData = { spec: { capacity: { storage: '11Gi' } } };
-      const data = await this.newPv.patchMerge(newData);
-
-      console.error('Patched instance via Instance API:', data); // eslint-disable-line no-console
-    },
     async updateInstanceApi() {
-      console.error('this.newPv before update:', this.newPv); // eslint-disable-line no-console
-      this.newPv.spec.capacity.storage = '12Gi';
-      const data = await this.newPv.update();
+      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
+      const newData = { spec: { capacity: { storage: '11Gi' } } };
 
-      console.error('Updated instance via Instance API:', data); // eslint-disable-line no-console
+      console.error('newData before update:', newData); // eslint-disable-line no-console
+      const data = await pv.update(newData);
+
+      console.error('UPDATE instance via Instance API:', data); // eslint-disable-line no-console
+    },
+    async replaceInstanceApi() {
+      console.error('this.newPv before update:', this.newPv); // eslint-disable-line no-console
+      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
+
+      pv.spec.capacity.storage = '12Gi';
+      const data = await pv.replace();
+
+      console.error('REPLACE instance via Instance API:', data); // eslint-disable-line no-console
     },
     async deleteInstanceApi() {
       console.error('this.newPv before delete:', this.newPv); // eslint-disable-line no-console
-      await this.newPv.delete();
+      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
+
+      await pv.delete();
     }
   }
 });
@@ -162,15 +164,15 @@ export default defineComponent({
   </button>
   <button
     class="btn role-secondary"
-    @click="patchInstance"
-  >
-    PATCH
-  </button>
-  <button
-    class="btn role-secondary"
     @click="updateInstance"
   >
     UPDATE
+  </button>
+  <button
+    class="btn role-secondary"
+    @click="replaceInstance"
+  >
+    REPLACE
   </button>
   <button
     class="btn role-secondary"
@@ -180,15 +182,15 @@ export default defineComponent({
   </button>
   <button
     class="btn role-primary"
-    @click="patchInstanceApi"
-  >
-    PATCH INSTANCE API
-  </button>
-  <button
-    class="btn role-primary"
     @click="updateInstanceApi"
   >
     UPDATE INSTANCE API
+  </button>
+  <button
+    class="btn role-primary"
+    @click="replaceInstanceApi"
+  >
+    REPLACE INSTANCE API
   </button>
   <button
     class="btn role-primary"
