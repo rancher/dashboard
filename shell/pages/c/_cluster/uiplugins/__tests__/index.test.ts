@@ -1174,7 +1174,7 @@ describe('page: UI plugins/Extensions', () => {
       expect(all[0].originalRepoNameDisplay).toBeNull();
     });
 
-    it('should not match chart from a different repo', () => {
+    it('should fall back to name-only match when repo name does not match', () => {
       const apps = [{
         metadata: {
           name:      'my-plugin',
@@ -1196,10 +1196,68 @@ describe('page: UI plugins/Extensions', () => {
 
       wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
 
-      expect(all).toHaveLength(2);
-      expect(all[0].installed).toBeUndefined();
-      expect(all[1].installed).toBe(true);
-      expect(all[1].uiplugin).toBe(pluginCR);
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[0].installedVersion).toBe('1.0.0');
+    });
+
+    it('should fall back to name-only match when originalRepoName is undefined', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    {}
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[0].installedVersion).toBe('1.0.0');
+    });
+
+    it('should preserve certification flags from chart when falling back to name-only match', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    {}
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        certified:           true,
+        primeOnly:           false,
+        experimental:        false,
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].certified).toBe(true);
     });
   });
 

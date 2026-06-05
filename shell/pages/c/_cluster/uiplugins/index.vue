@@ -962,6 +962,13 @@ export default {
         chart = all.find((c) => c.name === pluginCR.name && c.chart?.repoName === originalRepoName);
       }
 
+      // fallback to try and prevent https://github.com/rancher/dashboard/issues/17956
+      // which we believe is due to a race condition
+      // so we try to find the chart without considering the repo, which is not ideal but should be better than missing the match entirely
+      if (!chart) {
+        chart = all.find((c) => c.name === pluginCR.name);
+      }
+
       if (chart) {
         chart.installed = true;
         chart.uiplugin = pluginCR;
