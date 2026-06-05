@@ -65,6 +65,7 @@
     "agents:generate": "./scripts/generate-agent-and-persona-mds.sh"
   },
   "dependencies": {
+    "@rancher/shell": "file:./shell",
     "@aws-sdk/client-ec2": "3.1041.0",
     "@aws-sdk/client-eks": "3.1041.0",
     "@aws-sdk/client-iam": "3.1041.0",
@@ -95,13 +96,11 @@
     "element-matches": "0.1.2",
     "event-target-shim": "5.0.1",
     "express": "4.17.1",
-    "file-saver": "2.0.2",
     "floating-vue": "5.2.2",
     "focus-trap": "7.6.5",
     "https": "1.0.0",
     "identicon.js": "2.3.3",
     "intl-messageformat": "7.8.4",
-    "ip": "2.0.1",
     "ipaddr.js": "2.4.0",
     "jexl": "2.3.0",
     "jquery": "3.5.1",
