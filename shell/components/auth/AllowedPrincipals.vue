@@ -1,7 +1,6 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@components/Banner';
 import Principal from '@shell/components/auth/Principal';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { _EDIT } from '@shell/config/query-params';
@@ -11,7 +10,6 @@ export default {
   components: {
     SelectPrincipal,
     ArrayList,
-    Banner,
     RadioGroup,
     Principal,
   },
@@ -50,7 +48,7 @@ export default {
 
   created() {
     if ( !this.authConfig.accessMode ) {
-      this.authConfig['accessMode'] = 'required';
+      this.authConfig['accessMode'] = 'restricted';
     } if (!this.authConfig.allowedPrincipalIds) {
       this.authConfig['allowedPrincipalIds'] = [];
     }
@@ -66,14 +64,6 @@ export default {
 
 <template>
   <div>
-    <Banner
-      v-if="accessMode === 'unrestricted'"
-      color="warning"
-      data-testid="auth-unrestricted-warning-banner"
-    >
-      <span v-clean-html="t('authConfig.accessMode.unrestrictedWarning', {}, true)" />
-    </Banner>
-
     <h3>{{ t('authConfig.accessMode.label', {provider: authConfig.nameDisplay}) }}</h3>
 
     <div class="row">
