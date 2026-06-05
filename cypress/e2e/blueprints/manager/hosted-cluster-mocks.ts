@@ -1387,7 +1387,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:58:36Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '123', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'Hostname' }, { address: '1234.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.1.24', type: 'InternalIP' }, { address: '192.168.1.24', type: 'ExternalIP' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'Hostname' }, { address: '1234.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371440Ki', pods: '17'
         },
