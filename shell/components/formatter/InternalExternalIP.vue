@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     isIp(ip) {
-      return ip && ipaddr.isValid(ip);
+      return ip && (ipaddr.IPv4.isValidFourPartDecimal(ip) || ipaddr.IPv6.isValid(ip));
     }
   }
 };
