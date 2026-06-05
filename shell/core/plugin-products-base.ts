@@ -1,7 +1,7 @@
 import { IExtension } from '@shell/core/types';
 import {
   ProductChild, ProductMetadata,
-  ConfigureTypeConfiguration, VirtualTypeConfiguration,
+  ResourcePageConfiguration, CustomPageConfiguration,
   ProductChildCustomPage, VueRouteComponent,
   OverviewPageRoutingMetadata
 } from '@shell/core/plugin-types';
@@ -343,7 +343,7 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
-      const virtualTypeConfig: VirtualTypeConfiguration = {
+      const virtualTypeConfig: CustomPageConfiguration = {
         label:      item.label,
         labelKey:   item.labelKey,
         namespaced: false,
@@ -377,7 +377,7 @@ export abstract class BasePluginProduct {
 
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
 
-      const configureTypeConfig: ConfigureTypeConfiguration = {
+      const configureTypeConfig: ResourcePageConfiguration = {
         isCreatable: true,
         isEditable:  true,
         isRemovable: true,
