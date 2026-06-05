@@ -9,7 +9,7 @@ export default {
     CAPI_PROVIDER() {
       return CAPI.CAPI_PROVIDER;
     }
-  },
+  }
 };
 </script>
 

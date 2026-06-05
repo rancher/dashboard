@@ -19,7 +19,7 @@ export default {
   },
   async fetch() {
     this.rows = await this.$store.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER });
-  },
+  }
 };
 </script>
 

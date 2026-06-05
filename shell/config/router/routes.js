@@ -375,7 +375,7 @@ export default [
         name:      'c-cluster-manager-hostedprovider'
       }, {
         path:      '/c/:cluster/manager/capiprovider',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/capiProvider/index.vue')),
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/capiprovider/index.vue')),
         name:      'c-cluster-manager-capiprovider'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig',
@@ -435,8 +435,8 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/create.vue')),
         name:      'c-cluster-manager-driver-nodedriver-create'
       }, {
-        path:      '/c/:cluster/manager/capiProvider/create',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/capiProvider/create.vue')),
+        path:      '/c/:cluster/manager/capiprovider/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/capiprovider/create.vue')),
         name:      'c-cluster-manager-capiprovider-create'
       }, {
         path:      '/c/:cluster/monitoring/monitor/create',

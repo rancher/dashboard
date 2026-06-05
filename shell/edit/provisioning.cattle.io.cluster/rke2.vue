@@ -1066,10 +1066,10 @@ export default {
       }
 
       // Keep the spec tree in sync with the extension payload so omitted keys are actually removed.
-      this.infrastructureCluster.spec = cleanUp(neu.spec);
+      const cleanedUpSpec = cleanUp(neu.spec);
 
       // Preserve the original resource model instance while applying extension updates.
-      mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
+      mergeWithReplace(this.infrastructureCluster, { ...neu, spec: cleanedUpSpec }, { mutateOriginal: true });
     },
 
     async handleVsphereCpiSecret() {

@@ -4,6 +4,9 @@ import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
     return ['GKE', 'EKS', 'AKS'].includes(provider);
+  }),
+  isCAPIProvider: jest.fn().mockImplementation((context, provider) => {
+    return ['CAPA', 'CAPV'].includes(provider);
   })
 }));
 
@@ -389,6 +392,52 @@ describe('class ProvCluster', () => {
       jest.spyOn(cluster, 'kubernetesVersion', 'get').mockReturnValue(clusterData.kubernetesVersion);
 
       expect(cluster.supportsWindows).toBe(expected);
+      jest.clearAllMocks();
+    });
+  });
+
+  describe('isCapiWithoutExtension', () => {
+    const testCases = [
+      {
+        description:    'should return undefined when mgmt is undefined',
+        isCapiHybrid:   undefined,
+        isCAPIProvider: undefined,
+        expected:       undefined,
+      },
+      {
+        description:    'should return false when not a CAPI cluster',
+        isCapiHybrid:   false,
+        isCAPIProvider: false,
+        expected:       false,
+      },
+      {
+        description:    'should return false when CAPI cluster and a registered CAPI provider extension exists',
+        isCapiHybrid:   true,
+        isCAPIProvider: true,
+        expected:       false,
+      },
+      {
+        description:    'should return true when CAPI cluster but no registered CAPI provider extension',
+        isCapiHybrid:   true,
+        isCAPIProvider: false,
+        expected:       true,
+      },
+    ];
+
+    it.each(testCases)('$description', ({ isCapiHybrid, isCAPIProvider, expected }) => {
+      const cluster = new ProvCluster({});
+
+      if (isCapiHybrid === undefined) {
+        jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(undefined);
+      } else {
+        const mgmtCluster = new MgmtCluster({});
+
+        jest.spyOn(mgmtCluster, 'isCapiHybrid', 'get').mockReturnValue(isCapiHybrid);
+        jest.spyOn(mgmtCluster, 'isCAPIProvider', 'get').mockReturnValue(isCAPIProvider);
+        jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+      }
+
+      expect(cluster.isCapiWithoutExtension).toStrictEqual(expected);
       jest.clearAllMocks();
     });
   });
