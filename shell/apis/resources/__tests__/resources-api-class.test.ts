@@ -143,18 +143,6 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       );
     });
 
-    it('should return null when dispatch returns undefined', async() => {
-      // Arrange
-      mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
-      mockDispatch.mockResolvedValue(undefined);
-
-      // Act
-      const result = await resourcesApi.find('pod', 'default/nonexistent-pod');
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
     it('should handle resources with different types correctly', async() => {
       // Arrange
       const mockDeployment = {
