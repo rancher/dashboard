@@ -38,35 +38,38 @@
 - gatekeeper/util.js: store mock via `{ getters: { ['cluster/all']: () => schemas }, dispatch: jest.fn() }`
 - gc-root-store.js: mock gc/gc-interval/gc-route-changed via jest.resetModules()+jest.mock() in beforeEach inside describe
 - versions.ts: singleton — use jest.resetModules()+jest.mock('@shell/config/version',...)` in beforeEach to reset; use makeStoreWithCalls(p1,p2) helper to control per-call dispatch results
-- string.js: escapeHtml regex `/[&<>"']/g` does NOT include `/`, so `/` is not escaped (even though entityMap has it); escapeRegex escapes all `.*+?^${}()|[\]` chars; formatPercent: value<1 AND maxPrecision>=2 → 2 decimal places; value<10 AND maxPrecision>=1 → 1 decimal place; else round
-- monitoring.js: hasEndpointSubsets returns `undefined` (not `false`) when endpoint not found or subsets undefined — short-circuit &&; use toBeFalsy() for those cases; haveV2Monitoring mocks: getters['getStoreNameByProductId']=storeName, getters[`${storeName}/all`]=(type)=>schemas
-- position.js: fitOnScreen uses `triggerElemOrEvent instanceof Event` — must pass real `new MouseEvent(...)` not plain object; use `useDefaults=true` to avoid needing real DOM contentElem; mock window.innerWidth/Height with Object.defineProperty; TOP→BOTTOM fallback IS implemented when gapIf.top<0
-- dom.js: getParent() traverses DOM upward; el.matchesSelector branch (line 8) not coverable in jsdom (legacy API absent) — skip it
-- width.js: getWidth() uses `el.length` check; jsdom getComputedStyle returns '0px' for unstiled elements — test null/undefined/empty cases only
+- string.js: escapeHtml regex `/[&<>"']/g` does NOT include `/`, so `/` is not escaped; escapeRegex escapes all `.*+?^${}()|[\]` chars; formatPercent: value<1 AND maxPrecision>=2 → 2 decimal places; value<10 AND maxPrecision>=1 → 1 decimal place; else round
+- monitoring.js: hasEndpointSubsets returns `undefined` (not `false`) when endpoint not found or subsets undefined
+- position.js: fitOnScreen uses `triggerElemOrEvent instanceof Event` — must pass real `new MouseEvent(...)` not plain object
+- dom.js: getParent() traverses DOM upward; el.matchesSelector branch (line 8) not coverable in jsdom
+- width.js: getWidth() uses `el.length` check; jsdom getComputedStyle returns '0px' for unstiled elements
 - title.ts: updatePageTitle filters falsy values; empty string is falsy so it gets filtered out
-- platform.js: jsdom gives `navigator.platform=''` → isMac=false → alternateKey='ctrlKey'; use exported `alternateKey`/`moreKey`/`rangeKey` constants as event keys for platform-agnostic tests; module-level boolean branches (isMac/isLinuxy/etc.) are not coverable without module reset
-- window.js: mock `window.screen` via Object.defineProperty(window,'screen',{writable:true,configurable:true,value:{width,height}}); spy on `window.open`; use jest.useFakeTimers() for Popup.open setInterval polling
+- platform.js: jsdom gives `navigator.platform=''` → isMac=false; use exported `alternateKey`/`moreKey`/`rangeKey` constants for platform-agnostic tests
+- window.js: mock `window.screen` via Object.defineProperty; spy on `window.open`; use jest.useFakeTimers() for Popup.open setInterval polling
+- computed.js: `integerString` and `keyValueStrings` return `{get(),set()}` objects; test with `.call(ctx)` on plain object; no mocking needed; `Object.is(NaN,NaN)=true` so `toStrictEqual(NaN)` works
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/fleet.ts` store-dependent methods — detailLocation, getResourcesDefaultState, getBundlesDefaultState
-2. `shell/utils/ingress.ts` — fetchServices/fetchSecrets store-dependent methods
-3. `shell/utils/computed.js` — integerString and keyValueStrings computed-property factories
+1. `shell/utils/cspAdaptor.ts` — Content Security Policy adaptor; pure logic worth exploring
+2. `shell/utils/select.js` — dropdown positioner with branching logic (DOM-dependent, complex)
+3. `shell/utils/release-notes.ts` — notification helper (store-dependent, needs Vuex mock)
 
 ## Completed Work (Summary)
 
-- 2026-06-05: PR (branch test-assist/platform-window-utils-tests): 22 tests for platform.js, window.js; platform.js 96.87% stmts/100% fns; window.js 100% all metrics
-- 2026-05-30: PR (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts; 100% stmts/fns/lines, 94.11% branches — merged ✅
-- 2026-05-29: PR (branch test-assist/position-utils-tests): 21 tests for position.js; 87.2% stmts, 67.5% branches, 75% fns — merged ✅
-- 2026-05-28: PR (branch test-assist/monitoring-utils-tests): 14 tests for monitoring.js; 84.1% stmts, 92.3% branches, 87.5% fns — merged ✅
-- 2026-05-27: PR (branch test-assist/string-utils-tests): 116 tests for string.js untested fns; 89.4% stmts, 98.2% branches combined — merged ✅
-- 2026-05-25: PR (branch test-assist/versions-utils-tests): 10 tests for versions.ts; 100% all metrics — merged ✅
-- 2026-05-24: PR #17806 (branch test-assist/gc-root-store-tests): 15 tests for gc-root-store.js; 100% all metrics — merged ✅
-- 2026-05-23: PR #17801 (branch test-assist/gatekeeper-util-tests): 14 tests for gatekeeper/util.js; 100% all metrics — merged ✅
+- 2026-06-06: PR (branch test-assist/computed-utils-tests): 22 tests for computed.js; 100% all metrics
+- 2026-06-05: PR #17975 (branch test-assist/platform-window-utils-tests): 22 tests for platform.js, window.js — merged ✅
+- 2026-05-30: PR #17904 (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts — open
+- 2026-05-29: PR #17889 (position.js, 21 tests) — merged ✅
+- 2026-05-28: PR #17862 (monitoring.js, 14 tests) — merged ✅
+- 2026-05-27: PR #17843 (string.js, 116 tests) — merged ✅
+- 2026-05-25: PR #17815 (versions.ts, 10 tests) — merged ✅
+- 2026-05-24: PR #17806 (gc-root-store.js, 15 tests) — merged ✅
+- 2026-05-23: PR #17801 (gatekeeper/util.js, 14 tests) — merged ✅
 - All earlier PRs #17692–#17904: merged or in review
 
 ## Task Round-Robin History
 
+- 2026-06-06: Task 3 (computed.js, 22 tests) + Task 7
 - 2026-06-05: Task 3 (platform.js + window.js, 22 tests) + Task 7
 - 2026-05-30: Task 3 (dom.js + width.js + title.ts, 26 tests) + Task 7
 - 2026-05-29: Task 3 (position.js, 21 tests) + Task 7
@@ -86,7 +89,7 @@
 ## Monthly Activity Issue
 
 - May 2026 issue: #17452 (closed)
-- June 2026 issue: new (just created this run)
+- June 2026 issue: #17976 (open)
 
 ## Maintainer Priorities
 
