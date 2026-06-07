@@ -38,8 +38,16 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     this.name = prodName;
     this.product = product;
 
+    // If the product doesn't explicitly set startRouteWithProduct to false, we want the route to start with the product name (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+    // this is needed for top-level products that have list views with cluster and resource params, to avoid route conflicts with other products that might have the same resource types in their list views
+    this.startRouteWithProduct = product.startRouteWithProduct ?? true;
+
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
     plugin._registerTopLevelProduct();
+
+    // if the product has a `startRouteWithProduct` field, we need to set it on the plugin so that the route correction logic
+    // in plugin-products-helpers can work properly for list view routes of top-level products
+    plugin._setStartRouteWithProduct(this.startRouteWithProduct);
 
     this.processConfigChildren();
 

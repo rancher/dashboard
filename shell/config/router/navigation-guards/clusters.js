@@ -2,7 +2,7 @@ import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
-import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
+import { NAME as FLEET_NAME } from '@shell/config/product/fleet.ts';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeRequiresAuthentication } from '@shell/utils/router';
 import { setProduct } from '@shell/utils/product';
 import { validateResource } from '@shell/utils/resource';

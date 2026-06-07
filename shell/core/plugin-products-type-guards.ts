@@ -20,6 +20,10 @@ export function isProductChildWithComponent(child: ProductChild): child is Produ
   return 'component' in child && child.component !== undefined && !isProductChildGroup(child);
 }
 
+export function isProductChildWithComponentAndResourceConfig(child: ProductChild): child is ProductChildCustomPage {
+  return 'component' in child && child.component !== undefined && !isProductChildGroup(child) && 'customResourceConfig' in child && child.customResourceConfig !== undefined;
+}
+
 export function isProductChildWithType(child: ProductChild): child is ProductChildResourcePage {
   return 'type' in child && typeof child.type === 'string' && !isProductChildGroup(child);
 }

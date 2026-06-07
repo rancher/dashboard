@@ -102,7 +102,9 @@ export default {
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+    // the flag "topLevelProduct" only exists in the V2 product registration model
+    // same for the flag "startRouteWithProduct", we want to make sure both flags are true before we change the route structure
+    if (currPluginName && plugins[currPluginName]?.topLevelProduct && plugins[currPluginName]?.startRouteWithProduct) {
       // override create route for extension resource lists
       formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
       overrideCreateLocationByExtension = true;

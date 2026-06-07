@@ -50,7 +50,10 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
+  // Indicates if this plugin registers a top-level product (new product registration)
   public topLevelProduct = false;
+  // Indicates if the route for this product should start with the product name (new product registration)
+  public startRouteWithProduct = false;
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -120,8 +123,16 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
+  // used in the new prod reg to register in the "plugin" object
+  // whether the product is a new product or an extension of an existing product, so that we can check in the product registration logic and throw errors if someone tries to register a product that already exists, or extend a product that doesn't exist
   _registerTopLevelProduct() {
     this.topLevelProduct = true;
+  }
+
+  // used in the new prod reg to register in the "plugin" object
+  // whether the route for this product should start with the product name, so that we can check in the product registration logic and set the correct route structure for list views of top-level products
+  _setStartRouteWithProduct(val: boolean) {
+    this.startRouteWithProduct = val;
   }
 
   // Track which products the plugin creates

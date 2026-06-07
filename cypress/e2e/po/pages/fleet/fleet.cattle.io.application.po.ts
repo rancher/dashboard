@@ -55,9 +55,7 @@ export class FleetApplicationCreatePo extends BaseDetailPagePo {
 
 export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace?: string, gitRepoName?: string) {
-    const root = `/c/_/fleet/application/fleet.cattle.io.gitrepo`;
-
-    return fleetWorkspace ? `${ root }/${ fleetWorkspace }/${ gitRepoName }` : `${ root }/create`;
+    return fleetWorkspace ? `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }` : `/c/_/fleet/application/fleet.cattle.io.gitrepo/create`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
@@ -139,7 +137,7 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
 
 export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
