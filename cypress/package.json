@@ -31,7 +31,7 @@
     "@cypress/code-coverage": "3.10.4",
     "@cypress/grep": "4.1.1",
     "@cypress/vue": "5.0.5",
-    "@cypress/webpack-dev-server": "3.4.1",
+    "@cypress/webpack-dev-server": "4.0.0",
     "@percy/cli": "1.31.8",
     "@percy/cypress": "3.1.6",
     "axe-core": "4.10.2",
