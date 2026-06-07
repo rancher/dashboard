@@ -47,6 +47,7 @@
 - platform.js: jsdom gives `navigator.platform=''` → isMac=false; use exported `alternateKey`/`moreKey`/`rangeKey` constants for platform-agnostic tests
 - window.js: mock `window.screen` via Object.defineProperty; spy on `window.open`; use jest.useFakeTimers() for Popup.open setInterval polling
 - computed.js: `integerString` and `keyValueStrings` return `{get(),set()}` objects; test with `.call(ctx)` on plain object; no mocking needed; `Object.is(NaN,NaN)=true` so `toStrictEqual(NaN)` works
+- queue.js: offset-based compaction triggers at `++offset * 2 >= array.length`; test with 4 items where 2nd dequeue triggers compaction; backing array reset preserves correctness
 
 ## Testing Backlog (Prioritized)
 
@@ -56,9 +57,10 @@
 
 ## Completed Work (Summary)
 
-- 2026-06-06: PR (branch test-assist/computed-utils-tests): 22 tests for computed.js; 100% all metrics
+- 2026-06-07: PR (branch test-assist/queue-utils-tests): 23 tests for queue.js; 100% all metrics
+- 2026-06-06: PR #17983 (branch test-assist/computed-utils-tests): 22 tests for computed.js — merged ✅
 - 2026-06-05: PR #17975 (branch test-assist/platform-window-utils-tests): 22 tests for platform.js, window.js — merged ✅
-- 2026-05-30: PR #17904 (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts — open
+- 2026-05-30: PR #17904 (branch test-assist/dom-width-title-tests): 26 tests for dom.js, width.js, title.ts — merged ✅
 - 2026-05-29: PR #17889 (position.js, 21 tests) — merged ✅
 - 2026-05-28: PR #17862 (monitoring.js, 14 tests) — merged ✅
 - 2026-05-27: PR #17843 (string.js, 116 tests) — merged ✅
@@ -69,6 +71,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-07: Task 3 (queue.js, 23 tests) + Task 7
 - 2026-06-06: Task 3 (computed.js, 22 tests) + Task 7
 - 2026-06-05: Task 3 (platform.js + window.js, 22 tests) + Task 7
 - 2026-05-30: Task 3 (dom.js + width.js + title.ts, 26 tests) + Task 7
