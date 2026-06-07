@@ -1,4 +1,3 @@
-import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import {
   CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
@@ -194,19 +193,6 @@ export default [
         }
       },
       {
-        path: '/c/:cluster/apps',
-        redirect(to) {
-          return {
-            name:   'c-cluster-apps-charts',
-            params: {
-              ...(to?.params || {}),
-              product: APPS,
-            }
-          };
-        },
-        name: 'c-cluster-apps'
-      },
-      {
         path:      '/c/:cluster/explorer',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/index.vue')),
         name:      'c-cluster-explorer'
@@ -303,39 +289,6 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/neuvector/index.vue')),
         name:      'c-cluster-neuvector',
         meta:      { ...installRedirectRouteMeta(NEUVECTOR_NAME, NEUVECTOR_CHART_NAME, undefined, false) }
-      }, {
-        path:     '/c/:cluster/apps/charts',
-        children: [
-          {
-            path:      '',
-            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/index.vue')),
-            name:      'c-cluster-apps-charts'
-          },
-          {
-            path:      'chart',
-            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/chart.vue')),
-            name:      'c-cluster-apps-charts-chart',
-          },
-          {
-            path:      'install',
-            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
-            name:      'c-cluster-apps-charts-install',
-          },
-          {
-            path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
-            name: 'c-cluster-apps-catalog-repo',
-            redirect(to) {
-              return {
-                name:   'c-cluster-product-resource',
-                params: {
-                  ...to.params,
-                  product:  APPS,
-                  resource: 'catalog.cattle.io.clusterrepo',
-                }
-              };
-            },
-          },
-        ]
       },
       {
         path:      '/c/:cluster/auth/config',

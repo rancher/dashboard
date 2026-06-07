@@ -1207,3 +1207,48 @@ export const MGMT_CLUSTER_KUBE_VERSION = {
   search:    'statusInfo.kubernetesVersion',
   formatter: 'ClusterKubeVersion',
 };
+
+// Apps & Marketplace
+export const APPS_REPO_TYPE = {
+  name:     'type',
+  labelKey: 'tableHeaders.type',
+  sort:     'typeDisplay',
+  value:    'typeDisplay'
+};
+
+export const APPS_REPO_URL = {
+  name:     'url',
+  labelKey: 'tableHeaders.url',
+  sort:     'urlDisplay',
+  value:    'urlDisplay'
+};
+
+export const APPS_REPO_BRANCH = {
+  name:        'branch',
+  labelKey:    'tableHeaders.branch',
+  sort:        'spec.gitBranch',
+  value:       'spec.gitBranch',
+  dashIfEmpty: true,
+};
+
+export const APPS_OP_ACTION = {
+  name:     'action',
+  label:    'Action',
+  sort:     'status.action',
+  value:    'status.action',
+  labelKey: 'catalog.operation.tableHeaders.action',
+};
+export const APPS_OP_RELEASE_NS = {
+  name:     'releaseNamespace',
+  label:    'Tgt Namespace',
+  sort:     'status.namespace',
+  value:    'status.namespace',
+  labelKey: 'catalog.operation.tableHeaders.releaseNamespace',
+};
+export const APPS_OP_RELEASE_NAME = {
+  name:     'releaseName',
+  label:    'Tgt Release',
+  sort:     'status.releaseName',
+  value:    'status.releaseName',
+  labelKey: 'catalog.operation.tableHeaders.releaseName',
+};

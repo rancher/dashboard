@@ -3,7 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import type {
-  ProductMetadata, ProductSinglePage,
+  ProductMetadata, ProductSinglePage, AdvancedProductConfigOptions,
   StandardProductName, RouteRecordRawWithParams, ProductChild,
   ProductChildGroup,
   ProductChildPage
@@ -262,6 +262,7 @@ export interface ProductOptions {
   ifNotHaveType?: string | RegExp;
 
   /**
+   * @internal
    * The vuex store that this product should use by default i.e. 'management'
    */
   inStore?: string;
@@ -302,16 +303,34 @@ export interface ProductOptions {
   name?: string;
 
   /**
-   *
+   * The label that should be displayed for this product in the UI
    */
   label?: string;
 
+  /**
+   * The translation key that should be used for this product in the UI
+   */
   labelKey?: string;
 
+  /**
+   * The header that should be displayed for this product in the UI when on a resource list page
+   */
   iconHeader?: string;
 
-  // Do not use - internal use only
+  /**
+   * @internal
+   * The version of the product. This is used for internal purposes and is not intended to be used by plugin creators.
+   * It may be used to determine whether an extension's product configuration is compatible with the current version of the dashboard,
+   * and to prevent loading products that are incompatible with the current version. This is not a required field, and if not provided,
+   * it will be assumed that the product is compatible with all versions of the dashboard.
+   */
   version?: number;
+
+  /**
+   * @internal
+   * Indicates whether the product can be removed from the navigation. This is used for internal purposes and is not intended to be used by plugin creators.
+   */
+  removable?: boolean;
 
   /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
@@ -361,7 +380,7 @@ export interface HeaderOptions {
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
    * It can be false to disable searching on this field
    */
-  search?: string | boolean;
+  search?: string | boolean | string[];
 
   /**
    * Number of pixels the column should be in the table
@@ -690,25 +709,31 @@ export type ModelExtensionConstructor = (context: ModelExtensionContext) => Obje
  */
 export interface IExtension {
   /**
-   * Register a top-level product as a flag on the plugin
+   * Register a product as a top-level product on the plugin (keyed by product name).
    * @internal - DO NOT USE - Internal API only
    */
-  _registerTopLevelProduct(): void;
+  _registerTopLevelProduct(productName: string): void;
+
+  /**
+   * Record whether a product's routes start with the product name (keyed by product name).
+   * @internal - DO NOT USE - Internal API only
+   */
+  _setStartRouteWithProduct(productName: string, value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
    * @param name
    * @param config
    */
-  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
-  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadata, config: ProductChild[]): void;
+  addProduct(product: ProductMetadata, config: ProductChildPage[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, config: ProductChildGroup[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  addProduct(product: ProductMetadata, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)
    * @param product
    */
-  addProduct(product: ProductSinglePage): void;
+  addProduct(product: ProductSinglePage, advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product with just a name (convenience/bridge method for quick setup).
@@ -716,7 +741,7 @@ export interface IExtension {
    * This is useful for getting started quickly - expand to the full API once you're ready to add custom pages.
    * @param productName Simple product name - will be used as both the name and label
    */
-  addProduct(productName: string): void;
+  addProduct(productName: string, advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
@@ -731,9 +756,9 @@ export interface IExtension {
    * @param product Product to be extended
    * @param config Product extension configuration
    */
-  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildPage[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildGroup[], advancedProdConfig?: AdvancedProductConfigOptions): void;
+  extendProduct(product: StandardProductName | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions): void;
 
   /**
    * Add a locale to the i18n store

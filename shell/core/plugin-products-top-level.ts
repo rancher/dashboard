@@ -1,5 +1,5 @@
 import { IExtension } from '@shell/core/types';
-import { ProductChild, ProductMetadata, ProductSinglePage } from '@shell/core/plugin-types';
+import { ProductChild, ProductMetadata, ProductSinglePage, AdvancedProductConfigOptions } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
@@ -14,8 +14,8 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[]) {
-    super(config);
+  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptions) {
+    super(config, advancedProdConfig);
 
     // Convenience/bridge method: create a basic product from just a name string
     if (typeof product === 'string') {
@@ -37,9 +37,11 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     // and allows extensions to use either string literal or enum value for product name
     this.name = prodName;
     this.product = product;
+    this.startRouteWithProduct = product.startRouteWithProduct ?? true;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
-    plugin._registerTopLevelProduct();
+    plugin._registerTopLevelProduct(this.name);
+    plugin._setStartRouteWithProduct(this.name, this.startRouteWithProduct);
 
     this.processConfigChildren();
 
