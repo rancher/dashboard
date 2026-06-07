@@ -19,7 +19,7 @@ on:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_STALE_ISSUE_MANAGER != 'true'
 
-timeout-minutes: 15
+timeout-minutes: 30
 
 permissions: read-all
 
