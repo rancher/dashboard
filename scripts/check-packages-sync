@@ -32,7 +32,7 @@ const dependencySections = [
   'resolutions',
 ];
 
-const exactSemverRegex = /^\d+\.\d+\.\d+$/;
+const exactSemverRegex = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 
 function readJson(absPath) {
   try {
@@ -214,7 +214,9 @@ console.log('');
 
 if (!conflicts.length && !exactVersionViolations.length) {
   console.log(color(ANSI.green, `${bold('OK')} All shared packages are version-synchronized.`));
-  console.log(color(ANSI.green, `${bold('OK')} All dependency versions are exact semver (major.minor.patch).`));
+  console.log(
+    color(ANSI.green, `${bold('OK')} All dependency versions are exact semver (major.minor.patch with optional prerelease/build).`)
+  );
   process.exit(0);
 }
 
