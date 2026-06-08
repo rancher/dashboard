@@ -63,7 +63,6 @@ export const SETTING = {
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
   PASSWORD_MIN_LENGTH:                           'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
-  UI_INDEX:                                      'ui-index',
   UI_DASHBOARD_INDEX:                            'ui-dashboard-index',
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
   UI_OFFLINE_PREFERRED:                          'ui-offline-preferred',
@@ -164,7 +163,6 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
-  [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
