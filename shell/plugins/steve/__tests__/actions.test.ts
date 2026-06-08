@@ -131,6 +131,23 @@ describe('steve: actions:', () => {
       });
     });
 
+    it('should normalize object-style counts to plain numbers', async() => {
+      const ctx = baseCtx();
+      const apiResponse = {
+        count:   10,
+        summary: [{ property: 'metadata.state.name', counts: { running: { total: 7 }, error: { total: 3 } } }]
+      };
+
+      ctx.dispatch.mockResolvedValue(apiResponse);
+
+      const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
+
+      expect(result).toStrictEqual({
+        count:   10,
+        summary: [{ property: 'metadata.state.name', counts: { running: 7, error: 3 } }]
+      });
+    });
+
     it('should default count to 0 and summary to null when response is empty', async() => {
       const ctx = baseCtx();
 

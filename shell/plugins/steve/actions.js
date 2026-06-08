@@ -283,9 +283,21 @@ export default {
 
       const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
 
+      const summary = res.summary || null;
+
+      if (summary) {
+        for (const entry of summary) {
+          if (entry.counts) {
+            for (const [key, val] of Object.entries(entry.counts)) {
+              entry.counts[key] = typeof val === 'object' && val !== null ? (val.total ?? 0) : val;
+            }
+          }
+        }
+      }
+
       return {
-        count:   res.count ?? 0,
-        summary: res.summary || null
+        count: res.count ?? 0,
+        summary
       };
     } catch (e) {
       console.warn(`fetchResourceSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
