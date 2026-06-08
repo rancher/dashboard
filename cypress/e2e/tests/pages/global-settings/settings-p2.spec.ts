@@ -40,6 +40,16 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // only checking that the api request is sent and that the reset button is disabled
 
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_SERVER_URL is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['server-url']?.source === 'env') {
+      settingsPage.environmentLabel('server-url').should('be.visible');
+      settingsPage.actionButtonByLabel('server-url').should('not.exist');
+
+      return;
+    }
+
     settingsPage.settingsValue('server-url').then((el: any) => {
       const value = el.text();
 
@@ -75,6 +85,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
   it('can validate server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_SERVER_URL is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['server-url']?.source === 'env') {
+      settingsPage.environmentLabel('server-url').should('be.visible');
+      settingsPage.actionButtonByLabel('server-url').should('not.exist');
+
+      return;
+    }
 
     settingsPage.editSettingsByLabel('server-url');
 
@@ -180,8 +199,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update ui-offline-preferred', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting: Local
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_UI_OFFLINE_PREFERRED is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['ui-offline-preferred']?.source === 'env') {
+      settingsPage.environmentLabel('ui-offline-preferred').should('be.visible');
+      settingsPage.actionButtonByLabel('ui-offline-preferred').should('not.exist');
+
+      return;
+    }
+
+    // Update setting: Local
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-offline-preferred');

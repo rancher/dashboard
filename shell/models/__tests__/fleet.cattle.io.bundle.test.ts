@@ -1,29 +1,21 @@
-import FleetApplication from '@shell/models/fleet-application.js';
+import FleetBundle from '@shell/models/fleet.cattle.io.bundle.js';
 
-describe('class FleetApplication', () => {
+describe('class FleetBundle', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('applicationType', () => {
-    it('should return the kind property', () => {
-      const instance = new FleetApplication({ kind: 'GitRepo' });
-
-      expect(instance.applicationType).toStrictEqual('GitRepo');
-    });
-  });
-
   describe('targetClusters', () => {
-    function createFleetApplication(targets: any[] | undefined, clusters: any[], workspaceId = 'fleet-default', groups: any[] = []) {
+    function createFleetBundle(targets: any[], clusters: any[], workspaceId = 'fleet-default', groups: any[] = []) {
       const workspace = {
         id:            workspaceId,
         clusters,
         clusterGroups: groups,
       };
 
-      jest.spyOn(FleetApplication.prototype, '$getters', 'get').mockReturnValue({ byId: () => workspace });
+      jest.spyOn(FleetBundle.prototype, '$getters', 'get').mockReturnValue({ byId: () => workspace });
 
-      return new FleetApplication({
+      return new FleetBundle({
         metadata: { namespace: workspaceId },
         spec:     { targets },
       });
@@ -51,9 +43,9 @@ describe('class FleetApplication', () => {
         }],
       ],
     ])('should find cluster by %s', (_label, targets, clusters, expected) => {
-      const app = createFleetApplication(targets, clusters);
+      const bundle = createFleetBundle(targets, clusters);
 
-      expect(app.targetClusters).toStrictEqual(expected);
+      expect(bundle.targetClusters).toStrictEqual(expected);
     });
 
     it('should prefer metadata.name match over nameDisplay match', () => {
@@ -70,9 +62,9 @@ describe('class FleetApplication', () => {
         }
       ];
 
-      const app = createFleetApplication([{ clusterName: 'exact-match' }], clusters);
+      const bundle = createFleetBundle([{ clusterName: 'exact-match' }], clusters);
 
-      expect(app.targetClusters).toStrictEqual([clusters[0]]);
+      expect(bundle.targetClusters).toStrictEqual([clusters[0]]);
     });
 
     it('should return empty array when no cluster matches by name or nameDisplay', () => {
@@ -84,9 +76,9 @@ describe('class FleetApplication', () => {
         }
       ];
 
-      const app = createFleetApplication([{ clusterName: 'non-existent' }], clusters);
+      const bundle = createFleetBundle([{ clusterName: 'non-existent' }], clusters);
 
-      expect(app.targetClusters).toStrictEqual([]);
+      expect(bundle.targetClusters).toStrictEqual([]);
     });
 
     it('should handle multiple targets with mixed name and nameDisplay matches', () => {
@@ -108,27 +100,15 @@ describe('class FleetApplication', () => {
         { clusterName: 'cluster-beta' },
       ];
 
-      const app = createFleetApplication(targets, clusters);
+      const bundle = createFleetBundle(targets, clusters);
 
-      expect(app.targetClusters).toStrictEqual([clusters[0], clusters[1]]);
-    });
-
-    it('should return empty array when targets is empty', () => {
-      const app = createFleetApplication([], []);
-
-      expect(app.targetClusters).toStrictEqual([]);
-    });
-
-    it('should return empty array when targets is undefined', () => {
-      const app = createFleetApplication(undefined, []);
-
-      expect(app.targetClusters).toStrictEqual([]);
+      expect(bundle.targetClusters).toStrictEqual([clusters[0], clusters[1]]);
     });
 
     it('should return empty array when workspace has no clusters', () => {
-      const app = createFleetApplication([{ clusterName: 'any-name' }], []);
+      const bundle = createFleetBundle([{ clusterName: 'any-name' }], []);
 
-      expect(app.targetClusters).toStrictEqual([]);
+      expect(bundle.targetClusters).toStrictEqual([]);
     });
 
     it('should handle cluster with undefined nameDisplay gracefully', () => {
@@ -140,9 +120,23 @@ describe('class FleetApplication', () => {
         }
       ];
 
-      const app = createFleetApplication([{ clusterName: 'c-m-abc123' }], clusters);
+      const bundle = createFleetBundle([{ clusterName: 'c-m-abc123' }], clusters);
 
-      expect(app.targetClusters).toStrictEqual([clusters[0]]);
+      expect(bundle.targetClusters).toStrictEqual([clusters[0]]);
+    });
+
+    it('should not match by nameDisplay when nameDisplay is undefined and target uses a different name', () => {
+      const clusters = [
+        {
+          id:          'fleet-default/c-m-abc123',
+          metadata:    { name: 'c-m-abc123' },
+          nameDisplay: undefined,
+        }
+      ];
+
+      const bundle = createFleetBundle([{ clusterName: 'some-other-name' }], clusters);
+
+      expect(bundle.targetClusters).toStrictEqual([]);
     });
 
     it('should return local cluster targets when workspace is fleet-local', () => {
@@ -161,15 +155,15 @@ describe('class FleetApplication', () => {
         }
       ];
 
-      const app = createFleetApplication([], [], 'fleet-local', groups);
+      const bundle = createFleetBundle([], [], 'fleet-local', groups);
 
-      expect(app.targetClusters).toStrictEqual(localTargetClusters);
+      expect(bundle.targetClusters).toStrictEqual(localTargetClusters);
     });
 
     it('should return empty array when workspace is fleet-local and default group is missing', () => {
-      const app = createFleetApplication([], [], 'fleet-local', []);
+      const bundle = createFleetBundle([], [], 'fleet-local', []);
 
-      expect(app.targetClusters).toStrictEqual([]);
+      expect(bundle.targetClusters).toStrictEqual([]);
     });
   });
 });

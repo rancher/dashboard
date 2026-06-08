@@ -176,10 +176,14 @@ export default {
       return this.model?.logoutAllSupported;
     },
 
+    displayName() {
+      return this.t('model.authConfig.name.azuread');
+    },
+
     sloOptions() {
       return [
-        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
-        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.displayName }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.displayName }) },
         { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
       ];
     },
@@ -619,7 +623,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.endSessionEndpoint"
-                :tooltip="t('authConfig.azuread.endSessionEndpoint.tooltip', { tenantId: `${ tenantId || 'tenant-id' }` }, true)"
+                :tooltip="t('authConfig.azuread.endSessionEndpoint.tooltip', { name: displayName, tenantId: `${ tenantId || 'tenant-id' }` }, true)"
                 :label="t('authConfig.azuread.endSessionEndpoint.title')"
                 :mode="mode"
                 :rules="fvGetAndReportPathRules('endSessionEndpoint')"

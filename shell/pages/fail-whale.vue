@@ -8,11 +8,12 @@ import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import PromptModal from '@shell/components/PromptModal';
+import { RcButton } from '@components/RcButton';
 
 export default {
 
   components: {
-    BrandImage, FixedBanner, GrowlManager, Header, PromptModal
+    BrandImage, FixedBanner, GrowlManager, Header, PromptModal, RcButton
   },
   mixins: [Brand, BrowserTabVisibility],
 
@@ -61,10 +62,13 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <a
-      href="#main-content"
-      class="skip-to-content btn role-primary"
-    >{{ t('nav.skipToContent') }}</a>
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <PromptModal />
     <div
@@ -106,12 +110,12 @@ export default {
                 {{ displayError }}
               </h2>
               <p class="mt-20">
-                <a
+                <rc-button
+                  size="large"
                   :href="home"
-                  class="btn role-primary"
                 >
                   {{ t('nav.home') }}
-                </a>
+                </rc-button>
               </p>
               <hr
                 class="custom-content"
@@ -119,12 +123,13 @@ export default {
                 role="none"
               >
               <p class="mt-20">
-                <a
-                  class="btn role-secondary"
+                <rc-button
+                  size="large"
+                  variant="secondary"
                   @click="$router.push(previousRoute.fullPath)"
                 >
                   {{ t('nav.failWhale.reload') }}
-                </a>
+                </rc-button>
               </p>
             </div>
           </div>
