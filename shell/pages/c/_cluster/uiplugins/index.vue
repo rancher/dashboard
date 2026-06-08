@@ -66,6 +66,7 @@ export default {
       kubeVersion:                    null,
       activeTab:                      '',
       installing:                     {},
+      installedFromRepo:              {},
       errors:                         {},
       plugins:                        [], // The installed plugins
       helmOps:                        [], // Helm operations
@@ -528,6 +529,9 @@ export default {
             this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
+            if (res && plugin?.chart?.repoName) {
+              this.installedFromRepo[plugin.name] = plugin.chart.repoName;
+            }
             this.didInstall(res);
           }
         }
@@ -964,9 +968,13 @@ export default {
 
       // fallback to try and prevent https://github.com/rancher/dashboard/issues/17956
       // which we believe is due to a race condition
-      // so we try to find the chart without considering the repo, which is not ideal but should be better than missing the match entirely
+      // we fall back to plugin name which should be present when going through the "installed plugins" (uiplugins) and should be enough to find the correct chart in the majority of cases, as long as there are not multiple charts with the same name across different repos
       if (!chart) {
-        chart = all.find((c) => c.name === pluginCR.name);
+        const fallbackRepoName = this.installedFromRepo?.[pluginCR.name];
+
+        if (fallbackRepoName) {
+          chart = all.find((c) => c.name === pluginCR.name && c.chart?.repoName === fallbackRepoName);
+        }
       }
 
       if (chart) {
