@@ -1191,6 +1191,36 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  _collectionUrl() {
+    const schema = this.$getters['schemaFor'](this.type);
+    let url = schema.linkFor('collection');
+
+    if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
+      url += `/${ this.metadata.namespace }`;
+    }
+
+    return url;
+  }
+
+  async dryRunCreate(data) {
+    const url = this._collectionUrl();
+    const separator = url.includes('?') ? '&' : '?';
+    const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+
+    return this.$dispatch('request', {
+      opt: {
+        method:  'post',
+        url:     `${ url }${ separator }dryRun=All`,
+        data:    body,
+        headers: {
+          'content-type': 'application/json',
+          accept:         'application/json'
+        }
+      },
+      type: this.type
+    });
+  }
+
   /**
    * Remove any unwanted properties from the object that will be saved
    */
@@ -1222,15 +1252,7 @@ export default class Resource {
 
     if ( !opt.url ) {
       if ( forNew ) {
-        const schema = this.$getters['schemaFor'](this.type);
-
-        let url = schema.linkFor('collection');
-
-        if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
-          url += `/${ this.metadata.namespace }`;
-        }
-
-        opt.url = url;
+        opt.url = this._collectionUrl();
       } else {
         opt.url = this.linkFor('update') || this.linkFor('self');
       }

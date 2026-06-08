@@ -362,3 +362,60 @@ describe('view: fleet.cattle.io.gitrepo, GitHub App auth - should', () => {
     expect(fakeSecret.save).toHaveBeenCalledWith();
   });
 });
+
+describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
+  it('should call dryRunCreate when leaving stepMetadata in create mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockResolvedValue({});
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).toHaveBeenCalledWith(expect.objectContaining({
+      type:     'fleet.cattle.io.gitrepo',
+      metadata: expect.objectContaining({
+        name:      'test',
+        namespace: 'test',
+      }),
+      spec: expect.objectContaining({ repo: 'https://example.com/placeholder' }),
+    }));
+  });
+
+  it('should not call dryRunCreate for non-metadata steps', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepRepo' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should not call dryRunCreate in edit mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _EDIT }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject with API errors when dryRunCreate fails', async() => {
+    const apiError = {
+      _status:    409,
+      message:    'gitrepos.fleet.cattle.io "test" already exists',
+      statusText: 'Conflict',
+    };
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
+  });
+});
