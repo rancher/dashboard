@@ -294,7 +294,7 @@ describe('xccdf util: generateXCCDF', () => {
       },
       benchmarkVersion: 'cis-1.7',
       decorations:      {
-        '5.1':   { ruleId: 'group-rule', severity: 'low' },
+        5.1:     { ruleId: 'group-rule', severity: 'low' },
         '5.1.1': { ruleId: 'check-rule', severity: 'high' },
       },
     });
