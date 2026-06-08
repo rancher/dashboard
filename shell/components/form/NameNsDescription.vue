@@ -156,6 +156,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    noBottomMargin: {
+      type:    Boolean,
+      default: false,
+    },
     rules: {
       default: () => ({
         namespace:   [],
@@ -436,7 +440,7 @@ export default {
 </script>
 
 <template>
-  <div class="row mb-20">
+  <div :class="['row', { 'mb-20': !noBottomMargin }]">
     <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"

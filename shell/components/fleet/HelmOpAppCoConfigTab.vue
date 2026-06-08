@@ -282,6 +282,7 @@ defineExpose({ refreshYamlEditor });
           :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
+          :no-bottom-margin="true"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
@@ -301,13 +302,12 @@ defineExpose({ refreshYamlEditor });
         v-else-if="isCreate"
         class="appco-main-content"
       >
-        <!-- Name and Description: !important overrides NameNsDescription's mb-20 utility class on the root element -->
         <NameNsDescription
           :value="value"
           :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
-          style="margin-bottom: 0 !important;"
+          :no-bottom-margin="true"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
