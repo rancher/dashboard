@@ -28,7 +28,7 @@ import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 import { PluginProduct } from './plugin-products';
 import {
-  ProductMetadata, ProductMetadataSinglePage,
+  AdvancedProductConfigOptions, ProductMetadata, ProductMetadataSinglePage,
   StandardProductName,
   ProductChild
 } from '@shell/core/plugin-products-external';
@@ -55,7 +55,8 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
-  public topLevelProduct = false;
+  public topLevelProducts: Set<string> = new Set();
+  public startRouteWithProductByProduct: Record<string, boolean> = {};
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -125,11 +126,12 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
-  _registerTopLevelProduct() {
-    this.topLevelProduct = true;
+  _registerTopLevelProduct(productName: string) {
+    this.topLevelProducts.add(productName);
   }
 
-  _setStartRouteWithProduct(_value: boolean): void {
+  _setStartRouteWithProduct(productName: string, val: boolean) {
+    this.startRouteWithProductByProduct[productName] = val;
   }
 
   // Track which products the plugin creates
@@ -142,16 +144,20 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptions, advancedProdConfig?: AdvancedProductConfigOptions): void {
     let pluginProduct: PluginProduct;
 
+    // Disambiguate: for string/SinglePage overloads, the 2nd arg is AdvancedProductConfigOptions, not pages
+    const resolvedConfig = Array.isArray(config) ? config : undefined;
+    const resolvedAdvConfig = Array.isArray(config) ? advancedProdConfig : config as AdvancedProductConfigOptions | undefined;
+
     if (typeof product === 'string') {
-      pluginProduct = PluginProduct.fromName(this, product);
+      pluginProduct = PluginProduct.fromName(this, product, resolvedAdvConfig);
     } else if (product?.name) {
-      if (!pages) {
-        pluginProduct = new PluginProduct(this, product, []);
+      if (!resolvedConfig) {
+        pluginProduct = new PluginProduct(this, product as ProductMetadataSinglePage, [], resolvedAdvConfig);
       } else {
-        pluginProduct = new PluginProduct(this, product, pages);
+        pluginProduct = new PluginProduct(this, product as ProductMetadata, resolvedConfig, resolvedAdvConfig);
       }
     } else {
       this.products.push(product as ProductFunction);
@@ -168,10 +174,10 @@ export class Plugin implements IPlugin {
     this.productConfigs.push(pluginProduct);
   }
 
-  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, advancedProdConfig?: AdvancedProductConfigOptions): void {
     const arrayConfig = Array.isArray(config) ? config : [config];
 
-    this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
+    this.productConfigs.push(new PluginProduct(this, product, arrayConfig, advancedProdConfig));
   }
 
   addLocale(locale: string, label: string): void {
