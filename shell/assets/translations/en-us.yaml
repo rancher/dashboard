@@ -2972,10 +2972,10 @@ fleet:
     title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
-    noPermissions: You have no permissions to modify Fleet Settings
+    noPermissions: You have no permissions to modify Continuous Delivery Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
-      ariaLabel: Fleet {name} setting
+      ariaLabel: Continuous Delivery {name} setting
     agentTLSMode:
       label: TLS Mode
       description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
@@ -3052,13 +3052,13 @@ fleet:
       description: 'Agent deployment settings.'
     replicas:
       label: Replicas
-      description: 'Number of replicas of Fleet pods.'
+      description: 'Number of replicas of pods.'
     annotations:
       label: Extra Annotations
-      description: 'Extra annotations passed to the Fleet pods.'
+      description: 'Extra annotations passed to the pods.'
     developer:
       label: Developer
-      description: 'Enable debug info from Fleet.'
+      description: 'Enable debug info.'
 
   tableHeaders:
     applicationType: Type
@@ -3069,7 +3069,7 @@ fleet:
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
-    welcome: Welcome to Fleet Continuous Delivery
+    welcome: Welcome to Continuous Delivery
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
     learnMoreLink: https://fleet.rancher.io
@@ -3183,7 +3183,7 @@ fleet:
     groupBy: Group By Type
     subTypes:
       fleet.cattle.io.gitrepo:
-        description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
+        description: GitRepo describes a git repository that is watched. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
     warningTooltip:
