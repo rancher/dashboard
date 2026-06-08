@@ -1,0 +1,277 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const ANSI = {
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+  gray: '\x1b[90m',
+};
+
+const color = (code, text) => `${code}${text}${ANSI.reset}`;
+const bold = (text) => color(ANSI.bold, text);
+
+const rootDir = path.resolve(__dirname, '..');
+const files = [
+  { key: 'root', rel: 'package.json' },
+  { key: 'shell', rel: 'shell/package.json' },
+  { key: 'cypress', rel: 'cypress/package.json' },
+  { key: 'rancher-components', rel: 'pkg/rancher-components/package.json' },
+];
+
+const dependencySections = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+  'resolutions',
+];
+
+const exactSemverRegex = /^\d+\.\d+\.\d+$/;
+
+function readJson(absPath) {
+  try {
+    return JSON.parse(fs.readFileSync(absPath, 'utf8'));
+  } catch (err) {
+    console.error(color(ANSI.red, `Failed to read ${absPath}: ${err.message}`));
+    process.exit(1);
+  }
+}
+
+function parseVersion(raw) {
+  const match = String(raw).match(/(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?/);
+
+  if (!match) {
+    return null;
+  }
+
+  const prerelease = match[4]
+    ? match[4].split('.').map((part) => (/^\d+$/.test(part) ? Number(part) : part))
+    : [];
+
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+    prerelease,
+  };
+}
+
+function comparePrerelease(a, b) {
+  const aEmpty = a.length === 0;
+  const bEmpty = b.length === 0;
+
+  if (aEmpty && bEmpty) {
+    return 0;
+  }
+
+  if (aEmpty) {
+    return 1;
+  }
+
+  if (bEmpty) {
+    return -1;
+  }
+
+  const len = Math.max(a.length, b.length);
+
+  for (let i = 0; i < len; i++) {
+    const av = a[i];
+    const bv = b[i];
+
+    if (av === undefined) return -1;
+    if (bv === undefined) return 1;
+
+    if (typeof av === 'number' && typeof bv === 'number') {
+      if (av !== bv) return av > bv ? 1 : -1;
+      continue;
+    }
+
+    if (typeof av === 'number' && typeof bv !== 'number') return -1;
+    if (typeof av !== 'number' && typeof bv === 'number') return 1;
+
+    const cmp = String(av).localeCompare(String(bv));
+
+    if (cmp !== 0) return cmp > 0 ? 1 : -1;
+  }
+
+  return 0;
+}
+
+function compareParsedVersions(a, b) {
+  if (a.major !== b.major) return a.major > b.major ? 1 : -1;
+  if (a.minor !== b.minor) return a.minor > b.minor ? 1 : -1;
+  if (a.patch !== b.patch) return a.patch > b.patch ? 1 : -1;
+
+  return comparePrerelease(a.prerelease, b.prerelease);
+}
+
+function findLatestVersion(versions) {
+  const parsed = versions
+    .map((v) => ({ raw: v, parsed: parseVersion(v) }))
+    .filter((x) => x.parsed !== null);
+
+  if (!parsed.length) {
+    return null;
+  }
+
+  let latest = parsed[0];
+
+  for (let i = 1; i < parsed.length; i++) {
+    if (compareParsedVersions(parsed[i].parsed, latest.parsed) > 0) {
+      latest = parsed[i];
+    }
+  }
+
+  return latest.raw;
+}
+
+const packageMap = new Map();
+const exactVersionViolations = [];
+
+for (const file of files) {
+  const absPath = path.join(rootDir, file.rel);
+  const json = readJson(absPath);
+
+  for (const section of dependencySections) {
+    const deps = json[section];
+
+    if (!deps || typeof deps !== 'object') {
+      continue;
+    }
+
+    for (const [name, version] of Object.entries(deps)) {
+      const versionStr = String(version);
+      const isLinkReference = versionStr.trim().startsWith('link:');
+
+      if (isLinkReference) {
+        continue;
+      }
+
+      if (!exactSemverRegex.test(versionStr)) {
+        exactVersionViolations.push({
+          name,
+          fileRel: file.rel,
+          section,
+          version: versionStr,
+        });
+      }
+
+      if (!packageMap.has(name)) {
+        packageMap.set(name, []);
+      }
+
+      packageMap.get(name).push({
+        fileKey: file.key,
+        fileRel: file.rel,
+        section,
+        version: versionStr,
+      });
+    }
+  }
+}
+
+const conflicts = [];
+
+for (const [name, refs] of packageMap.entries()) {
+  const uniqueFiles = new Set(refs.map((r) => r.fileRel));
+
+  if (uniqueFiles.size < 2) {
+    continue;
+  }
+
+  const uniqueVersions = Array.from(new Set(refs.map((r) => r.version)));
+
+  if (uniqueVersions.length > 1) {
+    conflicts.push({ name, refs, uniqueVersions });
+  }
+}
+
+conflicts.sort((a, b) => a.name.localeCompare(b.name));
+exactVersionViolations.sort((a, b) => {
+  const fileCmp = a.fileRel.localeCompare(b.fileRel);
+
+  if (fileCmp !== 0) return fileCmp;
+
+  const sectionCmp = a.section.localeCompare(b.section);
+
+  if (sectionCmp !== 0) return sectionCmp;
+
+  return a.name.localeCompare(b.name);
+});
+
+console.log(color(ANSI.cyan, 'Package Version Sync Check'));
+console.log(color(ANSI.cyan, '=========================='));
+console.log('');
+console.log(`${color(ANSI.gray, 'Checked files:')} ${files.map((f) => f.rel).join(', ')}`);
+console.log(`${color(ANSI.gray, 'Dependency sections:')} ${dependencySections.join(', ')}`);
+console.log('');
+
+if (!conflicts.length && !exactVersionViolations.length) {
+  console.log(color(ANSI.green, `${bold('OK')} All shared packages are version-synchronized.`));
+  console.log(color(ANSI.green, `${bold('OK')} All dependency versions are exact semver (major.minor.patch).`));
+  process.exit(0);
+}
+
+console.log(color(ANSI.red, `${bold('FAILED')} Validation checks found issue(s).`));
+console.log('');
+
+if (conflicts.length) {
+  console.log(color(ANSI.red, `Found ${conflicts.length} package version mismatch(es).`));
+  console.log('');
+
+  for (const conflict of conflicts) {
+    const latest = findLatestVersion(conflict.uniqueVersions);
+
+    console.log(`${color(ANSI.yellow, 'Package:')} ${bold(conflict.name)}`);
+
+    const sortedRefs = conflict.refs.sort((a, b) => {
+      const fileCmp = a.fileRel.localeCompare(b.fileRel);
+
+      if (fileCmp !== 0) return fileCmp;
+
+      return a.section.localeCompare(b.section);
+    });
+
+    for (const ref of sortedRefs) {
+      const isLatest = latest !== null && ref.version === latest;
+      const versionOut = isLatest ? bold(ref.version) : ref.version;
+
+      console.log(`  - ${color(ANSI.blue, ref.fileRel)} ${color(ANSI.gray, `(${ref.section})`)}: ${versionOut}`);
+    }
+
+    if (latest !== null) {
+      console.log(`  ${color(ANSI.gray, 'Latest detected:')} ${bold(latest)}`);
+    } else {
+      console.log(`  ${color(ANSI.gray, 'Latest detected:')} ${color(ANSI.gray, 'n/a (non-semver strings)')}`);
+    }
+
+    console.log('');
+  }
+}
+
+if (exactVersionViolations.length) {
+  console.log(
+    color(
+      ANSI.red,
+      `Found ${exactVersionViolations.length} non-exact dependency version(s) (must be major.minor.patch, no ^, ~, ranges, tags, or wildcards).`
+    )
+  );
+  console.log('');
+
+  for (const violation of exactVersionViolations) {
+    console.log(
+      `  - ${color(ANSI.blue, violation.fileRel)} ${color(ANSI.gray, `(${violation.section})`)} ${bold(violation.name)}: ${violation.version}`
+    );
+  }
+
+  console.log('');
+}
+
+console.log(color(ANSI.red, 'Validation failed.'));
+process.exit(1);
