@@ -1,7 +1,7 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { Plugin } from '@shell/core/plugin';
 import {
-  ProductMetadata, ProductSinglePage, ProductChildPage,
+  ProductMetadata2222, ProductMetadataSinglePage, ProductChildPage,
   ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage,
   ProductChild, StandardProductNames
 } from '@shell/core/plugin-types';
@@ -94,7 +94,7 @@ describe('pluginProduct', () => {
   describe('new product scenarios', () => {
     it('should create a new product with config items', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'test-product',
         label: 'Test Product',
         icon:  'icon-test',
@@ -121,7 +121,7 @@ describe('pluginProduct', () => {
 
     it('should create a single page product', () => {
       const mockPlugin = createMockPlugin();
-      const productSinglePage: ProductSinglePage = {
+      const productSinglePage: ProductMetadataSinglePage = {
         name:      'single-page-product',
         label:     'Single Page',
         component: { name: 'SinglePageComponent' },
@@ -136,7 +136,7 @@ describe('pluginProduct', () => {
 
     it('should handle product names with dashes by removing them', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'test-product-name',
         label: 'Test',
       };
@@ -148,7 +148,7 @@ describe('pluginProduct', () => {
 
     it('should create default empty page config when no config provided', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'empty-product',
         label: 'Empty',
       };
@@ -310,7 +310,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'new-product',
         label: 'New Product',
       };
@@ -379,7 +379,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'product-with-pages',
         label: 'Product',
       };
@@ -422,7 +422,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'resource-product',
         label: 'Resources',
       };
@@ -467,7 +467,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'grouped-product',
         label: 'Grouped',
       };
@@ -519,7 +519,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'group-no-component',
         label: 'Group No Component',
       };
@@ -563,7 +563,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'group-with-component',
         label: 'Group With Component',
       };
@@ -610,7 +610,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'weighted-group',
         label: 'Weighted',
       };
@@ -658,7 +658,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'default-route-product',
         label: 'Default Route',
       };
@@ -700,7 +700,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'group-default-route',
         label: 'Group Default',
       };
@@ -743,7 +743,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'group-resource-default',
         label: 'Group Resource Default',
       };
@@ -791,7 +791,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'resource-first',
         label: 'Resource First',
       };
@@ -838,7 +838,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'empty-group',
         label: 'Empty Group',
       };
@@ -877,7 +877,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'group-with-page',
         label: 'Group With Page',
       };
@@ -939,7 +939,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'mixed-product',
         label: 'Mixed Content',
       };
@@ -964,7 +964,7 @@ describe('pluginProduct', () => {
   describe('error handling', () => {
     it('should throw error when config children is not an array', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'bad-group',
         label: 'Bad Group',
       };
@@ -985,7 +985,7 @@ describe('pluginProduct', () => {
   describe('state verification', () => {
     it('should set newProduct flag for new products', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata = {
+      const productMetadata: ProductMetadata2222 = {
         name:  'new-prod',
         label: 'New',
       };
@@ -1009,7 +1009,7 @@ describe('pluginProduct', () => {
     describe('scenario 1: simple product with single page component (plain layout)', () => {
       it('should create single page product with plain layout', () => {
         const mockPlugin = createMockPlugin();
-        const productSinglePage: ProductSinglePage = {
+        const productSinglePage: ProductMetadataSinglePage = {
           name:      'alex-simple-one-page',
           weight:    -100,
           label:     'Simple One Page (no sidebar)',
@@ -1026,7 +1026,7 @@ describe('pluginProduct', () => {
     describe('scenario 2: simple product without children', () => {
       it('should create product with sidebar but no config children', () => {
         const mockPlugin = createMockPlugin();
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:   'alex-simple-top-level',
           weight: -100,
           label:  'Simple (with sidebar)',
@@ -1056,7 +1056,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:   'alex-simple-children',
           weight: -100,
           label:  'Simple with Children',
@@ -1100,7 +1100,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:   'alex-simple-children',
           weight: -100,
           label:  'Simple with Children',
@@ -1145,7 +1145,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:   'alex-simple-children',
           weight: -100,
           label:  'Simple with Children',
@@ -1335,7 +1335,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'test-ordering',
           label: 'Test Ordering',
         };
@@ -1385,7 +1385,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'test-weights',
           label: 'Test Weights',
         };
@@ -1439,7 +1439,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'mixed-types',
           label: 'Mixed Types Product',
         };
@@ -1491,7 +1491,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'grouped-product',
           label: 'Grouped Product',
         };
@@ -1558,7 +1558,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'product-with-groups',
           label: 'Product',
         };
@@ -1714,7 +1714,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'test-default-route',
           label: 'Test Default Route',
         };
@@ -1759,7 +1759,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'test-group-default',
           label: 'Test Group Default',
         };
@@ -1812,7 +1812,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'complex-product',
           label: 'Complex Product',
         };
@@ -1911,7 +1911,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'my-product',
           label: 'My Product',
         };
@@ -1997,7 +1997,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'grouped-product',
           label: 'Grouped Product',
         };
@@ -2096,7 +2096,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'mixed-product',
           label: 'Mixed Product',
         };
@@ -2389,7 +2389,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'complete-app',
           label: 'Complete App',
         };
@@ -2530,7 +2530,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'nested-product',
           label: 'Nested Product',
         };
@@ -2611,7 +2611,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'deep-nested',
           label: 'Deep Nested',
         };
@@ -2751,7 +2751,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'test-self-ref',
           label: 'Test Self Reference',
         };
@@ -2811,7 +2811,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'multi-nested',
           label: 'Multi Nested',
         };
@@ -2889,7 +2889,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'mixed-groups',
           label: 'Mixed Groups',
         };
@@ -2956,7 +2956,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'nested-with-pages',
           label: 'Nested With Pages',
         };
@@ -3019,7 +3019,7 @@ describe('pluginProduct', () => {
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
         // Exact scenario from user's bug report
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'group-with-page',
           label: 'Group With Page',
         };
@@ -3090,7 +3090,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata = {
+        const productMetadata: ProductMetadata2222 = {
           name:  'empty-children',
           label: 'Empty Children',
         };
@@ -3246,7 +3246,7 @@ describe('pluginProduct', () => {
     describe('single page product', () => {
       it('should create a product with a single page component and no config', () => {
         const mockPlugin = createMockPlugin();
-        const product: ProductSinglePage = {
+        const product: ProductMetadataSinglePage = {
           name:      'my-dashboard',
           label:     'My Dashboard',
           icon:      'globe',
@@ -3279,7 +3279,7 @@ describe('pluginProduct', () => {
           weight:    1,
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
           icon:  'gear',
@@ -3314,7 +3314,7 @@ describe('pluginProduct', () => {
           weight: 1,
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-resources',
           label: 'My Resources',
         };
@@ -3357,7 +3357,7 @@ describe('pluginProduct', () => {
           weight:    3,
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3413,7 +3413,7 @@ describe('pluginProduct', () => {
           weight:    1,
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3457,7 +3457,7 @@ describe('pluginProduct', () => {
           children:  [alertsPage, metricsPage],
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3485,7 +3485,7 @@ describe('pluginProduct', () => {
           children:  [childPage],
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3551,7 +3551,7 @@ describe('pluginProduct', () => {
       it('should accept labelKey instead of label for product and pages', () => {
         const mockPlugin = createMockPlugin();
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:     'my-app',
           labelKey: 'product.myApp.label',
           icon:     'gear',
@@ -3587,7 +3587,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:     'my-app',
           labelKey: 'product.myApp.label',
         };
@@ -3636,7 +3636,7 @@ describe('pluginProduct', () => {
           component: { name: 'Page2' },
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3683,7 +3683,7 @@ describe('pluginProduct', () => {
           children: [groupChildPage],
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3717,7 +3717,7 @@ describe('pluginProduct', () => {
 
         const resource2: ProductChildResourcePage = { type: 'provisioning.cattle.io.cluster' };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3757,7 +3757,7 @@ describe('pluginProduct', () => {
           component: { name: 'Page2' },
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3801,7 +3801,7 @@ describe('pluginProduct', () => {
           children:  [childPage],
         };
 
-        const product: ProductMetadata = {
+        const product: ProductMetadata2222 = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3827,7 +3827,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'headers-test',
             label: 'Headers Test',
           };
@@ -3859,7 +3859,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'ssp-headers-test',
             label: 'SSP Headers Test',
           };
@@ -3891,7 +3891,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'both-headers-test',
             label: 'Both Headers Test',
           };
@@ -3930,7 +3930,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-headers-test',
             label: 'No Headers Test',
           };
@@ -3953,7 +3953,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'maptype-test',
             label: 'MapType Test',
           };
@@ -3976,7 +3976,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-maptype',
             label: 'No MapType',
           };
@@ -3999,7 +3999,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'ignoretype-test',
             label: 'IgnoreType Test',
           };
@@ -4022,7 +4022,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-ignoretype',
             label: 'No IgnoreType',
           };
@@ -4045,7 +4045,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'bulk-actions-test',
             label: 'Bulk Actions Test',
           };
@@ -4087,7 +4087,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'order-test',
             label: 'Order Test',
           };
@@ -4124,7 +4124,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:         'maptogroup-test',
             label:        'MapToGroup Test',
             renameGroups: [
@@ -4155,7 +4155,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-maptogroup',
             label: 'No MapToGroup',
           };
@@ -4184,7 +4184,7 @@ describe('pluginProduct', () => {
 
           const cbFn = jest.fn(() => true);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:         'ignoregroups-test',
             label:        'IgnoreGroups Test',
             ignoreGroups: [
@@ -4213,7 +4213,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:         'ignoregroups-unconditional',
             label:        'IgnoreGroups Unconditional',
             ignoreGroups: [
@@ -4242,7 +4242,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:         'ignoregroups-regex',
             label:        'IgnoreGroups Regex',
             ignoreGroups: [
@@ -4271,7 +4271,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-ignoregroups',
             label: 'No IgnoreGroups',
           };
@@ -4332,7 +4332,7 @@ describe('pluginProduct', () => {
             ],
           };
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4377,7 +4377,7 @@ describe('pluginProduct', () => {
             name: 'dashboard', label: 'Dashboard', component: { name: 'DashboardPage' }
           };
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4413,7 +4413,7 @@ describe('pluginProduct', () => {
             ],
           };
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4440,7 +4440,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4476,7 +4476,7 @@ describe('pluginProduct', () => {
             ],
           };
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4499,7 +4499,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:  'no-move',
             label: 'No Move',
           };
@@ -4544,7 +4544,7 @@ describe('pluginProduct', () => {
             ],
           };
 
-          const productMetadata: ProductMetadata = {
+          const productMetadata: ProductMetadata2222 = {
             name:        'my-app',
             label:       'My App',
             moveToGroup: [
@@ -4609,7 +4609,7 @@ describe('pluginProduct', () => {
     it('should throw when addProduct is called twice with the same product name (object form)', () => {
       const plugin = new Plugin('test-extension');
 
-      const product: ProductMetadata = {
+      const product: ProductMetadata2222 = {
         name:  'my-product',
         label: 'My Product',
       };
@@ -4678,7 +4678,7 @@ describe('pluginProduct', () => {
     it('should throw when addProduct is called twice with single page product form', () => {
       const plugin = new Plugin('test-extension');
 
-      const singlePage: ProductSinglePage = {
+      const singlePage: ProductMetadataSinglePage = {
         name:      'my-dashboard',
         label:     'My Dashboard',
         component: { name: 'DashboardPage' },

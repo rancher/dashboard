@@ -1,21 +1,24 @@
 import { IExtension } from '@shell/core/types';
-import { ProductChild, ProductMetadata, ProductSinglePage } from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
+import { ProductChild } from '@shell/core/plugin-products-external';
+import { ProductOptions, ProductOptionsSinglePage } from '@shell/core/plugin-products-internal';
 
 /**
  * Represents a new top-level product being added by an extension
  * @internal
  */
 export class TopLevelPluginProduct extends BasePluginProduct {
+  protected product?: ProductOptions | ProductOptionsSinglePage;
+
   get isNewProduct(): boolean {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadata | ProductSinglePage | string, config: ProductChild[]) {
-    super(config);
+  constructor(plugin: IExtension, product: ProductOptions | ProductOptionsSinglePage | string, pages: ProductChild[]) {
+    super(pages);
 
     // Convenience/bridge method: create a basic product from just a name string
     if (typeof product === 'string') {

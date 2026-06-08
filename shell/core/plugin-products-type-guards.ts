@@ -1,6 +1,8 @@
 import {
-  ProductChild, ProductChildGroup, ProductMetadata,
-  ProductSinglePage, ProductChildCustomPage, ProductChildResourcePage
+  ProductChild, ProductChildGroup,
+  ProductMetadataSinglePage, ProductChildCustomPage, ProductChildResourcePage,
+  ProductOptions,
+  ProductOptionsSinglePage
 } from '@shell/core/plugin-types';
 
 /**
@@ -8,7 +10,7 @@ import {
  * @internal
  */
 
-export function isProductSinglePage(product: ProductMetadata | ProductSinglePage): product is ProductSinglePage {
+export function isProductSinglePage(product: ProductOptions | ProductOptionsSinglePage): product is ProductMetadataSinglePage {
   return 'component' in product && product.component !== undefined;
 }
 

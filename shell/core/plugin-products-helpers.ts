@@ -1,8 +1,6 @@
-import {
-  RouteRecordRawWithParams, ProductChildGroup, ProductChild,
-  ProductChildCustomPage, ProductChildResourcePage, ProductRegistrationRouteGenerationOptions,
-  OverviewPageRoutingMetadata
-} from '@shell/core/plugin-types';
+import { ProductChild, ProductChildCustomPageAAA, ProductChildGroup, ProductChildResourcePageAAA } from '@shell/core/plugin-products-external';
+import { OverviewPageRoutingMetadata, ProductRegistrationRouteGenerationOptions } from '@shell/core/plugin-products-internal';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
@@ -63,7 +61,7 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES
-  generateVirtualTypeRoute(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  generateVirtualTypeRoute(parentName: string, pageChild: ProductChildCustomPageAAA | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     if (options.extendProduct) {
       return this.generateVirtualTypeRouteForExistingProduct(parentName, pageChild, options);
     } else {
@@ -72,7 +70,7 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateVirtualTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildCustomPageAAA | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
     const name = pageChild ? `c-cluster-${ parentName }-${ pageChild.name }` : `c-cluster-${ parentName }`;
     const path = pageChild ? `c/:cluster/${ parentName }/${ pageChild.name }` : `c/:cluster/${ parentName }`;
@@ -96,7 +94,7 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES - TOP LEVEL EXTENSION
-  private generateVirtualTypeRouteForNewProduct(parentName: string, pageChild: ProductChildCustomPage | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForNewProduct(parentName: string, pageChild: ProductChildCustomPageAAA | OverviewPageRoutingMetadata | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
     const name = pageChild ? `${ parentName }-c-cluster-${ pageChild.name }` : `${ parentName }-c-cluster`;
     const path = pageChild ? `${ parentName }/c/:cluster/${ pageChild.name }` : `${ parentName }/c/:cluster`;
@@ -120,7 +118,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES
-  generateConfigureTypeRoute(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  generateConfigureTypeRoute(parentName: string, pageChild: ProductChildResourcePageAAA | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     if (options.extendProduct) {
       return this.generateConfigureTypeRouteForExistingProduct(parentName, pageChild, options);
     } else {
@@ -129,7 +127,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateConfigureTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateConfigureTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildResourcePageAAA | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
 
     const route: RouteRecordRawWithParams = {
@@ -151,7 +149,7 @@ class PluginProductsHelpers {
   }
 
   // CONFIGURE TYPE ROUTES - TOP LEVEL EXTENSION
-  private generateConfigureTypeRouteForNewProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateConfigureTypeRouteForNewProduct(parentName: string, pageChild: ProductChildResourcePageAAA | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
 
     const route: RouteRecordRawWithParams = {
@@ -177,7 +175,7 @@ class PluginProductsHelpers {
   }
 
   // RESOURCE ROUTES
-  generateResourceRoutes(parentName: string, pageChild: ProductChildResourcePage, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams[] {
+  generateResourceRoutes(parentName: string, pageChild: ProductChildResourcePageAAA, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams[] {
     if (options.extendProduct) {
       return this.generateResourceRoutesForExistingProduct(parentName, pageChild);
     } else {
@@ -186,7 +184,7 @@ class PluginProductsHelpers {
   }
 
   // RESOURCE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateResourceRoutesForExistingProduct(parentName: string, pageChild: ProductChildResourcePage): RouteRecordRawWithParams[] {
+  private generateResourceRoutesForExistingProduct(parentName: string, pageChild: ProductChildResourcePageAAA): RouteRecordRawWithParams[] {
     const interopDefault = (promise: Promise<any>) => promise.then((page) => page.default || page);
 
     return [

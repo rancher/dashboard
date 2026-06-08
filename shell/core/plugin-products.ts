@@ -1,7 +1,8 @@
-import { IExtension } from '@shell/core/types';
+import { IExtension, ProductOptionsTypeMap } from '@shell/core/types';
 import {
   StandardProductName, ProductChild,
-  ProductMetadata, ProductSinglePage,
+  ProductMetadataSinglePage,
+  ProductMetadataAdd,
 } from '@shell/core/plugin-types';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
@@ -15,13 +16,13 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductSinglePage, config: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductOptionsTypeMap | ProductMetadataSinglePage, pages: ProductChild[]) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
-      this.instance = new TopLevelPluginProduct(plugin, product, config);
+      this.instance = new TopLevelPluginProduct(plugin, product, pages);
     } else if (typeof product === 'string') {
       // This is extending an existing standard product
-      this.instance = new ExtendingPluginProduct(plugin, product, config);
+      this.instance = new ExtendingPluginProduct(plugin, product, pages);
     } else {
       // at this point we may not know the product name
       throw new Error('Extensions product registration error ::: Invalid product');

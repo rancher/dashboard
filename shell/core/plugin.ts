@@ -21,18 +21,18 @@ import {
   ServerSidePaginationExtensionConfig,
   TableAction,
 } from './types';
-import {
-  ProductMetadata,
-  ProductSinglePage,
-  ProductChild,
-  StandardProductName,
-  RouteRecordRawWithParams
-} from './plugin-types';
+import { RouteRecordRawWithParams } from './plugin-types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 import { PluginProduct } from './plugin-products';
+import { ProductChildCustomPage, ProductChildResourcePage, ProductOptions, ProductOptionsSinglePage } from '@shell/core/plugin-products-internal';
+import {
+  ProductMetadataAdd, ProductMetadataInternal, ProductMetadataSinglePage, ProductMetadataSinglePageComponent, VueRouteComponent
+  , ProductChildResourcePage as ProductChildResourcePageExternal, ProductChildCustomPage as ProductChildCustomPageExternal
+  , StandardProductName
+} from '@shell/core/plugin-products-external';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -134,16 +134,40 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[]): void {
+  addProduct(product: ProductFunction | ProductMetadataAdd | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
     let pluginProduct: PluginProduct;
 
     if (typeof product === 'string') {
       pluginProduct = PluginProduct.fromName(this, product);
     } else if (product?.name) {
-      if (!config) {
-        pluginProduct = new PluginProduct(this, product as ProductSinglePage, []);
+      if (!pages) {
+        const all = new ProductOptionsSinglePage(product as ProductMetadataSinglePage);
+
+        pluginProduct = new PluginProduct(this, all, []);
       } else {
-        pluginProduct = new PluginProduct(this, product as ProductMetadata, config);
+        const all = new ProductOptions(product as ProductMetadataAdd);
+        const mappedPages = pages
+          .map((p) => {
+            // ProductChildGroup
+            if (!!(p as any).children) {
+              return p;
+            }
+
+            if (!!(p as any).component) {
+              return new ProductChildCustomPage(p as any as ProductChildCustomPageExternal);
+            }
+
+            if (!!(p as any).type) {
+              return new ProductChildResourcePage(p as any as ProductChildResourcePageExternal);
+            }
+
+            console.error('unknown.... // TODO: RC');
+
+            return null;
+          })
+          .filter((p) => !!p);
+
+        pluginProduct = new PluginProduct(this, all, mappedPages);
       }
     } else {
       this.products.push(product as ProductFunction);

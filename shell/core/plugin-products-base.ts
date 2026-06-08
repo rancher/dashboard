@@ -1,6 +1,6 @@
-import { IExtension } from '@shell/core/types';
+import { IExtension, ProductOptionsTypeMap } from '@shell/core/types';
 import {
-  ProductChild, ProductMetadata,
+  ProductChild,
   ConfigureTypeConfiguration, VirtualTypeConfiguration,
   ProductChildCustomPage, VueRouteComponent,
   OverviewPageRoutingMetadata
@@ -22,7 +22,7 @@ import {
 export abstract class BasePluginProduct {
   protected name!: string;
 
-  protected product?: ProductMetadata;
+  protected product?: ProductOptionsTypeMap;
 
   protected addedResourceRoutes = false;
 
