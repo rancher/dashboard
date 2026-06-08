@@ -44,7 +44,6 @@ jobs:
         run: node scripts/check-packages-sync
 
   e2e-ui-build:
-    needs: check-packages-sync
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
