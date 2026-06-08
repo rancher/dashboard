@@ -123,7 +123,7 @@ export default {
           label:          this.t('fleet.helmOp.add.steps.metadata.label'),
           subtext:        this.t('fleet.helmOp.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.helmOp.add.steps.metadata.description',
-          ready:          this.isView || !!this.value.metadata.name,
+          ready:          this.isView || (!!this.value.metadata.name && this.stepPathErrors('basics').length === 0),
           weight:         1
         },
         {
@@ -245,6 +245,15 @@ export default {
   },
 
   methods: {
+    stepPathErrors(stepName) {
+      // Helper is used to check which validations is for each step
+      const paths = this.fvFormRuleSets
+        .filter((rule) => rule.step === stepName)
+        .map((rule) => rule.path);
+
+      return this.fvGetPathErrors(paths);
+    },
+
     onSourceTypeSelect(type) {
       this.sourceType = type;
       delete this.value.spec.helm.repo;
@@ -414,30 +423,43 @@ export default {
     },
 
     updateValidationRules(sourceType) {
+      const nameRule = {
+        step:           'basics',
+        path:           'metadata.name',
+        rules:          ['subDomain'],
+        translationKey: 'nameNsDescription.name.label'
+      };
+
       switch (sourceType) {
       case SOURCE_TYPE.REPO:
-        this.fvFormRuleSets = [{
+        this.fvFormRuleSets = [nameRule, {
+          step:  'chart',
           path:  'spec.helm.repo',
           rules: ['urlRepository'],
         }, {
+          step:  'chart',
           path:  'spec.helm.chart',
           rules: ['required'],
         }, {
+          step:  'chart',
           path:  'spec.helm.version',
           rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.OCI:
-        this.fvFormRuleSets = [{
+        this.fvFormRuleSets = [nameRule, {
+          step:  'chart',
           path:  'spec.helm.repo',
           rules: ['ociRegistry'],
         }, {
+          step:  'chart',
           path:  'spec.helm.version',
           rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
-        this.fvFormRuleSets = [{
+        this.fvFormRuleSets = [nameRule, {
+          step:  'chart',
           path:  'spec.helm.chart',
           rules: ['urlRepository'],
         }];
@@ -461,6 +483,26 @@ export default {
         break;
       }
     },
+
+    async beforeNext(activeStep) {
+      if (activeStep.name !== 'basics' || !this.isCreate) {
+        return;
+      }
+
+      await this.value.dryRunCreate({
+        type:     this.value.type,
+        metadata: {
+          name:      this.value.metadata.name,
+          namespace: this.value.metadata.namespace,
+        },
+        spec: {
+          helm: {
+            chart: 'placeholder',
+            repo:  'https://example.com',
+          },
+        }
+      });
+    },
   },
 };
 </script>
@@ -478,6 +520,7 @@ export default {
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
+    :before-next="beforeNext"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
@@ -488,6 +531,7 @@ export default {
         :value="value"
         :mode="mode"
         :is-view="isView"
+        :name-rules="fvGetAndReportPathRules('metadata.name')"
         @update:value="$emit('input', $event)"
       />
     </template>

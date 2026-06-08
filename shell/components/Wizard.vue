@@ -119,6 +119,11 @@ export default {
     errors: {
       type:    Array,
       default: null,
+    },
+
+    beforeGoToStep: {
+      type:    Function,
+      default: null
     }
   },
 
@@ -212,7 +217,7 @@ export default {
   },
 
   methods: {
-    goToStep(number, fromNav) {
+    async goToStep(number, fromNav) {
       if (number < 1) {
         return;
       }
@@ -226,6 +231,14 @@ export default {
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
+      }
+
+      if (this.beforeGoToStep && fromNav) {
+        try {
+          await this.beforeGoToStep(this.activeStep, selected);
+        } catch {
+          return;
+        }
       }
 
       this.activeStep = selected;
