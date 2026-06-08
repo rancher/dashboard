@@ -101,9 +101,18 @@ class PluginProductsHelpers {
 
   // VIRTUAL TYPE ROUTES - TOP LEVEL EXTENSION
   private generateVirtualTypeRouteForNewProduct(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
-    const { component, omitPath } = options;
-    const name = childName ? `${ parentName }-c-cluster-${ childName }` : `${ parentName }-c-cluster`;
-    const path = childName ? `${ parentName }/c/:cluster/${ childName }` : `${ parentName }/c/:cluster`;
+    const { component, omitPath, startRouteWithProduct } = options;
+
+    let name;
+    let path;
+
+    if (startRouteWithProduct) {
+      name = childName ? `${ parentName }-c-cluster-${ childName }` : `${ parentName }-c-cluster`;
+      path = childName ? `${ parentName }/c/:cluster/${ childName }` : `${ parentName }/c/:cluster`;
+    } else {
+      name = childName ? `c-cluster-${ parentName }-${ childName }` : `c-cluster-${ parentName }`;
+      path = childName ? `c/:cluster/${ parentName }/${ childName }` : `c/:cluster/${ parentName }`;
+    }
 
     const route: RouteRecordRawWithParams = {
       name,
@@ -156,11 +165,22 @@ class PluginProductsHelpers {
 
   // CONFIGURE TYPE ROUTES - TOP LEVEL EXTENSION
   private generateConfigureTypeRouteForNewProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
-    const { component, omitPath } = options;
+    const { component, omitPath, startRouteWithProduct } = options;
+
+    let name;
+    let path;
+
+    if (startRouteWithProduct) {
+      name = `${ parentName }-c-cluster-resource`;
+      path = `${ parentName }/c/:cluster/:resource`;
+    } else {
+      name = `c-cluster-${ parentName }-resource`;
+      path = `c/:cluster/${ parentName }/:resource`;
+    }
 
     const route: RouteRecordRawWithParams = {
-      name:   `${ parentName }-c-cluster-resource`,
-      path:   `${ parentName }/c/:cluster/:resource`,
+      name,
+      path,
       params: {
         product: parentName, cluster: BLANK_CLUSTER, resource: pageChild?.type
       },
@@ -185,7 +205,7 @@ class PluginProductsHelpers {
     if (options.extendProduct) {
       return this.generateResourceRoutesForExistingProduct(parentName, pageChild);
     } else {
-      return this.generateResourceRoutesForNewProduct(parentName);
+      return this.generateResourceRoutesForNewProduct(parentName, options);
     }
   }
 
@@ -226,33 +246,44 @@ class PluginProductsHelpers {
   }
 
   // RESOURCE ROUTES - TOP LEVEL EXTENSION
-  private generateResourceRoutesForNewProduct(parentName: string) {
+  private generateResourceRoutesForNewProduct(parentName: string, options: ProductRegistrationRouteGenerationOptions = {}) {
     const interopDefault = (promise: Promise<any>) => promise.then((page) => page.default || page);
+
+    let namePrefix;
+    let pathPrefix;
+
+    if (options.startRouteWithProduct) {
+      namePrefix = `${ parentName }-c-cluster`;
+      pathPrefix = `${ parentName }/c/:cluster`;
+    } else {
+      namePrefix = `c-cluster-${ parentName }`;
+      pathPrefix = `c/:cluster/${ parentName }`;
+    }
 
     return [
       {
-        name:      `${ parentName }-c-cluster-resource`,
-        path:      `${ parentName }/c/:cluster/:resource`,
+        name:      `${ namePrefix }-resource`,
+        path:      `${ pathPrefix }/:resource`,
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/index.vue')),
         meta:      { product: parentName, cluster: BLANK_CLUSTER }
       },
       {
-        name:      `${ parentName }-c-cluster-resource-create`,
-        path:      `${ parentName }/c/:cluster/:resource/create`,
+        name:      `${ namePrefix }-resource-create`,
+        path:      `${ pathPrefix }/:resource/create`,
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/create.vue')),
         meta:      { product: parentName, cluster: BLANK_CLUSTER }
       },
       {
-        name:      `${ parentName }-c-cluster-resource-id`,
-        path:      `${ parentName }/c/:cluster/:resource/:id`,
+        name:      `${ namePrefix }-resource-id`,
+        path:      `${ pathPrefix }/:resource/:id`,
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         meta:      {
           product: parentName, cluster: BLANK_CLUSTER, asyncSetup: true
         }
       },
       {
-        name:      `${ parentName }-c-cluster-resource-namespace-id`,
-        path:      `${ parentName }/c/:cluster/:resource/:namespace/:id`,
+        name:      `${ namePrefix }-resource-namespace-id`,
+        path:      `${ pathPrefix }/:resource/:namespace/:id`,
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         meta:      {
           product: parentName, cluster: BLANK_CLUSTER, asyncSetup: true
