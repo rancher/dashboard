@@ -48,15 +48,17 @@
 - window.js: mock `window.screen` via Object.defineProperty; spy on `window.open`; use jest.useFakeTimers() for Popup.open setInterval polling
 - computed.js: `integerString` and `keyValueStrings` return `{get(),set()}` objects; test with `.call(ctx)` on plain object; no mocking needed; `Object.is(NaN,NaN)=true` so `toStrictEqual(NaN)` works
 - queue.js: offset-based compaction triggers at `++offset * 2 >= array.length`; test with 4 items where 2nd dequeue triggers compaction; backing array reset preserves correctness
+- release-notes.ts: mock `@shell/config/version` via jest.resetModules()+jest.mock() in beforeEach; READ_WHATS_NEW='read-whatsnew'; pass plain getters map + dispatch jest.fn(); NotificationLevel.Info=2
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/cspAdaptor.ts` — Content Security Policy adaptor; pure logic worth exploring
-2. `shell/utils/select.js` — dropdown positioner with branching logic (DOM-dependent, complex)
-3. `shell/utils/release-notes.ts` — notification helper (store-dependent, needs Vuex mock)
+1. `shell/utils/select.js` — dropdown positioner with branching logic (DOM-dependent, complex)
+2. `shell/utils/cspAdaptor.ts` — `hasCspAdapter` is pure; `fetchCspAdaptorApp` needs store mocking
+3. `shell/utils/scroll.js` — trivial DOM utility (low priority)
 
 ## Completed Work (Summary)
 
+- 2026-06-08: PR (branch test-assist/release-notes-tests): 16 tests for release-notes.ts; 100% all metrics
 - 2026-06-07: PR (branch test-assist/queue-utils-tests): 23 tests for queue.js; 100% all metrics
 - 2026-06-06: PR #17983 (branch test-assist/computed-utils-tests): 22 tests for computed.js — merged ✅
 - 2026-06-05: PR #17975 (branch test-assist/platform-window-utils-tests): 22 tests for platform.js, window.js — merged ✅
@@ -71,6 +73,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-08: Task 3 (release-notes.ts, 16 tests) + Task 7
 - 2026-06-07: Task 3 (queue.js, 23 tests) + Task 7
 - 2026-06-06: Task 3 (computed.js, 22 tests) + Task 7
 - 2026-06-05: Task 3 (platform.js + window.js, 22 tests) + Task 7
