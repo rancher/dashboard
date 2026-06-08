@@ -7439,6 +7439,7 @@ workloadDashboard:
   sections:
     byState: By State
     byType: By Type
+    byNamespace: By Namespace
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"

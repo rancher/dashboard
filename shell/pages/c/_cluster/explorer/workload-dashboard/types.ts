@@ -4,7 +4,7 @@ import type { RouteLocationRaw } from 'vue-router';
 
 export interface WorkloadDashboardSummaryEntry {
   type: string;
-  summary: { property: string; counts: Record<string, number> }[] | null;
+  summary: { property: string; counts: Record<string, { total: number; namespace: Record<string, number> }> }[] | null;
   error: string | null;
 }
 
@@ -49,6 +49,24 @@ export interface WorkloadDashboardByTypeCard {
 }
 
 export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
+
+export interface WorkloadDashboardByNamespaceCardRow {
+  label: string;
+  type: string;
+  counts: {
+    color: StateColor;
+    count: number;
+    stateNames: string[];
+  }[];
+}
+
+export interface WorkloadDashboardByNamespaceCard {
+  title: string;
+  rows: WorkloadDashboardByNamespaceCardRow[];
+}
+
+export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string, stateNames?: string[]) => void;
+export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
 
 export const WORKLOAD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.CRON_JOB,

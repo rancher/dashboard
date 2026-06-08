@@ -2,10 +2,12 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { RouteLocationRaw } from 'vue-router';
+import RcCounterBadge from '@components/Pill/RcCounterBadge';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import { stateColorCssVar, type StateColor } from '@shell/utils/style';
+import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue';
 
 interface Resource {
   stateDisplay: string;
@@ -62,9 +64,8 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
 <template>
   <Card
     class="workload-type-card"
-    :title="title"
     data-testid="resource-detail-status-card"
-    role="button"
+    role="group"
     tabindex="0"
     :aria-label="`${ title }: ${ total } total`"
     @click="handleClick"
@@ -73,8 +74,17 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     <StatusBar
       v-if="resources.length > 0"
       :segments="segments"
+      class="align-center"
       aria-hidden="true"
     />
+    <VerticalGap />
+    <template
+      #title
+    >
+      <div class="align-center full-height">
+        {{ title }}
+      </div>
+    </template>
     <ul
       v-if="resources.length > 0"
       class="rows"
@@ -94,12 +104,11 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
             {{ r.stateDisplay }}
           </SubtleLink>
         </span>
-        <span
-          class="count"
+        <RcCounterBadge
+          :count="r.count"
+          type="inactive"
           :aria-label="`${ r.count } ${ r.stateDisplay }`"
-        >
-          {{ r.count }}
-        </span>
+        />
       </li>
     </ul>
   </Card>
@@ -116,6 +125,15 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
   &:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: -2px;
+  }
+
+  .align-center {
+    align-items: center;
+    display: flex;
+  }
+
+  .full-height {
+    height: 100%;
   }
 
   .rows {

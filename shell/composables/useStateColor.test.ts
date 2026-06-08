@@ -99,7 +99,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { running: 5 } }],
+        summary: [{ property: 'metadata.state.name', counts: { running: { total: 5, namespace: { default: 5 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -122,7 +122,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { customState: 3 } }],
+        summary: [{ property: 'metadata.state.name', counts: { customState: { total: 3, namespace: { default: 3 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -145,7 +145,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { 'init:Error': 1 } }],
+        summary: [{ property: 'metadata.state.name', counts: { 'init:Error': { total: 1, namespace: { default: 1 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -168,7 +168,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { 'init:0/1': 2 } }],
+        summary: [{ property: 'metadata.state.name', counts: { 'init:0/1': { total: 2, namespace: { default: 2 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -194,7 +194,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.namespace', counts: { default: 5 } }],
+        summary: [{ property: 'metadata.namespace', counts: { default: { total: 5, namespace: { default: 5 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -209,7 +209,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { networkFailState: 1 } }],
+        summary: [{ property: 'metadata.state.name', counts: { networkFailState: { total: 1, namespace: { default: 1 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -224,7 +224,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { emptyResult: 1 } }],
+        summary: [{ property: 'metadata.state.name', counts: { emptyResult: { total: 1, namespace: { default: 1 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -239,7 +239,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
-        summary: [{ property: 'metadata.state.name', counts: { noStateField: 1 } }],
+        summary: [{ property: 'metadata.state.name', counts: { noStateField: { total: 1, namespace: { default: 1 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -257,7 +257,7 @@ describe('composable: useStateColor', () => {
 
       const entries: StateSummaryEntry[] = [{
         type:    'apps.deployments',
-        summary: [{ property: 'metadata.state.name', counts: { urlTestState: 1 } }],
+        summary: [{ property: 'metadata.state.name', counts: { urlTestState: { total: 1, namespace: { default: 1 } } } }],
       }];
 
       await resolveStateColors(entries);
@@ -291,11 +291,11 @@ describe('composable: useStateColor', () => {
       const entries: StateSummaryEntry[] = [
         {
           type:    'pod',
-          summary: [{ property: 'metadata.state.name', counts: { stateA: 1 } }],
+          summary: [{ property: 'metadata.state.name', counts: { stateA: { total: 1, namespace: { default: 1 } } } }],
         },
         {
           type:    'apps.deployments',
-          summary: [{ property: 'metadata.state.name', counts: { stateB: 2 } }],
+          summary: [{ property: 'metadata.state.name', counts: { stateB: { total: 2, namespace: { default: 2 } } } }],
         },
       ];
 

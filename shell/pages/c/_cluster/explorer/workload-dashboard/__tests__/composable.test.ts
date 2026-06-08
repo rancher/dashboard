@@ -5,6 +5,7 @@ import { shallowMount, flushPromises } from '@vue/test-utils';
 
 const mockGetters: Record<string, any> = {};
 const mockDispatch = jest.fn();
+const mockRouterPush = jest.fn();
 
 jest.mock('vuex', () => ({
   useStore: () => ({
@@ -16,6 +17,8 @@ jest.mock('vuex', () => ({
     dispatch: mockDispatch,
   }),
 }));
+
+jest.mock('vue-router', () => ({ useRouter: () => ({ push: mockRouterPush }) }));
 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: Record<string, any>) => `%${ key }%${ args ? JSON.stringify(args) : '' }` }) }));
 
@@ -53,11 +56,17 @@ function setupGetters(overrides: Record<string, any> = {}) {
 }
 
 const summaryResponse = {
-  summary: [{ property: 'metadata.state.name', counts: { running: 5, error: 2 } }],
-  data:    [],
+  summary: [{
+    property: 'metadata.state.name',
+    counts:   {
+      running: { total: 5, namespace: { default: 5 } },
+      error:   { total: 2, namespace: { default: 2 } },
+    }
+  }],
+  data: [],
 };
 
-function mountComposable(getterOverrides: Record<string, any> = {}) {
+function mountComposable(getterOverrides: Record<string, any> = {}, dispatchResponse: any = summaryResponse) {
   setupGetters({
     'cluster/schemaFor': () => ({ links: { collection: '/v1/test' } }),
     'cluster/urlFor':    () => '/v1/test',
@@ -67,7 +76,7 @@ function mountComposable(getterOverrides: Record<string, any> = {}) {
 
   mockDispatch.mockImplementation((action: string) => {
     if (action === 'cluster/request') {
-      return Promise.resolve(summaryResponse);
+      return Promise.resolve(dispatchResponse);
     }
 
     return Promise.resolve();
@@ -358,6 +367,161 @@ describe('composable: useWorkloadDashboard', () => {
       await flushPromises();
 
       expect(result.byStateLayout.value.gridRows).toStrictEqual(1);
+      wrapper.unmount();
+    });
+  });
+
+  describe('byNamespaceCards', () => {
+    it('should return cards grouped by namespace', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const cards = result.byNamespaceCards.value;
+
+      expect(cards.length).toBeGreaterThan(0);
+      expect(cards[0].title).toStrictEqual('default');
+      wrapper.unmount();
+    });
+
+    it('should have rows for each workload type present in the namespace', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+
+      expect(defaultCard?.rows).toHaveLength(WORKLOAD_RESOURCE_TYPES.length);
+      expect(defaultCard?.rows.map((r) => r.type)).toStrictEqual(WORKLOAD_RESOURCE_TYPES);
+      wrapper.unmount();
+    });
+
+    it('should group counts by color within each row', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+      const firstRow = defaultCard?.rows[0];
+      const colors = firstRow?.counts.map((c) => c.color);
+
+      expect(colors).toContain('error');
+      expect(colors).toContain('success');
+      wrapper.unmount();
+    });
+
+    it('should sort counts by color order (error first, success last)', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+      const firstRow = defaultCard?.rows[0];
+      const colors = firstRow?.counts.map((c) => c.color);
+
+      expect(colors?.indexOf('error')).toBeLessThan(colors?.indexOf('success') as number);
+      wrapper.unmount();
+    });
+
+    it('should sort namespaces alphabetically', async() => {
+      const multiNsResponse = {
+        summary: [{
+          property: 'metadata.state.name',
+          counts:   {
+            running: {
+              total:     3,
+              namespace: { zebra: 1, alpha: 2 },
+            },
+          }
+        }],
+        data: [],
+      };
+
+      const { wrapper, result } = mountComposable({}, multiNsResponse);
+
+      await flushPromises();
+
+      const titles = result.byNamespaceCards.value.map((c) => c.title);
+
+      expect(titles).toStrictEqual(['alpha', 'zebra']);
+      wrapper.unmount();
+    });
+
+    it('should include stateNames in each count entry for routing', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+      const firstRow = defaultCard?.rows[0];
+      const successCount = firstRow?.counts.find((c) => c.color === 'success');
+
+      expect(successCount?.stateNames).toContain('running');
+      expect(successCount?.count).toStrictEqual(5);
+      wrapper.unmount();
+    });
+  });
+
+  describe('filterByNamespace', () => {
+    it('should dispatch switchNamespaces with the namespace filter', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockDispatch.mockClear();
+
+      result.filterByNamespace('cattle-system');
+
+      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
+        ids: ['ns://cattle-system'],
+        key: 'local',
+      });
+      wrapper.unmount();
+    });
+  });
+
+  describe('navigateToNamespace', () => {
+    it('should switch namespace filter and navigate to resource page', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockDispatch.mockClear();
+      mockRouterPush.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'cattle-system');
+
+      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
+        ids: ['ns://cattle-system'],
+        key: 'local',
+      });
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  'explorer',
+          resource: 'apps.deployment',
+        },
+      });
+      wrapper.unmount();
+    });
+
+    it('should include state filter query when stateNames are provided', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockDispatch.mockClear();
+      mockRouterPush.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'default', ['running', 'active']);
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  'explorer',
+          resource: 'apps.deployment',
+        },
+        query: { q: '"metadata.state.name":"running","metadata.state.name":"active"' },
+      });
       wrapper.unmount();
     });
   });

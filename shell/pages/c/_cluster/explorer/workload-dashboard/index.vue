@@ -11,6 +11,7 @@ import { useStore } from 'vuex';
 import { useWorkloadDashboard } from './composable';
 import ByStateSection from './ByStateSection.vue';
 import ByTypeSection from './ByTypeSection.vue';
+import ByNamespaceSection from './ByNamespaceSection.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -22,8 +23,11 @@ const {
   namespaceSubtitle,
   byStateLayout,
   byTypeCards,
+  byNamespaceCards,
   resetNamespaceFilter,
+  filterByNamespace,
   resourceRoute,
+  navigateToNamespace,
 } = useWorkloadDashboard();
 </script>
 
@@ -123,6 +127,21 @@ const {
           <ByTypeSection
             :cards="byTypeCards"
             :resource-route="resourceRoute"
+          />
+        </div>
+
+        <!-- ━━━ By Namespace ━━━ -->
+        <div
+          class="section"
+          data-testid="workload-dashboard-by-namespace"
+        >
+          <h4 class="m-0 text-deemphasized">
+            {{ t('workloadDashboard.sections.byNamespace') }}
+          </h4>
+          <ByNamespaceSection
+            :cards="byNamespaceCards"
+            :navigate-to-namespace="navigateToNamespace"
+            :filter-by-namespace="filterByNamespace"
           />
         </div>
       </div>

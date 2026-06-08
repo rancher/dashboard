@@ -2,7 +2,8 @@
 import { computed } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 import SubtleLink from '@shell/components/SubtleLink.vue';
-import { stateColorCssVar, type StateColor } from '@shell/utils/style';
+import StateDot from '@shell/components/StateDot/index.vue';
+import type { StateColor } from '@shell/utils/style';
 
 export interface WorkloadCardRow {
   label: string;
@@ -35,10 +36,10 @@ const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)`
         :key="idx"
         class="resource-row"
       >
-        <span
+        <StateDot
+          v-if="row.color"
           class="state-dot"
-          :style="{ backgroundColor: row.color ? stateColorCssVar(row.color) : undefined }"
-          aria-hidden="true"
+          :color="row.color"
         />
         <span class="left">
           <SubtleLink
@@ -107,7 +108,7 @@ const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)`
     align-items: center;
     position: relative;
     padding-left: 20px;
-    line-height: 21px;
+    line-height: 24px;
     height: 24px;
 
     .left {
@@ -148,10 +149,6 @@ const gridColumns = computed(() => bodyColumns ? `repeat(${ bodyColumns }, 1fr)`
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
     }
   }
 }

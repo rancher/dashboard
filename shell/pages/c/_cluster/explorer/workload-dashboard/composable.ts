@@ -2,7 +2,7 @@ import {
   ref, computed, watch, onMounted, onBeforeUnmount
 } from 'vue';
 import { useStore } from 'vuex';
-import type { RouteLocationRaw } from 'vue-router';
+import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { NAMESPACE } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
@@ -22,10 +22,12 @@ import {
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
   type WorkloadDashboardByTypeCard,
+  type WorkloadDashboardByNamespaceCard,
 } from './types';
 
 export function useWorkloadDashboard() {
   const store = useStore();
+  const router = useRouter();
   const { t } = useI18n(store);
   const { toStateColor, resolveStateColors } = useStateColor();
 
@@ -132,8 +134,10 @@ export function useWorkloadDashboard() {
       if (entry.summary) {
         for (const s of entry.summary) {
           if (s.property === 'metadata.state.name') {
-            Object.assign(stateCounts, s.counts);
-            total = Object.values(s.counts).reduce((sum, c) => sum + c, 0);
+            for (const [state, detail] of Object.entries(s.counts)) {
+              stateCounts[state] = detail.total;
+              total += detail.total;
+            }
           }
         }
       }
@@ -243,12 +247,79 @@ export function useWorkloadDashboard() {
     });
   });
 
+  // ── By Namespace cards ──
+
+  const byNamespaceCards = computed<WorkloadDashboardByNamespaceCard[]>(() => {
+    // namespace -> type -> color -> { count, stateNames }
+    const nsMap: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
+
+    for (const entry of summaries.value) {
+      if (entry.error || !entry.summary) {
+        continue;
+      }
+
+      for (const s of entry.summary) {
+        if (s.property !== 'metadata.state.name') {
+          continue;
+        }
+
+        for (const [state, detail] of Object.entries(s.counts)) {
+          const color = toStateColor(state);
+
+          for (const [ns, count] of Object.entries(detail.namespace)) {
+            if (!nsMap[ns]) {
+              nsMap[ns] = {};
+            }
+            if (!nsMap[ns][entry.type]) {
+              nsMap[ns][entry.type] = {};
+            }
+            if (!nsMap[ns][entry.type][color]) {
+              nsMap[ns][entry.type][color] = { count: 0, stateNames: new Set() };
+            }
+            nsMap[ns][entry.type][color].count += count;
+            nsMap[ns][entry.type][color].stateNames.add(state);
+          }
+        }
+      }
+    }
+
+    return Object.entries(nsMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([ns, typeMap]) => {
+        const rows = WORKLOAD_RESOURCE_TYPES
+          .filter((type) => typeMap[type])
+          .map((type) => {
+            const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
+            const counts = Object.entries(typeMap[type])
+              .sort(([a], [b]) => (COLOR_ORDER[a] ?? 5) - (COLOR_ORDER[b] ?? 5))
+              .map(([color, { count, stateNames }]) => ({
+                color:      color as StateColor,
+                count,
+                stateNames: Array.from(stateNames),
+              }));
+
+            return {
+              label, type, counts
+            };
+          });
+
+        return { title: ns, rows };
+      });
+  });
+
   // ── Actions ──
 
   function resetNamespaceFilter(): void {
     store.dispatch('switchNamespaces', {
       ids: [],
-      key: store.getters['clusterId'],
+      key: clusterId.value,
+    });
+  }
+
+  function filterByNamespace(namespace: string): void {
+    store.dispatch('switchNamespaces', {
+      ids: [`${ NAMESPACE_FILTER_NS_FULL_PREFIX }${ namespace }`],
+      key: clusterId.value,
     });
   }
 
@@ -271,6 +342,11 @@ export function useWorkloadDashboard() {
     return loc;
   }
 
+  function navigateToNamespace(type: string, namespace: string, stateNames?: string[]): void {
+    filterByNamespace(namespace);
+    router.push(resourceRoute(type, stateNames));
+  }
+
   // ── Fetching & polling ──
 
   async function fetchSummaries(): Promise<void> {
@@ -286,7 +362,7 @@ export function useWorkloadDashboard() {
           if (namespaceFilterParam.value) {
             url += `&${ namespaceFilterParam.value }`;
           }
-          url += `&summary=metadata.state.name`;
+          url += `&summary=metadata.state.name&summaryonly&summarynamespaced`;
 
           const res = await store.dispatch('cluster/request', { url });
 
@@ -360,7 +436,10 @@ export function useWorkloadDashboard() {
     namespaceSubtitle,
     byStateLayout,
     byTypeCards,
+    byNamespaceCards,
     resetNamespaceFilter,
+    filterByNamespace,
     resourceRoute,
+    navigateToNamespace,
   };
 }

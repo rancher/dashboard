@@ -12,7 +12,7 @@ export interface StateSummaryEntry {
   /** The Steve resource type identifier (e.g. `apps.deployment`). */
   type: string;
   /** Summary buckets returned by the API, or `null` if unavailable. */
-  summary: { property: string; counts: Record<string, number> }[] | null;
+  summary: { property: string; counts: Record<string, { total: number; namespace: Record<string, number> }> }[] | null;
 }
 
 const stateColorCache = reactive<Record<string, StateColor>>({});
