@@ -143,7 +143,7 @@ export default {
     },
     refreshIntervalRules() {
       return [
-        (val) => +val < 0 ? this.t('validation.number.isPositive', { key: this.t('catalog.repo.refreshInterval.label') }) : undefined,
+        (val: string | number) => Number(val) < 0 ? this.t('validation.number.isPositive', { key: this.t('catalog.repo.refreshInterval.label') }) : undefined,
       ];
     },
     refreshIntervalPlaceholder() {
@@ -221,23 +221,23 @@ export default {
         return;
       }
 
-      if (this.refreshDisplayValue === null || this.refreshDisplayValue === '') {
+      if (this.refreshDisplayValue === null) {
         delete this.value.spec.refreshInterval;
 
         return;
       }
 
-      this.value.spec.refreshInterval = Number(this.refreshDisplayValue) * this.refreshUnit;
+      this.value.spec.refreshInterval = this.refreshDisplayValue * this.refreshUnit;
     },
-    onRefreshEnabledChange(val) {
+    onRefreshEnabledChange(val: boolean) {
       this.refreshEnabled = val;
       this.syncRefreshIntervalToSpec();
     },
-    onRefreshValueChange(val) {
-      this.refreshDisplayValue = val === '' || val === null ? null : val;
+    onRefreshValueChange(val: string | null) {
+      this.refreshDisplayValue = val === '' || val === null ? null : Number(val);
       this.syncRefreshIntervalToSpec();
     },
-    onRefreshUnitChange(val) {
+    onRefreshUnitChange(val: number) {
       this.refreshUnit = val;
       this.syncRefreshIntervalToSpec();
     },
