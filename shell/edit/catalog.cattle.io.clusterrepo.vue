@@ -318,6 +318,7 @@ export default {
       :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      :name-col-span="6"
       @update:value="$emit('input', $event)"
     />
 
