@@ -141,6 +141,11 @@ export default {
         { label: this.t('unit.day', { count: 2 }), value: 86400 },
       ];
     },
+    refreshIntervalRules() {
+      return [
+        (val) => +val < 0 ? this.t('validation.number.isPositive', { key: this.t('catalog.repo.refreshInterval.label') }) : undefined,
+      ];
+    },
     refreshIntervalPlaceholder() {
       const defaultHours = this.clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 1;
 
@@ -404,6 +409,7 @@ export default {
             :value="refreshDisplayValue"
             :label="t('catalog.repo.refreshInterval.label')"
             :mode="mode"
+            :rules="refreshIntervalRules"
             type="number"
             min="0"
             :disabled="!refreshEnabled || isView"
