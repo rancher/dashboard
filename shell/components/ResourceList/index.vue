@@ -168,7 +168,7 @@ export default {
     activeStateFilters() {
       const raw = this.$route?.query?.stateFilter;
 
-      if (!raw || !this.rows.length) {
+      if (!raw) {
         return [];
       }
 
