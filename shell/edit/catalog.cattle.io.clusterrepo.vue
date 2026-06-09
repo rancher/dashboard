@@ -434,7 +434,6 @@ export default {
             class="refresh-interval-checkbox"
             :mode="mode"
             :label="t('generic.enabled')"
-            :disabled="isView"
             data-testid="clusterrepo-refresh-interval-checkbox"
             @update:value="onRefreshEnabledChange"
           />
