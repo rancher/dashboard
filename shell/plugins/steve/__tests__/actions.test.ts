@@ -58,19 +58,42 @@ describe('steve: actions:', () => {
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('summaryField is required'));
     });
 
-    it('should construct the correct URL with summary and exclude params', async() => {
+    it('should construct the correct URL with summary and summaryonly params', async() => {
       const ctx = baseCtx();
 
-      ctx.dispatch.mockResolvedValue({ count: 5, summary: [{ property: 'metadata.state.name', counts: { running: 5 } }] });
+      ctx.dispatch.mockResolvedValue({ count: 5, summary: [{ property: 'metadata.state.name', counts: { running: { total: 5 } } }] });
 
       await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
 
       const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
 
       expect(requestUrl).toContain('summary=metadata.state.name');
-      expect(requestUrl).toContain('exclude=metadata');
-      expect(requestUrl).toContain('exclude=spec');
-      expect(requestUrl).toContain('exclude=status');
+      expect(requestUrl).toContain('summaryonly=');
+      expect(requestUrl).not.toContain('summarynamespaced');
+    });
+
+    it('should not include summaryonly when summaryOnly is false', async() => {
+      const ctx = baseCtx();
+
+      ctx.dispatch.mockResolvedValue({ count: 5, summary: [{ property: 'metadata.state.name', counts: { running: { total: 5 } } }] });
+
+      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', summaryOnly: false } });
+
+      const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
+
+      expect(requestUrl).not.toContain('summaryonly');
+    });
+
+    it('should include summarynamespaced param when namespaceCounts is true', async() => {
+      const ctx = baseCtx();
+
+      ctx.dispatch.mockResolvedValue({ count: 5, summary: [{ property: 'metadata.state.name', counts: { running: { total: 5 } } }] });
+
+      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', namespaceCounts: true } });
+
+      const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
+
+      expect(requestUrl).toContain('summarynamespaced=');
     });
 
     it('should append namespace to path for namespaced resources', async() => {
@@ -118,23 +141,6 @@ describe('steve: actions:', () => {
       const ctx = baseCtx();
       const apiResponse = {
         count:   10,
-        summary: [{ property: 'metadata.state.name', counts: { running: 7, error: 3 } }]
-      };
-
-      ctx.dispatch.mockResolvedValue(apiResponse);
-
-      const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
-
-      expect(result).toStrictEqual({
-        count:   10,
-        summary: [{ property: 'metadata.state.name', counts: { running: 7, error: 3 } }]
-      });
-    });
-
-    it('should normalize object-style counts to plain numbers', async() => {
-      const ctx = baseCtx();
-      const apiResponse = {
-        count:   10,
         summary: [{ property: 'metadata.state.name', counts: { running: { total: 7 }, error: { total: 3 } } }]
       };
 
@@ -142,9 +148,24 @@ describe('steve: actions:', () => {
 
       const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
 
+      expect(result).toStrictEqual(apiResponse);
+    });
+
+    it('should pass through object-style counts as-is', async() => {
+      const ctx = baseCtx();
+      const counts = { running: { total: 7 }, error: { total: 3 } };
+      const apiResponse = {
+        count:   10,
+        summary: [{ property: 'metadata.state.name', counts }]
+      };
+
+      ctx.dispatch.mockResolvedValue(apiResponse);
+
+      const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
+
       expect(result).toStrictEqual({
         count:   10,
-        summary: [{ property: 'metadata.state.name', counts: { running: 7, error: 3 } }]
+        summary: [{ property: 'metadata.state.name', counts }]
       });
     });
 

@@ -11,9 +11,19 @@ import { RouteLocationRaw } from 'vue-router';
 import { simpleColorForState, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
+export interface SummaryCountValue {
+  total: number;
+  namespace?: Record<string, number>;
+}
+
+export interface SummaryEntry {
+  property: string;
+  counts: Record<string, SummaryCountValue>;
+}
+
 export interface SummaryResult {
   count: number;
-  summary: { property: string; counts: Record<string, number> }[] | null;
+  summary: SummaryEntry[] | null;
 }
 
 export function useResourceCardRow(label: string, resources: any[], stateColorKey = 'stateSimpleColor', stateDisplayKey = 'stateDisplay', to?: RouteLocationRaw): ResourceRowProps {
@@ -88,14 +98,14 @@ export function useResourceCardRowFromSummary(label: string, summaryResult: Summ
     color: StateColor;
   }
 
-  const tuples: Tuple[] = Object.entries(stateSummary.counts).map(([state, count]) => {
+  const tuples: Tuple[] = Object.entries(stateSummary.counts).map(([state, val]) => {
     const color = simpleColorForState(state) as StateColor;
     const display = stateDisplayFn(state) as string;
 
     return {
       color,
       label: display?.toLowerCase() || state,
-      count
+      count: val.total
     };
   });
 

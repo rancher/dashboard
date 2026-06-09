@@ -112,7 +112,7 @@ describe('component: StatusCard', () => {
     it('should render StatusBar and StatusRows from summary counts', () => {
       const summaryData: SummaryResult = {
         count:   5,
-        summary: [{ property: 'metadata.state.name', counts: { running: 3, error: 2 } }]
+        summary: [{ property: 'metadata.state.name', counts: { running: { total: 3 }, error: { total: 2 } } }]
       };
 
       const wrapper = mountCard({ summaryData });
@@ -124,7 +124,7 @@ describe('component: StatusCard', () => {
     it('should use summaryData over resources when both are provided', () => {
       const summaryData: SummaryResult = {
         count:   4,
-        summary: [{ property: 'metadata.state.name', counts: { running: 3, completed: 1 } }]
+        summary: [{ property: 'metadata.state.name', counts: { running: { total: 3 }, completed: { total: 1 } } }]
       };
       const resources = [
         mockResource('Running', 'text-success'),
@@ -159,7 +159,7 @@ describe('component: StatusCard', () => {
     it('should render a single state from summary', () => {
       const summaryData: SummaryResult = {
         count:   2,
-        summary: [{ property: 'metadata.state.name', counts: { active: 2 } }]
+        summary: [{ property: 'metadata.state.name', counts: { active: { total: 2 } } }]
       };
 
       const wrapper = mountCard({ summaryData });

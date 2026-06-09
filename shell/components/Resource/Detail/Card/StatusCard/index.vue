@@ -57,7 +57,7 @@ const segmentAccumulator = computed(() => {
       const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
 
       accumulator[color] = accumulator[color] || { count: 0 };
-      accumulator[color].count += stateCount;
+      accumulator[color].count += stateCount.total;
     }
   } else {
     props.resources?.forEach((resource: any) => {
@@ -86,7 +86,7 @@ const rowAccumulator = computed(() => {
       const color = (colorRaw?.replace('text-', '') || 'disabled') as StateColor;
 
       accumulator[display] = accumulator[display] || { count: 0, color };
-      accumulator[display].count += stateCount;
+      accumulator[display].count += stateCount.total;
     }
   } else {
     props.resources?.forEach((resource: any) => {
