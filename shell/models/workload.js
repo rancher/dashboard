@@ -857,6 +857,8 @@ export default class Workload extends WorkloadService {
           }
         }
       } catch (err) {
+        console.warn(`matchingIngresses: failed to match ingress "${ ingress.id }"`, err); // eslint-disable-line no-console
+
         return false;
       }
 
