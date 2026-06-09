@@ -400,44 +400,45 @@ export default {
     </div>
 
     <div
-      class="row mb-10 mt-20"
+      class="mt-20"
       data-testid="clusterrepo-refresh-interval"
     >
-      <div class="col span-8">
-        <div class="refresh-interval-controls">
-          <LabeledInput
-            class="refresh-interval-value"
-            :value="refreshDisplayValue"
-            :label="t('catalog.repo.refreshInterval.label')"
-            :mode="mode"
-            :rules="refreshIntervalRules"
-            type="number"
-            min="0"
-            :disabled="!refreshEnabled || isView"
-            :placeholder="refreshIntervalPlaceholder"
-            data-testid="clusterrepo-refresh-interval-input"
-            @update:value="onRefreshValueChange"
-          />
-          <LabeledSelect
-            class="refresh-interval-unit"
-            :value="refreshUnit"
-            :label="t('catalog.repo.refreshInterval.unitLabel')"
-            :mode="mode"
-            :options="unitOptions"
-            :disabled="!refreshEnabled || isView"
-            :clearable="false"
-            :searchable="false"
-            data-testid="clusterrepo-refresh-interval-unit"
-            @update:value="onRefreshUnitChange"
-          />
-          <Checkbox
-            :value="refreshEnabled"
-            class="refresh-interval-checkbox"
-            :mode="mode"
-            :label="t('generic.enabled')"
-            data-testid="clusterrepo-refresh-interval-checkbox"
-            @update:value="onRefreshEnabledChange"
-          />
+      <Checkbox
+        :value="refreshEnabled"
+        class="mb-10"
+        :mode="mode"
+        :label="t('catalog.repo.refreshInterval.enableLabel')"
+        data-testid="clusterrepo-refresh-interval-checkbox"
+        @update:value="onRefreshEnabledChange"
+      />
+      <div class="row mb-10">
+        <div class="col span-6">
+          <div class="refresh-interval-controls">
+            <LabeledInput
+              class="refresh-interval-value"
+              :value="refreshDisplayValue"
+              :label="t('catalog.repo.refreshInterval.label')"
+              :rules="refreshIntervalRules"
+              type="number"
+              min="0"
+              :disabled="!refreshEnabled || isView"
+              :placeholder="refreshIntervalPlaceholder"
+              data-testid="clusterrepo-refresh-interval-input"
+              @update:value="onRefreshValueChange"
+            />
+            <LabeledSelect
+              class="refresh-interval-unit"
+              :value="refreshUnit"
+              :label="t('catalog.repo.refreshInterval.unitLabel')"
+              :mode="mode"
+              :options="unitOptions"
+              :disabled="!refreshEnabled || isView"
+              :clearable="false"
+              :searchable="false"
+              data-testid="clusterrepo-refresh-interval-unit"
+              @update:value="onRefreshUnitChange"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -580,7 +581,7 @@ export default {
   flex: 2;
 }
 
-.refresh-interval-unit, .refresh-interval-checkbox {
+.refresh-interval-unit {
   flex: 1;
 }
 

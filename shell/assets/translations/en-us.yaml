@@ -1446,6 +1446,7 @@ catalog:
       label: Refresh Interval
       placeholder: 'default: {value}{unit}'
       unitLabel: Unit
+      enableLabel: Enable Refresh Interval
     downloaded:
       label: Downloaded
     error:
