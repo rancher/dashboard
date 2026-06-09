@@ -1445,7 +1445,6 @@ catalog:
     refreshInterval:
       label: Refresh Interval
       placeholder: 'default: {value}{unit}'
-      tooltip: Using any negative value disables Refresh
       unitLabel: Unit
     downloaded:
       label: Downloaded

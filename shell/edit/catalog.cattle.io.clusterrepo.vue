@@ -397,10 +397,9 @@ export default {
       class="row mb-10 mt-20"
       data-testid="clusterrepo-refresh-interval"
     >
-      <div class="col span-6">
+      <div class="col span-8">
         <div class="refresh-interval-controls">
           <LabeledInput
-            :tooltip="t('catalog.repo.refreshInterval.tooltip')"
             class="refresh-interval-value"
             :value="refreshDisplayValue"
             :label="t('catalog.repo.refreshInterval.label')"
@@ -426,6 +425,8 @@ export default {
           />
           <Checkbox
             :value="refreshEnabled"
+            class="refresh-interval-checkbox"
+            :mode="mode"
             :label="t('generic.enabled')"
             :disabled="isView"
             data-testid="clusterrepo-refresh-interval-checkbox"
@@ -573,7 +574,7 @@ export default {
   flex: 2;
 }
 
-.refresh-interval-unit, .refresh-interval-toggle {
+.refresh-interval-unit, .refresh-interval-checkbox {
   flex: 1;
 }
 
