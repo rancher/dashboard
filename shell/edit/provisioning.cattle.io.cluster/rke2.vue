@@ -1502,7 +1502,7 @@ export default {
     },
     async initInfrastructureCluster() {
       if (this.extensionProvider?.initInfrastructureCluster) {
-        return await this.extensionProvider.initInfrastructureCluster( this.value, this.infrastructureCluster, this.isEdit);
+        return await this.extensionProvider.initInfrastructureCluster( this.value, this.infrastructureCluster);
       }
     },
     async saveInfrastructureCluster() {
