@@ -4,11 +4,13 @@ import { inject } from 'vue';
 import { ExtensionManager } from '@shell/types/extension-manager';
 import { ShellApi as ShellApiImport } from '@shell/apis/intf/shell';
 import { ResourcesApiProvider as ResourcesApiProviderImport } from '@shell/apis/intf/resources';
+import { VersionApi as VersionApiImport } from '@shell/apis/intf/version';
 
 // Re-export the types for the APIs, so they appear in this module
 export type ShellApi = ShellApiImport;
 export type ResourcesApiProvider = ResourcesApiProviderImport;
 export type ExtensionManagerApi = ExtensionManager;
+export type VersionApi = VersionApiImport;
 
 // Re-export resource types and constants
 export * from '@shell/apis/intf/resources';
@@ -50,6 +52,60 @@ export const useShell = (): ShellApi => {
  */
 export const useResources = (): ResourcesApiProvider => {
   return getApi<ResourcesApiProvider>('$resources', 'useResources');
+};
+
+/**
+ * Returns an object that implements the VersionApi interface, providing
+ * reactive access to Rancher version information.
+ *
+ * Uses a 3-tier fallback so extensions compiled against a new shell
+ * never break on older dashboards:
+ * 1. Dedicated $version API (new dashboards)
+ * 2. Shell API system property (2.14+ dashboards)
+ * 3. Safe defaults (pre-2.14 dashboards)
+ *
+ * @returns Returns an object that implements the VersionApi interface
+ *
+ * @example
+ * ```ts
+ * import { useVersion } from '@shell/apis';
+ *
+ * const version = useVersion();
+ * console.log('Is Prime:', version.isRancherPrime);
+ * ```
+ */
+export const useVersion = (): VersionApi => {
+  const provided = inject<VersionApi | null>('$version', null);
+
+  if (provided) {
+    return provided;
+  }
+
+  const shell = inject<ShellApi | null>('$shell', null);
+
+  if (shell?.system) {
+    return {
+      get isRancherPrime() {
+        return shell.system.isRancherPrime;
+      },
+      get version() {
+        return shell.system.rancherVersion;
+      },
+      get gitCommit() {
+        return shell.system.gitCommit;
+      },
+      get kubernetesVersion() {
+        return shell.system.kubernetesVersion;
+      },
+    };
+  }
+
+  return {
+    isRancherPrime:    false,
+    version:           '',
+    gitCommit:         '',
+    kubernetesVersion: '',
+  };
 };
 
 // =================================================================================================================

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { ShellApi, ExtensionManagerApi, ResourcesApiProvider } from '@shell/apis';
+import { ShellApi, ExtensionManagerApi, ResourcesApiProvider, VersionApi } from '@shell/apis';
 
 export {};
 
@@ -8,5 +8,6 @@ declare module 'vue' {
     $shell: ShellApi,
     $extension: ExtensionManagerApi,
     $resources: ResourcesApiProvider,
+    $version: VersionApi,
   }
 }

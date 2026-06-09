@@ -2,6 +2,7 @@ import { throttle } from 'lodash';
 import { createExtensionManager } from '@shell/core/extension-manager-impl';
 import { ShellApiImpl } from '@shell/apis/shell';
 import { ResourcesApiImpl } from '@shell/apis/resources';
+import { VersionApiImpl } from '@shell/apis/version';
 
 /**
  * Initialise the APIs that are available in the shell
@@ -27,6 +28,11 @@ export function initUiApis(context: any, inject: any, vueApp: any) {
   // Resources API
   // ======================================================================================================================
   registerApi('resources', new ResourcesApiImpl(context.store), inject, vueApp);
+
+  // ======================================================================================================================
+  // Version API
+  // ======================================================================================================================
+  registerApi('version', new VersionApiImpl(), inject, vueApp);
 }
 
 // ======================================================================================================================
