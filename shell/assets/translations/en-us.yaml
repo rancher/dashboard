@@ -6452,6 +6452,10 @@ servicesPage:
       label: Use IPAM
     shareIP:
       label: Share IP LB
+    dhcpInterface:
+      label: Interface
+    network:
+      label: Network
 
   ips:
     define: Service Ports

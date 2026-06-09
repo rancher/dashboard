@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { SERVICE } from '@shell/config/types';
+import { NODE, SERVICE } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 
 const HARVESTER_ADD_ON_CONFIG = [{
@@ -40,6 +40,7 @@ export default {
     const hash = {
       rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
       services:     this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
+      nodes:        this.$store.dispatch(`${ inStore }/findAll`, { type: NODE, opt: { limit: 1 } }),
     };
 
     const res = await allHash(hash);
@@ -61,7 +62,9 @@ export default {
     return {
       ...harvesterAddOnConfig,
       showShareIP,
-      rke2Versions: {},
+      rke2Versions:     {},
+      serviceInterface: annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] || '',
+      network:          annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] || '',
     };
   },
 
@@ -124,10 +127,68 @@ export default {
         return true;
       }
     },
+
+    // Returns the annotations from the first node that has the cloud provider mappings.
+    nodeAnnotations() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const nodes = this.$store.getters[`${ inStore }/all`](NODE);
+
+      for (const node of nodes) {
+        const ann = node?.metadata?.annotations || {};
+
+        if (ann[HCI_LABELS_ANNOTATIONS.INTERFACE_NAD_MAPPING] || ann[HCI_LABELS_ANNOTATIONS.IPPOOL_NETWORK_MAPPING]) {
+          return ann;
+        }
+      }
+
+      return {};
+    },
+
+    // Options for DHCP interface dropdown.
+    // Parsed from {"enp1s0":"default/mgmt-vlan1","enp2s0":"default/net123"}
+    interfaceOptions() {
+      const raw = this.nodeAnnotations[HCI_LABELS_ANNOTATIONS.INTERFACE_NAD_MAPPING];
+
+      if (!raw) {
+        return [];
+      }
+      try {
+        const mapping = JSON.parse(raw);
+
+        return Object.entries(mapping).map(([iface, nad]) => ({
+          label: `${ iface } (${ nad })`,
+          value: iface,
+        }));
+      } catch {
+        return [];
+      }
+    },
+
+    // Options for pool mode network dropdown.
+    // Parsed from {"n123":"default/net123"} — value is the VM network (what goes in cloudprovider.harvesterhci.io/network).
+    networkOptions() {
+      const raw = this.nodeAnnotations[HCI_LABELS_ANNOTATIONS.IPPOOL_NETWORK_MAPPING];
+
+      if (!raw) {
+        return [];
+      }
+      try {
+        const mapping = JSON.parse(raw);
+
+        return Object.entries(mapping).map(([pool, net]) => ({
+          label: `${ pool } (${ net })`,
+          value: net,
+        }));
+      } catch {
+        return [];
+      }
+    },
   },
 
   watch: {
     ipam() {
+      this.serviceInterface = '';
+      this.network = '';
       this.syncAnnotations();
     },
 
@@ -137,7 +198,15 @@ export default {
 
     showShareIP() {
       this.syncAnnotations();
-    }
+    },
+
+    serviceInterface() {
+      this.syncAnnotations();
+    },
+
+    network() {
+      this.syncAnnotations();
+    },
   },
 
   methods: {
@@ -156,6 +225,18 @@ export default {
         delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM];
       } else {
         delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE];
+      }
+
+      if (this.ipam === 'dhcp' && this.serviceInterface) {
+        this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] = this.serviceInterface;
+      } else {
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE];
+      }
+
+      if (this.ipam === 'pool' && this.network) {
+        this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = this.network;
+      } else {
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK];
       }
     },
 
@@ -177,14 +258,31 @@ export default {
         :label="t('servicesPage.harvester.shareIP.label')"
         :disabled="currentMode === 'edit'"
       />
-      <LabeledSelect
-        v-else
-        v-model:value="ipam"
-        :mode="currentMode"
-        :options="ipamOptions"
-        :label="t('servicesPage.harvester.ipam.label')"
-        :disabled="currentMode === 'edit'"
-      />
+      <template v-else>
+        <LabeledSelect
+          v-model:value="ipam"
+          :mode="currentMode"
+          :options="ipamOptions"
+          :label="t('servicesPage.harvester.ipam.label')"
+          :disabled="currentMode === 'edit'"
+        />
+        <LabeledSelect
+          v-if="ipam === 'dhcp' && interfaceOptions.length"
+          v-model:value="serviceInterface"
+          :mode="currentMode"
+          :options="interfaceOptions"
+          :label="t('servicesPage.harvester.dhcpInterface.label')"
+          class="mt-10"
+        />
+        <LabeledSelect
+          v-if="ipam === 'pool' && networkOptions.length"
+          v-model:value="network"
+          :mode="currentMode"
+          :options="networkOptions"
+          :label="t('servicesPage.harvester.network.label')"
+          class="mt-10"
+        />
+      </template>
       <div
         v-if="currentMode === 'create'"
         class="mt-10"
