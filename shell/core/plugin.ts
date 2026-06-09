@@ -206,10 +206,14 @@ export class Plugin implements IPlugin {
       const typelessRoute: any = route;
 
       if (typelessRoute.component?.layout) {
-        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. \n\nFound a component ${ typelessRoute.component.name } with the '${ typelessRoute.component.layout }' layout specified `); // eslint-disable-line no-console
+        if (!this.builtin) {
+          console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. \n\nFound a component ${ typelessRoute.component.name } with the '${ typelessRoute.component.layout }' layout specified `); // eslint-disable-line no-console
+        }
         parentOverride = typelessRoute.component.layout.toLowerCase();
       } else {
-        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. You should specify a parent, we're currently setting the parent to 'default'`); // eslint-disable-line no-console
+        if (!this.builtin) {
+          console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. You should specify a parent, we're currently setting the parent to 'default'`); // eslint-disable-line no-console
+        }
         parentOverride = 'default';
       }
     }
