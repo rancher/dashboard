@@ -350,7 +350,7 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | --- | --- | --- | --- |
 | `type` | `string` | Yes | Kubernetes resource type (e.g. `'provisioning.cattle.io.cluster'`) |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | `ConfigureTypeConfiguration` | No | Resource page options (creatable, editable, removable, etc.) |
+| `config` | `TypeMapConfigureType` | No | Resource page options (creatable, editable, removable, etc.) |
 | `headers` | `HeaderOptions[]` | No | Custom table column headers for the list view (client-side pagination). See [Table headers](#table-headers-headers) |
 | `sspHeaders` | `PaginationHeaderOptions[]` | No | Custom table column headers for the list view (server-side pagination). See [Server-side pagination headers](#server-side-pagination-headers-sspheaders) |
 | `overrideListResourceName` | `string` | No | Override the display name for this resource type in the list view. See [Renaming types](#renaming-types-overridelistresourcename) |

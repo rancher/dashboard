@@ -11,10 +11,11 @@ import {
   isProductSinglePage,
   isProductConfigInternal,
 } from '@shell/core/plugin-products-type-guards';
-import { ConfigureTypeConfiguration, OverviewPageRoutingMetadata, ProductTypeMap, VirtualTypeConfiguration } from '@shell/core/plugin-products-internal';
 import {
-  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataInternal, ProductMetadataSinglePage, VueRouteComponent
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildOverviewPage, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataSinglePage, VueRouteComponent
 } from '@shell/core/plugin-products-external';
+import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
+import { ProductChildResourcePageInternal, ProductMetadataAddInternal } from '@shell/core/plugin-products-internal';
 
 /**
  * Base class for product registration in extensions
@@ -90,7 +91,7 @@ export abstract class BasePluginProduct {
   /**
    * Generates data for group overview page routing
    */
-  protected generateMetadataForGroupOverviewPageRouting(name: string, component: VueRouteComponent): OverviewPageRoutingMetadata {
+  protected generateMetadataForGroupOverviewPageRouting(name: string, component: VueRouteComponent): ProductChildOverviewPage {
     return { name, component };
   }
 
@@ -239,11 +240,11 @@ export abstract class BasePluginProduct {
 
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry, { omitPath: true, extendProduct: !this.isNewProduct });
             }
-          } else {
+          } else if (firstConfig.component) { // if (isProductChildWithComponent(firstConfig))
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
             defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
           }
-        } else if (config.component) {
+        } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
           defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
         }
@@ -264,11 +265,11 @@ export abstract class BasePluginProduct {
       basicType(names);
     }
 
-    const typeMapProduct: ProductTypeMap = {
+    const typeMapProduct: TypeMapProduct = {
       showClusterSwitcher: false,
       extendable:          false,
       // ...this.product,
-      // TODO: RC this override product, some maybe should, some maybe shouldn't?
+      // TODO: RC Q The below properties overrode things from the product, is that correct or are they defaults?
       category:            'global',
       to:                  defaultRoute,
       icon:                'extension',
@@ -279,25 +280,25 @@ export abstract class BasePluginProduct {
 
     if (this.product) {
       // ProductMetadata
-      typeMapProduct.name = this.product.name;
+      // typeMapProduct.name = this.product.name;
 
       typeMapProduct.label = this.product.label;
       typeMapProduct.labelKey = this.product.labelKey;
 
-      typeMapProduct.ifFeature = this.product.show?.ifFeature;
-      typeMapProduct.ifHave = this.product.show?.ifHave;
-      typeMapProduct.ifHaveGroup = this.product.show?.ifHaveGroup;
-      typeMapProduct.ifHaveType = this.product.show?.ifHaveType;
-      typeMapProduct.ifNotHaveType = this.product.show?.ifHaveType;
+      typeMapProduct.ifFeature = this.product.enable?.ifFeature;
+      typeMapProduct.ifHave = this.product.enable?.ifHave;
+      typeMapProduct.ifHaveGroup = this.product.enable?.ifHaveGroup;
+      typeMapProduct.ifHaveType = this.product.enable?.ifHaveType;
+      typeMapProduct.ifNotHaveType = this.product.enable?.ifHaveType;
 
       typeMapProduct.hideSystemResources = this.product.resources?.hideSystemResources;
-      typeMapProduct.inStore = this.product.resources?.vuexStore;
+      typeMapProduct.inStore = this.product.resources?.store;
 
       typeMapProduct.extendable = this.product.extendable;
 
-      // ProductMetadataInternal
+      // ProductMetadataAddInternal
       if (isProductConfigInternal(this.product)) {
-        const poI = this.product as ProductMetadataInternal;
+        const poI = this.product as ProductMetadataAddInternal;
 
         typeMapProduct.category = poI.category;
         typeMapProduct.hideNamespaceLocation = poI.hideNamespaceLocation;
@@ -345,7 +346,7 @@ export abstract class BasePluginProduct {
       return;
     }
 
-    const productConfigInternal = this.product as ProductMetadataInternal;
+    const productConfigInternal = this.product as ProductMetadataAddInternal;
 
     if (productConfigInternal.renameGroups?.length) {
       productConfigInternal.renameGroups.forEach((mapping) => {
@@ -418,7 +419,7 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
-      const virtualTypeConfig: VirtualTypeConfiguration = {
+      const virtualTypeConfig: TypeMapVirtualType = {
         label:      item.label,
         labelKey:   item.labelKey,
         namespaced: false,
@@ -437,12 +438,26 @@ export abstract class BasePluginProduct {
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
       }
 
-      virtualType({
-        ...virtualTypeConfig,
-        ...(
-          isProductChildWithComponent(item) ? item.config || {} : {}
-        )
-      });
+      if (isProductChildWithComponent(item)) {
+        const itemCustomPage:ProductChildCustomPage = item as ProductChildCustomPage;
+
+        // virtualTypeConfig.component = itemCustomPage.component;
+        virtualTypeConfig.ifHave = itemCustomPage.show?.ifHave;
+        virtualTypeConfig.ifFeature = itemCustomPage.show?.ifFeature;
+        virtualTypeConfig.ifHaveType = itemCustomPage.show?.ifHaveType;
+        virtualTypeConfig.ifHaveVerb = itemCustomPage.show?.ifHaveVerb;
+
+        virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced;
+        virtualTypeConfig.weight = itemCustomPage.resourceMenu?.weight;
+        virtualTypeConfig['exact-path'] = itemCustomPage.navigation?.['exact-path'];
+
+        // virtualTypeConfig.icon = itemCustomPage.
+
+        // virtualTypeConfig.exact = itemCustomPage.navigation?.exact;
+        // virtualTypeConfig.overview = itemCustomPage.display?.overview;
+      }
+
+      virtualType(virtualTypeConfig);
     } else if (isProductChildWithType(item)) {
       // Page with a "type" specified maps to a configureType
       const typeValue = item.type;
@@ -452,39 +467,49 @@ export abstract class BasePluginProduct {
         this.surfaceError(`Duplicate resource type "${ typeValue }" - each resource type must be unique within a product`);
       }
 
+      const itemRP: ProductChildResourcePageInternal = item as ProductChildResourcePageInternal;
+
       this.registeredPageNames.add(typeValue);
       this.pageIdMap.set(typeValue, typeValue);
 
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
 
-      const configureTypeConfig: ConfigureTypeConfiguration = {
-        isCreatable: true,
-        isEditable:  true,
-        isRemovable: true,
-        canYaml:     true,
+      const configureTypeConfig: TypeMapConfigureType = {
+        isCreatable: itemRP.actions?.isCreatable ?? true,
+        isEditable:  itemRP.actions?.isEditable ?? true,
+        isRemovable: itemRP.actions?.isCreatable ?? true,
+        canYaml:     itemRP.actions?.canYaml ?? true,
         customRoute: route
       };
 
-      if (item.headers || item.sspHeaders) {
-        headers(item.type, item.headers, item.sspHeaders);
+      if (itemRP.lists?.localHeaders || itemRP.lists?.headers) {
+        headers(item.type, itemRP.lists?.localHeaders, itemRP.lists?.headers);
       }
 
-      if (item.overrideListResourceName) {
-        mapType(item.type, item.overrideListResourceName);
+      if (itemRP.lists?.overrideListResourceName) {
+        mapType(item.type, itemRP.lists?.overrideListResourceName);
       }
 
-      if (item.hideFromNav) {
+      if (itemRP.resourceMenu?.hideFromNav) {
         ignoreType(item.type);
       }
 
-      if (item.hideBulkActions) {
+      if (itemRP.lists?.hideBulkActions) {
         hideBulkActions(item.type, true);
       }
 
-      configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
+      configureTypeConfig.listCreateButtonLabelKey = item.lists?.listCreateButtonLabelKey;
+      configureTypeConfig.showState = item.display?.showState ?? true;
+      configureTypeConfig.showAge = item.display?.showAge ?? true;
+      configureTypeConfig.showConfigView = item.display?.showConfigView ?? true;
+      configureTypeConfig.showListMasthead = item.display?.showListMasthead ?? true;
+      configureTypeConfig.resourceEditMasthead = item.display?.resourceEditMasthead ?? true;
+      configureTypeConfig.localOnly = item.display?.localOnly ?? false;
 
-      if (item.weight) {
-        weightType(typeValue, item.weight, true);
+      configureType(typeValue, configureTypeConfig);
+
+      if (itemRP.resourceMenu?.weight) {
+        weightType(typeValue, itemRP.resourceMenu?.weight, true);
       }
     }
   }

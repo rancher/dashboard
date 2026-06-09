@@ -5,10 +5,11 @@
  */
 
 import {
-  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataInternal, ProductMetadataSinglePage
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
+import { ProductMetadataAddInternal } from '@shell/core/plugin-products-internal';
 
-export function isProductConfigInternal(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataInternal {
+export function isProductConfigInternal(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataAddInternal {
   const props = ['category', 'hideNamespaceLocation', 'version', 'renameGroups', 'moveToGroup', 'ignoreGroups'];
 
   return props.some((prop) => prop in product);

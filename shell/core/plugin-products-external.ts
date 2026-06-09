@@ -1,20 +1,11 @@
 import { ProductFunction } from '@shell/core/plugin';
-import { HeaderOptions, PaginationHeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
+import { HeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
 import { NAME as AUTH_PROD_NAME } from '@shell/config/product/auth.js';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { RouteComponent } from 'vue-router';
-
-type LabelOrKey = ( // TODO: RC
-  /** Human-readable label for the product
-   * Either label or labelKey are required */
-  | { label: string; labelKey?: string }
-  /** Translation key for the label of the product
-   * Either label or labelKey are required */
-  | { labelKey: string; label?: string }
-)
 
 type Async<T> = () => Promise<T>;
 
@@ -33,34 +24,42 @@ export const StandardProductNames = {
  */
 export type StandardProductName = (typeof StandardProductNames)[keyof typeof StandardProductNames];
 
-// ----
+/**
+ * Represents a Vue component or an async function that resolves to a Vue component, used for route components in product configuration
+ */
+export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
+
+// --------------  Page Related Resource --------------
 
 export interface ProductChildMetadata {
   /** Product name/unique identifier for the product */
   name: string;
-  /** Ordering weight for the among its siblings, if applicable */
-  weight?: number;
+  // /** Ordering weight for the among its siblings, if applicable */
+  // weight?: number;
    /** Human-readable label for the product
    * Either label or labelKey are required */
   label?: string,
    /** Human-readable label for the product
    * Either label or labelKey are required */
   labelKey?: string,
-
 }
 
+type LabelOrKey = ( // TODO: RC
+  /** Human-readable label for the product
+   * Either label or labelKey are required */
+  | { label: string; labelKey?: string }
+  /** Translation key for the label of the product
+   * Either label or labelKey are required */
+  | { labelKey: string; label?: string }
+)
+
 /**
- * Represents allowed configuration for a child page
+ * Type for @ProductChildMetadata
  */
 type _ProductChildMetadata = {
   /** Product name/unique identifier for the product */
   name: string;
 } & LabelOrKey;
-
-/**
- * Represents a Vue component or an async function that resolves to a Vue component, used for route components in product configuration
- */
-export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
 
 export type ProductChildVirtualPage = {
   /** Component to render for this custom page */
@@ -192,7 +191,7 @@ export type ProductChildResourcePage = {
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
     /** Override for the create button string on a list view */
-    listCreateButtonLabelKey?: string;
+    listCreateButtonLabelKey?: string; // TODO: RC actual fecking names
     /** Use this to override the resource name used in the list view for this type */
     overrideListResourceName?: string;
   }
@@ -205,11 +204,20 @@ export type ProductChildResourcePage = {
 };
 
 /**
- * Represents a page item (custom page or resource page) in a product's config
- * - For custom pages: use `component` with `name` and `label`/`labelKey`
- * - For resource pages: use `type` with optional `config` and `headers`
+ * // TODO: RC Q is this internal only?
+ * Metadata for route generation to a product overview page
  */
-export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
+export type ProductChildOverviewPage = {
+  /** Name of the overview page */
+  name: string;
+  /** Component to render for the overview page */
+  component: VueRouteComponent;
+}
+
+/**
+ * Represents a page item (custom page or resource page) in a product's config
+ */
+export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildOverviewPage;
 
 /**
  * Represents a product child in the navigation
@@ -232,7 +240,7 @@ export type ProductChildGroup = _ProductChildMetadata & {
   }
 };
 
-// ----
+// --------------  Product Related Resource --------------
 
 /**
  * Represents the allowed configuration for a product
@@ -246,7 +254,7 @@ type ProductMetadata = {
   /**
    * Control conditions on when to show the product
    */
-  show?: {
+  enable?: {
     /**
      * Only load the product if the feature is present
      */
@@ -295,7 +303,7 @@ type ProductMetadata = {
     /**
     * The vuex store that this product should use by default i.e. 'management'
     */
-    vuexStore?: string; // TODO: RC inStore
+    store?: string; // TODO: RC inStore
   }
 
   /**
@@ -303,135 +311,6 @@ type ProductMetadata = {
    */
   extendable?: boolean;
 } & LabelOrKey
-
-// TODO: RC Move, extends Add
-export type ProductMetadataInternal = ProductMetadata & {
-  /**
-   * The category this product belongs under. i.e. 'config'
-   */
-  category?: string; // TODO: RC
-
-  /**
-   * Hide the Namespace location
-   */
-  hideNamespaceLocation?: boolean;
-
-    // Do not use - internal use only
-  version?: number;
-
-    /**
-   * @internal
-   * Use `renameGroups` on the product metadata to remap group display names in the side-menu. Each entry matches a group's internal ID (via string or regex) and replaces its display label with a new name. This only changes how the group is labelled in the UI — it does not move resources between groups.
-   *
-   * The `groupSelector` is evaluated against group internal IDs. It can be an exact string or a `RegExp` pattern. The `newName` value is the new display name.
-   *
-   * const product: ProductMetadata = {
-   *   name:  'my-app',
-   *   label: 'My App',
-   *   renameGroups: [
-   *     // Rename a group with an ugly internal ID to a friendlier display name
-   *     { groupSelector: 'cert-manager.io', newName: 'Certificates' },
-   *     // Use a regex to rename all groups matching a pattern
-   *     { groupSelector: /^networking\./, newName: 'Networking' },
-   *   ],
-   * };
-   */
-  renameGroups?: {
-    /** String or regex to match against group internal IDs */
-    groupSelector: RegExp | string;
-    /** Display name to use for matching groups */
-    newName: string;
-  }[];
-
-  /**
-   * @internal
-   *
-   * Use `moveToGroup` on the product metadata to move pages (resource types or custom pages) into specific side-menu groups. This is useful when a page should appear inside a group but isn't defined as a child of that group in the config.
-   * Each entry identifies a page by its `entryId` — the resource `type` string or the custom page `name` — and moves it into the specified group. Use the group's `name` as you defined it in your config.
-   *
-   * const monitoringGroup: ProductChildGroup = {
-   *   name:     'monitoring',
-   *   label:    'Monitoring',
-   *   children: [
-   *    { name: 'alerts', label: 'Alerts', component: () => import('./pages/Alerts.vue') },
-   *   ],
-   * };
-
-   * const dashboardPage: ProductChildCustomPage = {
-   *   name: 'dashboard', label: 'Dashboard', component: () => import('./pages/Dashboard.vue'),
-   * };
-
-   * const product: ProductMetadata = {
-   *   name:        'my-app',
-   *   label:       'My App',
-   *   moveToGroup: [
-   *    // Move the 'pod' resource type into the 'monitoring' group
-   *    { entryId: 'pod', groupName: 'monitoring' },
-   *    // Move a custom page into the 'monitoring' group
-   *    { entryId: 'dashboard', groupName: 'monitoring' },
-   *   ],
-   * };
-   *
-   * extension.addProduct(product, [monitoringGroup, { type: 'pod' }, dashboardPage]);
-   *
-   * Note: The `entryId` must match a page declared in the same product config — either a resource page's `type` or a custom page's `name`. The target `groupName` must be a `ProductChildGroup` defined in the same config. If either is not found, an error is thrown at registration time listing the available options. Only exact string identifiers are supported (no regex).
-   *
-   * The optional `weight` parameter controls precedence when multiple `moveToGroup` rules target the same page (default: `5`). Higher weight takes precedence.
-  */
-  moveToGroup?: {
-    /** Page identifier — the resource `type` string or the custom page `name` */
-    entryId: string;
-    /** Target group name as defined in your group config (`name` property) */
-    groupName: string;
-    /** Ordering weight for the mapping (default: 5). Higher weight takes precedence when multiple rules match */
-    weight?: number;
-  }[];
-
-  /**
-   * @internal
-   *
-   * maps to DSL ignoreGroup
-   *
-   * Use `ignoreGroups` on the product metadata to hide specific side-menu groups. Each entry specifies a `groupSelector` to match group names — either an exact string or a regex pattern.
-   *
-   * The `condition` callback is optional. When provided, it receives the store getters and returns `true` to hide the group (conditional hide). When omitted, the group is always hidden (unconditional hide).
-   *
-   * Example usage:
-   * const product: ProductMetadata = {
-   *   name:  'my-app',
-   *   label: 'My App',
-   *   ignoreGroups: [
-   *     // Always hide the "internal" group (unconditional — no condition)
-   *     { groupSelector: 'internal' },
-   *     // Hide all groups matching a regex pattern (unconditional)
-   *     { groupSelector: /^deprecated/ },
-   *     // Conditionally hide based on a feature flag
-   *     {
-   *       groupSelector: 'experimental',
-   *       condition:     (getters) => !getters['features/isEnabled']('experimental-feature'),
-   *     },
-   *   ],
-   * };
-   *
-   *
-   * In this example, the "internal" group is always hidden, any group with a name starting with "deprecated-" is hidden, and the "experimental" group is hidden unless the "experimental-feature" flag is enabled in the store.
-   */
-  ignoreGroups?: {
-    /** String or regex to match against group names */
-    groupSelector: string | RegExp;
-    /** Optional conditional function that accepts the root Dashboard Vuex store getters and returns true if the group should be ignored */
-    condition?: (getters: any) => boolean;
-  }[]
-
-    /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
-   */
-  // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
-  // supportRoute: string;
-  // typeStoreMap: string;
-}
 
 export type ProductMetadataAdd = ProductMetadata & {
   /**
@@ -494,32 +373,16 @@ export type ProductMetadataAdd = ProductMetadata & {
   }
 }
 
-// export interface ProductOptionsExtend extends ProductOptions {
-//   // TODO: RC Q not possible, it would be the extends + the weight of the group
-//   /**
-//    * Control what appears in the page's resource menu
-//    */
-//   resourceMenu?: {
-//         /**
-//      * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
-//      */
-//     weight?: number;
-//   }
-// }
-
-// --------------------
-export type ProductMetadataSinglePageComponent = {
-  /** Component to render for this product (single page product) */
-  component: VueRouteComponent;
-}
-
 /**
  * Represents a single page product, which is a product that only has one page and
  * therefore does not need to be represented in the navigation as a group with children.
  */
-export type ProductMetadataSinglePage = ProductMetadata & ProductMetadataSinglePageComponent;
+export type ProductMetadataSinglePage = ProductMetadata & {
+  /** Component to render for this product (single page product) */
+  component: VueRouteComponent;
+};
 
-// ----
+// --------------  Extension methods --------------
 
 export interface IExtensionProducts {
 /**
