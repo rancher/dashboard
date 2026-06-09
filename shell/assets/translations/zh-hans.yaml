@@ -7057,6 +7057,8 @@ featureFlags:
     fleet: 启动 Rancher 时安装 Fleet
     multi-cluster-management: Kubernetes 集群的多集群配置和管理。
     rke2: 启用 RKE2
+    disable-public-endpoints: 禁用 `field.cattle.io/publicEndpoints` 注解。依赖该注解的工作负载和服务端点详情及链接将不再显示在 UI 中。
+    public-endpoints: 禁用 `field.cattle.io/publicEndpoints` 注解。依赖该注解的工作负载和服务端点详情及链接将不再显示在 UI 中。
 
 performance:
   label: UI 性能设置

@@ -107,20 +107,33 @@ export default {
   computed: {
     hasPublic() {
       const { metadata: { annotations = {} } } = this.value;
+      const publicEndpoints = annotations[CATTLE_PUBLIC_ENDPOINTS];
 
-      if (!isEmpty(annotations) && has(annotations, CATTLE_PUBLIC_ENDPOINTS)) {
+      if (!isEmpty(annotations) && has(annotations, CATTLE_PUBLIC_ENDPOINTS) && publicEndpoints) {
         return true;
       }
 
       return false;
     },
+    publicEndpoints() {
+      const { metadata: { annotations = {} } } = this.value;
+
+      if (!this.hasPublic) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(annotations[CATTLE_PUBLIC_ENDPOINTS]);
+
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        return [];
+      }
+    },
     ports() {
-      const {
-        metadata: { annotations = {} },
-        spec,
-      } = this.value;
+      const { spec } = this.value;
       const ports = spec.ports ?? [];
-      const publicPorts = this.hasPublic ? JSON.parse(annotations[CATTLE_PUBLIC_ENDPOINTS]) : null;
+      const publicPorts = this.publicEndpoints;
 
       return ports.map((port) => {
         const out = {

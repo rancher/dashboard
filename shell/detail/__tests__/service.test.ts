@@ -59,4 +59,58 @@ describe('view: service', () => {
 
     expect(wrapper.vm.ports).toStrictEqual(ports.map((p) => ({ ...p, publicPorts: [] })));
   });
+
+  it('should not throw and should ignore invalid publicEndpoints annotation payloads', () => {
+    const ports = [{
+      name: 'http', port: 80, protocol: 'TCP', targetPort: 80
+    }];
+
+    const wrapper = shallowMount(service, {
+      props: {
+        value: {
+          spec:     { ports },
+          metadata: { annotations: { 'field.cattle.io/publicEndpoints': 'invalid-json' } },
+          pods:     []
+        }
+      },
+      global: { mocks },
+    });
+
+    expect(() => wrapper.vm.ports).not.toThrow();
+    expect(wrapper.vm.ports).toStrictEqual(ports.map((p) => ({ ...p, publicPorts: [] })));
+  });
+
+  it('should map public port info when valid publicEndpoints annotation payload exists', () => {
+    const ports = [
+      {
+        name: 'http', port: 80, protocol: 'TCP', targetPort: 8080
+      },
+      {
+        name: 'https', port: 443, protocol: 'TCP', targetPort: 8443
+      }
+    ];
+
+    const publicEndpoints = [{
+      port:      443,
+      protocol:  'TCP',
+      addresses: ['1.2.3.4'],
+      allNodes:  false
+    }];
+
+    const wrapper = shallowMount(service, {
+      props: {
+        value: {
+          spec:     { ports },
+          metadata: { annotations: { 'field.cattle.io/publicEndpoints': JSON.stringify(publicEndpoints) } },
+          pods:     []
+        }
+      },
+      global: { mocks },
+    });
+
+    expect(wrapper.vm.ports).toStrictEqual([
+      { ...ports[0], publicPorts: [] },
+      { ...ports[1], publicPorts: JSON.stringify(publicEndpoints) },
+    ]);
+  });
 });

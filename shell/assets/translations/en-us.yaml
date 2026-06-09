@@ -8906,6 +8906,9 @@ featureFlags:
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
+  description:
+    disable-public-endpoints: Disable `field.cattle.io/publicEndpoints` annotations. Workload and service endpoint details and links that depend on this annotation will no longer be shown in the UI.
+    public-endpoints: Disable `field.cattle.io/publicEndpoints` annotations. Workload and service endpoint details and links that depend on this annotation will no longer be shown in the UI.
 
 performance:
   label: UI Performance Settings
