@@ -4140,8 +4140,8 @@ landing:
     docs: Docs
     forums: Forums
   commercial:
-    title: Commercial Support
-    body: Learn about commercial support
+    title: Rancher Prime
+    body: Learn about Rancher Prime
   landingPrefs:
     body: "You can change where you land when you login"
     ariaLabelTakeMeToCluster: Select which cluster to take me to after login
@@ -9152,7 +9152,7 @@ customLinks:
     slack:      Slack
     issues:     File an Issue
     getStarted: Get Started
-    commercialSupport: Commercial Support
+    commercialSupport: Rancher Prime
     appCo: SUSE Application Collection
 
 ##############################
