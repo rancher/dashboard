@@ -230,7 +230,7 @@ export default class ClusterRepo extends SteveModel {
   get refreshIntervalDisplay() {
     const val = this.spec?.refreshInterval;
 
-    if (val === -1) {
+    if (val < 0) {
       return this.t('generic.disabled');
     }
 

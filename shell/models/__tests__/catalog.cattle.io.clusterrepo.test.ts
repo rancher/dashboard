@@ -92,8 +92,11 @@ describe('clusterRepo', () => {
   });
 
   describe('refreshIntervalDisplay', () => {
-    it('returns "Disabled" when value is -1', () => {
-      model.spec.refreshInterval = -1;
+    it.each([
+      -1,
+      -100,
+    ])('returns "Disabled" when value is %p', (val) => {
+      model.spec.refreshInterval = val;
       expect(model.refreshIntervalDisplay).toStrictEqual('generic.disabled');
     });
 
