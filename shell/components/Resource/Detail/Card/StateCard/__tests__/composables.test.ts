@@ -182,7 +182,7 @@ describe('useResourceCardRowFromSummary', () => {
   it('should return a plain count when no metadata.state.name entry exists', () => {
     const summary: SummaryResult = {
       count:   3,
-      summary: [{ property: 'some.other.field', counts: { foo: 3 } }]
+      summary: [{ property: 'some.other.field', counts: { foo: { total: 3 } } }]
     };
 
     const result = useResourceCardRowFromSummary('Pods', summary);
@@ -193,7 +193,7 @@ describe('useResourceCardRowFromSummary', () => {
   it('should map state names to colors and display labels', () => {
     const summary: SummaryResult = {
       count:   5,
-      summary: [{ property: 'metadata.state.name', counts: { running: 3, error: 2 } }]
+      summary: [{ property: 'metadata.state.name', counts: { running: { total: 3 }, error: { total: 2 } } }]
     };
 
     const result = useResourceCardRowFromSummary('Pods', summary);
@@ -210,7 +210,7 @@ describe('useResourceCardRowFromSummary', () => {
   it('should set the highest alert color as main color', () => {
     const summary: SummaryResult = {
       count:   4,
-      summary: [{ property: 'metadata.state.name', counts: { active: 3, error: 1 } }]
+      summary: [{ property: 'metadata.state.name', counts: { active: { total: 3 }, error: { total: 1 } } }]
     };
 
     const result = useResourceCardRowFromSummary('Services', summary);
@@ -224,7 +224,7 @@ describe('useResourceCardRowFromSummary', () => {
       summary: [{
         property: 'metadata.state.name',
         counts:   {
-          active: 3, error: 1, warning: 2
+          active: { total: 3 }, error: { total: 1 }, warning: { total: 2 }
         }
       }]
     };
@@ -246,7 +246,7 @@ describe('useResourceCardRowFromSummary', () => {
   it('should handle a single state', () => {
     const summary: SummaryResult = {
       count:   2,
-      summary: [{ property: 'metadata.state.name', counts: { active: 2 } }]
+      summary: [{ property: 'metadata.state.name', counts: { active: { total: 2 } } }]
     };
 
     const result = useResourceCardRowFromSummary('Services', summary);
@@ -357,7 +357,7 @@ describe('useResourceSummary', () => {
   it('should fetch initial summary data', async() => {
     mockStore.dispatch.mockResolvedValue({
       count:   5,
-      summary: [{ property: 'metadata.state.name', counts: { active: 5 } }]
+      summary: [{ property: 'metadata.state.name', counts: { active: { total: 5 } } }]
     });
 
     const scope = effectScope();
@@ -370,7 +370,7 @@ describe('useResourceSummary', () => {
       opt:  { summaryField: 'metadata.state.name' }
     });
     expect(count.value).toBe(5);
-    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: 5 } }]);
+    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: { total: 5 } } }]);
 
     scope.stop();
   });
@@ -391,8 +391,8 @@ describe('useResourceSummary', () => {
 
   it('should refetch when generation changes', async() => {
     mockStore.dispatch
-      .mockResolvedValueOnce({ count: 2, summary: [{ property: 'metadata.state.name', counts: { active: 2 } }] })
-      .mockResolvedValueOnce({ count: 3, summary: [{ property: 'metadata.state.name', counts: { active: 3 } }] });
+      .mockResolvedValueOnce({ count: 2, summary: [{ property: 'metadata.state.name', counts: { active: { total: 2 } } }] })
+      .mockResolvedValueOnce({ count: 3, summary: [{ property: 'metadata.state.name', counts: { active: { total: 3 } } }] });
 
     const scope = effectScope();
     const { count, summary } = scope.run(() => useResourceSummary('pod', { summaryField: 'metadata.state.name' }))!;
@@ -405,7 +405,7 @@ describe('useResourceSummary', () => {
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(2);
     expect(count.value).toBe(3);
-    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: 3 } }]);
+    expect(summary.value).toStrictEqual([{ property: 'metadata.state.name', counts: { active: { total: 3 } } }]);
 
     scope.stop();
   });

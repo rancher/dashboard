@@ -226,13 +226,17 @@ export default {
    * Fetch aggregated state counts for a resource type via the Steve summary API.
    * Requires VAI (ui-sql-cache) to be enabled; returns undefined otherwise.
    *
+   * Uses `summaryonly` by default so no resource data is returned.
+   *
    * @param {string} type - Resource type (e.g. 'pod', 'service')
    * @param {object} [opt] - Options object
    *   @param {string} opt.summaryField - Field to aggregate counts by.
    *     Must be a field indexed by the VAI cache (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
    *   @param {string} [opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
+   *   @param {boolean} [opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
+   *   @param {boolean} [opt.namespaceCounts] - Include per-namespace breakdowns in counts
    *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
-   * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, number> }[] | null } | undefined>}
+   * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
    *
    * @example
    * const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
@@ -240,6 +244,14 @@ export default {
    *   type: 'pod',
    *   opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
    * });
+   * // result.summary[0].counts => { running: { total: 3 }, error: { total: 1 } }
+   *
+   * // With namespace breakdowns:
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', namespaceCounts: true }
+   * });
+   * // result.summary[0].counts => { running: { total: 3, namespace: { default: 2, 'kube-system': 1 } } }
    */
   async fetchResourceSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
     type = getters.normalizeType(type);
@@ -271,9 +283,14 @@ export default {
       }
 
       url.searchParams.set('summary', opt.summaryField);
-      url.searchParams.append('exclude', 'metadata');
-      url.searchParams.append('exclude', 'spec');
-      url.searchParams.append('exclude', 'status');
+
+      if (opt.summaryOnly !== false) {
+        url.searchParams.set('summaryonly', '');
+      }
+
+      if (opt.namespaceCounts) {
+        url.searchParams.set('summarynamespaced', '');
+      }
 
       if (opt.filters?.length) {
         const filterParams = new URLSearchParams(stevePaginationUtils.convertPaginationParams({ schema, filters: opt.filters }));
@@ -283,21 +300,9 @@ export default {
 
       const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
 
-      const summary = res.summary || null;
-
-      if (summary) {
-        for (const entry of summary) {
-          if (entry.counts) {
-            for (const [key, val] of Object.entries(entry.counts)) {
-              entry.counts[key] = typeof val === 'object' && val !== null ? (val.total ?? 0) : val;
-            }
-          }
-        }
-      }
-
       return {
-        count: res.count ?? 0,
-        summary
+        count:   res.count ?? 0,
+        summary: res.summary || null
       };
     } catch (e) {
       console.warn(`fetchResourceSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
