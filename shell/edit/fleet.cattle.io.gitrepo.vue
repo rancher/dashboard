@@ -97,10 +97,19 @@ export default {
       refValue,
       displayHelmRepoUrlRegex: false,
       targetsCreated:          '',
-      fvFormRuleSets:          [{
-        path:  'spec.repo',
-        rules: ['urlRepository'],
-      }],
+      fvFormRuleSets:          [
+        {
+          step:           'stepMetadata',
+          path:           'metadata.name',
+          rules:          ['subDomain'],
+          translationKey: 'nameNsDescription.name.label'
+        },
+        {
+          step:  'stepRepo',
+          path:  'spec.repo',
+          rules: ['urlRepository'],
+        },
+      ],
       touched: null,
     };
   },
@@ -129,7 +138,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
-          ready:          this.isView || !!this.value.metadata.name,
+          ready:          this.isView || (!!this.value.metadata.name && this.stepPathErrors('stepMetadata').length === 0),
           weight:         1
         },
         {
@@ -206,6 +215,15 @@ export default {
   },
 
   methods: {
+    stepPathErrors(stepName) {
+      // Helper is used to check which validations is for each step
+      const paths = this.fvFormRuleSets
+        .filter((rule) => rule.step === stepName)
+        .map((rule) => rule.path);
+
+      return this.fvGetPathErrors(paths);
+    },
+
     updatePaths(value) {
       const { paths, bundles } = value;
 
@@ -413,6 +431,25 @@ export default {
       }
     },
 
+    async beforeNext(activeStep) {
+      if (activeStep.name !== 'stepMetadata' || !this.isCreate) {
+        return;
+      }
+
+      await this.value.dryRunCreate({
+        type:     this.value.type,
+        metadata: {
+          name:      this.value.metadata.name,
+          namespace: this.value.metadata.namespace,
+        },
+        spec: {
+          repo:   'https://example.com/placeholder',
+          branch: 'master',
+          paths:  [],
+        }
+      });
+    },
+
     durationSeconds(value) {
       return `${ value }s`;
     }
@@ -432,6 +469,7 @@ export default {
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
+    :before-next="beforeNext"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
@@ -442,6 +480,7 @@ export default {
         :value="value"
         :mode="mode"
         :is-view="isView"
+        :name-rules="fvGetAndReportPathRules('metadata.name')"
         @input="$emit('input', $event)"
       />
     </template>
