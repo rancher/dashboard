@@ -7428,14 +7428,20 @@ wm:
 workloadDashboard:
   title: Workloads Overview
   subtitle:
-    allNamespaces: "For all namespaces ({count})"
-    userNamespaces: "Only for user namespaces ({count})"
-    systemNamespaces: "Only for system namespaces ({count})"
-    namespacedOnly: "Only for namespaced resources ({count})"
-    clusterOnly: "Only for cluster resources ({count})"
-    project: "For the namespaces of Project {name} ({count})"
-    namespace: "For the namespace {name} ({count})"
-    multipleSelected: "For {selected} items selected ({count})"
+    allNamespaces: "For all namespaces"
+    userNamespaces: "Only for user namespaces"
+    systemNamespaces: "Only for system namespaces"
+    namespacedOnly: "Only for namespaced resources"
+    clusterOnly: "Only for cluster resources"
+    project: "For the namespaces of Project {name}"
+    namespace: "For the namespace {name}"
+    multipleSelected: "For {selected} items selected"
+  workloadCount: |-
+    ({count, plural,
+      =0 {No workload}
+      =1 {{count} workload}
+      other {{count} workloads}
+    })
   sections:
     byState: By State
     byType: By Type

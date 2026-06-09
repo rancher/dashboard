@@ -108,16 +108,16 @@ describe('composable: useWorkloadDashboard', () => {
   });
 
   describe('namespaceSubtitle', () => {
-    it('should return allNamespaces subtitle when isAllNamespaces is true', async() => {
+    it('should return allNamespaces subtitle with workloadCount suffix when isAllNamespaces is true', async() => {
       const { wrapper, result } = mountComposable({ isAllNamespaces: true, namespaceMode: 'both' });
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":42}');
       wrapper.unmount();
     });
 
-    it('should return userNamespaces subtitle for ALL_USER filter', async() => {
+    it('should return userNamespaces subtitle with workloadCount suffix for ALL_USER filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
@@ -126,11 +126,11 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.userNamespaces%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.userNamespaces% %workloadDashboard.workloadCount%{"count":42}');
       wrapper.unmount();
     });
 
-    it('should return systemNamespaces subtitle for ALL_SYSTEM filter', async() => {
+    it('should return systemNamespaces subtitle with workloadCount suffix for ALL_SYSTEM filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
@@ -139,11 +139,11 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.systemNamespaces%{"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.systemNamespaces% %workloadDashboard.workloadCount%{"count":42}');
       wrapper.unmount();
     });
 
-    it('should return project subtitle for project filter', async() => {
+    it('should return project subtitle with workloadCount suffix for project filter', async() => {
       const projectId = 'p-12345';
 
       const { wrapper, result } = mountComposable({
@@ -157,11 +157,11 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual(`%workloadDashboard.subtitle.project%{"name":"My Project","count":42}`);
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.project%{"name":"My Project"} %workloadDashboard.workloadCount%{"count":42}');
       wrapper.unmount();
     });
 
-    it('should return namespace subtitle for namespace filter', async() => {
+    it('should return namespace subtitle with workloadCount suffix for namespace filter', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
@@ -170,11 +170,11 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespace%{"name":"cattle-system","count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.namespace%{"name":"cattle-system"} %workloadDashboard.workloadCount%{"count":42}');
       wrapper.unmount();
     });
 
-    it('should return multipleSelected subtitle for multiple filters', async() => {
+    it('should return multipleSelected subtitle with workloadCount suffix for multiple filters', async() => {
       const { wrapper, result } = mountComposable({
         isAllNamespaces:  false,
         namespaceMode:    'both',
@@ -183,7 +183,58 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.multipleSelected%{"selected":2,"count":42}');
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.multipleSelected%{"selected":2} %workloadDashboard.workloadCount%{"count":42}');
+      wrapper.unmount();
+    });
+
+    it('should pass count 0 to workloadCount when no workloads exist', async() => {
+      const emptyResponse = {
+        summary: [{
+          property: 'metadata.state.name',
+          counts:   {}
+        }],
+        data: [],
+      };
+
+      const { wrapper, result } = mountComposable({ isAllNamespaces: true }, emptyResponse);
+
+      await flushPromises();
+
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":0}');
+      wrapper.unmount();
+    });
+
+    it('should pass count 1 to workloadCount for a single workload', async() => {
+      const singleResponse = {
+        summary: [{
+          property: 'metadata.state.name',
+          counts:   { running: { total: 1, namespace: { default: 1 } } }
+        }],
+        data: [],
+      };
+
+      const { wrapper, result } = mountComposable({
+        isAllNamespaces:   true,
+        'cluster/canList': (type: string) => type === 'apps.deployment',
+      }, singleResponse);
+
+      await flushPromises();
+
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":1}');
+      wrapper.unmount();
+    });
+
+    it('should not count entries with errors in the workloadCount total', async() => {
+      const errorResponse = {
+        summary: null,
+        error:   'No access',
+      };
+
+      const { wrapper, result } = mountComposable({ isAllNamespaces: true }, errorResponse);
+
+      await flushPromises();
+
+      expect(result.namespaceSubtitle.value).toStrictEqual('%workloadDashboard.subtitle.allNamespaces% %workloadDashboard.workloadCount%{"count":0}');
       wrapper.unmount();
     });
   });

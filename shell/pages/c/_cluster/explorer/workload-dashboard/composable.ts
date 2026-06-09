@@ -88,21 +88,22 @@ export function useWorkloadDashboard() {
 
   const namespaceSubtitle = computed<string>(() => {
     const count = totalWorkloads.value;
+    const countSuffix = t('workloadDashboard.workloadCount', { count });
     const filters: string[] = store.getters['namespaceFilters'];
 
     if (isAllNamespaces.value) {
-      return t('workloadDashboard.subtitle.allNamespaces', { count });
+      return `${ t('workloadDashboard.subtitle.allNamespaces') } ${ countSuffix }`;
     }
 
     if (filters.length === 1) {
       const filter = filters[0];
 
       if (filter === NAMESPACE_FILTER_ALL_USER) {
-        return t('workloadDashboard.subtitle.userNamespaces', { count });
+        return `${ t('workloadDashboard.subtitle.userNamespaces') } ${ countSuffix }`;
       }
 
       if (filter === NAMESPACE_FILTER_ALL_SYSTEM) {
-        return t('workloadDashboard.subtitle.systemNamespaces', { count });
+        return `${ t('workloadDashboard.subtitle.systemNamespaces') } ${ countSuffix }`;
       }
 
       if (filter.startsWith(NAMESPACE_FILTER_P_FULL_PREFIX)) {
@@ -110,17 +111,17 @@ export function useWorkloadDashboard() {
         const projects = store.getters['management/all']('management.cattle.io.project');
         const project = projects.find((p: { id?: string; nameDisplay?: string; metadata?: { name: string } }) => p.id?.endsWith(`/${ projectId }`) || p.metadata?.name === projectId);
 
-        return t('workloadDashboard.subtitle.project', { name: project?.nameDisplay || projectId, count });
+        return `${ t('workloadDashboard.subtitle.project', { name: project?.nameDisplay || projectId }) } ${ countSuffix }`;
       }
 
       if (filter.startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX)) {
         const name = filter.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '');
 
-        return t('workloadDashboard.subtitle.namespace', { name, count });
+        return `${ t('workloadDashboard.subtitle.namespace', { name }) } ${ countSuffix }`;
       }
     }
 
-    return t('workloadDashboard.subtitle.multipleSelected', { selected: filters.length, count });
+    return `${ t('workloadDashboard.subtitle.multipleSelected', { selected: filters.length }) } ${ countSuffix }`;
   });
 
   // ── Workload data ──
