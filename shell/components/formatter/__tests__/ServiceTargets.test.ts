@@ -290,6 +290,44 @@ describe('component: ServiceTargets', () => {
       expect(parsed[0].label).toContain('http:test-service:8443');
     });
 
+    it('should not add port 0 from trailing comma in annotation', () => {
+      const row = createRow({
+        metadata: { annotations: { 'ui.rancher/service-links': '3000,' } },
+        spec:     {
+          ports: [
+            {
+              port: 3000, protocol: 'TCP', targetPort: 3000
+            },
+            {
+              port: 0, protocol: 'TCP', targetPort: 0
+            },
+          ],
+        },
+      });
+      const wrapper = mountComponent(row);
+      const parsed = (wrapper.vm as any).parsed;
+
+      expect(parsed).toHaveLength(2);
+      expect(parsed[0].label).toContain('<a href=');
+      expect(parsed[1].label).not.toContain('<a href=');
+    });
+
+    it('should fall back to isMaybeSecure for invalid scheme values', () => {
+      const row = createRow({
+        metadata: { annotations: { 'ui.rancher/service-links': '3000/ftp' } },
+        spec:     {
+          ports: [{
+            port: 3000, protocol: 'TCP', targetPort: 3000
+          }]
+        },
+      });
+      const wrapper = mountComponent(row);
+      const parsed = (wrapper.vm as any).parsed;
+
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].label).toContain('http:test-service:3000');
+    });
+
     it('should handle mixed format with and without explicit scheme', () => {
       const row = createRow({
         metadata: { annotations: { 'ui.rancher/service-links': '3000/https,9090' } },

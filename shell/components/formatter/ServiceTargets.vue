@@ -60,8 +60,11 @@ export default {
           const [portStr, scheme] = entry.trim().split('/');
           const port = Number(portStr);
 
-          if (!isNaN(port)) {
-            serviceLinksMap.set(port, scheme || null);
+          const validSchemes = ['http', 'https'];
+          const normalizedScheme = scheme?.toLowerCase();
+
+          if (port > 0 && !isNaN(port)) {
+            serviceLinksMap.set(port, validSchemes.includes(normalizedScheme) ? normalizedScheme : null);
           }
         });
       }
