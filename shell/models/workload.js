@@ -729,6 +729,10 @@ export default class Workload extends WorkloadService {
   }
 
   get relatedServices() {
+    if (this.type === WORKLOAD_TYPES.JOB || this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return [];
+    }
+
     const podTemplateLabels = this.spec?.template?.metadata?.labels;
 
     if (!podTemplateLabels || Object.keys(podTemplateLabels).length === 0) {
