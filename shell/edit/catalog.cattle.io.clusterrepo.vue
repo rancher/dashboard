@@ -327,7 +327,7 @@ export default {
         color="warning"
       />
       <Banner
-        :label="t('catalog.repo.oci.info', null, true)"
+        :label="t('catalog.repo.oci.info', {}, true)"
         color="info"
       />
     </template>
@@ -339,7 +339,7 @@ export default {
             v-model:value.trim="value.spec.gitRepo"
             :required="true"
             :label="t('catalog.repo.gitRepo.label')"
-            :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
+            :placeholder="t('catalog.repo.gitRepo.placeholder', {}, true)"
             :mode="mode"
             data-testid="clusterrepo-git-repo-input"
           />
@@ -347,9 +347,9 @@ export default {
         <div class="col span-3">
           <LabeledInput
             v-model:value.trim="value.spec.gitBranch"
-            :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
+            :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', {}, true) : undefined"
             :label="t('catalog.repo.gitBranch.label')"
-            :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
+            :placeholder="t('catalog.repo.gitBranch.placeholder', {}, true)"
             :mode="mode"
             data-testid="clusterrepo-git-branch-input"
           />
@@ -362,7 +362,7 @@ export default {
             v-model:value.trim="value.spec.url"
             :required="true"
             :label="t('catalog.repo.oci.urlLabel')"
-            :placeholder="t('catalog.repo.oci.placeholder', null, true)"
+            :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
             data-testid="clusterrepo-oci-url-input"
           />
@@ -375,7 +375,7 @@ export default {
             v-model:value.trim="value.spec.url"
             :required="true"
             :label="t('catalog.repo.oci.urlLabel')"
-            :placeholder="t('catalog.repo.oci.placeholder', null, true)"
+            :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
             data-testid="clusterrepo-oci-url-input"
             :disabled="true"
@@ -391,7 +391,7 @@ export default {
           v-model:value.trim="value.spec.url"
           :required="true"
           :label="t('catalog.repo.url.label')"
-          :placeholder="t('catalog.repo.url.placeholder', null, true)"
+          :placeholder="t('catalog.repo.url.placeholder', {}, true)"
           :mode="mode"
           data-testid="clusterrepo-helm-url-input"
         />
