@@ -103,6 +103,8 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     flex-direction: column;
 
     .row {
+      display: flex;
+      align-items: center;
       gap: 8px;
 
       // Hide clearfix pseudo-elements inherited from the global .row class

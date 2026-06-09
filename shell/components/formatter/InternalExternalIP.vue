@@ -1,5 +1,5 @@
 <script>
-import { isV4Format, isV6Format } from 'ip';
+import ipaddr from 'ipaddr.js';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge';
@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     isIp(ip) {
-      return ip && (isV4Format(ip) || isV6Format(ip));
+      return ip && (ipaddr.IPv4.isValidFourPartDecimal(ip) || ipaddr.IPv6.isValid(ip));
     }
   }
 };
