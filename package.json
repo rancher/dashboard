@@ -218,6 +218,7 @@
     "yarn": "1.22.22"
   },
   "resolutions": {
+    "@cypress/request": "^4.0.1",
     "html-webpack-plugin": "5.0.0",
     "form-data": "2.5.5"
   }
