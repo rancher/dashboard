@@ -1201,6 +1201,102 @@ describe('page: UI plugins/Extensions', () => {
       expect(all[1].installed).toBe(true);
       expect(all[1].uiplugin).toBe(pluginCR);
     });
+
+    it('should use install-time repo fallback when originalRepoName is undefined', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    {}
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+      wireWrapper.vm.installedFromRepo = { 'my-plugin': 'rancher-charts' };
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[0].installedVersion).toBe('1.0.0');
+    });
+
+    it('should preserve certification flags when using install-time repo fallback', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    {}
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+      wireWrapper.vm.installedFromRepo = { 'my-plugin': 'rancher-charts' };
+
+      const all: any[] = [{
+        name:                'my-plugin',
+        chart:               { repoName: 'rancher-charts' },
+        certified:           true,
+        primeOnly:           false,
+        experimental:        false,
+        installableVersions: [],
+      }];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(1);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].certified).toBe(true);
+    });
+
+    it('should not cross-match to wrong repo when using install-time repo fallback with multiple repos', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    {}
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      wireWrapper = createWireWrapper(apps);
+      wireWrapper.vm.installedFromRepo = { 'my-plugin': 'repo-a' };
+
+      const all: any[] = [
+        {
+          name:                'my-plugin',
+          chart:               { repoName: 'repo-a' },
+          installableVersions: [],
+        },
+        {
+          name:                'my-plugin',
+          chart:               { repoName: 'repo-b' },
+          installableVersions: [],
+        }
+      ];
+
+      const pluginCR = { name: 'my-plugin', version: '1.0.0' };
+
+      wireWrapper.vm.wirePluginCRToChart(pluginCR, all);
+
+      expect(all).toHaveLength(2);
+      expect(all[0].installed).toBe(true);
+      expect(all[0].uiplugin).toBe(pluginCR);
+      expect(all[1].installed).toBeUndefined();
+    });
   });
 
   describe('mergePluginErrors', () => {

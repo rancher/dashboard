@@ -5628,7 +5628,7 @@ plugins:
     banner: There are new extensions repositories available. To enable these repositories, click the button on the right.
     bannerBtn: Add repositories
     title: Add Extensions repositories
-    prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
+    prompt: Enable additional repositories to access more extensions
   setup:
     installed: Already installed
     uninstalled: Already uninstalled
@@ -5644,7 +5644,7 @@ plugins:
       prompt: This will lead you to the page where you can enable the Feature Flag needed to enable Extension support.
       featuresButton: Go to Feature Flags
       airgap: Air-gapped installations should NOT enable this feature
-      addRancherRepo: Add Official Rancher Extensions Repository
+      addRancherRepo: Add Rancher Prime Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
     remove:
       label: Disable Extension Support
