@@ -39,6 +39,9 @@ export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', fal
 export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);
 export const SCC = create('rancher-scc-registration-extension', true);
 export const AUTOSCALER = create('cluster-autoscaling', false);
+export const CLUSTER_SHELL = create('cluster-shell', true);
+export const NODE_SHELL = create('node-shell', true);
+export const POD_SHELL = create('pod-shell', true);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

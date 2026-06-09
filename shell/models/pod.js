@@ -5,6 +5,7 @@ import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
+import { POD_SHELL } from '@shell/store/features';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -63,11 +64,14 @@ export default class Pod extends WorkloadService {
 
   get _availableActions() {
     const out = super._availableActions;
+    const shellFeatureEnabled = this.$rootGetters['features/get'] ? this.$rootGetters['features/get'](POD_SHELL) : true;
 
     // Add backwards, each one to the top
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+    if (shellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
@@ -94,9 +98,12 @@ export default class Pod extends WorkloadService {
 
   get containerActions() {
     const out = [];
+    const shellFeatureEnabled = this.$rootGetters['features/get'] ? this.$rootGetters['features/get'](POD_SHELL) : true;
 
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+    if (shellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }

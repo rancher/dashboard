@@ -20,6 +20,7 @@ import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const DEFAULT_BADGE_COLOR = '#707070';
 
@@ -86,13 +87,16 @@ export default class MgmtCluster extends SteveModel {
 
   get _availableActions() {
     const out = super._availableActions;
+    const shellFeatureEnabled = this.$rootGetters['features/get'] ? this.$rootGetters['features/get'](CLUSTER_SHELL) : true;
 
-    insertAt(out, 0, {
-      action:  'openShell',
-      label:   this.t('nav.shell'),
-      icon:    'icon icon-terminal',
-      enabled: !!this.links.shell,
-    });
+    if (shellFeatureEnabled) {
+      insertAt(out, 0, {
+        action:  'openShell',
+        label:   this.t('nav.shell'),
+        icon:    'icon icon-terminal',
+        enabled: !!this.links.shell,
+      });
+    }
 
     insertAt(out, 1, {
       action:     'downloadKubeConfig',

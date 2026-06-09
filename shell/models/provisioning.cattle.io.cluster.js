@@ -12,6 +12,7 @@ import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
@@ -121,6 +122,7 @@ export default class ProvCluster extends SteveModel {
       }
     }
     const ready = this.mgmt?.isReady;
+    const shellFeatureEnabled = this.$rootGetters['features/get'] ? this.$rootGetters['features/get'](CLUSTER_SHELL) : true;
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
@@ -129,12 +131,13 @@ export default class ProvCluster extends SteveModel {
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
-      {
+      ...(shellFeatureEnabled ? [{
         action:  'openShell',
         label:   this.$rootGetters['i18n/t']('nav.shell'),
         icon:    'icon icon-terminal',
         enabled: !!this.mgmt?.links.shell && ready,
-      }, {
+      }] : []),
+      {
         action:     'downloadKubeConfig',
         bulkAction: 'downloadKubeConfigBulk',
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),

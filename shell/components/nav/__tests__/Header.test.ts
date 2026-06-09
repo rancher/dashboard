@@ -25,6 +25,7 @@ describe('component: Header', () => {
       'auth/principalId':      'test',
       'auth/enabled':          false,
       'i18n/withFallback':     () => '',
+      'features/get':          () => true,
     },
     dispatch: jest.fn(),
     commit:   jest.fn(),
@@ -230,6 +231,32 @@ describe('component: Header', () => {
       );
 
       expect((wrapper.vm as any).showFilter).toBe(true);
+    });
+  });
+
+  describe('shellEnabled', () => {
+    it('should return false when cluster-shell feature is disabled', () => {
+      const wrapper = createWrapper(
+        {},
+        {
+          currentCluster: { links: { shell: '/v3/clusters/c-1?shell=true' } },
+          'features/get': (feature: string) => feature !== 'cluster-shell',
+        }
+      );
+
+      expect((wrapper.vm as any).shellEnabled).toBe(false);
+    });
+
+    it('should return true when shell link exists and feature is enabled', () => {
+      const wrapper = createWrapper(
+        {},
+        {
+          currentCluster: { links: { shell: '/v3/clusters/c-1?shell=true' } },
+          'features/get': () => true,
+        }
+      );
+
+      expect((wrapper.vm as any).shellEnabled).toBe(true);
     });
   });
 });

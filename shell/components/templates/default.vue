@@ -25,6 +25,7 @@ import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
 import { Layout } from '@shell/types/window-manager';
 import { RcButton } from '@components/RcButton';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -153,6 +154,12 @@ export default {
       });
 
       if (!cluster ) {
+        return;
+      }
+
+      const shellFeatureEnabled = this.$store.getters['features/get'] ? this.$store.getters['features/get'](CLUSTER_SHELL) : true;
+
+      if (!shellFeatureEnabled || !cluster?.links?.shell) {
         return;
       }
 

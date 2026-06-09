@@ -7,10 +7,12 @@ import { parseSi } from '@shell/utils/units';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
+import { NODE_SHELL } from '@shell/store/features';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
     const normanAction = this.norman?.actions || {};
+    const shellFeatureEnabled = this.$rootGetters['features/get'] ? this.$rootGetters['features/get'](NODE_SHELL) : true;
 
     const cordon = {
       action:   'cordon',
@@ -62,7 +64,7 @@ export default class ClusterNode extends SteveModel {
     };
 
     return [
-      openSsh,
+      ...(shellFeatureEnabled ? [openSsh] : []),
       downloadKeys,
       { divider: true },
       cordon,

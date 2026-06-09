@@ -30,6 +30,7 @@ import {
   RcDropdownTrigger
 } from '@components/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 export default {
 
@@ -148,7 +149,9 @@ export default {
     },
 
     shellEnabled() {
-      return !!this.currentCluster?.links?.shell;
+      const shellFeatureEnabled = this.$store.getters['features/get'] ? this.$store.getters['features/get'](CLUSTER_SHELL) : true;
+
+      return shellFeatureEnabled && !!this.currentCluster?.links?.shell;
     },
 
     showKubeShell() {
@@ -625,11 +628,10 @@ export default {
           </button>
 
           <button
-            v-if="showKubeShell"
+            v-if="showKubeShell && shellEnabled"
             id="btn-kubectl"
             v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
-            :disabled="!shellEnabled"
             type="button"
             class="btn header-btn role-tertiary"
             role="button"
