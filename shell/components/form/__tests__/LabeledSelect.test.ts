@@ -423,5 +423,26 @@ describe('component: LabeledSelect', () => {
       expect(wrapper.emitted('update:value')).toBeUndefined();
       expect(wrapper.vm.isOpen).toBe(false);
     });
+
+    it('should keep dropdown open when clicking load more', async() => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value:        'foo',
+          options:      [{ label: 'Foo', value: 'foo' }],
+          mode:         _EDIT,
+          appendToBody: false,
+        }
+      });
+
+      wrapper.vm.isOpen = true;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+
+      wrapper.vm.clickSelect({ target: { closest: (selector: string) => selector === '.pagination-slot' ? {} : null } });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+    });
   });
 });

@@ -250,6 +250,11 @@ export default {
         return;
       }
 
+      // Ensure we don't toggle when clicking pagination controls in the dropdown footer
+      if (event?.target?.closest?.('.pagination-slot')) {
+        return;
+      }
+
       this.isOpen = !this.isOpen;
 
       // Ensure we only focus on open, otherwise we re-open on close
@@ -538,7 +543,7 @@ export default {
             <div v-else>
               <a
                 v-if="canLoadMore"
-                @click="loadMore"
+                @click.stop.prevent="loadMore"
               > {{ t('labelSelect.pagination.more') }}</a>
             </div>
           </div>
