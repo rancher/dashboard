@@ -12,6 +12,7 @@ import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
@@ -99,7 +100,7 @@ export default {
     },
 
     routeComboActive() {
-      if (!this.routeCombo) {
+      if (!this.routeCombo || !this.isCurrRouteClusterExplorer) {
         return false;
       }
 
@@ -237,7 +238,7 @@ export default {
     },
 
     isCurrRouteClusterExplorer() {
-      return this.$route?.name?.startsWith('c-cluster');
+      return this.$route?.name?.startsWith('c-cluster') && this.productFromRoute === EXPLORER;
     },
 
     productFromRoute() {
@@ -393,6 +394,10 @@ export default {
     },
 
     handleKeyComboClick() {
+      if (!this.isCurrRouteClusterExplorer) {
+        return;
+      }
+
       this.routeCombo = !this.routeCombo;
     },
 

@@ -12,6 +12,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { set } from '@shell/utils/object';
 import { simplify, convert } from '@shell/utils/selector';
 import { POD } from '@shell/config/types';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
@@ -22,6 +23,7 @@ export default {
     MatchExpressions,
     RadioGroup,
     StorageClassSelector,
+    RcButton,
   },
 
   props: {
@@ -190,12 +192,13 @@ export default {
           :key="i"
           class="mt-10"
         >
-          <router-link
+          <rc-button
+            size="large"
+            variant="tertiary"
             :to="wl.link"
-            class="btn role-tertiary"
           >
             {{ wl.label }}
-          </router-link>
+          </rc-button>
         </div>
       </template>
     </Banner>

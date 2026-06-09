@@ -249,7 +249,7 @@ export default class ClusterRepo extends SteveModel {
       },
       {
         label:         this.t('catalog.repo.downloaded.label'),
-        content:       this.status.downloadTime,
+        content:       this.status?.downloadTime,
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
       },

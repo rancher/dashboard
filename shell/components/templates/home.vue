@@ -12,6 +12,7 @@ import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
 import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
 
 export default {
 
@@ -24,6 +25,7 @@ export default {
     AwsComplianceBanner,
     Inactivity,
     PromptModal,
+    RcButton
   },
 
   mixins: [Brand, BrowserTabVisibility],
@@ -62,10 +64,13 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <a
-      href="#main-content"
-      class="skip-to-content btn role-primary"
-    >{{ t('nav.skipToContent') }}</a>
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <Inactivity />
     <AwsComplianceBanner />

@@ -1387,7 +1387,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:58:36Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '123', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'Hostname' }, { address: '1234.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.1.24', type: 'InternalIP' }, { address: '192.168.1.24', type: 'ExternalIP' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-1234.us-west-2.compute.internal', type: 'Hostname' }, { address: '1234.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371440Ki', pods: '17'
         },
@@ -1405,7 +1405,7 @@ export const nodes = [
         runtimeHandlers: [{ features: { recursiveReadOnlyMounts: true, userNamespaces: true }, name: '' }, { features: { recursiveReadOnlyMounts: true, userNamespaces: true }, name: 'runc' }]
       },
       nodeAnnotations: {
-        'alpha.kubernetes.io/provided-node-ip': '1234', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'alpha.kubernetes.io/provided-node-ip': '192.168.1.1', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 't3.medium', 'beta.kubernetes.io/os': 'linux', 'eks.amazonaws.com/capacityType': 'ON_DEMAND', 'eks.amazonaws.com/nodegroup': 'group2', 'eks.amazonaws.com/nodegroup-image': 'ami-00407e3cac6e910e6', 'eks.amazonaws.com/sourceLaunchTemplateId': 'lt-05bf8e992d2af15c5', 'eks.amazonaws.com/sourceLaunchTemplateVersion': '3', 'failure-domain.beta.kubernetes.io/region': 'us-west-2', 'failure-domain.beta.kubernetes.io/zone': 'us-west-2a', 'k8s.io/cloud-provider-aws': 'e27a0b053af63c87a7ca952dfcdf8736', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'ip-1234.us-west-2.compute.internal', 'kubernetes.io/os': 'linux', 'node.kubernetes.io/instance-type': 't3.medium', 'topology.k8s.aws/zone-id': 'usw2-az2', 'topology.kubernetes.io/region': 'us-west-2', 'topology.kubernetes.io/zone': 'us-west-2a'
@@ -1448,7 +1448,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:35:45Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '123', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.92.1', type: 'InternalIP' }, { address: '192.168.92.1', type: 'ExternalIP' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-2345.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371436Ki', pods: '17'
         },
@@ -1467,7 +1467,7 @@ export const nodes = [
       },
       limits:          { memory: '340Mi' },
       nodeAnnotations: {
-        'alpha.kubernetes.io/provided-node-ip': '1234', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'alpha.kubernetes.io/provided-node-ip': '192.168.1.1', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 't3.medium', 'beta.kubernetes.io/os': 'linux', 'eks.amazonaws.com/capacityType': 'ON_DEMAND', 'eks.amazonaws.com/nodegroup': 'group1', 'eks.amazonaws.com/nodegroup-image': 'ami-00407e3cac6e910e6', 'eks.amazonaws.com/sourceLaunchTemplateId': 'lt-05bf8e992d2af15c5', 'eks.amazonaws.com/sourceLaunchTemplateVersion': '2', 'failure-domain.beta.kubernetes.io/region': 'us-west-2', 'failure-domain.beta.kubernetes.io/zone': 'us-west-2b', 'k8s.io/cloud-provider-aws': 'e27a0b053af63c87a7ca952dfcdf8736', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'ip-2345.us-west-2.compute.internal', 'kubernetes.io/os': 'linux', 'node.kubernetes.io/instance-type': 't3.medium', 'topology.k8s.aws/zone-id': 'usw2-az1', 'topology.kubernetes.io/region': 'us-west-2', 'topology.kubernetes.io/zone': 'us-west-2b'
@@ -1512,7 +1512,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T14:35:42Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '234', type: 'InternalIP' }, { address: '123', type: 'ExternalIP' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
+        addresses:   [{ address: '192.168.92.1', type: 'InternalIP' }, { address: '192.168.92.1', type: 'ExternalIP' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'InternalDNS' }, { address: 'ip-3456.us-west-2.compute.internal', type: 'Hostname' }, { address: 'ec2-123.us-west-2.compute.amazonaws.com', type: 'ExternalDNS' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '18181869946', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '3371440Ki', pods: '17'
         },
@@ -1585,7 +1585,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T15:06:00Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '123', type: 'InternalIP' }, { address: '1234', type: 'ExternalIP' }, { address: 'gke-gke-mock-cluster-group-1-28f9cc5f-1234', type: 'Hostname' }],
+        addresses:   [{ address: '192.168.1.1', type: 'InternalIP' }, { address: '192.168.1.1', type: 'ExternalIP' }, { address: 'gke-gke-mock-cluster-group-1-28f9cc5f-1234', type: 'Hostname' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '47060071478', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '5739212Ki', pods: '110'
         },
@@ -1604,7 +1604,7 @@ export const nodes = [
       },
       limits:          { cpu: '8043m', memory: '7642954240' },
       nodeAnnotations: {
-        'container.googleapis.com/instance_id': '1234', 'csi.volume.kubernetes.io/nodeid': '{"pd.csi.storage.gke.io":"projects/ei-mock-team/zones/us-central1-c/instances/gke-gke-mock-cluster-group-1-28f9cc5f-1234"}', 'node.alpha.kubernetes.io/ttl': '0', 'node.gke.io/last-applied-node-labels': 'addon.gke.io/node-local-dns-ds-ready=true,cloud.google.com/gke-boot-disk=pd-standard,cloud.google.com/gke-container-runtime=containerd,cloud.google.com/gke-cpu-scaling-level=2,cloud.google.com/gke-logging-variant=DEFAULT,cloud.google.com/gke-max-pods-per-node=110,cloud.google.com/gke-memory-gb-scaling-level=7,cloud.google.com/gke-nodepool=group-1,cloud.google.com/gke-os-distribution=cos,cloud.google.com/gke-provisioning=standard,cloud.google.com/gke-stack-type=IPV4,cloud.google.com/machine-family=n1,cloud.google.com/private-node=false,disk-type.gke.io/pd-balanced=true,disk-type.gke.io/pd-extreme=true,disk-type.gke.io/pd-ssd=true,disk-type.gke.io/pd-standard=true', 'node.gke.io/last-applied-node-taints': '', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'container.googleapis.com/instance_id': 'test', 'csi.volume.kubernetes.io/nodeid': '{"pd.csi.storage.gke.io":"projects/ei-mock-team/zones/us-central1-c/instances/gke-gke-mock-cluster-group-1-28f9cc5f-1234"}', 'node.alpha.kubernetes.io/ttl': '0', 'node.gke.io/last-applied-node-labels': 'addon.gke.io/node-local-dns-ds-ready=true,cloud.google.com/gke-boot-disk=pd-standard,cloud.google.com/gke-container-runtime=containerd,cloud.google.com/gke-cpu-scaling-level=2,cloud.google.com/gke-logging-variant=DEFAULT,cloud.google.com/gke-max-pods-per-node=110,cloud.google.com/gke-memory-gb-scaling-level=7,cloud.google.com/gke-nodepool=group-1,cloud.google.com/gke-os-distribution=cos,cloud.google.com/gke-provisioning=standard,cloud.google.com/gke-stack-type=IPV4,cloud.google.com/machine-family=n1,cloud.google.com/private-node=false,disk-type.gke.io/pd-balanced=true,disk-type.gke.io/pd-extreme=true,disk-type.gke.io/pd-ssd=true,disk-type.gke.io/pd-standard=true', 'node.gke.io/last-applied-node-taints': '', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         'addon.gke.io/node-local-dns-ds-ready': 'true', 'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 'n1-standard-2', 'beta.kubernetes.io/os': 'linux', 'cloud.google.com/gke-boot-disk': 'pd-standard', 'cloud.google.com/gke-container-runtime': 'containerd', 'cloud.google.com/gke-cpu-scaling-level': '2', 'cloud.google.com/gke-logging-variant': 'DEFAULT', 'cloud.google.com/gke-max-pods-per-node': '110', 'cloud.google.com/gke-memory-gb-scaling-level': '7', 'cloud.google.com/gke-nodepool': 'group-1', 'cloud.google.com/gke-os-distribution': 'cos', 'cloud.google.com/gke-provisioning': 'standard', 'cloud.google.com/gke-stack-type': 'IPV4', 'cloud.google.com/machine-family': 'n1', 'cloud.google.com/private-node': 'false', 'disk-type.gke.io/pd-balanced': 'true', 'disk-type.gke.io/pd-extreme': 'true', 'disk-type.gke.io/pd-ssd': 'true', 'disk-type.gke.io/pd-standard': 'true', 'failure-domain.beta.kubernetes.io/region': 'us-central1', 'failure-domain.beta.kubernetes.io/zone': 'us-central1-c', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'gke-gke-mock-cluster-group-1-28f9cc5f-1234', 'kubernetes.io/os': 'linux', 'node.kubernetes.io/instance-type': 'n1-standard-2', 'topology.gke.io/zone': 'us-central1-c', 'topology.kubernetes.io/region': 'us-central1', 'topology.kubernetes.io/zone': 'us-central1-c'
@@ -1661,7 +1661,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T15:06:00Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '1234', type: 'InternalIP' }, { address: '1234', type: 'ExternalIP' }, { address: 'gke-gke-mock-cluster-group-2-d3d4e0ba-1234', type: 'Hostname' }],
+        addresses:   [{ address: '192.168.1.1', type: 'InternalIP' }, { address: '192.168.1.1', type: 'ExternalIP' }, { address: 'gke-gke-mock-cluster-group-2-d3d4e0ba-1234', type: 'Hostname' }],
         allocatable: {
           cpu: '1930m', 'ephemeral-storage': '47060071478', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '5739220Ki', pods: '110'
         },
@@ -1737,7 +1737,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T15:03:09Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '1234', type: 'InternalIP' }, { address: 'aks-pool1-28301118-vmss000001', type: 'Hostname' }],
+        addresses:   [{ address: '192.168.1.1', type: 'InternalIP' }, { address: 'aks-pool1-28301118-vmss000001', type: 'Hostname' }],
         allocatable: {
           cpu: '1900m', 'ephemeral-storage': '118810356745', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '5934988Ki', pods: '110'
         },
@@ -1756,7 +1756,7 @@ export const nodes = [
       },
       limits:          { cpu: '500m', memory: '7262Mi' },
       nodeAnnotations: {
-        'alpha.kubernetes.io/provided-node-ip': '1234', 'csi.volume.kubernetes.io/nodeid': '{"disk.csi.azure.com":"aks-pool1-28301118-vmss000001","file.csi.azure.com":"aks-pool1-28301118-vmss000001"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'alpha.kubernetes.io/provided-node-ip': '192.168.1.1', 'csi.volume.kubernetes.io/nodeid': '{"disk.csi.azure.com":"aks-pool1-28301118-vmss000001","file.csi.azure.com":"aks-pool1-28301118-vmss000001"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         agentpool: 'pool1', 'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 'Standard_D2d_v4', 'beta.kubernetes.io/os': 'linux', 'failure-domain.beta.kubernetes.io/region': 'eastus', 'failure-domain.beta.kubernetes.io/zone': 'eastus-2', 'kubernetes.azure.com/agentpool': 'pool1', 'kubernetes.azure.com/cluster': 'MC_imported-mock-cluster_aks-mock-cluster_eastus', 'kubernetes.azure.com/consolidated-additional-properties': 'a86ce7b8-13ec-11f1-987d-1eb896a44863', 'kubernetes.azure.com/kubelet-identity-client-id': '822d20f5-12f3-42c1-afe8-fc4420d1de2a', 'kubernetes.azure.com/kubelet-serving-ca': 'cluster', 'kubernetes.azure.com/localdns-state': 'disabled', 'kubernetes.azure.com/mode': 'user', 'kubernetes.azure.com/node-image-version': 'AKSUbuntu-2404gen2containerd-202602.13.0', 'kubernetes.azure.com/nodepool-type': 'VirtualMachineScaleSets', 'kubernetes.azure.com/os-sku': 'Ubuntu', 'kubernetes.azure.com/os-sku-effective': 'Ubuntu2404', 'kubernetes.azure.com/os-sku-requested': 'Ubuntu', 'kubernetes.azure.com/role': 'agent', 'kubernetes.azure.com/sku-cpu': '2', 'kubernetes.azure.com/sku-memory': '8192', 'kubernetes.azure.com/storageprofile': 'managed', 'kubernetes.azure.com/storagetier': 'Standard_LRS', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'aks-pool1-28301118-vmss000001', 'kubernetes.io/os': 'linux', 'node.kubernetes.io/instance-type': 'Standard_D2d_v4', storageprofile: 'managed', storagetier: 'Standard_LRS', 'topology.disk.csi.azure.com/zone': 'eastus-2', 'topology.kubernetes.io/region': 'eastus', 'topology.kubernetes.io/zone': 'eastus-2'
@@ -1813,7 +1813,7 @@ export const nodes = [
         error: false, lastUpdateTime: '2026-02-27T15:03:09Z', message: 'registered with kubernetes', status: 'True', transitioning: false, type: 'Registered'
       }],
       internalNodeStatus: {
-        addresses:   [{ address: '1234', type: 'InternalIP' }, { address: 'aks-agentpool-28301118-vmss000000', type: 'Hostname' }],
+        addresses:   [{ address: '192.168.1.1', type: 'InternalIP' }, { address: 'aks-agentpool-28301118-vmss000000', type: 'Hostname' }],
         allocatable: {
           cpu: '1900m', 'ephemeral-storage': '118810356745', 'hugepages-1Gi': '0', 'hugepages-2Mi': '0', memory: '5930752Ki', pods: '110'
         },
@@ -1832,7 +1832,7 @@ export const nodes = [
       },
       limits:          { cpu: '9554m', memory: '12413216Ki' },
       nodeAnnotations: {
-        'alpha.kubernetes.io/provided-node-ip': '1234', 'csi.volume.kubernetes.io/nodeid': '{"disk.csi.azure.com":"aks-agentpool-28301118-vmss000000","file.csi.azure.com":"aks-agentpool-28301118-vmss000000"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'alpha.kubernetes.io/provided-node-ip': '192.168.1.1', 'csi.volume.kubernetes.io/nodeid': '{"disk.csi.azure.com":"aks-agentpool-28301118-vmss000000","file.csi.azure.com":"aks-agentpool-28301118-vmss000000"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         agentpool: 'agentpool', 'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 'Standard_D2d_v4', 'beta.kubernetes.io/os': 'linux', 'failure-domain.beta.kubernetes.io/region': 'eastus', 'failure-domain.beta.kubernetes.io/zone': 'eastus-1', 'kubernetes.azure.com/agentpool': 'agentpool', 'kubernetes.azure.com/cluster': 'MC_imported-mock-cluster_aks-mock-cluster_eastus', 'kubernetes.azure.com/consolidated-additional-properties': 'a86cdfdc-13ec-11f1-987d-1eb896a44863', 'kubernetes.azure.com/kubelet-identity-client-id': '822d20f5-12f3-42c1-afe8-fc4420d1de2a', 'kubernetes.azure.com/kubelet-serving-ca': 'cluster', 'kubernetes.azure.com/localdns-state': 'disabled', 'kubernetes.azure.com/mode': 'system', 'kubernetes.azure.com/node-image-version': 'AKSUbuntu-2404gen2containerd-202602.13.0', 'kubernetes.azure.com/nodepool-type': 'VirtualMachineScaleSets', 'kubernetes.azure.com/os-sku': 'Ubuntu', 'kubernetes.azure.com/os-sku-effective': 'Ubuntu2404', 'kubernetes.azure.com/os-sku-requested': 'Ubuntu', 'kubernetes.azure.com/role': 'agent', 'kubernetes.azure.com/sku-cpu': '2', 'kubernetes.azure.com/sku-memory': '8192', 'kubernetes.azure.com/storageprofile': 'managed', 'kubernetes.azure.com/storagetier': 'Standard_LRS', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'aks-agentpool-28301118-vmss000000', 'kubernetes.io/os': 'linux', 'node.kubernetes.io/instance-type': 'Standard_D2d_v4', storageprofile: 'managed', storagetier: 'Standard_LRS', 'topology.disk.csi.azure.com/zone': 'eastus-1', 'topology.kubernetes.io/region': 'eastus', 'topology.kubernetes.io/zone': 'eastus-1'
@@ -1908,7 +1908,7 @@ export const nodes = [
       },
       limits:          { memory: '170Mi' },
       nodeAnnotations: {
-        'alpha.kubernetes.io/provided-node-ip': '1234', 'flannel.alpha.coreos.com/backend-data': '{"VNI":1,"VtepMAC":"26:f2:e5:51:18:db"}', 'flannel.alpha.coreos.com/backend-type': 'vxlan', 'flannel.alpha.coreos.com/kube-subnet-manager': 'true', 'flannel.alpha.coreos.com/public-ip': '1234', 'k3s.io/hostname': 'ip-1234-4', 'k3s.io/internal-ip': '1234', 'k3s.io/node-args': '["server"]', 'k3s.io/node-config-hash': 'HKLO67SPSTTSQ2KPLIB43EJEGV4CNWV52ISWRWMJ5WLI4GJHBULQ====', 'k3s.io/node-env': '{"K3S_KUBECONFIG_MODE":"644"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
+        'alpha.kubernetes.io/provided-node-ip': '192.168.1.1', 'flannel.alpha.coreos.com/backend-data': '{"VNI":1,"VtepMAC":"26:f2:e5:51:18:db"}', 'flannel.alpha.coreos.com/backend-type': 'vxlan', 'flannel.alpha.coreos.com/kube-subnet-manager': 'true', 'flannel.alpha.coreos.com/public-ip': '192.168.1.1', 'k3s.io/hostname': 'ip-1234-4', 'k3s.io/internal-ip': '192.168.1.1', 'k3s.io/node-args': '["server"]', 'k3s.io/node-config-hash': 'HKLO67SPSTTSQ2KPLIB43EJEGV4CNWV52ISWRWMJ5WLI4GJHBULQ====', 'k3s.io/node-env': '{"K3S_KUBECONFIG_MODE":"644"}', 'node.alpha.kubernetes.io/ttl': '0', 'volumes.kubernetes.io/controller-managed-attach-detach': 'true'
       },
       nodeLabels: {
         'beta.kubernetes.io/arch': 'amd64', 'beta.kubernetes.io/instance-type': 'k3s', 'beta.kubernetes.io/os': 'linux', 'kubernetes.io/arch': 'amd64', 'kubernetes.io/hostname': 'ip-1234-4', 'kubernetes.io/os': 'linux', 'node-role.kubernetes.io/control-plane': 'true', 'node.kubernetes.io/instance-type': 'k3s'

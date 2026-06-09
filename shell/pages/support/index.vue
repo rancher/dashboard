@@ -9,6 +9,7 @@ import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
 import TabTitle from '@shell/components/TabTitle';
 import CspAdapterUtils from '@shell/utils/cspAdaptor';
+import { RcButton } from '@components/RcButton';
 
 export default {
 
@@ -16,7 +17,8 @@ export default {
     BannerGraphic,
     IndentedPanel,
     CommunityLinks,
-    TabTitle
+    TabTitle,
+    RcButton,
   },
 
   async fetch() {
@@ -155,13 +157,14 @@ export default {
               <p class="pb-10">
                 {{ hasAWSSupport ? t("support.suse.access.aws.text") : t("support.suse.access.text") }}
               </p>
-              <a
+              <rc-button
                 v-if="hasAWSSupport"
-                class="mr-5 btn role-secondary btn-sm"
+                variant="secondary"
+                class="mr-5"
                 :href="supportConfigLink"
               >
                 {{ t('support.suse.access.aws.generateConfig') }}
-              </a>
+              </rc-button>
               <a
                 :href="sccLink"
                 target="_blank"

@@ -1,7 +1,10 @@
-
 <script>
+import { RcButton } from '@components/RcButton';
+
 export default {
   name: 'FleetDashboardEmpty',
+
+  components: { RcButton },
 
   props: {
     permissions: {
@@ -38,12 +41,13 @@ export default {
       <h3 class="mb-30">
         {{ t('fleet.dashboard.noApplications', null, true) }}
       </h3>
-      <router-link
+      <rc-button
+        size="large"
+        variant="secondary"
         :to="getStartedLink"
-        class="btn role-secondary"
       >
         {{ t('fleet.dashboard.getStarted') }}
-      </router-link>
+      </rc-button>
     </template>
   </div>
 </template>

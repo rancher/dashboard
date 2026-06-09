@@ -28,7 +28,8 @@ const emit = defineEmits(['close']);
 <style lang="scss" scoped>
 .rc-tag {
     display: inline-flex;
-    padding: 1px 8px;
+    min-height: 24px;
+    padding: 2px 8px;
     align-items: center;
     gap: 8px;
 
@@ -41,7 +42,7 @@ const emit = defineEmits(['close']);
     font-size: 13px;
     font-style: normal;
     font-weight: 400;
-    line-height: 22px;
+    line-height: 20px;
     color: var(--body-text);
 
     button {
