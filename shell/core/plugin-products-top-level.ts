@@ -3,21 +3,20 @@ import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
-import { ProductChild } from '@shell/core/plugin-products-external';
-import { ProductOptions, ProductOptionsSinglePage } from '@shell/core/plugin-products-internal';
+import { ProductChild, ProductMetadataAdd, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
 
 /**
  * Represents a new top-level product being added by an extension
  * @internal
  */
 export class TopLevelPluginProduct extends BasePluginProduct {
-  protected product?: ProductOptions | ProductOptionsSinglePage;
+  protected product?: ProductMetadataAdd | ProductMetadataSinglePage;
 
   get isNewProduct(): boolean {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductOptions | ProductOptionsSinglePage | string, pages: ProductChild[]) {
+  constructor(plugin: IExtension, product: ProductMetadataAdd | ProductMetadataSinglePage | string, pages: ProductChild[]) {
     super(pages);
 
     // Convenience/bridge method: create a basic product from just a name string
@@ -48,8 +47,9 @@ export class TopLevelPluginProduct extends BasePluginProduct {
 
     // If the product has a `component` field, then this is a single page product
     if (isProductSinglePage(product)) {
+      const productSinglePage: ProductMetadataSinglePage = product as ProductMetadataSinglePage;
       // Add the route to vue-router (here we go with the 'plain' layout for simple single page products)
-      const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: product.component });
+      const route = pluginProductsHelpers.generateTopLevelExtensionSimpleBaseRoute(this.name, { component: productSinglePage.component });
 
       plugin.addRoute('plain', route);
     } else if (this.config.length === 0) {

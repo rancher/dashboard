@@ -1,17 +1,25 @@
-import {
-  ProductChild, ProductChildGroup,
-  ProductMetadataSinglePage, ProductChildCustomPage, ProductChildResourcePage,
-  ProductOptions,
-  ProductOptionsSinglePage
-} from '@shell/core/plugin-types';
 
 /**
  * Type guard functions for discriminating union types
  * @internal
  */
 
-export function isProductSinglePage(product: ProductOptions | ProductOptionsSinglePage): product is ProductMetadataSinglePage {
+import {
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataInternal, ProductMetadataSinglePage
+} from '@shell/core/plugin-products-external';
+
+export function isProductConfigInternal(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataInternal {
+  const props = ['category', 'hideNamespaceLocation', 'version', 'renameGroups', 'moveToGroup', 'ignoreGroups'];
+
+  return props.some((prop) => prop in product);
+}
+
+export function isProductSinglePage(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataSinglePage {
   return 'component' in product && product.component !== undefined;
+}
+
+export function isProductAdd(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataAdd {
+  return !('component' in product && product.component !== undefined);
 }
 
 export function isProductChildGroup(child: ProductChild): child is ProductChildGroup {

@@ -55,8 +55,6 @@ export interface ProductChildMetadata {
 type _ProductChildMetadata = {
   /** Product name/unique identifier for the product */
   name: string;
-  /** Ordering weight for the among its siblings, if applicable */
-  weight?: number;
 } & LabelOrKey;
 
 /**
@@ -78,6 +76,11 @@ export type ProductChildVirtualPage = {
     /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
     ifHaveVerb?: string;
   };
+
+  resourceMenu?: {
+    /** Ordering weight for this page among its siblings */
+    weight?: number;
+  }
 
   navigation?: {
     /** Entry route definition for this custom page */
@@ -201,22 +204,6 @@ export type ProductChildResourcePage = {
 
 };
 
-export type ProductChildResourcePageInternal = {
-  lists: {
-    /** Use this to override the resource name used in the list view for this type */
-    overrideListResourceName?: string;
-    /** Table headers for this resource type (server-side pagination) */
-    headers?: HeaderOptions[];
-    /** Table headers for this resource type (client-side pagination) */
-    localHeaders?: PaginationHeaderOptions[];
-  }
-
-  resourceMenu: {
-    /** Whether to hide this resource from the side-menu entirely */
-    hideFromNav?: boolean;
-  }
-}
-
 /**
  * Represents a page item (custom page or resource page) in a product's config
  * - For custom pages: use `component` with `name` and `label`/`labelKey`
@@ -238,6 +225,11 @@ export type ProductChildGroup = _ProductChildMetadata & {
   children: ProductChild[];
   /** Default child to navigate to */
   default?: string;
+
+  resourceMenu?: {
+    /** Ordering weight for this group among its siblings */
+    weight?: number;
+  }
 };
 
 // ----
@@ -288,7 +280,7 @@ type ProductMetadata = {
     /**
      * The route that the product will lead to if click on in navigation.
      */
-    to?: PluginRouteRecordRaw;
+    to?: PluginRouteRecordRaw; // TODO: RC where used
   }
 
   /**
@@ -312,6 +304,7 @@ type ProductMetadata = {
   extendable?: boolean;
 } & LabelOrKey
 
+// TODO: RC Move, extends Add
 export type ProductMetadataInternal = ProductMetadata & {
   /**
    * The category this product belongs under. i.e. 'config'
@@ -500,8 +493,6 @@ export type ProductMetadataAdd = ProductMetadata & {
     }
   }
 }
-
-export type ProductMetadataAddInternal = ProductMetadataAdd & ProductMetadataInternal;
 
 // export interface ProductOptionsExtend extends ProductOptions {
 //   // TODO: RC Q not possible, it would be the extends + the weight of the group

@@ -1,12 +1,9 @@
-import { IExtension, ProductOptionsTypeMap } from '@shell/core/types';
-import {
-  StandardProductName, ProductChild,
-  ProductMetadataSinglePage,
-  ProductMetadataAdd,
-} from '@shell/core/plugin-types';
+import { IExtension } from '@shell/core/types';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
 import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
+import { ProductChild, ProductMetadataAdd, ProductMetadataSinglePage, StandardProductName } from '@shell/core/plugin-products-external';
+import { ProductFunction } from '@shell/core/plugin';
 
 /**
  * Factory class for creating plugin products
@@ -16,7 +13,7 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | string | ProductOptionsTypeMap | ProductMetadataSinglePage, pages: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadataAdd | ProductMetadataSinglePage | ProductFunction, pages: ProductChild[]) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
       this.instance = new TopLevelPluginProduct(plugin, product, pages);

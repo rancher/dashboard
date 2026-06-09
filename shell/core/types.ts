@@ -3,7 +3,7 @@ import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import { IExtensionProducts } from '@shell/core/plugin-products-external';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
-import { ProductOptionsTypeMap } from '@shell/core/plugin-products-internal';
+import { ProductTypeMap } from '@shell/core/plugin-products-internal';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -422,7 +422,7 @@ export interface DSLReturnType {
    * @param options {@link ProductOptions}
    * @returns {@link void}
    */
-  product: (options: ProductOptionsTypeMap) => void;
+  product: (options: ProductTypeMap) => void;
 
   /**
    /**

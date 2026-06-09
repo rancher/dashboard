@@ -3,6 +3,7 @@ import {
   , ProductChildResourcePage as ProductChildResourcePageExternal, ProductChildCustomPage as ProductChildCustomPageExternal
   ProductChild,
   ProductChildMetadata,
+  ProductChildResourcePage,
 } from '@shell/core/plugin-products-external';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { HeaderOptions, PaginationHeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
@@ -25,6 +26,7 @@ export type ProductRegistrationRouteGenerationOptions = {
   omitPath?: boolean;
 }
 
+// TODO: RC location (type-map types)
 /**
  * Represents the allowed configuration for a custom page (virtualType)
  */
@@ -37,10 +39,11 @@ export interface VirtualTypeConfiguration {
   ifHaveType?: string;
   /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
   ifHaveVerb?: string;
-  // // /** Display label for the custom page */
-  // // label?: string;
-  // // /** Translation key for the label */
-  // // labelKey?: string;
+  /** Display label for the custom page */
+  label?: string;
+  /** Translation key for the label */
+  labelKey?: string;
+  name: string;
   // /** Name of the page (unique identifier) */
   // name?: string;
   /** Entry route definition for this custom page */
@@ -70,7 +73,10 @@ export type OverviewPageRoutingMetadata = {
 }
 
 // -----
-export interface ProductOptionsTypeMap {
+export type ProductMetadataAddInternal = ProductMetadataAdd & ProductMetadataInternal;
+
+// TODO: RC where live
+export interface ProductTypeMap {
   /**
    * The category this product belongs under. i.e. 'config'
    */
@@ -183,6 +189,29 @@ export interface ProductOptionsTypeMap {
   // Do not use - internal use only
   version?: number;
 
+  renameGroups?: {
+    /** String or regex to match against group internal IDs */
+    groupSelector: RegExp | string;
+    /** Display name to use for matching groups */
+    newName: string;
+  }[];
+
+  moveToGroup?: {
+    /** Page identifier — the resource `type` string or the custom page `name` */
+    entryId: string;
+    /** Target group name as defined in your group config (`name` property) */
+    groupName: string;
+    /** Ordering weight for the mapping (default: 5). Higher weight takes precedence when multiple rules match */
+    weight?: number;
+  }[];
+
+  ignoreGroups?: {
+    /** String or regex to match against group names */
+    groupSelector: string | RegExp;
+    /** Optional conditional function that accepts the root Dashboard Vuex store getters and returns true if the group should be ignored */
+    condition?: (getters: any) => boolean;
+  }[];
+
   /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
@@ -193,136 +222,137 @@ export interface ProductOptionsTypeMap {
   // typeStoreMap: string;
 }
 
-export class ProductOptions implements ProductOptionsTypeMap {
-  category?: string;
-  hideCopyConfig?: boolean;
-  hideKubeConfig?: boolean;
-  hideKubeShell?: boolean;
-  hideNamespaceLocation?: boolean;
-  hideSystemResources?: boolean;
-  icon?: string;
-  ifFeature?: string | RegExp;
-  ifHave?: string;
-  ifHaveGroup?: string | RegExp;
-  ifHaveType?: string | RegExp;
-  ifNotHaveType?: string | RegExp;
-  inStore?: string;
-  showClusterSwitcher?: boolean;
-  extendable?: boolean;
-  showNamespaceFilter?: boolean;
-  weight?: number;
-  to?: PluginRouteRecordRaw;
-  svg?: Function;
-  name: string;
-  label?: string;
-  labelKey?: string;
-  iconHeader?: string;
-  version?: number;
+// export class ProductOptions implements ProductOptionsTypeMap {
+//   category?: string;
+//   hideCopyConfig?: boolean;
+//   hideKubeConfig?: boolean;
+//   hideKubeShell?: boolean;
+//   hideNamespaceLocation?: boolean;
+//   hideSystemResources?: boolean;
+//   icon?: string;
+//   ifFeature?: string | RegExp;
+//   ifHave?: string;
+//   ifHaveGroup?: string | RegExp;
+//   ifHaveType?: string | RegExp;
+//   ifNotHaveType?: string | RegExp;
+//   inStore?: string;
+//   showClusterSwitcher?: boolean;
+//   extendable?: boolean;
+//   showNamespaceFilter?: boolean;
+//   weight?: number;
+//   to?: PluginRouteRecordRaw;
+//   svg?: Function;
+//   name: string;
+//   label?: string;
+//   labelKey?: string;
+//   iconHeader?: string;
+//   version?: number;
 
-  /**
-   *
-   */
-  constructor(options: ProductMetadataAdd) {
-    const po = options as ProductMetadata;
+//   /**
+//    *
+//    */
+//   constructor(options: ProductMetadataAdd) {
+//     const po = options as ProductMetadata;
 
-    this.name = po.name;
+//     this.name = po.name;
 
-    this.ifFeature = po.show?.ifFeature;
-    this.ifHave = po.show?.ifHave;
-    this.ifHaveGroup = po.show?.ifHaveGroup;
-    this.ifHaveType = po.show?.ifHaveType;
-    this.ifNotHaveType = po.show?.ifHaveType;
+//     this.ifFeature = po.show?.ifFeature;
+//     this.ifHave = po.show?.ifHave;
+//     this.ifHaveGroup = po.show?.ifHaveGroup;
+//     this.ifHaveType = po.show?.ifHaveType;
+//     this.ifNotHaveType = po.show?.ifHaveType;
 
-    this.to = po.navigation?.to;
+//     this.to = po.navigation?.to;
 
-    this.hideSystemResources = po.resources?.hideSystemResources;
-    this.inStore = po.resources?.vuexStore;
+//     this.hideSystemResources = po.resources?.hideSystemResources;
+//     this.inStore = po.resources?.vuexStore;
 
-    this.extendable = po.extendable;
+//     this.extendable = po.extendable;
 
-    const poI = options as ProductMetadataInternal;
+//     const poI = options as ProductMetadataInternal;
 
-    this.category = poI.category;
-    this.hideNamespaceLocation = poI.hideNamespaceLocation;
-    this.version = poI.version;
+//     this.category = poI.category;
+//     this.hideNamespaceLocation = poI.hideNamespaceLocation;
+//     this.version = poI.version;
 
-    const poA = options as ProductMetadataAdd;
+//     const poA = options as ProductMetadataAdd;
 
-    this.hideCopyConfig = poA.pageHeader?.hideCopyConfig;
-    this.hideKubeConfig = poA.pageHeader?.hideKubeConfig;
-    this.hideKubeShell = poA.pageHeader?.hideKubeShell;
-    this.showClusterSwitcher = poA.pageHeader?.showClusterInfo;
-    this.showNamespaceFilter = poA.pageHeader?.showNamespaceFilter;
-    this.iconHeader = poA.pageHeader?.showNamespaceFilter;
+//     this.hideCopyConfig = poA.pageHeader?.hideCopyConfig;
+//     this.hideKubeConfig = poA.pageHeader?.hideKubeConfig;
+//     this.hideKubeShell = poA.pageHeader?.hideKubeShell;
+//     this.showClusterSwitcher = poA.pageHeader?.showClusterInfo;
+//     this.showNamespaceFilter = poA.pageHeader?.showNamespaceFilter;
+//     this.iconHeader = poA.pageHeader?.showNamespaceFilter;
 
-    this.icon = poA.pageSideBar?.icon;
-    this.svg = poA.pageSideBar?.icon?.svg;
+//     this.icon = poA.pageSideBar?.icon;
+//     this.svg = poA.pageSideBar?.icon?.svg;
 
-    const poE = options as ProductOptionsExtend;
+//     const poE = options as ProductOptionsExtend;
 
-    // -- Both
-    this.weight = poA.pageSideBar?.weight || poE.resourceMenu?.weight;
+//     // -- Both
+//     this.weight = poA.pageSideBar?.weight || poE.resourceMenu?.weight;
 
-    this.label = '';
-    this.labelKey = '';
-  }
-}
+//     this.label = '';
+//     this.labelKey = '';
+//   }
+// }
 
-export class ProductOptionsSinglePage extends ProductOptions implements ProductMetadataSinglePageComponent {
-  component: VueRouteComponent;
+// export class ProductOptionsSinglePage extends ProductOptions implements ProductMetadataSinglePageComponent {
+//   component: VueRouteComponent;
 
-  constructor(singlePage: ProductMetadataSinglePage) {
-    super(singlePage);
-    this.component = singlePage.component;
-  }
-}
+//   constructor(singlePage: ProductMetadataSinglePage) {
+//     super(singlePage);
+//     this.component = singlePage.component;
+//   }
+// }
 
 // -----
 
 // TODO: RC ProductChildCustomPage find all, reference this one
 
-export class ProductChildCustomPage implements ProductChildMetadata {
+// export class ProductChildCustomPage implements ProductChildMetadata {
 
 
-  /** Product name/unique identifier for the product */
-  name: string;
-  /** Ordering weight for the among its siblings, if applicable */
-  weight?: number;
-   /** Human-readable label for the product
-   * Either label or labelKey are required */
-  label?: string;
-   /** Human-readable label for the product
-   * Either label or labelKey are required */
-  labelKey?: string;
+//   /** Product name/unique identifier for the product */
+//   name: string;
+//   /** Ordering weight for the among its siblings, if applicable */
+//   weight?: number;
+//    /** Human-readable label for the product
+//    * Either label or labelKey are required */
+//   label?: string;
+//    /** Human-readable label for the product
+//    * Either label or labelKey are required */
+//   labelKey?: string;
 
-  /** Component to render for this custom page */
-  component: VueRouteComponent;
-  /** Optional configuration for the page */
-  config?: VirtualTypeConfiguration;
+//   /** Component to render for this custom page */
+//   component: VueRouteComponent;
+//   /** Optional configuration for the page */
+//   config?: VirtualTypeConfiguration;
 
-  constructor(virtualPage: ProductChildCustomPageExternal) {
-    this.name = virtualPage.name
-    this.weight = virtualPage.weight;
-    this.label = virtualPage.label;
-    this.labelKey = virtualPage.labelKey;
-    this.component = virtualPage.component;
-    this.config = {
-      ifHave:              virtualPage.show?.ifHave,
-      ifFeature:           virtualPage.show?.ifFeature,
-      ifHaveType:          virtualPage.show?.ifHaveType,
-      ifHaveVerb:          virtualPage.show?.ifHaveVerb,
-      route:               virtualPage.navigation?.customRoute,
-      namespaced:          virtualPage.resource?.namespaced,
-      weight:              virtualPage.weight,
-      exact:               virtualPage.navigation?.exact,
-      overview:            virtualPage.display?.overview,
-      'exact-path':        virtualPage.navigation?.['exact-path'],
-    }
-  }
-}
+//   constructor(virtualPage: ProductChildCustomPageExternal) {
+//     this.name = virtualPage.name
+//     this.weight = virtualPage.weight;
+//     this.label = virtualPage.label;
+//     this.labelKey = virtualPage.labelKey;
+//     this.component = virtualPage.component;
+//     this.config = {
+//       ifHave:              virtualPage.show?.ifHave,
+//       ifFeature:           virtualPage.show?.ifFeature,
+//       ifHaveType:          virtualPage.show?.ifHaveType,
+//       ifHaveVerb:          virtualPage.show?.ifHaveVerb,
+//       route:               virtualPage.navigation?.customRoute,
+//       namespaced:          virtualPage.resource?.namespaced,
+//       weight:              virtualPage.weight,
+//       exact:               virtualPage.navigation?.exact,
+//       overview:            virtualPage.display?.overview,
+//       'exact-path':        virtualPage.navigation?.['exact-path'],
+//     }
+//   }
+// }
 
 
-interface ConfigureTypeConfiguration {
+// TODO: RC location
+export interface ConfigureTypeConfiguration {
   /** Override for the name displayed */
   displayName?: string;
   /** Override for the create button string on a list view */
@@ -366,6 +396,20 @@ interface ConfigureTypeConfiguration {
   //     ]
 }
 
+// ---
+export type ProductChildResourcePageInternal = ProductChildResourcePage & {
+  lists: {
+    /** Table headers for this resource type (client-side pagination) */
+    localHeaders?: PaginationHeaderOptions[];
+  }
+
+  resourceMenu: {
+    /** Whether to hide this resource from the side-menu entirely */
+    hideFromNav?: boolean;
+  }
+}
+
+// ---
 /**
  * Represents the allowed configuration for a resource page (configureType)
  */
@@ -416,67 +460,45 @@ interface ConfigureTypeConfiguration {
 /**
  * Represents a resource page with a type (K8s resource)
  */
-export class ProductChildResourcePage {
-  /** K8s resource type name for a resource page */
-  type: string;
-  /** Optional configuration for the resource page */
-  config?: ConfigureTypeConfiguration;
-  /** Ordering weight for this page among its siblings */
-  weight?: number;
-  /** Use this to override the resource name used in the list view for this type */
-  overrideListResourceName?: string;
-  /** Whether to hide this resource from the side-menu entirely */
-  hideFromNav?: boolean;
-  /** Whether to hide bulk actions for this resource */
-  hideBulkActions?: boolean;
-  /** Table headers for this resource type (client-side pagination) */
-  headers?: HeaderOptions[];
-  /** Table headers for this resource type (server-side pagination) */
-  sspHeaders?: PaginationHeaderOptions[];
+// export class ProductChildResourcePage {
+//   /** K8s resource type name for a resource page */
+//   type: string;
+//   /** Optional configuration for the resource page */
+//   config?: ConfigureTypeConfiguration;
+//   /** Ordering weight for this page among its siblings */
+//   weight?: number;
+//   /** Use this to override the resource name used in the list view for this type */
+//   overrideListResourceName?: string;
+//   /** Whether to hide this resource from the side-menu entirely */
+//   hideFromNav?: boolean;
+//   /** Whether to hide bulk actions for this resource */
+//   hideBulkActions?: boolean;
+//   /** Table headers for this resource type (client-side pagination) */
+//   headers?: HeaderOptions[];
+//   /** Table headers for this resource type (server-side pagination) */
+//   sspHeaders?: PaginationHeaderOptions[];
 
-  constructor(resourcePage: ProductChildResourcePageExternal) {
-    this.type = resourcePage.type;
-    this.config = {
-      displayName:              resourcePage.display?.displayName,
-      listCreateButtonLabelKey: resourcePage.lists?.listCreateButtonLabelKey,
-      isCreatable:              resourcePage.actions?.isCreatable,
-      isEditable:               resourcePage.actions?.isEditable,
-      isRemovable:              resourcePage.actions?.isRemovable,
-      showState:                resourcePage.display?.showState,
-      showAge:                  resourcePage.display?.showAge,
-      showConfigView:           resourcePage.display?.showConfigView,
-      showListMasthead:         resourcePage.display?.showListMasthead,
-      canYaml:                  resourcePage.actions?.canYaml,
-      resourceEditMasthead:     resourcePage.display?.resourceEditMasthead,
-      customRoute:              resourcePage.navigation?.customRoute,
-      localOnly:                resourcePage.display?.localOnly,
-    };
-    this.weight = resourcePage.resourceMenu?.weight;
-    this.overrideListResourceName = resourcePage.lists?.overrideListResourceName;
-    this.hideBulkActions = resourcePage.lists?.hideBulkActions;
-    this.sspHeaders = resourcePage.lists?.headers;
-  }
-}
+//   constructor(resourcePage: ProductChildResourcePageExternal) {
+//     this.type = resourcePage.type;
+//     this.config = {
+//       displayName:              resourcePage.display?.displayName,
+//       listCreateButtonLabelKey: resourcePage.lists?.listCreateButtonLabelKey,
+//       isCreatable:              resourcePage.actions?.isCreatable,
+//       isEditable:               resourcePage.actions?.isEditable,
+//       isRemovable:              resourcePage.actions?.isRemovable,
+//       showState:                resourcePage.display?.showState,
+//       showAge:                  resourcePage.display?.showAge,
+//       showConfigView:           resourcePage.display?.showConfigView,
+//       showListMasthead:         resourcePage.display?.showListMasthead,
+//       canYaml:                  resourcePage.actions?.canYaml,
+//       resourceEditMasthead:     resourcePage.display?.resourceEditMasthead,
+//       customRoute:              resourcePage.navigation?.customRoute,
+//       localOnly:                resourcePage.display?.localOnly,
+//     };
+//     this.weight = resourcePage.resourceMenu?.weight;
+//     this.overrideListResourceName = resourcePage.lists?.overrideListResourceName;
+//     this.hideBulkActions = resourcePage.lists?.hideBulkActions;
+//     this.sspHeaders = resourcePage.lists?.headers;
+//   }
+// }
 
-/**
- * Represents a page item (custom page or resource page) in a product's config
- * - For custom pages: use `component` with `name` and `label`/`labelKey`
- * - For resource pages: use `type` with optional `config` and `headers`
- */
-export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
-
-/**
- * Represents a product child in the navigation
- * This can be a type, a group, or a route.
- */
-export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disable-line no-use-before-define
-
-/**
- * Represents a group of child pages in a product configuration
- */
-export type ProductChildGroup = _ProductChildMetadata & {
-  component?: VueRouteComponent;
-  children: ProductChild[];
-  /** Default child to navigate to */
-  default?: string;
-};
