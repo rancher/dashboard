@@ -1,7 +1,7 @@
 import { WorkloadsReplicasetsListPagePo, WorkloadsReplicasetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-replicasets.po';
 import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 
-describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
