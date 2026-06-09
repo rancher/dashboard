@@ -7,6 +7,7 @@ import { NAMESPACE } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
@@ -174,7 +175,7 @@ export function useWorkloadDashboard() {
       }
 
       for (const [state, count] of Object.entries(w.stateCounts)) {
-        const color = toStateColor(state);
+        const color = toStateColor(state, w.type);
 
         if (!colorGroups[color][w.label]) {
           colorGroups[color][w.label] = {
@@ -232,11 +233,11 @@ export function useWorkloadDashboard() {
   const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => {
     return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
       const resources = Object.entries(w.stateCounts)
-        .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a)] ?? 5) - (COLOR_ORDER[toStateColor(b)] ?? 5))
+        .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a, w.type)] ?? 5) - (COLOR_ORDER[toStateColor(b, w.type)] ?? 5))
         .map(([state, count]) => ({
-          stateDisplay:     state ? state.charAt(0).toUpperCase() + state.slice(1) : '',
+          stateDisplay:     stateDisplay(state, true),
           stateId:          state,
-          stateSimpleColor: toStateColor(state),
+          stateSimpleColor: toStateColor(state, w.type),
           count,
         }));
 
@@ -265,7 +266,7 @@ export function useWorkloadDashboard() {
         }
 
         for (const [state, detail] of Object.entries(s.counts)) {
-          const color = toStateColor(state);
+          const color = toStateColor(state, entry.type);
 
           for (const [ns, count] of Object.entries(detail.namespace)) {
             if (!nsMap[ns]) {
@@ -335,9 +336,7 @@ export function useWorkloadDashboard() {
     };
 
     if (stateNames?.length) {
-      const q = stateNames.map((s) => `"metadata.state.name":"${ s }"`).join(',');
-
-      loc.query = { q };
+      loc.query = { stateFilter: stateNames.join(',') };
     }
 
     return loc;

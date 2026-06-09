@@ -14,7 +14,8 @@ defineProps<{
       v-for="card in cards"
       :key="card.title"
       :title="card.title"
-      :to="resourceRoute(card.type)"
+      :type="card.type"
+      :resource-route="resourceRoute"
       :resources="card.resources"
     />
   </div>

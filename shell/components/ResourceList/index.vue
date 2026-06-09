@@ -10,6 +10,9 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
+import { BadgeState } from '@components/BadgeState';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { useStateColor } from '@shell/composables/useStateColor';
 
 export default {
   name: ResourceListComponentName,
@@ -20,9 +23,16 @@ export default {
     Masthead,
     ResourceLoadingIndicator,
     IconMessage,
-    ExtensionPanel
+    ExtensionPanel,
+    BadgeState,
   },
   mixins: [ResourceFetch],
+
+  setup() {
+    const { toStateColor } = useStateColor();
+
+    return { toStateColor };
+  },
 
   props: {
     hasAdvancedFiltering: {
@@ -155,6 +165,41 @@ export default {
       return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
 
+    activeStateFilters() {
+      const raw = this.$route?.query?.stateFilter;
+
+      if (!raw || !this.rows.length) {
+        return [];
+      }
+
+      const states = raw.split(',').filter(Boolean);
+
+      return states.map((s) => {
+        const match = this.rows.find((row) => row.metadata?.state?.name === s);
+
+        if (match) {
+          return {
+            label: match.stateDisplay,
+            color: match.stateBackground,
+          };
+        }
+
+        return {
+          label: stateDisplay(s, true),
+          color: `bg-${ this.toStateColor(s, this.resource) }`,
+        };
+      });
+    },
+
+  },
+
+  methods: {
+    clearStateFilter() {
+      const query = { ...this.$route.query };
+
+      delete query.stateFilter;
+      this.$router.push({ ...this.$route, query });
+    },
   },
 
   watch: {
@@ -260,6 +305,27 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
+      <template
+        v-if="activeStateFilters.length"
+        #subHeader
+      >
+        <div class="state-filter-bar text-muted">
+          {{ t('resourceList.stateFilterApplied') }}
+          <BadgeState
+            v-for="state in activeStateFilters"
+            :key="state.label"
+            :color="state.color"
+            :label="state.label"
+          />
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+      </template>
       <template #extraActions>
         <slot name="extraActions" />
       </template>
@@ -316,5 +382,15 @@ export default {
       position: absolute;
       top: 10px;
       right: 10px;
+    }
+
+    .state-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      a {
+        cursor: pointer;
+      }
     }
 </style>

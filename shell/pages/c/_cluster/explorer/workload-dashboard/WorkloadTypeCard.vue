@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import type { RouteLocationRaw } from 'vue-router';
 import RcCounterBadge from '@components/Pill/RcCounterBadge';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import { stateColorCssVar, type StateColor } from '@shell/utils/style';
 import VerticalGap from '@shell/components/Resource/Detail/Card/VerticalGap.vue';
+import type { WorkloadDashboardResourceRouteFn } from './types';
 
 interface Resource {
   stateDisplay: string;
@@ -18,7 +18,8 @@ interface Resource {
 
 const props = defineProps<{
   title: string;
-  to: RouteLocationRaw;
+  type: string;
+  resourceRoute: WorkloadDashboardResourceRouteFn;
   resources: Resource[];
 }>();
 
@@ -39,13 +40,6 @@ const segments = computed(() => {
   }));
 });
 
-function rowRoute(stateId: string): RouteLocationRaw {
-  return {
-    ...(props.to as object),
-    query: { q: `"metadata.state.name":"${ stateId }"` },
-  };
-}
-
 function handleClick(e: MouseEvent | KeyboardEvent): void {
   const target = e.target as HTMLElement;
 
@@ -57,7 +51,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     return;
   }
 
-  router.push(props.to);
+  router.push(props.resourceRoute(props.type));
 }
 </script>
 
@@ -100,7 +94,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
           aria-hidden="true"
         />
         <span class="label">
-          <SubtleLink :to="rowRoute(r.stateId)">
+          <SubtleLink :to="resourceRoute(type, [r.stateId])">
             {{ r.stateDisplay }}
           </SubtleLink>
         </span>

@@ -283,7 +283,7 @@ describe('composable: useWorkloadDashboard', () => {
       await flushPromises();
       const route = result.resourceRoute('apps.deployment', ['running', 'active']);
 
-      expect((route as any).query).toStrictEqual({ q: '"metadata.state.name":"running","metadata.state.name":"active"' });
+      expect((route as any).query).toStrictEqual({ stateFilter: 'running,active' });
       wrapper.unmount();
     });
 
@@ -571,7 +571,7 @@ describe('composable: useWorkloadDashboard', () => {
           product:  'explorer',
           resource: 'apps.deployment',
         },
-        query: { q: '"metadata.state.name":"running","metadata.state.name":"active"' },
+        query: { stateFilter: 'running,active' },
       });
       wrapper.unmount();
     });

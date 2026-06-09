@@ -272,6 +272,7 @@ export default {
       'title actions'
       'sub-header sub-header'
       'state-banner state-banner';
+    margin-bottom: 24px;
   }
 
   .sub-header {

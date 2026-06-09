@@ -1,5 +1,6 @@
 import { useStateColor } from '@shell/composables/useStateColor';
 import type { StateSummaryEntry } from '@shell/composables/useStateColor';
+import { flushPromises } from '@vue/test-utils';
 
 const mockGetters: Record<string, any> = {};
 const mockDispatch = jest.fn();
@@ -32,6 +33,8 @@ describe('composable: useStateColor', () => {
   });
 
   describe('toStateColor', () => {
+    const testType = 'apps.deployment';
+
     it.each([
       ['running', 'success'],
       ['active', 'success'],
@@ -47,39 +50,39 @@ describe('composable: useStateColor', () => {
     ])('should return %s color for known state "%s"', (state, expectedColor) => {
       const { toStateColor } = useStateColor();
 
-      expect(toStateColor(state)).toStrictEqual(expectedColor);
+      expect(toStateColor(state, testType)).toStrictEqual(expectedColor);
     });
 
     it('should return "disabled" for state with "darker" color', () => {
       const { toStateColor } = useStateColor();
 
-      expect(toStateColor('off')).toStrictEqual('disabled');
+      expect(toStateColor('off', testType)).toStrictEqual('disabled');
     });
 
-    it('should return "info" for unknown states', () => {
+    it('should return "warning" for unknown states', () => {
       const { toStateColor } = useStateColor();
 
-      expect(toStateColor('unknown-state')).toStrictEqual('info');
+      expect(toStateColor('unknown-state', testType)).toStrictEqual('warning');
     });
 
     it('should be case-insensitive', () => {
       const { toStateColor } = useStateColor();
 
-      expect(toStateColor('Running')).toStrictEqual(toStateColor('running'));
-      expect(toStateColor('ERROR')).toStrictEqual(toStateColor('error'));
+      expect(toStateColor('Running', testType)).toStrictEqual(toStateColor('running', testType));
+      expect(toStateColor('ERROR', testType)).toStrictEqual(toStateColor('error', testType));
     });
 
-    it('should handle empty string', () => {
+    it('should handle empty string as active state', () => {
       const { toStateColor } = useStateColor();
 
-      expect(toStateColor('')).toStrictEqual('info');
+      expect(toStateColor('', testType)).toStrictEqual('success');
     });
 
     it('should cache results across calls', () => {
       const { toStateColor } = useStateColor();
 
-      const first = toStateColor('running');
-      const second = toStateColor('running');
+      const first = toStateColor('running', testType);
+      const second = toStateColor('running', testType);
 
       expect(first).toStrictEqual(second);
       expect(first).toStrictEqual('success');
@@ -94,8 +97,22 @@ describe('composable: useStateColor', () => {
       mockGetters['cluster/urlFor'] = () => schema.links.collection;
     });
 
-    it('should not make requests when all states are already known', async() => {
-      const { resolveStateColors } = useStateColor();
+    it('should not make requests when all states are already cached', async() => {
+      const { toStateColor, resolveStateColors } = useStateColor();
+
+      mockDispatch.mockResolvedValueOnce({
+        data: [{
+          metadata: {
+            state: {
+              name: 'running', error: false, transitioning: false
+            }
+          }
+        }]
+      });
+      toStateColor('running', 'pod');
+      await flushPromises();
+
+      mockDispatch.mockClear();
 
       const entries: StateSummaryEntry[] = [{
         type:    'pod',
@@ -150,7 +167,7 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('init:Error')).toStrictEqual('error');
+      expect(toStateColor('init:Error', 'pod')).toStrictEqual('error');
     });
 
     it('should resolve transitioning states as info', async() => {
@@ -173,7 +190,7 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('init:0/1')).toStrictEqual('info');
+      expect(toStateColor('init:0/1', 'pod')).toStrictEqual('info');
     });
 
     it('should skip entries with null summary', async() => {
@@ -214,7 +231,7 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('networkFailState')).toStrictEqual('info');
+      expect(toStateColor('networkFailState', 'pod')).toStrictEqual('warning');
     });
 
     it('should handle response with no resource data', async() => {
@@ -229,7 +246,7 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('emptyResult')).toStrictEqual('info');
+      expect(toStateColor('emptyResult', 'pod')).toStrictEqual('warning');
     });
 
     it('should handle resource without metadata.state', async() => {
@@ -244,7 +261,7 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('noStateField')).toStrictEqual('info');
+      expect(toStateColor('noStateField', 'pod')).toStrictEqual('warning');
     });
 
     it('should use schema.links.collection for the request URL', async() => {
@@ -301,8 +318,8 @@ describe('composable: useStateColor', () => {
 
       await resolveStateColors(entries);
 
-      expect(toStateColor('stateA')).toStrictEqual('error');
-      expect(toStateColor('stateB')).toStrictEqual('warning');
+      expect(toStateColor('stateA', 'pod')).toStrictEqual('error');
+      expect(toStateColor('stateB', 'apps.deployments')).toStrictEqual('warning');
     });
   });
 });

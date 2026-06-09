@@ -12,6 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
+import { WORKLOAD_TYPES, POD, EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -39,7 +40,6 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { EVENT } from '@shell/config/types';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
@@ -507,12 +507,17 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state) {
+export function stateDisplay(state, preserveOriginal = false) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
   if ( REMAP_STATE[key] ) {
     return REMAP_STATE[key];
+  }
+
+  // Preversses the original state name returned by the API
+  if ( preserveOriginal ) {
+    return ucFirst(state);
   }
 
   return key.split(/-/).map(ucFirst).join('-');
@@ -734,7 +739,13 @@ export default class Resource {
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
   get stateDisplay() {
-    return stateDisplay(this.state);
+    // Added special condition for workload resources and pod.
+    // It replaces cases like Init:containerstatusunknown with the original Init:ContainerStatusUnknown from the API
+    // Not overriding specifically since it should apply for all cases of those resources. And maybe even for all resources in the future.
+    const isWorkload = Object.values(WORKLOAD_TYPES).includes(this.type);
+    const isPod = this.type === POD ;
+
+    return stateDisplay(this.state, isWorkload || isPod);
   }
 
   get stateColor() {

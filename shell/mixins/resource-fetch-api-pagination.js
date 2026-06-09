@@ -9,40 +9,22 @@ import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality,
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
-// Validates overall shape only; capture groups beyond the first pair are discarded — actual extraction uses pairRegex in parseStructuredQuery
-const STRUCTURED_QUERY_REGEX = /^"([^"]+)":"([^"]*)"(?:,"([^"]+)":"([^"]*)")*$/;
-
-export function parseStructuredQuery(query) {
-  if (!query || !STRUCTURED_QUERY_REGEX.test(query)) {
+export function parseStateFilter(stateFilter) {
+  if (!stateFilter) {
     return null;
   }
 
-  const pairs = [];
-  const pairRegex = /"([^"]+)":"([^"]*)"/g;
-  let match;
+  const states = stateFilter.split(',').filter(Boolean);
 
-  while ((match = pairRegex.exec(query)) !== null) {
-    pairs.push({ field: match[1], value: match[2] });
-  }
-
-  if (!pairs.length) {
+  if (!states.length) {
     return null;
   }
 
-  const grouped = {};
-
-  for (const { field, value } of pairs) {
-    if (!grouped[field]) {
-      grouped[field] = [];
-    }
-    grouped[field].push(value);
-  }
-
-  return Object.entries(grouped).map(([field, values]) => new PaginationFilterField({
-    field,
-    value:    values.join(','),
+  return [new PaginationFilterField({
+    field:    'metadata.state.name',
+    value:    states.join(','),
     equality: PaginationFilterEquality.IN,
-  }));
+  })];
 }
 
 /**
@@ -111,12 +93,12 @@ export default {
       const {
         page, perPage, filter, sort, descending
       } = event;
-      const structuredFilters = filter.searchQuery ? parseStructuredQuery(filter.searchQuery) : null;
-      const searchFilters = structuredFilters || (filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
+      const stateFilters = parseStateFilter(this.$route?.query?.stateFilter) || [];
+      const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
         exact: false,
-      })) : []);
+      })) : [];
 
       const pagination = new PaginationArgs({
         page,
@@ -128,6 +110,7 @@ export default {
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
         filters:              [
           new PaginationParamFilter({ fields: searchFilters }),
+          new PaginationParamFilter({ fields: stateFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
         ]
       });
