@@ -148,6 +148,12 @@ export default {
         return;
       }
 
+      const shellFeatureEnabled = this.$store.getters['features/get'] ? this.$store.getters['features/get'](CLUSTER_SHELL) : true;
+
+      if (!shellFeatureEnabled) {
+        return;
+      }
+
       const cluster = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id:   clusterId,
@@ -157,9 +163,7 @@ export default {
         return;
       }
 
-      const shellFeatureEnabled = this.$store.getters['features/get'] ? this.$store.getters['features/get'](CLUSTER_SHELL) : true;
-
-      if (!shellFeatureEnabled || !cluster?.links?.shell) {
+      if (!cluster?.links?.shell) {
         return;
       }
 

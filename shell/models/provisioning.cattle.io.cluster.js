@@ -129,14 +129,6 @@ export default class ProvCluster extends SteveModel {
     const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
-      // Note: Actions are not supported in the Steve API, so we check
-      // available actions for RKE1 clusters, but not RKE2 clusters.
-      ...(shellFeatureEnabled ? [{
-        action:  'openShell',
-        label:   this.$rootGetters['i18n/t']('nav.shell'),
-        icon:    'icon icon-terminal',
-        enabled: !!this.mgmt?.links.shell && ready,
-      }] : []),
       {
         action:     'downloadKubeConfig',
         bulkAction: 'downloadKubeConfigBulk',
@@ -180,6 +172,17 @@ export default class ProvCluster extends SteveModel {
         enabled: this.canPauseResumeAutoscaler
       },
       { divider: true }];
+
+    // Note: Actions are not supported in the Steve API, so we check
+    // available actions for RKE1 clusters, but not RKE2 clusters.
+    if (shellFeatureEnabled) {
+      actions.unshift({
+        action:  'openShell',
+        label:   this.$rootGetters['i18n/t']('nav.shell'),
+        icon:    'icon icon-terminal',
+        enabled: !!this.mgmt?.links.shell && ready,
+      });
+    }
 
     const all = actions.concat(out);
 
