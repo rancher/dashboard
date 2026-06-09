@@ -31,20 +31,10 @@ export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
 
 // --------------  Page Related Resource --------------
 
-export interface ProductChildMetadata {
-  /** Product name/unique identifier for the product */
-  name: string;
-  // /** Ordering weight for the among its siblings, if applicable */
-  // weight?: number;
-   /** Human-readable label for the product
-   * Either label or labelKey are required */
-  label?: string,
-   /** Human-readable label for the product
-   * Either label or labelKey are required */
-  labelKey?: string,
-}
-
-type LabelOrKey = ( // TODO: RC
+/**
+ * TODO: RC jsdoc
+ */
+type LabelOrKey = (
   /** Human-readable label for the product
    * Either label or labelKey are required */
   | { label: string; labelKey?: string }
@@ -54,18 +44,21 @@ type LabelOrKey = ( // TODO: RC
 )
 
 /**
- * Type for @ProductChildMetadata
+ * TODO: RC jsdoc
  */
-type _ProductChildMetadata = {
+type ProductChildNameLabel = {
   /** Product name/unique identifier for the product */
   name: string;
 } & LabelOrKey;
 
-export type ProductChildVirtualPage = {
+/**
+ * Represents a custom page with a component
+ */
+export type ProductChildCustomPage = ProductChildNameLabel & {
   /** Component to render for this custom page */
   component: VueRouteComponent;
 
-  show?: {
+  enable?: {
     /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
     ifHave?: boolean;
     /** Display only if feature is present (relates to shell/store/features) */
@@ -84,66 +77,28 @@ export type ProductChildVirtualPage = {
   navigation?: {
     /** Entry route definition for this custom page */
     customRoute?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
-      /** Whether this custom page is exact match */
-   exact?: boolean;
-     /** Whether this custom page has an exact path match */
-  'exact-path'?: boolean;
+    /** Whether this custom page is exact match */
+    exact?: boolean;
+    /** Whether this custom page has an exact path match */
+    'exact-path'?: boolean;
   }
 
   resource?: {
-    /** Whether this custom page is namespaced or not */
+    /** Whether resources this page represents is namespaced */
     namespaced?: boolean;
   }
-
-  display?: {
-    /** Whether this custom page will act as an overview page */
-    overview?: boolean;
-  }
-  // TODO: RC ProductMetadata2222 search
-
-  // display?: {
-  //   /** Override for the name displayed */
-  //   displayName?: string;
-  //   /** If false, hide state in columns and masthead */
-  //   showState?: boolean;
-  //   /** If false, hide age in columns and masthead */
-  //   showAge?: boolean;
-  //   /** If false, hide masthead config button in view mode */
-  //   showConfigView?: boolean;
-  //   /** If false, hide masthead in list view */
-  //   showListMasthead?: boolean;
-  //     /** Show the Masthead in the edit resource component */
-  //   resourceEditMasthead?: boolean;
-  //     /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
-  //   localOnly?: boolean;
-  // }
-
-  // actions?: {
-  //   /** If false, disable create even if schema says it's allowed */
-  //   isCreatable?: boolean;
-  //   /** If false, disable for edit */
-  //   isEditable?: boolean;
-  //   /** If false, disable for remove/delete */
-  //   isRemovable?: boolean;
-  //   /** If false, cannot edit or show yaml */
-  //   canYaml?: boolean;
-  // }
-
-  // lists?: {
-  //   /** Override for the create button string on a list view */
-  //   listCreateButtonLabelKey?: string;
-  // }
-
-  // navigation?: {
-  //   /** Entry route definition for this resource page */
-  //   customRoute?: RouteRecordRawWithParams;
-  // }
-}
+};
 
 /**
- * Represents a custom page with a component
+ * // TODO: RC Q is this internal only?
+ * Metadata for route generation to a product overview page
  */
-export type ProductChildCustomPage = _ProductChildMetadata & ProductChildVirtualPage;
+export type ProductChildOverviewPage = ProductChildCustomPage & {
+  display: {
+    /** Whether this custom page will act as an overview page */
+    overview: true;
+  }
+}
 
 /**
  * Represents a resource page with a type (K8s resource)
@@ -152,11 +107,14 @@ export type ProductChildResourcePage = {
   /** K8s resource type name for a resource page */
   type: string;
 
+  // TODO: RC rename
+  /** TODO: RC */
   resourceMenu?: {
     /** Ordering weight for this page among its siblings */
-    weight?: number;
+    weight?: number; // TODO: RC position or weight
   }
 
+  /** TODO: RC */
   display?: {
     /** Override for the name displayed */
     displayName?: string;
@@ -174,13 +132,13 @@ export type ProductChildResourcePage = {
     localOnly?: boolean;
   }
 
-  actions?: {
+  can?: {
     /** If false, disable create even if schema says it's allowed */
-    isCreatable?: boolean;
+    create?: boolean;
     /** If false, disable for edit */
-    isEditable?: boolean;
+    edit?: boolean;
     /** If false, disable for remove/delete */
-    isRemovable?: boolean;
+    remove?: boolean;
     /** If false, cannot edit or show yaml */
     canYaml?: boolean;
   }
@@ -191,9 +149,9 @@ export type ProductChildResourcePage = {
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
     /** Override for the create button string on a list view */
-    listCreateButtonLabelKey?: string; // TODO: RC actual fecking names
-    /** Use this to override the resource name used in the list view for this type */
-    overrideListResourceName?: string;
+    createButtonLabelKey?: string;
+    /** Override the resource name used in the list view for this type */
+    pageTitle?: string;
   }
 
   navigation?: {
@@ -202,17 +160,6 @@ export type ProductChildResourcePage = {
   }
 
 };
-
-/**
- * // TODO: RC Q is this internal only?
- * Metadata for route generation to a product overview page
- */
-export type ProductChildOverviewPage = {
-  /** Name of the overview page */
-  name: string;
-  /** Component to render for the overview page */
-  component: VueRouteComponent;
-}
 
 /**
  * Represents a page item (custom page or resource page) in a product's config
@@ -228,12 +175,13 @@ export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disab
 /**
  * Represents a group of child pages in a product configuration
  */
-export type ProductChildGroup = _ProductChildMetadata & {
+export type ProductChildGroup = ProductChildNameLabel & {
   component?: VueRouteComponent;
   children: ProductChild[];
   /** Default child to navigate to */
   default?: string;
 
+  // TODO: RC actual name for the resource menu?
   resourceMenu?: {
     /** Ordering weight for this group among its siblings */
     weight?: number;
@@ -313,64 +261,65 @@ type ProductMetadata = {
 } & LabelOrKey
 
 export type ProductMetadataAdd = ProductMetadata & {
-  /**
-   * Control what appears in the page's header
-   */
-  pageHeader?: {
+  page?: {
     /**
-     * Hide the Copy KubeConfig button in the header
+     * Control what appears in the page's header
      */
-    hideCopyConfig?: boolean;
-
-    /**
-     * Hide the Download KubeConfig button in the header
-     */
-    hideKubeConfig?: boolean;
-
+    header: {
       /**
-     * Hide the Kubectl Shell button in the header
-     */
-    hideKubeShell?: boolean;
-
-    /**
-    * Show the cluster info
-    *
-    * // TODO: RC rename showClusterSwitcher
-    */
-    showClusterInfo?: boolean;
-
-      /**
-     * Show the namespace filter in the header
-     */
-    showNamespaceFilter?: boolean;
-
-    /**
-     * TODO: RC
-     */
-    iconHeader?: string;
-  }
-
-  /**
-   * Control what appears in the page's side bar
-   */
-  pageSideBar?: {
-    /**
-     * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
-     */
-    weight?: number;
-
-    icon: {
-      /**
-      * The icon that should be displayed beside this item in the navigation.
-      */
-      icon?: string; // TODO: RC
-
-      /**
-       * Alternative to the icon property. Uses require
+       * Hide the Copy KubeConfig button in the header
        */
-      svg?: Function;
+      hideCopyConfig?: boolean;
+
+      /**
+       * Hide the Download KubeConfig button in the header
+       */
+      hideKubeConfig?: boolean;
+
+        /**
+       * Hide the Kubectl Shell button in the header
+       */
+      hideKubeShell?: boolean;
+
+      /**
+      * Show the cluster info
+      *
+      * // TODO: RC rename showClusterSwitcher
+      */
+      showClusterInfo?: boolean;
+
+        /**
+       * Show the namespace filter in the header
+       */
+      showNamespaceFilter?: boolean;
+
+      /**
+       * TODO: RC
+       */
+      iconHeader?: string;
+    },
+    /**
+     * Control what appears in the page's side bar
+     */
+    sideBar: {
+      /**
+       * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
+       */
+      weight?: number;
+
+      icon: {
+        /**
+        * The icon that should be displayed beside this item in the navigation.
+        */
+        icon?: string; // TODO: RC
+
+        /**
+         * Alternative to the icon property. Uses require
+         */
+        svg?: Function;
+      }
     }
-  }
+  },
 }
 
 /**

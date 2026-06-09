@@ -301,27 +301,27 @@ export abstract class BasePluginProduct {
         const poI = this.product as ProductMetadataAddInternal;
 
         typeMapProduct.category = poI.category;
-        typeMapProduct.hideNamespaceLocation = poI.hideNamespaceLocation;
+        typeMapProduct.hideNamespaceLocation = poI.page?.header?.hideNamespaceLocation;
         typeMapProduct.version = poI.version;
-        typeMapProduct.renameGroups = poI.renameGroups;
-        typeMapProduct.ignoreGroups = poI.ignoreGroups;
-        typeMapProduct.moveToGroup = poI.moveToGroup;
+        typeMapProduct.renameGroups = poI.page?.resourceMenu?.renameGroups;
+        typeMapProduct.ignoreGroups = poI.page?.resourceMenu?.ignoreGroups;
+        typeMapProduct.moveToGroup = poI.page?.resourceMenu?.moveToGroup;
       }
 
       if (isProductAdd(this.product)) {
         // ProductMetadataAdd
         const poA = this.product as ProductMetadataAdd;
 
-        typeMapProduct.hideCopyConfig = poA.pageHeader?.hideCopyConfig;
-        typeMapProduct.hideKubeConfig = poA.pageHeader?.hideKubeConfig;
-        typeMapProduct.hideKubeShell = poA.pageHeader?.hideKubeShell;
-        typeMapProduct.showClusterSwitcher = poA.pageHeader?.showClusterInfo;
-        typeMapProduct.showNamespaceFilter = poA.pageHeader?.showNamespaceFilter;
-        typeMapProduct.iconHeader = poA.pageHeader?.iconHeader;
+        typeMapProduct.hideCopyConfig = poA.page?.header?.hideCopyConfig;
+        typeMapProduct.hideKubeConfig = poA.page?.header?.hideKubeConfig;
+        typeMapProduct.hideKubeShell = poA.page?.header?.hideKubeShell;
+        typeMapProduct.showClusterSwitcher = poA.page?.header?.showClusterInfo;
+        typeMapProduct.showNamespaceFilter = poA.page?.header?.showNamespaceFilter;
+        typeMapProduct.iconHeader = poA.page?.header?.iconHeader;
 
-        typeMapProduct.weight = poA.pageSideBar?.weight;
-        typeMapProduct.icon = poA.pageSideBar?.icon?.icon;
-        typeMapProduct.svg = poA.pageSideBar?.icon?.svg;
+        typeMapProduct.weight = poA.page?.sideBar?.weight;
+        typeMapProduct.icon = poA.page?.sideBar?.icon?.icon;
+        typeMapProduct.svg = poA.page?.sideBar?.icon?.svg;
       } else if (isProductSinglePage(this.product)) {
         // const poSp = this.product as ProductMetadataSinglePage;
 
@@ -348,14 +348,14 @@ export abstract class BasePluginProduct {
 
     const productConfigInternal = this.product as ProductMetadataAddInternal;
 
-    if (productConfigInternal.renameGroups?.length) {
-      productConfigInternal.renameGroups.forEach((mapping) => {
+    if (productConfigInternal.page?.resourceMenu?.renameGroups?.length) {
+      productConfigInternal.page?.resourceMenu?.renameGroups.forEach((mapping) => {
         mapGroup(mapping.groupSelector, mapping.newName);
       });
     }
 
-    if (productConfigInternal.ignoreGroups?.length) {
-      productConfigInternal.ignoreGroups.forEach((ignore) => {
+    if (productConfigInternal.page?.resourceMenu?.ignoreGroups?.length) {
+      productConfigInternal.page?.resourceMenu?.ignoreGroups.forEach((ignore) => {
         if (ignore.condition) {
           ignoreGroup(ignore.groupSelector, ignore.condition);
         } else {
@@ -364,8 +364,8 @@ export abstract class BasePluginProduct {
       });
     }
 
-    if (productConfigInternal.moveToGroup?.length) {
-      productConfigInternal.moveToGroup.forEach((move) => {
+    if (productConfigInternal.page?.resourceMenu?.moveToGroup?.length) {
+      productConfigInternal.page?.resourceMenu?.moveToGroup.forEach((move) => {
         const resolvedGroup = this.groupNameMap.get(move.groupName);
 
         if (!resolvedGroup) {
@@ -396,10 +396,6 @@ export abstract class BasePluginProduct {
    * Configure virtualType (custom page) or configureType (resource page) for a page item
    */
   protected configurePageItem(parentName: string, item: ProductChild, groupNaming?: string): void {
-    // TODO: RC allll the mapping
-
-    // ProductChildResourcePageInternal
-
     const {
       configureType, virtualType, weightType,
       mapType, ignoreType, hideBulkActions, headers
@@ -442,10 +438,10 @@ export abstract class BasePluginProduct {
         const itemCustomPage:ProductChildCustomPage = item as ProductChildCustomPage;
 
         // virtualTypeConfig.component = itemCustomPage.component;
-        virtualTypeConfig.ifHave = itemCustomPage.show?.ifHave;
-        virtualTypeConfig.ifFeature = itemCustomPage.show?.ifFeature;
-        virtualTypeConfig.ifHaveType = itemCustomPage.show?.ifHaveType;
-        virtualTypeConfig.ifHaveVerb = itemCustomPage.show?.ifHaveVerb;
+        virtualTypeConfig.ifHave = itemCustomPage.enable?.ifHave;
+        virtualTypeConfig.ifFeature = itemCustomPage.enable?.ifFeature;
+        virtualTypeConfig.ifHaveType = itemCustomPage.enable?.ifHaveType;
+        virtualTypeConfig.ifHaveVerb = itemCustomPage.enable?.ifHaveVerb;
 
         virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced;
         virtualTypeConfig.weight = itemCustomPage.resourceMenu?.weight;
@@ -453,8 +449,12 @@ export abstract class BasePluginProduct {
 
         // virtualTypeConfig.icon = itemCustomPage.
 
-        // virtualTypeConfig.exact = itemCustomPage.navigation?.exact;
+        virtualTypeConfig.exact = itemCustomPage.navigation?.exact;
         // virtualTypeConfig.overview = itemCustomPage.display?.overview;
+      }
+
+      if ((item as any).display?.overview) { // TODO: RC Q
+        virtualTypeConfig.overview = true;
       }
 
       virtualType(virtualTypeConfig);
@@ -475,10 +475,10 @@ export abstract class BasePluginProduct {
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
 
       const configureTypeConfig: TypeMapConfigureType = {
-        isCreatable: itemRP.actions?.isCreatable ?? true,
-        isEditable:  itemRP.actions?.isEditable ?? true,
-        isRemovable: itemRP.actions?.isCreatable ?? true,
-        canYaml:     itemRP.actions?.canYaml ?? true,
+        isCreatable: itemRP.can?.create ?? true,
+        isEditable:  itemRP.can?.edit ?? true,
+        isRemovable: itemRP.can?.create ?? true,
+        canYaml:     itemRP.can?.canYaml ?? true,
         customRoute: route
       };
 
@@ -486,8 +486,8 @@ export abstract class BasePluginProduct {
         headers(item.type, itemRP.lists?.localHeaders, itemRP.lists?.headers);
       }
 
-      if (itemRP.lists?.overrideListResourceName) {
-        mapType(item.type, itemRP.lists?.overrideListResourceName);
+      if (itemRP.lists?.pageTitle) {
+        mapType(item.type, itemRP.lists?.pageTitle);
       }
 
       if (itemRP.resourceMenu?.hideFromNav) {
@@ -498,7 +498,7 @@ export abstract class BasePluginProduct {
         hideBulkActions(item.type, true);
       }
 
-      configureTypeConfig.listCreateButtonLabelKey = item.lists?.listCreateButtonLabelKey;
+      configureTypeConfig.listCreateButtonLabelKey = item.lists?.createButtonLabelKey;
       configureTypeConfig.showState = item.display?.showState ?? true;
       configureTypeConfig.showAge = item.display?.showAge ?? true;
       configureTypeConfig.showConfigView = item.display?.showConfigView ?? true;
