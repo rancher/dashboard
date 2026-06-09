@@ -16,7 +16,7 @@ describe('Workload Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@ad
 
   it('should display a namespace subtitle with workload count', () => {
     workloadDashboard.subtitle().should('be.visible');
-    workloadDashboard.subtitle().invoke('text').should('match', /\(\d+\)/);
+    workloadDashboard.subtitle().invoke('text').should('match', /\(\d+ workloads?\)/);
   });
 
   it('should display the By State section with state cards', () => {
