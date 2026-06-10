@@ -28,7 +28,7 @@ import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 import { PluginProduct } from './plugin-products';
 import {
-  ProductMetadataAdd, ProductMetadataSinglePage,
+  ProductMetadata, ProductMetadataSinglePage,
   StandardProductName,
   ProductChild
 } from '@shell/core/plugin-products-external';
@@ -133,15 +133,13 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadataAdd | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
     let pluginProduct: PluginProduct;
 
     if (typeof product === 'string') {
       pluginProduct = PluginProduct.fromName(this, product);
     } else if (product?.name) {
       if (!pages) {
-        // const all = new ProductOptionsSinglePage(product as ProductMetadataSinglePage);
-
         pluginProduct = new PluginProduct(this, product, []);
       } else {
         pluginProduct = new PluginProduct(this, product, pages);

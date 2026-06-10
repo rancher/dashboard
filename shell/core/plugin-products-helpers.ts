@@ -1,6 +1,4 @@
-import {
-  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildOverviewPage, ProductChildResourcePage
-} from '@shell/core/plugin-products-external';
+import { ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage } from '@shell/core/plugin-products-external';
 import { ProductRegistrationRouteGenerationOptions } from '@shell/core/plugin-products-internal';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
@@ -31,10 +29,7 @@ class PluginProductsHelpers {
     const processedChildren: ProductChild[] = [];
 
     children.forEach((child: ProductChild, index) => {
-      const processedChild = {
-        ...child,
-        // processedWeight: this.weightFromProductChild(child)
-      };
+      const processedChild = { ...child };
 
       if (processedChild.resourceMenu?.weight === undefined || processedChild.resourceMenu?.weight === null) {
         if (!processedChild.resourceMenu) {
@@ -44,7 +39,7 @@ class PluginProductsHelpers {
       }
 
       if (isProductChildGroup(processedChild)) {
-        processedChild.children = this.gatherChildrenOrdering(processedChild.children);
+        processedChild.resourceMenu.children = this.gatherChildrenOrdering(processedChild.resourceMenu.children);
       }
 
       processedChildren.push(processedChild);

@@ -3,20 +3,20 @@ import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
-import { ProductChild, ProductMetadataAdd, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
+import { ProductChild, ProductMetadata, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
 
 /**
  * Represents a new top-level product being added by an extension
  * @internal
  */
 export class TopLevelPluginProduct extends BasePluginProduct {
-  protected product?: ProductMetadataAdd | ProductMetadataSinglePage;
+  protected product?: ProductMetadata | ProductMetadataSinglePage;
 
   get isNewProduct(): boolean {
     return true;
   }
 
-  constructor(plugin: IExtension, product: ProductMetadataAdd | ProductMetadataSinglePage | string, pages: ProductChild[]) {
+  constructor(plugin: IExtension, product: ProductMetadata | ProductMetadataSinglePage | string, pages: ProductChild[]) {
     super(pages);
 
     // Convenience/bridge method: create a basic product from just a name string
@@ -56,7 +56,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
       // If no config is provided, add a default empty page
       this.config = [{
         name:      'main',
-        label:     'Main',
+        display:   { label: 'Main' },
         component: EmptyProductPage,
       }];
 

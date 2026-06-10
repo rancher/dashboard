@@ -5,21 +5,21 @@
  */
 
 import {
-  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataSinglePage
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
-import { ProductMetadataAddInternal } from '@shell/core/plugin-products-internal';
+import { ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 
-export function isProductConfigInternal(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataAddInternal {
-  const props = ['category', 'hideNamespaceLocation', 'version', 'renameGroups', 'moveToGroup', 'ignoreGroups'];
+export function isProductConfigInternal(product: ProductMetadata | ProductMetadataSinglePage): product is ProductMetadataInternal {
+  const props = ['category', 'version'];
 
   return props.some((prop) => prop in product);
 }
 
-export function isProductSinglePage(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataSinglePage {
+export function isProductSinglePage(product: ProductMetadata | ProductMetadataSinglePage): product is ProductMetadataSinglePage {
   return 'component' in product && product.component !== undefined;
 }
 
-export function isProductAdd(product: ProductMetadataAdd | ProductMetadataSinglePage): product is ProductMetadataAdd {
+export function isProductAdd(product: ProductMetadata | ProductMetadataSinglePage): product is ProductMetadata {
   return !('component' in product && product.component !== undefined);
 }
 

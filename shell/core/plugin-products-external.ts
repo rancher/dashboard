@@ -203,7 +203,7 @@ export type ProductChildGroup = {
 /**
  * Represents the allowed configuration for a product
  */
-type ProductMetadata = {
+type _ProductMetadata = {
     /**
    * Product name (unique identifier)
    */
@@ -328,7 +328,7 @@ type ProductMetadata = {
 
 // TODO: RC downside - needs manual conversion
 
-export type ProductMetadataAdd = ProductMetadata
+export type ProductMetadata = _ProductMetadata
 
 /**
  * Represents a single page product, which is a product that only has one page and
@@ -353,9 +353,9 @@ export interface IExtensionProducts {
    * @param name
    * @param pages
    */
-  addProduct(product: ProductMetadataAdd, pages: ProductChildPage[]): void;
-  addProduct(product: ProductMetadataAdd, pages: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadataAdd, pages: ProductChild[]): void;
+  addProduct(product: ProductMetadata, pages: ProductChildPage[]): void;
+  addProduct(product: ProductMetadata, pages: ProductChildGroup[]): void;
+  addProduct(product: ProductMetadata, pages: ProductChild[]): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)

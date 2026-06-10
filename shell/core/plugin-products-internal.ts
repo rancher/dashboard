@@ -1,5 +1,5 @@
 import {
-  ProductMetadataAdd,
+  ProductMetadata,
   ProductChildResourcePage,
 } from '@shell/core/plugin-products-external';
 import { PaginationHeaderOptions } from '@shell/core/types';
@@ -61,7 +61,7 @@ export type ProductChildResourcePageInternal = ProductChildResourcePage & {
 // i.e. `TypeMapProduct` usage in shell/core/plugin-products-base.ts
 
 // -----
-export type ProductMetadataAddInternal = ProductMetadataAdd & {
+export type ProductMetadataInternal = ProductMetadata & {
   /**
    * The category this product belongs under. i.e. 'config'
    */

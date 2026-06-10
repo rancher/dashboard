@@ -10,10 +10,10 @@ import {
   isProductConfigInternal,
 } from '@shell/core/plugin-products-type-guards';
 import {
-  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadataAdd, ProductMetadataSinglePage, VueRouteComponent
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage, VueRouteComponent
 } from '@shell/core/plugin-products-external';
 import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
-import { ProductChildResourcePageInternal, ProductMetadataAddInternal } from '@shell/core/plugin-products-internal';
+import { ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 
@@ -24,7 +24,7 @@ import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 export abstract class BasePluginProduct {
   protected name!: string;
 
-  protected product?: ProductMetadataAdd | ProductMetadataSinglePage;
+  protected product?: ProductMetadata | ProductMetadataSinglePage;
 
   protected addedResourceRoutes = false;
 
@@ -300,7 +300,7 @@ export abstract class BasePluginProduct {
 
       // ProductMetadataAddInternal
       if (isProductConfigInternal(this.product)) {
-        const poI = this.product as ProductMetadataAddInternal;
+        const poI = this.product as ProductMetadataInternal;
 
         typeMapProduct.category = poI.category;
         typeMapProduct.hideNamespaceLocation = poI.page?.header?.hideNamespaceLocation;
@@ -310,8 +310,8 @@ export abstract class BasePluginProduct {
         typeMapProduct.moveToGroup = poI.page?.resourceMenu?.moveToGroup;
       }
 
-      // Use isProductAdd(this.product) to check for ProductMetadataAdd type
-      // However there's nothing additional in ProductMetadataAdd that's not in ProductMetadata
+      // Use isProductAdd(this.product) to check for ProductMetadata type
+      // However there's nothing additional in ProductMetadata that's not in ProductMetadata
 
       // Use isProductSinglePage(this.product) to check for ProductMetadataSinglePage type
       // However there's only `component` in ProductMetadataSinglePage that's not in ProductMetadata
@@ -330,53 +330,51 @@ export abstract class BasePluginProduct {
       mapGroup, ignoreGroup, moveType, basicType
     } = this.DSLMethods;
 
-    if (this.product && !isProductConfigInternal(this.product)) {
-      return;
-    }
+    if (this.product && isProductConfigInternal(this.product)) {
+      const productConfigInternal = this.product as ProductMetadataInternal;
 
-    const productConfigInternal = this.product as ProductMetadataAddInternal;
+      if (productConfigInternal.page?.resourceMenu?.renameGroups?.length) {
+        productConfigInternal.page?.resourceMenu?.renameGroups.forEach((mapping) => {
+          mapGroup(mapping.groupSelector, mapping.newName);
+        });
+      }
 
-    if (productConfigInternal.page?.resourceMenu?.renameGroups?.length) {
-      productConfigInternal.page?.resourceMenu?.renameGroups.forEach((mapping) => {
-        mapGroup(mapping.groupSelector, mapping.newName);
-      });
-    }
+      if (productConfigInternal.page?.resourceMenu?.ignoreGroups?.length) {
+        productConfigInternal.page?.resourceMenu?.ignoreGroups.forEach((ignore) => {
+          if (ignore.condition) {
+            ignoreGroup(ignore.groupSelector, ignore.condition);
+          } else {
+            ignoreGroup(ignore.groupSelector);
+          }
+        });
+      }
 
-    if (productConfigInternal.page?.resourceMenu?.ignoreGroups?.length) {
-      productConfigInternal.page?.resourceMenu?.ignoreGroups.forEach((ignore) => {
-        if (ignore.condition) {
-          ignoreGroup(ignore.groupSelector, ignore.condition);
-        } else {
-          ignoreGroup(ignore.groupSelector);
-        }
-      });
-    }
+      if (productConfigInternal.page?.resourceMenu?.moveToGroup?.length) {
+        productConfigInternal.page?.resourceMenu?.moveToGroup.forEach((move) => {
+          const resolvedGroup = this.groupNameMap.get(move.groupName);
 
-    if (productConfigInternal.page?.resourceMenu?.moveToGroup?.length) {
-      productConfigInternal.page?.resourceMenu?.moveToGroup.forEach((move) => {
-        const resolvedGroup = this.groupNameMap.get(move.groupName);
+          if (!resolvedGroup) {
+            this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
+          }
 
-        if (!resolvedGroup) {
-          this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
-        }
+          const resolvedPageId = this.pageIdMap.get(move.entryId);
 
-        const resolvedPageId = this.pageIdMap.get(move.entryId);
+          if (!resolvedPageId) {
+            this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
+          }
 
-        if (!resolvedPageId) {
-          this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
-        }
+          // Re-register via basicType to move the page in the nav tree (basic view mode)
+          basicType([resolvedPageId], resolvedGroup);
 
-        // Re-register via basicType to move the page in the nav tree (basic view mode)
-        basicType([resolvedPageId], resolvedGroup);
+          // Also register via moveType for non-basic view modes (e.g. "in use" mode).
+          // moveType uses regex matching against schema IDs, so it only works for resource types.
+          const isResourceType = resolvedPageId === move.entryId;
 
-        // Also register via moveType for non-basic view modes (e.g. "in use" mode).
-        // moveType uses regex matching against schema IDs, so it only works for resource types.
-        const isResourceType = resolvedPageId === move.entryId;
-
-        if (isResourceType) {
-          moveType(move.entryId, resolvedGroup, move.weight);
-        }
-      });
+          if (isResourceType) {
+            moveType(move.entryId, resolvedGroup, move.weight);
+          }
+        });
+      }
     }
   }
 
