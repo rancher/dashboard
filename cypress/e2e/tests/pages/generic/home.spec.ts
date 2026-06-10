@@ -248,7 +248,7 @@ describe('Home Page', () => {
 
       // click Rancher Prime link (replaces old Commercial Support link)
       homePage.clickSupportLink(5, true);
-      cy.origin('https://www.suse.com/products/rancher/', () => {
+      cy.origin('https://www.suse.com', () => {
         cy.url().should('include', 'suse.com/products/rancher');
       });
     }));
