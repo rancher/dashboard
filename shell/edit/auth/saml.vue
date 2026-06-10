@@ -66,6 +66,7 @@ export default {
 
     const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
     const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
@@ -73,7 +74,7 @@ export default {
         userNameField:      requiredField('authConfig.saml.userName'),
         uidField:           requiredField('authConfig.saml.UID'),
         groupsField:        requiredField('authConfig.saml.groups'),
-        rancherApiHost:     requiredField('authConfig.saml.api'),
+        rancherApiHost:     requiredUrlField('authConfig.saml.api'),
         spKey:              requiredField('authConfig.saml.key.label'),
         spCert:             requiredField('authConfig.saml.cert.label'),
         idpMetadataContent: requiredField('authConfig.saml.metadata.label'),
