@@ -49,15 +49,18 @@
 - computed.js: `integerString` and `keyValueStrings` return `{get(),set()}` objects; test with `.call(ctx)` on plain object; no mocking needed; `Object.is(NaN,NaN)=true` so `toStrictEqual(NaN)` works
 - queue.js: offset-based compaction triggers at `++offset * 2 >= array.length`; test with 4 items where 2nd dequeue triggers compaction; backing array reset preserves correctness
 - cspAdaptor.ts: static class; call `CspAdapterUtils.resetState()` in `beforeEach`; hasCspAdapter uses `apps?.find()` (null-safe); fetchCspAdaptorApp: cache check, canList guard, paginationEnabled → findPage, else → findAll; mock getters as jest.fn().mockReturnValue(val)
+- select.js: `calculatePosition` uses `Object.defineProperty` for `window.scrollY/innerHeight`, `document.body.offsetHeight`, `el.offsetHeight`; jsdom does NOT support `min-content` style value (silently ignored); `!top` is truthy for both `undefined` AND `0` (edge case when y=0, height=1, scrollY=0); mock `getBoundingClientRect` with `jest.fn()` on real HTMLElement
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/select.js` — dropdown positioner with branching logic (DOM-dependent, complex)
-2. `shell/utils/scroll.js` — trivial DOM utility (low priority)
+1. `shell/utils/time.ts` — `elapsedTime`, `safeSetTimeout`, `getSecondsDiff`, `diffFrom` uncovered (medium priority)
+2. `shell/utils/dynamic-content/util.ts` — `removeMatchingNotifications`, `createLogger` with store mocks (medium priority)
+3. `shell/utils/scroll.js` — trivial DOM utility (low priority)
 
 ## Completed Work (Summary)
 
-- 2026-06-09: PR (branch test-assist/csp-adaptor-tests): 14 tests for cspAdaptor.ts; 100% all metrics
+- 2026-06-10: PR (branch test-assist/select-utils-tests): 11 tests for select.js calculatePosition; 100% all metrics
+- 2026-06-09: PR #18011 (branch test-assist/csp-adaptor-tests): 14 tests for cspAdaptor.ts; 100% all metrics — merged ✅
 - 2026-06-08: PR #17989 (branch test-assist/release-notes-tests): 16 tests for release-notes.ts — merged ✅
 - 2026-06-07: PR #17987 (branch test-assist/queue-utils-tests): 23 tests for queue.js — merged ✅
 - 2026-06-06: PR #17983 (branch test-assist/computed-utils-tests): 22 tests for computed.js — merged ✅
@@ -73,6 +76,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-10: Task 3 (select.js, 11 tests) + Task 7
 - 2026-06-09: Task 3 (cspAdaptor.ts, 14 tests) + Task 7
 - 2026-06-07: Task 3 (queue.js, 23 tests) + Task 7
 - 2026-06-06: Task 3 (computed.js, 22 tests) + Task 7
