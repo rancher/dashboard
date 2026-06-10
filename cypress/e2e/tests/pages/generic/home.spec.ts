@@ -255,7 +255,7 @@ describe('Home Page', () => {
 
         cy.url().should('include', 'suse.com/products/rancher');
       });
-    });
+    }));
 
     it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
