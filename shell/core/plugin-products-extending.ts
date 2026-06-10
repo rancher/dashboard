@@ -24,7 +24,7 @@ export class ExtendingPluginProduct extends BasePluginProduct {
       // If no config is provided, add a default empty page
       this.config = [{
         name:      'main',
-        label:     'Main',
+        display:   { label: 'Main' },
         component: EmptyProductPage,
       }];
     }
