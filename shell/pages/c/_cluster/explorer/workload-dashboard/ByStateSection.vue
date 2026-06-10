@@ -28,7 +28,6 @@ function bodyColumns(rowCount: number, maxSpan: number): number | undefined {
 
 const heroFullGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 3, 3));
 const heroWideGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 2, 2));
-const subHeroGridColumnEnd = computed(() => gridColumnEnd(props.layout.subHero?.rows.length ?? 1, 2));
 
 const heroBodyColumns = computed(() => {
   if (props.layout.heroMode === 'full') {
@@ -40,8 +39,6 @@ const heroBodyColumns = computed(() => {
 
   return undefined;
 });
-
-const subHeroBodyColumns = computed(() => bodyColumns(props.layout.subHero?.rows.length ?? 0, 2));
 
 function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
   return rows.map((row) => ({
@@ -72,7 +69,6 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       class="state-card bento-sub-hero"
       data-testid="workload-dashboard-state-card"
       :class="'state-card--' + layout.subHero.color"
-      :body-columns="subHeroBodyColumns"
       :rows="toCardRows(layout.subHero.rows)"
       :aria-label="layout.subHero.color + ' workloads'"
     />
@@ -110,7 +106,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
   }
 
   .bento-sub-hero {
-    grid-column: 2 / v-bind(subHeroGridColumnEnd);
+    grid-column: 2;
     grid-row: 1 / -1;
   }
 

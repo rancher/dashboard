@@ -203,7 +203,11 @@ export function useWorkloadDashboard() {
 
   const byStateLayout = computed<WorkloadDashboardByStateLayout>(() => {
     const cards = byStateCards.value;
-    const hero = cards.find((c) => c.color === 'success') || null;
+    const hero = cards.find((c) => c.color === 'success') ||
+      cards.find((c) => c.color === 'info') ||
+      cards.find((c) => c.color === 'error') ||
+      (cards.length === 1 ? cards[0] : null) || null;
+
     const others = cards.filter((c) => c !== hero);
 
     let heroMode: 'default' | 'full' | 'wide' = 'default';
@@ -214,7 +218,9 @@ export function useWorkloadDashboard() {
       heroMode = 'wide';
     }
 
-    const subHero = (hero && others.length >= 3) ? others.find((c) => c.color === 'info') || null : null;
+    const subHero =
+      (hero && others.length >= 3) ? others.find((c) => c.color === 'info') ||
+        null : null;
 
     const regularCards = subHero ? others.filter((c) => c !== subHero) : others;
     const gridRows = subHero ? Math.max(1, regularCards.length) : Math.max(1, Math.ceil(regularCards.length / 2));
