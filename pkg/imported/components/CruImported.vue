@@ -33,7 +33,6 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annota
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { randomStr } from '@shell/utils/string';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -143,7 +142,6 @@ export default defineComponent({
       }
       ],
       AGENT_CONFIGURATION_TYPES,
-      testAccs: [] // TODO nb remove
     };
   },
 
@@ -266,9 +264,6 @@ export default defineComponent({
   },
 
   methods: {
-    // TODO nb remove
-    randomStr,
-
     onMembershipUpdate(update) {
       this.membershipUpdate = update;
     },
@@ -555,26 +550,6 @@ export default defineComponent({
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
-      <!-- //TODO nb remove -->
-      <button
-        class="btn role-primary"
-        @click="testAccs.push({})"
-      >
-        add accordion
-      </button><button
-        class="btn role-secondary ml-5"
-        @click="testAccs.pop()"
-      >
-        remove accordion
-      </button>
-      <Accordion
-        v-for="(acc, i) in testAccs"
-        :key="i"
-        class="mb-20 accordion"
-        :title="i.toString()"
-      >
-        {{ i }}
-      </Accordion>
       <Accordion
         class="mb-20 accordion"
         title-key="imported.accordions.labels"
@@ -640,15 +615,6 @@ export default defineComponent({
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
-        <!-- //TODO nb remove -->
-        <Accordion
-          v-if="!isRKE1"
-          class="mb-20 accordion"
-          title="test accordion has a pretty long title to test long titles"
-          :open-initially="false"
-        >
-          test
-        </Accordion>
         <h3>
           {{ t('imported.agentEnv.header') }}
         </h3>
