@@ -2,14 +2,11 @@ import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Det
 import { useI18n } from '@shell/composables/useI18n';
 import { INGRESS, SERVICE } from '@shell/config/types';
 import { isHigherAlert, StateColor } from '@shell/utils/style';
-import {
-  computed, onScopeDispose, ref, Ref, toValue, watch
-} from 'vue';
+import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
 import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
 import { simpleColorForState, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
-import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export interface SummaryCountValue {
   total: number;
@@ -45,71 +42,6 @@ export function useResourceCardRow(label: string, resources: any[], stateColorKe
   const tuples: Tuple[] = Object.values(agg);
 
   tuples.sort((left: any, right: any) => {
-    if (isHigherAlert(left.color, right.color)) {
-      return -1;
-    }
-
-    if (left.color !== right.color) {
-      return 1;
-    }
-
-    if (left.count === right.count) {
-      return 0;
-    }
-
-    return left.count > right.count ? -1 : 1;
-  });
-
-  return {
-    label,
-    color:  tuples.length ? tuples[0].color : undefined,
-    counts: tuples.length ? tuples : undefined,
-    to
-  };
-}
-
-/**
- * Builds a ResourceRowProps from summary API response data.
- * The summary API returns state counts as { property: 'metadata.state.name', counts: { running: 2, error: 1 } }.
- * This maps those state names to display labels and colors using the same logic as resource models.
- */
-export function useResourceCardRowFromSummary(label: string, summaryResult: SummaryResult | null | undefined, to?: RouteLocationRaw): ResourceRowProps {
-  if (!summaryResult?.summary?.length) {
-    return {
-      label,
-      color:  undefined,
-      counts: undefined,
-      to
-    };
-  }
-
-  const stateSummary = summaryResult.summary.find((s) => s.property === 'metadata.state.name');
-
-  if (!stateSummary?.counts) {
-    return {
-      label,
-      color:  undefined,
-      counts: summaryResult.count ? [{ label: '', count: summaryResult.count }] : undefined,
-      to
-    };
-  }
-
-  interface Tuple extends Count {
-    color: StateColor;
-  }
-
-  const tuples: Tuple[] = Object.entries(stateSummary.counts).map(([state, val]) => {
-    const color = simpleColorForState(state) as StateColor;
-    const display = stateDisplayFn(state) as string;
-
-    return {
-      color,
-      label: display?.toLowerCase() || state,
-      count: val.total
-    };
-  });
-
-  tuples.sort((left: Tuple, right: Tuple) => {
     if (isHigherAlert(left.color, right.color)) {
       return -1;
     }
@@ -275,55 +207,4 @@ export function useDefaultWorkloadInsightsCardProps(): StateCardProps {
     title: i18n.t('component.resource.detail.card.insightsCard.title'),
     rows
   };
-}
-
-export interface ResourceSummaryOpt {
-  summaryField: string;
-  namespace?: string;
-  filters?: PaginationParamFilter[];
-}
-
-/**
- * Composable that fetches a resource summary and keeps it updated by watching for resource changes.
- * Automatically stops watching when the component is unmounted or the scope is disposed.
- *
- * Must be called during component setup.
- */
-export function useResourceSummary(type: string, opt: ResourceSummaryOpt) {
-  const store = useStore();
-  const count = ref(0);
-  const summary = ref<SummaryResult['summary']>(null);
-
-  const normalizedType = store.getters['cluster/normalizeType']?.(type) || type;
-  let fetchId = 0;
-
-  async function fetch() {
-    const id = ++fetchId;
-
-    try {
-      const result = await store.dispatch('cluster/fetchResourceSummary', { type: normalizedType, opt });
-
-      if (id !== fetchId) {
-        return;
-      }
-
-      if (result) {
-        count.value = result.count;
-        summary.value = result.summary;
-      }
-    } catch (e) {
-      console.warn(`useResourceSummary: fetch failed for type "${ type }"`, e); // eslint-disable-line no-console
-    }
-  }
-
-  fetch();
-
-  const stopWatch = watch(
-    () => store.getters['cluster/generation']?.(normalizedType),
-    () => fetch()
-  );
-
-  onScopeDispose(stopWatch);
-
-  return { count, summary };
 }
