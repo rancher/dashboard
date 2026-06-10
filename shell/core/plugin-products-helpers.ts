@@ -75,19 +75,19 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES
-  generateVirtualTypeRoute(parentName: string, pageChild: ProductChildCustomPage | ProductChildOverviewPage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  generateVirtualTypeRoute(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     if (options.extendProduct) {
-      return this.generateVirtualTypeRouteForExistingProduct(parentName, pageChild, options);
+      return this.generateVirtualTypeRouteForExistingProduct(parentName, childName, options);
     } else {
-      return this.generateVirtualTypeRouteForNewProduct(parentName, pageChild, options);
+      return this.generateVirtualTypeRouteForNewProduct(parentName, childName, options);
     }
   }
 
   // VIRTUAL TYPE ROUTES - CLUSTER LEVEL EXTENSION
-  private generateVirtualTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildCustomPage | ProductChildOverviewPage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForExistingProduct(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
-    const name = pageChild ? `c-cluster-${ parentName }-${ pageChild.name }` : `c-cluster-${ parentName }`;
-    const path = pageChild ? `c/:cluster/${ parentName }/${ pageChild.name }` : `c/:cluster/${ parentName }`;
+    const name = childName ? `c-cluster-${ parentName }-${ childName }` : `c-cluster-${ parentName }`;
+    const path = childName ? `c/:cluster/${ parentName }/${ childName }` : `c/:cluster/${ parentName }`;
 
     const route: RouteRecordRawWithParams = {
       name,
@@ -108,10 +108,10 @@ class PluginProductsHelpers {
   }
 
   // VIRTUAL TYPE ROUTES - TOP LEVEL EXTENSION
-  private generateVirtualTypeRouteForNewProduct(parentName: string, pageChild: ProductChildCustomPage | ProductChildOverviewPage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
+  private generateVirtualTypeRouteForNewProduct(parentName: string, childName: string | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
-    const name = pageChild ? `${ parentName }-c-cluster-${ pageChild.name }` : `${ parentName }-c-cluster`;
-    const path = pageChild ? `${ parentName }/c/:cluster/${ pageChild.name }` : `${ parentName }/c/:cluster`;
+    const name = childName ? `${ parentName }-c-cluster-${ childName }` : `${ parentName }-c-cluster`;
+    const path = childName ? `${ parentName }/c/:cluster/${ childName }` : `${ parentName }/c/:cluster`;
 
     const route: RouteRecordRawWithParams = {
       name,

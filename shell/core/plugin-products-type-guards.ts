@@ -24,7 +24,7 @@ export function isProductAdd(product: ProductMetadataAdd | ProductMetadataSingle
 }
 
 export function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
-  return 'children' in child;
+  return child.resourceMenu !== undefined && 'children' in child.resourceMenu;
 }
 
 export function isProductChildWithComponent(child: ProductChild): child is ProductChildCustomPage {

@@ -22,6 +22,44 @@ export type ProductRegistrationRouteGenerationOptions = {
   omitPath?: boolean;
 }
 
+// --------------  Page Related Resource --------------
+// When updating external page types also update where they're converted to the internal page type
+// i.e. `TypeMapVirtualType` or `TypeMapConfigureType` usage in shell/core/plugin-products-base.ts
+
+// ---
+export type ProductChildResourcePageInternal = ProductChildResourcePage & {
+   /**
+   * TODO: RC jsdoc
+   */
+  lists?: {
+    /** Table headers for this resource type (client-side pagination) */
+    localHeaders?: PaginationHeaderOptions[];
+  }
+
+   /**
+   * TODO: RC jsdoc
+   */
+  resourceMenu?: {
+    /** Whether to hide this resource from the side-menu entirely */
+    hideFromNav?: boolean;
+  }
+
+   /**
+   * TODO: RC jsdoc
+   */
+  resource?: {
+     /**
+   * TODO: RC jsdoc
+   */
+    depaginate?: boolean;
+  }
+}
+
+// --------------  Product Related Resource --------------
+
+// When updating external product types also update where they're converted to the internal product type
+// i.e. `TypeMapProduct` usage in shell/core/plugin-products-base.ts
+
 // -----
 export type ProductMetadataAddInternal = ProductMetadataAdd & {
   /**
@@ -32,13 +70,22 @@ export type ProductMetadataAddInternal = ProductMetadataAdd & {
   /** Do not use - internal use only */
   version?: number;
 
+  /**
+  * TODO: RC jsdoc
+  */
   page?: {
+    /**
+    * TODO: RC jsdoc
+    */
     header?: {
       /**
       * Hide the Namespace location
       */
       hideNamespaceLocation?: boolean;
     },
+    /**
+    * TODO: RC jsdoc
+    */
     resourceMenu?: {
       /**
        * @internal
@@ -155,20 +202,3 @@ export type ProductMetadataAddInternal = ProductMetadataAdd & {
   // supportRoute: string;
   // typeStoreMap: string;
 };
-
-// ---
-export type ProductChildResourcePageInternal = ProductChildResourcePage & {
-  lists?: {
-    /** Table headers for this resource type (client-side pagination) */
-    localHeaders?: PaginationHeaderOptions[];
-  }
-
-  resourceMenu?: {
-    /** Whether to hide this resource from the side-menu entirely */
-    hideFromNav?: boolean;
-  }
-
-  resource?: {
-    depaginate?: boolean;
-  }
-}

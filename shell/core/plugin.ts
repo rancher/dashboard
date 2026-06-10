@@ -144,28 +144,6 @@ export class Plugin implements IPlugin {
 
         pluginProduct = new PluginProduct(this, product, []);
       } else {
-        // const all = new ProductOptions(product as ProductMetadataAdd);
-        // const mappedPages = pages
-        //   .map((p) => {
-        //     // ProductChildGroup
-        //     if (!!(p as any).children) {
-        //       return p;
-        //     }
-
-        //     if (!!(p as any).component) {
-        //       return new ProductChildCustomPage(p as any as ProductChildCustomPageExternal);
-        //     }
-
-        //     if (!!(p as any).type) {
-        //       return new ProductChildResourcePage(p as any as ProductChildResourcePageExternal);
-        //     }
-
-        //     console.error('unknown.... // TODO: RC');
-
-        //     return null;
-        //   })
-        //   .filter((p) => !!p);
-
         pluginProduct = new PluginProduct(this, product, pages);
       }
     } else {

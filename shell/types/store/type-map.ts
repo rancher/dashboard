@@ -1,13 +1,13 @@
 import { PluginRouteRecordRaw } from '@shell/core/types';
 
 /**
- * TODO: RC
+ * TODO: RC jsdoc
  */
 export interface TypeMapProduct {
   /**
    * The category this product belongs under. i.e. 'config'
    */
-  category?: string; // TODO: RC
+  category?: string; // TODO: RC Q wut
 
   /**
    * Hide the Copy KubeConfig button in the header
@@ -37,7 +37,12 @@ export interface TypeMapProduct {
   /**
    * The icon that should be displayed beside this item in the navigation.
    */
-  icon?: string; // TODO: RC
+  icon?: string;
+
+    /**
+   * Alternative to the icon property. Uses require
+   */
+  svg?: Function;
 
   /**
    * Only load the product if the feature is present
@@ -93,11 +98,6 @@ export interface TypeMapProduct {
    * The route that the product will lead to if click on in navigation.
    */
   to?: PluginRouteRecordRaw;
-
-  /**
-   * Alternative to the icon property. Uses require
-   */
-  svg?: Function;
 
   /**
    * Product name

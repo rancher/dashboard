@@ -30,11 +30,13 @@ export type StandardProductName = (typeof StandardProductNames)[keyof typeof Sta
 export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
 
 // --------------  Page Related Resource --------------
+// When updating external page types also update where they're converted to the internal page type
+// i.e. `TypeMapVirtualType` or `TypeMapConfigureType` usage in shell/core/plugin-products-base.ts
 
 /**
  * TODO: RC jsdoc
  */
-type LabelOrKey = (
+type LabelOrLabelKey = (
   /** Human-readable label for the product
    * Either label or labelKey are required */
   | { label: string; labelKey?: string }
@@ -44,19 +46,16 @@ type LabelOrKey = (
 )
 
 /**
- * TODO: RC jsdoc
- */
-type ProductChildNameLabel = {
-  /** Product name/unique identifier for the product */
-  name: string;
-} & LabelOrKey;
-
-/**
  * Represents a custom page with a component
  */
-export type ProductChildCustomPage = ProductChildNameLabel & {
+export type ProductChildCustomPage = {
+  /** Product name/unique identifier for the product */
+  name: string;
+
   /** Component to render for this custom page */
   component: VueRouteComponent;
+
+  display: {} & LabelOrLabelKey
 
   enable?: {
     /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
@@ -72,15 +71,15 @@ export type ProductChildCustomPage = ProductChildNameLabel & {
   resourceMenu?: {
     /** Ordering weight for this page among its siblings */
     weight?: number;
-  }
 
-  navigation?: {
-    /** Entry route definition for this custom page */
-    customRoute?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
-    /** Whether this custom page is exact match */
-    exact?: boolean;
-    /** Whether this custom page has an exact path match */
-    'exact-path'?: boolean;
+    navigation?: {
+      /** Entry route definition for this custom page */
+      customRoute?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
+      /** Whether this custom page is exact match */
+      exact?: boolean;
+      /** Whether this custom page has an exact path match */
+      'exact-path'?: boolean;
+    }
   }
 
   resource?: {
@@ -90,17 +89,6 @@ export type ProductChildCustomPage = ProductChildNameLabel & {
 };
 
 /**
- * // TODO: RC Q is this internal only?
- * Metadata for route generation to a product overview page
- */
-export type ProductChildOverviewPage = ProductChildCustomPage & {
-  display: {
-    /** Whether this custom page will act as an overview page */
-    overview: true;
-  }
-}
-
-/**
  * Represents a resource page with a type (K8s resource)
  */
 export type ProductChildResourcePage = {
@@ -108,28 +96,27 @@ export type ProductChildResourcePage = {
   type: string;
 
   // TODO: RC rename
-  /** TODO: RC */
+  /** TODO: RC jsdoc */
   resourceMenu?: {
     /** Ordering weight for this page among its siblings */
-    weight?: number; // TODO: RC position or weight
+    weight?: number; // TODO: RC Q position or weight
+    /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
+    localOnly?: boolean;
+
+    navigation?: {
+      /** Entry route definition for this resource page */
+      customRoute?: RouteRecordRawWithParams;
+    }
   }
 
-  /** TODO: RC */
+  /** TODO: RC jsdoc */
   display?: {
-    /** Override for the name displayed */
-    displayName?: string;
+    /** Display this instead of the resource's name */
+    label?: string;
     /** If false, hide state in columns and masthead */
     showState?: boolean;
     /** If false, hide age in columns and masthead */
     showAge?: boolean;
-    /** If false, hide masthead config button in view mode */
-    showConfigView?: boolean;
-    /** If false, hide masthead in list view */
-    showListMasthead?: boolean;
-    /** Show the Masthead in the edit resource component */
-    resourceEditMasthead?: boolean;
-    /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
-    localOnly?: boolean;
   }
 
   can?: {
@@ -140,7 +127,27 @@ export type ProductChildResourcePage = {
     /** If false, disable for remove/delete */
     remove?: boolean;
     /** If false, cannot edit or show yaml */
-    canYaml?: boolean;
+    yaml?: boolean;
+  }
+
+  pages?: {
+    list?: {
+      /** Override for the create button string on a list view */
+      createButtonLabelKey?: string;
+
+      /** If false, hide masthead in list view */
+      showListMasthead?: boolean;
+    }
+
+    detail?: {
+      /** If false, hide masthead config button in view mode */
+      showConfigView?: boolean;
+    }
+
+    createEdit?: {
+      /** Show the Masthead in the edit resource component */
+      resourceEditMasthead?: boolean;
+    }
   }
 
   lists?: {
@@ -148,15 +155,6 @@ export type ProductChildResourcePage = {
     headers?: HeaderOptions[];
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
-    /** Override for the create button string on a list view */
-    createButtonLabelKey?: string;
-    /** Override the resource name used in the list view for this type */
-    pageTitle?: string;
-  }
-
-  navigation?: {
-    /** Entry route definition for this resource page */
-    customRoute?: RouteRecordRawWithParams;
   }
 
 };
@@ -164,7 +162,7 @@ export type ProductChildResourcePage = {
 /**
  * Represents a page item (custom page or resource page) in a product's config
  */
-export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage | ProductChildOverviewPage;
+export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
 
 /**
  * Represents a product child in the navigation
@@ -175,20 +173,32 @@ export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disab
 /**
  * Represents a group of child pages in a product configuration
  */
-export type ProductChildGroup = ProductChildNameLabel & {
+export type ProductChildGroup = {
+  /** Product name/unique identifier for the product */
+  name: string;
+
+  /** Component to render for this group */
   component?: VueRouteComponent;
-  children: ProductChild[];
-  /** Default child to navigate to */
-  default?: string;
+
+  display: {} & LabelOrLabelKey
 
   // TODO: RC actual name for the resource menu?
-  resourceMenu?: {
+  resourceMenu: {
+    /**
+    * TODO: RC jsdoc
+    */
+    children: ProductChild[];
     /** Ordering weight for this group among its siblings */
     weight?: number;
+    /** Default child to navigate to */
+    default?: string;
   }
 };
 
 // --------------  Product Related Resource --------------
+
+// When updating external product types also update where they're converted to the internal product type
+// i.e. `TypeMapProduct` usage in shell/core/plugin-products-base.ts
 
 /**
  * Represents the allowed configuration for a product
@@ -229,38 +239,6 @@ type ProductMetadata = {
     ifNotHaveType?: string | RegExp;
   }
 
-  /**
-   * Control page links
-   */
-  navigation?: {
-    /**
-     * The route that the product will lead to if click on in navigation.
-     */
-    to?: PluginRouteRecordRaw; // TODO: RC where used
-  }
-
-  /**
-   * Control how resources are fetched, filtered and stored
-   */
-  resources?: {
-    /**
-     * Hide the system resources in lists
-     */
-    hideSystemResources?: boolean;
-
-    /**
-    * The vuex store that this product should use by default i.e. 'management'
-    */
-    store?: string; // TODO: RC inStore
-  }
-
-  /**
-   * Indicates whether UI Extensions can add pages to this product
-   */
-  extendable?: boolean;
-} & LabelOrKey
-
-export type ProductMetadataAdd = ProductMetadata & {
   page?: {
     /**
      * Control what appears in the page's header
@@ -283,8 +261,6 @@ export type ProductMetadataAdd = ProductMetadata & {
 
       /**
       * Show the cluster info
-      *
-      * // TODO: RC rename showClusterSwitcher
       */
       showClusterInfo?: boolean;
 
@@ -294,13 +270,11 @@ export type ProductMetadataAdd = ProductMetadata & {
       showNamespaceFilter?: boolean;
 
       /**
-       * TODO: RC
+       * TODO: RC jsdoc
        */
       iconHeader?: string;
     },
-    /**
-     * Control what appears in the page's side bar
-     */
+
     sideBar: {
       /**
        * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
@@ -311,16 +285,50 @@ export type ProductMetadataAdd = ProductMetadata & {
         /**
         * The icon that should be displayed beside this item in the navigation.
         */
-        icon?: string; // TODO: RC
+        icon?: string; // TODO: RC Q name from icon pack??
 
         /**
          * Alternative to the icon property. Uses require
          */
         svg?: Function;
+      },
+
+      /**
+      * Control page links
+      */
+      navigation?: {
+        /**
+         * The route that the product will lead to if click on in navigation.
+         */
+        to?: PluginRouteRecordRaw;
       }
     }
   },
-}
+
+  /**
+   * Control how resources are fetched, filtered and stored
+   */
+  resources?: {
+    /**
+     * Hide the system resources in lists
+     */
+    hideSystemResources?: boolean;
+
+    /**
+    * The vuex store that this product should use by default i.e. 'management'
+    */
+    store?: string;
+  }
+
+  /**
+   * Indicates whether UI Extensions can add pages to this product
+   */
+  extendable?: boolean;
+} & LabelOrLabelKey
+
+// TODO: RC downside - needs manual conversion
+
+export type ProductMetadataAdd = ProductMetadata
 
 /**
  * Represents a single page product, which is a product that only has one page and
