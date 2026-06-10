@@ -12,7 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { WORKLOAD_TYPES, POD, EVENT } from '@shell/config/types';
+import { EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -515,7 +515,7 @@ export function stateDisplay(state, preserveOriginal = false) {
     return REMAP_STATE[key];
   }
 
-  // Preversses the original state name returned by the API
+  // Preserves the original state name returned by the
   if ( preserveOriginal ) {
     return ucFirst(state);
   }
@@ -739,13 +739,7 @@ export default class Resource {
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
   get stateDisplay() {
-    // Added special condition for workload resources and pod.
-    // It replaces cases like Init:containerstatusunknown with the original Init:ContainerStatusUnknown from the API
-    // Not overriding specifically since it should apply for all cases of those resources. And maybe even for all resources in the future.
-    const isWorkload = Object.values(WORKLOAD_TYPES).includes(this.type);
-    const isPod = this.type === POD ;
-
-    return stateDisplay(this.state, isWorkload || isPod);
+    return stateDisplay(this.state);
   }
 
   get stateColor() {

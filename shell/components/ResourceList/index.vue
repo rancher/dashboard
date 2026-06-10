@@ -316,6 +316,7 @@ export default {
             :key="state.label"
             :color="state.color"
             :label="state.label"
+            class="badge-state-font-size"
           />
           <span>.</span>
           <a
@@ -392,5 +393,9 @@ export default {
       a {
         cursor: pointer;
       }
+    }
+
+    .badge-state-font-size {
+      font-size: .85em;
     }
 </style>

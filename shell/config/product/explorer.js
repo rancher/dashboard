@@ -593,6 +593,7 @@ export function init(store) {
     weight:         100,
     icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
+    ifFeature:      STEVE_CACHE,
     route:          { name: 'c-cluster-explorer-workload-dashboard' },
     exact:          true,
     overview:       true,

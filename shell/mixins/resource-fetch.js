@@ -100,37 +100,19 @@ export default {
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
 
-    stateFilterValues() {
-      const stateFilter = this.$route?.query?.stateFilter;
-
-      if (!stateFilter) {
-        return null;
-      }
-
-      const states = stateFilter.split(',').filter(Boolean);
-
-      return states.length ? states : null;
-    },
-
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
-        let rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+        const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
 
         if (this.canPaginate) {
-          if (!this.havePaginated) {
-            return [];
+          if (this.havePaginated) {
+            return rows;
           }
         } else {
-          rows = this.localFilter ? this.localFilter(rows) : rows;
+          return this.localFilter ? this.localFilter(rows) : rows;
         }
-
-        if (this.stateFilterValues) {
-          rows = rows.filter((row) => this.stateFilterValues.includes(row.metadata?.state?.name));
-        }
-
-        return rows;
       }
 
       return [];

@@ -4,7 +4,6 @@ import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
-import { WORKLOAD_DASHBOARD } from '@shell/config/types';
 import { DOCS_BASE } from '@shell/config/private-label';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
@@ -86,7 +85,6 @@ const {
     <template v-else>
       <Masthead
         resource="workload"
-        :favorite-resource="WORKLOAD_DASHBOARD"
         :type-display="t('workloadDashboard.title')"
         :is-creatable="false"
         :show-favorite="false"
