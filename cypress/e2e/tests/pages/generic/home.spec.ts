@@ -243,7 +243,7 @@ describe('Home Page', () => {
       cy.url().should('include', 'getting-started/overview');
     }));
 
-    qase(1476, it('HELLO: can click on Rancher Prime link', { tags: '@noPrime' }, () => {
+    qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
       catchTargetPageException();
 
       // click Rancher Prime link (replaces old Commercial Support link)
