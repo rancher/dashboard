@@ -333,7 +333,11 @@ defineExpose({ focus });
   &.btn-small {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 140%;
+      // Unitless ratio chosen so font-size * line-height (12px * 4/3 = 16px)
+      // is a whole pixel value. A fractional computed line-height (e.g. the
+      // previous 140% = 16.8px) shifts text ~1px off-center within the
+      // flex-centered button in Chrome, but not in Firefox.
+      line-height: calc(4 / 3);
       font-size: 12px;
       min-height: 24px;
 
@@ -345,7 +349,9 @@ defineExpose({ focus });
   &.btn-medium {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 140%;
+      // Unitless ratio chosen so font-size * line-height (14px * 10/7 = 20px)
+      // is a whole pixel value. See note in .btn-small for why this matters.
+      line-height: calc(10 / 7);
       font-size: 14px;
       min-height: 32px;
 
@@ -357,7 +363,9 @@ defineExpose({ focus });
   &.btn-large {
     // This is the default size brought by the global button styling
     &, &:not(.btn-sm) {
-      line-height: 140%;
+      // Unitless ratio chosen so font-size * line-height (16px * 1.5 = 24px)
+      // is a whole pixel value. See note in .btn-small for why this matters.
+      line-height: 1.5;
       font-size: 16px;
       min-height: 40px;
 
