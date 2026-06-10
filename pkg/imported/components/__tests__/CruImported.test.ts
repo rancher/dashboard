@@ -168,7 +168,7 @@ describe('cruImported component', () => {
 
       expect(networkAccordion.exists()).toBe(false);
     });
-    it('should hide the networking tab for local K3s clusters detected via mgmt status provider', () => {
+    it('should hide the networking tab for local K3s clusters', () => {
       const wrapper = shallowMount(CruImported, {
         propsData: {
           mode:  _EDIT,
@@ -176,9 +176,8 @@ describe('cruImported component', () => {
             id:                'cluster-id',
             isRke1:            false,
             isLocal:           true,
-            isK3s:             false,
+            isK3s:             true,
             isRke2:            false,
-            mgmt:              { status: { provider: 'k3s' } },
             findNormanCluster: jest.fn().mockResolvedValue({})
           }
         },

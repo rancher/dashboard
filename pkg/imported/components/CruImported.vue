@@ -197,9 +197,7 @@ export default defineComponent({
       return this.mode === _CREATE;
     },
     isK3s() {
-      const mgmtProvider = this.value.mgmt?.status?.provider;
-
-      return !!(this.value.isK3s || mgmtProvider === 'k3s');
+      return !!this.value.isK3s;
     },
     isRKE1() {
       return !!this.value.isRke1;
