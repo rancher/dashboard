@@ -1,6 +1,7 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
 import { deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
+import { qase } from '@/cypress/support/qase';
 
 describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
   const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
@@ -25,7 +26,7 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
   });
 
   describe('Edit mode', () => {
-    it('Check if body and footer are visible to human eye', { tags: ['@components', '@adminUser'] }, () => {
+    qase(2460, it('Check if body and footer are visible to human eye', { tags: ['@components', '@adminUser'] }, () => {
       deploymentsListPage.goTo();
       deploymentsListPage.listElementWithName(name).should('exist');
       deploymentsListPage.goToEditYamlPage(name);
@@ -35,7 +36,7 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
       resourceYaml.body().should('be.visible').then(() => {
         resourceYaml.footer().isVisible();
       });
-    });
+    }));
   });
 
   afterEach(() => {
