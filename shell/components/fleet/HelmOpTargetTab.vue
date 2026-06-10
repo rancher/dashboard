@@ -50,7 +50,7 @@ const onTargetsCreated = (value: string) => {
 <template>
   <div data-testid="helmop-target-tab">
     <div :class="{ 'gap-6': compact }">
-      <h2 v-if="!compact">
+      <h2 v-if="!compact || realMode === 'view'">
         {{ t('fleet.helmOp.target.label') }}
       </h2>
       <FleetClusterTargets
