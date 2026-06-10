@@ -5,6 +5,7 @@ import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.p
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import FleetClustersListPo from '@/cypress/e2e/po/lists/fleet-clusters-list.po';
 
 export class FleetClusterListPagePo extends BaseListPagePo {
     static url = `/c/_/fleet/fleet.cattle.io.cluster`
@@ -30,6 +31,10 @@ export class FleetClusterListPagePo extends BaseListPagePo {
 
     selectWorkspace(workspaceName = 'fleet-local') {
       return this.header().selectWorkspace(workspaceName);
+    }
+
+    fleetClusterTable(): FleetClustersListPo {
+      return new FleetClustersListPo('[data-testid="sortable-table-list-container"]');
     }
 
     editFleetCluster(workspace: string, clusterName: string): FleetClusterEditPo {
