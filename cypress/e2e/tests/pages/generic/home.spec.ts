@@ -244,14 +244,18 @@ describe('Home Page', () => {
     }));
 
     qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
-
       // click Rancher Prime link (replaces old Commercial Support link)
       homePage.clickSupportLink(5, true);
       cy.origin('https://www.suse.com', () => {
+        cy.on('uncaught:exception', (err) => {
+          if (err.message.includes('ResizeObserver loop') || err.message.includes('cross origin page')) {
+            return false;
+          }
+        });
+
         cy.url().should('include', 'suse.com/products/rancher');
       });
-    }));
+    });
 
     it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
