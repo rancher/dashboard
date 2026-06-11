@@ -44,11 +44,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   /**
    * Finds a specific resource by its type and ID.
    *
-   * @template T - The type of the resource (defaults to SteveResource)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @param resourceType - The type of the resource to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
-   * @returns The found resource item. This instance is cached in the store and has instance methods for operations like `update`, `replace`, and `delete`. This resource is watched for changes in the store.
+   * @returns The found resource item or null if not found.
    *
    * @example
    * ```ts
@@ -88,19 +88,34 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
    *
+   * The response is not cached
+   *
    * Requires `ui-sql-cache` to be enabled.
    *
-   * @template T - The type of the resources (defaults to SteveList)
-   * @param resourceType - The type of the resources to find
-   * @param options - Pagination options with server-side filtering and sorting
-   * @returns Response containing resource items (may be transient if requested, otherwise cached array in the store are watched)
-   * @throws If pagination mode is requested but `ui-sql-cache` is not enabled
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
+   * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
+   * @returns Response containing resource items
+   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
    */
   findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions
   ): Promise<ResourceInstance<T>[]>;
 
+  /**
+   * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
+   *
+   * The response is cached.
+   *
+   * Requires `ui-sql-cache` to be enabled.
+   *
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
+   * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
+   * @returns Response containing resource items
+   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   */
   findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptionsTransient
@@ -113,10 +128,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * - If `ui-sql-cache` is enabled: uses server-side pagination
    * - Otherwise: uses native Kubernetes API pagination
    *
-   * @template T - The type of the resources (defaults to SteveList)
-   * @param resourceType - The type of the resources to find
-   * @param options - Label selector options for filtering
-   * @returns Response containing resource items (may be transient if requested, otherwise cached array in the store are watched)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
+   * @param options - Label selector options for filtering. See {@link FindFilteredLabelSelectorOptions}.
+   * @returns Response containing resource items.
+   *
    */
   findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
@@ -174,23 +190,10 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Fetches all resources of a specific type with advanced options.
    * This method provides additional capabilities like incremental loading and namespace filtering.
    *
-   * @template T - The type of the resources (defaults to SteveList)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Optional advanced fetch options (incremental loading, namespace filtering, etc.)
-   * @returns An array of resource items or an empty array if none are found. By default, if these results are cached in the store, they will be watched.
-   *
-   * @example
-   * ```ts
-   * import { useResources, K8S } from '@shell/apis';
-   * import type { Pod } from '@shell/types/resources';
-   *
-   * const resources = useResources();
-   *
-   * // Fetch all pods in specific namespaces
-   * const pods = await resources.cluster.findAll<Pod>(K8S.POD, {
-   *   namespaced: ['default', 'kube-system']
-   * });
-   * ```
+   * @returns An array of resource items or an empty array if none are found.
    */
   async findAll<T = Record<string, any>>(
     resourceType: ResourceType,
@@ -211,24 +214,12 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   /**
    * Creates a new resource.
    *
-   * Classifies the data via the store, checks `canCreate` permissions, and persists via HTTP POST.
+   * The `data` object must include a `type` property identifying the resource type.
+   * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
-   * @template T - The type of the resource (defaults to ResourceInstance)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @param data - The resource data to create. Must include a `type` property (examples in **{@link K8S}**). See also {@link CreateResourceData}.
-   * @returns The created resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
-   *
-   * @example
-   * ```ts
-   * import { useResources, K8S } from '@shell/apis';
-   *
-   * const resources = useResources();
-   *
-   * const configMap = await resources.cluster.create({
-   *   type:     K8S.CONFIG_MAP,
-   *   metadata: { name: 'my-config', namespace: 'default' },
-   *   data:     { key: 'value' }
-   * });
-   * ```
+   * @returns The created resource instance.
    */
   async create<T = Record<string, any>, I = SteveResource<T>>(
     data: CreateResourceData
@@ -261,23 +252,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Only the fields provided in `data` are sent to the server.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
-   * @template T - The type of the response (defaults to ResourceInstance)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - An object containing only the fields to update.
-   * @returns The updated resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
-   *
-   *
-   * @example
-   * ```ts
-   * import { useResources, K8S } from '@shell/apis';
-   *
-   * const resources = useResources();
-   *
-   * const result = await resources.cluster.update(K8S.CONFIG_MAP, 'default/my-config', {
-   *   data: { newKey: 'newValue' }
-   * });
-   * ```
+   * @returns The server response.
    */
   async update<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,
@@ -307,25 +286,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Runs `cleanForSave` on the data before sending.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
-   * @template T - The type of the response (defaults to ResourceInstance)
+   * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - The complete resource data to send as the replacement.
-   * @returns The updated resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
-   *
-   *
-   * @example
-   * ```ts
-   * import { useResources, K8S } from '@shell/apis';
-   *
-   * const resources = useResources();
-   *
-   * const result = await resources.cluster.replace(K8S.CONFIG_MAP, 'default/my-config', {
-   *   type:     'configmap',
-   *   metadata: { name: 'my-config', namespace: 'default', resourceVersion: '12345' },
-   *   data:     { key: 'replacedValue' }
-   * });
-   * ```
+   * @returns The server response.
    */
   async replace<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,

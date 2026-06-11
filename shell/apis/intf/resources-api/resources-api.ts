@@ -71,6 +71,7 @@ export interface ResourcesApi {
    * const resources = useResources();
    *
    * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   *   transient: true,
    *   pagination: {
    *     page: 1,
    *     pageSize: 10,
