@@ -145,11 +145,11 @@ export abstract class BasePluginProduct {
     // so that moveToGroup can translate friendly names automatically
     this.groupNameMap.set(itemGroup.name, groupName);
 
-    if (!Array.isArray(itemGroup.resourceMenu.pages)) {
+    if (!Array.isArray(itemGroup.resourceMenu.children)) {
       this.surfaceError('Children defined for group are not in an array format');
     }
 
-    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.resourceMenu.pages);
+    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.resourceMenu.children);
 
     // Build the full hierarchical path with :: separators for the store's _ensureGroup function
     // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
@@ -168,7 +168,7 @@ export abstract class BasePluginProduct {
     basicType(navNames, hierarchicalPath);
 
     // register virtualTypes/configureTypes for each child item
-    itemGroup.resourceMenu.pages.forEach((subItem: ProductChild) => {
+    itemGroup.resourceMenu.children.forEach((subItem: ProductChild) => {
       const currentGroupName = parentGroupName ? `${ parentGroupName }-${ itemGroup.name }` : itemGroup.name;
 
       this.configurePageItem(productName, subItem, currentGroupName);
@@ -217,8 +217,8 @@ export abstract class BasePluginProduct {
         const config = firstConfig as ProductChildGroup;
 
         // First config item is a group
-        if (config.resourceMenu.pages.length > 0) {
-          const entryChild = config.resourceMenu.pages[0];
+        if (config.resourceMenu.children.length > 0) {
+          const entryChild = config.resourceMenu.children[0];
 
           if (!isProductChildGroup(entryChild)) {
             // Group without component - route to first child
@@ -231,7 +231,7 @@ export abstract class BasePluginProduct {
 
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, { omitPath: true, extendProduct: !this.isNewProduct });
             }
-          } else if (firstConfig.component) { // if (isProductChildWithComponent(firstConfig))
+          } else if (firstConfig.component) {
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
             defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, { omitPath: true, extendProduct: !this.isNewProduct });
           }
@@ -525,7 +525,7 @@ export abstract class BasePluginProduct {
         plugin.addRoute(route);
 
         // add children routes
-        this.addRoutes(plugin, `${ parentName }`, child.resourceMenu.pages);
+        this.addRoutes(plugin, `${ parentName }`, child.resourceMenu.children);
       } else if (isProductChildWithComponent(child)) {
         // virtualType page
         if (hasTypeProperty(child)) {

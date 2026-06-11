@@ -187,7 +187,7 @@ export type ProductChildGroup = {
     /**
     * TODO: RC jsdoc
     */
-    pages: ProductChild[];
+    children: ProductChild[];
     /** Ordering weight for this group among its siblings */
     weight?: number;
     /** Default child to navigate to */
