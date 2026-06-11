@@ -17,10 +17,10 @@ describe('useVersion', () => {
   describe('when $version API is available', () => {
     it('should return the provided VersionApi', () => {
       const versionApi = {
-        isRancherPrime:    true,
-        version:           'v2.9.0',
-        gitCommit:         'abc1234',
-        kubernetesVersion: 'v1.28.0',
+        rancher: {
+          isPrime: true, version: 'v2.9.0', gitCommit: 'abc1234'
+        },
+        kube: { version: 'v1.28.0' },
       };
 
       mockInject.mockImplementation((key: string) => {
@@ -61,23 +61,23 @@ describe('useVersion', () => {
       });
     });
 
-    it('should return an adapter that maps SystemApi properties', () => {
+    it('should return an adapter that maps SystemApi properties to the nested shape', () => {
       const result = useVersion();
 
-      expect(result.isRancherPrime).toStrictEqual(true);
-      expect(result.version).toStrictEqual('v2.14.0');
-      expect(result.gitCommit).toStrictEqual('def5678');
-      expect(result.kubernetesVersion).toStrictEqual('v1.27.5');
+      expect(result.rancher.isPrime).toStrictEqual(true);
+      expect(result.rancher.version).toStrictEqual('v2.14.0');
+      expect(result.rancher.gitCommit).toStrictEqual('def5678');
+      expect(result.kube.version).toStrictEqual('v1.27.5');
     });
 
     it('should reflect changes from the underlying SystemApi', () => {
       const result = useVersion();
 
       shellApi.system.isRancherPrime = false;
-      expect(result.isRancherPrime).toStrictEqual(false);
+      expect(result.rancher.isPrime).toStrictEqual(false);
 
       shellApi.system.rancherVersion = 'v2.14.1';
-      expect(result.version).toStrictEqual('v2.14.1');
+      expect(result.rancher.version).toStrictEqual('v2.14.1');
     });
   });
 
@@ -89,10 +89,10 @@ describe('useVersion', () => {
     it('should return safe defaults', () => {
       const result = useVersion();
 
-      expect(result.isRancherPrime).toStrictEqual(false);
-      expect(result.version).toStrictEqual('');
-      expect(result.gitCommit).toStrictEqual('');
-      expect(result.kubernetesVersion).toStrictEqual('');
+      expect(result.rancher.isPrime).toStrictEqual(false);
+      expect(result.rancher.version).toStrictEqual('');
+      expect(result.rancher.gitCommit).toStrictEqual('');
+      expect(result.kube.version).toStrictEqual('');
     });
   });
 
@@ -110,8 +110,8 @@ describe('useVersion', () => {
     it('should fall back to safe defaults', () => {
       const result = useVersion();
 
-      expect(result.isRancherPrime).toStrictEqual(false);
-      expect(result.version).toStrictEqual('');
+      expect(result.rancher.isPrime).toStrictEqual(false);
+      expect(result.rancher.version).toStrictEqual('');
     });
   });
 

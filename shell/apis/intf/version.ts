@@ -8,15 +8,16 @@
  * import { useVersion } from '@shell/apis';
  *
  * const version = useVersion();
- * console.log('Is Prime:', version.isRancherPrime);
- * console.log('Version:', version.version);
+ * console.log('Is Rancher Prime:', version.rancher.isPrime);
+ * console.log('Rancher Version:', version.rancher.version);
  * ```
  */
 export interface VersionApi {
-  /**
+  rancher: {
+    /**
    * Whether this Rancher instance is a Prime edition
    */
-  readonly isRancherPrime: boolean;
+  readonly isPrime: boolean;
 
   /**
    * The Rancher server version string (e.g. "v2.8.0")
@@ -27,9 +28,11 @@ export interface VersionApi {
    * The git commit hash of the running Rancher build
    */
   readonly gitCommit: string;
-
-  /**
-   * The Kubernetes version of the management cluster (e.g. "v1.25.10")
-   */
-  readonly kubernetesVersion: string;
+  },
+  kube: {
+    /**
+     * The Kubernetes version of the management cluster (e.g. "v1.25.10")
+     */
+    readonly version: string;
+  }
 }

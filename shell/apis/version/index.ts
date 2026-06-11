@@ -2,21 +2,23 @@ import { VersionApi } from '@shell/apis/intf/version';
 import { getVersionData, getKubeVersionData, isRancherPrime } from '@shell/config/version';
 
 export class VersionApiImpl implements VersionApi {
-  get isRancherPrime(): boolean {
-    return isRancherPrime();
-  }
+  readonly rancher = {
+    get isPrime() {
+      return isRancherPrime();
+    },
+    get version() {
+      return getVersionData().Version;
+    },
+    get gitCommit() {
+      return getVersionData().GitCommit;
+    },
+  };
 
-  get version(): string {
-    return getVersionData().Version;
-  }
+  readonly kube = {
+    get version() {
+      const kubeData = (getKubeVersionData() as any) || {};
 
-  get gitCommit(): string {
-    return getVersionData().GitCommit;
-  }
-
-  get kubernetesVersion(): string {
-    const kubeData = getKubeVersionData() as any || {};
-
-    return kubeData.gitVersion ?? '';
-  }
+      return kubeData.gitVersion ?? '';
+    },
+  };
 }

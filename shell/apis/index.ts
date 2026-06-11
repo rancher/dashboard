@@ -85,26 +85,32 @@ export const useVersion = (): VersionApi => {
 
   if (shell?.system) {
     return {
-      get isRancherPrime() {
-        return shell.system.isRancherPrime;
+      rancher: {
+        get isPrime() {
+          return shell.system.isRancherPrime;
+        },
+        get version() {
+          return shell.system.rancherVersion;
+        },
+        get gitCommit() {
+          return shell.system.gitCommit;
+        },
       },
-      get version() {
-        return shell.system.rancherVersion;
-      },
-      get gitCommit() {
-        return shell.system.gitCommit;
-      },
-      get kubernetesVersion() {
-        return shell.system.kubernetesVersion;
+      kube: {
+        get version() {
+          return shell.system.kubernetesVersion;
+        }
       },
     };
   }
 
   return {
-    isRancherPrime:    false,
-    version:           '',
-    gitCommit:         '',
-    kubernetesVersion: '',
+    rancher: {
+      isPrime:   false,
+      version:   '',
+      gitCommit: '',
+    },
+    kube: { version: '' },
   };
 };
 

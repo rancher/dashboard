@@ -54,4 +54,4 @@ export function setKubeVersionData(v: Record<string, any>): void {
   Object.assign(_kubeVersionData, clean);
 }
 
-export const CURRENT_RANCHER_VERSION = '2.13';
+export const CURRENT_RANCHER_VERSION = '2.14';
