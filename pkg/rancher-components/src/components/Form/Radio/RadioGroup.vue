@@ -12,6 +12,7 @@ interface Option {
 }
 
 export default defineComponent({
+  name:       'RadioGroup',
   components: { RadioButton },
   props:      {
     /**
