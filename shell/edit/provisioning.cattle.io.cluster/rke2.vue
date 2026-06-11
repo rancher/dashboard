@@ -557,7 +557,7 @@ export default {
           getters:    this.$store.getters,
           axios:      this.$store.$axios,
           $extension: this.$store.app.$extension,
-          $t:         this.t,
+          t:          (...args) => this.t.apply(this, args),
           isCreate:   this.isCreate
         });
       }
@@ -1064,9 +1064,6 @@ export default {
 
         return;
       }
-
-      // Keep the spec tree in sync with the extension payload so omitted keys are actually removed.
-      this.infrastructureCluster.spec = cleanUp(neu.spec);
 
       // Preserve the original resource model instance while applying extension updates.
       mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
@@ -2555,6 +2552,7 @@ export default {
             :mode="mode"
             :provider="provider"
             :credential-id="credentialId"
+            :provisioning-cluster="value"
             data-testid="extension-top-section"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"

@@ -2484,7 +2484,6 @@ cluster:
     vmwarevsphere: VMware vSphere
     zstack: ZStack
     machineinventoryselectortemplate: Elemental Cluster
-    awsmachinetemplate: Cluster API Provider AWS
   providerTag:
     rke2:
       harvester: '{tag}'

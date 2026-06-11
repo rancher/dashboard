@@ -101,7 +101,7 @@ export function init(store) {
     labelKey:   'providers.hosted.title',
     name:       HOSTED_PROVIDER,
     group:      'Root',
-    weight:     1,
+    weight:     2,
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-hostedprovider' },
