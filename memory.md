@@ -50,16 +50,17 @@
 - queue.js: offset-based compaction triggers at `++offset * 2 >= array.length`; test with 4 items where 2nd dequeue triggers compaction; backing array reset preserves correctness
 - cspAdaptor.ts: static class; call `CspAdapterUtils.resetState()` in `beforeEach`; hasCspAdapter uses `apps?.find()` (null-safe); fetchCspAdaptorApp: cache check, canList guard, paginationEnabled → findPage, else → findAll; mock getters as jest.fn().mockReturnValue(val)
 - select.js: `calculatePosition` uses `Object.defineProperty` for `window.scrollY/innerHeight`, `document.body.offsetHeight`, `el.offsetHeight`; jsdom does NOT support `min-content` style value (silently ignored); `!top` is truthy for both `undefined` AND `0` (edge case when y=0, height=1, scrollY=0); mock `getBoundingClientRect` with `jest.fn()` on real HTMLElement
+- time.ts: `diffFrom` while-loop `absDiff >= FACTORS[i] && i < FACTORS.length` — second operand is unreachable (FACTORS[i]=undefined → NaN comparison fails first); `safeSetTimeout` uses `jest.useFakeTimers()` in beforeEach + `jest.useRealTimers()` in afterEach for self-contained fake-timer tests; `diffFrom` tests use fixed `day('2024-01-01T12:00:00Z')` anchor — no clock mocking needed
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/time.ts` — `elapsedTime`, `safeSetTimeout`, `getSecondsDiff`, `diffFrom` uncovered (medium priority)
-2. `shell/utils/dynamic-content/util.ts` — `removeMatchingNotifications`, `createLogger` with store mocks (medium priority)
-3. `shell/utils/scroll.js` — trivial DOM utility (low priority)
+1. `shell/utils/dynamic-content/util.ts` — `removeMatchingNotifications`, `createLogger` with store/localStorage/event mocks (medium priority)
+2. `shell/utils/scroll.js` — trivial DOM utility (low priority)
 
 ## Completed Work (Summary)
 
-- 2026-06-10: PR (branch test-assist/select-utils-tests): 11 tests for select.js calculatePosition; 100% all metrics
+- 2026-06-11: PR (branch test-assist/time-utils-tests): 32 tests for time.ts (elapsedTime, safeSetTimeout, getSecondsDiff, diffFrom); 100% stmts/fns/lines, 96% branches
+- 2026-06-10: PR #18023 (branch test-assist/select-utils-tests): 11 tests for select.js calculatePosition; 100% all metrics — merged ✅
 - 2026-06-09: PR #18011 (branch test-assist/csp-adaptor-tests): 14 tests for cspAdaptor.ts; 100% all metrics — merged ✅
 - 2026-06-08: PR #17989 (branch test-assist/release-notes-tests): 16 tests for release-notes.ts — merged ✅
 - 2026-06-07: PR #17987 (branch test-assist/queue-utils-tests): 23 tests for queue.js — merged ✅
@@ -76,6 +77,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-11: Task 3 (time.ts, 32 tests) + Task 7
 - 2026-06-10: Task 3 (select.js, 11 tests) + Task 7
 - 2026-06-09: Task 3 (cspAdaptor.ts, 14 tests) + Task 7
 - 2026-06-07: Task 3 (queue.js, 23 tests) + Task 7
