@@ -820,6 +820,7 @@ authConfig:
     enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
   noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
+  noneEnabledDisableLocalAuth: "Local Authentication will be automatically disabled when an external authentication provider is enabled, because the 'Disable Local Authentication' setting is on."
   localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
   manageLocal: Manage Accounts
 
@@ -5910,6 +5911,11 @@ promptSlo:
     active: Log out of {name}
     waiting: Logging Out
 
+promptEnableAuthProvider:
+  title: Enable Authentication Provider
+  body: "The 'Disable Local Authentication' setting is enabled. Enabling this authentication provider will prevent users from logging in with local credentials. Ensure you have access via this provider before continuing."
+  confirm: Enable Provider
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
@@ -8867,6 +8873,7 @@ advancedSettings:
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
+    'disable-local-auth': 'When enabled and an external authentication provider is configured and active, the local authentication provider will be disabled. Users will only be able to log in via the external provider.'
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
@@ -8891,6 +8898,8 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+  authentication:
+    header: Authentication
   provisioning:
     header: Cluster Provisioning
 
