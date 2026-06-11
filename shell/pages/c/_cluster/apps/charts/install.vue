@@ -40,7 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS, LINUX, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
+import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -599,6 +599,10 @@ export default {
       return out;
     },
 
+    selectedVersionOption() {
+      return this.filteredVersions?.find((v) => v.id === this.query.versionName) || this.query.versionName;
+    },
+
     showSelectVersionOrChart() {
       // Allow the user to choose a version if:
       // - the app exists (editing/upgrading)
@@ -678,7 +682,7 @@ export default {
     },
 
     stepperSubtext() {
-      return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
+      return this.mappedVersions?.find((v) => v.id === this.targetVersion)?.label || this.targetVersion;
     },
 
     readmeWindowName() {
@@ -763,24 +767,6 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
-    windowsIncompatible() {
-      if (this.versionInfo) {
-        const isRancher = isRancherRepo(this.repo, this.chart);
-        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
-        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
-
-        if (incompatibleVersion) {
-          if (!this.chart?.windowsIncompatible) {
-            return this.t('catalog.charts.versionWindowsIncompatible');
-          }
-
-          return this.t('catalog.charts.windowsIncompatible');
-        }
-      }
-
-      return null;
-    },
-
     /**
      * Check if the chart contains `systemDefaultRegistry` properties.
      * If not we shouldn't apply the setting, because if the option
@@ -795,14 +781,6 @@ export default {
       const global = this.versionInfo?.values?.global || {};
 
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
-    },
-
-    isWindowsIncompatibleVersion() {
-      if (this.versionInfo && !this.chart?.windowsIncompatible) {
-        return !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
-      }
-
-      return false;
     },
 
     setImagePullSecretDataTrigger() {
@@ -1662,17 +1640,11 @@ export default {
               <LabeledSelect
                 data-testid="chart-version-selector"
                 :label="t('catalog.install.version')"
-                :value="query.versionName"
+                :value="selectedVersionOption"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
                 @update:value="selectVersion"
               />
-              <p
-                v-if="isWindowsIncompatibleVersion"
-                class="chart-version-footnote"
-              >
-                {{ t('catalog.charts.versionWindowsIncompatible') }}
-              </p>
             </div>
             <!-- Can't find the chart for the app, let the user try to select one -->
             <div
@@ -1828,7 +1800,7 @@ export default {
             <LabeledSelect
               v-if="chart"
               :label="t('catalog.install.version')"
-              :value="query.versionName"
+              :value="selectedVersionOption"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
               @update:value="selectVersion"
