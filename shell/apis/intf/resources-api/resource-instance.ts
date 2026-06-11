@@ -81,7 +81,7 @@ export interface ResourceInstanceApi {
  * Provides instance-level operations such as deleting or updating a resource instance.
  * The resource data (metadata, spec, status, etc.) is accessible directly on the instance.
  *
- * @template T - TODO: RC
+ * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
  * @template I - The shape of the underlying resource data (defaults to SteveResource)
  *
  * @example
