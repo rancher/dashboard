@@ -10,7 +10,6 @@ import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
-import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -588,30 +587,19 @@ export default class Workload extends WorkloadService {
   }
 
   async fetchSummaries() {
-    const ns = this.metadata.namespace;
     const summaries = {};
-    const summaryField = 'metadata.state.name';
-    const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: ns });
-
-    const podSelectorStr = this.podSelector;
 
     summaries.pods = null;
 
-    if (podSelectorStr) {
-      const filters = [nsFilter];
-
-      podSelectorStr.split(',').forEach((part) => {
-        const eqIdx = part.indexOf('=');
-
-        if (eqIdx > 0) {
-          const key = part.substring(0, eqIdx).trim();
-          const value = part.substring(eqIdx + 1).trim();
-
-          filters.push(PaginationParamFilter.createSingleField({ field: `metadata.labels.${ key }`, value }));
+    if (this.podMatchExpression) {
+      summaries.pods = await this.$dispatch('fetchResourceSummary', {
+        type: POD,
+        opt:  {
+          summaryField:  'metadata.state.name',
+          namespace:     this.metadata.namespace,
+          labelSelector: { matchExpressions: this.podMatchExpression },
         }
       });
-
-      summaries.pods = await this.$dispatch('fetchResourceSummary', { type: POD, opt: { summaryField, filters } });
     }
 
     set(this, '_summaries', summaries);

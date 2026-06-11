@@ -648,7 +648,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * A lot of the requirements and details are taken directly from
    * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
    */
-  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
+  convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
