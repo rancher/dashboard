@@ -84,16 +84,8 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
   }
 
-  refreshIntervalCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid="clusterrepo-refresh-interval-checkbox"]');
-  }
-
   refreshIntervalInput(): LabeledInputPo {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="clusterrepo-refresh-interval-input"]');
-  }
-
-  refreshIntervalUnitSelect(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid="clusterrepo-refresh-interval-unit"]');
+    return new LabeledInputPo('[data-testid="clusterrepo-refresh-interval-input"]');
   }
 
   saveAndWaitForRequests(method: string, url: string) {

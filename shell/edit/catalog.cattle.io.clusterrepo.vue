@@ -408,7 +408,6 @@ export default {
         class="mb-10"
         :mode="mode"
         :label="t('catalog.repo.refreshInterval.enableLabel')"
-        data-testid="clusterrepo-refresh-interval-checkbox"
         @update:value="onRefreshEnabledChange"
       />
       <div class="row mb-10">
@@ -435,7 +434,6 @@ export default {
               :disabled="!refreshEnabled || isView"
               :clearable="false"
               :searchable="false"
-              data-testid="clusterrepo-refresh-interval-unit"
               @update:value="onRefreshUnitChange"
             />
           </div>
