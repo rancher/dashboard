@@ -290,7 +290,7 @@ export abstract class BasePluginProduct {
       typeMapProduct.hideKubeShell = this.product.appHeader?.hideKubeShell;
       typeMapProduct.showClusterSwitcher = this.product?.appHeader?.showClusterInfo;
       typeMapProduct.showNamespaceFilter = this.product?.appHeader?.showNamespaceFilter;
-      typeMapProduct.iconHeader = this.product?.appHeader?.iconHeader;
+      typeMapProduct.iconHeader = this.product?.appHeader?.icon;
 
       typeMapProduct.weight = this.product?.sideBar?.weight;
       typeMapProduct.icon = this.product?.sideBar?.icon?.name ?? 'extension';

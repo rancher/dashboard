@@ -1,7 +1,7 @@
 import { PluginRouteRecordRaw } from '@shell/core/types';
 
 /**
- * TODO: RC jsdoc
+ * The product as seen by the type-map
  */
 export interface TypeMapProduct {
   /**

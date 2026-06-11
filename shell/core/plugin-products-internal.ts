@@ -44,17 +44,13 @@ export type ProductChildCustomPageInternal = ProductChildCustomPage & {
  * Conceptually a `TypeMapConfigureType`
  */
 export type ProductChildResourcePageInternal = ProductChildResourcePage & {
-  /**
-  * TODO: RC jsdoc
-  */
+  /** Control how all lists that show this resource behave  */
   listConfig?: {
     /** Table headers for this resource type (client-side pagination) */
     localHeaders?: PaginationHeaderOptions[];
   }
 
-  /**
-  * TODO: RC jsdoc
-  */
+  /** Control how the child displays in the side menu  */
   sideMenu?: {
     /** Whether to hide this resource from the side-menu entirely */
     hideFromNav?: boolean;
@@ -64,12 +60,12 @@ export type ProductChildResourcePageInternal = ProductChildResourcePage & {
     }
   }
 
-   /**
-   * TODO: RC jsdoc
-   */
+  /** Control how resources are handled in this product */
   resource?: {
-     /**
-   * TODO: RC jsdoc
+   /**
+   * When requests are made to fetch this resource, outside of paginated requests, and they are paged.. iteratively fetch all pages
+   *
+   * We want to move away from this and use one of the new paginated requests to only fetch the data we need
    */
     depaginate?: boolean;
   }
@@ -90,9 +86,7 @@ export type ProductMetadataInternal = ProductMetadata & {
   /** Do not use - internal use only */
   version?: number;
 
-  /**
-  * TODO: RC jsdoc
-  */
+  /** Control what appears in the UI's main application header */
   appHeader?: {
     /**
     * Hide the Namespace location
@@ -112,9 +106,7 @@ export type ProductMetadataInternal = ProductMetadata & {
     }
   }
 
-  /**
-  * TODO: RC jsdoc
-  */
+  /** Control how the child displays in the side menu  */
   sideMenu?: {
     /**
      * @internal

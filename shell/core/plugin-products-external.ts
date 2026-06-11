@@ -34,7 +34,7 @@ export type VueRouteComponent = RouteComponent | Async<RouteComponent>;
 // i.e. `TypeMapVirtualType` or `TypeMapConfigureType` usage in shell/core/plugin-products-base.ts
 
 /**
- * TODO: RC jsdoc
+ * Type that enforces either a `label` or `labelKey`
  */
 type LabelOrLabelKey = (
   /** Human-readable label for the product
@@ -55,7 +55,7 @@ export type ProductChildCustomPage = LabelOrLabelKey & {
   /** Component to render for this custom page */
   component: VueRouteComponent;
 
-  /** TODO: RC jsdoc */
+  /** Determine when this product is enabled and shown */
   enable?: {
     /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
     ifHave?: boolean;
@@ -67,13 +67,13 @@ export type ProductChildCustomPage = LabelOrLabelKey & {
     ifHaveVerb?: string;
   };
 
-  /** TODO: RC jsdoc */
+  /** Control how the child displays in the side menu  */
   sideMenu?: {
     /** Ordering weight for this page among its siblings */
     weight?: number;
   }
 
-  /** TODO: RC jsdoc */
+  /** Control how resources are handled in this product */
   resource?: {
     /** Whether resources this page represents is namespaced */
     namespaced?: boolean;
@@ -92,7 +92,7 @@ export type ProductChildResourcePage = {
    */
   label?: string
 
-  /** TODO: RC jsdoc */
+  /** Control how the child displays in the side menu  */
   sideMenu?: {
     /** Ordering weight for this page among its siblings */
     weight?: number;
@@ -100,7 +100,7 @@ export type ProductChildResourcePage = {
     localOnly?: boolean;
   }
 
-  /** TODO: RC jsdoc */
+  /** Control how the product displays some information  */
   display?: {
     /** If false, hide state in columns and masthead */
     showState?: boolean;
@@ -108,7 +108,7 @@ export type ProductChildResourcePage = {
     showAge?: boolean;
   }
 
-  /** TODO: RC jsdoc */
+  /** Control what actions and features can be carried out for this resource type */
   can?: {
     /** If false, disable create even if schema says it's allowed */
     create?: boolean;
@@ -120,39 +120,38 @@ export type ProductChildResourcePage = {
     yaml?: boolean;
   }
 
-  /** TODO: RC jsdoc */
+  /** Control how this resource behaves in resource list, detail and create/edit pages */
   views?: {
 
-    /** TODO: RC jsdoc */
+    /** Control how this resource behaves in a resource list page */
     list?: {
       /** Override for the create button string on a list view */
       createLabelKey?: string;
 
-      /** If false, hide masthead in list view */
+      /** If false, hide masthead in list view. Defaults to true */
       showListMasthead?: boolean;
     }
 
-    /** TODO: RC jsdoc */
+    /** Control how this resource behaves in a resource detail page */
     detail?: {
-      /** If false, hide masthead config button in view mode */
+      /** If false, hide masthead config button in view mode. Defaults to true */
       showConfigView?: boolean;
     }
 
-    /** TODO: RC jsdoc */
+    /** Control how this resource behaves in a resource create/edit page */
     createEdit?: {
-      /** Show the Masthead in the edit resource component */
+      /** Show the Masthead in the edit resource component. Defaults to true */
       showMasthead?: boolean;
     }
   }
 
-  /** TODO: RC jsdoc */
+  /** Control how all lists that show this resource behave  */
   listConfig?: {
     /** Table headers for this resource type (server-side pagination) */
     headers?: HeaderOptions[];
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
   }
-
 };
 
 /**
@@ -176,9 +175,10 @@ export type ProductChildGroup = LabelOrLabelKey & {
   /** Component to render for this group */
   component?: VueRouteComponent;
 
+  /** Control how the child displays menu items in the side menu  */
   sideMenu: {
     /**
-    * TODO: RC jsdoc
+    * Add entries to the side menu
     */
     children: ProductChild[];
     /** Ordering weight for this group among its siblings */
@@ -197,7 +197,7 @@ export type ProductChildGroup = LabelOrLabelKey & {
  * Represents the allowed configuration for a product
  */
 type _ProductMetadata = LabelOrLabelKey & {
-    /**
+  /**
    * Product name (unique identifier)
    */
   name: string;
@@ -232,9 +232,7 @@ type _ProductMetadata = LabelOrLabelKey & {
     ifNotHaveType?: string | RegExp;
   }
 
-  /**
-   * Control what appears in the UI's main application header
-   */
+  /** Control what appears in the UI's main application header */
   appHeader?: {
     /**
      * Hide the Copy KubeConfig button in the header
@@ -262,9 +260,9 @@ type _ProductMetadata = LabelOrLabelKey & {
     showNamespaceFilter?: boolean;
 
     /**
-     * TODO: RC jsdoc
+     * Show a product icon in the header
      */
-    iconHeader?: string;
+    icon?: string;
   },
 
   /**
