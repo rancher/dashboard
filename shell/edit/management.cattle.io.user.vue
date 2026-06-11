@@ -247,6 +247,7 @@ export default {
     :can-yaml="false"
     class="create-edit"
     @finish="save"
+    @error="e=>errors = e"
   >
     <div class="credentials">
       <h2> {{ t("user.edit.credentials.label") }}</h2>

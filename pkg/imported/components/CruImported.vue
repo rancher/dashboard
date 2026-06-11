@@ -264,7 +264,6 @@ export default defineComponent({
   },
 
   methods: {
-
     onMembershipUpdate(update) {
       this.membershipUpdate = update;
     },
@@ -423,6 +422,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
   >
@@ -634,9 +634,3 @@ export default defineComponent({
     </div>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-    .accordion {
-        border-radius: 16px;
-    }
-</style>

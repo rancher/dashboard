@@ -10,13 +10,13 @@ export default class Kubectl extends ComponentPo {
 
   openTerminal(options?: GetOptions) {
     cy.get('#btn-kubectl').click();
-    this.self().get('.window.show-grid .text-success', options).should('contain', 'Connected');
+    this.waitForTerminalStatus('Connected', options);
 
     return this;
   }
 
   closeTerminal() {
-    this.self().get('[data-testid="wm-tab-close-button"]').click();
+    this.self().get('[data-testid="wm-tab-close-button"]').first().click();
   }
 
   closeTerminalByTabName(name: string) {
@@ -32,14 +32,9 @@ export default class Kubectl extends ComponentPo {
   }
 
   terminalRow() {
-    return this.self().then(($el) => {
-      // Depending on if we could load webGL, this will change
-      if ($el.find('.xterm-cursor-layer').length > 0) {
-        return $el.find('.xterm-cursor-layer');
-      }
-
-      return $el.find('.xterm-link-layer');
-    });
+    // The textarea is the actual input element for xterm.js, and is present for both
+    // DOM and WebGL renderers. We target the one in the active window to avoid ambiguity.
+    return this.self().find('.xterm-helper-textarea');
   }
 
   /**

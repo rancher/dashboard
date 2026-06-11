@@ -593,7 +593,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
     });
 
-    it('User creation should complete after admin user fails to create for Standard user with Manage Users Role', () => {
+    it('User creation should throw an error if creating a user with a higher permission set, the error should be removable, and creation should succeed once permissions are appropriately lowered', () => {
       // create standard user
       usersPo.goTo();
       usersPo.waitForPage();
@@ -638,6 +638,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       banner.checkExists();
       banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
+
+      // close the error banner before updating the Global Permissions
+      banner.close();
+      banner.checkNotExists();
 
       // update the Global Permissions
       userCreate.selectCheckbox('User-Base').set();

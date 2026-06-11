@@ -1,8 +1,14 @@
 <script>
 import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
+import { computed, inject, useTemplateRef } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
-  inject: ['addTab', 'removeTab', 'sideTabs'],
+  name: 'Tab',
+
+  inject: ['addTab', 'removeTab', 'sideTabs', 'select'],
 
   emits: ['active'],
 
@@ -64,9 +70,28 @@ export default {
   },
 
   setup(props) {
-    const { count, isCountVisible } = useTabCountWatcher();
+    const select = inject('select');
+    const store = useStore();
+    const { t } = useI18n(store);
+    const label = computed(() => {
+      if (props.labelKey && typeof t === 'function') {
+        return t(props.labelKey);
+      }
 
-    return { inferredCount: count, isInferredCountVisible: isCountVisible };
+      return props.label ?? props.name;
+    });
+    const { count, isCountVisible } = useTabCountWatcher();
+    const summarizedContainerRef = useTemplateRef('tab-summarized-container');
+    // when a Tab is scrolled to, call its Tabbed's 'select' method to ensure the Tab is active
+    const { summary } = useInSummary({
+      scrollTo:   () => select(props.name),
+      label,
+      elementRef: summarizedContainerRef,
+    });
+
+    return {
+      inferredCount: count, isInferredCountVisible: isCountVisible, summary
+    };
   },
 
   data() {
@@ -143,6 +168,7 @@ export default {
   <section
     v-show="active"
     :id="name"
+    ref="tab-summarized-container"
     :aria-hidden="!active"
     role="tabpanel"
     :aria-labelledby="`tab-${name}`"
