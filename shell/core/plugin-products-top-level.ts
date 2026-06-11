@@ -21,10 +21,12 @@ export class TopLevelPluginProduct extends BasePluginProduct {
 
     // Convenience/bridge method: create a basic product from just a name string
     if (typeof product === 'string') {
-      product = {
-        name:  product,
-        label: product,
+      const emptyProduct: ProductMetadata = {
+        name:    product,
+        display: { label: product }
       };
+
+      product = emptyProduct;
     }
 
     let prodName = product.name;

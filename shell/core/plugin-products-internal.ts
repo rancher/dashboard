@@ -73,7 +73,7 @@ export type ProductMetadataInternal = ProductMetadata & {
   /**
   * TODO: RC jsdoc
   */
-  page?: {
+  globalPage?: {
     /**
     * TODO: RC jsdoc
     */

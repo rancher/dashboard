@@ -187,7 +187,7 @@ export type ProductChildGroup = {
     /**
     * TODO: RC jsdoc
     */
-    children: ProductChild[];
+    pages: ProductChild[];
     /** Ordering weight for this group among its siblings */
     weight?: number;
     /** Default child to navigate to */
@@ -208,6 +208,8 @@ type _ProductMetadata = {
    * Product name (unique identifier)
    */
   name: string;
+
+  display: {} & LabelOrLabelKey
 
   /**
    * Control conditions on when to show the product
@@ -239,7 +241,7 @@ type _ProductMetadata = {
     ifNotHaveType?: string | RegExp;
   }
 
-  page?: {
+  globalPage?: {
     /**
      * Control what appears in the page's header
      */
@@ -324,9 +326,7 @@ type _ProductMetadata = {
    * Indicates whether UI Extensions can add pages to this product
    */
   extendable?: boolean;
-} & LabelOrLabelKey
-
-// TODO: RC downside - needs manual conversion
+}
 
 export type ProductMetadata = _ProductMetadata
 
@@ -350,8 +350,8 @@ export interface IExtensionProducts {
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
-   * @param name
-   * @param pages
+   * @param product
+   * @param pages Pages associated with the product. These will appear in the resource menu
    */
   addProduct(product: ProductMetadata, pages: ProductChildPage[]): void;
   addProduct(product: ProductMetadata, pages: ProductChildGroup[]): void;
@@ -373,7 +373,8 @@ export interface IExtensionProducts {
 
   /**
    * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
-   * @deprecated Use other `addProduct` signatures instead
+   *
+   * Once other `addProduct` signatures reach maturity this will be deprecated
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
@@ -381,10 +382,10 @@ export interface IExtensionProducts {
   /**
    * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages
    *
-   * @param product Product to be extended
-   * @param config Product extension configuration
+   * @param productName Name of the product to be extended
+   * @param pages Pages that will be added to the product. These will appear in the resource menu
    */
-  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
+  extendProduct(productName: StandardProductName | string, pages: ProductChildPage[]): void;
+  extendProduct(productName: StandardProductName | string, pages: ProductChildGroup[]): void;
+  extendProduct(productName: StandardProductName | string, pages: ProductChild[]): void;
 }

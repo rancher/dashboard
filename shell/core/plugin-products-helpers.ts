@@ -39,7 +39,7 @@ class PluginProductsHelpers {
       }
 
       if (isProductChildGroup(processedChild)) {
-        processedChild.resourceMenu.children = this.gatherChildrenOrdering(processedChild.resourceMenu.children);
+        processedChild.resourceMenu.pages = this.gatherChildrenOrdering(processedChild.resourceMenu.pages);
       }
 
       processedChildren.push(processedChild);

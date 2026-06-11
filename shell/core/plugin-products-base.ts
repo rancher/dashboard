@@ -145,11 +145,11 @@ export abstract class BasePluginProduct {
     // so that moveToGroup can translate friendly names automatically
     this.groupNameMap.set(itemGroup.name, groupName);
 
-    if (!Array.isArray(itemGroup.resourceMenu.children)) {
+    if (!Array.isArray(itemGroup.resourceMenu.pages)) {
       this.surfaceError('Children defined for group are not in an array format');
     }
 
-    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.resourceMenu.children);
+    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.resourceMenu.pages);
 
     // Build the full hierarchical path with :: separators for the store's _ensureGroup function
     // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
@@ -168,7 +168,7 @@ export abstract class BasePluginProduct {
     basicType(navNames, hierarchicalPath);
 
     // register virtualTypes/configureTypes for each child item
-    itemGroup.resourceMenu.children.forEach((subItem: ProductChild) => {
+    itemGroup.resourceMenu.pages.forEach((subItem: ProductChild) => {
       const currentGroupName = parentGroupName ? `${ parentGroupName }-${ itemGroup.name }` : itemGroup.name;
 
       this.configurePageItem(productName, subItem, currentGroupName);
@@ -217,8 +217,8 @@ export abstract class BasePluginProduct {
         const config = firstConfig as ProductChildGroup;
 
         // First config item is a group
-        if (config.resourceMenu.children.length > 0) {
-          const entryChild = config.resourceMenu.children[0];
+        if (config.resourceMenu.pages.length > 0) {
+          const entryChild = config.resourceMenu.pages[0];
 
           if (!isProductChildGroup(entryChild)) {
             // Group without component - route to first child
@@ -273,8 +273,8 @@ export abstract class BasePluginProduct {
       // ProductMetadata
       // typeMapProduct.name = this.product.name;
 
-      typeMapProduct.label = this.product.label;
-      typeMapProduct.labelKey = this.product.labelKey;
+      typeMapProduct.label = this.product.display.label;
+      typeMapProduct.labelKey = this.product.display.labelKey;
 
       typeMapProduct.ifFeature = this.product.enable?.ifFeature;
       typeMapProduct.ifHave = this.product.enable?.ifHave;
@@ -283,31 +283,31 @@ export abstract class BasePluginProduct {
       typeMapProduct.ifNotHaveType = this.product.enable?.ifHaveType;
 
       typeMapProduct.hideSystemResources = this.product.resources?.hideSystemResources;
-      typeMapProduct.inStore = this.product.resources?.store;
+      typeMapProduct.inStore = this.product.resources?.store ?? 'management';
 
       typeMapProduct.extendable = this.product.extendable;
 
-      typeMapProduct.hideCopyConfig = this.product.page?.header?.hideCopyConfig;
-      typeMapProduct.hideKubeConfig = this.product.page?.header?.hideKubeConfig;
-      typeMapProduct.hideKubeShell = this.product.page?.header?.hideKubeShell;
-      typeMapProduct.showClusterSwitcher = this.product.page?.header?.showClusterInfo;
-      typeMapProduct.showNamespaceFilter = this.product.page?.header?.showNamespaceFilter;
-      typeMapProduct.iconHeader = this.product.page?.header?.iconHeader;
+      typeMapProduct.hideCopyConfig = this.product.globalPage?.header?.hideCopyConfig;
+      typeMapProduct.hideKubeConfig = this.product.globalPage?.header?.hideKubeConfig;
+      typeMapProduct.hideKubeShell = this.product.globalPage?.header?.hideKubeShell;
+      typeMapProduct.showClusterSwitcher = this.product.globalPage?.header?.showClusterInfo;
+      typeMapProduct.showNamespaceFilter = this.product.globalPage?.header?.showNamespaceFilter;
+      typeMapProduct.iconHeader = this.product.globalPage?.header?.iconHeader;
 
-      typeMapProduct.weight = this.product.page?.sideBar?.weight;
-      typeMapProduct.icon = this.product.page?.sideBar?.icon?.icon;
-      typeMapProduct.svg = this.product.page?.sideBar?.icon?.svg;
+      typeMapProduct.weight = this.product.globalPage?.sideBar?.weight;
+      typeMapProduct.icon = this.product.globalPage?.sideBar?.icon?.icon ?? 'extension';
+      typeMapProduct.svg = this.product.globalPage?.sideBar?.icon?.svg;
 
       // ProductMetadataAddInternal
       if (isProductConfigInternal(this.product)) {
         const poI = this.product as ProductMetadataInternal;
 
         typeMapProduct.category = poI.category;
-        typeMapProduct.hideNamespaceLocation = poI.page?.header?.hideNamespaceLocation;
+        typeMapProduct.hideNamespaceLocation = poI.globalPage?.header?.hideNamespaceLocation;
         typeMapProduct.version = poI.version;
-        typeMapProduct.renameGroups = poI.page?.resourceMenu?.renameGroups;
-        typeMapProduct.ignoreGroups = poI.page?.resourceMenu?.ignoreGroups;
-        typeMapProduct.moveToGroup = poI.page?.resourceMenu?.moveToGroup;
+        typeMapProduct.renameGroups = poI.globalPage?.resourceMenu?.renameGroups;
+        typeMapProduct.ignoreGroups = poI.globalPage?.resourceMenu?.ignoreGroups;
+        typeMapProduct.moveToGroup = poI.globalPage?.resourceMenu?.moveToGroup;
       }
 
       // Use isProductAdd(this.product) to check for ProductMetadata type
@@ -333,14 +333,14 @@ export abstract class BasePluginProduct {
     if (this.product && isProductConfigInternal(this.product)) {
       const productConfigInternal = this.product as ProductMetadataInternal;
 
-      if (productConfigInternal.page?.resourceMenu?.renameGroups?.length) {
-        productConfigInternal.page?.resourceMenu?.renameGroups.forEach((mapping) => {
+      if (productConfigInternal.globalPage?.resourceMenu?.renameGroups?.length) {
+        productConfigInternal.globalPage?.resourceMenu?.renameGroups.forEach((mapping) => {
           mapGroup(mapping.groupSelector, mapping.newName);
         });
       }
 
-      if (productConfigInternal.page?.resourceMenu?.ignoreGroups?.length) {
-        productConfigInternal.page?.resourceMenu?.ignoreGroups.forEach((ignore) => {
+      if (productConfigInternal.globalPage?.resourceMenu?.ignoreGroups?.length) {
+        productConfigInternal.globalPage?.resourceMenu?.ignoreGroups.forEach((ignore) => {
           if (ignore.condition) {
             ignoreGroup(ignore.groupSelector, ignore.condition);
           } else {
@@ -349,8 +349,8 @@ export abstract class BasePluginProduct {
         });
       }
 
-      if (productConfigInternal.page?.resourceMenu?.moveToGroup?.length) {
-        productConfigInternal.page?.resourceMenu?.moveToGroup.forEach((move) => {
+      if (productConfigInternal.globalPage?.resourceMenu?.moveToGroup?.length) {
+        productConfigInternal.globalPage?.resourceMenu?.moveToGroup.forEach((move) => {
           const resolvedGroup = this.groupNameMap.get(move.groupName);
 
           if (!resolvedGroup) {
@@ -488,8 +488,6 @@ export abstract class BasePluginProduct {
 
       configureType(typeValue, configureTypeConfig);
 
-      debugger;
-
       if (itemRP.resourceMenu?.weight !== undefined) {
         weightType(typeValue, itemRP.resourceMenu?.weight, true);
       }
@@ -527,7 +525,7 @@ export abstract class BasePluginProduct {
         plugin.addRoute(route);
 
         // add children routes
-        this.addRoutes(plugin, `${ parentName }`, child.resourceMenu.children);
+        this.addRoutes(plugin, `${ parentName }`, child.resourceMenu.pages);
       } else if (isProductChildWithComponent(child)) {
         // virtualType page
         if (hasTypeProperty(child)) {
