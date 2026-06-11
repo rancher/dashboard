@@ -1,8 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": [
-    "tmp/**/*",
-    "../shell/types/shell/index.d.ts"
+    "tmp/**/*"
   ],
   "exclude": ["dist", "node_modules"],
   "compilerOptions": {
@@ -13,13 +12,6 @@
     "sourceMap": true,
     "emitDeclarationOnly": false,
     "skipLibCheck": true,
-    "noEmitOnError": true,
-    "paths": {
-      "~/*": ["*"],
-      "@/*": ["*"],
-      "@shell/*": ["shell/*"],
-      "@pkg/*": ["shell/pkg/*"],
-      "@components/*": ["pkg/rancher-components/src/components/*"]
-    }
+    "noEmitOnError": true
   }
 }

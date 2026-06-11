@@ -4,7 +4,11 @@
 // behaviour as before this PR), so isRancherPrime() reflects only their local state.
 // New code should use useVersion() from @shell/apis instead.
 
-let _versionData = {};
+let _versionData = {
+  Version:      '',
+  RancherPrime: 'false',
+  GitCommit:    '',
+};
 let _kubeVersionData = {};
 
 export function isRancherPrime() {
