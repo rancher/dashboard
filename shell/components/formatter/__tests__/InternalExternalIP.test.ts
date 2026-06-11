@@ -113,6 +113,39 @@ describe('component: InternalExternalIP', () => {
     });
   });
 
+  describe('fallback to singular IPs', () => {
+    it('should use singular externalIp and internalIp when arrays are not present', () => {
+      const wrapper = mountComponent({ row: { externalIp: '1.1.1.1', internalIp: '2.2.2.2' } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual(['1.1.1.1']);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['2.2.2.2']);
+      expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual('1.1.1.1');
+      expect(wrapper.find('[data-testid="internal-ip"]').text()).toStrictEqual('2.2.2.2');
+    });
+
+    it('should ignore generic.none value for externalIp', () => {
+      // Assuming the mock translation for 'generic.none' returns 'generic.none'
+      const wrapper = mountComponent({ row: { externalIp: 'generic.none', internalIp: '2.2.2.2' } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual([]);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['2.2.2.2']);
+    });
+
+    it('should prioritize array properties over singular strings', () => {
+      const wrapper = mountComponent({
+        row: {
+          externalIps: ['3.3.3.3'],
+          externalIp:  '1.1.1.1',
+          internalIps: ['4.4.4.4'],
+          internalIp:  '2.2.2.2'
+        }
+      });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual(['3.3.3.3']);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['4.4.4.4']);
+    });
+  });
+
   describe('invalid IPs', () => {
     it('should filter invalid IPs', () => {
       const wrapper = mountComponent({ row: { externalIps: ['1.1.1.1', 'not-an-ip'], internalIps: ['2.2.2.2'] } });

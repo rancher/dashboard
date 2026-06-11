@@ -15,10 +15,16 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     filteredExternalIps() {
-      return this.row.externalIps?.filter((ip) => this.isIp(ip)) || [];
+      const ips = this.row.externalIps ||
+        (this.row.externalIp && this.row.externalIp !== this.t('generic.none') ? [this.row.externalIp] : []);
+
+      return ips.filter((ip) => this.isIp(ip));
     },
     filteredInternalIps() {
-      return this.row.internalIps?.filter((ip) => this.isIp(ip)) || [];
+      const ips = this.row.internalIps ||
+        (this.row.internalIp ? [this.row.internalIp] : []);
+
+      return ips.filter((ip) => this.isIp(ip));
     },
     internalSameAsExternal() {
       return this.externalIp && this.internalIp && this.externalIp === this.internalIp;
