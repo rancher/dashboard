@@ -50,7 +50,7 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
       fromHeader: 'true',
     });
 
-    findMeMock.mockResolvedValue({ id: 'local://user-1' });
+    findMeMock.mockResolvedValue({ id: 'local://user-1', provider: 'local' });
 
     const next = jest.fn();
 
@@ -61,7 +61,7 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
   });
 
   it('lets SSO users with mustChangePassword reach the requested route', async() => {
-    const me = { id: 'oidc_user://user@example.com' };
+    const me = { id: 'oidc_user://user@example.com', provider: 'genericoidc' };
     const store = makeStore({
       user:       { mustChangePassword: true, principalIds: ['local://user-1', me.id] },
       fromHeader: 'true',
@@ -84,7 +84,7 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
       fromHeader: 'true',
     });
 
-    findMeMock.mockResolvedValue({ id: 'local://user-1' });
+    findMeMock.mockResolvedValue({ id: 'local://user-1', provider: 'local' });
 
     const next = jest.fn();
 
@@ -100,7 +100,7 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
       fromHeader: 'unknown',
     });
 
-    findMeMock.mockResolvedValue({ id: 'local://user-1' });
+    findMeMock.mockResolvedValue({ id: 'local://user-1', provider: 'local' });
 
     const next = jest.fn();
 
@@ -111,7 +111,7 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
   });
 
   it('lets SSO users with mustChangePassword through for older-style fromHeader', async() => {
-    const me = { id: 'saml_user://user' };
+    const me = { id: 'saml_user://user', provider: 'saml' };
     const store = makeStore({
       user:       { mustChangePassword: true, principalIds: ['local://user-1', me.id] },
       fromHeader: 'unknown',
