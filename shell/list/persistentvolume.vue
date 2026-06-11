@@ -5,7 +5,6 @@ import { PVC } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { K8S } from '@shell/apis';
 
 export default defineComponent({
   name: 'ListPersistentVolume',
@@ -37,36 +36,6 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
-  },
-
-  data() {
-    return {
-      newPv:              undefined as any,
-      createInstanceData: {
-        // apiVersion: 'v1',
-        // kind:     'PersistentVolume',
-        type:     K8S.PV,
-        metadata: {
-          name:        'alex-pv-test',
-          annotations: {},
-          labels:      {},
-        },
-        spec: {
-          accessModes:          ['ReadWriteOnce'],
-          awsElasticBlockStore: {
-            partition: 0,
-            readOnly:  false,
-            volumeID:  'aws-dummy-volume-uuid',
-          },
-          capacity:         { storage: '10Gi' },
-          storageClassName: '',
-        }
-      },
-      badData: {
-        type: 'pod',
-        spec: { template: {} }
-      }
-    };
   },
 
   methods: {
@@ -103,101 +72,11 @@ export default defineComponent({
 
       return this.$store.dispatch(`cluster/findPage`, { type: PVC, opt });
     },
-    async createNewInstance() {
-      const data = await this.$resources.cluster.create(this.createInstanceData);
-
-      this.newPv = data;
-
-      console.error('Created new instance:', data); // eslint-disable-line no-console
-    },
-    async updateInstance() {
-      const newData = { spec: { capacity: { storage: '111Gi' } } };
-      const data = await this.$resources.cluster.update(K8S.PV, this.newPv.id, newData);
-
-      console.error('UPDATE instance via RESOURCES API:', data); // eslint-disable-line no-console
-    },
-    async replaceInstance() {
-      const newData = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
-
-      newData.spec.capacity.storage = '1222Gi';
-      const data = await this.$resources.cluster.replace(K8S.PV, this.newPv.id, newData);
-
-      console.error('REPLACE instance via RESOURCES API:', data); // eslint-disable-line no-console
-    },
-    async deleteInstance() {
-      await this.$resources.cluster.delete(K8S.PV, this.newPv.id);
-    },
-    async updateInstanceApi() {
-      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
-      const newData = { spec: { capacity: { storage: '11Gi' } } };
-
-      console.error('newData before update:', newData); // eslint-disable-line no-console
-      const data = await pv.update(newData);
-
-      console.error('UPDATE instance via Instance API:', data); // eslint-disable-line no-console
-    },
-    async replaceInstanceApi() {
-      console.error('this.newPv before update:', this.newPv); // eslint-disable-line no-console
-      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
-
-      pv.spec.capacity.storage = '12Gi';
-      const data = await pv.replace();
-
-      console.error('REPLACE instance via Instance API:', data); // eslint-disable-line no-console
-    },
-    async deleteInstanceApi() {
-      console.error('this.newPv before delete:', this.newPv); // eslint-disable-line no-console
-      const pv = await this.$resources.cluster.find(K8S.PV, this.newPv.id);
-
-      await pv.delete();
-    }
   }
 });
 </script>
 
 <template>
-  <button
-    class="btn role-primary"
-    @click="createNewInstance"
-  >
-    CREATE
-  </button>
-  <button
-    class="btn role-secondary"
-    @click="updateInstance"
-  >
-    UPDATE
-  </button>
-  <button
-    class="btn role-secondary"
-    @click="replaceInstance"
-  >
-    REPLACE
-  </button>
-  <button
-    class="btn role-secondary"
-    @click="deleteInstance"
-  >
-    DELETE
-  </button>
-  <button
-    class="btn role-primary"
-    @click="updateInstanceApi"
-  >
-    UPDATE INSTANCE API
-  </button>
-  <button
-    class="btn role-primary"
-    @click="replaceInstanceApi"
-  >
-    REPLACE INSTANCE API
-  </button>
-  <button
-    class="btn role-primary"
-    @click="deleteInstanceApi"
-  >
-    DELETE INSTANCE API
-  </button>
   <PaginatedResourceTable
     :schema="schema"
     :fetchSecondaryResources="fetchSecondaryResources"

@@ -109,13 +109,6 @@ export const PERSISTENT_VOLUME_SOURCE = {
   sort:     ['provisioner'],
 };
 
-export const PERSISTENT_VOLUME_CAPACITY = {
-  name:     'persistent_volume_capacity',
-  labelKey: 'tableHeaders.persistentVolumeCapacity',
-  value:    'spec.capacity.storage',
-  sort:     ['provisioner'],
-};
-
 /**
  * Link to the PVC associated with PV
  */
