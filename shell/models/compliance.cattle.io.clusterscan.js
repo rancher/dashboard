@@ -217,6 +217,8 @@ export default class ClusterScan extends SteveModel {
 
       return { metadata: rest, decorations: checks };
     } catch (e) {
+      console.error('[_resolveExportMetadata] failed to fetch or parse benchmark ConfigMap:', e);
+
       return empty;
     }
   }
