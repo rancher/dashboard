@@ -13,8 +13,17 @@ export class ResourcesApiClassImpl implements ResourcesApi {
 
   private storeType: 'cluster' | 'management' | string;
 
+  private createLogMessage(message: string, level: 'error' | 'warning' = 'error') {
+    return `Resource API ${ level } - ${ this.storeType } - ${ message }`;
+  }
+
+  private surfaceWarning(message: string, e?: any): void {
+    console.warn(this.createLogMessage(message, 'warning'), e); // eslint-disable-line no-console
+  }
+
   private surfaceError(message: string, e?: any): never {
-    console.error(`Resource API error - ${ this.storeType } - ${ message }`, e); // eslint-disable-line no-console
+    console.error(this.createLogMessage(message), e); // eslint-disable-line no-console
+
     throw new Error(`Resource API error - ${ this.storeType } - ${ message }`, { cause: e });
   }
 
@@ -67,7 +76,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<ResourceInstance<T>> {
+  ): Promise<ResourceInstance<T> | null> {
     if (this.isNamespaced(resourceType) && !resourceId.includes('/')) {
       this.surfaceError(`Resource "${ resourceType }" is namespaced. The resourceId must be in "namespace/name" format, but received "${ resourceId }"`);
     }
@@ -81,6 +90,12 @@ export class ResourcesApiClassImpl implements ResourcesApi {
 
       return resource as ResourceInstance<T>;
     } catch (e: unknown) {
+      if ((e as any)?.status === 404) {
+        this.surfaceWarning(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
+
+        return null;
+      }
+
       this.surfaceError(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
   }

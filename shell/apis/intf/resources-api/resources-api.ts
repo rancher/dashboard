@@ -49,7 +49,7 @@ export interface ResourcesApi {
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<ResourceInstance<T>>;
+  ): Promise<ResourceInstance<T> | null>;
 
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
