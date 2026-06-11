@@ -132,7 +132,7 @@ describe('shell/config/version', () => {
 
   describe('CURRENT_RANCHER_VERSION', () => {
     it('should be defined', () => {
-      expect(CURRENT_RANCHER_VERSION).toStrictEqual('2.13');
+      expect(CURRENT_RANCHER_VERSION).toStrictEqual('2.14');
     });
   });
 });

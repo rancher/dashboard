@@ -1,4 +1,4 @@
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
