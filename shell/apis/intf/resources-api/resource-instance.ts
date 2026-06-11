@@ -31,7 +31,7 @@ export interface ResourceInstanceApi {
 
    * ```
    */
-  update(data: Record<string, any>): Promise<ResourceInstanceApi>;
+  update(data: Record<string, any>): Promise<this>;
 
   /**
    * Performs a full replacement update of a resource using HTTP PUT.
@@ -53,7 +53,7 @@ export interface ResourceInstanceApi {
    * await configMap.replace();
    * ```
    */
-  replace(): Promise<ResourceInstanceApi>;
+  replace(): Promise<this>;
 
   /**
    * Deletes a resource instance.
@@ -81,7 +81,8 @@ export interface ResourceInstanceApi {
  * Provides instance-level operations such as deleting or updating a resource instance.
  * The resource data (metadata, spec, status, etc.) is accessible directly on the instance.
  *
- * @template T - The shape of the underlying resource data (defaults to SteveResource)
+ * @template T - TODO: RC
+ * @template I - The shape of the underlying resource data (defaults to SteveResource)
  *
  * @example
  * ```ts
@@ -97,4 +98,4 @@ export interface ResourceInstanceApi {
  * await pod.delete();
  * ```
  */
-export type ResourceInstance<T = SteveResource> = T & ResourceInstanceApi;
+export type ResourceInstance<T = any, I = SteveResource<T>> = I & ResourceInstanceApi;

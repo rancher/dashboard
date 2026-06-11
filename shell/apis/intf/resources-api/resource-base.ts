@@ -3,7 +3,7 @@ import {
   ActionFindAllArgs, ActionFindArgs,
   ActionFindMatchingArgs,
   ActionFindPageArgs,
-  ActionFindPageResponse, ActionFindMatchingResponse
+  ActionFindPageResponse, ActionFindMatchingResponse,
 } from '@shell/types/store/dashboard-store.types';
 import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 
@@ -136,11 +136,11 @@ export type FindFilteredLabelSelectorResponse<T = any> = ActionFindMatchingRespo
  * Steve API JSON response for GET requests for a resource
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export type SteveResource = SteveGetResponse;
+export type SteveResource<T = Record<string, any>> = T & SteveGetResponse;
 
 /**
  * @interface
  * Steve API JSON response for LIST resource requests
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export type SteveList = SteveListResponse;
+export type SteveList<T = Record<string, any>> = SteveListResponse<T & SteveGetResponse>;

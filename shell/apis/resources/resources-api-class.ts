@@ -1,6 +1,6 @@
 import {
   ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
-  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource, SteveList
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
@@ -43,7 +43,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Finds a specific resource by its type and ID.
    *
    * @template T - The type of the resource (defaults to SteveResource)
-   * @param resourceType - The type of the resource to find (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param resourceType - The type of the resource to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
    * @returns The found resource item. This instance is cached in the store and has instance methods for operations like `update`, `replace`, and `delete`. This resource is watched for changes in the store.
@@ -61,11 +61,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
    * ```
    */
-  async find<T = SteveResource>(
+  async find<T = Record<string, any>>(
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<T> {
+  ): Promise<ResourceInstance<T>> {
     if (this.isNamespaced(resourceType) && !resourceId.includes('/')) {
       this.surfaceError(`Resource "${ resourceType }" is namespaced. The resourceId must be in "namespace/name" format, but received "${ resourceId }"`);
     }
@@ -77,7 +77,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return resource as T;
+      return resource as ResourceInstance<T>;
     } catch (e: unknown) {
       this.surfaceError(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
@@ -94,10 +94,10 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * @returns Response containing resource items (may be transient if requested, otherwise cached array in the store are watched)
    * @throws If pagination mode is requested but `ui-sql-cache` is not enabled
    */
-  findFiltered<T = SteveList>(
+  findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions
-  ): Promise<FindFilteredPageResponse<T>>;
+  ): Promise<FindFilteredPageResponse<ResourceInstance<T>>>;
 
   /**
    * Finds resources using label selector matching.
@@ -111,18 +111,18 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * @param options - Label selector options for filtering
    * @returns Response containing resource items (may be transient if requested, otherwise cached array in the store are watched)
    */
-  findFiltered<T = SteveList>(
+  findFiltered<I = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredLabelSelectorOptions
-  ): Promise<FindFilteredLabelSelectorResponse<T>>;
+  ): Promise<FindFilteredLabelSelectorResponse<ResourceInstance<I>>>;
 
   /**
    * @internal Implementation - use one of the overloads above
    */
-  async findFiltered<T = SteveList>(
+  async findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
-  ): Promise<FindFilteredPageResponse<T> | FindFilteredLabelSelectorResponse<T>> {
+  ): Promise<FindFilteredPageResponse<ResourceInstance<T>> | FindFilteredLabelSelectorResponse<ResourceInstance<T>>> {
     try {
       if ('pagination' in options) { // pagination mode
         const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
@@ -137,7 +137,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           opt:  safeOption
         });
 
-        return response as FindFilteredPageResponse<T>;
+        return response as FindFilteredPageResponse<ResourceInstance<T>>;
       } else if ('labelSelector' in options) { // label selector mode
         const safeOption = options as FindFilteredLabelSelectorOptions;
         const { labelSelector, namespaced, ...rest } = safeOption;
@@ -150,7 +150,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           opt: rest
         });
 
-        return resources as FindFilteredLabelSelectorResponse<T>;
+        return resources as FindFilteredLabelSelectorResponse<ResourceInstance<T>>;
       } else {
         return this.surfaceError('findFiltered request was made with unknown options');
       }
@@ -164,7 +164,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This method provides additional capabilities like incremental loading and namespace filtering.
    *
    * @template T - The type of the resources (defaults to SteveList)
-   * @param resourceType - The type of the resources to find (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Optional advanced fetch options (incremental loading, namespace filtering, etc.)
    * @returns An array of resource items or an empty array if none are found. By default, if these results are cached in the store, they will be watched.
    *
@@ -181,17 +181,17 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * });
    * ```
    */
-  async findAll<T = SteveList>(
+  async findAll<T = Record<string, any>>(
     resourceType: ResourceType,
     options?: FindAllMethodOptions
-  ): Promise<T[]> {
+  ): Promise<ResourceInstance<T>[]> {
     try {
       const resources = await this.store.dispatch(`${ this.storeType }/findAll`, {
         type: resourceType,
         opt:  options || {}
       });
 
-      return (resources || []) as T[];
+      return (resources || []) as ResourceInstance<T>[];
     } catch (e: unknown) {
       this.surfaceError(`Failed to find all resources ${ resourceType }: ${ (e as Error).message }`, e);
     }
@@ -203,7 +203,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Classifies the data via the store, checks `canCreate` permissions, and persists via HTTP POST.
    *
    * @template T - The type of the resource (defaults to ResourceInstance)
-   * @param data - The resource data to create. Must include a `type` property (use **{@link K8S}** constant). See also {@link CreateResourceData}.
+   * @param data - The resource data to create. Must include a `type` property (examples in **{@link K8S}**). See also {@link CreateResourceData}.
    * @returns The created resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
    *
    * @example
@@ -219,9 +219,9 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * });
    * ```
    */
-  async create<T = ResourceInstance>(
+  async create<T = Record<string, any>, I = SteveResource<T>>(
     data: CreateResourceData
-  ): Promise<T> {
+  ): Promise<I> {
     try {
       if (!data.type) {
         return this.surfaceError('Resource data must include a "type" property');
@@ -238,7 +238,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         }
       });
 
-      return res as T;
+      return res as I;
     } catch (e: unknown) {
       this.surfaceError(`Failed to create resource of type "${ data.type }": ${ (e as Error).message }`, e);
     }
@@ -251,7 +251,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - The type of the response (defaults to ResourceInstance)
-   * @param resourceType - The type of the resource (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - An object containing only the fields to update.
    * @returns The updated resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
@@ -268,11 +268,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * });
    * ```
    */
-  async update<T = ResourceInstance>(
+  async update<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
-  ): Promise<T> {
+  ): Promise<I> {
     try {
       const url = this.resourceUrl(resourceType, resourceId);
       const res = await this.store.dispatch(`${ this.storeType }/request`, {
@@ -284,7 +284,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         }
       });
 
-      return res as T;
+      return res as I;
     } catch (e: unknown) {
       this.surfaceError(`Failed to update resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
@@ -297,7 +297,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - The type of the response (defaults to ResourceInstance)
-   * @param resourceType - The type of the resource (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - The complete resource data to send as the replacement.
    * @returns The updated resource instance. This instance is not cached in the store and does not have instance methods until you fetch it again via `find` or `findAll`. This resource is NOT watched.
@@ -316,11 +316,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * });
    * ```
    */
-  async replace<T = ResourceInstance>(
+  async replace<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
-  ): Promise<T> {
+  ): Promise<I> {
     try {
       const url = this.resourceUrl(resourceType, resourceId);
       const model = await this.store.dispatch(`${ this.storeType }/create`, data);
@@ -334,7 +334,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         }
       });
 
-      return res as T;
+      return res as I;
     } catch (e: unknown) {
       this.surfaceError(`Failed to update resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
     }
@@ -345,7 +345,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
-   * @param resourceType - The type of the resource (use **{@link K8S}** constant). See also {@link ResourceType}.
+   * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    *
    * @example
