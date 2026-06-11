@@ -179,6 +179,25 @@ describe('steve: actions:', () => {
       expect(result).toStrictEqual({ count: 0, summary: null });
     });
 
+    it('should append label selector params when labelSelector is provided', async() => {
+      const ctx = baseCtx();
+      const labelSelector = {
+        matchExpressions: [{
+          key: 'app', operator: 'In', values: ['nginx']
+        }]
+      };
+
+      jest.spyOn(stevePaginationUtils, 'convertLabelSelectorPaginationParams').mockReturnValue('filter=metadata.labels[app] IN (nginx)');
+      ctx.dispatch.mockResolvedValue({ count: 2, summary: null });
+
+      await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', labelSelector } });
+
+      const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
+
+      expect(requestUrl).toContain('filter=');
+      expect(stevePaginationUtils.convertLabelSelectorPaginationParams).toHaveBeenCalledWith({ labelSelector });
+    });
+
     it('should return undefined and warn when the request fails', async() => {
       const ctx = baseCtx();
 

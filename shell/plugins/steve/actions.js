@@ -236,13 +236,13 @@ export default {
    *   @param {boolean} [opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
    *   @param {boolean} [opt.namespaceCounts] - Include per-namespace breakdowns in counts
    *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   *   @param {KubeLabelSelector} [opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
    * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
    *
    * @example
-   * const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
    * const result = await dispatch('fetchResourceSummary', {
    *   type: 'pod',
-   *   opt:  { summaryField: 'metadata.state.name', filters: [nsFilter] }
+   *   opt:  { summaryField: 'metadata.state.name', labelSelector: { matchExpressions: podMatchExpression } }
    * });
    * // result.summary[0].counts => { running: { total: 3 }, error: { total: 1 } }
    *
@@ -296,6 +296,12 @@ export default {
         const filterParams = new URLSearchParams(stevePaginationUtils.convertPaginationParams({ schema, filters: opt.filters }));
 
         filterParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      if (opt.labelSelector) {
+        const labelParams = new URLSearchParams(stevePaginationUtils.convertLabelSelectorPaginationParams({ labelSelector: opt.labelSelector }));
+
+        labelParams.forEach((v, k) => url.searchParams.append(k, v));
       }
 
       const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
