@@ -210,27 +210,16 @@ export function useWorkloadDashboard() {
 
     const others = cards.filter((c) => c !== hero);
 
-    let heroMode: 'default' | 'full' | 'wide' = 'default';
-
-    if (cards.length === 1) {
-      heroMode = 'full';
-    } else if (others.length === 1) {
-      heroMode = 'wide';
-    }
-
     const subHero =
-      (hero && others.length >= 3) ? others.find((c) => c.color === 'info') ||
+      (hero && others.length >= 2) ? others.find((c) => c.color === 'info') ||
         null : null;
 
     const regularCards = subHero ? others.filter((c) => c !== subHero) : others;
-    const gridRows = subHero ? Math.max(1, regularCards.length) : Math.max(1, Math.ceil(regularCards.length / 2));
 
     return {
       hero,
       subHero,
       cards: regularCards,
-      heroMode,
-      gridRows,
     };
   });
 

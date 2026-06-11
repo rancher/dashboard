@@ -33,8 +33,6 @@ export interface WorkloadDashboardByStateLayout {
   hero: WorkloadDashboardStateCard | null;
   subHero: WorkloadDashboardStateCard | null;
   cards: WorkloadDashboardStateCard[];
-  heroMode: 'default' | 'full' | 'wide';
-  gridRows: number;
 }
 
 export interface WorkloadDashboardByTypeCard {

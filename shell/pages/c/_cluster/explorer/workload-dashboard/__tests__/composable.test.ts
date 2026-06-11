@@ -394,30 +394,12 @@ describe('composable: useWorkloadDashboard', () => {
       wrapper.unmount();
     });
 
-    it('should set heroMode to wide when there is exactly one other card', async() => {
-      const { wrapper, result } = mountComposable();
-
-      await flushPromises();
-
-      expect(result.byStateLayout.value.heroMode).toStrictEqual('wide');
-      wrapper.unmount();
-    });
-
-    it('should set subHero to null when there are fewer than 3 other cards', async() => {
+    it('should set subHero to null when there are fewer than 2 other cards', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
 
       expect(result.byStateLayout.value.subHero).toBeNull();
-      wrapper.unmount();
-    });
-
-    it('should set gridRows to 1 when there is one non-hero card', async() => {
-      const { wrapper, result } = mountComposable();
-
-      await flushPromises();
-
-      expect(result.byStateLayout.value.gridRows).toStrictEqual(1);
       wrapper.unmount();
     });
   });

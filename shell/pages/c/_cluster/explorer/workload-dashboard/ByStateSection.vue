@@ -9,9 +9,7 @@ const props = defineProps<{
 }>();
 
 const gridTemplateRows = computed(() => {
-  const unit = props.layout.subHero ? '1fr' : 'auto';
-
-  return `repeat(${ props.layout.gridRows }, ${ unit })`;
+  return `repeat(${ Math.max(1, props.layout.cards?.length) }, auto)`;
 });
 
 function gridColumnEnd(rowCount: number, maxSpan: number): string {
@@ -28,12 +26,23 @@ function bodyColumns(rowCount: number, maxSpan: number): number | undefined {
 
 const heroFullGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 3, 3));
 const heroWideGridColumnEnd = computed(() => gridColumnEnd(props.layout.hero?.rows.length ?? 2, 2));
+const heroMode = computed(() => {
+  const cards = props.layout.cards;
+
+  if (cards.length === 0 && !props.layout.subHero) {
+    return 'full';
+  } else if (!props.layout.subHero) {
+    return 'wide';
+  }
+
+  return 'default';
+});
 
 const heroBodyColumns = computed(() => {
-  if (props.layout.heroMode === 'full') {
+  if (heroMode.value === 'full') {
     return bodyColumns(props.layout.hero?.rows.length ?? 0, 3);
   }
-  if (props.layout.heroMode === 'wide') {
+  if (heroMode.value === 'wide') {
     return bodyColumns(props.layout.hero?.rows.length ?? 0, 2);
   }
 
@@ -76,7 +85,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
       v-if="layout.hero"
       class="state-card bento-hero"
       data-testid="workload-dashboard-state-card"
-      :class="['state-card--' + layout.hero.color, 'bento-hero--' + layout.heroMode]"
+      :class="['state-card--' + layout.hero.color, 'bento-hero--' + heroMode]"
       :body-columns="heroBodyColumns"
       :rows="toCardRows(layout.hero.rows)"
       :aria-label="layout.hero.color + ' workloads'"
