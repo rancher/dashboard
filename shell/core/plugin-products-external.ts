@@ -1,10 +1,9 @@
 import { ProductFunction } from '@shell/core/plugin';
-import { HeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
+import { HeaderOptions } from '@shell/core/types';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
 import { NAME as SETTINGS_PROD_NAME } from '@shell/config/product/settings.js';
 import { NAME as AUTH_PROD_NAME } from '@shell/config/product/auth.js';
-import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { RouteComponent } from 'vue-router';
 
 type Async<T> = () => Promise<T>;

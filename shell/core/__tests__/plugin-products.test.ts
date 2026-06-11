@@ -1,11 +1,11 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { Plugin } from '@shell/core/plugin';
-import {
-  ProductMetadata2222, ProductMetadataSinglePage, ProductChildPage,
-  ProductChildGroup, ProductChildCustomPage, ProductChildResourcePage,
-  ProductChild, StandardProductNames
-} from '@shell/core/plugin-types';
 import { IExtension } from '@shell/core/types';
+import {
+  ProductChild,
+  ProductChildCustomPage, ProductChildGroup, ProductChildPage, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage, StandardProductNames
+} from '@shell/core/plugin-products-external';
+import { ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -61,24 +61,8 @@ function createMockPlugin(): IExtension {
     _registerTopLevelProduct:   jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
-    DSL:                        jest.fn((store, productName) => ({
-      basicType:           jest.fn(),
-      labelGroup:          jest.fn(),
-      setGroupDefaultType: jest.fn(),
-      weightGroup:         jest.fn(),
-      virtualType:         jest.fn(),
-      configureType:       jest.fn(),
-      weightType:          jest.fn(),
-      product:             jest.fn(),
-      headers:             jest.fn(),
-      hideBulkActions:     jest.fn(),
-      mapGroup:            jest.fn(),
-      ignoreGroup:         jest.fn(),
-      mapType:             jest.fn(),
-      ignoreType:          jest.fn(),
-      moveType:            jest.fn(),
-    })),
-  } as any;
+    DSL:                        jest.fn(),
+  };
 }
 
 function createMockStore(extendableProducts: string[] = Object.values(StandardProductNames), managementSchemas: string[] = []): any {
@@ -94,21 +78,23 @@ describe('pluginProduct', () => {
   describe('new product scenarios', () => {
     it('should create a new product with config items', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata2222 = {
-        name:  'test-product',
-        label: 'Test Product',
-        icon:  'icon-test',
+      const productMetadata: ProductMetadata = {
+        name:    'test-product',
+        label:   'Test Product',
+        sideBar: { icon: { name: 'icon-test' } }
       };
       const config: ProductChildPage[] = [
         {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewPage' },
+          sideMenu:  { weight: 1 },
         },
         {
           name:      'details',
           label:     'Details',
           component: { name: 'DetailsPage' },
+          sideMenu:  { weight: 2 },
         },
       ];
 
@@ -136,7 +122,7 @@ describe('pluginProduct', () => {
 
     it('should handle product names with dashes by removing them', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'test-product-name',
         label: 'Test',
       };
@@ -148,7 +134,7 @@ describe('pluginProduct', () => {
 
     it('should create default empty page config when no config provided', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'empty-product',
         label: 'Empty',
       };
@@ -160,7 +146,7 @@ describe('pluginProduct', () => {
 
     it('should throw error when product object lacks name property', () => {
       const mockPlugin = createMockPlugin();
-      const invalidProduct = { label: 'No Name' } as any;
+      const invalidProduct: Partial<ProductMetadata> = { label: 'No Name' };
 
       expect(() => {
         new PluginProduct(mockPlugin, invalidProduct, []);
@@ -171,7 +157,7 @@ describe('pluginProduct', () => {
       const mockPlugin = createMockPlugin();
 
       expect(() => {
-        new PluginProduct(mockPlugin, 123 as any, []);
+        new PluginProduct(mockPlugin, {} as ProductMetadata, []);
       }).toThrow('Invalid product');
     });
   });
@@ -310,7 +296,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'new-product',
         label: 'New Product',
       };
@@ -379,7 +365,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'product-with-pages',
         label: 'Product',
       };
@@ -388,7 +374,7 @@ describe('pluginProduct', () => {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewComponent' },
-          weight:    10,
+          sideMenu:  { weight: 10 },
         },
       ];
 
@@ -422,14 +408,14 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'resource-product',
         label: 'Resources',
       };
       const config: ProductChildPage[] = [
         {
-          type:   'custom.resource',
-          weight: 5,
+          type:     'custom.resource',
+          sideMenu: { weight: 5 },
         },
       ];
 
@@ -467,7 +453,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'grouped-product',
         label: 'Grouped',
       };
@@ -475,18 +461,21 @@ describe('pluginProduct', () => {
         {
           name:     'settings',
           label:    'Settings',
-          children: [
-            {
-              name:      'general',
-              label:     'General',
-              component: { name: 'GeneralSettings' },
-            },
-            {
-              name:      'advanced',
-              label:     'Advanced',
-              component: { name: 'AdvancedSettings' },
-            },
-          ],
+          sideMenu: {
+            children: [
+              {
+                name:      'general',
+                label:     'General',
+                component: { name: 'GeneralSettings' },
+              },
+              {
+                name:      'advanced',
+                label:     'Advanced',
+                component: { name: 'AdvancedSettings' },
+              },
+            ],
+          }
+
         },
       ];
 
@@ -519,7 +508,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'group-no-component',
         label: 'Group No Component',
       };
@@ -527,13 +516,16 @@ describe('pluginProduct', () => {
         {
           name:     'group',
           label:    'Group Without Component',
-          children: [
-            {
-              name:      'child1',
-              label:     'Child 1',
-              component: { name: 'Child1Component' },
-            },
-          ],
+          sideMenu: {
+            children: [
+              {
+                name:      'child1',
+                label:     'Child 1',
+                component: { name: 'Child1Component' },
+              },
+            ],
+          }
+
         },
       ];
 
@@ -563,7 +555,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'group-with-component',
         label: 'Group With Component',
       };
@@ -572,13 +564,16 @@ describe('pluginProduct', () => {
           name:      'group',
           label:     'Group With Component',
           component: { name: 'GroupOverviewComponent' },
-          children:  [
-            {
-              name:      'child1',
-              label:     'Child 1',
-              component: { name: 'Child1Component' },
-            },
-          ],
+          sideMenu:  {
+            children: [
+              {
+                name:      'child1',
+                label:     'Child 1',
+                component: { name: 'Child1Component' },
+              },
+            ],
+          }
+
         },
       ];
 
@@ -610,7 +605,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'weighted-group',
         label: 'Weighted',
       };
@@ -618,14 +613,16 @@ describe('pluginProduct', () => {
         {
           name:     'group',
           label:    'Group',
-          weight:   50,
-          children: [
-            {
-              name:      'child',
-              label:     'Child',
-              component: { name: 'ChildComponent' },
-            },
-          ],
+          sideMenu: {
+            weight:   50,
+            children: [
+              {
+                name:      'child',
+                label:     'Child',
+                component: { name: 'ChildComponent' },
+              },
+            ],
+          },
         },
       ];
 
@@ -658,7 +655,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'default-route-product',
         label: 'Default Route',
       };
@@ -667,11 +664,13 @@ describe('pluginProduct', () => {
           name:      'first',
           label:     'First',
           component: { name: 'FirstComponent' },
+          sideMenu:  { weight: 1 },
         },
         {
           name:      'second',
           label:     'Second',
           component: { name: 'SecondComponent' },
+          sideMenu:  { weight: 2 },
         },
       ];
 
@@ -700,7 +699,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'group-default-route',
         label: 'Group Default',
       };
@@ -708,13 +707,16 @@ describe('pluginProduct', () => {
         {
           name:     'settings',
           label:    'Settings',
-          children: [
-            {
-              name:      'general',
-              label:     'General',
-              component: { name: 'GeneralComponent' },
-            },
-          ],
+          sideMenu: {
+            children: [
+              {
+                name:      'general',
+                label:     'General',
+                component: { name: 'GeneralComponent' },
+              },
+            ]
+          },
+
         },
       ];
 
@@ -743,7 +745,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'group-resource-default',
         label: 'Group Resource Default',
       };
@@ -751,9 +753,12 @@ describe('pluginProduct', () => {
         {
           name:     'resources',
           label:    'Resources',
-          children: [
-            { type: 'provisioning.cattle.io.cluster' },
-          ],
+          sideMenu: {
+            children: [
+              { type: 'provisioning.cattle.io.cluster' },
+            ],
+          }
+
         },
       ];
 
@@ -791,16 +796,17 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'resource-first',
         label: 'Resource First',
       };
       const config: ProductChildPage[] = [
-        { type: 'apps.deployment' },
+        { type: 'apps.deployment', sideMenu: { weight: 1 } },
         {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewComponent' },
+          sideMenu:  { weight: 2 },
         },
       ];
 
@@ -838,7 +844,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'empty-group',
         label: 'Empty Group',
       };
@@ -847,7 +853,8 @@ describe('pluginProduct', () => {
           name:      'empty-group-with-page',
           label:     'Empty Group With Page',
           component: { name: 'EmptyGroupComponent' },
-          children:  [],
+          sideMenu:  { children: [] }
+
         },
       ];
 
@@ -877,7 +884,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'group-with-page',
         label: 'Group With Page',
       };
@@ -886,18 +893,21 @@ describe('pluginProduct', () => {
           name:      'settings',
           label:     'Settings',
           component: { name: 'SettingsOverviewComponent' },
-          children:  [
-            {
-              name:      'general',
-              label:     'General Settings',
-              component: { name: 'GeneralComponent' },
-            },
-            {
-              name:      'advanced',
-              label:     'Advanced Settings',
-              component: { name: 'AdvancedComponent' },
-            },
-          ],
+          sideMenu:  {
+            children: [
+              {
+                name:      'general',
+                label:     'General Settings',
+                component: { name: 'GeneralComponent' },
+              },
+              {
+                name:      'advanced',
+                label:     'Advanced Settings',
+                component: { name: 'AdvancedComponent' },
+              },
+            ],
+          }
+
         },
       ];
 
@@ -939,7 +949,7 @@ describe('pluginProduct', () => {
 
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'mixed-product',
         label: 'Mixed Content',
       };
@@ -964,7 +974,7 @@ describe('pluginProduct', () => {
   describe('error handling', () => {
     it('should throw error when config children is not an array', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'bad-group',
         label: 'Bad Group',
       };
@@ -985,7 +995,7 @@ describe('pluginProduct', () => {
   describe('state verification', () => {
     it('should set newProduct flag for new products', () => {
       const mockPlugin = createMockPlugin();
-      const productMetadata: ProductMetadata2222 = {
+      const productMetadata: ProductMetadata = {
         name:  'new-prod',
         label: 'New',
       };
@@ -1011,7 +1021,7 @@ describe('pluginProduct', () => {
         const mockPlugin = createMockPlugin();
         const productSinglePage: ProductMetadataSinglePage = {
           name:      'alex-simple-one-page',
-          weight:    -100,
+          sideBar:   { weight: -100, icon: { name: 'aaa' } },
           label:     'Simple One Page (no sidebar)',
           component: { name: 'TestComponent' },
         };
@@ -1026,10 +1036,10 @@ describe('pluginProduct', () => {
     describe('scenario 2: simple product without children', () => {
       it('should create product with sidebar but no config children', () => {
         const mockPlugin = createMockPlugin();
-        const productMetadata: ProductMetadata2222 = {
-          name:   'alex-simple-top-level',
-          weight: -100,
-          label:  'Simple (with sidebar)',
+        const productMetadata: ProductMetadata = {
+          name:    'alex-simple-top-level',
+          sideBar: { weight: -100, icon: { name: 'aaa' } },
+          label:   'Simple (with sidebar)',
         };
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, []);
@@ -1056,21 +1066,23 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
-          name:   'alex-simple-children',
-          weight: -100,
-          label:  'Simple with Children',
+        const productMetadata: ProductMetadata = {
+          name:    'alex-simple-children',
+          sideBar: { weight: -100, icon: { name: 'aaa' } },
+          label:   'Simple with Children',
         };
         const config: ProductChildPage[] = [
           {
             name:      'page1',
             label:     'My label for page 1',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 1 },
           },
           {
             name:      'page2',
             label:     'My label for page 2',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 2 },
           },
         ];
 
@@ -1100,23 +1112,25 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
-          name:   'alex-simple-children',
-          weight: -100,
-          label:  'Simple with Children',
+        const productMetadata: ProductMetadata = {
+          name:    'alex-simple-children',
+          sideBar: { weight: -100, icon: { name: 'aaa' } },
+          label:   'Simple with Children',
         };
         const config: ProductChildPage[] = [
           {
             name:      'page1',
             label:     'My label for page 1',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 1 },
           },
           {
             name:      'page2',
             label:     'My label for page 2',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 2 },
           },
-          { type: 'upgrade.cattle.io.plan' },
+          { type: 'upgrade.cattle.io.plan', sideMenu: { weight: 3 } },
         ];
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -1145,47 +1159,51 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
-          name:   'alex-simple-children',
-          weight: -100,
-          label:  'Simple with Children',
+        const productMetadata: ProductMetadata = {
+          name:    'alex-simple-children',
+          sideBar: { weight: -100 },
+          label:   'Simple with Children',
         };
         const config: (ProductChildGroup | ProductChildPage)[] = [
-          { type: 'fleet.cattle.io.clustergroup' },
+          { type: 'fleet.cattle.io.clustergroup', sideMenu: { weight: 1 } },
           {
             name:      'page1',
             label:     'My label for page 1',
             component: { name: 'TestComponent' },
-            children:  [
-              {
-                name:      'hello0',
-                label:     'Testing 12',
-                labelKey:  'aks.label',
-                component: { name: 'TestComponent' },
-              } as any,
-              {
-                name:      'hello1',
-                label:     'Testing 1',
-                labelKey:  'aks.label',
-                component: { name: 'TestComponent' },
-              },
-              {
-                name:      'hello3',
-                labelKey:  'aks.label',
-                component: { name: 'TestComponent' },
-              },
-              {
-                name:      'hello2',
-                label:     'Testing 2',
-                component: { name: 'TestComponent' },
-              },
-            ],
+            sideMenu:  {
+              weight:   2,
+              children: [
+                {
+                  name:      'hello0',
+                  label:     'Testing 12',
+                  labelKey:  'aks.label',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello1',
+                  label:     'Testing 1',
+                  labelKey:  'aks.label',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello3',
+                  labelKey:  'aks.label',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello2',
+                  label:     'Testing 2',
+                  component: { name: 'TestComponent' },
+                },
+              ],
+            },
           },
-          { type: 'upgrade.cattle.io.plan' },
+          { type: 'upgrade.cattle.io.plan', sideMenu: { weight: 3 } },
           {
             name:      'page2',
             label:     'My label for page 2',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 4 },
           },
         ];
 
@@ -1235,8 +1253,8 @@ describe('pluginProduct', () => {
           {
             name:      'mysettings',
             label:     'Custom',
-            weight:    97,
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 97 },
           },
         ];
 
@@ -1271,36 +1289,39 @@ describe('pluginProduct', () => {
           {
             name:     'page1',
             label:    'My label for page 1',
-            weight:   -10,
-            children: [
-              {
-                name:      'hello0',
-                label:     'Testing 12',
-                labelKey:  'aks.label',
-                component: { name: 'TestComponent' },
-              } as any,
-              {
-                name:      'hello1',
-                label:     'Testing 1',
-                component: { name: 'TestComponent' },
-              },
-              {
-                name:      'hello3',
-                labelKey:  'generic.unified',
-                component: { name: 'TestComponent' },
-              },
-              {
-                name:      'hello2',
-                label:     'Testing 2',
-                component: { name: 'TestComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   -10,
+              children: [
+                {
+                  name:      'hello0',
+                  label:     'Testing 12',
+                  labelKey:  'aks.label',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello1',
+                  label:     'Testing 1',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello3',
+                  labelKey:  'generic.unified',
+                  component: { name: 'TestComponent' },
+                },
+                {
+                  name:      'hello2',
+                  label:     'Testing 2',
+                  component: { name: 'TestComponent' },
+                },
+              ],
+            },
           },
-          { type: 'upgrade.cattle.io.plan' },
+          { type: 'upgrade.cattle.io.plan', sideMenu: { weight: 1 } },
           {
             name:      'page2',
             label:     'My label for page 2',
             component: { name: 'TestComponent' },
+            sideMenu:  { weight: 2 },
           },
         ];
 
@@ -1335,7 +1356,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'test-ordering',
           label: 'Test Ordering',
         };
@@ -1385,7 +1406,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'test-weights',
           label: 'Test Weights',
         };
@@ -1394,19 +1415,19 @@ describe('pluginProduct', () => {
             name:      'low-priority',
             label:     'Low Priority',
             component: { name: 'Component1' },
-            weight:    100,
+            sideMenu:  { weight: 100 },
           },
           {
             name:      'high-priority',
             label:     'High Priority',
             component: { name: 'Component2' },
-            weight:    1,
+            sideMenu:  { weight: 1 },
           },
           {
             name:      'medium-priority',
             label:     'Medium Priority',
             component: { name: 'Component3' },
-            weight:    50,
+            sideMenu:  { weight: 50 },
           },
         ];
 
@@ -1415,9 +1436,9 @@ describe('pluginProduct', () => {
         pluginProduct.apply(mockPlugin, mockStore);
 
         // Verify weight is passed to virtualType
-        expect(virtualTypeCalls[0][0].weight).toBe(100);
-        expect(virtualTypeCalls[1][0].weight).toBe(1);
-        expect(virtualTypeCalls[2][0].weight).toBe(50);
+        expect(virtualTypeCalls[0][0].sideMenu.weight).toBe(100);
+        expect(virtualTypeCalls[1][0].sideMenu.weight).toBe(1);
+        expect(virtualTypeCalls[2][0].sideMenu.weight).toBe(50);
       });
     });
 
@@ -1439,18 +1460,19 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'mixed-types',
           label: 'Mixed Types Product',
         };
         const config: ProductChildPage[] = [
-          { type: 'fleet.cattle.io.clustergroup' },
+          { type: 'fleet.cattle.io.clustergroup', sideMenu: { weight: 1 } },
           {
             name:      'custom-page',
             label:     'Custom Page',
             component: { name: 'CustomComponent' },
+            sideMenu:  { weight: 2 },
           },
-          { type: 'upgrade.cattle.io.plan' },
+          { type: 'upgrade.cattle.io.plan', sideMenu: { weight: 3 } },
         ];
 
         const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -1491,7 +1513,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'grouped-product',
           label: 'Grouped Product',
         };
@@ -1499,19 +1521,21 @@ describe('pluginProduct', () => {
           {
             name:     'settings-group',
             label:    'Settings',
-            weight:   10,
-            children: [
-              {
-                name:      'general',
-                label:     'General',
-                component: { name: 'GeneralComponent' },
-              },
-              {
-                name:      'advanced',
-                label:     'Advanced',
-                component: { name: 'AdvancedComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   10,
+              children: [
+                {
+                  name:      'general',
+                  label:     'General',
+                  component: { name: 'GeneralComponent' },
+                },
+                {
+                  name:      'advanced',
+                  label:     'Advanced',
+                  component: { name: 'AdvancedComponent' },
+                },
+              ],
+            },
           },
         ];
 
@@ -1558,7 +1582,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'product-with-groups',
           label: 'Product',
         };
@@ -1566,13 +1590,16 @@ describe('pluginProduct', () => {
           {
             name:     'my-group',
             label:    'My Group Label',
-            children: [
-              {
-                name:      'child1',
-                label:     'Child 1',
-                component: { name: 'Child1Component' },
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name:      'child1',
+                  label:     'Child 1',
+                  component: { name: 'Child1Component' },
+                },
+              ],
+            }
+
           },
         ];
 
@@ -1608,14 +1635,14 @@ describe('pluginProduct', () => {
           {
             name:      'custom-section-1',
             label:     'Custom Section 1',
-            weight:    99,
             component: { name: 'CustomComponent1' },
+            sideMenu:  { weight: 99 },
           },
           {
             name:      'custom-section-2',
             label:     'Custom Section 2',
-            weight:    98,
             component: { name: 'CustomComponent2' },
+            sideMenu:  { weight: 98 },
           },
         ];
 
@@ -1655,19 +1682,21 @@ describe('pluginProduct', () => {
           {
             name:     'extension-settings',
             label:    'Extension Settings',
-            weight:   5,
-            children: [
-              {
-                name:      'config-page',
-                label:     'Configuration',
-                component: { name: 'ConfigComponent' },
-              },
-              {
-                name:      'advanced-page',
-                label:     'Advanced',
-                component: { name: 'AdvancedComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   5,
+              children: [
+                {
+                  name:      'config-page',
+                  label:     'Configuration',
+                  component: { name: 'ConfigComponent' },
+                },
+                {
+                  name:      'advanced-page',
+                  label:     'Advanced',
+                  component: { name: 'AdvancedComponent' },
+                },
+              ],
+            },
           },
         ];
 
@@ -1714,7 +1743,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'test-default-route',
           label: 'Test Default Route',
         };
@@ -1759,7 +1788,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'test-group-default',
           label: 'Test Group Default',
         };
@@ -1767,18 +1796,20 @@ describe('pluginProduct', () => {
           {
             name:     'main-group',
             label:    'Main Group',
-            children: [
-              {
-                name:      'first-child',
-                label:     'First Child',
-                component: { name: 'FirstChildComponent' },
-              },
-              {
-                name:      'second-child',
-                label:     'Second Child',
-                component: { name: 'SecondChildComponent' },
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name:      'first-child',
+                  label:     'First Child',
+                  component: { name: 'FirstChildComponent' },
+                },
+                {
+                  name:      'second-child',
+                  label:     'Second Child',
+                  component: { name: 'SecondChildComponent' },
+                },
+              ],
+            },
           },
         ];
 
@@ -1807,46 +1838,51 @@ describe('pluginProduct', () => {
           weightGroup:         jest.fn((...args) => dslCallOrder.push(`weightGroup:${ args[0] }`)),
           virtualType:         jest.fn((...args) => dslCallOrder.push(`virtualType:${ args[0].name }`)),
           configureType:       jest.fn((...args) => dslCallOrder.push(`configureType:${ args[0] }`)),
-          weightType:          jest.fn((...args) => weightTypeCalls.push(args)),
+          weightType:          jest.fn((...args) => {
+            weightTypeCalls.push(args);
+            dslCallOrder.push('weightType');
+          }),
         };
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'complex-product',
           label: 'Complex Product',
         };
         const config: (ProductChildGroup | ProductChildPage)[] = [
-          { type: 'fleet.cattle.io.clustergroup' }, // Resource type first
+          { type: 'fleet.cattle.io.clustergroup', sideMenu: { weight: 1 } }, // Resource type first
           {
             name:      'overview',
             label:     'Overview',
-            weight:    1,
             component: { name: 'OverviewComponent' },
+            sideMenu:  { weight: 2 },
           },
           {
             name:     'settings',
             label:    'Settings',
-            weight:   50,
-            children: [
-              {
-                name:      'general',
-                label:     'General',
-                component: { name: 'GeneralComponent' },
-              },
-              {
-                name:      'advanced',
-                label:     'Advanced',
-                component: { name: 'AdvancedComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   50,
+              children: [
+                {
+                  name:      'general',
+                  label:     'General',
+                  component: { name: 'GeneralComponent' },
+                },
+                {
+                  name:      'advanced',
+                  label:     'Advanced',
+                  component: { name: 'AdvancedComponent' },
+                },
+              ],
+            },
           },
-          { type: 'upgrade.cattle.io.plan' }, // Another resource type
+          { type: 'upgrade.cattle.io.plan', sideMenu: { weight: 3 } }, // Another resource type
           {
             name:      'monitoring',
             label:     'Monitoring',
-            weight:    100,
             component: { name: 'MonitoringComponent' },
+            sideMenu:  { weight: 100 },
           },
         ];
 
@@ -1903,7 +1939,11 @@ describe('pluginProduct', () => {
             menuStructure.groupWeights[group] = weight;
           }),
           virtualType: jest.fn((config) => {
-            menuStructure.virtualTypes.push(config);
+            menuStructure.virtualTypes.push({
+              name:   config.name,
+              label:  config.label,
+              weight: config.sideMenu?.weight,
+            });
           }),
           configureType: jest.fn(),
           weightType:    jest.fn(),
@@ -1911,7 +1951,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'my-product',
           label: 'My Product',
         };
@@ -1919,20 +1959,20 @@ describe('pluginProduct', () => {
           {
             name:      'overview',
             label:     'Overview',
-            weight:    100,
             component: { name: 'OverviewComponent' },
+            sideMenu:  { weight: 100 },
           },
           {
             name:      'settings',
             label:     'Settings',
-            weight:    50,
             component: { name: 'SettingsComponent' },
+            sideMenu:  { weight: 50 },
           },
           {
             name:      'monitoring',
             label:     'Monitoring',
-            weight:    25,
             component: { name: 'MonitoringComponent' },
+            sideMenu:  { weight: 25 },
           },
         ];
 
@@ -1997,7 +2037,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'grouped-product',
           label: 'Grouped Product',
         };
@@ -2005,31 +2045,33 @@ describe('pluginProduct', () => {
           {
             name:      'overview',
             label:     'Overview',
-            weight:    100,
             component: { name: 'OverviewComponent' },
+            sideMenu:  { weight: 100 },
           },
           {
             name:     'admin',
             label:    'Administration',
-            weight:   50,
-            children: [
-              {
-                name:      'users',
-                label:     'Users',
-                component: { name: 'UsersComponent' },
-              },
-              {
-                name:      'roles',
-                label:     'Roles',
-                component: { name: 'RolesComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   50,
+              children: [
+                {
+                  name:      'users',
+                  label:     'Users',
+                  component: { name: 'UsersComponent' },
+                },
+                {
+                  name:      'roles',
+                  label:     'Roles',
+                  component: { name: 'RolesComponent' },
+                },
+              ],
+            },
           },
           {
             name:      'reports',
             label:     'Reports',
-            weight:    25,
             component: { name: 'ReportsComponent' },
+            sideMenu:  { weight: 25 },
           },
         ];
 
@@ -2079,10 +2121,12 @@ describe('pluginProduct', () => {
           setGroupDefaultType: jest.fn(),
           weightGroup:         jest.fn(),
           virtualType:         jest.fn((config) => {
-            menuStructure.virtualTypes.push({ name: config.name, weight: config.weight });
+            menuStructure.virtualTypes.push({ name: config.name, weight: config.sideMenu?.weight });
           }),
           configureType: jest.fn((type, config) => {
-            menuStructure.configureTypes.push({ type, config });
+            menuStructure.configureTypes.push({
+              type, config, weight: config.sideMenu?.weight
+            });
           }),
           weightType: jest.fn((type, weight) => {
             // Find existing configureType and add weight
@@ -2096,24 +2140,24 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'mixed-product',
           label: 'Mixed Product',
         };
         const config: ProductChildPage[] = [
-          { type: 'fleet.cattle.io.clustergroup', weight: 100 },
+          { type: 'fleet.cattle.io.clustergroup', sideMenu: { weight: 100 } },
           {
             name:      'overview',
             label:     'Overview',
-            weight:    75,
             component: { name: 'OverviewComponent' },
+            sideMenu:  { weight: 75 },
           },
-          { type: 'workload.io.deployment', weight: 50 },
+          { type: 'workload.io.deployment', sideMenu: { weight: 50 } },
           {
             name:      'settings',
             label:     'Settings',
-            weight:    25,
             component: { name: 'SettingsComponent' },
+            sideMenu:  { weight: 25 },
           },
         ];
 
@@ -2190,14 +2234,14 @@ describe('pluginProduct', () => {
           {
             name:      'my-custom-page',
             label:     'My Custom Page',
-            weight:    99,
             component: { name: 'CustomComponent' },
+            sideMenu:  { weight: 99 },
           },
           {
             name:      'another-page',
             label:     'Another Page',
-            weight:    98,
             component: { name: 'AnotherComponent' },
+            sideMenu:  { weight: 98 },
           },
         ];
 
@@ -2251,7 +2295,7 @@ describe('pluginProduct', () => {
             menuStructure.virtualTypes.push({
               name:   config.name,
               label:  config.label,
-              weight: config.weight,
+              weight: config.sideMenu?.weight,
             });
           }),
           configureType: jest.fn(),
@@ -2265,19 +2309,21 @@ describe('pluginProduct', () => {
           {
             name:     'extensions',
             label:    'Extensions',
-            weight:   80,
-            children: [
-              {
-                name:      'marketplace',
-                label:     'Marketplace',
-                component: { name: 'MarketplaceComponent' },
-              },
-              {
-                name:      'installed',
-                label:     'Installed',
-                component: { name: 'InstalledComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   80,
+              children: [
+                {
+                  name:      'marketplace',
+                  label:     'Marketplace',
+                  component: { name: 'MarketplaceComponent' },
+                },
+                {
+                  name:      'installed',
+                  label:     'Installed',
+                  component: { name: 'InstalledComponent' },
+                },
+              ],
+            },
           },
         ];
 
@@ -2367,7 +2413,7 @@ describe('pluginProduct', () => {
             menuStructure.items.push({
               name:   config.name,
               label:  config.label,
-              weight: config.weight,
+              weight: config.sideMenu?.weight,
               type:   'virtual',
             });
           }),
@@ -2389,7 +2435,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'complete-app',
           label: 'Complete App',
         };
@@ -2397,40 +2443,44 @@ describe('pluginProduct', () => {
           {
             name:      'dashboard',
             label:     'Dashboard',
-            weight:    100,
             component: { name: 'DashboardComponent' },
+            sideMenu:  { weight: 100 },
           },
           {
             name:     'workloads',
             label:    'Workloads',
-            weight:   90,
-            children: [
-              { type: 'workload.io.deployment', weight: 50 },
-              { type: 'workload.io.pod', weight: 45 },
-              {
-                name:      'jobs',
-                label:     'Jobs',
-                component: { name: 'JobsComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   90,
+              children: [
+                { type: 'workload.io.deployment', sideMenu: { weight: 50 } },
+                { type: 'workload.io.pod', sideMenu: { weight: 45 } },
+                {
+                  name:      'jobs',
+                  label:     'Jobs',
+                  component: { name: 'JobsComponent' },
+                },
+              ],
+            },
           },
-          { type: 'config.io.configmap', weight: 80 },
+          { type: 'config.io.configmap', sideMenu: { weight: 80 } },
           {
             name:     'settings',
             label:    'Settings',
-            weight:   70,
-            children: [
-              {
-                name:      'general',
-                label:     'General',
-                component: { name: 'GeneralComponent' },
-              },
-              {
-                name:      'advanced',
-                label:     'Advanced',
-                component: { name: 'AdvancedComponent' },
-              },
-            ],
+            sideMenu: {
+              weight:   70,
+              children: [
+                {
+                  name:      'general',
+                  label:     'General',
+                  component: { name: 'GeneralComponent' },
+                },
+                {
+                  name:      'advanced',
+                  label:     'Advanced',
+                  component: { name: 'AdvancedComponent' },
+                },
+              ],
+            },
           },
         ];
 
@@ -2530,7 +2580,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'nested-product',
           label: 'Nested Product',
         };
@@ -2538,36 +2588,40 @@ describe('pluginProduct', () => {
           {
             name:     'root-group',
             label:    'Root Group',
-            weight:   100,
-            children: [
-              {
-                name:      'page1',
-                label:     'Page 1',
-                component: { name: 'Page1Component' },
-              },
-              {
-                name:     'nested-group',
-                label:    'Nested Group',
-                weight:   50,
-                children: [
-                  {
-                    name:      'nested-page1',
-                    label:     'Nested Page 1',
-                    component: { name: 'NestedPage1Component' },
+            sideMenu: {
+              weight:   100,
+              children: [
+                {
+                  name:      'page1',
+                  label:     'Page 1',
+                  component: { name: 'Page1Component' },
+                },
+                {
+                  name:     'nested-group',
+                  label:    'Nested Group',
+                  sideMenu: {
+                    weight:   50,
+                    children: [
+                      {
+                        name:      'nested-page1',
+                        label:     'Nested Page 1',
+                        component: { name: 'NestedPage1Component' },
+                      },
+                      {
+                        name:      'nested-page2',
+                        label:     'Nested Page 2',
+                        component: { name: 'NestedPage2Component' },
+                      },
+                    ],
                   },
-                  {
-                    name:      'nested-page2',
-                    label:     'Nested Page 2',
-                    component: { name: 'NestedPage2Component' },
-                  },
-                ],
-              },
-              {
-                name:      'page2',
-                label:     'Page 2',
-                component: { name: 'Page2Component' },
-              },
-            ],
+                },
+                {
+                  name:      'page2',
+                  label:     'Page 2',
+                  component: { name: 'Page2Component' },
+                },
+              ],
+            },
           },
         ];
 
@@ -2611,7 +2665,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'deep-nested',
           label: 'Deep Nested',
         };
@@ -2619,25 +2673,31 @@ describe('pluginProduct', () => {
           {
             name:     'level1',
             label:    'Level 1',
-            children: [
-              {
-                name:     'level2',
-                label:    'Level 2',
-                children: [
-                  {
-                    name:     'level3',
-                    label:    'Level 3',
+            sideMenu: {
+              children: [
+                {
+                  name:     'level2',
+                  label:    'Level 2',
+                  sideMenu: {
                     children: [
                       {
-                        name:      'deep-page',
-                        label:     'Deep Page',
-                        component: { name: 'DeepPageComponent' },
+                        name:     'level3',
+                        label:    'Level 3',
+                        sideMenu: {
+                          children: [
+                            {
+                              name:      'deep-page',
+                              label:     'Deep Page',
+                              component: { name: 'DeepPageComponent' },
+                            },
+                          ],
+                        },
                       },
                     ],
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ];
 
@@ -2692,26 +2752,30 @@ describe('pluginProduct', () => {
           {
             name:     'parent-group',
             label:    'Parent Group',
-            weight:   90,
-            children: [
-              {
-                name:      'sibling-page',
-                label:     'Sibling Page',
-                component: { name: 'SiblingPageComponent' },
-              },
-              {
-                name:     'child-group',
-                label:    'Child Group',
-                weight:   80,
-                children: [
-                  {
-                    name:      'nested-page',
-                    label:     'Nested Page',
-                    component: { name: 'NestedPageComponent' },
+            sideMenu: {
+              weight:   90,
+              children: [
+                {
+                  name:      'sibling-page',
+                  label:     'Sibling Page',
+                  component: { name: 'SiblingPageComponent' },
+                },
+                {
+                  name:     'child-group',
+                  label:    'Child Group',
+                  sideMenu: {
+                    weight:   80,
+                    children: [
+                      {
+                        name:      'nested-page',
+                        label:     'Nested Page',
+                        component: { name: 'NestedPageComponent' },
+                      },
+                    ],
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ];
 
@@ -2751,7 +2815,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'test-self-ref',
           label: 'Test Self Reference',
         };
@@ -2759,19 +2823,23 @@ describe('pluginProduct', () => {
           {
             name:     'root',
             label:    'Root',
-            children: [
-              {
-                name:     'nested',
-                label:    'Nested',
-                children: [
-                  {
-                    name:      'page',
-                    label:     'Page',
-                    component: { name: 'PageComponent' },
+            sideMenu: {
+              children: [
+                {
+                  name:     'nested',
+                  label:    'Nested',
+                  sideMenu: {
+                    children: [
+                      {
+                        name:      'page',
+                        label:     'Page',
+                        component: { name: 'PageComponent' },
+                      },
+                    ],
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ];
 
@@ -2811,7 +2879,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'multi-nested',
           label: 'Multi Nested',
         };
@@ -2819,30 +2887,36 @@ describe('pluginProduct', () => {
           {
             name:     'parent',
             label:    'Parent',
-            children: [
-              {
-                name:     'child1',
-                label:    'Child 1',
-                children: [
-                  {
-                    name:      'page1',
-                    label:     'Page 1',
-                    component: { name: 'Page1Component' },
+            sideMenu: {
+              children: [
+                {
+                  name:     'child1',
+                  label:    'Child 1',
+                  sideMenu: {
+                    children: [
+                      {
+                        name:      'page1',
+                        label:     'Page 1',
+                        component: { name: 'Page1Component' },
+                      },
+                    ],
                   },
-                ],
-              },
-              {
-                name:     'child2',
-                label:    'Child 2',
-                children: [
-                  {
-                    name:      'page2',
-                    label:     'Page 2',
-                    component: { name: 'Page2Component' },
+                },
+                {
+                  name:     'child2',
+                  label:    'Child 2',
+                  sideMenu: {
+                    children: [
+                      {
+                        name:      'page2',
+                        label:     'Page 2',
+                        component: { name: 'Page2Component' },
+                      },
+                    ],
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ];
 
@@ -2889,7 +2963,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'mixed-groups',
           label: 'Mixed Groups',
         };
@@ -2898,24 +2972,28 @@ describe('pluginProduct', () => {
             name:      'group-with-page',
             label:     'Group With Page',
             component: { name: 'GroupPageComponent' },
-            children:  [
-              {
-                name:      'child1',
-                label:     'Child 1',
-                component: { name: 'Child1Component' },
-              },
-            ],
+            sideMenu:  {
+              children: [
+                {
+                  name:      'child1',
+                  label:     'Child 1',
+                  component: { name: 'Child1Component' },
+                },
+              ],
+            },
           },
           {
             name:     'group-without-page',
             label:    'Group Without Page',
-            children: [
-              {
-                name:      'child2',
-                label:     'Child 2',
-                component: { name: 'Child2Component' },
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name:      'child2',
+                  label:     'Child 2',
+                  component: { name: 'Child2Component' },
+                },
+              ],
+            },
           },
         ];
 
@@ -2956,7 +3034,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'nested-with-pages',
           label: 'Nested With Pages',
         };
@@ -2965,20 +3043,24 @@ describe('pluginProduct', () => {
             name:      'parent',
             label:     'Parent',
             component: { name: 'ParentComponent' },
-            children:  [
-              {
-                name:      'child-group',
-                label:     'Child Group',
-                component: { name: 'ChildGroupComponent' },
-                children:  [
-                  {
-                    name:      'grandchild',
-                    label:     'Grandchild',
-                    component: { name: 'GrandchildComponent' },
+            sideMenu:  {
+              children: [
+                {
+                  name:      'child-group',
+                  label:     'Child Group',
+                  component: { name: 'ChildGroupComponent' },
+                  sideMenu:  {
+                    children: [
+                      {
+                        name:      'grandchild',
+                        label:     'Grandchild',
+                        component: { name: 'GrandchildComponent' },
+                      },
+                    ],
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ];
 
@@ -3019,7 +3101,7 @@ describe('pluginProduct', () => {
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
         // Exact scenario from user's bug report
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'group-with-page',
           label: 'Group With Page',
         };
@@ -3033,18 +3115,20 @@ describe('pluginProduct', () => {
             name:      'settings',
             label:     'Settings',
             component: { name: 'SettingsOverviewComponent' },
-            children:  [
-              {
-                name:      'general',
-                label:     'General Settings',
-                component: { name: 'GeneralComponent' },
-              },
-              {
-                name:      'advanced',
-                label:     'Advanced Settings',
-                component: { name: 'AdvancedComponent' },
-              },
-            ],
+            sideMenu:  {
+              children: [
+                {
+                  name:      'general',
+                  label:     'General Settings',
+                  component: { name: 'GeneralComponent' },
+                },
+                {
+                  name:      'advanced',
+                  label:     'Advanced Settings',
+                  component: { name: 'AdvancedComponent' },
+                },
+              ],
+            },
           },
           {
             name:      'general2',
@@ -3090,7 +3174,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const productMetadata: ProductMetadata2222 = {
+        const productMetadata: ProductMetadata = {
           name:  'empty-children',
           label: 'Empty Children',
         };
@@ -3099,7 +3183,7 @@ describe('pluginProduct', () => {
             name:      'standalone-group',
             label:     'Standalone Group',
             component: { name: 'StandaloneComponent' },
-            children:  [],
+            sideMenu:  { children: [] },
           },
         ];
 
@@ -3143,6 +3227,7 @@ describe('pluginProduct', () => {
         labelGroup:          jest.fn(),
         setGroupDefaultType: jest.fn(),
         weightGroup:         jest.fn(),
+        moveType:            jest.fn(),
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
@@ -3178,6 +3263,7 @@ describe('pluginProduct', () => {
         labelGroup:          jest.fn(),
         setGroupDefaultType: jest.fn(),
         weightGroup:         jest.fn(),
+        moveType:            jest.fn(),
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
@@ -3209,16 +3295,16 @@ describe('pluginProduct', () => {
         labelGroup:          jest.fn(),
         setGroupDefaultType: jest.fn(),
         weightGroup:         jest.fn(),
+        moveType:            jest.fn(),
         virtualType:         jest.fn(),
         configureType:       jest.fn(),
         weightType:          jest.fn(),
         headers:             jest.fn(),
         hideBulkActions:     jest.fn(),
-
-        mapGroup:    jest.fn(),
-        ignoreGroup: jest.fn(),
-        mapType:     jest.fn(),
-        ignoreType:  jest.fn(),
+        mapGroup:            jest.fn(),
+        ignoreGroup:         jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3249,8 +3335,8 @@ describe('pluginProduct', () => {
         const product: ProductMetadataSinglePage = {
           name:      'my-dashboard',
           label:     'My Dashboard',
-          icon:      'globe',
           component: { name: 'DashboardPage' },
+          sideBar:   { icon: { name: 'globe' } },
         };
 
         const pluginProduct = new PluginProduct(mockPlugin, product, []);
@@ -3269,20 +3355,20 @@ describe('pluginProduct', () => {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewPage' },
-          weight:    2,
+          sideMenu:  { weight: 2 },
         };
 
         const settingsPage: ProductChildCustomPage = {
           name:      'settings',
           label:     'Settings',
           component: { name: 'SettingsPage' },
-          weight:    1,
+          sideMenu:  { weight: 1 },
         };
 
-        const product: ProductMetadata2222 = {
-          name:  'my-app',
-          label: 'My App',
-          icon:  'gear',
+        const product: ProductMetadata = {
+          name:    'my-app',
+          label:   'My App',
+          sideBar: { icon: { name: 'gear' } }
         };
 
         const pluginProduct = new PluginProduct(mockPlugin, product, [overviewPage, settingsPage]);
@@ -3298,23 +3384,23 @@ describe('pluginProduct', () => {
         const mockPlugin = createMockPlugin();
 
         const clusterPage: ProductChildResourcePage = {
-          type:   'provisioning.cattle.io.cluster',
-          weight: 2,
-          config: {
-            displayName: 'Clusters',
-            isCreatable: true,
-            isEditable:  true,
-            isRemovable: true,
-            canYaml:     true,
+          type:       'provisioning.cattle.io.cluster',
+          label:      'Clusters',
+          sideMenu:   { weight: 2 },
+          listConfig: {
+            // isCreatable: true,
+            // isEditable:  true,
+            // isRemovable: true,
+            // canYaml:     true,
           },
         };
 
         const nodePage: ProductChildResourcePage = {
-          type:   'management.cattle.io.node',
-          weight: 1,
+          type:     'management.cattle.io.node',
+          sideMenu: { weight: 1 },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-resources',
           label: 'My Resources',
         };
@@ -3346,18 +3432,20 @@ describe('pluginProduct', () => {
         const monitoringGroup: ProductChildGroup = {
           name:     'monitoring',
           label:    'Monitoring',
-          weight:   2,
-          children: [alertsPage, metricsPage],
+          sideMenu: {
+            weight:   2,
+            children: [alertsPage, metricsPage],
+          },
         };
 
         const overviewPage: ProductChildCustomPage = {
           name:      'overview',
           label:     'Overview',
           component: { name: 'OverviewPage' },
-          weight:    3,
+          sideMenu:  { weight: 3 },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3398,27 +3486,41 @@ describe('pluginProduct', () => {
           name:      'dashboard',
           label:     'Dashboard',
           component: { name: 'Dashboard' },
-          weight:    3,
+          sideMenu:  { weight: 3 }
         };
 
         const clusterPage: ProductChildResourcePage = {
-          type:   'provisioning.cattle.io.cluster',
-          weight: 2,
+          type:     'provisioning.cattle.io.cluster',
+          sideMenu: { weight: 2 }
         };
 
         const settingsPage: ProductChildCustomPage = {
           name:      'settings',
           label:     'Settings',
           component: { name: 'Settings' },
-          weight:    1,
+          sideMenu:  { weight: 1 }
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-platform',
           label: 'My Platform',
         };
 
-        const config: ProductChild[] = [dashboardPage, clusterPage, settingsPage];
+        const config: ProductChild[] = [
+          {
+            name:      'dashboard',
+            label:     'Dashboard',
+            component: { name: 'Dashboard' },
+            sideMenu:  { weight: 3 },
+          },
+          { type: 'provisioning.cattle.io.cluster', sideMenu: { weight: 2 } },
+          {
+            name:      'settings',
+            label:     'Settings',
+            component: { name: 'Settings' },
+            sideMenu:  { weight: 1 },
+          },
+        ];
         const pluginProduct = new PluginProduct(mockPlugin, product, config);
 
         expect(pluginProduct.newProduct).toBe(true);
@@ -3454,10 +3556,10 @@ describe('pluginProduct', () => {
           name:      'monitoring',
           label:     'Monitoring',
           component: { name: 'MonitoringOverview' },
-          children:  [alertsPage, metricsPage],
+          sideMenu:  { children: [alertsPage, metricsPage] },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3482,10 +3584,10 @@ describe('pluginProduct', () => {
           name:      'monitoring',
           label:     'Monitoring',
           component: { name: 'MonitoringOverview' },
-          children:  [childPage],
+          sideMenu:  { children: [childPage] },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-platform',
           label: 'My Platform',
         };
@@ -3536,7 +3638,7 @@ describe('pluginProduct', () => {
         const insightsGroup: ProductChildGroup = {
           name:     'insights',
           label:    'Insights',
-          children: [costPage, usagePage],
+          sideMenu: { children: [costPage, usagePage] },
         };
 
         const pluginProduct = new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, [insightsGroup]);
@@ -3551,10 +3653,10 @@ describe('pluginProduct', () => {
       it('should accept labelKey instead of label for product and pages', () => {
         const mockPlugin = createMockPlugin();
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:     'my-app',
           labelKey: 'product.myApp.label',
-          icon:     'gear',
+          sideBar:  { icon: { name: 'gear' } }
         };
 
         const overviewPage: ProductChildCustomPage = {
@@ -3587,7 +3689,7 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:     'my-app',
           labelKey: 'product.myApp.label',
         };
@@ -3636,7 +3738,7 @@ describe('pluginProduct', () => {
           component: { name: 'Page2' },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3680,10 +3782,11 @@ describe('pluginProduct', () => {
         const group: ProductChildGroup = {
           name:     'insights',
           label:    'Insights',
-          children: [groupChildPage],
+          sideMenu: { children: [groupChildPage] }
+
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3717,7 +3820,7 @@ describe('pluginProduct', () => {
 
         const resource2: ProductChildResourcePage = { type: 'provisioning.cattle.io.cluster' };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3757,7 +3860,7 @@ describe('pluginProduct', () => {
           component: { name: 'Page2' },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3798,10 +3901,10 @@ describe('pluginProduct', () => {
           name:      'monitoring',
           label:     'Monitoring',
           component: { name: 'MonitoringOverview' },
-          children:  [childPage],
+          sideMenu:  { children: [childPage] },
         };
 
-        const product: ProductMetadata2222 = {
+        const product: ProductMetadata = {
           name:  'my-app',
           label: 'My App',
         };
@@ -3827,7 +3930,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'headers-test',
             label: 'Headers Test',
           };
@@ -3841,8 +3944,8 @@ describe('pluginProduct', () => {
             },
           ];
 
-          const config: ProductChildPage[] = [
-            { type: 'some.resource.type', headers: testHeaders },
+          const config: ProductChildResourcePageInternal[] = [
+            { type: 'some.resource.type', listConfig: { localHeaders: testHeaders } },
           ];
 
           const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -3859,7 +3962,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'ssp-headers-test',
             label: 'SSP Headers Test',
           };
@@ -3874,7 +3977,7 @@ describe('pluginProduct', () => {
           ];
 
           const config: ProductChildPage[] = [
-            { type: 'some.resource.type', sspHeaders: testSspHeaders },
+            { type: 'some.resource.type', listConfig: { headers: testSspHeaders } },
           ];
 
           const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -3891,7 +3994,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'both-headers-test',
             label: 'Both Headers Test',
           };
@@ -3908,11 +4011,10 @@ describe('pluginProduct', () => {
             },
           ];
 
-          const config: ProductChildPage[] = [
+          const config: ProductChildResourcePageInternal[] = [
             {
               type:       'some.resource.type',
-              headers:    testHeaders,
-              sspHeaders: testSspHeaders,
+              listConfig: { headers: testSspHeaders, localHeaders: testHeaders },
             },
           ];
 
@@ -3930,7 +4032,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-headers-test',
             label: 'No Headers Test',
           };
@@ -3953,13 +4055,13 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'maptype-test',
             label: 'MapType Test',
           };
 
           const config: ProductChildPage[] = [
-            { type: 'apps.deployment', overrideListResourceName: 'Deployments' },
+            { type: 'apps.deployment', label: 'Deployments' },
           ];
 
           const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -3976,7 +4078,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-maptype',
             label: 'No MapType',
           };
@@ -3999,13 +4101,13 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'ignoretype-test',
             label: 'IgnoreType Test',
           };
 
-          const config: ProductChildPage[] = [
-            { type: 'secret.type', hideFromNav: true },
+          const config: ProductChildResourcePageInternal[] = [
+            { type: 'secret.type', sideMenu: { hideFromNav: true } },
           ];
 
           const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -4022,7 +4124,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-ignoretype',
             label: 'No IgnoreType',
           };
@@ -4045,13 +4147,13 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'bulk-actions-test',
             label: 'Bulk Actions Test',
           };
 
           const config: ProductChildPage[] = [
-            { type: 'management.cattle.io.feature', hideBulkActions: true },
+            { type: 'management.cattle.io.feature', listConfig: { hideBulkActions: true } },
           ];
 
           const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
@@ -4087,19 +4189,18 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'order-test',
             label: 'Order Test',
           };
 
-          const config: ProductChildPage[] = [
+          const config: ProductChildResourcePageInternal[] = [
             {
-              type:                     'apps.deployment',
-              weight:                   10,
-              headers:                  [{ name: 'col1', label: 'Col1' }],
-              hideBulkActions:          true,
-              overrideListResourceName: 'Deployments',
-              hideFromNav:              true,
+              type:       'apps.deployment',
+              sideMenu:   { weight: 10, hideFromNav: true },
+              listConfig: { hideBulkActions: true, localHeaders: [{ name: 'col1', label: 'Col1' }] },
+
+              label: 'Deployments',
             },
           ];
 
@@ -4124,13 +4225,16 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
-            name:         'maptogroup-test',
-            label:        'MapToGroup Test',
-            renameGroups: [
-              { groupSelector: /some\.regex/, newName: 'my-group' },
-              { groupSelector: 'exact.match', newName: 'other-group' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'maptogroup-test',
+            label:    'MapToGroup Test',
+            sideMenu: {
+              renameGroups: [
+                { groupSelector: /some\.regex/, newName: 'my-group' },
+                { groupSelector: 'exact.match', newName: 'other-group' },
+              ]
+            },
+
           };
 
           const config: ProductChildPage[] = [
@@ -4155,7 +4259,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-maptogroup',
             label: 'No MapToGroup',
           };
@@ -4184,12 +4288,15 @@ describe('pluginProduct', () => {
 
           const cbFn = jest.fn(() => true);
 
-          const productMetadata: ProductMetadata2222 = {
-            name:         'ignoregroups-test',
-            label:        'IgnoreGroups Test',
-            ignoreGroups: [
-              { groupSelector: 'hidden-group', condition: cbFn },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'ignoregroups-test',
+            label:    'IgnoreGroups Test',
+            sideMenu: {
+              ignoreGroups: [
+                { groupSelector: 'hidden-group', condition: cbFn },
+              ]
+            },
+
           };
 
           const config: ProductChildPage[] = [
@@ -4213,12 +4320,15 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
-            name:         'ignoregroups-unconditional',
-            label:        'IgnoreGroups Unconditional',
-            ignoreGroups: [
-              { groupSelector: 'always-hidden' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'ignoregroups-unconditional',
+            label:    'IgnoreGroups Unconditional',
+            sideMenu: {
+              ignoreGroups: [
+                { groupSelector: 'always-hidden' },
+              ]
+            },
+
           };
 
           const config: ProductChildPage[] = [
@@ -4242,12 +4352,15 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
-            name:         'ignoregroups-regex',
-            label:        'IgnoreGroups Regex',
-            ignoreGroups: [
-              { groupSelector: /^internal-.*/ },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'ignoregroups-regex',
+            label:    'IgnoreGroups Regex',
+            sideMenu: {
+              ignoreGroups: [
+                { groupSelector: /^internal-.*/ },
+              ]
+            },
+
           };
 
           const config: ProductChildPage[] = [
@@ -4271,7 +4384,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-ignoregroups',
             label: 'No IgnoreGroups',
           };
@@ -4325,19 +4438,24 @@ describe('pluginProduct', () => {
           const monitoringGroup: ProductChildGroup = {
             name:     'monitoring',
             label:    'Monitoring',
-            children: [
-              {
-                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+                },
+              ],
+            },
           };
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              { entryId: 'pod', groupName: 'monitoring' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                { entryId: 'pod', groupName: 'monitoring' },
+              ]
+            },
+
           };
 
           const config: ProductChild[] = [
@@ -4355,7 +4473,6 @@ describe('pluginProduct', () => {
           expect(mockDSL.moveType).toHaveBeenCalledTimes(1);
           expect(mockDSL.moveType).toHaveBeenCalledWith('pod', 'myapp-monitoring', undefined);
         });
-
         it('should call basicType but NOT moveType when moving a custom page into a group', () => {
           const mockPlugin = createMockPlugin();
           const mockStore = createMockStore();
@@ -4366,23 +4483,27 @@ describe('pluginProduct', () => {
           const monitoringGroup: ProductChildGroup = {
             name:     'monitoring',
             label:    'Monitoring',
-            children: [
-              {
-                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+                },
+              ],
+            },
           };
-
           const customPage: ProductChildCustomPage = {
             name: 'dashboard', label: 'Dashboard', component: { name: 'DashboardPage' }
           };
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              { entryId: 'dashboard', groupName: 'monitoring' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                { entryId: 'dashboard', groupName: 'monitoring' },
+              ]
+            },
+
           };
 
           const config: ProductChild[] = [monitoringGroup, customPage];
@@ -4406,21 +4527,26 @@ describe('pluginProduct', () => {
           const myGroup: ProductChildGroup = {
             name:     'resources',
             label:    'Resources',
-            children: [
-              {
-                name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'overview', label: 'Overview', component: { name: 'OverviewPage' }
+                },
+              ],
+            },
           };
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              {
-                entryId: 'apps.deployment', groupName: 'resources', weight: 10
-              },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                {
+                  entryId: 'apps.deployment', groupName: 'resources', weight: 10
+                },
+              ]
+            },
+
           };
 
           const config: ProductChild[] = [myGroup, { type: 'apps.deployment' }];
@@ -4440,12 +4566,15 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              { entryId: 'pod', groupName: 'nonexistent-group' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                { entryId: 'pod', groupName: 'nonexistent-group' },
+              ]
+            },
+
           };
 
           const config: ProductChildPage[] = [
@@ -4469,19 +4598,24 @@ describe('pluginProduct', () => {
           const myGroup: ProductChildGroup = {
             name:     'monitoring',
             label:    'Monitoring',
-            children: [
-              {
-                name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'alerts', label: 'Alerts', component: { name: 'AlertsPage' }
+                },
+              ],
+            },
           };
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              { entryId: 'nonexistent-page', groupName: 'monitoring' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                { entryId: 'nonexistent-page', groupName: 'monitoring' },
+              ]
+            },
+
           };
 
           const config: ProductChild[] = [myGroup];
@@ -4499,7 +4633,7 @@ describe('pluginProduct', () => {
 
           (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-          const productMetadata: ProductMetadata2222 = {
+          const productMetadata: ProductMetadata = {
             name:  'no-move',
             label: 'No Move',
           };
@@ -4527,30 +4661,37 @@ describe('pluginProduct', () => {
           const networkingGroup: ProductChildGroup = {
             name:     'networking',
             label:    'Networking',
-            children: [
-              {
-                name: 'net-overview', label: 'Overview', component: { name: 'NetOverview' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'net-overview', label: 'Overview', component: { name: 'NetOverview' }
+                },
+              ],
+            },
           };
 
           const storageGroup: ProductChildGroup = {
             name:     'storage',
             label:    'Storage',
-            children: [
-              {
-                name: 'storage-overview', label: 'Overview', component: { name: 'StorageOverview' }
-              },
-            ],
+            sideMenu: {
+              children: [
+                {
+                  name: 'storage-overview', label: 'Overview', component: { name: 'StorageOverview' }
+                },
+              ],
+            },
           };
 
-          const productMetadata: ProductMetadata2222 = {
-            name:        'my-app',
-            label:       'My App',
-            moveToGroup: [
-              { entryId: 'networking.ingress', groupName: 'networking' },
-              { entryId: 'storage.pvc', groupName: 'storage' },
-            ],
+          const productMetadata: ProductMetadataInternal = {
+            name:     'my-app',
+            label:    'My App',
+            sideMenu: {
+              moveToGroup: [
+                { entryId: 'networking.ingress', groupName: 'networking' },
+                { entryId: 'storage.pvc', groupName: 'storage' },
+              ]
+            },
+
           };
 
           const config: ProductChild[] = [
@@ -4582,13 +4723,17 @@ describe('pluginProduct', () => {
 
           const testHeaders = [{ name: 'col1', label: 'Column 1' }];
 
-          const config: ProductChildPage[] = [
+          const config: ProductChildResourcePageInternal[] = [
             {
-              type:                     'custom.resource.type',
-              headers:                  testHeaders,
-              hideBulkActions:          true,
-              overrideListResourceName: 'Custom Name',
-              hideFromNav:              true,
+              type:       'custom.resource.type',
+              listConfig: {
+                localHeaders:    testHeaders,
+                hideBulkActions: true,
+              },
+
+              label:    'Custom Name',
+              sideMenu: { hideFromNav: true }
+
             },
           ];
 
@@ -4609,7 +4754,7 @@ describe('pluginProduct', () => {
     it('should throw when addProduct is called twice with the same product name (object form)', () => {
       const plugin = new Plugin('test-extension');
 
-      const product: ProductMetadata2222 = {
+      const product: ProductMetadata = {
         name:  'my-product',
         label: 'My Product',
       };
