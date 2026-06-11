@@ -1,7 +1,5 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import {
-  isLoggedIn, notLoggedIn, noAuth, findMe, isLocalPrincipal
-} from '@shell/utils/auth';
+import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
 import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
@@ -66,7 +64,7 @@ export async function authenticate(to, from, next, { store }) {
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
 
-    const mustChangePasswordFor = (me) => user?.mustChangePassword && isLocalPrincipal(me?.id);
+    const mustChangePasswordFor = (me) => user?.mustChangePassword && me?.provider === 'local';
 
     if ( fromHeader === 'none' ) {
       noAuth(store);

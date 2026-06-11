@@ -295,7 +295,3 @@ export function notLoggedIn(store, redirect, route) {
 export function noAuth(store) {
   store.commit('auth/hasAuth', false);
 }
-
-export function isLocalPrincipal(principalId) {
-  return typeof principalId === 'string' && principalId.startsWith('local://');
-}
