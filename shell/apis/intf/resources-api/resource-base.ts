@@ -112,6 +112,7 @@ export type FindFilteredLabelSelectorOptions = Omit<ActionFindMatchingArgs, 'dep
 // @internal We use an interface instead of a type alias so the documentation generator
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FindFilteredPageOptions extends ActionFindPageArgs {}
+export interface FindFilteredPageOptionsTransient extends ActionFindPageArgs { transient: true }
 
 /**
  * @interface
@@ -129,7 +130,7 @@ export type FindFilteredPageResponse<T = any> = ActionFindPageResponse<T>;
  * Aligns with the response type of the underlying `findMatching` store action via `findLabelSelector`.
  * Can be either a transient response object (with data and pagination) or an array of resources.
  */
-export type FindFilteredLabelSelectorResponse<T = any> = ActionFindMatchingResponse<T>;
+export type FindFilteredLabelSelectorResponse<T = Record<string, any>> = ActionFindMatchingResponse<T>;
 
 /**
  * @interface

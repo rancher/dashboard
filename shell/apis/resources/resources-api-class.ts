@@ -1,9 +1,11 @@
 import {
   ResourceType, CreateResourceData, FindMethodOptions, FindAllMethodOptions, FindFilteredPageOptions, FindFilteredLabelSelectorOptions,
-  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource
+  FindFilteredPageResponse, FindFilteredLabelSelectorResponse, SteveResource,
+  FindFilteredPageOptionsTransient,
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
+import { ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { Store } from 'vuex';
 
 export class ResourcesApiClassImpl implements ResourcesApi {
@@ -97,7 +99,12 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions
-  ): Promise<FindFilteredPageResponse<ResourceInstance<T>>>;
+  ): Promise<ResourceInstance<T>[]>;
+
+  findFiltered<T = Record<string, any>>(
+    resourceType: ResourceType,
+    options: FindFilteredPageOptionsTransient
+  ): Promise<ActionFindPageTransientResponse<ResourceInstance<T>>>;
 
   /**
    * Finds resources using label selector matching.
@@ -111,17 +118,17 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * @param options - Label selector options for filtering
    * @returns Response containing resource items (may be transient if requested, otherwise cached array in the store are watched)
    */
-  findFiltered<I = Record<string, any>>(
+  findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
     options: FindFilteredLabelSelectorOptions
-  ): Promise<FindFilteredLabelSelectorResponse<ResourceInstance<I>>>;
+  ): Promise<FindFilteredLabelSelectorResponse<ResourceInstance<T>>>;
 
   /**
    * @internal Implementation - use one of the overloads above
    */
   async findFiltered<T = Record<string, any>>(
     resourceType: ResourceType,
-    options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions
+    options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions | FindFilteredPageOptionsTransient
   ): Promise<FindFilteredPageResponse<ResourceInstance<T>> | FindFilteredLabelSelectorResponse<ResourceInstance<T>>> {
     try {
       if ('pagination' in options) { // pagination mode
@@ -136,6 +143,10 @@ export class ResourcesApiClassImpl implements ResourcesApi {
           type: resourceType,
           opt:  safeOption
         });
+
+        if (options.transient) {
+          return response as ResourceInstance<T>[];
+        }
 
         return response as FindFilteredPageResponse<ResourceInstance<T>>;
       } else if ('labelSelector' in options) { // label selector mode
