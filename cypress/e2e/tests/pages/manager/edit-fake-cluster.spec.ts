@@ -2,7 +2,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
