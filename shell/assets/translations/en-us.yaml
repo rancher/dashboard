@@ -2854,8 +2854,6 @@ providers:
   hosted: 
     title: Hosted Providers
     warning: Disabling providers will make any clusters that use them uneditable
-  capi:
-    title: Cluster API Providers
 drivers:
   kontainer:
     title: Cluster Drivers
@@ -8665,6 +8663,11 @@ typeLabel:
     {count, plural,
       one { Cluster Registration Token }
       other { Cluster Registration Tokens }
+    }
+  turtles-capi.cattle.io.capiprovider: |-
+    {count, plural,
+      one { Cluster API Provider }
+      other { Cluster API Providers }
     }
 
 oidcclient:

@@ -88,20 +88,10 @@ export function init(store) {
   weightType('providers', 98, true);
   weightType(CATALOG.CLUSTER_REPO, 97, true);
   virtualType({
-    labelKey:   'providers.capi.title',
-    name:       CAPI.CAPI_PROVIDER,
-    group:      'Root',
-    weight:     1,
-    namespaced: false,
-    icon:       'globe',
-    route:      { name: 'c-cluster-manager-capiprovider' },
-    exact:      true
-  });
-  virtualType({
     labelKey:   'providers.hosted.title',
     name:       HOSTED_PROVIDER,
     group:      'Root',
-    weight:     2,
+    weight:     1,
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-hostedprovider' },
@@ -145,6 +135,7 @@ export function init(store) {
     'rke-node-providers',
   ], 'providers');
 
+  weightType(CAPI.CAPI_PROVIDER, 4, true);
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
