@@ -9,7 +9,7 @@ function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
 
 class PluginProductsHelpers {
   private weightFromProductChild(item: ProductChild): number | undefined {
-    return (item as ProductChildCustomPage).resourceMenu?.weight || (item as ProductChildResourcePage).resourceMenu?.weight;
+    return (item as ProductChildCustomPage).sideMenu?.weight || (item as ProductChildResourcePage).sideMenu?.weight;
   }
 
   gatherChildrenOrdering(children: ProductChild[]): ProductChild[] {
@@ -31,21 +31,21 @@ class PluginProductsHelpers {
     children.forEach((child: ProductChild, index) => {
       const processedChild = { ...child };
 
-      if (processedChild.resourceMenu?.weight === undefined || processedChild.resourceMenu?.weight === null) {
-        if (!processedChild.resourceMenu) {
-          processedChild.resourceMenu = {};
+      if (processedChild.sideMenu?.weight === undefined || processedChild.sideMenu?.weight === null) {
+        if (!processedChild.sideMenu) {
+          processedChild.sideMenu = {};
         }
-        processedChild.resourceMenu.weight = minWeight - (index + 1);
+        processedChild.sideMenu.weight = minWeight - (index + 1);
       }
 
       if (isProductChildGroup(processedChild)) {
-        processedChild.resourceMenu.pages = this.gatherChildrenOrdering(processedChild.resourceMenu.pages);
+        processedChild.sideMenu.children = this.gatherChildrenOrdering(processedChild.sideMenu.children);
       }
 
       processedChildren.push(processedChild);
     });
 
-    return processedChildren.sort((a, b) => (b.resourceMenu?.weight ?? 0) - (a.resourceMenu?.weight ?? 0));
+    return processedChildren.sort((a, b) => (b.sideMenu?.weight ?? 0) - (a.sideMenu?.weight ?? 0));
   }
 
   generateTopLevelExtensionSimpleBaseRoute(parentName: string, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {

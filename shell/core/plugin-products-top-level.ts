@@ -22,8 +22,8 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     // Convenience/bridge method: create a basic product from just a name string
     if (typeof product === 'string') {
       const emptyProduct: ProductMetadata = {
-        name:    product,
-        display: { label: product }
+        name:  product,
+        label: product,
       };
 
       product = emptyProduct;
@@ -58,7 +58,7 @@ export class TopLevelPluginProduct extends BasePluginProduct {
       // If no config is provided, add a default empty page
       this.config = [{
         name:      'main',
-        display:   { label: 'Main' },
+        label:     'Main',
         component: EmptyProductPage,
       }];
 

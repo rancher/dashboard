@@ -48,15 +48,14 @@ type LabelOrLabelKey = (
 /**
  * Represents a custom page with a component
  */
-export type ProductChildCustomPage = {
+export type ProductChildCustomPage = LabelOrLabelKey & {
   /** Product name/unique identifier for the product */
   name: string;
 
   /** Component to render for this custom page */
   component: VueRouteComponent;
 
-  display: {} & LabelOrLabelKey
-
+  /** TODO: RC jsdoc */
   enable?: {
     /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
     ifHave?: boolean;
@@ -68,20 +67,13 @@ export type ProductChildCustomPage = {
     ifHaveVerb?: string;
   };
 
-  resourceMenu?: {
+  /** TODO: RC jsdoc */
+  sideMenu?: {
     /** Ordering weight for this page among its siblings */
     weight?: number;
-
-    navigation?: {
-      /** Entry route definition for this custom page */
-      customRoute?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
-      /** Whether this custom page is exact match */
-      exact?: boolean;
-      /** Whether this custom page has an exact path match */
-      'exact-path'?: boolean;
-    }
   }
 
+  /** TODO: RC jsdoc */
   resource?: {
     /** Whether resources this page represents is namespaced */
     namespaced?: boolean;
@@ -95,30 +87,28 @@ export type ProductChildResourcePage = {
   /** K8s resource type name for a resource page */
   type: string;
 
-  // TODO: RC rename
+  /**
+   * Optional. Override the label for this page
+   */
+  label?: string
+
   /** TODO: RC jsdoc */
-  resourceMenu?: {
+  sideMenu?: {
     /** Ordering weight for this page among its siblings */
-    weight?: number; // TODO: RC Q position or weight
+    weight?: number;
     /** Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster) */
     localOnly?: boolean;
-
-    navigation?: {
-      /** Entry route definition for this resource page */
-      customRoute?: RouteRecordRawWithParams;
-    }
   }
 
   /** TODO: RC jsdoc */
   display?: {
-    /** Display this instead of the resource's name */
-    label?: string;
     /** If false, hide state in columns and masthead */
     showState?: boolean;
     /** If false, hide age in columns and masthead */
     showAge?: boolean;
   }
 
+  /** TODO: RC jsdoc */
   can?: {
     /** If false, disable create even if schema says it's allowed */
     create?: boolean;
@@ -130,27 +120,33 @@ export type ProductChildResourcePage = {
     yaml?: boolean;
   }
 
-  pages?: {
+  /** TODO: RC jsdoc */
+  views?: {
+
+    /** TODO: RC jsdoc */
     list?: {
       /** Override for the create button string on a list view */
-      createButtonLabelKey?: string;
+      createLabelKey?: string;
 
       /** If false, hide masthead in list view */
       showListMasthead?: boolean;
     }
 
+    /** TODO: RC jsdoc */
     detail?: {
       /** If false, hide masthead config button in view mode */
       showConfigView?: boolean;
     }
 
+    /** TODO: RC jsdoc */
     createEdit?: {
       /** Show the Masthead in the edit resource component */
-      resourceEditMasthead?: boolean;
+      showMasthead?: boolean;
     }
   }
 
-  lists?: {
+  /** TODO: RC jsdoc */
+  listConfig?: {
     /** Table headers for this resource type (server-side pagination) */
     headers?: HeaderOptions[];
     /** Whether to hide bulk actions for this resource */
@@ -173,17 +169,14 @@ export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disab
 /**
  * Represents a group of child pages in a product configuration
  */
-export type ProductChildGroup = {
+export type ProductChildGroup = LabelOrLabelKey & {
   /** Product name/unique identifier for the product */
   name: string;
 
   /** Component to render for this group */
   component?: VueRouteComponent;
 
-  display: {} & LabelOrLabelKey
-
-  // TODO: RC actual name for the resource menu?
-  resourceMenu: {
+  sideMenu: {
     /**
     * TODO: RC jsdoc
     */
@@ -203,13 +196,11 @@ export type ProductChildGroup = {
 /**
  * Represents the allowed configuration for a product
  */
-type _ProductMetadata = {
+type _ProductMetadata = LabelOrLabelKey & {
     /**
    * Product name (unique identifier)
    */
   name: string;
-
-  display: {} & LabelOrLabelKey
 
   /**
    * Control conditions on when to show the product
@@ -241,71 +232,66 @@ type _ProductMetadata = {
     ifNotHaveType?: string | RegExp;
   }
 
-  globalPage?: {
+  /**
+   * Control what appears in the UI's main application header
+   */
+  appHeader?: {
     /**
-     * Control what appears in the page's header
+     * Hide the Copy KubeConfig button in the header
      */
-    header: {
-      /**
-       * Hide the Copy KubeConfig button in the header
-       */
-      hideCopyConfig?: boolean;
+    hideCopyConfig?: boolean;
 
-      /**
-       * Hide the Download KubeConfig button in the header
-       */
-      hideKubeConfig?: boolean;
+    /**
+     * Hide the Download KubeConfig button in the header
+     */
+    hideKubeConfig?: boolean;
 
-        /**
-       * Hide the Kubectl Shell button in the header
-       */
-      hideKubeShell?: boolean;
+    /**
+     * Hide the Kubectl Shell button in the header
+     */
+    hideKubeShell?: boolean;
 
+    /**
+    * Show the cluster info
+    */
+    showClusterInfo?: boolean;
+
+    /**
+     * Show the namespace filter in the header
+     */
+    showNamespaceFilter?: boolean;
+
+    /**
+     * TODO: RC jsdoc
+     */
+    iconHeader?: string;
+  },
+
+  /**
+   * Control what appears in the vertical side bar on the left of the UI
+   */
+  sideBar?: {
+    /**
+     * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
+     */
+    weight?: number;
+
+    /**
+     * The icon to display in the side bar for this product
+     */
+    icon: {
       /**
-      * Show the cluster info
+      * Icon pack name
       */
-      showClusterInfo?: boolean;
-
-        /**
-       * Show the namespace filter in the header
-       */
-      showNamespaceFilter?: boolean;
+      name?: string;
 
       /**
-       * TODO: RC jsdoc
+       * Alternative to the icon property. Uses require
        */
-      iconHeader?: string;
+      svg?: Function;
     },
 
-    sideBar: {
-      /**
-       * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
-       */
-      weight?: number;
-
-      icon: {
-        /**
-        * The icon that should be displayed beside this item in the navigation.
-        */
-        icon?: string; // TODO: RC Q name from icon pack??
-
-        /**
-         * Alternative to the icon property. Uses require
-         */
-        svg?: Function;
-      },
-
-      /**
-      * Control page links
-      */
-      navigation?: {
-        /**
-         * The route that the product will lead to if click on in navigation.
-         */
-        to?: PluginRouteRecordRaw;
-      }
-    }
-  },
+  }
 
   /**
    * Control how resources are fetched, filtered and stored
@@ -351,11 +337,11 @@ export interface IExtensionProducts {
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages
    * @param product
-   * @param pages Pages associated with the product. These will appear in the resource menu
+   * @param sideMenu Pages associated with the product. These will appear in the side menu
    */
-  addProduct(product: ProductMetadata, pages: ProductChildPage[]): void;
-  addProduct(product: ProductMetadata, pages: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadata, pages: ProductChild[]): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChildPage[]): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChildGroup[]): void;
+  addProduct(product: ProductMetadata, sideMenu: ProductChild[]): void;
 
   /**
    * Add a product to the sidebar, without children (no side menu, single page only)
@@ -383,9 +369,9 @@ export interface IExtensionProducts {
    * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages
    *
    * @param productName Name of the product to be extended
-   * @param pages Pages that will be added to the product. These will appear in the resource menu
+   * @param sideMenu Pages that will be added to the product. These will appear in the side menu
    */
-  extendProduct(productName: StandardProductName | string, pages: ProductChildPage[]): void;
-  extendProduct(productName: StandardProductName | string, pages: ProductChildGroup[]): void;
-  extendProduct(productName: StandardProductName | string, pages: ProductChild[]): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildPage[]): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChildGroup[]): void;
+  extendProduct(productName: StandardProductName | string, sideMenu: ProductChild[]): void;
 }

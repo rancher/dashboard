@@ -7,7 +7,7 @@ export interface TypeMapProduct {
   /**
    * The category this product belongs under. i.e. 'config'
    */
-  category?: string; // TODO: RC Q wut
+  category?: string;
 
   /**
    * Hide the Copy KubeConfig button in the header
