@@ -11,7 +11,8 @@ const mockT = (key: string, args?: Record<string, unknown>): string => {
 const { field } = createZodHelpers(mockT);
 
 const REQUIRED_MSG = (fieldKey: string) => `validation.required[${ fieldKey }]`;
-const URL_MSG = 'validation.genericUrl';
+const URL_MSG = (fieldKey: string) => `validation.url[${ fieldKey }]`;
+const GENERIC_URL_MSG = 'validation.genericUrl';
 
 describe('createZodHelpers', () => {
   describe('builder style — field(key).chain()', () => {
@@ -64,7 +65,29 @@ describe('createZodHelpers', () => {
         const result = schema.safeParse('not-a-url');
 
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(URL_MSG);
+        expect(result.error?.issues[0].message).toBe(URL_MSG('myKey'));
+      });
+    });
+
+    describe('field().url() — no key falls back to the generic URL message', () => {
+      const schema = field().url();
+
+      it('fails for an invalid URL', () => {
+        const result = schema.safeParse('not-a-url');
+
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(GENERIC_URL_MSG);
+      });
+    });
+
+    describe('field(key).url(keyOverride) — key override', () => {
+      const schema = field('myKey').url('overrideKey');
+
+      it('uses the override key in the URL error message', () => {
+        const result = schema.safeParse('not-a-url');
+
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(URL_MSG('overrideKey'));
       });
     });
 
@@ -86,7 +109,7 @@ describe('createZodHelpers', () => {
         const result = schema.safeParse('not-a-url');
 
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(URL_MSG);
+        expect(result.error?.issues[0].message).toBe(URL_MSG('myKey'));
       });
     });
 
@@ -104,7 +127,7 @@ describe('createZodHelpers', () => {
         const result = schema.safeParse('not-a-url');
 
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(URL_MSG);
+        expect(result.error?.issues[0].message).toBe(URL_MSG('myKey'));
       });
     });
 

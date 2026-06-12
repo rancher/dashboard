@@ -4,14 +4,34 @@ import type { I18n } from '@shell/composables/useI18n';
 
 export type Transform = (schema: ZodString) => ZodTypeAny;
 
+// Erased view of a transform factory used only when iterating the registry
+// below - individual factories keep their real parameter types via
+// TransformFactories/FieldBuilder.
+type TransformFactory = (...args: any[]) => Transform;
+
+// Factories for validators that simply append a Transform to a field's
+// pipeline. Each closes over the field's own key so it can default messages to
+// it (e.g. url's keyOverride || fieldKey || undefined). Add new transform-style
+// validators here. FieldBuilder and makeBuilder pick them up automatically.
+function createTransformFactories(t: I18n['t'], fieldKey: string) {
+  return {
+    url: (keyOverride?: string): Transform => {
+      const key = keyOverride || fieldKey || undefined;
+
+      return (s) => s.url(key ? t('validation.url', { key: t(key) }) : t('validation.genericUrl'));
+    },
+  };
+}
+
+type TransformFactories = ReturnType<typeof createTransformFactories>;
+
 export type FieldBuilder = ZodTypeAny & {
-  url(): FieldBuilder;
   required(keyOverride?: string): FieldBuilder;
+} & {
+  [K in keyof TransformFactories]: (...args: Parameters<TransformFactories[K]>) => FieldBuilder;
 };
 
 export function createZodHelpers(t: I18n['t']) {
-  const url: Transform = (s) => s.url(t('validation.genericUrl'));
-
   const firstIssue = (transforms: Transform[], v: string) => {
     return transforms
       .map((transform) => transform(z.string()).safeParse(v))
@@ -36,12 +56,19 @@ export function createZodHelpers(t: I18n['t']) {
   }
 
   function makeBuilder(key: string, transforms: Transform[], requiredKey?: string): FieldBuilder {
-    const schema = buildSchema(transforms, requiredKey) as FieldBuilder;
+    const schema = buildSchema(transforms, requiredKey);
+    const factories = Object.entries(createTransformFactories(t, key)) as [string, TransformFactory][];
 
-    schema.url = () => makeBuilder(key, [...transforms, url], requiredKey);
-    schema.required = (keyOverride?: string) => makeBuilder(key, transforms, keyOverride ?? key);
+    const transformMethods = Object.fromEntries(factories.map(([name, factory]) => [
+      name,
+      (...args: unknown[]) => makeBuilder(key, [...transforms, factory(...args)], requiredKey),
+    ]));
 
-    return schema;
+    return Object.assign(
+      schema,
+      transformMethods,
+      { required: (keyOverride?: string) => makeBuilder(key, transforms, keyOverride ?? key) }
+    ) as unknown as FieldBuilder;
   }
 
   function field(key = ''): FieldBuilder {
