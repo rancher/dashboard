@@ -101,8 +101,10 @@ export interface TypeMapProduct {
 
   /**
    * Product name
+   *
+   * Defaults to the DSL fn product arg
    */
-  name: string;
+  name?: string;
 
   /**
    *
