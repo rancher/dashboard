@@ -194,6 +194,18 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 };
 
 /**
+ * Show settings in a special authentication section
+ */
+export const AUTHENTICATION_SETTINGS = [
+  SETTING.PASSWORD_MIN_LENGTH,
+  SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS,
+  SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES,
+  SETTING.AUTH_USER_SESSION_TTL_MINUTES,
+  SETTING.AUTH_TOKEN_MAX_TTL_MINUTES,
+  SETTING.AUTH_USER_INFO_RESYNC_CRON,
+];
+
+/**
  * Show settings in a special cluster provisioning section
  *
  * These should probably be an option in the maps above...
