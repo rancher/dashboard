@@ -51,15 +51,18 @@
 - cspAdaptor.ts: static class; call `CspAdapterUtils.resetState()` in `beforeEach`; hasCspAdapter uses `apps?.find()` (null-safe); fetchCspAdaptorApp: cache check, canList guard, paginationEnabled → findPage, else → findAll; mock getters as jest.fn().mockReturnValue(val)
 - select.js: `calculatePosition` uses `Object.defineProperty` for `window.scrollY/innerHeight`, `document.body.offsetHeight`, `el.offsetHeight`; jsdom does NOT support `min-content` style value (silently ignored); `!top` is truthy for both `undefined` AND `0` (edge case when y=0, height=1, scrollY=0); mock `getBoundingClientRect` with `jest.fn()` on real HTMLElement
 - time.ts: `diffFrom` while-loop `absDiff >= FACTORS[i] && i < FACTORS.length` — second operand is unreachable (FACTORS[i]=undefined → NaN comparison fails first); `safeSetTimeout` uses `jest.useFakeTimers()` in beforeEach + `jest.useRealTimers()` in afterEach for self-contained fake-timer tests; `diffFrom` tests use fixed `day('2024-01-01T12:00:00Z')` anchor — no clock mocking needed
+- crypto/browserHashUtils.js: `hashObj({})` → '31e'; `hashObj({a:1})` → '1b0fmfe'; `convertToBuffer(string)` → Buffer (which is ArrayBuffer.isView()) → goes through isView branch; all 3 branches of convertToBuffer covered; no mocking needed
+- crypto/index.js: `Buffer.from !== Uint8Array.from` is true in Node.js 22 → always takes the modern branch; URL alphabet test: 'a'→'YQ', 'ab'→'YWI', 'abc'→'YWJj'; base64Decode handles missing padding since Node.js Buffer.from tolerates it
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/dynamic-content/util.ts` — `removeMatchingNotifications`, `createLogger` with store/localStorage/event mocks (medium priority)
+1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` functions (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/scroll.js` — trivial DOM utility (low priority)
 
 ## Completed Work (Summary)
 
-- 2026-06-11: PR (branch test-assist/time-utils-tests): 32 tests for time.ts (elapsedTime, safeSetTimeout, getSecondsDiff, diffFrom); 100% stmts/fns/lines, 96% branches
+- 2026-06-12: PR (branch test-assist/crypto-utils-tests): 35 tests for crypto/browserHashUtils.js and crypto/index.js (hashObj, isEmptyData, convertToBuffer, base64Encode, base64DecodeToBuffer, base64Decode, binarySize)
+- 2026-06-11: PR #18033 (branch test-assist/time-utils-tests): 32 tests for time.ts (elapsedTime, safeSetTimeout, getSecondsDiff, diffFrom); 100% stmts/fns/lines, 96% branches — merged ✅
 - 2026-06-10: PR #18023 (branch test-assist/select-utils-tests): 11 tests for select.js calculatePosition; 100% all metrics — merged ✅
 - 2026-06-09: PR #18011 (branch test-assist/csp-adaptor-tests): 14 tests for cspAdaptor.ts; 100% all metrics — merged ✅
 - 2026-06-08: PR #17989 (branch test-assist/release-notes-tests): 16 tests for release-notes.ts — merged ✅
@@ -77,6 +80,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-12: Task 3 (crypto/browserHashUtils.js + crypto/index.js, 35 tests) + Task 7
 - 2026-06-11: Task 3 (time.ts, 32 tests) + Task 7
 - 2026-06-10: Task 3 (select.js, 11 tests) + Task 7
 - 2026-06-09: Task 3 (cspAdaptor.ts, 14 tests) + Task 7
