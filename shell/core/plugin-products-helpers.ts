@@ -1,11 +1,8 @@
-import { ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage } from '@shell/core/plugin-products-external';
+import { ProductChild, ProductChildCustomPage, ProductChildResourcePage } from '@shell/core/plugin-products-external';
 import { ProductRegistrationRouteGenerationOptions } from '@shell/core/plugin-products-internal';
+import { isProductChildGroup } from '@shell/core/plugin-products-type-guards';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
-
-function isProductChildGroup(child: ProductChild): child is ProductChildGroup {
-  return 'children' in child && Array.isArray(child.children);
-}
 
 class PluginProductsHelpers {
   private weightFromProductChild(item: ProductChild): number | undefined {

@@ -28,9 +28,9 @@ describe('plugin-products-helpers', () => {
 
       const result = gatherChildrenOrdering(children);
 
-      expect(result[0].name).toBe('b'); // 30
-      expect(result[1].name).toBe('c'); // 20
-      expect(result[2].name).toBe('a'); // 10
+      expect(result[0].label).toBe('B'); // 30
+      expect(result[1].label).toBe('C'); // 20
+      expect(result[2].label).toBe('A'); // 10
       // Verify original array is not mutated
       expect(children[0].name).toBe('a');
       expect(children[1].name).toBe('b');
@@ -53,8 +53,8 @@ describe('plugin-products-helpers', () => {
       const result = gatherChildrenOrdering(children);
 
       expect(result[0].sideMenu?.weight).toBe(50);
-      expect(result[1].sideMenu?.weight!).toBeLessThan(50); // 49
-      expect(result[2].sideMenu?.weight!).toBeLessThan(result[1].sideMenu?.weight!); // 48
+      expect(result[1].sideMenu?.weight).toBeLessThan(50); // 49
+      expect(result[2].sideMenu?.weight).toBeLessThan(result[1].sideMenu?.weight); // 48
     });
 
     it('should use 999 as minWeight when no explicit weights are provided', () => {
@@ -184,7 +184,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page);
+      const route = generateVirtualTypeRoute('my-product', page.name);
 
       expect(route.name).toBe('my-product-c-cluster-overview');
       expect(route.path).toBe('my-product/c/:cluster/overview');
@@ -205,7 +205,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page, { extendProduct: true });
+      const route = generateVirtualTypeRoute('my-product', page.name, { extendProduct: true });
 
       expect(route.name).toBe('c-cluster-my-product-overview');
       expect(route.path).toBe('c/:cluster/my-product/overview');
@@ -227,7 +227,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page, { omitPath: true });
+      const route = generateVirtualTypeRoute('my-product', page.name, { omitPath: true });
 
       expect(route.path).toBeUndefined();
       expect(route.name).toBe('my-product-c-cluster-settings');
@@ -280,9 +280,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should handle pages without a type gracefully', () => {
-      const page: Partial<ProductChildPage> = { name: 'clusters' };
-
-      const route = generateConfigureTypeRoute('my-product', page as ProductChildPage);
+      const route = generateConfigureTypeRoute('my-product', undefined);
 
       expect(route.name).toBe('my-product-c-cluster-resource');
       expect(route.params?.resource).toBeUndefined();
@@ -419,7 +417,7 @@ describe('plugin-products-helpers', () => {
       expect(ordered[2].name).toBe('settings');
 
       // Test route generation for each
-      const overviewRoute = generateVirtualTypeRoute('my-product', ordered[1].label);
+      const overviewRoute = generateVirtualTypeRoute('my-product', ordered[1].name);
 
       expect(overviewRoute.name).toContain('overview');
 

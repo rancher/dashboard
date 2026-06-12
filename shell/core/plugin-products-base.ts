@@ -16,6 +16,28 @@ import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell
 import { ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
+import { compact } from 'lodash';
+
+/**
+ * What's the point of this?
+ *
+ * Example
+ * `applyIfDefined(this.product?.label, () => typeMapProduct.label = this.product?.label); `
+ *
+ * If the property is defined we apply it to the object
+ * - this avoids verbose objects filled with `: undefined` (which fail unit tests)
+ *   - { a: undefined, b: undefined, c: true} vs { c: true}
+ *
+ * Caller supplied direct object.property values
+ * - this ensure any further refactoring can happen automatically
+ * - type failures are very visible
+ * - both above would be lost if we had this as a cleaner but generic function(obj, targetPathString, targetValue)
+ */
+const applyIfDefined = function(value: any, apply: () => void) {
+  if (value !== undefined) {
+    apply();
+  }
+};
 
 /**
  * Base class for product registration in extensions
@@ -220,7 +242,7 @@ export abstract class BasePluginProduct {
         if (config.sideMenu.children.length > 0) {
           const entryChild = config.sideMenu.children[0];
 
-          if (!isProductChildGroup(entryChild)) {
+          if (!config.component) {
             // Group without component - route to first child
             if (isProductChildWithType(entryChild)) {
               const entry = entryChild as ProductChildResourcePage;
@@ -229,15 +251,22 @@ export abstract class BasePluginProduct {
             } else if (isProductChildWithComponent(entryChild)) {
               const entry = entryChild as ProductChildCustomPage;
 
-              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, { omitPath: true, extendProduct: !this.isNewProduct });
+              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, {
+                omitPath: true, extendProduct: !this.isNewProduct, component: entry.component
+              });
             }
-          } else if (firstConfig.component) {
+          } else {
+            // generateMetadataForGroupOverviewPageRouting
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
-            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, { omitPath: true, extendProduct: !this.isNewProduct });
+            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
+              omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+            });
           }
         } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, { omitPath: true, extendProduct: !this.isNewProduct });
+          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
+            omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+          });
         }
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
@@ -248,7 +277,9 @@ export abstract class BasePluginProduct {
         // Simple virtual type page (custom page)
         const config = firstConfig as ProductChildCustomPage;
 
-        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, config.name, { omitPath: true, extendProduct: !this.isNewProduct });
+        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, config.name, {
+          omitPath: true, extendProduct: !this.isNewProduct, component: config.component
+        });
       }
     } else if (this.isNewProduct) {
       // this is the "to" route for a simple page product (no config items)
@@ -271,40 +302,40 @@ export abstract class BasePluginProduct {
     if (this.product) {
       // ProductMetadata
 
-      typeMapProduct.label = this.product.label;
-      typeMapProduct.labelKey = this.product.labelKey;
+      applyIfDefined(this.product?.label, () => typeMapProduct.label = this.product?.label); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.labelKey, () => typeMapProduct.labelKey = this.product?.labelKey); // eslint-disable-line no-return-assign
 
-      typeMapProduct.ifFeature = this.product.enable?.ifFeature;
-      typeMapProduct.ifHave = this.product.enable?.ifHave;
-      typeMapProduct.ifHaveGroup = this.product.enable?.ifHaveGroup;
-      typeMapProduct.ifHaveType = this.product.enable?.ifHaveType;
-      typeMapProduct.ifNotHaveType = this.product.enable?.ifHaveType;
+      applyIfDefined(this.product?.enable?.ifFeature, () => typeMapProduct.ifFeature = this.product?.enable?.ifFeature); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHave, () => typeMapProduct.ifHave = this.product?.enable?.ifHave); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHaveGroup, () => typeMapProduct.ifHaveGroup = this.product?.enable?.ifHaveGroup); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHaveType, () => typeMapProduct.ifHaveType = this.product?.enable?.ifHaveType); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifNotHaveType, () => typeMapProduct.ifNotHaveType = this.product?.enable?.ifNotHaveType); // eslint-disable-line no-return-assign
 
-      typeMapProduct.hideSystemResources = this.product.resources?.hideSystemResources;
+      applyIfDefined(this.product?.resources?.hideSystemResources, () => typeMapProduct.hideSystemResources = this.product?.resources?.hideSystemResources); // eslint-disable-line no-return-assign
       typeMapProduct.inStore = this.product.resources?.store ?? 'management';
 
-      typeMapProduct.extendable = this.product.extendable;
+      applyIfDefined(this.product?.extendable, () => typeMapProduct.extendable = this.product?.extendable); // eslint-disable-line no-return-assign
 
-      typeMapProduct.hideCopyConfig = this.product.appHeader?.hideCopyConfig;
-      typeMapProduct.hideKubeConfig = this.product.appHeader?.hideKubeConfig;
-      typeMapProduct.hideKubeShell = this.product.appHeader?.hideKubeShell;
-      typeMapProduct.showClusterSwitcher = this.product?.appHeader?.showClusterInfo;
-      typeMapProduct.showNamespaceFilter = this.product?.appHeader?.showNamespaceFilter;
-      typeMapProduct.iconHeader = this.product?.appHeader?.icon;
+      applyIfDefined(this.product?.appHeader?.hideCopyConfig, () => typeMapProduct.hideCopyConfig = this.product?.appHeader?.hideCopyConfig); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.hideKubeConfig, () => typeMapProduct.hideKubeConfig = this.product?.appHeader?.hideKubeConfig); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.hideKubeShell, () => typeMapProduct.hideKubeShell = this.product?.appHeader?.hideKubeShell); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.showClusterInfo, () => typeMapProduct.showClusterSwitcher = this.product?.appHeader?.showClusterInfo); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.showNamespaceFilter, () => typeMapProduct.showNamespaceFilter = this.product?.appHeader?.showNamespaceFilter); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.icon, () => typeMapProduct.iconHeader = this.product?.appHeader?.icon); // eslint-disable-line no-return-assign
 
-      typeMapProduct.weight = this.product?.sideBar?.weight;
+      applyIfDefined(this.product?.sideBar?.weight, () => typeMapProduct.weight = this.product?.sideBar?.weight); // eslint-disable-line no-return-assign
       typeMapProduct.icon = this.product?.sideBar?.icon?.name ?? 'extension';
-      typeMapProduct.svg = this.product?.sideBar?.icon?.svg;
+      applyIfDefined(this.product?.sideBar?.icon?.svg, () => typeMapProduct.svg = this.product?.sideBar?.icon?.svg); // eslint-disable-line no-return-assign
 
       // ProductMetadataAddInternal
       if (isProductConfigInternal(this.product)) {
         const poI = this.product as ProductMetadataInternal;
 
-        typeMapProduct.category = poI.category;
-        typeMapProduct.hideNamespaceLocation = poI?.appHeader?.hideNamespaceLocation;
-        typeMapProduct.renameGroups = poI?.sideMenu?.renameGroups;
-        typeMapProduct.ignoreGroups = poI?.sideMenu?.ignoreGroups;
-        typeMapProduct.moveToGroup = poI?.sideMenu?.moveToGroup;
+        applyIfDefined(poI.category, () => typeMapProduct.category = poI.category); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.appHeader?.hideNamespaceLocation, () => typeMapProduct.hideNamespaceLocation = poI?.appHeader?.hideNamespaceLocation); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.renameGroups, () => typeMapProduct.renameGroups = poI?.sideMenu?.renameGroups); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.ignoreGroups, () => typeMapProduct.ignoreGroups = poI?.sideMenu?.ignoreGroups); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.moveToGroup, () => typeMapProduct.moveToGroup = poI?.sideMenu?.moveToGroup); // eslint-disable-line no-return-assign
       }
     }
 
@@ -406,22 +437,22 @@ export abstract class BasePluginProduct {
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
       } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
       }
 
       if (isProductChildWithComponent(item)) {
         const itemCustomPage:ProductChildCustomPageInternal = item as ProductChildCustomPageInternal;
 
         // virtualTypeConfig.component = itemCustomPage.component;
-        virtualTypeConfig.ifHave = itemCustomPage.enable?.ifHave;
-        virtualTypeConfig.ifFeature = itemCustomPage.enable?.ifFeature;
-        virtualTypeConfig.ifHaveType = itemCustomPage.enable?.ifHaveType;
-        virtualTypeConfig.ifHaveVerb = itemCustomPage.enable?.ifHaveVerb;
+        applyIfDefined(itemCustomPage.enable?.ifHave, () => virtualTypeConfig.ifHave = itemCustomPage.enable?.ifHave); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifFeature, () => virtualTypeConfig.ifFeature = itemCustomPage.enable?.ifFeature); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifHaveType, () => virtualTypeConfig.ifHaveType = itemCustomPage.enable?.ifHaveType); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemCustomPage.enable?.ifHaveVerb); // eslint-disable-line no-return-assign
 
-        virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced;
-        virtualTypeConfig.weight = itemCustomPage.sideMenu?.weight;
+        applyIfDefined(itemCustomPage.resource?.namespaced, () => virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.sideMenu?.weight, () => virtualTypeConfig.weight = itemCustomPage.sideMenu?.weight); // eslint-disable-line no-return-assign
       }
 
       virtualType(virtualTypeConfig);
@@ -465,7 +496,7 @@ export abstract class BasePluginProduct {
         hideBulkActions(item.type, true);
       }
 
-      configureTypeConfig.listCreateButtonLabelKey = item.views?.list?.createLabelKey;
+      applyIfDefined(item.views?.list?.createLabelKey, () => configureTypeConfig.listCreateButtonLabelKey = item.views?.list?.createLabelKey); // eslint-disable-line no-return-assign
       configureTypeConfig.showState = item.display?.showState ?? true;
       configureTypeConfig.showAge = item.display?.showAge ?? true;
       configureTypeConfig.showConfigView = item.views?.detail?.showConfigView ?? true;
