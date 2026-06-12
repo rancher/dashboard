@@ -25,6 +25,15 @@ function createTransformFactories(t: I18n['t'], fieldKey: string) {
 
 type TransformFactories = ReturnType<typeof createTransformFactories>;
 
+// NOTE: builder methods (required, url, and anything added to
+// createTransformFactories) must be the last calls in a chain. Each is
+// implemented by bolting extra methods onto a real Zod schema instance, so
+// chaining a genuine ZodTypeAny method afterwards (.refine(), .optional(),
+// .transform(), etc.) returns a plain Zod schema without these extras - any
+// further .required()/.url() calls on that result will be undefined at
+// runtime. If a field needs that kind of composition, apply it to the
+// resulting z.object({...}) shape as a whole, or add a transform-style
+// validator to createTransformFactories instead.
 export type FieldBuilder = ZodTypeAny & {
   required(keyOverride?: string): FieldBuilder;
 } & {
