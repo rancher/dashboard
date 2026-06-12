@@ -40,7 +40,7 @@ export type FieldBuilder = ZodTypeAny & {
   [K in keyof TransformFactories]: (...args: Parameters<TransformFactories[K]>) => FieldBuilder;
 };
 
-export function createZodHelpers(t: I18n['t']) {
+export function zodValidators(t: I18n['t']) {
   const firstIssue = (schemas: ZodTypeAny[], v: string) => {
     return schemas
       .map((schema) => schema.safeParse(v))

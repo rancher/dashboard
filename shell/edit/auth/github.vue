@@ -19,7 +19,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { createZodHelpers } from '@shell/utils/validators/zod-helpers';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 export default {
   components: {
@@ -45,7 +45,7 @@ export default {
     const isGithubAppRef = ref(false);
     const isPublicRef = ref(true);
 
-    const { field } = createZodHelpers(t);
+    const { field } = zodValidators(t);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({

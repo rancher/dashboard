@@ -21,7 +21,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { createZodHelpers } from '@shell/utils/validators/zod-helpers';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const PKCE_S256 = 'S256';
 
@@ -69,7 +69,7 @@ export default {
     const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
     const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
 
-    const { field } = createZodHelpers(t);
+    const { field } = zodValidators(t);
 
     // Reactive schema uses computed to reshape when provider or endpoint mode
     // changes.
