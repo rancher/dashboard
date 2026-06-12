@@ -325,11 +325,17 @@ export type ProductMetadataSinglePage = ProductMetadata & {
 // --------------  Extension methods --------------
 
 export interface IExtensionProducts {
-/**
+  /**
    * Register a top-level product as a flag on the plugin
    * @internal - DO NOT USE - Internal API only
    */
   _registerTopLevelProduct(): void;
+
+  /**
+   *
+   * @internal - DO NOT USE - Internal API only
+   */
+  _setStartRouteWithProduct(value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages

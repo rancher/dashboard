@@ -22,6 +22,12 @@ export type ProductRegistrationRouteGenerationOptions = {
    * Generated route should omit the path property
    */
   omitPath?: boolean;
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   * */
+  startRouteWithProduct?: boolean;
 }
 
 // --------------  Page Related Resource --------------
@@ -48,16 +54,38 @@ export type ProductChildResourcePageInternal = ProductChildResourcePage & {
   listConfig?: {
     /** Table headers for this resource type (client-side pagination) */
     localHeaders?: PaginationHeaderOptions[];
+
+    /**
+     * Whether this custom page has list groups (definition for grouping items in the list view)
+     */
+    listGroups?: {
+      /** Icon for the group (relates to icons in rancher-icons */
+      icon?: string;
+      /** Value for the group (used for grouping items in the list view) */
+      value?: string;
+      /** Field for the group (used for grouping items in the list view) */
+      field?: string;
+      /** Column to hide when this group is active */
+      hideColumn?: string;
+      /** Tooltip key for the group */
+      tooltipKey?: string;
+    }[];
+
+    /**
+     * Whether the provided list groups will override the default grouping options (e.g. group by namespace, group by cluster, etc.) or be added to them
+     */
+    listGroupsWillOverride?: boolean;
+
+    /**
+    * Use this to configure subtypes that should be shown in the list view for this type (e.g. show "pods" and "deployments" in the list view for "workloads")
+    */
+    subTypes?: string[];
   }
 
   /** Control how the child displays in the side menu  */
   sideMenu?: {
     /** Whether to hide this resource from the side-menu entirely */
     hideFromNav?: boolean;
-    navigation?: {
-      /** Entry route definition for this custom page */
-      customRoute?: RouteRecordRawWithParams | PluginRouteRecordRaw | Object;
-    }
   }
 
   /** Control how resources are handled in this product */
@@ -92,6 +120,10 @@ export type ProductMetadataInternal = ProductMetadata & {
     * Hide the Namespace location
     */
     hideNamespaceLocation?: boolean;
+    /**
+    *  controls whether a workspace switcher dropdown appears in the header (instead of the namespace filter) if set to true
+    */
+    showWorkspaceSwitcher?: boolean;
   },
 
   /**
@@ -162,12 +194,15 @@ export type ProductMetadataInternal = ProductMetadata & {
     }[]
   }
 
+  /**
+   * Whether the product can be removed by users (default: false — products are built-in/not removable unless explicitly set to true)
+   */
+  removable?: boolean;
+
     /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
   // supportRoute: string;
   // typeStoreMap: string;
 };

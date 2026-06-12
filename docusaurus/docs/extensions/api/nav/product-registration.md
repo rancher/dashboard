@@ -342,9 +342,7 @@ A page inside a product that renders a Vue component you provide. Equivalent to 
 | `labelKey` | `string` | Yes* | Translation key for the label |
 | `component` | `RouteComponent` | Yes | Vue component to render |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | [`CustomPageConfiguration`](#CustomPageConfiguration) | No | Optional configuration for the page | TODO: RC this no longer exists
-
-### `CustomPageConfiguration` TODO: RC this is internal. any properties we do expose will be in ProductChildCustomPage and should be documented
+| `config` | [`CustomPageConfiguration`](#CustomPageConfiguration) | No | Optional configuration for the page | 
 
 Configuration options for a custom page, passed via the `config` property of `ProductChildCustomPage`. These control visibility conditions, routing, and navigation behavior.
 
@@ -365,14 +363,14 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | --- | --- | --- | --- |
 | `type` | `string` | Yes | Kubernetes resource type (e.g. `'provisioning.cattle.io.cluster'`) |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | `TypeMapConfigureType` | No | TODO: RC link to issue Resource page options (creatable, editable, removable, etc.) |
+| `config` | `TypeMapConfigureType` | No | Resource page options (creatable, editable, removable, etc.) |
 | `headers` | `HeaderOptions[]` | No | Custom table column headers for the list view (client-side pagination). See [Table headers](#table-headers-headers) |
 | `sspHeaders` | `PaginationHeaderOptions[]` | No | Custom table column headers for the list view (server-side pagination). See [Server-side pagination headers](#server-side-pagination-headers-sspheaders) |
 | `overrideListResourceName` | `string` | No | Override the display name for this resource type in the list view. See [Renaming types](#renaming-types-overridelistresourcename) |
 | `hideFromNav` | `boolean` | No | Hide this resource type from the side-menu entirely. See [Hiding types](#hiding-types-from-navigation-hidefromnav) |
 | `hideBulkActions` | `boolean` | No | Hide bulk action buttons (e.g. delete) for this resource type in the list view. See [Hiding bulk actions](#hiding-bulk-actions-hidebulkactions) |
 
-### `ResourcePageConfiguration` TODO: RC this is internal. any properties we do expose will be in ProductChildResourcePage and should be documented
+### `ResourcePageConfiguration`
 
 Configuration options for a resource page, passed via the `config` property of `ProductChildResourcePage`. These control how the resource behaves in list, detail, and edit views.
 

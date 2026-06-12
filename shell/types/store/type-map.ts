@@ -140,11 +140,18 @@ export interface TypeMapProduct {
   }[];
 
   /**
+   * Whether the product can be removed by users (default: false — products are built-in/not removable unless explicitly set to true)
+   */
+  removable?: boolean;
+  /**
+   *  controls whether a workspace switcher dropdown appears in the header (instead of the namespace filter) if set to true
+   */
+  showWorkspaceSwitcher?: boolean;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
   // supportRoute: string;
   // typeStoreMap: string;
 }
@@ -188,15 +195,32 @@ export interface TypeMapConfigureType {
   depaginate?: undefined;
   // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
   // used in configureType options, to be typed later if needed
-  // listGroups: [
-  //       {
-  //         icon:       'icon-role-binding',
-  //         value:      'node',
-  //         field:      'roleDisplay',
-  //         hideColumn: ROLE.name,
-  //         tooltipKey: 'resourceTable.groupBy.role'
-  //       }
-  //     ]
+
+  /**
+   * Whether this custom page has list groups (definition for grouping items in the list view)
+   */
+  listGroups?: {
+    /** Icon for the group (relates to icons in rancher-icons */
+    icon?: string;
+    /** Value for the group (used for grouping items in the list view) */
+    value?: string;
+    /** Field for the group (used for grouping items in the list view) */
+    field?: string;
+    /** Column to hide when this group is active */
+    hideColumn?: string;
+    /** Tooltip key for the group */
+    tooltipKey?: string;
+  }[];
+
+      /**
+     * Whether the provided list groups will override the default grouping options (e.g. group by namespace, group by cluster, etc.) or be added to them
+     */
+    listGroupsWillOverride?: boolean;
+
+    /**
+    * Use this to configure subtypes that should be shown in the list view for this type (e.g. show "pods" and "deployments" in the list view for "workloads")
+    */
+    subTypes?: string[];
 }
 
 /**

@@ -335,6 +335,9 @@ export abstract class BasePluginProduct {
         applyIfDefined(poI?.sideMenu?.renameGroups, () => typeMapProduct.renameGroups = poI?.sideMenu?.renameGroups); // eslint-disable-line no-return-assign
         applyIfDefined(poI?.sideMenu?.ignoreGroups, () => typeMapProduct.ignoreGroups = poI?.sideMenu?.ignoreGroups); // eslint-disable-line no-return-assign
         applyIfDefined(poI?.sideMenu?.moveToGroup, () => typeMapProduct.moveToGroup = poI?.sideMenu?.moveToGroup); // eslint-disable-line no-return-assign
+
+        applyIfDefined(poI?.appHeader?.showWorkspaceSwitcher, () => typeMapProduct.showWorkspaceSwitcher = poI?.appHeader?.showWorkspaceSwitcher); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.removable, () => typeMapProduct.removable = poI?.removable); // eslint-disable-line no-return-assign
       }
     }
 
@@ -422,10 +425,6 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
-      // TODO: RC ResourcePageConfiguration TypeMapConfigureType
-      // TODO: RC CustomPageConfiguration TypeMapVirtualType
-      //
-
       const virtualTypeConfig: TypeMapVirtualType = {
         label:      item.label,
         labelKey:   item.labelKey,
@@ -479,8 +478,12 @@ export abstract class BasePluginProduct {
         isEditable:  itemRP.can?.edit ?? true,
         isRemovable: itemRP.can?.create ?? true,
         canYaml:     itemRP.can?.yaml ?? true,
-        customRoute: itemRP.sideMenu?.navigation?.customRoute ?? route
+        customRoute: route
       };
+
+      applyIfDefined(itemRP.listConfig?.listGroups, () => configureTypeConfig.listGroups = itemRP.listConfig?.listGroups); // eslint-disable-line no-return-assign
+      applyIfDefined(itemRP.listConfig?.listGroupsWillOverride, () => configureTypeConfig.listGroupsWillOverride = itemRP.listConfig?.listGroupsWillOverride); // eslint-disable-line no-return-assign
+      applyIfDefined(itemRP.listConfig?.subTypes, () => configureTypeConfig.subTypes = itemRP.listConfig?.subTypes); // eslint-disable-line no-return-assign
 
       if (itemRP.listConfig?.localHeaders || itemRP.listConfig?.headers) {
         headers(item.type, itemRP.listConfig?.localHeaders, itemRP.listConfig?.headers);
