@@ -124,10 +124,6 @@ export const SETTING = {
    */
   DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
-  /**
-   * Disable local auth provider when an external auth provider is configured
-   */
-  DISABLE_LOCAL_AUTH:                            'disable-local-auth',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -193,15 +189,12 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
   [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
-  [SETTING.DISABLE_LOCAL_AUTH]:                            { kind: 'boolean' },
-
 };
 
 /**
  * Show settings in a special authentication section
  */
 export const AUTHENTICATION_SETTINGS = [
-  SETTING.DISABLE_LOCAL_AUTH,
   SETTING.PASSWORD_MIN_LENGTH,
   SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS,
   SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES,

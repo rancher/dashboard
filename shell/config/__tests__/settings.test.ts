@@ -1,10 +1,6 @@
-import { SETTING, AUTHENTICATION_SETTINGS, ALLOWED_SETTINGS } from '@shell/config/settings';
+import { SETTING, AUTHENTICATION_SETTINGS } from '@shell/config/settings';
 
 describe('AUTHENTICATION_SETTINGS', () => {
-  it('includes DISABLE_LOCAL_AUTH', () => {
-    expect(AUTHENTICATION_SETTINGS).toContain(SETTING.DISABLE_LOCAL_AUTH);
-  });
-
   it('includes password-min-length', () => {
     expect(AUTHENTICATION_SETTINGS).toContain(SETTING.PASSWORD_MIN_LENGTH);
   });
@@ -23,11 +19,5 @@ describe('AUTHENTICATION_SETTINGS', () => {
 
   it('includes auth-user-info-resync-cron', () => {
     expect(AUTHENTICATION_SETTINGS).toContain(SETTING.AUTH_USER_INFO_RESYNC_CRON);
-  });
-});
-
-describe('ALLOWED_SETTINGS', () => {
-  it('registers disable-local-auth as a boolean kind', () => {
-    expect(ALLOWED_SETTINGS[SETTING.DISABLE_LOCAL_AUTH]).toStrictEqual({ kind: 'boolean' });
   });
 });

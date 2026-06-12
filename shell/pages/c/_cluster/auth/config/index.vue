@@ -24,18 +24,6 @@ export default {
 
     this['enabled'] = authProvs.enabled;
     this['nonLocal'] = authProvs.nonLocal;
-
-    try {
-      const setting = await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.DISABLE_LOCAL_AUTH,
-        opt:  { url: `/v1/${ MANAGEMENT.SETTING }/${ SETTING.DISABLE_LOCAL_AUTH }` }
-      });
-
-      this['disableLocalAuth'] = (setting?.value || setting?.default) === 'true';
-    } catch {
-      this['disableLocalAuth'] = false;
-    }
   },
 
   data() {
