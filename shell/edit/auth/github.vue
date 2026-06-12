@@ -19,6 +19,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { createZodHelpers } from '@shell/utils/validators/zod-helpers';
 
 export default {
   components: {
@@ -44,18 +45,15 @@ export default {
     const isGithubAppRef = ref(false);
     const isPublicRef = ref(true);
 
-    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
-    const optionalField = coerce(z.string());
+    const { field } = createZodHelpers(t);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        clientId:     requiredField('authConfig.github.clientId.label'),
-        clientSecret: requiredField('authConfig.github.clientSecret.label'),
-        appId:        isGithubAppRef.value ? requiredField('authConfig.githubapp.githubAppId.label') : optionalField,
-        privateKey:   isGithubAppRef.value ? requiredField('authConfig.githubapp.privateKey.label') : optionalField,
-        targetUrl:    !isPublicRef.value ? requiredUrlField('authConfig.github.host.label') : optionalField,
+        clientId:     field('authConfig.github.clientId.label').required(),
+        clientSecret: field('authConfig.github.clientSecret.label').required(),
+        appId:        isGithubAppRef.value ? field('authConfig.githubapp.githubAppId.label').required() : field(),
+        privateKey:   isGithubAppRef.value ? field('authConfig.githubapp.privateKey.label').required() : field(),
+        targetUrl:    !isPublicRef.value ? field('authConfig.github.host.label').required().url() : field(),
       })
     ));
 
