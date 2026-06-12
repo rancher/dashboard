@@ -587,19 +587,21 @@ export default class Workload extends WorkloadService {
   }
 
   async fetchSummaries() {
-    const summaries = {};
+    const summaries = { pods: null };
 
-    summaries.pods = null;
-
-    if (this.podMatchExpression) {
-      summaries.pods = await this.$dispatch('fetchResourceSummary', {
-        type: POD,
-        opt:  {
-          summaryField:  'metadata.state.name',
-          namespace:     this.metadata.namespace,
-          labelSelector: { matchExpressions: this.podMatchExpression },
-        }
-      });
+    try {
+      if (this.podMatchExpression) {
+        summaries.pods = await this.$dispatch('fetchResourceSummary', {
+          type: POD,
+          opt:  {
+            summaryField:  'metadata.state.name',
+            namespace:     this.metadata.namespace,
+            labelSelector: { matchExpressions: this.podMatchExpression },
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('fetchSummaries: failed to fetch pod summary', e); // eslint-disable-line no-console
     }
 
     set(this, '_summaries', summaries);
