@@ -123,6 +123,9 @@ export class Plugin implements IPlugin {
     this.topLevelProduct = true;
   }
 
+  _setStartRouteWithProduct(_value: boolean): void {
+  }
+
   // Track which products the plugin creates
   // Legacy DSL method
   DSL(store: any, productName: string) {

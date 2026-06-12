@@ -14,7 +14,6 @@ export const settings = {
   'kubeconfig-generate-token':            { new: 'false' },
   'kubeconfig-default-token-ttl-minutes': { new: '100' },
   'auth-user-info-resync-cron':           { new: '0 9 * * *' },
-  'ui-index':                             { new: 'https://e2e-test.html' },
   'ui-dashboard-index':                   { new: 'https://e2e-test.html' },
   'ui-offline-preferred':                 {
     new:  'Local',

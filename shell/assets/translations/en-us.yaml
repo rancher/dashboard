@@ -736,7 +736,7 @@ authConfig:
       label: Auth Endpoint
     endSessionEndpoint:
       title: End Session Endpoint
-      tooltip: Azure AD URL used for logging a user out of their session (e.g. https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/logout)
+      tooltip: "{name} URL used for logging a user out of their session (e.g. https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/logout)"
     groupMembershipFilter:
       label: Group Membership Filter
       enable: Limit users by group membership
@@ -2848,6 +2848,8 @@ cruResource:
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
   showYaml: View as YAML
+  tableOfContents:
+    jumpTo: Jump to...
 
 providers:
   hosted: 
@@ -5624,7 +5626,7 @@ plugins:
     banner: There are new extensions repositories available. To enable these repositories, click the button on the right.
     bannerBtn: Add repositories
     title: Add Extensions repositories
-    prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
+    prompt: Enable additional repositories to access more extensions
   setup:
     installed: Already installed
     uninstalled: Already uninstalled
@@ -5640,7 +5642,7 @@ plugins:
       prompt: This will lead you to the page where you can enable the Feature Flag needed to enable Extension support.
       featuresButton: Go to Feature Flags
       airgap: Air-gapped installations should NOT enable this feature
-      addRancherRepo: Add Official Rancher Extensions Repository
+      addRancherRepo: Add Rancher Prime Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
     remove:
       label: Disable Extension Support
@@ -7990,6 +7992,7 @@ model:
       genericoidc: OIDC provider
       cognito: Amazon Cognito
     name:
+      azuread: Microsoft Entra ID
       keycloak: Keycloak (SAML)
       keycloakoidc: Keycloak (OIDC)
     provider:
@@ -8843,9 +8846,8 @@ advancedSettings:
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
     'system-default-registry': 'Private registry to be used for all Rancher System Container Images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
-    'ui-index': 'HTML index location for the Cluster Manager UI.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
-    'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-index and ui-dashboard-index settings. The `Dynamic` option will use local assets in production builds of {appName}.'
+    'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'

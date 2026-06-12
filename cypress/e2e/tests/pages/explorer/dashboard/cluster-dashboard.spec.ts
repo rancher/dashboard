@@ -315,7 +315,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard with limited permissions', () => {
+  describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;
@@ -405,7 +405,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     status:  403,
   };
 
-  describe('Cluster dashboard - Fleet agent', () => {
+  describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
     // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
     // which log in as a standard user and may leave session cookies in an inconsistent state
     beforeEach(() => {

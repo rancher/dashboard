@@ -422,6 +422,10 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
+      // TODO: RC ResourcePageConfiguration TypeMapConfigureType
+      // TODO: RC CustomPageConfiguration TypeMapVirtualType
+      //
+
       const virtualTypeConfig: TypeMapVirtualType = {
         label:      item.label,
         labelKey:   item.labelKey,
