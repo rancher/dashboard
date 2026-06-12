@@ -1,4 +1,4 @@
-import { createZodHelpers } from '@shell/utils/validators/zod-helpers';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const mockT = (key: string, args?: Record<string, unknown>): string => {
   if (args) {
@@ -8,13 +8,13 @@ const mockT = (key: string, args?: Record<string, unknown>): string => {
   return key;
 };
 
-const { field } = createZodHelpers(mockT);
+const { field } = zodValidators(mockT);
 
 const REQUIRED_MSG = (fieldKey: string) => `validation.required[${ fieldKey }]`;
 const URL_MSG = (fieldKey: string) => `validation.url[${ fieldKey }]`;
 const GENERIC_URL_MSG = 'validation.genericUrl';
 
-describe('createZodHelpers', () => {
+describe('zodValidators', () => {
   describe('builder style — field(key).chain()', () => {
     describe('field(key) — optional string', () => {
       it.each([
