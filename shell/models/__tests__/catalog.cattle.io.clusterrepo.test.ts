@@ -17,6 +17,7 @@ describe('clusterRepo', () => {
     jest.spyOn(model, 'save').mockImplementation().mockResolvedValue(true);
     jest.spyOn(model, 'waitForState').mockImplementation().mockResolvedValue(true);
     jest.spyOn(model, '$dispatch', 'get').mockReturnValue(jest.fn());
+    jest.spyOn(model, 't', 'get').mockReturnValue((key: string) => key);
   });
 
   describe('refresh', () => {
@@ -56,6 +57,62 @@ describe('clusterRepo', () => {
         title: 'Error refreshing repository',
         err:   error
       }, { root: true });
+    });
+  });
+
+  describe('defaultRefreshIntervalHours', () => {
+    it('returns 24 for OCI repos', () => {
+      model.spec.url = 'oci://example.com/chart';
+      model.spec.insecurePlainHttp = false;
+      expect(model.defaultRefreshIntervalHours).toStrictEqual(24);
+    });
+
+    it('returns 1 for git repos', () => {
+      model.spec = { gitRepo: 'https://github.com/example/charts' };
+      expect(model.defaultRefreshIntervalHours).toStrictEqual(1);
+    });
+
+    it('returns 1 for helm repos', () => {
+      model.spec = { url: 'https://charts.example.com' };
+      expect(model.defaultRefreshIntervalHours).toStrictEqual(1);
+    });
+  });
+
+  describe('defaultRefreshInterval', () => {
+    it('returns seconds for OCI repos (24 hours)', () => {
+      model.spec.url = 'oci://example.com/chart';
+      model.spec.insecurePlainHttp = false;
+      expect(model.defaultRefreshInterval).toStrictEqual(86400);
+    });
+
+    it('returns seconds for non-OCI repos (1 hour)', () => {
+      model.spec = { gitRepo: 'https://github.com/example/charts' };
+      expect(model.defaultRefreshInterval).toStrictEqual(3600);
+    });
+  });
+
+  describe('refreshIntervalDisplay', () => {
+    it.each([
+      -1,
+      -100,
+    ])('returns "Disabled" when value is %p', (val) => {
+      model.spec.refreshInterval = val;
+      expect(model.refreshIntervalDisplay).toStrictEqual('generic.disabled');
+    });
+
+    it('returns formatted duration for positive values', () => {
+      model.spec.refreshInterval = 3661;
+      expect(model.refreshIntervalDisplay).toStrictEqual('1h 1m 1s');
+    });
+
+    it('returns default formatted duration when not set', () => {
+      model.spec = { url: 'https://charts.example.com' };
+      expect(model.refreshIntervalDisplay).toStrictEqual('1h');
+    });
+
+    it('returns default formatted duration for OCI when not set', () => {
+      model.spec = { url: 'oci://example.com/chart', insecurePlainHttp: false };
+      expect(model.refreshIntervalDisplay).toStrictEqual('1d');
     });
   });
 
