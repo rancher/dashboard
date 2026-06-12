@@ -97,6 +97,16 @@ export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definit
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }
+    } else if (!propRef && (prop.properties || prop.items?.properties)) {
+      // Inline object schema - common in CRDs which define schemas inline
+      // rather than using $ref to named definitions
+      const inlineDef = prop.properties ? prop : prop.items;
+
+      prop.$$ref = JSON.parse(JSON.stringify({ properties: inlineDef.properties, description: inlineDef.description }));
+      prop.$refName = propName;
+      prop.$refNameShort = propName;
+
+      expandOpenAPIDefinition(definitions, prop.$$ref, []);
     }
 
     extractMoreInfo(prop);

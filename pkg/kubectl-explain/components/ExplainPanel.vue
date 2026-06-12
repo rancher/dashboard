@@ -119,7 +119,7 @@ export default {
           </a>
         </div>
         <div
-          v-if="field.type && field.type !== 'array'"
+          v-if="field.type && field.type !== 'array' && !field.$$ref"
           class="field-type"
         >
           <div>
@@ -171,7 +171,7 @@ export default {
           v-model:value="field.description"
         />
         <div
-          v-if="expanded[field.name]"
+          v-if="expanded[field.name] && field.$breadcrumbs"
           class="sub-name"
         >
           <a
