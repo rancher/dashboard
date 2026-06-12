@@ -41,6 +41,12 @@ export function createZodHelpers(t: I18n['t']) {
   };
 
   function buildSchema(transforms: Transform[], requiredKey?: string): ZodTypeAny {
+    // Plain optional case (field() with no chained validators). Skip the
+    // superRefine wrapper entirely since it would always be a no-op.
+    if (transforms.length === 0 && requiredKey === undefined) {
+      return z.preprocess((v) => v ?? '', z.string());
+    }
+
     // Compiled once per builder state, then reused across every superRefine call
     // (e.g. every keystroke revalidation) since none of these depend on `v`.
     const compiledTransforms = transforms.map((transform) => transform(z.string()));
