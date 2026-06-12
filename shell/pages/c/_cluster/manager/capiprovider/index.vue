@@ -1,14 +1,11 @@
 <script>
 import { CAPI } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
-import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading.vue';
 
 export default {
   name:       'CAPIProviders',
-  components: {
-    ResourceTable, Masthead, Loading
-  },
+  components: { ResourceTable, Loading },
   data() {
     return {
       errors:   [],
@@ -25,12 +22,6 @@ export default {
 
 <template>
   <div>
-    <Masthead
-      :schema="schema"
-      :resource="resource"
-      :type-display="t('providers.capi.title')"
-      :is-creatable="true"
-    />
     <Loading v-if="$fetchState.pending" />
     <ResourceTable
       v-else

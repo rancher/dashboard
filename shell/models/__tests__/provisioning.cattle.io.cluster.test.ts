@@ -6,7 +6,7 @@ jest.mock('@shell/utils/provider', () => ({
     return ['GKE', 'EKS', 'AKS'].includes(provider);
   }),
   isCAPIProvider: jest.fn().mockImplementation((context, provider) => {
-    return ['CAPA', 'CAPV'].includes(provider);
+    return ['capa', 'capv'].includes(provider.toLowerCase());
   })
 }));
 
