@@ -46,6 +46,25 @@ describe('createZodHelpers', () => {
       });
     });
 
+    describe('field().required() — required with no static key', () => {
+      const schema = field().required();
+
+      it('passes when value is provided', () => {
+        expect(schema.safeParse('hello').success).toBe(true);
+      });
+
+      it.each([
+        ['empty string', ''],
+        [null, null],
+        [undefined, undefined],
+      ])('fails for %s', (_label, value) => {
+        const result = schema.safeParse(value);
+
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(REQUIRED_MSG(''));
+      });
+    });
+
     describe('field(key).url() — optional URL', () => {
       const schema = field('myKey').url();
 

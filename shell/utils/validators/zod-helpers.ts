@@ -44,7 +44,7 @@ export function createZodHelpers(t: I18n['t']) {
     return z.preprocess(
       (v) => v ?? '',
       z.string().superRefine((v: string, ctx) => {
-        const requiredResult = requiredKey ? z.string().min(1, t('validation.required', { key: t(requiredKey) })).safeParse(v) : undefined;
+        const requiredResult = requiredKey !== undefined ? z.string().min(1, t('validation.required', { key: t(requiredKey) })).safeParse(v) : undefined;
 
         const hasIssue = requiredResult?.success === false ? requiredResult.error.issues[0] : (!v ? undefined : firstIssue(transforms, v));
 
