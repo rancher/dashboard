@@ -99,6 +99,19 @@ export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definit
       }
     }
 
+    // CRDs embed schemas inline rather than using $ref
+    const inlineProperties = prop.properties || prop.items?.properties;
+
+    if (!propRef && inlineProperties) {
+      prop.$$ref = { properties: JSON.parse(JSON.stringify(inlineProperties)) };
+      prop.$refName = propName;
+      prop.$refNameShort = 'object';
+      prop.$inline = true;
+      prop.$breadcrumbs = [...breadcrumbs];
+
+      expandOpenAPIDefinition(definitions, prop.$$ref, prop.$breadcrumbs);
+    }
+
     extractMoreInfo(prop);
   });
 }
