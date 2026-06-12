@@ -1031,13 +1031,13 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
-    if (!this.isUpstreamCAPIProvider) {
-      this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
-    } else {
-      this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 3);
+    // Hooks to be run when cluster is getting initialized
+    if (this.extensionProvider?.registerInitHooks) {
+      this.extensionProvider.registerInitHooks(this.registerHook.bind(this, INIT_HOOKS), this.value);
     }
-
+    // Other hooks to be run before/after saving the cluster
+    this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
@@ -1048,10 +1048,6 @@ export default {
     // Register any hooks for this extension provider
     if (this.extensionProvider?.registerSaveHooks) {
       this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
-    }
-
-    if (this.extensionProvider?.registerInitHooks) {
-      this.extensionProvider.registerInitHooks(this.registerHook.bind(this, INIT_HOOKS), this.value);
     }
   },
 
@@ -1498,11 +1494,6 @@ export default {
         if (conflict) {
           throw Error(conflict);
         }
-      }
-    },
-    async saveInfrastructureCluster() {
-      if (this.extensionProvider?.saveInfrastructureCluster) {
-        return await this.extensionProvider.saveInfrastructureCluster( this.value, this.infrastructureCluster, this.isEdit);
       }
     },
 

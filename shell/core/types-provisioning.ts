@@ -284,35 +284,6 @@ export interface IClusterProvisioner {
    */
   saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
 
-    /**
-   * Creates or updates the infrastructure cluster associated with the provisioning cluster. Required for CAPI clusters
-   *
-   * The resulting infrastructure cluster will be set on the provisioning cluster's `infrastructureCluster` property, and is usually used to store information about how to connect to the cluster (for example the API endpoint or credentials):
-   * value.spec.rkeConfig.infrastructureRef = {
-   *     kind:       '<Type>Cluster',
-   *     name:       infraCluster.metadata.name,
-   *     namespace:  infraCluster.metadata.namespace,
-   *     apiVersion: 'infrastructure.cluster.x-k8s.io/v1beta2',
-   * };
-   *
-   * @param value provisioning cluster (`provisioning.cattle.io.cluster`)
-   * @param infrastructureCluster The infrastructure cluster (`infrastructure.cluster.x-k8s.io.Cluster`)
-   * @param context The cluster provisioner context, which includes things like vuex dispatch and getters, axios for making http requests, and a translation function `t`
-   * @param isEdit True if the cluster is being edited, false if it is being created
-   * @returns Content of async result / promise N/A, only the success / fail state
-   */
-  saveInfrastructureCluster?(value: any, infrastructureCluster: any, context: any, isEdit: boolean): Promise<any>
-
-  /**
-   * Initialize the infrastructure cluster associated with the provisioning cluster.
-   * Used by upstream CAPI providers to load or create the referenced infrastructure cluster resource.
-   *
-   * @param value provisioning cluster (`provisioning.cattle.io.cluster`)
-   * @param infrastructureCluster Existing infrastructure cluster resource, when available
-   * @returns The initialized infrastructure cluster resource or an empty object if unavailable
-   */
-  initInfrastructureCluster?(value: any, infrastructureCluster: any): Promise<any>
-
   /**
    * Optional custom UI section for infrastructure-cluster-specific configuration.
    */
