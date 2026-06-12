@@ -27,6 +27,7 @@ export interface ResourcesApi {
    * Finds a specific resource by its type and ID.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
@@ -45,11 +46,11 @@ export interface ResourcesApi {
    * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
    * ```
    */
-  find<T = Record<string, any>>(
+  find<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<ResourceInstance<T> | null>;
+  ): Promise<I | null>;
 
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
@@ -59,6 +60,7 @@ export interface ResourcesApi {
    * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
@@ -81,10 +83,10 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = ActionFindPageTransientResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptionsTransient
-  ): Promise<ActionFindPageTransientResponse<ResourceInstance<T>>>;
+  ): Promise<I>;
 
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
@@ -94,6 +96,7 @@ export interface ResourcesApi {
    * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
@@ -115,10 +118,10 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions
-  ): Promise<ResourceInstance<T>[]>;
+  ): Promise<I[]>;
 
   /**
    * Finds resources using label selector matching.
@@ -128,6 +131,7 @@ export interface ResourcesApi {
    * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Label selector options for filtering. See {@link FindFilteredLabelSelectorOptions}.
    * @returns Response containing resource items (may be transient if requested, otherwise cached array).
@@ -143,24 +147,25 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = FindFilteredLabelSelectorResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
     options: FindFilteredLabelSelectorOptions
-  ): Promise<FindFilteredLabelSelectorResponse<ResourceInstance<T>>>;
+  ): Promise<I>;
 
   /**
    * @internal Implementation - use one of the overloads above
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     options: FindFilteredPageOptions | FindFilteredPageOptionsTransient | FindFilteredLabelSelectorOptions
-  ): Promise<ResourceInstance<T>[] | ActionFindPageTransientResponse<ResourceInstance<T>>>;
+  ): Promise<I[] | ResourceInstance<T>[] | ActionFindPageTransientResponse<ResourceInstance<T>>>;
 
   /**
    * Fetches all resources of a specific type with advanced options.
    * This method provides additional capabilities like incremental loading and namespace filtering.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Optional advanced fetch options (incremental loading, namespace filtering, etc.)
    * @returns An array of resource items or an empty array if none are found.
@@ -175,10 +180,10 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  findAll<T = Record<string, any>>(
+  findAll<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     options?: FindAllMethodOptions
-  ): Promise<ResourceInstance<T>[]>;
+  ): Promise<I[]>;
 
   /**
    * Creates a new resource.
@@ -187,6 +192,7 @@ export interface ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param data - The resource data to create. Must include a `type` property (examples in **{@link K8S}**). See also {@link CreateResourceData}.
    * @returns The created resource instance.
    *
@@ -203,9 +209,9 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  create<T = Record<string, any>>(
+  create<T = Record<string, any>, I = SteveResource<T>>(
     data: CreateResourceData
-  ): Promise<SteveResource<T>>;
+  ): Promise<I>;
 
   /**
    * Applies a partial update to a resource using HTTP PATCH (merge-patch).
@@ -214,6 +220,7 @@ export interface ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - An object containing only the fields to update.
@@ -230,11 +237,11 @@ export interface ResourcesApi {
    * });
    * ```
    */
-  update<T = Record<string, any>>(
+  update<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
-  ): Promise<SteveResource<T>>;
+  ): Promise<I>;
 
   /**
    * Performs a full replacement update of a resource using HTTP PUT.
@@ -243,6 +250,7 @@ export interface ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - The complete resource data to send as the replacement.
@@ -259,11 +267,11 @@ export interface ResourcesApi {
    * const result = await resources.cluster.replace(K8S.CONFIG_MAP, 'default/my-config', configMapData);
    * ```
    */
-  replace<T = Record<string, any>>(
+  replace<T = Record<string, any>, I = SteveResource<T>>(
     resourceType: ResourceType,
     resourceId: string,
     data: Record<string, any>
-  ): Promise<SteveResource<T>>;
+  ): Promise<I>;
 
   /**
    * Deletes a resource by type and ID using HTTP DELETE.

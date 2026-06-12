@@ -54,6 +54,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Finds a specific resource by its type and ID.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier of the resource to find. If the resource is namespaced, this should be in the format `namespace/name`.
    * @param options - Optional find arguments
@@ -72,11 +73,11 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
    * ```
    */
-  async find<T = Record<string, any>>(
+  async find<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     resourceId: string,
     options?: FindMethodOptions
-  ): Promise<ResourceInstance<T> | null> {
+  ): Promise<I | null> {
     if (this.isNamespaced(resourceType) && !resourceId.includes('/')) {
       this.surfaceError(`Resource "${ resourceType }" is namespaced. The resourceId must be in "namespace/name" format, but received "${ resourceId }"`);
     }
@@ -88,7 +89,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         opt:  options || {}
       });
 
-      return resource as ResourceInstance<T>;
+      return resource as I;
     } catch (e: unknown) {
       if ((e as any)?.status === 404) {
         this.surfaceWarning(`Failed to find resource ${ resourceType }/${ resourceId }: ${ (e as Error).message }`, e);
@@ -108,15 +109,16 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
    * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = ActionFindPageTransientResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
-    options: FindFilteredPageOptions
-  ): Promise<ResourceInstance<T>[]>;
+    options: FindFilteredPageOptionsTransient
+  ): Promise<I>;
 
   /**
    * Finds resources using pagination mode with server-side filtering, sorting, and pagination.
@@ -126,15 +128,16 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Requires `ui-sql-cache` to be enabled.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
    * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
-    options: FindFilteredPageOptionsTransient
-  ): Promise<ActionFindPageTransientResponse<ResourceInstance<T>>>;
+    options: FindFilteredPageOptions
+  ): Promise<I[]>;
 
   /**
    * Finds resources using label selector matching.
@@ -144,23 +147,24 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Label selector options for filtering. See {@link FindFilteredLabelSelectorOptions}.
    * @returns Response containing resource items.
    *
    */
-  findFiltered<T = Record<string, any>>(
+  findFiltered<T = Record<string, any>, I = FindFilteredLabelSelectorResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
     options: FindFilteredLabelSelectorOptions
-  ): Promise<FindFilteredLabelSelectorResponse<ResourceInstance<T>>>;
+  ): Promise<I>;
 
   /**
    * @internal Implementation - use one of the overloads above
    */
-  async findFiltered<T = Record<string, any>>(
+  async findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
-    options: FindFilteredPageOptions | FindFilteredLabelSelectorOptions | FindFilteredPageOptionsTransient
-  ): Promise<FindFilteredPageResponse<ResourceInstance<T>> | FindFilteredLabelSelectorResponse<ResourceInstance<T>>> {
+    options: FindFilteredPageOptions | FindFilteredPageOptionsTransient | FindFilteredLabelSelectorOptions
+  ): Promise<I[] | ResourceInstance<T>[] | ActionFindPageTransientResponse<ResourceInstance<T>>> {
     try {
       if ('pagination' in options) { // pagination mode
         const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
@@ -206,21 +210,22 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This method provides additional capabilities like incremental loading and namespace filtering.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Optional advanced fetch options (incremental loading, namespace filtering, etc.)
    * @returns An array of resource items or an empty array if none are found.
    */
-  async findAll<T = Record<string, any>>(
+  async findAll<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
     options?: FindAllMethodOptions
-  ): Promise<ResourceInstance<T>[]> {
+  ): Promise<I[]> {
     try {
       const resources = await this.store.dispatch(`${ this.storeType }/findAll`, {
         type: resourceType,
         opt:  options || {}
       });
 
-      return (resources || []) as ResourceInstance<T>[];
+      return (resources || []) as I[];
     } catch (e: unknown) {
       this.surfaceError(`Failed to find all resources ${ resourceType }: ${ (e as Error).message }`, e);
     }
@@ -233,6 +238,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param data - The resource data to create. Must include a `type` property (examples in **{@link K8S}**). See also {@link CreateResourceData}.
    * @returns The created resource instance.
    */
@@ -268,6 +274,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - An object containing only the fields to update.
@@ -302,6 +309,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
+   * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resource (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param resourceId - The unique identifier. If namespaced, use `namespace/name` format.
    * @param data - The complete resource data to send as the replacement.
