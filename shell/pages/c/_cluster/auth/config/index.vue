@@ -1,5 +1,6 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { MODE, _EDIT } from '@shell/config/query-params';
@@ -23,13 +24,26 @@ export default {
 
     this['enabled'] = authProvs.enabled;
     this['nonLocal'] = authProvs.nonLocal;
+
+    try {
+      const setting = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.DISABLE_LOCAL_AUTH,
+        opt:  { url: `/v1/${ MANAGEMENT.SETTING }/${ SETTING.DISABLE_LOCAL_AUTH }` }
+      });
+
+      this['disableLocalAuth'] = (setting?.value || setting?.default) === 'true';
+    } catch {
+      this['disableLocalAuth'] = false;
+    }
   },
 
   data() {
     return {
       // Provided by fetch later
-      enabled:  false,
-      nonLocal: null,
+      enabled:          false,
+      nonLocal:         null,
+      disableLocalAuth: false,
     };
   },
 
@@ -101,7 +115,12 @@ export default {
           {{ t('authConfig.manageLocal') }}
         </router-link>
         <br>
-        {{ t('authConfig.noneEnabled') }}
+        <template v-if="disableLocalAuth">
+          {{ t('authConfig.noneEnabledDisableLocalAuth') }}
+        </template>
+        <template v-else>
+          {{ t('authConfig.noneEnabled') }}
+        </template>
       </div>
     </Banner>
     <SelectIconGrid
