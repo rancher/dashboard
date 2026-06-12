@@ -59,6 +59,7 @@ jest.mock('@shell/core/productDebugger', () => ({
 function createMockPlugin(): IExtension {
   return {
     _registerTopLevelProduct:   jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn((store, productName) => ({
@@ -3153,6 +3154,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3188,6 +3190,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -3219,6 +3222,7 @@ describe('pluginProduct', () => {
         ignoreGroup: jest.fn(),
         mapType:     jest.fn(),
         ignoreType:  jest.fn(),
+        moveType:    jest.fn(),
       };
 
       jest.spyOn(mockPlugin, 'DSL').mockReturnValue(mockDSL);
@@ -4602,6 +4606,68 @@ describe('pluginProduct', () => {
           expect(mockDSL.ignoreType).toHaveBeenCalledWith('custom.resource.type');
         });
       });
+    });
+  });
+
+  describe('startRouteWithProduct', () => {
+    it('should call _setStartRouteWithProduct with true by default for new products', () => {
+      const mockPlugin = createMockPlugin();
+      const productMetadata: ProductMetadata = {
+        name:  'my-product',
+        label: 'My Product',
+      };
+
+      new PluginProduct(mockPlugin, productMetadata, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith('myproduct', true);
+    });
+
+    it('should call _setStartRouteWithProduct with false when product sets startRouteWithProduct: false', () => {
+      const mockPlugin = createMockPlugin();
+      const productMetadata: ProductMetadata = {
+        name:                  'fleet',
+        label:                 'Fleet',
+        startRouteWithProduct: false,
+      };
+
+      new PluginProduct(mockPlugin, productMetadata, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith('fleet', false);
+    });
+
+    it('should call _setStartRouteWithProduct with false when extending an existing product', () => {
+      const mockPlugin = createMockPlugin();
+      const validStandardProduct = StandardProductNames.EXPLORER;
+
+      new PluginProduct(mockPlugin, validStandardProduct, []);
+
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(validStandardProduct, false);
+    });
+  });
+
+  describe('per-product flag isolation', () => {
+    it('tracks topLevelProducts and startRouteWithProductByProduct independently when a plugin registers multiple products', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct({
+        name: 'alpha', label: 'Alpha', startRouteWithProduct: true,
+      }, []);
+
+      plugin.addProduct({
+        name: 'beta', label: 'Beta', startRouteWithProduct: false,
+      }, []);
+
+      plugin.extendProduct(StandardProductNames.EXPLORER, []);
+
+      // top-level products are tracked by name
+      expect(plugin.topLevelProducts.has('alpha')).toBe(true);
+      expect(plugin.topLevelProducts.has('beta')).toBe(true);
+      expect(plugin.topLevelProducts.has(StandardProductNames.EXPLORER)).toBe(false);
+
+      // startRouteWithProduct is recorded per product, so a later registration cannot stomp earlier values
+      expect(plugin.startRouteWithProductByProduct.alpha).toBe(true);
+      expect(plugin.startRouteWithProductByProduct.beta).toBe(false);
+      expect(plugin.startRouteWithProductByProduct[StandardProductNames.EXPLORER]).toBe(false);
     });
   });
 

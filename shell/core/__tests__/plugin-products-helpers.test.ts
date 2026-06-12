@@ -180,7 +180,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page);
+      const route = generateVirtualTypeRoute('my-product', page, { startRouteWithProduct: true });
 
       expect(route.name).toBe('my-product-c-cluster-overview');
       expect(route.path).toBe('my-product/c/:cluster/overview');
@@ -210,7 +210,7 @@ describe('plugin-products-helpers', () => {
     });
 
     it('should handle group routes without page child', () => {
-      const route = generateVirtualTypeRoute('my-product', undefined);
+      const route = generateVirtualTypeRoute('my-product', undefined, { startRouteWithProduct: true });
 
       expect(route.name).toBe('my-product-c-cluster');
       expect(route.path).toBe('my-product/c/:cluster');
@@ -223,7 +223,7 @@ describe('plugin-products-helpers', () => {
         component: () => Promise.resolve({ default: {} }),
       };
 
-      const route = generateVirtualTypeRoute('my-product', page, { omitPath: true });
+      const route = generateVirtualTypeRoute('my-product', page, { omitPath: true, startRouteWithProduct: true });
 
       expect(route.path).toBeUndefined();
       expect(route.name).toBe('my-product-c-cluster-settings');
@@ -231,7 +231,7 @@ describe('plugin-products-helpers', () => {
 
     it('should use provided component', () => {
       const MockComponent = { template: '<div>test</div>' };
-      const route = generateVirtualTypeRoute('my-product', undefined, { component: MockComponent });
+      const route = generateVirtualTypeRoute('my-product', undefined, { component: MockComponent, startRouteWithProduct: true });
 
       expect(route.component).toBe(MockComponent);
     });
@@ -242,7 +242,7 @@ describe('plugin-products-helpers', () => {
     it('should generate top-level extension resource route', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const route = generateConfigureTypeRoute('my-product', page);
+      const route = generateConfigureTypeRoute('my-product', page, { startRouteWithProduct: true });
 
       expect(route.name).toBe('my-product-c-cluster-resource');
       expect(route.path).toBe('my-product/c/:cluster/:resource');
@@ -278,7 +278,7 @@ describe('plugin-products-helpers', () => {
     it('should handle pages without a type gracefully', () => {
       const page: Partial<ProductChildPage> = { name: 'clusters' };
 
-      const route = generateConfigureTypeRoute('my-product', page as ProductChildPage);
+      const route = generateConfigureTypeRoute('my-product', page as ProductChildPage, { startRouteWithProduct: true });
 
       expect(route.name).toBe('my-product-c-cluster-resource');
       expect(route.params?.resource).toBeUndefined();
@@ -287,7 +287,7 @@ describe('plugin-products-helpers', () => {
     it('should omit path when omitPath option is true', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const route = generateConfigureTypeRoute('my-product', page, { omitPath: true });
+      const route = generateConfigureTypeRoute('my-product', page, { omitPath: true, startRouteWithProduct: true });
 
       expect(route.path).toBeUndefined();
       expect(route.name).toBe('my-product-c-cluster-resource');
@@ -297,7 +297,7 @@ describe('plugin-products-helpers', () => {
       const MockComponent = { template: '<div>test</div>' };
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const route = generateConfigureTypeRoute('my-product', page, { component: MockComponent });
+      const route = generateConfigureTypeRoute('my-product', page, { component: MockComponent, startRouteWithProduct: true });
 
       expect(route.component).toBe(MockComponent);
     });
@@ -308,7 +308,7 @@ describe('plugin-products-helpers', () => {
     it('should generate all resource routes for top-level extension', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const routes = generateResourceRoutes('my-product', page);
+      const routes = generateResourceRoutes('my-product', page, { startRouteWithProduct: true });
 
       expect(routes).toHaveLength(4);
       expect(routes[0].name).toBe('my-product-c-cluster-resource');
@@ -327,7 +327,7 @@ describe('plugin-products-helpers', () => {
     it('should include meta data with asyncSetup for detail and edit routes', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const routes = generateResourceRoutes('my-product', page);
+      const routes = generateResourceRoutes('my-product', page, { startRouteWithProduct: true });
 
       expect(routes[2].meta.asyncSetup).toBe(true); // detail route
       expect(routes[3].meta.asyncSetup).toBe(true); // edit route
@@ -356,7 +356,7 @@ describe('plugin-products-helpers', () => {
     it('should include BLANK_CLUSTER in meta for top-level extensions', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const routes = generateResourceRoutes('my-product', page);
+      const routes = generateResourceRoutes('my-product', page, { startRouteWithProduct: true });
 
       routes.forEach((route) => {
         expect((route.meta as any).cluster).toBe(BLANK_CLUSTER);
@@ -378,10 +378,92 @@ describe('plugin-products-helpers', () => {
     it('should have component as async functions by default', () => {
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
-      const routes = generateResourceRoutes('my-product', page);
+      const routes = generateResourceRoutes('my-product', page, { startRouteWithProduct: true });
 
       routes.forEach((route) => {
         expect(typeof route.component).toBe('function');
+      });
+    });
+  });
+
+  // ============= startRouteWithProduct option tests =============
+  describe('startRouteWithProduct option', () => {
+    describe('generateVirtualTypeRoute', () => {
+      it('should generate route with c-cluster prefix when startRouteWithProduct is false', () => {
+        const page: ProductChildPage = {
+          name:      'overview',
+          label:     'Overview',
+          component: () => Promise.resolve({ default: {} }),
+        };
+
+        const route = generateVirtualTypeRoute('fleet', page, { startRouteWithProduct: false });
+
+        expect(route.name).toBe('c-cluster-fleet-overview');
+        expect(route.path).toBe('c/:cluster/fleet/overview');
+        expect(route.params).toStrictEqual({
+          product: 'fleet',
+          cluster: BLANK_CLUSTER,
+        });
+      });
+
+      it('should generate group route with c-cluster prefix when startRouteWithProduct is false and no page child', () => {
+        const route = generateVirtualTypeRoute('fleet', undefined, { startRouteWithProduct: false });
+
+        expect(route.name).toBe('c-cluster-fleet');
+        expect(route.path).toBe('c/:cluster/fleet');
+      });
+    });
+
+    describe('generateConfigureTypeRoute', () => {
+      it('should generate route with c-cluster prefix when startRouteWithProduct is false', () => {
+        const page: ProductChildPage = { type: 'fleet.cattle.io.cluster' };
+
+        const route = generateConfigureTypeRoute('fleet', page, { startRouteWithProduct: false });
+
+        expect(route.name).toBe('c-cluster-fleet-resource');
+        expect(route.path).toBe('c/:cluster/fleet/:resource');
+        expect(route.params).toStrictEqual({
+          product:  'fleet',
+          cluster:  BLANK_CLUSTER,
+          resource: 'fleet.cattle.io.cluster',
+        });
+      });
+    });
+
+    describe('generateResourceRoutes', () => {
+      it('should generate all resource routes with c-cluster prefix when startRouteWithProduct is false', () => {
+        const page: ProductChildPage = { type: 'fleet.cattle.io.cluster' };
+
+        const routes = generateResourceRoutes('fleet', page, { startRouteWithProduct: false });
+
+        expect(routes).toHaveLength(4);
+        expect(routes[0].name).toBe('c-cluster-fleet-resource');
+        expect(routes[0].path).toBe('c/:cluster/fleet/:resource');
+
+        expect(routes[1].name).toBe('c-cluster-fleet-resource-create');
+        expect(routes[1].path).toBe('c/:cluster/fleet/:resource/create');
+
+        expect(routes[2].name).toBe('c-cluster-fleet-resource-id');
+        expect(routes[2].path).toBe('c/:cluster/fleet/:resource/:id');
+
+        expect(routes[3].name).toBe('c-cluster-fleet-resource-namespace-id');
+        expect(routes[3].path).toBe('c/:cluster/fleet/:resource/:namespace/:id');
+      });
+
+      it('should include BLANK_CLUSTER and asyncSetup in meta for startRouteWithProduct false', () => {
+        const page: ProductChildPage = { type: 'fleet.cattle.io.cluster' };
+
+        const routes = generateResourceRoutes('fleet', page, { startRouteWithProduct: false });
+
+        routes.forEach((route) => {
+          expect((route.meta as any).cluster).toBe(BLANK_CLUSTER);
+          expect(route.meta.product).toBe('fleet');
+        });
+
+        expect(routes[2].meta.asyncSetup).toBe(true);
+        expect(routes[3].meta.asyncSetup).toBe(true);
+        expect(routes[0].meta.asyncSetup).toBeUndefined();
+        expect(routes[1].meta.asyncSetup).toBeUndefined();
       });
     });
   });
