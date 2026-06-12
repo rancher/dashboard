@@ -1,6 +1,6 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { ALLOWED_SETTINGS, AUTHENTICATION_SETTINGS, PROVISIONING_SETTINGS, SETTING } from '@shell/config/settings';
+import { ALLOWED_SETTINGS, AUTHENTICATION_SETTINGS, PROVISIONING_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
