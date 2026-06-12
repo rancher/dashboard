@@ -32,21 +32,25 @@ export type FieldBuilder = ZodTypeAny & {
 };
 
 export function createZodHelpers(t: I18n['t']) {
-  const firstIssue = (transforms: Transform[], v: string) => {
-    return transforms
-      .map((transform) => transform(z.string()).safeParse(v))
+  const firstIssue = (schemas: ZodTypeAny[], v: string) => {
+    return schemas
+      .map((schema) => schema.safeParse(v))
       .find((result) => !result.success)
       ?.error
       .issues[0];
   };
 
   function buildSchema(transforms: Transform[], requiredKey?: string): ZodTypeAny {
+    // Compiled once per builder state, then reused across every superRefine call
+    // (e.g. every keystroke revalidation) since none of these depend on `v`.
+    const compiledTransforms = transforms.map((transform) => transform(z.string()));
+    const requiredSchema = requiredKey !== undefined ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(requiredKey) })) : undefined;
+
     return z.preprocess(
       (v) => v ?? '',
       z.string().superRefine((v: string, ctx) => {
-        const requiredResult = requiredKey !== undefined ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(requiredKey) })).safeParse(v) : undefined;
-
-        const hasIssue = requiredResult?.success === false ? requiredResult.error.issues[0] : (!v ? undefined : firstIssue(transforms, v));
+        const requiredResult = requiredSchema?.safeParse(v);
+        const hasIssue = requiredResult?.success === false ? requiredResult.error.issues[0] : (!v ? undefined : firstIssue(compiledTransforms, v));
 
         if (hasIssue) {
           ctx.addIssue(hasIssue);
