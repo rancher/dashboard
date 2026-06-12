@@ -6186,6 +6186,8 @@ resourceList:
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
+  stateFilterApplied: "State filter applied:"
+  clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -7436,6 +7438,36 @@ wm:
 
   kubectlShell:
     title: "Kubectl: {name}"
+
+workloadDashboard:
+  title: Workloads Overview
+  subtitle:
+    allNamespaces: "For all namespaces"
+    userNamespaces: "Only for user namespaces"
+    systemNamespaces: "Only for system namespaces"
+    namespacedOnly: "Only for namespaced resources"
+    clusterOnly: "Only for cluster resources"
+    project: "For the namespaces of Project {name}"
+    namespace: "For the namespace {name}"
+    multipleSelected: "For {selected} items selected"
+  workloadCount: |-
+    ({count, plural,
+      =0 {No workload}
+      =1 {{count} workload}
+      other {{count} workloads}
+    })
+  sections:
+    byState: By State
+    byType: By Type
+    byNamespace: By Namespace
+  errors:
+    noAccess: "No access to {type}"
+    fetchType: "Failed to fetch {type}"
+    fetchAll: Failed to fetch workload summaries
+  empty:
+    title: No workloads to show
+    message: "Tips: Update the namespace filter above or <resetLink>reset the namespaces filter</resetLink>."
+    docsMessage: "Want to learn more about Workloads? Read our <docsLink>documentation</docsLink>."
 
 workload:
   scaleWorkloads: Scale workloads
