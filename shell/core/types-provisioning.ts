@@ -343,6 +343,15 @@ export interface IClusterProvisioner {
   registerSaveHooks?(registerBeforeHook: RegisterClusterSaveHook, registerAfterHook: RegisterClusterSaveHook, cluster: any): void;
 
   /**
+   * Register hooks that run during `initSpecs` while initializing the cluster form.
+   *
+   * @param registerInitHook
+   *  Call `registerInitHook` with a function. The function will be executed during form initialization.
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   */
+  registerInitHooks?(registerInitHook: RegisterClusterSaveHook, cluster: any): void;
+
+  /**
    * Optionally override the save of the cluster resource itself
    *
    * https://github.com/rancher/dashboard/blob/master/shell/mixins/create-edit-view/impl.js#L179

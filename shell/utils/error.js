@@ -1,5 +1,6 @@
 import { isArray } from '@shell/utils/array';
 const AWS_SDK_UNHANDLED_ERROR = 'Deserialization error:';
+const DO_NOT_LOG_ERROR = '__doNotLogError';
 
 export class ClusterNotFoundError extends Error {
   static NAME = 'ClusterNotFoundError'
@@ -104,6 +105,18 @@ export function exceptionToErrorsArray(err) {
   } else {
     return [err];
   }
+}
+
+export function createDoNotLogError(message) {
+  const err = new Error(message);
+
+  err[DO_NOT_LOG_ERROR] = true;
+
+  return err;
+}
+
+export function isDoNotLogError(err) {
+  return !!(err?.[DO_NOT_LOG_ERROR] || err?.doNotLog);
 }
 
 /**

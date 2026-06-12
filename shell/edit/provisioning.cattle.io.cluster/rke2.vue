@@ -95,6 +95,7 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const REGISTRIES_TAB_NAME = 'registry';
+const INIT_HOOKS = '_initHooks';
 
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
@@ -1034,7 +1035,6 @@ export default {
     if (!this.isUpstreamCAPIProvider) {
       this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
     } else {
-      this.registerBeforeHook(this.saveInfrastructureCluster, 'update-capi-cluster', 2);
       this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 3);
     }
 
@@ -1048,6 +1048,10 @@ export default {
     // Register any hooks for this extension provider
     if (this.extensionProvider?.registerSaveHooks) {
       this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
+    }
+
+    if (this.extensionProvider?.registerInitHooks) {
+      this.extensionProvider.registerInitHooks(this.registerHook.bind(this, INIT_HOOKS), this.value);
     }
   },
 
@@ -1143,9 +1147,8 @@ export default {
         set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
       }
 
-      if (this.isUpstreamCAPIProvider) {
-        this.infrastructureCluster = await this.initInfrastructureCluster(this.value);
-      }
+      await this.applyHooks(INIT_HOOKS, this.value);
+      this.localValue = this.value;
     },
 
     /**
@@ -1495,11 +1498,6 @@ export default {
         if (conflict) {
           throw Error(conflict);
         }
-      }
-    },
-    async initInfrastructureCluster() {
-      if (this.extensionProvider?.initInfrastructureCluster) {
-        return await this.extensionProvider.initInfrastructureCluster( this.value, this.infrastructureCluster);
       }
     },
     async saveInfrastructureCluster() {
