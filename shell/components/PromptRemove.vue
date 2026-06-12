@@ -341,6 +341,7 @@ export default {
     custom-class="remove-modal"
     name="promptRemove"
     :width="400"
+    :title="t('promptRemove.dialogAriaLabel')"
     height="auto"
     styles="max-height: 100vh;"
     :trigger-focus-trap="true"

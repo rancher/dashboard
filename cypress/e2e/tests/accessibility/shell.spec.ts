@@ -416,6 +416,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           slideIn.checkVisible();
           slideIn.waitforContent();
 
+          cy.wait(2500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          cy.get('[data-testid="kubectl-explain-expand-all"]').click();
+
           cy.injectAxe();
 
           cy.checkPageAccessibility();
