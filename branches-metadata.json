@@ -21,7 +21,7 @@
     "release-2.14": {
       "milestone": {
         "version": "v2.14.3",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -39,7 +39,7 @@
     "release-2.13": {
       "milestone": {
         "version": "v2.13.7",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -58,7 +58,7 @@
     "release-2.12": {
       "milestone": {
         "version": "v2.12.11",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
@@ -77,7 +77,7 @@
     "release-2.11": {
       "milestone": {
         "version": "v2.11.15",
-        "codeFreeze": false
+        "codeFreeze": true
       },
       "e2e": {
         "rancher-image": {
