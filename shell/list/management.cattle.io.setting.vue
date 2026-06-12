@@ -23,15 +23,6 @@ export default {
       return res;
     }, {});
 
-    // TODO: Remove this once rancher/rancher#54829 is merged and the backend returns the setting
-    if (!settingsMap[SETTING.DISABLE_LOCAL_AUTH]) {
-      settingsMap[SETTING.DISABLE_LOCAL_AUTH] = {
-        id:      SETTING.DISABLE_LOCAL_AUTH,
-        value:   'false',
-        default: 'false',
-      };
-    }
-
     const settings = [];
     const authenticationSettings = [];
     const provisioningSettings = [];
