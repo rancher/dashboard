@@ -94,8 +94,11 @@ export type ProductMetadataInternal = ProductMetadata & {
     hideNamespaceLocation?: boolean;
   },
 
+  /**
+  * Control what appears in the vertical side bar on the left of the UI
+  */
   sideBar? :{
-        /**
+    /**
     * Control page links
     */
     navigation?: {
@@ -114,16 +117,6 @@ export type ProductMetadataInternal = ProductMetadata & {
      *
      * The `groupSelector` is evaluated against group internal IDs. It can be an exact string or a `RegExp` pattern. The `newName` value is the new display name.
      *
-     * const product: ProductMetadata = {
-     *   name:  'my-app',
-     *   label: 'My App',
-     *   renameGroups: [
-     *     // Rename a group with an ugly internal ID to a friendlier display name
-     *     { groupSelector: 'cert-manager.io', newName: 'Certificates' },
-     *     // Use a regex to rename all groups matching a pattern
-     *     { groupSelector: /^networking\./, newName: 'Networking' },
-     *   ],
-     * };
      */
     renameGroups?: {
       /** String or regex to match against group internal IDs */
@@ -138,34 +131,9 @@ export type ProductMetadataInternal = ProductMetadata & {
      * Use `moveToGroup` on the product metadata to move pages (resource types or custom pages) into specific side-menu groups. This is useful when a page should appear inside a group but isn't defined as a child of that group in the config.
      * Each entry identifies a page by its `entryId` — the resource `type` string or the custom page `name` — and moves it into the specified group. Use the group's `name` as you defined it in your config.
      *
-     * const monitoringGroup: ProductChildGroup = {
-     *   name:     'monitoring',
-     *   label:    'Monitoring',
-     *   children: [
-     *    { name: 'alerts', label: 'Alerts', component: () => import('./pages/Alerts.vue') },
-     *   ],
-     * };
-
-    * const dashboardPage: ProductChildCustomPage = {
-    *   name: 'dashboard', label: 'Dashboard', component: () => import('./pages/Dashboard.vue'),
-    * };
-
-    * const product: ProductMetadata = {
-    *   name:        'my-app',
-    *   label:       'My App',
-    *   moveToGroup: [
-    *    // Move the 'pod' resource type into the 'monitoring' group
-    *    { entryId: 'pod', groupName: 'monitoring' },
-    *    // Move a custom page into the 'monitoring' group
-    *    { entryId: 'dashboard', groupName: 'monitoring' },
-    *   ],
-    * };
-    *
-    * extension.addProduct(product, [monitoringGroup, { type: 'pod' }, dashboardPage]);
-    *
-    * Note: The `entryId` must match a page declared in the same product config — either a resource page's `type` or a custom page's `name`. The target `groupName` must be a `ProductChildGroup` defined in the same config. If either is not found, an error is thrown at registration time listing the available options. Only exact string identifiers are supported (no regex).
-    *
-    * The optional `weight` parameter controls precedence when multiple `moveToGroup` rules target the same page (default: `5`). Higher weight takes precedence.
+     * Note: The `entryId` must match a page declared in the same product config — either a resource page's `type` or a custom page's `name`. The target `groupName` must be a `ProductChildGroup` defined in the same config. If either is not found, an error is thrown at registration time listing the available options. Only exact string identifiers are supported (no regex).
+     *
+     * The optional `weight` parameter controls precedence when multiple `moveToGroup` rules target the same page (default: `5`). Higher weight takes precedence.
     */
     moveToGroup?: {
       /** Page identifier — the resource `type` string or the custom page `name` */
@@ -185,25 +153,6 @@ export type ProductMetadataInternal = ProductMetadata & {
      *
      * The `condition` callback is optional. When provided, it receives the store getters and returns `true` to hide the group (conditional hide). When omitted, the group is always hidden (unconditional hide).
      *
-     * Example usage:
-     * const product: ProductMetadata = {
-     *   name:  'my-app',
-     *   label: 'My App',
-     *   ignoreGroups: [
-     *     // Always hide the "internal" group (unconditional — no condition)
-     *     { groupSelector: 'internal' },
-     *     // Hide all groups matching a regex pattern (unconditional)
-     *     { groupSelector: /^deprecated/ },
-     *     // Conditionally hide based on a feature flag
-     *     {
-     *       groupSelector: 'experimental',
-     *       condition:     (getters) => !getters['features/isEnabled']('experimental-feature'),
-     *     },
-     *   ],
-     * };
-     *
-     *
-     * In this example, the "internal" group is always hidden, any group with a name starting with "deprecated-" is hidden, and the "experimental" group is hidden unless the "experimental-feature" flag is enabled in the store.
      */
     ignoreGroups?: {
       /** String or regex to match against group names */

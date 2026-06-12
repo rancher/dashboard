@@ -16,7 +16,6 @@ import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell
 import { ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
-import { compact } from 'lodash';
 
 /**
  * What's the point of this?
@@ -452,7 +451,6 @@ export abstract class BasePluginProduct {
         applyIfDefined(itemCustomPage.enable?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemCustomPage.enable?.ifHaveVerb); // eslint-disable-line no-return-assign
 
         applyIfDefined(itemCustomPage.resource?.namespaced, () => virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced); // eslint-disable-line no-return-assign
-        applyIfDefined(itemCustomPage.sideMenu?.weight, () => virtualTypeConfig.weight = itemCustomPage.sideMenu?.weight); // eslint-disable-line no-return-assign
       }
 
       virtualType(virtualTypeConfig);
