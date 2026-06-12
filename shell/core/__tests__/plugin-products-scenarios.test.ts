@@ -462,15 +462,9 @@ describe('pluginProduct', () => {
         const mockPlugin = createMockPlugin();
 
         const clusterPage: ProductChildResourcePage = {
-          type:       'provisioning.cattle.io.cluster',
-          label:      'Clusters',
-          sideMenu:   { weight: 2 },
-          listConfig: {
-            // isCreatable: true,
-            // isEditable:  true,
-            // isRemovable: true,
-            // canYaml:     true,
-          },
+          type:     'provisioning.cattle.io.cluster',
+          label:    'Clusters',
+          sideMenu: { weight: 2 },
         };
 
         const nodePage: ProductChildResourcePage = {

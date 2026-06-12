@@ -3,7 +3,6 @@ import {
   ProductChildResourcePage,
   ProductChildCustomPage,
 } from '@shell/core/plugin-products-external';
-import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { PaginationHeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
 
 /**
