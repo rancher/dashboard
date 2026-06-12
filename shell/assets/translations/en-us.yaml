@@ -7347,6 +7347,7 @@ validation:
       url: Server URL must be an URL.
       awsStyleEndpoint: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (e.g https:// or http://)
   genericUrl: Field must be a valid URL
+  url: '"{key}" must be a valid URL'
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'

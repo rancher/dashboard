@@ -19,6 +19,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
 import { useI18n } from '@shell/composables/useI18n';
+import { zodValidators } from 'utils/validators/zod-helpers';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -63,21 +64,18 @@ export default {
   setup() {
     const store = useStore();
     const { t } = useI18n(store);
-
-    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
+    const { field } = zodValidators(t);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        displayNameField:   requiredField('authConfig.saml.displayName'),
-        userNameField:      requiredField('authConfig.saml.userName'),
-        uidField:           requiredField('authConfig.saml.UID'),
-        groupsField:        requiredField('authConfig.saml.groups'),
-        rancherApiHost:     requiredUrlField('authConfig.saml.api'),
-        spKey:              requiredField('authConfig.saml.key.label'),
-        spCert:             requiredField('authConfig.saml.cert.label'),
-        idpMetadataContent: requiredField('authConfig.saml.metadata.label'),
+        displayNameField:   field('authConfig.saml.displayName').required(),
+        userNameField:      field('authConfig.saml.userName').required(),
+        uidField:           field('authConfig.saml.UID').required(),
+        groupsField:        field('authConfig.saml.groups').required(),
+        rancherApiHost:     field('authConfig.saml.api').url().required(),
+        spKey:              field('authConfig.saml.key.label').required(),
+        spCert:             field('authConfig.saml.cert.label').required(),
+        idpMetadataContent: field('authConfig.saml.metadata.label').required(),
       })
     ));
 
