@@ -38,6 +38,7 @@ describe('createZodHelpers', () => {
         ['empty string', ''],
         [null, null],
         [undefined, undefined],
+        ['whitespace-only string', '   '],
       ])('fails for %s', (_label, value) => {
         const result = schema.safeParse(value);
 
