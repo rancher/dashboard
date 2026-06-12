@@ -177,7 +177,7 @@ export default {
     this.vendor = getVendor();
     this.providers = providers;
     this.hasLocal = hasLocal;
-    this.showLocal = !hasOthers || (this.$route.query[LOCAL] === _FLAGGED);
+    this.showLocal = hasLocal && (!hasOthers || (this.$route.query[LOCAL] === _FLAGGED));
     this.customLoginError = JSON.parse(value).loginError;
     this.firstLogin = firstLoginSetting?.value === 'true';
     this.username = this.firstLogin ? 'admin' : this.username;
