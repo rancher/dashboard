@@ -1,6 +1,6 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { ALLOWED_SETTINGS, PROVISIONING_SETTINGS } from '@shell/config/settings';
+import { ALLOWED_SETTINGS, AUTHENTICATION_SETTINGS, PROVISIONING_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
@@ -24,6 +24,7 @@ export default {
     }, {});
 
     const settings = [];
+    const authenticationSettings = [];
     const provisioningSettings = [];
 
     // Combine the allowed settings with the data from the API
@@ -57,14 +58,17 @@ export default {
       // If neither is available for this setting then we hide the action menu button
       s.hasActions = (!s.readOnly || viewInApi) && setting.availableActions?.length;
 
-      if (PROVISIONING_SETTINGS.includes(s.id) ) {
+      if (PROVISIONING_SETTINGS.includes(s.id)) {
         provisioningSettings.push(s);
+      } else if (AUTHENTICATION_SETTINGS.includes(s.id)) {
+        authenticationSettings.push(s);
       } else {
         settings.push(s);
       }
     }
 
     this.settings = settings;
+    this.authenticationSettings = authenticationSettings;
     this.provisioningSettings = provisioningSettings;
 
     this.$nextTick(() => {
@@ -80,7 +84,9 @@ export default {
   },
 
   data() {
-    return { settings: null, provisioningSettings: null };
+    return {
+      settings: null, authenticationSettings: [], provisioningSettings: null
+    };
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) }
 };
@@ -107,6 +113,21 @@ export default {
         :value="setting"
       />
     </div>
+
+    <template v-if="authenticationSettings.length">
+      <h2>
+        {{ t('advancedSettings.authentication.header') }}
+      </h2>
+      <div
+        v-for="(setting) in authenticationSettings"
+        :id="setting.id"
+        :key="setting.id"
+      >
+        <Setting
+          :value="setting"
+        />
+      </div>
+    </template>
 
     <h2>
       {{ t('advancedSettings.provisioning.header') }}
