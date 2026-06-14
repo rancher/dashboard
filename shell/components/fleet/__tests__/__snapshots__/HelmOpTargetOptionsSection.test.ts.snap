@@ -1,0 +1,140 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: HelmOpTargetOptionsSection should match snapshot in compact mode 1`] = `
+<div
+  class="col gap-md"
+  data-testid="helmop-target-options-section"
+>
+  <p>
+    %fleet.helmOp.target.clusterDeploymentDescription%
+    <br />
+     %generic.learnMoreAbout% 
+    <a
+      href="https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions"
+      rel="noopener noreferrer nofollow"
+      target="_blank"
+    >
+      %fleet.helmOp.target.clusterDeploymentLink% 
+      <rc-icon-stub
+        ariahidden="true"
+        size="small"
+        status="inherit"
+        type="external-link"
+      />
+    </a>
+  </p>
+  <div
+    class="col span-6 cluster-deployment-settings-input"
+  >
+    <labeled-input-stub
+      arialabel=""
+      class=""
+      data-testid="helmop-target-options-service-account"
+      delay="0"
+      disabled="false"
+      hidearrows="false"
+      hovertooltip="true"
+      ignorepasswordmanagers="false"
+      labelkey="fleet.helmOp.serviceAccount.label"
+      mode="edit"
+      placeholder=""
+      placeholderkey="fleet.helmOp.serviceAccount.compactPlaceholder"
+      required="false"
+      requiredirty="true"
+      rules=""
+      type="text"
+      value="sa-1"
+    />
+    <p
+      class="sub-description"
+    >
+      %fleet.helmOp.serviceAccount.compactDescription%
+    </p>
+  </div>
+  <div
+    class="col span-6 cluster-deployment-settings-input"
+  >
+    <labeled-input-stub
+      arialabel=""
+      class=""
+      data-testid="helmop-target-options-namespace"
+      delay="0"
+      disabled="false"
+      hidearrows="false"
+      hovertooltip="true"
+      ignorepasswordmanagers="false"
+      labelkey="fleet.helmOp.targetNamespace.label"
+      mode="edit"
+      placeholder=""
+      placeholderkey="fleet.helmOp.targetNamespace.compactPlaceholder"
+      required="false"
+      requiredirty="true"
+      rules=""
+      type="text"
+      value="ns-1"
+    />
+    <p
+      class="sub-description"
+    >
+      %fleet.helmOp.targetNamespace.compactDescription%
+    </p>
+  </div>
+</div>
+`;
+
+exports[`component: HelmOpTargetOptionsSection should match snapshot with default props 1`] = `
+<div
+  class="row"
+  data-testid="helmop-target-options-section"
+>
+  <!--v-if-->
+  <div
+    class="col span-6 cluster-deployment-settings-input"
+  >
+    <labeled-input-stub
+      arialabel=""
+      class=""
+      data-testid="helmop-target-options-service-account"
+      delay="0"
+      disabled="false"
+      hidearrows="false"
+      hovertooltip="true"
+      ignorepasswordmanagers="false"
+      labelkey="fleet.helmOp.serviceAccount.label"
+      mode="edit"
+      placeholder=""
+      placeholderkey="fleet.helmOp.serviceAccount.placeholder"
+      required="false"
+      requiredirty="true"
+      rules=""
+      type="text"
+      value="sa-1"
+    />
+    <!--v-if-->
+  </div>
+  <div
+    class="col span-6 cluster-deployment-settings-input"
+  >
+    <labeled-input-stub
+      arialabel=""
+      class=""
+      data-testid="helmop-target-options-namespace"
+      delay="0"
+      disabled="false"
+      hidearrows="false"
+      hovertooltip="true"
+      ignorepasswordmanagers="false"
+      labelkey="fleet.helmOp.targetNamespace.label"
+      mode="edit"
+      placeholder=""
+      placeholderkey="fleet.helmOp.targetNamespace.placeholder"
+      required="false"
+      requiredirty="true"
+      rules=""
+      type="text"
+      value="ns-1"
+    />
+    <!--v-if-->
+  </div>
+</div>
+`;

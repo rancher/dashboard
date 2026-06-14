@@ -13,6 +13,7 @@ import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'KeyValue',
@@ -24,7 +25,8 @@ export default {
     Select,
     TextAreaAutoGrow,
     FileSelector,
-    LabeledTooltip
+    LabeledTooltip,
+    RcButton
   },
   props: {
     value: {
@@ -241,6 +243,10 @@ export default {
     keyErrors: {
       type:    Object,
       default: () => ({})
+    },
+    useRcButton: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -879,8 +885,23 @@ export default {
         name="add"
         :add="add"
       >
+        <RcButton
+          v-if="addAllowed && useRcButton"
+          size="small"
+          variant="secondary"
+          :class="[addClass]"
+          data-testid="add_row_item_button"
+          :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
+          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          @click="add()"
+        >
+          <i
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+          /> {{ _addLabel }}
+        </RcButton>
         <button
-          v-if="addAllowed"
+          v-else-if="addAllowed"
           type="button"
           role="button"
           class="btn role-tertiary add"

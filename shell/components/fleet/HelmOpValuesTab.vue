@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import { ref, nextTick } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
@@ -6,62 +7,54 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import YamlEditor from '@shell/components/YamlEditor';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
 
-defineProps({
-  value: {
-    type:     Object,
-    required: true
-  },
-  mode: {
-    type:     String,
-    required: true
-  },
-  realMode: {
-    type:     String,
-    required: true
-  },
-  isView: {
-    type:    Boolean,
-    default: false
-  },
-  chartValues: {
-    type:     String,
-    required: true
-  },
-  chartValuesInit: {
-    type:     String,
-    required: true
-  },
-  yamlForm: {
-    type:     String,
-    required: true
-  },
-  yamlFormOptions: {
-    type:     Array,
-    required: true
-  },
-  yamlDiffModeOptions: {
-    type:     Array,
-    required: true
-  },
-  isYamlDiff: {
-    type:     Boolean,
-    required: true
-  },
-  editorMode: {
-    type:     String,
-    required: true
-  },
-  diffMode: {
-    type:     String,
-    required: true
-  },
-  isRealModeEdit: {
-    type:     Boolean,
-    required: true
-  }
+import type { ButtonGroupOption } from '@shell/types/components/buttonGroup';
+
+interface HelmOpResource {
+  spec: { helm: { valuesFrom?: unknown } };
+  metadata: { namespace: string };
+}
+
+const yaml = ref<{ refresh?:() => void } | null>(null);
+
+const refreshYaml = () => {
+  nextTick(() => {
+    yaml.value?.refresh?.();
+  });
+};
+
+defineExpose({ refreshYaml });
+
+withDefaults(defineProps<{
+  value: HelmOpResource;
+  mode: string;
+  realMode: string;
+  chartValues: string;
+  chartValuesInit: string;
+  yamlForm: string;
+  yamlFormOptions: ButtonGroupOption[];
+  yamlDiffModeOptions: ButtonGroupOption[];
+  isYamlDiff: boolean;
+  editorMode: string;
+  diffMode: string;
+  isRealModeEdit: boolean;
+  hideTitle?: boolean;
+  isSuseAppCollection?: boolean;
+  bgBorder?: boolean;
+  hideBanner?: boolean;
+  compact?: boolean;
+}>(), {
+  hideTitle:           false,
+  isSuseAppCollection: false,
+  bgBorder:            false,
+  hideBanner:          false,
 });
 
-const emit = defineEmits(['update:yaml-form', 'update:chart-values', 'update:diff-mode']);
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'update:yaml-form'): void;
+  (e: 'update:chart-values', value: string): void;
+  (e: 'update:diff-mode', value: string): void;
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -70,71 +63,83 @@ const updateYamlForm = () => {
   emit('update:yaml-form');
 };
 
-const updateChartValues = (value) => {
+const updateChartValues = (value: string) => {
   emit('update:chart-values', value);
 };
 
-const updateDiffMode = (value) => {
+const updateDiffMode = (value: string) => {
   emit('update:diff-mode', value);
 };
 </script>
 
 <template>
-  <div>
-    <Banner
-      color="info"
-      class="description"
-      label-key="fleet.helmOp.values.description"
-    />
+  <div class="helmop-values-tab-container">
+    <div v-if="compact">
+      {{ t('fleet.helmOp.values.descriptionCompact') }}
+    </div>
+    <div data-testid="helmop-values-tab">
+      <Banner
+        v-if="!hideBanner"
+        color="info"
+        class="description mt-0"
+        :label-key="isSuseAppCollection ? 'fleet.helmOp.values.appCoDescription' : 'fleet.helmOp.values.description'"
+        data-testid="helmop-values-info-banner"
+      />
 
-    <h2>{{ t('fleet.helmOp.values.title') }}</h2>
+      <h2 v-if="!hideTitle">
+        {{ t('fleet.helmOp.values.title') }}
+      </h2>
 
-    <div class="mb-15">
-      <div
-        v-if="isRealModeEdit"
-        class="yaml-form-controls"
-      >
-        <ButtonGroup
-          :value="yamlForm"
-          inactive-class="bg-disabled btn-sm"
-          active-class="bg-primary btn-sm"
-          :options="yamlFormOptions"
-          @update:value="updateYamlForm"
-        />
+      <div class="mb-15">
         <div
-          class="yaml-form-controls-spacer"
-          style="flex:1"
+          v-if="isRealModeEdit"
+          class="yaml-form-controls"
         >
+          <ButtonGroup
+            :value="yamlForm"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :options="yamlFormOptions"
+            @update:value="updateYamlForm"
+          />
+          <div
+            class="yaml-form-controls-spacer"
+          >
           &nbsp;
+          </div>
+          <ButtonGroup
+            v-if="isYamlDiff"
+            :value="diffMode"
+            :options="yamlDiffModeOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            @update:value="updateDiffMode"
+          />
         </div>
-        <ButtonGroup
-          v-if="isYamlDiff"
-          :value="diffMode"
-          :options="yamlDiffModeOptions"
-          inactive-class="bg-disabled btn-sm"
-          active-class="bg-primary btn-sm"
-          @update:value="updateDiffMode"
+
+        <YamlEditor
+          ref="yaml"
+          :class="{ 'bg-border': bgBorder }"
+          :value="chartValues"
+          :mode="mode"
+          :initial-yaml-values="chartValuesInit"
+          :scrolling="true"
+          :editor-mode="editorMode"
+          :hide-preview-buttons="true"
+          data-testid="helmop-values-yaml-editor"
+          @update:value="updateChartValues"
         />
       </div>
 
-      <YamlEditor
-        ref="yaml"
-        :value="chartValues"
-        :mode="mode"
-        :initial-yaml-values="chartValuesInit"
-        :scrolling="true"
-        :editor-mode="editorMode"
-        :hide-preview-buttons="true"
-        @update:value="updateChartValues"
-      />
-    </div>
-
-    <div class="mb-20">
-      <FleetValuesFrom
-        :value="value.spec.helm.valuesFrom"
-        :namespace="value.metadata.namespace"
-        :mode="realMode"
-      />
+      <div class="mb-20">
+        <FleetValuesFrom
+          :value="value.spec.helm.valuesFrom"
+          :namespace="value.metadata.namespace"
+          :mode="realMode"
+          :compact="compact"
+          data-testid="helmop-values-from"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -143,5 +148,19 @@ const updateDiffMode = (value) => {
 .yaml-form-controls {
   display: flex;
   margin-bottom: 15px;
+}
+
+.yaml-form-controls-spacer {
+  flex: 1;
+}
+
+.bg-border {
+  border: 2px solid var(--body-bg);
+}
+
+.helmop-values-tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
 }
 </style>

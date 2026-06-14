@@ -157,6 +157,21 @@ describe('component: Header', () => {
 
       expect((wrapper.vm as any).disableWorkspaceSwitcher).toBe(true);
     });
+
+    it.each([
+      ['c-cluster-fleet-application-appco-credentials', '/c/local/fleet/application/suse-app-collection/credentials'],
+      ['c-cluster-fleet-application-appco-charts', '/c/local/fleet/application/suse-app-collection/charts'],
+      ['c-cluster-fleet-application-appco-chart', '/c/local/fleet/application/suse-app-collection/chart'],
+    ])('should return true on AppCo page %s (via route meta)', (name, path) => {
+      const wrapper = createWrapper({
+        name,
+        path,
+        params: {},
+        meta:   { disableWorkspaceSwitcher: true },
+      });
+
+      expect((wrapper.vm as any).disableWorkspaceSwitcher).toBe(true);
+    });
   });
 
   describe('showFilter', () => {
