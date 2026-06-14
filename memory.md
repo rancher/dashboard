@@ -38,6 +38,8 @@
 - validators/flow-output.js: verifyLocal mode checks both refs; global mode only globalOutputRefs
 - validators/logging-outputs.js: logdna returns early for isEmpty(value); api_key must be non-empty
 - validators/monitoring-route.js: interval regex `/^\d+[hms]$/`
+- router.js: existing test file is .js not .ts; INSTALL_REDIRECT_META_KEY='installRedirect'
+- router.js: `findMeta` handles both plain-object and array meta; getProductFromRoute uses regex `/^c-cluster-([^-]+)/`
 
 ## Testing Backlog (Prioritized)
 
@@ -47,7 +49,8 @@
 
 ## Completed Work (Summary)
 
-- 2026-06-13: PR (branch test-assist/validator-tests-container-flow-logdna-monitoring): 38 tests for 4 validator files; 100% all metrics
+- 2026-06-14: PR (branch test-assist/router-utils-tests): 32 tests for router.js (queryParamsFor, findMeta, getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeMatched, routeRequiresAuthentication, routeRequiresInstallRedirect); 100% branches
+- 2026-06-13: PR #18053 (branch test-assist/validator-tests-container-flow-logdna-monitoring): 38 tests for 4 validator files; 100% all metrics
 - 2026-06-12: PR #18041: 35 tests for crypto/browserHashUtils.js + crypto/index.js
 - 2026-06-11: PR #18033: 32 tests for time.ts — merged ✅
 - 2026-06-10: PR #18023: 11 tests for select.js — merged ✅
@@ -60,6 +63,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-14: Task 3 (router.js, 32 tests) + Task 7
 - 2026-06-13: Task 3 (validators: container-images/flow-output/logging-outputs/monitoring-route, 38 tests) + Task 7
 - 2026-06-12: Task 3 (crypto, 35 tests) + Task 7
 - 2026-06-11: Task 3 (time.ts, 32 tests) + Task 7
