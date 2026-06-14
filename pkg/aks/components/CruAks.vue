@@ -366,7 +366,7 @@ export default defineComponent({
           if (res.find((r: any) => r.name === DEFAULT_REGION)) {
             this.config['resourceLocation'] = DEFAULT_REGION;
           } else {
-            this.config['resourceLocation'] = res[0]?.name;
+            this.config['resourceLocation'] = withAZ[0]?.name ?? withoutAZ[0]?.name ?? res[0]?.name;
           }
         }
         this.loadingLocations = false;
