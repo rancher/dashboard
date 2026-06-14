@@ -130,10 +130,12 @@ export function init(store) {
 
   basicType([
     HOSTED_PROVIDER,
+    CAPI.CAPI_PROVIDER,
     'rke-kontainer-providers',
     'rke-node-providers',
   ], 'providers');
 
+  weightType(CAPI.CAPI_PROVIDER, 4, true);
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
