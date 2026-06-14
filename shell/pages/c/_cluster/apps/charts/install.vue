@@ -22,7 +22,6 @@ import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Wizard from '@shell/components/Wizard';
-import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import {
@@ -41,7 +40,7 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
+import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
@@ -96,7 +95,6 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription,
     SelectOrCreateAuthSecret
   },
 
@@ -601,6 +599,10 @@ export default {
       return out;
     },
 
+    selectedVersionOption() {
+      return this.filteredVersions?.find((v) => v.id === this.query.versionName) || this.query.versionName;
+    },
+
     showSelectVersionOrChart() {
       // Allow the user to choose a version if:
       // - the app exists (editing/upgrading)
@@ -680,7 +682,7 @@ export default {
     },
 
     stepperSubtext() {
-      return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
+      return this.mappedVersions?.find((v) => v.id === this.targetVersion)?.label || this.targetVersion;
     },
 
     readmeWindowName() {
@@ -763,24 +765,6 @@ export default {
 
     legacyAppRoute() {
       return { name: 'c-cluster-legacy-project' };
-    },
-
-    windowsIncompatible() {
-      if (this.versionInfo) {
-        const isRancher = isRancherRepo(this.repo, this.chart);
-        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
-        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
-
-        if (incompatibleVersion) {
-          if (!this.chart?.windowsIncompatible) {
-            return this.t('catalog.charts.versionWindowsIncompatible');
-          }
-
-          return this.t('catalog.charts.windowsIncompatible');
-        }
-      }
-
-      return null;
     },
 
     /**
@@ -1554,10 +1538,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps pt-20"
+    class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
-    <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1567,25 +1550,45 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
       :header-mode="action.tKey"
+      :show-step-header="false"
       class="wizard"
-      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
-      <template #bannerTitleImage>
-        <div>
-          <div class="logo-bg">
-            <LazyImage
-              :src="chart ? chart.icon : ''"
-              class="logo"
-            />
+      <template #bannerTitle>
+        <div class="chart-title-container">
+          <div class="logo-container">
+            <div class="logo-box">
+              <LazyImage
+                :src="chart ? chart.icon : ''"
+                class="logo"
+              />
+            </div>
           </div>
-          <label
-            v-if="windowsIncompatible"
-            class="os-label"
-          >
-            {{ windowsIncompatible }}
-          </label>
+          <div class="chart-title">
+            <h1>
+              <router-link
+                v-if="chart"
+                :to="chartLocation()"
+                data-testid="chart-install-name-link"
+              >
+                {{ stepperName }}
+              </router-link>
+              <span v-else>
+                {{ stepperName }}
+              </span>: {{ t(`wizard.${action.tKey}`) }}
+            </h1>
+            <span
+              v-if="stepperSubtext"
+              class="subtext"
+            >
+              <i
+                v-clean-tooltip="t('tableHeaders.version')"
+                class="icon icon-version-alt"
+              />
+              {{ stepperSubtext }}
+            </span>
+          </div>
         </div>
       </template>
       <template #basics>
@@ -1629,20 +1632,26 @@ export default {
             v-if="showSelectVersionOrChart"
             class="row mb-20"
           >
-            <div class="col span-4">
-              <!-- We have a chart for the app, let the user select a new version -->
+            <!-- We have a chart for the app, let the user select a new version -->
+            <div
+              v-if="chart"
+              class="col span-4"
+            >
               <LabeledSelect
-                v-if="chart"
                 data-testid="chart-version-selector"
                 :label="t('catalog.install.version')"
-                :value="query.versionName"
+                :value="selectedVersionOption"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
                 @update:value="selectVersion"
               />
-              <!-- Can't find the chart for the app, let the user try to select one -->
+            </div>
+            <!-- Can't find the chart for the app, let the user try to select one -->
+            <div
+              v-else
+              class="col span-4"
+            >
               <LabeledSelect
-                v-else
                 :label="t('catalog.install.chart')"
                 :value="chart"
                 :options="charts"
@@ -1791,7 +1800,7 @@ export default {
             <LabeledSelect
               v-if="chart"
               :label="t('catalog.install.version')"
-              :value="query.versionName"
+              :value="selectedVersionOption"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
               @update:value="selectVersion"
@@ -2046,29 +2055,36 @@ export default {
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <div class="outer-container">
-      <div class="header mb-20">
-        <div class="title">
-          <div class="top choice-banner">
-            <div class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div class="round-image">
-                  <LazyImage
-                    :src="chart ? chart.icon : ''"
-                    class="logo"
-                  />
-                </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="stepperName">
-                  {{ stepperName }}
-                </h2>
-                <span
-                  v-if="stepperSubtext"
-                  class="subtext"
-                >{{ stepperSubtext }}</span>
+      <div class="header mmt-6 mmb-6">
+        <div class="top choice-banner">
+          <div class="chart-title-container mmb-6">
+            <div class="logo-container">
+              <div class="logo-box">
+                <LazyImage
+                  :src="chart ? chart.icon : ''"
+                  class="logo"
+                />
               </div>
+            </div>
+            <div class="chart-title">
+              <h2 v-if="stepperName">
+                <router-link
+                  :to="chartLocation()"
+                  data-testid="chart-install-name-link"
+                >
+                  {{ stepperName }}
+                </router-link>
+              </h2>
+              <span
+                v-if="stepperSubtext"
+                class="subtext"
+              >
+                <i
+                  v-clean-tooltip="t('tableHeaders.version')"
+                  class="icon icon-version-alt"
+                />
+                {{ stepperSubtext }}
+              </span>
             </div>
           </div>
         </div>
@@ -2100,12 +2116,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .chart-version-footnote {
+    margin-top: 8px;
+    color: var(--input-label);
+  }
+
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
 
   .install-steps {
-    padding-top: 0;
     height: 0;
     position: relative;
     overflow: hidden;
@@ -2121,37 +2141,29 @@ export default {
     }
   }
 
-  .wizard {
-    .logo-bg {
-      margin-right: 10px;
-      height: $title-height;
-      width: $title-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .logo {
-      max-height: $title-height - 2 * $padding;
-      max-width: $title-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
-    }
+    .logo-box {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      border-radius: var(--border-radius);
 
-    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
-    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
-    &.windowsIncompatible {
-      :deep() .header {
-        padding-bottom: 15px;
+      .logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
       }
     }
+  }
+
+  .wizard {
 
     .os-label {
       position: absolute;
@@ -2300,38 +2312,43 @@ export default {
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
-  & > .title {
+  & > .chart-title-container {
     flex: 1;
     min-height: 75px;
   }
 
   .choice-banner {
 
-    flex-basis: 40%;
+    flex-basis: 100%;
     display: flex;
     align-items: center;
 
     &.top {
 
-      H2 {
+      H1, H2 {
         margin: 0px;
       }
 
-      .title{
+      .chart-title-container {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-evenly;
-
-        & > .subtitle {
-          margin: 0 20px;
-        }
+        gap: 24px;
       }
 
-      .subtitle{
+      .chart-title {
         display: flex;
         flex-direction: column;
         & .subtext {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           color: var(--input-label);
+          margin-top: 8px;
+
+          .icon-version-alt {
+            font-size: 19px;
+          }
         }
       }
 
@@ -2348,17 +2365,6 @@ export default {
       }
     }
 
-    & .round-image {
-      min-width: 50px;
-      height: 50px;
-      margin: 10px 10px 10px 0;
-      border-radius: 50%;
-      overflow: hidden;
-      .logo {
-        min-width: 50px;
-        height: 50px;
-      }
-    }
   }
 }
 

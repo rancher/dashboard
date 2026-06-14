@@ -109,6 +109,11 @@ export default {
       default: null
     },
 
+    showStepHeader: {
+      type:    Boolean,
+      default: true
+    },
+
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -289,7 +294,7 @@ export default {
     >
       <div>
         <div class="header">
-          <div class="title">
+          <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
               v-if="showBanner"
               class="top choice-banner"
@@ -328,7 +333,7 @@ export default {
               </slot>
               <!-- Step number with subtext -->
               <div
-                v-if="activeStep && showSteps"
+                v-if="activeStep && showSteps && showStepHeader"
                 class="subtitle"
               >
                 <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
@@ -596,10 +601,10 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 17px;
+        top: 23px;
 
         .cru__content & {
-          top: 13px;
+          top: 17px;
         }
       }
     }
