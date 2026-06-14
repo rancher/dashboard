@@ -56,6 +56,26 @@ find tmp/ -name "*.ts" -type f | while read file; do
   sed -i "s|~/cypress|${relative_path}|g" "$file"
 done
 
+# Inline CURRENT_RANCHER_VERSION from @shell/config/version before tsc runs.
+#
+# When both version.ts and version.js exist in the same directory, TypeScript
+# treats the .js as the compiled output of the .ts and therefore resolves any
+# import of `@shell/config/version` (with or without the .js extension) to
+# version.ts. That file is outside rootDir ("tmp"), which triggers TS6059.
+# TypeScript's rootDir constraint applies to .ts files only — other @shell
+# imports in Cypress (store-types.js, crypto/index.js) work fine because they
+# have no companion .ts file.
+#
+# The fix: replace the import with an inline const in the tmp/ copies before
+# tsc sees them. There is no import left to resolve, so no rootDir violation.
+# The version value is read directly from version.ts — single source of truth.
+echo "Inlining @shell/config/version imports..."
+RANCHER_VERSION=$(sed -n "s/export const CURRENT_RANCHER_VERSION = '\([^']*\)';/\1/p" ../shell/config/version.ts)
+find tmp/ -name "*.ts" -type f | while read -r file; do
+  sed -i "s|import { CURRENT_RANCHER_VERSION } from '@shell/config/version\.js';|const CURRENT_RANCHER_VERSION = '$RANCHER_VERSION';|g" "$file"
+  sed -i "s|import { CURRENT_RANCHER_VERSION } from '@shell/config/version';|const CURRENT_RANCHER_VERSION = '$RANCHER_VERSION';|g" "$file"
+done
+
 echo "Compiling TypeScript from tmp/ to dist/..."
 npx tsc --project tsconfig.build.json
 
