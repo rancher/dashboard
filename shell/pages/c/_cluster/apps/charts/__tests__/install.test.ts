@@ -144,4 +144,91 @@ describe('page: Install', () => {
       expect(mockReplace).toHaveBeenCalledWith(expectedLocation);
     });
   });
+
+  describe('computed properties: monitoring banners', () => {
+    const setupComponent = (existing: any, releaseName: string, componentName: string, chartName: string) => {
+      const mockStore = {
+        getters: {
+          'i18n/withFallback':       () => '',
+          'catalog/inStore':         'cluster',
+          'features/get':            () => false,
+          'type-map/hasCustomChart': () => false,
+          'wm/byId':                 () => null,
+          'i18n/t':                  (k: string) => k,
+          'prefs/get':               () => {},
+          'management/all':          () => [],
+          'cluster/all':             () => [],
+          'cluster/byId':            () => null,
+          'catalog/charts':          [],
+        }
+      };
+
+      return mount(Install as any, {
+        global: {
+          mocks: {
+            $store:      mockStore,
+            $route:      { query: {} },
+            $fetchState: { pending: false },
+            t:           (k: string) => k,
+          },
+          stubs: {
+            Loading:             true,
+            Wizard:              true,
+            Banner:              true,
+            Checkbox:            true,
+            LabeledInput:        true,
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            Tabbed:              true,
+            Questions:           true,
+            YamlEditor:          true,
+            ResourceCancelModal: true,
+            UnitInput:           true,
+            TypeDescription:     true,
+            LazyImage:           true,
+            ChartReadme:         true,
+            ButtonGroup:         true,
+          }
+        },
+        data() {
+          return {
+            existing,
+            version: {
+              annotations: {
+                [CATALOG_ANNOTATIONS.RELEASE_NAME]: releaseName,
+                [CATALOG_ANNOTATIONS.COMPONENT]:    componentName,
+              }
+            },
+            chart: {
+              chartName,
+              versions: []
+            },
+            query: { versionName: '1.0.0' }
+          };
+        }
+      });
+    };
+
+    it('showMonitoringBanner should return translation key if existing is true and releaseName matches rancher-monitoring', () => {
+      const wrapper1 = setupComponent(true, 'rancher-monitoring', '', '');
+      expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
+
+      const wrapper2 = setupComponent(true, '', 'rancher-monitoring', 'rancher-monitoring');
+      expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
+
+      const wrapper3 = setupComponent(false, 'rancher-monitoring', '', '');
+      expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+    });
+
+    it('showMonitoringBanner should return translation key if existing is false and releaseName matches rancher-monitoring-dashboards', () => {
+      const wrapper1 = setupComponent(false, 'rancher-monitoring-dashboards', '', '');
+      expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.newMonitoringChartWarning');
+
+      const wrapper2 = setupComponent(false, '', 'rancher-monitoring-dashboards', 'rancher-monitoring-dashboards');
+      expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
+
+      const wrapper3 = setupComponent(true, 'rancher-monitoring-dashboards', '', '');
+      expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+    });
+  });
 });

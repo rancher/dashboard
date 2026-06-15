@@ -501,6 +501,20 @@ export default {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
 
+    showMonitoringBanner() {
+      const releaseName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+      if (!!this.existing && releaseName === 'rancher-monitoring') {
+        return this.t('catalog.install.steps.basics.oldMonitoringChartWarning');
+      }
+
+      if (!this.existing && releaseName === 'rancher-monitoring-dashboards') {
+        return this.t('catalog.install.steps.basics.newMonitoringChartWarning');
+      }
+
+      return null;
+    },
+
     /**
      * Return list of variables to filter chart questions
      */
@@ -1590,6 +1604,12 @@ export default {
       </template>
       <template #basics>
         <div class="step__basic">
+          <Banner
+            v-if="showMonitoringBanner"
+            color="warning"
+          >
+            {{ showMonitoringBanner }}
+          </Banner>
           <Banner
             v-if="step1Description"
             color="info"
