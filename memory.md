@@ -45,13 +45,22 @@
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/dynamic-content/notification-handler.ts` — store mock needed; async (medium)
-3. `shell/utils/scroll.js` — trivial DOM utility (low priority)
+3. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
+4. `shell/utils/scroll.js` — trivial DOM utility (low priority)
+
+## Testing Notes (auth.js)
+
+- `parseAuthProvidersInfo`: pure function; `oidc` is filtered from `nonLocal` (supportedNonLocal) but stays in `enabled`
+- `checkPermissions`: async via allHash; mock getters as `{ 'management/schemaFor': jest.fn() }`
+- `returnTo`: uses `window.location.href` (jsdom default `http://localhost/`); `_FLAGGED=null` adds key-only `?key`
+- `returnTo` spa branch: requires `window.location.href` to contain `?spa`; skipped (low value)
 
 ## Completed Work (Summary)
 
-- 2026-06-14: PR (branch test-assist/router-utils-tests): 32 tests for router.js (queryParamsFor, findMeta, getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeMatched, routeRequiresAuthentication, routeRequiresInstallRedirect); 100% branches
-- 2026-06-13: PR #18053 (branch test-assist/validator-tests-container-flow-logdna-monitoring): 38 tests for 4 validator files; 100% all metrics
-- 2026-06-12: PR #18041: 35 tests for crypto/browserHashUtils.js + crypto/index.js
+- 2026-06-15: PR (branch test-assist/auth-utils-tests): 24 tests for auth.js (parseAuthProvidersInfo, checkPermissions, returnTo); 92.85% branches
+- 2026-06-14: PR #18054 (branch test-assist/router-utils-tests): 32 tests for router.js — merged ✅
+- 2026-06-13: PR #18053 (branch test-assist/validator-tests-container-flow-logdna-monitoring): 38 tests for 4 validator files — merged ✅
+- 2026-06-12: PR #18041: 35 tests for crypto/browserHashUtils.js + crypto/index.js — merged ✅
 - 2026-06-11: PR #18033: 32 tests for time.ts — merged ✅
 - 2026-06-10: PR #18023: 11 tests for select.js — merged ✅
 - 2026-06-09: PR #18011: 14 tests for cspAdaptor.ts — merged ✅
@@ -63,6 +72,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-15: Task 2+3 (auth.js, 24 tests: parseAuthProvidersInfo/checkPermissions/returnTo) + Task 7
 - 2026-06-14: Task 3 (router.js, 32 tests) + Task 7
 - 2026-06-13: Task 3 (validators: container-images/flow-output/logging-outputs/monitoring-route, 38 tests) + Task 7
 - 2026-06-12: Task 3 (crypto, 35 tests) + Task 7
