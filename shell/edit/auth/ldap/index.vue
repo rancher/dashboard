@@ -16,7 +16,7 @@ import Password from '@shell/components/form/Password';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcSeparator } from '@components/RcSeparator';
-import { zodValidators } from 'utils/validators/zod-helpers';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const AUTH_TYPE = 'ldap';
 

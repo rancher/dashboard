@@ -20,7 +20,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcSeparator } from '@components/RcSeparator';
-import { zodValidators } from 'utils/validators/zod-helpers';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
