@@ -8,8 +8,9 @@ import { base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
-  AUTH_TYPE, CONFIG_MAP, FLEET, FLEET_APPCO_AUTH_GENERATE_NAME, AUTH_GENERATE_NAME, NORMAN, SECRET
+  AUTH_TYPE, CONFIG_MAP, FLEET, AUTH_GENERATE_NAME, NORMAN, SECRET
 } from '@shell/config/types';
+import { FLEET_APPCO_AUTH_GENERATE_NAME, IMAGE_PULL_SECRET_SUFFIX, SUSE_APP_COLLECTION_REPO_URL, deriveRepoName } from '@shell/utils/fleet-appco';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -30,7 +31,6 @@ import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
 import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
-import { SUSE_APP_COLLECTION_REPO_URL, deriveRepoName } from '@shell/utils/fleet-appco';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -166,7 +166,7 @@ export default {
           const ns = this.value.metadata.namespace;
 
           this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName');
-          this.addAppCoImagePullSecretToSpec(`${ querySecret }-image-pull-secret`);
+          this.addAppCoImagePullSecretToSpec(`${ querySecret }${ IMAGE_PULL_SECRET_SUFFIX }`);
 
           this.fetchAppCoCharts(deriveRepoName(querySecret));
         }

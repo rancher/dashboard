@@ -5,7 +5,8 @@ import {
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 
-import { FLEET_APPCO_AUTH_GENERATE_NAME, SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { FLEET_APPCO_AUTH_GENERATE_NAME, fetchAppCoCharts, deriveRepoName } from '@shell/utils/fleet-appco';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { REPO_TYPE, REPO, CHART } from '@shell/config/query-params';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
@@ -13,7 +14,6 @@ import AppCoChartGrid from '@shell/components/fleet/AppCoChartGrid.vue';
 import AppCoEmptyState from '@shell/components/fleet/AppCoEmptyState.vue';
 import Loading from '@shell/components/Loading';
 import { useI18n } from '@shell/composables/useI18n';
-import { fetchAppCoCharts, deriveRepoName } from '@shell/utils/fleet-appco';
 import type { RepoState } from '@shell/utils/fleet-appco';
 import { RcIcon } from '@components/RcIcon';
 

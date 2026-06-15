@@ -6,7 +6,7 @@ import FleetUtils from '@shell/utils/fleet';
 import { FLEET } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
-import { SUSE_APP_COLLECTION_REPO_URL } from '@shell/utils/fleet-appco';
+import { SUSE_APP_COLLECTION_REPO_URL, SUSE_APPCO_DISPLAY_NAME } from '@shell/utils/fleet-appco';
 
 export default class HelmOp extends FleetApplication {
   get isSuseAppCollectionFromUI() {
@@ -21,7 +21,7 @@ export default class HelmOp extends FleetApplication {
 
   get applicationType() {
     if (this.isSuseAppCollectionFromUI) {
-      return 'SUSE AppCo';
+      return SUSE_APPCO_DISPLAY_NAME;
     }
 
     return this.kind;

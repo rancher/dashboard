@@ -3,7 +3,13 @@ import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
-import { AUTH_TYPE, FLEET_APPCO_AUTH_GENERATE_NAME, SECRET } from '@shell/config/types';
+import { AUTH_TYPE, SECRET } from '@shell/config/types';
+import {
+  FLEET_APPCO_AUTH_GENERATE_NAME,
+  createAppCoAuthSecret,
+  ensureAppCoImagePullSecret,
+  ensureAppCoClusterRepo,
+} from '@shell/utils/fleet-appco';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -12,11 +18,6 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
 import { RcButton } from '@components/RcButton';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
-import {
-  createAppCoAuthSecret,
-  ensureAppCoImagePullSecret,
-  ensureAppCoClusterRepo,
-} from '@shell/utils/fleet-appco';
 
 const ADD_NEW_TOKEN = '__add_new__';
 

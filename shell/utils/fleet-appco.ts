@@ -1,14 +1,14 @@
 import { base64Encode } from '@shell/utils/crypto';
-import {
-  AUTH_TYPE, CATALOG as CATALOG_TYPES, FLEET_APPCO_AUTH_GENERATE_NAME, NORMAN, SECRET
-} from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, SECRET } from '@shell/config/types';
 import { CATALOG, DESCRIPTION, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 
 export const SUSE_APP_COLLECTION_REPO_URL = 'oci://dp.apps.rancher.io/charts';
+export const FLEET_APPCO_AUTH_GENERATE_NAME = 'fleet-appco-auth-';
+export const IMAGE_PULL_SECRET_SUFFIX = '-image-pull-secret';
+export const SUSE_APPCO_DISPLAY_NAME = 'SUSE AppCo';
 
 interface AuthCredentials {
-  selected: string;
   publicKey: string;
   privateKey: string;
 }
@@ -35,59 +35,22 @@ interface VuexStore {
 }
 
 export async function createAppCoAuthSecret(store: VuexStore, credentials: AuthCredentials, namespace: string) {
-  const {
-    selected,
-    publicKey,
-    privateKey,
-  } = credentials;
+  const { publicKey, privateKey } = credentials;
 
-  if (![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected)) {
-    return;
-  }
-
-  let secret;
-
-  if (selected === AUTH_TYPE._S3) {
-    secret = await store.dispatch('rancher/create', {
-      type:               NORMAN.CLOUD_CREDENTIAL,
-      s3credentialConfig: {
-        accessKey: publicKey,
-        secretKey: privateKey,
-      },
-    });
-  } else {
-    secret = await store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
-      type:     SECRET,
-      metadata: {
-        namespace,
-        generateName: FLEET_APPCO_AUTH_GENERATE_NAME,
-        labels:       { [FLEET_LABELS.MANAGED]: 'true' }
-      }
-    });
-
-    let type, publicField, privateField;
-
-    switch (selected) {
-    case AUTH_TYPE._SSH:
-      type = SECRET_TYPES.SSH;
-      publicField = 'ssh-publickey';
-      privateField = 'ssh-privatekey';
-      break;
-    case AUTH_TYPE._BASIC:
-      type = SECRET_TYPES.BASIC;
-      publicField = 'username';
-      privateField = 'password';
-      break;
-    default:
-      throw new Error('Unknown type');
+  const secret = await store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
+    type:     SECRET,
+    metadata: {
+      namespace,
+      generateName: FLEET_APPCO_AUTH_GENERATE_NAME,
+      labels:       { [FLEET_LABELS.MANAGED]: 'true' }
     }
+  });
 
-    secret._type = type;
-    secret.data = {
-      [publicField]:  base64Encode(publicKey),
-      [privateField]: base64Encode(privateKey),
-    };
-  }
+  secret._type = SECRET_TYPES.BASIC;
+  secret.data = {
+    username: base64Encode(publicKey),
+    password: base64Encode(privateKey),
+  };
 
   await secret.save();
 
@@ -95,7 +58,7 @@ export async function createAppCoAuthSecret(store: VuexStore, credentials: AuthC
 }
 
 export async function ensureAppCoImagePullSecret(store: VuexStore, authSecretName: string, namespace: string): Promise<string | undefined> {
-  const imagePullSecretName = `${ authSecretName }-image-pull-secret`;
+  const imagePullSecretName = `${ authSecretName }${ IMAGE_PULL_SECRET_SUFFIX }`;
 
   let imagePullSecret = store.getters[`${ CATALOG._MANAGEMENT }/byId`](SECRET, `${ namespace }/${ imagePullSecretName }`);
 
@@ -177,62 +140,92 @@ export async function ensureAppCoClusterRepo(store: VuexStore, authSecretName: s
   return repoName;
 }
 
+const REPO_WAIT_TIMEOUT_MS = 90000;
+const REPO_WAIT_INTERVAL_MS = 3000;
+
+function getRepoState(repo: any, repoName: string): { state: RepoState; isReady: boolean; hasError: boolean } {
+  const state = repo.metadata?.state;
+  const conditions = repo.status?.conditions || [];
+  const ociCondition = conditions.find((c: any) => c.type === 'OCIDownloaded');
+  const isReady = ociCondition?.status === 'True';
+  const hasError = !!(state?.error || ociCondition?.error);
+
+  const repoState: RepoState = {
+    repoName,
+    stateDisplay:    repo.stateDisplay,
+    stateBackground: repo.stateBackground,
+    transitioning:   !isReady && !hasError,
+    error:           hasError,
+    errorMessage:    state?.message || ociCondition?.message || '',
+  };
+
+  return {
+    state: repoState, isReady, hasError
+  };
+}
+
 async function waitForRepoReady(
   store: VuexStore,
   repoName: string,
-  {
-    maxAttempts = 30, intervalMs = 3000, onStateChange, signal
-  }: { maxAttempts?: number; intervalMs?: number; onStateChange?: (state: RepoState) => void; signal?: AbortSignal } = {}
+  { onStateChange, signal }: { onStateChange?: (state: RepoState) => void; signal?: AbortSignal } = {}
 ): Promise<WaitResult> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (signal?.aborted) {
-      return { repo: null, state: null };
-    }
-    let repo;
+  let repo;
 
-    try {
-      repo = await store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
-        type: CATALOG_TYPES.CLUSTER_REPO,
-        id:   repoName,
-        opt:  { force: true },
-      });
-    } catch (e) {
-      return { repo: null, state: null };
-    }
-
-    const state = repo.metadata?.state;
-    const conditions = repo.status?.conditions || [];
-    const ociCondition = conditions.find((c: any) => c.type === 'OCIDownloaded');
-    const isReady = ociCondition?.status === 'True';
-    const hasError = state?.error || ociCondition?.error;
-
-    const repoState: RepoState = {
-      repoName,
-      stateDisplay:    repo.stateDisplay,
-      stateBackground: repo.stateBackground,
-      transitioning:   !isReady && !hasError,
-      error:           !!hasError,
-      errorMessage:    state?.message || ociCondition?.message || '',
-    };
-
-    onStateChange?.(repoState);
-
-    if (hasError) {
-      return { repo: null, state: repoState };
-    }
-
-    if (isReady) {
-      return { repo, state: repoState };
-    }
-
-    if (signal?.aborted) {
-      return { repo: null, state: null };
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  // `find` with `force: true` re-fetches and registers a watch, so the store's
+  // cached resource is kept up to date via subscription while we wait below.
+  try {
+    repo = await store.dispatch(`${ CATALOG._MANAGEMENT }/find`, {
+      type: CATALOG_TYPES.CLUSTER_REPO,
+      id:   repoName,
+      opt:  { force: true },
+    });
+  } catch (e) {
+    return { repo: null, state: null };
   }
 
-  return { repo: null, state: null };
+  let result: WaitResult = { repo: null, state: null };
+
+  try {
+    await repo.waitForTestFn(() => {
+      if (signal?.aborted) {
+        return true;
+      }
+
+      // Read the latest resource from the store, kept fresh by the watch above.
+      const current = store.getters[`${ CATALOG._MANAGEMENT }/byId`](CATALOG_TYPES.CLUSTER_REPO, repoName);
+
+      if (!current) {
+        return true;
+      }
+
+      const { state, isReady, hasError } = getRepoState(current, repoName);
+
+      onStateChange?.(state);
+
+      if (hasError) {
+        result = { repo: null, state };
+
+        return true;
+      }
+
+      if (isReady) {
+        result = { repo: current, state };
+
+        return true;
+      }
+
+      return false;
+    }, `appco repo ${ repoName } ready`, REPO_WAIT_TIMEOUT_MS, REPO_WAIT_INTERVAL_MS);
+  } catch (e) {
+    // Timed out waiting for the repo to become ready
+    return result;
+  }
+
+  if (signal?.aborted) {
+    return { repo: null, state: null };
+  }
+
+  return result;
 }
 
 interface FetchChartsResult {

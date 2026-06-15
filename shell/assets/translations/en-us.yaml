@@ -3199,7 +3199,7 @@ fleet:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
       suse-application-collection:
         label: SUSE Application Collection
-        description: A SUSE Application Collection is a curated set of applications from SUSE for enterprise usage.
+        description: Explore our maintained and secure Application Collection, select a Helm chart and deploy it to your clusters.
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
@@ -3351,7 +3351,7 @@ fleet:
     credentials:
       title: Create an App Bundle from SUSE Application Collection
       subtitle: Set up your credentials
-      infoText: An Application Collection access token is required to connect to the Helm Charts catalogue.
+      infoText: An Application Collection access token is required to connect to the Helm Charts catalog.
       accessTokensLink: SUSE Application Collection access tokens
       accessTokenLabel: Access token
       editCredentials: Edit credentials
@@ -3418,12 +3418,12 @@ fleet:
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
         selection:
-          searchPlaceholder: Search the catalogue...
+          searchPlaceholder: Search the catalog...
           authBanner: 'Two different resources will be created: a Continuous Delivery secret, and an imagePullSecret that will be copied into every downstream cluster selected in the next step.'
           emptyState:
             connectionError:
               title: Connection error
-              descriptionPre: 'There was an error fetching SUSE Application Collection catalogue.'
+              descriptionPre: 'There was an error fetching SUSE Application Collection catalog.'
               please: 'Please, '
               tryAgain: try again
               descriptionPost: ' or contact your system administrator.'
@@ -3431,7 +3431,7 @@ fleet:
               title: No charts to show
               descriptionPre: 'Tips: use a different search criteria or '
               clearSearch: clear the search bar
-              descriptionPost: ' and explore the catalogue.'
+              descriptionPost: ' and explore the catalog.'
           repoLoading:
             title: Creating SUSE Application Collection repository...
             description: Please, wait while the repository is created

@@ -197,7 +197,11 @@ export default defineComponent({
     />
     <div class="labeling">
       <label
-        :class="['radio-label', 'm-0', { 'text-muted': muteLabel, 'body-text-color': useBodyTextColor }]"
+        class="radio-label m-0"
+        :class="{
+          'text-muted': muteLabel,
+          'body-text-color': useBodyTextColor
+        }"
         :for="name"
       >
         <slot
