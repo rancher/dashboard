@@ -23,8 +23,9 @@ export const coreStoreState = (namespace, baseUrl, isClusterStore) => ({
     namespace,
     isClusterStore
   },
-  types: {},
-  $ctx:  markRaw({}),
+  types:       {},
+  savedCounts: {}, // Saved counts for resource types (from paginated API called where marked)
+  $ctx:        markRaw({}),
 });
 
 export default (vuexModule, config, init) => {

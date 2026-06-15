@@ -36,7 +36,8 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
-import { isDevBuild } from '@shell/utils/version';
+import { getReleaseNotesURL } from '@shell/utils/version';
+import { getVersionData } from '@shell/config/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
@@ -233,7 +234,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
 const paginateClusters = ({ rootGetters, state }) => {
-  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+  return paginationUtils.isEnabled({ rootGetters, $extension: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -262,6 +263,7 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    $extension:              markRaw({}),
     showWorkspaceSwitcher:   true,
     localCluster:            null,
   };
@@ -627,14 +629,9 @@ export const getters = {
 
   releaseNotesUrl(state, getters) {
     const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
+    const isPrime = getVersionData().RancherPrime === 'true';
 
-    const base = 'https://github.com/rancher/rancher/releases';
-
-    if (version && !isDevBuild(version)) {
-      return `${ base }/tag/${ version }`;
-    }
-
-    return `${ base }/latest`;
+    return getReleaseNotesURL(isPrime, version);
   },
 
   ...gcGetters
@@ -775,6 +772,7 @@ export const mutations = {
   },
 
   setPlugin(state, pluginDefinition) {
+    state.$extension = markRaw(pluginDefinition || {});
     state.$plugin = markRaw(pluginDefinition || {});
   },
 
@@ -1043,6 +1041,8 @@ export const actions = {
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+    // Similarly to above, we somehow get here without everything in management land being ready. FF needed to determine pagination state
+    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.FEATURE });
 
     // If SSP is on we won't have requested all clusters
     if (!paginateClusters({ rootGetters, state })) {
@@ -1195,7 +1195,7 @@ export const actions = {
 
     store.dispatch('gcStopIntervals');
 
-    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+    Object.values(this.$extension.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
       }
@@ -1251,10 +1251,10 @@ export const actions = {
     }
   },
 
-  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
-    commit('setRouter', nuxt.app.router);
-    commit('setRoute', nuxt.route);
-    commit('setPlugin', nuxt.app.$plugin);
+  dashboardClientInit({ dispatch, commit, rootState }, context) {
+    commit('setRouter', context.app.router);
+    commit('setRoute', context.route);
+    commit('setPlugin', context.app.$extension);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');

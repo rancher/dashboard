@@ -65,8 +65,29 @@ export default class ClusterScan extends SteveModel {
       total:   1,
     };
 
+    const downloadReportXCCDF = {
+      action:  'downloadLatestReportXCCDF',
+      enabled: this.hasReport,
+      icon:    'icon icon-download',
+      label:   t('compliance.downloadReportXCCDF'),
+      total:   1,
+    };
+
+    const downloadAllReportsXCCDF = {
+      action:  'downloadAllReportsXCCDF',
+      enabled: this.hasReport,
+      icon:    'icon icon-download',
+      label:   t('compliance.downloadAllReportsXCCDF'),
+      total:   1,
+    };
+
     if (this.hasReports) {
       out.unshift({ divider: true });
+      if (this.spec?.scheduledScanConfig?.cronSchedule) {
+        out.unshift(downloadAllReportsXCCDF);
+        downloadReportXCCDF.label = t('compliance.downloadLatestReportXCCDF');
+      }
+      out.unshift(downloadReportXCCDF);
       if (this.spec?.scheduledScanConfig?.cronSchedule) {
         out.unshift(downloadAllReports);
         downloadReport.label = t('compliance.downloadLatestReport');
@@ -121,7 +142,7 @@ export default class ClusterScan extends SteveModel {
 
       downloadFile(`${ labelFor(report) }.csv`, csv, 'application/csv');
     } catch (err) {
-      this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
     }
   }
 
@@ -143,13 +164,155 @@ export default class ClusterScan extends SteveModel {
 
         toZip[`${ labelFor(report) }.csv`] = csv;
       } catch (err) {
-        this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
       }
     });
     if (!isEmpty(toZip)) {
       generateZip(toZip).then((zip) => {
         downloadFile(`${ this.id }-reports`, zip, 'application/zip');
       });
+    }
+  }
+
+  async _resolveBenchmark() {
+    const profileName = this.status?.lastRunScanProfileName;
+
+    if (!profileName) {
+      return null;
+    }
+    const profile = await this.$dispatch('find', { type: COMPLIANCE.CLUSTER_SCAN_PROFILE, id: profileName });
+    const benchmarkId = profile?.spec?.benchmarkVersion;
+
+    if (!benchmarkId) {
+      return null;
+    }
+
+    return this.$dispatch('find', { type: COMPLIANCE.BENCHMARK, id: benchmarkId });
+  }
+
+  // Fetches the kube-bench profile ConfigMap referenced by the benchmark and
+  // parses its metadata.yaml data key. Top-level fields become the XCCDF
+  // benchmark metadata; the checks: map becomes per-check decorations
+  // (framework-agnostic; STIG, CIS, BSI, etc. all populate the same shape).
+  async _resolveExportMetadata(benchmark) {
+    const name = benchmark?.spec?.customBenchmarkConfigMapName;
+    const namespace = benchmark?.spec?.customBenchmarkConfigMapNamespace;
+    const empty = { metadata: {}, decorations: {} };
+
+    if (!name || !namespace) {
+      return empty;
+    }
+
+    try {
+      const cm = await this.$dispatch('find', { type: 'configmap', id: `${ namespace }/${ name }` });
+      const raw = cm?.data?.['metadata.yaml'];
+
+      if (!raw) {
+        return empty;
+      }
+
+      const jsyaml = await import(/* webpackChunkName: "js-yaml" */'js-yaml');
+      const parsed = jsyaml.load(raw) || {};
+      const { checks = {}, ...rest } = parsed;
+
+      return { metadata: rest, decorations: checks };
+    } catch (e) {
+      console.error('[_resolveExportMetadata] failed to fetch or parse benchmark ConfigMap:', e); // eslint-disable-line no-console
+
+      return empty;
+    }
+  }
+
+  async downloadLatestReportXCCDF() {
+    const reports = await this.getReports() || [];
+    const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
+
+    try {
+      const benchmark = await this._resolveBenchmark();
+      const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
+      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+
+      const parsed = report.parsedReport || {};
+      const common = {
+        report:           parsed,
+        benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
+        metadata,
+        decorations,
+      };
+
+      const toZip = {};
+
+      if (!Object.entries(parsed.nodes || {}).length) {
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorNoParsedNodes') }, { root: true });
+      } else {
+        Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+          (hosts || []).forEach((hostname) => {
+            const xml = generateXCCDFPerNode({
+              ...common, hostname, role,
+            });
+
+            toZip[`${ labelFor(report) }--${ hostname }.xml`] = xml;
+          });
+        });
+
+        if (!isEmpty(toZip)) {
+          const zip = await generateZip(toZip);
+
+          downloadFile(`${ labelFor(report) }-per-node.zip`, zip, 'application/zip');
+        }
+      }
+    } catch (err) {
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
+    }
+  }
+
+  async downloadAllReportsXCCDF() {
+    const toZip = {};
+    const reports = await this.getReports() || [];
+
+    try {
+      const benchmark = await this._resolveBenchmark();
+      const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
+      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+
+      const hasParsedNodes = reports.some((report) => Object.entries(report.parsedReport?.nodes || {}).length);
+
+      if (!hasParsedNodes) {
+        this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorNoParsedNodes') }, { root: true });
+      } else {
+        reports.forEach((report) => {
+          try {
+            const parsed = report.parsedReport || {};
+            const common = {
+              report:           parsed,
+              benchmarkVersion: parsed.version || benchmark?.spec?.benchmarkVersion || '',
+              metadata,
+              decorations,
+            };
+            const folder = labelFor(report);
+
+            Object.entries(parsed.nodes || {}).forEach(([role, hosts]) => {
+              (hosts || []).forEach((hostname) => {
+                const xml = generateXCCDFPerNode({
+                  ...common, hostname, role,
+                });
+
+                toZip[`${ folder }/${ hostname }.xml`] = xml;
+              });
+            });
+          } catch (err) {
+            this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
+          }
+        });
+
+        if (!isEmpty(toZip)) {
+          generateZip(toZip).then((zip) => {
+            downloadFile(`${ this.id }-reports-xccdf-per-node.zip`, zip, 'application/zip');
+          });
+        }
+      }
+    } catch (err) {
+      this.$dispatch('growl/fromError', { title: this.t('compliance.scan.errorDownload'), err }, { root: true });
     }
   }
 

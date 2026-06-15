@@ -7,7 +7,7 @@ module.exports = {
   watchman:           false,
 
   // tell Jest to handle `*.vue` files
-  moduleFileExtensions: ['js', 'json', 'vue', 'ts'],
+  moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],
 
   // Paths
   // NOTE: Docs configuration does not work for our environment
@@ -34,10 +34,14 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate)/)',
+  ],
 
   // Babel
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
+    '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
     '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
@@ -57,6 +61,15 @@ module.exports = {
   ],
   coveragePathIgnorePatterns: [
     '\\.d\\.ts'
+  ],
+
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: 'unit-test-reports',
+      outputName:      'unit-tests.xml'
+    }
+    ]
   ],
 
   // Globals

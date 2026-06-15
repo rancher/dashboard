@@ -19,6 +19,8 @@ import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
@@ -86,7 +88,6 @@ const defaultGkeConfig = {
   clusterName:           '',
   description:           '',
   enableKubernetesAlpha: false,
-  // googleCredentialSecret: '',
   ipAllocationPolicy:    {
     clusterIpv4CidrBlock:       '',
     clusterSecondaryRangeName:  null,
@@ -134,6 +135,7 @@ const defaultImportedCluster = {
   enableNetworkPolicy:    false,
   windowsPreferedCluster: false,
   name:                   '',
+  importedConfig:         { privateRegistryURL: null },
   gkeConfig:              {
     imported:               true,
     clusterName:            '',
@@ -156,6 +158,7 @@ export default defineComponent({
     Networking,
     GKENodePoolComponent,
     Config,
+    PrivateRegistry,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -190,7 +193,6 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
-      this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     } else {
       if (this.isImport) {
         this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultImportedCluster) }, { root: true });
@@ -201,9 +203,15 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
+    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
+    }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
+      // kubernetesVersion is null on imported cluster until this point
+      this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     }
 
     if (!this.isImport) {
@@ -246,12 +254,13 @@ export default defineComponent({
 
     return {
       isImport,
-      normanCluster:    { name: '' } as any,
-      nodePools:        [] as GKENodePool[],
-      config:           { } as GKEConfig,
-      membershipUpdate: {} as any,
-      originalVersion:  '',
-      defaultImageType: GKEImageTypes[0],
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
+      nodePools:              [] as GKENodePool[],
+      config:                 { } as GKEConfig,
+      membershipUpdate:       {} as any,
+      originalVersion:        '',
+      defaultImageType:       GKEImageTypes[0],
+      privateRegistryEnabled: false,
       supportedVersionRange,
 
       loadingMachineTypes:     false,
@@ -265,6 +274,9 @@ export default defineComponent({
       }, {
         path:  'importName',
         rules: ['importNameRequired']
+      }, {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }] : [
         {
           path:  'diskSizeGb',
@@ -310,6 +322,10 @@ export default defineComponent({
           path:  'clusterIpv4Cidr',
           rules: ['clusterIpv4CidrFormat']
         },
+        {
+          path:  'privateRegistry',
+          rules: ['privateRegistryRequired']
+        },
       ],
       isAuthenticated: false,
 
@@ -338,6 +354,10 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    isImportedCluster() {
+      return this.isImport || this.value.isImported;
+    },
+
     /**
      * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here
      * entire context is passed in so validators can check if a credential is selected and only run when the rest of the form is shown + use the i18n/t getter + get the norman cluster
@@ -345,10 +365,11 @@ export default defineComponent({
 
     fvExtraRules() {
       return {
-        clusterNameChars:    clusterNameChars(this),
-        clusterNameStartEnd: clusterNameStartEnd(this),
-        nameRequired:        requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
-        importNameRequired:  requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        clusterNameChars:        clusterNameChars(this),
+        clusterNameStartEnd:     clusterNameStartEnd(this),
+        nameRequired:            requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        importNameRequired:      requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        privateRegistryRequired: privateRegistryRequired(this),
 
         masterIpv4CidrBlockRequired: () => {
           if (!this.isAuthenticated) {
@@ -571,6 +592,7 @@ export default defineComponent({
     'config.region'() {
       this.debouncedLoadGCPData();
     },
+
   },
 
   methods: {
@@ -788,6 +810,7 @@ export default defineComponent({
           <Tab
             v-for="(pool) in nodePools"
             :key="pool._id"
+            :weight="-1 * idx"
             :name="pool._id || pool.name"
             :label="pool.name || t('gke.notNamed')"
             :error="pool._minMaxValid===false || pool._nameUnique===false"
@@ -914,6 +937,19 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isImportedCluster"
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
         />
       </Accordion>
     </div>

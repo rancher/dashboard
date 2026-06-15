@@ -57,7 +57,7 @@ watch(
       >
         <slot name="default" />
         <RcButton
-          ghost
+          variant="ghost"
           class="focus-button"
           :aria-label="props.showPopoverAriaLabel"
           aria-haspopup="true"
@@ -128,7 +128,7 @@ watch(
     display: inline-block;
   }
 
-  .focus-button {
+  .rc-button.btn.focus-button {
     margin-left: 4px;
     margin-right: 2px;
     padding: 0;
@@ -160,7 +160,7 @@ watch(
   }
 
   &:deep() {
-    & > .v-popper > .btn.role-link {
+    & > .v-popper > .btn.variant-link {
       padding: 0;
       min-height: initial;
       line-height: initial;

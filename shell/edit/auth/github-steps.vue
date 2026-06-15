@@ -40,6 +40,7 @@ defineProps<{
             <b>{{ t(`authConfig.${name}.form.homepage.label`) }}</b>: {{ tArgs.serverUrl }} <CopyToClipboard
               label-as="tooltip"
               :text="tArgs.serverUrl"
+              :aria-label="t('generic.copyValueToClipboard', { value: tArgs.serverUrl })"
               class="icon-btn"
               action-color="bg-transparent"
             />
@@ -49,6 +50,7 @@ defineProps<{
             <b>{{ t(`authConfig.${name}.form.callback.label`) }}</b>: {{ tArgs.serverUrl }} <CopyToClipboard
               :text="tArgs.serverUrl"
               label-as="tooltip"
+              :aria-label="t('generic.copyValueToClipboard', { value: tArgs.serverUrl })"
               class="icon-btn"
               action-color="bg-transparent"
             />

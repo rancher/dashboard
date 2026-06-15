@@ -1,12 +1,15 @@
 <script>
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
+import Banner from '@components/Banner/Banner.vue';
 import isEmpty from 'lodash/isEmpty';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
-  components: { LabeledSelect, SimpleSecretSelector },
-  props:      {
+  components: {
+    Banner, LabeledSelect, SimpleSecretSelector
+  },
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -64,7 +67,7 @@ export default {
     initializeType(authOptions, type) {
       authOptions.forEach((authOption) => {
         if (authOption.value === type && type !== 'none') {
-          this.value.authOption.value = this.value[authOption.value] || authOption.default;
+          this.value[authOption.value] = this.value[authOption.value] || authOption.default;
         } else if (typeof this.value[authOption.value] !== 'undefined') {
           delete this.value[authOption.value];
         }

@@ -18,7 +18,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 import TabTitle from '@shell/components/TabTitle';
 
-const Color = require('color');
+import Color from 'color';
 
 export default {
   components: {
@@ -440,14 +440,14 @@ export default {
             />
           </div>
           <SimpleBox
-            v-if="uiLoginBackgroundLight || uiLoginBackgroundDark"
+            v-if="uiLoginBackgroundLight"
             class="theme-light mb-10"
           >
             <label class="text-muted">{{ t('branding.loginBackground.lightPreview') }}</label>
             <img
               class="img-preview"
               data-testid="branding-login-background-light-preview"
-              :src="uiLoginBackgroundLight ? uiLoginBackgroundLight : uiLoginBackgroundDark"
+              :src="uiLoginBackgroundLight"
             >
           </SimpleBox>
         </div>
@@ -465,14 +465,14 @@ export default {
             />
           </div>
           <SimpleBox
-            v-if="uiLoginBackgroundDark || uiLoginBackgroundLight"
+            v-if="uiLoginBackgroundDark"
             class="theme-dark  mb-10"
           >
             <label class="text-muted">{{ t('branding.loginBackground.darkPreview') }}</label>
             <img
               class="img-preview"
               data-testid="branding-login-background-dark-preview"
-              :src="uiLoginBackgroundDark ? uiLoginBackgroundDark : uiLoginBackgroundLight"
+              :src="uiLoginBackgroundDark"
             >
           </SimpleBox>
         </div>

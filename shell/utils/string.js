@@ -349,10 +349,33 @@ export function xOfy(x, y) {
   return `${ typeof x === 'number' ? x : '?' }/${ typeof y === 'number' ? y : '?' }`;
 }
 
-export function isBase64(value) {
-  const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+const BASE64_REGEX = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
-  return base64regex.test(value);
+export function isBase64(value) {
+  return BASE64_REGEX.test(value);
+}
+
+/**
+ * Checks if a value is a valid base64-encoded CA bundle.
+ * Unlike isBase64, this handles multiline base64 (e.g. openssl wraps at 76 chars)
+ * and rejects short strings that could be false positives.
+ * @param {string} value
+ * @returns {boolean}
+ */
+export function isBase64EncodedCert(value) {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+
+  // Strip whitespace to handle line-wrapped base64 output
+  const stripped = value.replace(/\s/g, '');
+
+  // CA certs are long enough that legitimate base64 will always exceed this
+  if (stripped.length < 16) {
+    return false;
+  }
+
+  return BASE64_REGEX.test(stripped);
 }
 
 export function generateRandomAlphaString(length) {

@@ -64,6 +64,37 @@ describe('component: ConsumptionGauge', () => {
     expect(slotTitle.text()).toBe('some-resource-name');
   });
 
+  it('should display the default "Used" label when usedLabel is not provided', () => {
+    const wrapper = mount(ConsumptionGauge, {
+      props: {
+        resourceName: 'some-resource-name',
+        capacity:     100,
+        used:         50,
+      }
+    });
+
+    const usedSpan = wrapper.find('.consumption-gauge .numbers span:nth-child(1)');
+
+    expect(usedSpan.exists()).toBe(true);
+    expect(usedSpan.text()).toBe('%node.detail.glance.consumptionGauge.used%');
+  });
+
+  it('usedLabel should override the default "Used" label text', () => {
+    const wrapper = mount(ConsumptionGauge, {
+      props: {
+        resourceName: 'some-resource-name',
+        capacity:     100,
+        used:         50,
+        usedLabel:    'Running'
+      }
+    });
+
+    const usedSpan = wrapper.find('.consumption-gauge .numbers span:nth-child(1)');
+
+    expect(usedSpan.exists()).toBe(true);
+    expect(usedSpan.text()).toBe('Running');
+  });
+
   it('passing slot TITLE should render correctly', () => {
     const colorStops = {
       0: '--success', 30: '--warning', 70: '--error'

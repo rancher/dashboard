@@ -21,6 +21,7 @@ export function init(store) {
   product({
     ifHaveGroup: /^(.*\.)?gatekeeper\.sh$/,
     icon:        'gatekeeper',
+    extendable:  true,
   });
 
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');

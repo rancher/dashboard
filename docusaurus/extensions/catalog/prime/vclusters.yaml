@@ -1,0 +1,6 @@
+name: Virtual Clusters
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: SUSE's solution for virtual cluster provisioning using K3K
+url: https://documentation.suse.com/cloudnative/suse-virtual-clusters/latest/en/introduction.html
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/icons/virtual-clusters/1.0.2-icon-k3k.svg

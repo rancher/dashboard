@@ -1,20 +1,50 @@
-import { extractCounts, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.vue';
+import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.types';
 import { useI18n } from '@shell/composables/useI18n';
 import { INGRESS, SERVICE } from '@shell/config/types';
-import { getHighestAlertColor } from '@shell/utils/style';
+import { isHigherAlert, StateColor } from '@shell/utils/style';
 import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
-import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/index.vue';
+import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
 
-export function useResourceCardRow(label: string, resources: any[], to?: RouteLocationRaw): ResourceRowProps {
-  const colors = resources.map((r: any) => r.stateSimpleColor);
-  const states = resources.map((r: any) => r.stateDisplay.toLowerCase());
+export function useResourceCardRow(label: string, resources: any[], stateColorKey = 'stateSimpleColor', stateDisplayKey = 'stateDisplay', to?: RouteLocationRaw): ResourceRowProps {
+  const agg: any = {};
+
+  resources.forEach((r: any) => {
+    const state = r[stateDisplayKey]?.toLowerCase();
+    const color = r[stateColorKey] || 'disabled';
+
+    agg[state] = agg[state] || {
+      color, label: state, count: 0
+    };
+    agg[state].count++;
+  });
+
+  interface Tuple extends Count {
+    color: StateColor;
+  }
+  const tuples: Tuple[] = Object.values(agg);
+
+  tuples.sort((left: any, right: any) => {
+    if (isHigherAlert(left.color, right.color)) {
+      return -1;
+    }
+
+    if (left.color !== right.color) {
+      return 1;
+    }
+
+    if (left.count === right.count) {
+      return 0;
+    }
+
+    return left.count > right.count ? -1 : 1;
+  });
 
   return {
     label,
-    color:  resources.length ? getHighestAlertColor(colors) : undefined,
-    counts: resources.length ? extractCounts(states) : undefined,
+    color:  tuples.length ? tuples[0].color : undefined,
+    counts: tuples.length ? tuples : undefined,
     to
   };
 }
@@ -27,7 +57,7 @@ export interface Pairs {
 
 export function useDefaultResources(pairs: Ref<Pairs[]>) {
   const pairsValue = toValue(pairs);
-  const rows = computed(() => pairsValue.map(({ label, resources, to }) => useResourceCardRow(label, resources, to)));
+  const rows = computed(() => pairsValue.map(({ label, resources, to }) => useResourceCardRow(label, resources, undefined, undefined, to)));
 
   return rows;
 }
@@ -93,13 +123,13 @@ export function useDefaultWorkloadInsightsCardProps(): StateCardProps {
   const rows: ResourceRowProps[] = [
     {
       label:  i18n.t('component.resource.detail.card.insightsCard.rows.conditions'),
-      to:     '#',
+      to:     '#conditions',
       color:  'disabled',
       counts: [{ label: 'Available', count: 1 }, { label: 'Progressing', count: 1 }]
     },
     {
       label:  i18n.t('component.resource.detail.card.insightsCard.rows.events'),
-      to:     '#',
+      to:     '#events',
       color:  'disabled',
       counts: [{ label: 'Normal', count: 2 }]
     }

@@ -102,6 +102,11 @@ export default {
           }
         };
 
+        // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+        if (!detailLocation.params.namespace) {
+          delete detailLocation.params.namespace;
+        }
+
         out.push({
           type,
           id:       r[`${ this.direction }Id`],

@@ -7,11 +7,11 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { isBase64 } from '@shell/utils/string';
+import { isBase64EncodedCert } from '@shell/utils/string';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
-  emits: ['updateConfigs'],
+  emits: ['updateConfigs', 'validation-changed'],
 
   components: {
     ArrayListGrouped,
@@ -62,6 +62,34 @@ export default {
         return TYPES.TLS;
       },
     },
+
+    caBundleRules() {
+      return [
+        (value) => {
+          if (!value) {
+            return undefined;
+          }
+
+          const isPem = value.trimStart().startsWith('-----BEGIN ');
+          const isValidBase64 = isBase64EncodedCert(value);
+
+          return (!isPem && !isValidBase64) ? this.t('registryConfig.caBundle.validationError') : undefined;
+        }
+      ];
+    },
+
+    // Derives validation state from entries directly, so it auto-updates when entries are added or removed
+    allCaBundlesValid() {
+      return this.entries.every((entry) => {
+        return this.caBundleRules.every((rule) => !rule(entry.caBundle));
+      });
+    },
+  },
+
+  watch: {
+    allCaBundlesValid(valid) {
+      this.$emit('validation-changed', valid);
+    },
   },
 
   mounted() {
@@ -78,7 +106,8 @@ export default {
 
         const caBundle = configMap[hostname].caBundle ?? this.defaultAddValue.caBundle;
 
-        configMap[hostname].caBundle = isBase64(caBundle) ? base64Decode(caBundle) : caBundle;
+        // Decode base64 for display so the user sees readable PEM text
+        configMap[hostname].caBundle = isBase64EncodedCert(caBundle) ? base64Decode(caBundle) : caBundle;
 
         configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? this.defaultAddValue.tlsSecretName;
       }
@@ -103,7 +132,8 @@ export default {
 
         configs[h] = {
           ...entry,
-          caBundle: entry.caBundle ? base64Encode(entry.caBundle) : null
+          // If the value is already base64, use as-is to avoid double-encoding
+          caBundle: entry.caBundle ? (isBase64EncodedCert(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
         };
 
         delete configs[h].hostname;
@@ -192,6 +222,9 @@ export default {
               type="multiline"
               label="CA Cert Bundle"
               :mode="mode"
+              :rules="caBundleRules"
+              :require-dirty="false"
+              :tooltip="t('registryConfig.caBundle.tooltip')"
             />
 
             <div>

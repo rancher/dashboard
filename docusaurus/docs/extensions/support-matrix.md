@@ -28,6 +28,7 @@ Here's the support matrix for every Extension API hook available in Rancher:
 | [Panels](./api/panels) | v2.7.2 |
 | [Tabs](./api/tabs) | v2.7.2 |
 | [Table Columns](./api/table-columns) | v2.7.2 |
+| [Table](./api/table) | v2.14.0 |
 | [Components](./api/components) | v2.7.0 |
 
 

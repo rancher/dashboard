@@ -1,4 +1,4 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import MachinePoolsListPo from '@/cypress/e2e/po/lists/machine-pools-list.po';
 import ClusterConditionsListPo from '~/cypress/e2e/po/lists/cluster-conditions-list.po';
 import ClusterProvisioningLogPo from '~/cypress/e2e/po/lists/cluster-provisioning-log.po';
@@ -7,10 +7,11 @@ import ClusterSnapshotsListPo from '~/cypress/e2e/po/lists/cluster-snapshots-lis
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 import ClusterRecentEventsListPo from '~/cypress/e2e/po/lists/cluster-recent-events-list.po';
 import DetailDrawer from '@/cypress/e2e/po/side-bars/detail-drawer.po';
+
 /**
  * Covers core functionality that's common to the dashboard's cluster detail pages
  */
-export default abstract class ClusterManagerDetailPagePo extends PagePo {
+export default abstract class ClusterManagerDetailPagePo extends BaseDetailPagePo {
   private static createPath(clusterId: string, clusterName: string, tab?: string) {
     const namespace = clusterName === 'local' ? 'fleet-local' : 'fleet-default';
 
@@ -45,8 +46,8 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
     return this.self().get('code');
   }
 
-  machinePoolsList() {
-    return new MachinePoolsListPo(this.self().find('[data-testid="sortable-table-list-container"]'));
+  poolsList(tabId: 'machine' | 'node') {
+    return new MachinePoolsListPo(this.self().find(`#${ tabId }-pools [data-testid="sortable-table-list-container"]`));
   }
 
   conditionsList() {

@@ -31,7 +31,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 
 <template>
   <SpacedRow
-    class="metadata ppb-3"
+    class="metadata"
     v-bind="$attrs"
   >
     <div
@@ -48,7 +48,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
         type="active"
         :rows="[]"
         :propertyName="i18n.t('component.resource.detail.metadata.labelsAndAnnotations')"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
     <!-- I'm not using v-else here so I can maintain the spacing correctly with the other columns in other rows. -->
@@ -58,7 +58,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     >
       <Labels
         :labels="labels"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
     <div
@@ -67,7 +67,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     >
       <Annotations
         :annotations="annotations"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
   </SpacedRow>
@@ -82,6 +82,12 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 
 <style lang="scss" scoped>
 .metadata {
+    .identifying-info {
+      // Allow the grid cell to shrink below its content size without
+      // using overflow:hidden, which would clip the namespace popover
+      min-width: 0;
+    }
+
     .labels-and-annotations-empty {
       grid-column: span 2;
     }

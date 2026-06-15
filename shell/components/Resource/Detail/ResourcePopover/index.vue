@@ -31,6 +31,10 @@ const fetch = useFetch(async() => {
   return r;
 });
 
+const stateBackground = computed(() => {
+  return fetch.value.data?.stateSimpleColor || 'unknown';
+});
+
 const resourceTypeLabel = computed(() => {
   if (!fetch.value.data) {
     return '';
@@ -54,6 +58,7 @@ const actionInvoked = () => {
 
 <template>
   <PopoverCard
+    v-if="!fetch.error"
     class="resource-popover"
     :card-title="nameDisplay"
     fallback-focus="[data-testid='resource-popover-action-menu']"
@@ -67,7 +72,7 @@ const actionInvoked = () => {
       >
         <RcStatusIndicator
           shape="disc"
-          :status="fetch.data?.stateBackground || 'unknown'"
+          :status="stateBackground"
         />
         <router-link
           :to="props.detailLocation || fetch.data.detailLocation || '#'"
@@ -100,6 +105,7 @@ const actionInvoked = () => {
       />
     </template>
   </PopoverCard>
+  <span v-else>{{ props.id }}</span>
 </template>
 
 <style lang="scss" scoped>
@@ -109,11 +115,22 @@ const actionInvoked = () => {
 
   .display {
     display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+
+    // Truncate the link text instead of wrapping to a second line
+    a {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
   }
 
   .rc-status-indicator {
+      // Keep the status dot from collapsing when the link text is long
+      flex-shrink: 0;
       margin-right: 12px;
-      margin-top: 4px;
       height: initial;
       line-height: initial;
   }

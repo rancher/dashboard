@@ -137,28 +137,6 @@ function registerHooks(on, config) {
       found.leaf = true;
 
       return null;
-    },
-
-    a11yScreenshot(options: any ) {
-      const { titlePath, name } = options;
-      const found = createPath(titlePath);
-
-      // Move the screenshot to the accessibility folder
-      const details = screenshots.find((s) => s.name === name);
-
-      if (details) {
-        const screenFolder = path.join(folder, details.specName);
-        const destFile = path.join(screenFolder, `${ name }.png`);
-
-        found.screenshot = path.join(details.specName, `${ name }.png`);
-
-        if (!fs.existsSync(screenFolder)) {
-          fs.mkdirSync(screenFolder);
-        }
-        fs.renameSync(details.path, destFile);
-      }
-
-      return null;
     }
   });
 
@@ -204,12 +182,38 @@ function registerHooks(on, config) {
     });
   });
 
-  on('after:run', () => {
+  on('after:run', (results) => {
     const root = chain[0];
 
     tidy(root);
 
-    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
+    const stats = { ...results };
+
+    delete stats.runs;
+    delete stats.config;
+    delete stats.runUrl;
+    delete stats.osName;
+    delete stats.osVersion;
+
+    const data = {
+      stats,
+      children: root.children
+    };
+
+    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(data, null, 2));
+
+    const screenFolder = path.join(folder, 'screenshots');
+
+    if (!fs.existsSync(screenFolder)) {
+      fs.mkdirSync(screenFolder);
+    }
+
+    // Move the screenshots into place
+    screenshots.forEach((s) => {
+      const destFile = path.join(screenFolder, path.basename(s.path));
+
+      fs.renameSync(s.path, destFile);
+    });
 
     const reportHTML = createHtmlReport({
       results: { violations: deDuplicate(allViolations) },

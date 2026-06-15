@@ -46,12 +46,12 @@ export const useResourceDetailBannerProps = (resource: any): Ref<BannerProps | u
 };
 
 export const useOnShowConfiguration = (resource: any) => {
-  return (returnFocusSelector?: string) => {
+  return (returnFocusSelector?: string, defaultTab?: string) => {
     const resourceValue = toValue(resource);
     // Because extensions can make a copy of the resource-class it's possible that an extension will have a resource-class which predates the inclusion of showConfiguration
     // to still the rest of shell to consume
     const showConfiguration = resourceValue.showConfiguration ? resourceValue.showConfiguration.bind(resourceValue) : ResourceClass.prototype.showConfiguration.bind(resourceValue);
 
-    showConfiguration(returnFocusSelector);
+    showConfiguration(returnFocusSelector, defaultTab);
   };
 };

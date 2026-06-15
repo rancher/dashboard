@@ -27,3 +27,6 @@ elemental-ui/
 kubewarden-ui/
 styleguide/src/stories/Example/
 storybook/src/stories/Example/
+cypress/dist/
+cypress/bin/
+cypress/template/

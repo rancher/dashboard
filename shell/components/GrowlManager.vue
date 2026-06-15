@@ -204,6 +204,10 @@ export default {
         > P {
           padding-top: 2px;
 
+          // Limit size of message and scroll just the message, not the entire growl, so that the title and icon are always visible
+          max-height: 200px;
+          overflow-y: scroll;
+
           &.has-title {
             margin-top: 5px;
           }

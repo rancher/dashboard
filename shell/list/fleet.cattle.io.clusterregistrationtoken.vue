@@ -4,6 +4,8 @@ import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name:       'ListClusterGroup',
@@ -25,6 +27,16 @@ export default {
   },
 
   async fetch() {
+    try {
+      await checkSchemasForFindAllHash({
+        cluster: {
+          inStoreType: 'management',
+          type:        FLEET.CLUSTER
+        },
+      }, this.$store);
+    } catch (e) {
+    }
+
     await this.$fetchType(this.resource);
     if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
       this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
@@ -33,6 +45,10 @@ export default {
 
   data() {
     return { allFleet: [] };
+  },
+
+  mounted() {
+    this.areHarvesterHostsVisible = this.$store.getters['features/get'](HARVESTER_CONTAINER);
   },
 
   computed: {
@@ -49,6 +65,10 @@ export default {
     },
     tokens() {
       const harvester = this.harvesterClusters;
+
+      if (this.areHarvesterHostsVisible) {
+        return this.rows;
+      }
 
       return this.rows.filter((token) => {
         const refs = token.metadata?.ownerReferences || [];

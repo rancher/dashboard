@@ -110,7 +110,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     });
   });
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
+  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
@@ -141,8 +141,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // in this case, vendor is Rancher because title depends on many different variables such as brand and settings
-    cy.title().should('eq', 'Rancher - Extensions');
+    // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
+
+      cy.title().should('eq', expectedTitle);
+    });
 
     extensionsPo.repoBanner().checkVisible();
   });
@@ -202,7 +206,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // go to repos list page
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
@@ -227,13 +231,18 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
-        appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
+        // Ensure the row exists before opening action menu
+        appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_NAME).should('be.visible');
+
+        const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME);
+
+        actionMenu.getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
 
         return promptRemove.remove();
@@ -303,11 +312,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // select version and click install
-    extensionsPo.installModalSelectVersionClick(2);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().selectVersionClick(2);
+    extensionsPo.installModal().installButton().click();
     cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
@@ -351,7 +360,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
     cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
@@ -377,7 +386,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on the downgrade button on card
     // this will downgrade to the immediate previous version
     extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -398,13 +407,17 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
+    extensionsPo.loading().should('not.exist');
+
+    // Wait for the large-extension card to appear before interacting
+    extensionsPo.extensionCard(DISABLED_CACHE_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // click install
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -450,8 +463,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().checkVisible();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');

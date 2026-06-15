@@ -33,6 +33,13 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Application {
+  /**
+   * gitrepos/helmops are already restricted to clusters in their own namespace
+   *
+   * this empty selector means all applicable clusters will be selected
+   */
+  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } }
+
   excludeHarvesterRule = {
     clusterSelector: {
       matchExpressions: [{
@@ -45,7 +52,7 @@ class Application {
     },
   };
 
-  getTargetMode(targets: Target[], namespace: string): TargetMode {
+  getTargetMode(targets: Target[], namespace: string, areHarvesterHostsVisible: boolean): TargetMode {
     if (namespace === 'fleet-local') {
       return 'local';
     }
@@ -64,11 +71,11 @@ class Application {
         clusterGroupSelector,
       } = target;
 
-      if (clusterGroup || clusterGroupSelector) {
+      if (clusterGroupSelector) {
         return 'advanced';
       }
 
-      if (clusterName) {
+      if (clusterName || clusterGroup) {
         mode = 'clusters';
       }
 
@@ -83,8 +90,11 @@ class Application {
       return target;
     });
 
-    // Check if targets contains only harvester rule after name normalizing
-    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+    // Check if targets contains only harvester rule or no rule at all after name normalizing
+    // That means the ALL option has been selected previously
+    // one case for feature harvester-baremetal-container-workload ON
+    // and another for feature harvester-baremetal-container-workload OFF
+    if (isEqual(normalized, [this.includeAllWorkgroupRule]) || isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 
@@ -184,7 +194,7 @@ class Fleet {
   }
 
   detailLocation(r: Resource, mgmtClusterName: string): any {
-    return mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
+    const location = mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
       name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
       params: {
         product:   EXPLORER_NAME,
@@ -194,6 +204,13 @@ class Fleet {
         id:        r.name,
       },
     };
+
+    // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+    if (location && !location.params.namespace) {
+      delete location.params.namespace;
+    }
+
+    return location;
   }
 
   /**

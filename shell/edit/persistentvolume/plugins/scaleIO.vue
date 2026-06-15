@@ -14,25 +14,26 @@ export default {
       required: true,
     },
   },
-  data() {
-    const yesNoOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['scaleIO'] = this.value.spec.scaleIO || {};
     this.value.spec.scaleIO['readOnly'] = this.value.spec.scaleIO.readOnly || false;
     this.value.spec.scaleIO['secretRef'] = this.value.spec.scaleIO.secretRef || {};
     this.value.spec.scaleIO['sslEnabled'] = this.value.spec.scaleIO.sslEnabled || false;
-
-    return { yesNoOptions };
   },
+  computed: {
+    yesNoOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

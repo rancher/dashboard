@@ -23,6 +23,9 @@ coverage
 # nyc test coverage
 .nyc_output
 
+# Unit test reports
+unit-test-reports/
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -68,6 +71,7 @@ typings/
 
 # Build output
 dist
+dist_ember
 
 # vuepress build output
 .vuepress/dist
@@ -91,6 +95,8 @@ sw.*
 cypress/videos
 cypress/screenshots
 cypress/accessibility
+cypress/reports
+browser-logs/
 setupTestEnv.sh
 
 # Storybook
@@ -111,9 +117,6 @@ shell/types/shell
 scripts/standalone/ui
 scripts/standalone/cert
 scripts/standalone/node
-
-# yarn.lock files
-docusaurus/yarn.lock
 
 # GitHub actions scripts output
 codecov

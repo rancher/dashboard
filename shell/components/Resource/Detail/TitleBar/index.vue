@@ -8,14 +8,21 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
 import TabTitle from '@shell/components/TabTitle';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, VueElement, watch } from 'vue';
 import { _CONFIG, AS } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
+import { ButtonVariantNewProps, ButtonSizeNewProps } from '~/pkg/rancher-components/src/components/RcButton/types';
+import { isArray } from 'lodash';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
   label: string;
+}
+
+export interface AdditionalActionButton extends ButtonVariantNewProps, ButtonSizeNewProps {
+  label: string;
+  onClick: () => void;
 }
 
 export interface TitleBarProps {
@@ -27,6 +34,8 @@ export interface TitleBarProps {
   description?: string;
   badge?: Badge;
 
+  additionalActions?: VueElement | AdditionalActionButton[];
+
   // This should be replaced with a list of menu items we want to render.
   // I don't have the time right now to swap this out though.
   actionMenuResource?: any;
@@ -36,7 +45,7 @@ export interface TitleBarProps {
 
 <script setup lang="ts">
 const {
-  resource, resourceTypeLabel, resourceTo, resourceName, description, badge, onShowConfiguration,
+  additionalActions, resource, resourceTypeLabel, resourceTo, resourceName, description, badge, onShowConfiguration,
 } = defineProps<TitleBarProps>();
 
 const store = useStore();
@@ -55,6 +64,8 @@ watch(
     router.push({ query: { [AS]: currentView.value } });
   }
 );
+
+const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 </script>
 
 <template>
@@ -89,12 +100,31 @@ watch(
         />
       </Title>
       <div class="actions">
-        <slot name="additional-actions" />
+        <slot name="additional-actions">
+          <template v-if="additionalActions">
+            <template v-if="showAdditionalActionButtons">
+              <RcButton
+                v-for="(actionButtonProps, i) in (additionalActions as AdditionalActionButton[])"
+                :key="`action-button-${i}`"
+                :variant="actionButtonProps.variant"
+                :size="actionButtonProps.size"
+                @click="actionButtonProps.onClick"
+              >
+                {{ actionButtonProps.label }}
+              </RcButton>
+            </template>
+            <component
+              :is="additionalActions"
+              v-else
+            />
+          </template>
+        </slot>
         <RcButton
           v-if="onShowConfiguration"
           :data-testid="showConfigurationDataTestId"
           class="show-configuration"
-          :primary="true"
+          variant="primary"
+          size="large"
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
         >
@@ -106,7 +136,7 @@ watch(
         </RcButton>
         <ActionMenu
           v-if="actionMenuResource"
-          button-role="multiAction"
+          button-variant="multiAction"
           :resource="actionMenuResource"
           data-testid="masthead-action-menu"
           :button-aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.actionMenu', { resource: resourceName })"
@@ -129,21 +159,23 @@ watch(
 
 <style lang="scss" scoped>
 .title-bar {
-  min-width: 740px;
+  min-width: $resource-detail-min-width;
 
   .badge-state {
     font-size: 16px;
     margin-left: 12px;
     position: relative;
+    flex: 0 0 auto;
   }
 
-  .icon-document {
-    width: 15px;
-    font-size: 16px;
-    margin-right: 10px;
+  .actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-left: 16px;
   }
 
-  .show-configuration {
+  .show-configuration, &:deep() .actions > button {
     margin-left: 16px;
   }
 
@@ -163,15 +195,17 @@ watch(
     max-width: 60%;
   }
 
-  // This prevents the title from overlapping with the actions
+  // Title takes the remaining row space; min-width: 0 lets its children
+  // (resource-name) shrink so the action buttons stay visible on narrow viewports.
   .title {
-    max-width: calc(100% - 260px);
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
-  // We want the resource name to be what collaspes wh
   .resource-name {
     display: inline-block;
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 0;
     white-space: nowrap;
     overflow-x: hidden;
     overflow-y: clip;

@@ -110,6 +110,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="hostname"
+          name="hostname"
           required
           :mode="mode"
           :hoover-tooltip="true"
@@ -121,6 +122,7 @@ export default {
       <div class="col span-4">
         <LabeledInput
           :value="model.port"
+          name="port"
           type="number"
           required
           :min="0"
@@ -156,6 +158,7 @@ export default {
       <div class="col span-12">
         <LabeledInput
           v-model:value="model.certificate"
+          name="certificate"
           required
           type="multiline"
           :mode="mode"
@@ -173,6 +176,7 @@ export default {
       <div class="col span-6">
         <UnitInput
           v-model:value="model.connectionTimeout"
+          name="connectionTimeout"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serverConnectionTimeout')"
@@ -191,6 +195,7 @@ export default {
       >
         <LabeledInput
           v-model:value="model.serviceAccountUsername"
+          name="serviceAccountUsername"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -203,6 +208,7 @@ export default {
       >
         <LabeledInput
           v-model:value="model.serviceAccountDistinguishedName"
+          name="serviceAccountDistinguishedName"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -211,6 +217,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.serviceAccountPassword"
+          name="serviceAccountPassword"
           required
           type="password"
           :mode="mode"
@@ -254,6 +261,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.userSearchBase"
+          name="userSearchBase"
           required
           :mode="mode"
           :label="t('authConfig.ldap.userSearchBase.label')"

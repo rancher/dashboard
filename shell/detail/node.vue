@@ -196,7 +196,6 @@ export default {
     v-else
     class="node"
   >
-    <div class="spacer" />
     <div class="alerts">
       <Alert
         class="mr-10"
@@ -235,6 +234,7 @@ export default {
         :resource-name="t('node.detail.glance.consumptionGauge.pods')"
         :capacity="value.podCapacity"
         :used="value.podConsumed"
+        :used-label="t('node.detail.glance.consumptionGauge.running')"
       />
     </div>
     <div class="spacer" />

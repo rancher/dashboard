@@ -325,8 +325,12 @@ export const actions = {
    * force: Always refresh catalog's helm repo by re-fetching index.yaml
    *
    * reset: clear existing charts and version cache
+   *
+   * repoKeys: Optional array of specific repo keys (IDs) to refresh. When provided, only these specific
+   * repos will be fetched, and only their existing charts will be cleared from the cache to avoid
+   * duplicate chart entries or wiping out unrelated chart data.
    */
-  async load(ctx, { force, reset } = {}) {
+  async load(ctx, { force, reset, repoKeys = [] } = {}) {
     const {
       state, getters, rootGetters, commit, dispatch
     } = ctx;
@@ -360,14 +364,34 @@ export const actions = {
     promises = {};
 
     for ( const repo of repos ) {
-      if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
+      let shouldLoad = false;
+
+      if (repoKeys.length) {
+        // If repoKeys are explicitly provided (e.g. refreshing a single repo from the UI),
+        // we ONLY want to load the repos in that array. We intentionally ignore `!getters.isLoaded(repo)`
+        // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
+        shouldLoad = repoKeys.includes(repo._key);
+      } else {
+        // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
+        shouldLoad = force === true || !getters.isLoaded(repo);
+      }
+
+      if ( shouldLoad && repo.canLoad ) {
         console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
         promises[repo._key] = repo.followLink('index');
       }
     }
 
     const res = await allHashSettled(promises);
-    const charts = reset ? {} : state.charts;
+    const charts = reset ? {} : { ...state.charts };
+    let versionInfos = null;
+
+    if (reset) {
+      versionInfos = {};
+    } else if (repoKeys.length) {
+      versionInfos = { ...state.versionInfos };
+    }
+
     const errors = [];
 
     for ( const key of Object.keys(res) ) {
@@ -377,6 +401,28 @@ export const actions = {
       if ( obj.status === 'rejected' ) {
         errors.push(stringify(obj.reason));
         continue;
+      }
+
+      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
+      // we must remove the old charts for this specific repo before appending the newly fetched ones,
+      // but ONLY if the fetch was successful.
+      if (repoKeys.length && repoKeys.includes(key)) {
+        for (const chartKey in charts) {
+          if (charts[chartKey].repoKey === key) {
+            delete charts[chartKey];
+          }
+        }
+
+        // Also clear out cached version info for this repo so we don't display stale READMEs/values
+        const repoType = repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace';
+        const repoName = repo.metadata.name;
+        const versionPrefix = `${ repoType }/${ repoName }/`;
+
+        for (const versionKey in versionInfos) {
+          if (versionKey.startsWith(versionPrefix)) {
+            delete versionInfos[versionKey];
+          }
+        }
       }
 
       for ( const k in obj.value.entries ) {
@@ -394,13 +440,17 @@ export const actions = {
       loaded,
     });
 
-    if (reset) {
-      commit('setVersions', {});
+    if (versionInfos) {
+      commit('setVersions', versionInfos);
     }
   },
 
+  /**
+   * Globally refreshes all loaded repositories by triggering their refresh actions concurrently,
+   * bypassing individual catalog loads, and then performs a single, global catalog/load.
+   */
   async refresh({ getters, commit, dispatch }) {
-    const promises = getters.repos.map((x) => x.refresh());
+    const promises = getters.repos.map((x) => x.refresh(false));
 
     // @TODO wait for repo state to indicate they're done once the API has that
 
@@ -488,7 +538,9 @@ function addChart(ctx, map, chart, repo) {
     certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
-  if ( chart.deprecated ) {
+  const isDeprecated = !!chart.deprecated || chart.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true';
+
+  if ( isDeprecated ) {
     sideLabel = DEPRECATED;
   } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = EXPERIMENTAL;
@@ -504,11 +556,19 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+
+    const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
-    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+
+    const isRancherRepoFlag = isRancherRepo(repo, chart);
+    const permittedSystems = getPermittedOSs(chart.annotations, isRancherRepoFlag);
+    const windowsIncompatible = permittedSystems.length > 0 && !permittedSystems.includes('windows');
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
+    if (primeOnly) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.primeOnly'));
+    }
     if (experimental) {
       tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
     }
@@ -541,7 +601,8 @@ function addChart(ctx, map, chart, repo) {
       versions:         [],
       keywords:         chart.keywords || [],
       categories:       filterCategories(chart.keywords),
-      deprecated:       !!chart.deprecated,
+      deprecated:       isDeprecated,
+      primeOnly,
       experimental,
       hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
@@ -550,6 +611,7 @@ function addChart(ctx, map, chart, repo) {
       provides:         [],
       windowsIncompatible,
       deploysOnWindows,
+      isRancherRepo:    isRancherRepoFlag,
       tags
     });
 
@@ -634,13 +696,13 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   }
 
   return versions.filter((ver) => {
-    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+    const osPermitted = getPermittedOSs(ver?.annotations, chart?.isRancherRepo);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
       return false;
     }
 
-    if ( !os || difference(os, osPermitted).length === 0) {
+    if ( !os || osPermitted.length === 0 || difference(os, osPermitted).length === 0) {
       return true;
     }
 
@@ -728,4 +790,24 @@ export function filterAndArrangeCharts(charts, {
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
+}
+
+/**
+ * Detects if a repository is a Rancher repository.
+ */
+export function isRancherRepo(repo, chart) {
+  return !!(chart?.isRancherRepo || repo?.isRancherSource);
+}
+
+/**
+ * Returns an array of permitted operating systems for a given chart or version.
+ * If the chart explicitly defines permitted OSs via annotation, those are returned.
+ * Otherwise, if the chart is from a Rancher repository, it defaults to Linux.
+ * External charts with no annotations have no OS restrictions (returns empty array).
+ */
+export function getPermittedOSs(annotations, isRancher) {
+  const permittedOs = annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+  const fallbackOs = isRancher ? LINUX : '';
+
+  return (permittedOs || fallbackOs).split(',').filter(Boolean);
 }

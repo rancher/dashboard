@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   creationTimestamp: '2023-12-07T18:14:50Z'
@@ -6,7 +6,7 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: local
   managedFields:
-    - apiVersion: cluster.x-k8s.io/v1beta1
+    - apiVersion: cluster.x-k8s.io/v1beta2
       fieldsType: FieldsV1
       fieldsV1:
         f:spec:
@@ -47,6 +47,13 @@ spec:
         cluster.x-k8s.io/cluster-name: local
         cluster.x-k8s.io/deployment-name: e2e-machinedeployment-name-1701972886077
     spec:
-      bootstrap: {}
+      bootstrap: 
+        configRef:
+          apiGroup: rke.cattle.io
+          kind: RKEBootstrapTemplate
+          name: name123
       clusterName: local
-      infrastructureRef: {}
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123

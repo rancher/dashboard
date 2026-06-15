@@ -18,8 +18,8 @@ const markRead = () => {
 </script>
 <template>
   <RcButton
-    ghost
-    small
+    variant="ghost"
+    size="small"
     :aria-label="t('dynamicContent.action.close')"
     tabindex="0"
     @click="markRead()"

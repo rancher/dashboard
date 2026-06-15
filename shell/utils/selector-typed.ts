@@ -110,7 +110,7 @@ export async function matching({
     return generateMatchingResponse([], inScopeCount || 0);
   }
 
-  if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
+  if ($store.getters[`${ inStore }/paginationEnabled`]?.()) {
     if (isLabelSelectorEmpty(labelSelector) && (!!namespace && !safeNamespaces?.length)) {
       // no namespaces - ALL resources are candidates
       // no labels - return all candidates
@@ -199,8 +199,12 @@ export function labelSelectorToSelector(labelSelector?: KubeLabelSelector): stri
   });
 
   (labelSelector?.matchExpressions || []).forEach((value: KubeLabelSelectorExpression) => {
-    if (value.operator === 'In' && value.values?.length === 1) {
-      res.push(`${ value.key }=${ value.values[0] }`);
+    if (value.operator === 'In' && value.values !== undefined) {
+      if (value.values?.length === 1) {
+        res.push(`${ value.key }=${ value.values[0] }`);
+      } else {
+        res.push(`${ value.key } in (${ value.values.join(',') })`);
+      }
     } else {
       throw new Error(`Unsupported matchExpression found when converting to selector string. ${ value }`);
     }

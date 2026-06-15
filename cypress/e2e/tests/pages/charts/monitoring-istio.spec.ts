@@ -8,6 +8,7 @@ import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prome
 import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
 // import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 // import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
@@ -25,7 +26,12 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
   before(() => {
     cy.login();
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     cy.viewport(1280, 720);
+  });
+
+  after(() => {
+    cy.setUserPreference({ 'show-pre-release': false });
   });
 
   // after(() => {
@@ -63,54 +69,56 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
-      it('Prometheus and Grafana should have all relavant storage options and Storage Class inputs', () => {
-        const tabbedOptions = new TabbedPo();
+      it('Prometheus and Grafana should have all relavant storage options and Storage Class inputs', function() {
+        runTestWhenChartAvailable(CHART.repo, CHART.id, this, () => {
+          const tabbedOptions = new TabbedPo();
 
-        ChartPage.navTo(null, 'Monitoring');
-        chartPage.waitForChartPage(CHART.repo, CHART.id);
-        chartPage.goToInstall();
-        installChart.waitForChartPage(CHART.repo, CHART.id);
+          ChartPage.navTo(null, 'Monitoring');
+          chartPage.waitForChartPage(CHART.repo, CHART.id);
+          chartPage.goToInstall();
+          installChart.waitForChartPage(CHART.repo, CHART.id);
 
-        // Check Grafana has all storage options: https://github.com/rancher/dashboard/issues/11540
-        const grafana = new GrafanaTab();
+          // Check Grafana has all storage options: https://github.com/rancher/dashboard/issues/11540
+          const grafana = new GrafanaTab();
 
-        installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
-        installChart.waitForChartPage(CHART.repo, CHART.id);
-        grafana.storageOptions().getAllOptions().should('have.length', 4);
-        grafana.storageOptions().isChecked(0); // Disabled by default
+          installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
+          installChart.waitForChartPage(CHART.repo, CHART.id);
+          grafana.storageOptions().getAllOptions().should('have.length', 4);
+          grafana.storageOptions().isChecked(0); // Disabled by default
 
-        const options = ['Disabled', 'Enable With Existing PVC', 'Enable with PVC Template', 'Enable with StatefulSet Template'];
+          const options = ['Disabled', 'Enable With Existing PVC', 'Enable with PVC Template', 'Enable with StatefulSet Template'];
 
-        options.forEach((option, index) => {
-          grafana.storageOptions().getOptionByIndex(index).should('have.text', option);
+          options.forEach((option, index) => {
+            grafana.storageOptions().getOptionByIndex(index).should('have.text', option);
+          });
+
+          // Check Grafana has storage class input: https://github.com/rancher/dashboard/issues/11539
+          grafana.storageOptions().set(2);
+          grafana.storageClass().checkExists();
+          grafana.storageClass().toggle();
+          grafana.storageClass().clickOptionWithLabel(storageClass);
+          grafana.storageClass().checkOptionSelected(storageClass);
+
+          grafana.storageOptions().set(3);
+          grafana.storageClass().checkExists();
+          grafana.storageClass().toggle();
+          grafana.storageClass().clickOptionWithLabel(storageClass);
+          grafana.storageClass().checkOptionSelected(storageClass);
+
+          // Check Prometheus has storage class input: https://github.com/rancher/dashboard/issues/11539
+          installChart.selectTab(tabbedOptions, prometheus.tabID());
+          installChart.waitForChartPage(CHART.repo, CHART.id);
+
+          prometheus.scrollToTabBottom();
+
+          prometheus.persistentStorage().checkVisible();
+          prometheus.persistentStorage().set();
+
+          prometheus.storageClass().checkExists();
+          prometheus.storageClass().toggle();
+          prometheus.storageClass().clickOptionWithLabel(storageClass);
+          prometheus.storageClass().checkOptionSelected(storageClass);
         });
-
-        // Check Grafana has storage class input: https://github.com/rancher/dashboard/issues/11539
-        grafana.storageOptions().set(2);
-        grafana.storageClass().checkExists();
-        grafana.storageClass().toggle();
-        grafana.storageClass().clickOptionWithLabel(storageClass);
-        grafana.storageClass().checkOptionSelected(storageClass);
-
-        grafana.storageOptions().set(3);
-        grafana.storageClass().checkExists();
-        grafana.storageClass().toggle();
-        grafana.storageClass().clickOptionWithLabel(storageClass);
-        grafana.storageClass().checkOptionSelected(storageClass);
-
-        // Check Prometheus has storage class input: https://github.com/rancher/dashboard/issues/11539
-        installChart.selectTab(tabbedOptions, prometheus.tabID());
-        installChart.waitForChartPage(CHART.repo, CHART.id);
-
-        prometheus.scrollToTabBottom();
-
-        prometheus.persistentStorage().checkVisible();
-        prometheus.persistentStorage().set();
-
-        prometheus.storageClass().checkExists();
-        prometheus.storageClass().toggle();
-        prometheus.storageClass().clickOptionWithLabel(storageClass);
-        prometheus.storageClass().checkOptionSelected(storageClass);
       });
 
       // NOTE: Test disabled until we have a reliable way of waiting for the installation process to complete.

@@ -72,6 +72,7 @@ export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';
 export const FROM_CLUSTER = 'cluster';
+export const NEW_APP_INSTANCE = 'new-instance';
 export const HIDE_SIDE_NAV = 'hide-side-nav';
 
 // Cluster provisioning
@@ -94,3 +95,6 @@ export const SECRET_QUERY_PARAMS = {
 export const SECRET_SCOPE = 'scope';
 // RANCHER OIDC CLIENT
 export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];
+
+// For REPOSITORIES, to determine which type of repo to create, used on clusterrepo create page
+export const TARGET = 'target';

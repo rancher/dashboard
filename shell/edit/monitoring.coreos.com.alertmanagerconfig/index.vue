@@ -177,6 +177,21 @@ export default {
       this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
       // After saving the AlertmanagerConfig, the resource has been deleted.
       this.alertmanagerConfigResource.save(...arguments);
+    },
+    handleReceiverAction(payload) {
+      switch (payload?.action) {
+      case 'goToEdit':
+        this.goToEdit();
+        break;
+      case 'goToEditYaml':
+        this.goToEditYaml();
+        break;
+      case 'promptRemove':
+        this.promptRemove();
+        break;
+      default:
+        console.warn(`Unknown receiver action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
     }
   }
 };
@@ -204,7 +219,10 @@ export default {
       @input="$emit('input', $event)"
     />
 
-    <Tabbed :use-hash="useTabbedHash">
+    <Tabbed
+      :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
+    >
       <Tab
         :label="t('monitoring.route.label')"
         :weight="1"
@@ -260,9 +278,7 @@ export default {
       :custom-target-element="actionMenuTargetElement"
       :custom-target-event="actionMenuTargetEvent"
       @close="receiverActionMenuIsOpen = false"
-      @goToEdit="goToEdit"
-      @goToEditYaml="goToEditYaml"
-      @promptRemove="promptRemove"
+      @action-invoked="handleReceiverAction"
     />
   </CruResource>
 </template>

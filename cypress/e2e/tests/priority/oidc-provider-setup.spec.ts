@@ -10,7 +10,7 @@ const featureFlagsPage = new FeatureFlagsPagePo('local');
  * This test enables the OIDC Provider feature flag.
  * It's designed to run in Jenkins CI environment as part of the test setup process.
  */
-describe('Enable OIDC Provider', { testIsolation: 'off', tags: ['@jenkins', '@adminUser'] }, () => {
+describe('Enable OIDC Provider', { testIsolation: 'off', tags: ['@jenkins', '@noPrime', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

@@ -12,7 +12,7 @@ import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
-import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
+import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
 import EC2Networking from './components/EC2Networking.vue';
 
 const DEFAULT_GROUP = 'rancher-nodes';
@@ -24,7 +24,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  emits: ['validationChanged', 'update:hasIpv6'],
+  emits: ['validationChanged', 'update:isIpv6', 'update:isDualStack'],
 
   props: {
     uuid: {
@@ -47,7 +47,12 @@ export default {
       default: false
     },
 
-    hasIpv6: {
+    isIpv6: {
+      type:    Boolean,
+      default: false
+    },
+
+    isDualStack: {
       type:    Boolean,
       default: false
     },
@@ -139,7 +144,7 @@ export default {
 
       this.loadedRegionalFor = region;
     } catch (e) {
-      this.errors = exceptionToErrorsArray(e);
+      this.errors = exceptionToErrorsArray(formatAWSError(e));
     }
   },
 
@@ -324,6 +329,7 @@ export default {
               :searchable="true"
               :disabled="disabled"
               :label="t('cluster.machineConfig.amazonEc2.region')"
+              data-testid="amazonEc2__region"
             />
           </div>
           <div class="col span-6">
@@ -386,10 +392,12 @@ export default {
           :zone="value.zone"
           :region="value.region"
           :machine-pools="machinePools"
-          :has-ipv6="hasIpv6"
+          :is-ipv6="isIpv6"
+          :is-dual-stack="isDualStack"
           :disabled="disabled"
           :is-new="poolCreateMode"
-          @update:has-ipv6="e=>$emit('update:hasIpv6', e)"
+          @update:is-ipv6="e=>$emit('update:isIpv6', e)"
+          @update:is-dual-stack="e=>$emit('update:isDualStack', e)"
           @validation-changed="e=>$emit('validationChanged',e)"
         />
 

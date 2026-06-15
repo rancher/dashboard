@@ -3,6 +3,10 @@
   grid-area: main;
   overflow: auto;
 
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
+
   .outlet {
     display: flex;
     flex-direction: column;

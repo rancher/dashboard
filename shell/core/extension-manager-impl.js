@@ -6,9 +6,9 @@ import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
 
-let extensionManagerInstance;
+export const DEVELOPER_LOAD_NAME_SUFFIX = '-developer-load';
 
-const createExtensionManager = (context) => {
+export const createExtensionManager = (context) => {
   const {
     app, store, $axios, redirect
   } = context;
@@ -33,13 +33,13 @@ const createExtensionManager = (context) => {
   /**
    * When an extension adds a model extension, it provides the class - we will instantiate that class and store and use that
    */
-  function instantiateModelExtension($plugin, clz) {
+  function instantiateModelExtension($extension, clz) {
     const context = {
       dispatch: store.dispatch,
       getters:  store.getters,
       t:        store.getters['i18n/t'],
       $axios,
-      $plugin,
+      $extension,
     };
 
     return new clz(context);
@@ -63,9 +63,18 @@ const createExtensionManager = (context) => {
     // Load a plugin from a UI package
     loadPluginAsync(plugin) {
       const { name, version } = plugin;
-      const id = `${ name }-${ version }`;
+      let id = `${ name }-${ version }`;
       let url;
 
+      // for a developer load, we need to remove the suffix applied
+      // otherwise the extension won't load correctly
+      // but with this at least we won't hit developer loaded cards find charts
+      // when they aren't supposed to
+      if (id.includes(DEVELOPER_LOAD_NAME_SUFFIX)) {
+        id = id.replace(DEVELOPER_LOAD_NAME_SUFFIX, '');
+      }
+
+      // this is where a developer load hits (direct=true, developer=true)
       if (plugin?.metadata?.direct === 'true') {
         url = plugin.endpoint;
       } else {
@@ -115,7 +124,9 @@ const createExtensionManager = (context) => {
           } catch (e) {
             delete plugins[id];
 
-            return reject(new Error('Could not initialize plugin'));
+            console.error(`Could not initialize plugin ${ id }`, e); // eslint-disable-line no-console
+
+            return reject(new Error(`Could not initialize plugin ${ id } - ${ e?.message }`));
           }
 
           // Load all of the types etc from the plugin
@@ -396,6 +407,11 @@ const createExtensionManager = (context) => {
       }
     },
 
+    // Internal use only
+    _add(id, plugin) {
+      plugins[id] = plugin;
+    },
+
     // For debugging
     getAll() {
       return dynamic;
@@ -417,7 +433,7 @@ const createExtensionManager = (context) => {
    * Return the UI configuration for the given type and location
    */
     getUIConfig(type, uiArea) {
-      return uiConfig[type][uiArea] || [];
+      return uiConfig[type]?.[uiArea] || [];
     },
 
     /**
@@ -455,7 +471,13 @@ const createExtensionManager = (context) => {
         try {
           const provisioner = context.$extension.getDynamic('provisioner', name);
 
-          return new provisioner({ ...context });
+          const defaults = {
+            isCreate: false,
+            isEdit:   false,
+            isView:   false
+          };
+
+          return new provisioner({ ...defaults, ...context });
         } catch (e) {
           console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
         }
@@ -483,7 +505,11 @@ const createExtensionManager = (context) => {
         loadPlugins = Object.values(plugins);
       }
 
-      loadPlugins.forEach((plugin) => {
+      // Ensure builtin plugins are processed before external plugins so that
+      // core + builtin products are registered first and available for extending
+      const orderedPlugins = [...loadPlugins.filter((p) => p.builtin), ...loadPlugins.filter((p) => !p.builtin)];
+
+      orderedPlugins.forEach((plugin) => {
         if (plugin.products) {
           plugin.products.forEach(async(p) => {
             const impl = await p;
@@ -493,26 +519,27 @@ const createExtensionManager = (context) => {
             }
           });
         }
+
+        // Load products and product extensions using the simpler API
+        if (plugin.productConfigs?.length) {
+          // Add new products first
+          plugin.productConfigs.filter((p) => p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+
+          // Extend existing products after new products are added
+          plugin.productConfigs.filter((p) => !p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+        }
+
+        // Apply all type configurations
+        if (plugin.resourceTypeConfigs?.length) {
+          plugin.resourceTypeConfigs.forEach((resourceTypeConfig) => {
+            resourceTypeConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+        }
       });
     },
   };
 };
-
-/**
- * Initializes a new extension manager if one does not exist.
- * @param {*} context The Rancher Dashboard context object
- * @returns The extension manager instance
- */
-export const initExtensionManager = (context) => {
-  if (!extensionManagerInstance) {
-    extensionManagerInstance = createExtensionManager(context);
-  }
-
-  return extensionManagerInstance;
-};
-
-/**
- * Gets the extension manager instance.
- * @returns The extension manager instance
- */
-export const getExtensionManager = () => extensionManagerInstance;

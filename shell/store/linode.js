@@ -1,5 +1,5 @@
 import { sortBy } from '@shell/utils/sort';
-import { addParam, addParams } from '@shell/utils/url';
+import { createDepaginator } from '@shell/apis/shell/proxy';
 
 const ENDPOINT = 'api.linode.com/v4';
 
@@ -93,50 +93,35 @@ export const actions = {
     return out;
   },
 
-  async request({ dispatch }, {
-    token, credentialId, command, opt, out
+  async request(_, {
+    token, credentialId, command, opt
   }) {
     opt = opt || {};
 
-    let url = '/meta/proxy/';
+    const url = new URL(opt.url || `https://${ ENDPOINT }/${ command }`);
 
-    if ( opt.url ) {
-      url += opt.url.replace(/^https?:\/\//, '');
-    } else {
-      url += `${ ENDPOINT }/${ command }`;
-      url = addParam(url, 'per_page', opt.per_page || 1000);
-      url = addParams(url, opt.params || {});
+    url.searchParams.set('per_page', `${ opt.per_page || 1000 }`);
+    if (opt.params) {
+      for (const [key, value] of Object.entries(opt.params)) {
+        url.searchParams.set(key, value);
+      }
     }
 
-    const headers = { Accept: 'application/json' };
+    const authentication = credentialId ? {
+      id:            credentialId,
+      authSigner:    'bearer',
+      passwordField: 'token',
+    } : { token };
 
-    if ( credentialId ) {
-      headers['X-API-CattleAuth-Header'] = `Bearer credID=${ credentialId } passwordField=token`;
-    } else if ( token ) {
-      headers['X-API-Auth-Header'] = `Bearer ${ token }`;
-    }
+    const proxy = this.$shell.proxy;
+    const requestOptions = { url, authentication };
 
-    const res = await dispatch('management/request', {
-      url,
-      headers,
-      redirectUnauthorized: false,
-    }, { root: true });
-
-    if ( out ) {
-      out[command] = out[command].concat(res[command]);
-    } else {
-      out = res;
-    }
-
-    // De-pagination
-    if ( res?.links?.pages?.next ) {
-      opt.url = res.links.pages.next;
-
-      return dispatch('request', {
-        token, credentialId, command, opt, out
-      });
-    }
-
-    return out;
+    return proxy.request({
+      ...requestOptions,
+      postProcess: createDepaginator(proxy, requestOptions, {
+        nextUrlPath: 'links.pages.next',
+        mergeKey:    command,
+      }),
+    });
   }
 };

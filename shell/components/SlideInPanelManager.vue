@@ -57,17 +57,22 @@ watch(
   /**
    * trigger focus trap
    */
-  () => currentProps?.value?.triggerFocusTrap,
-  (neu) => {
-    if (neu) {
-      const opts = {
+  () => isOpen?.value,
+  (neu, old) => {
+    if (neu && neu !== old) {
+      const opts:any = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
+        // putting the initial focus on the first element that is not conditionally displayed
+        initialFocus: slideInPanelManagerClose.value
+      };
+
+      const returnFocusSelector = currentProps?.value?.returnFocusSelector;
+
+      if (returnFocusSelector) {
         /**
          * will return focus to the first iterable node of this container select
          */
-        setReturnFocus: () => {
-          const returnFocusSelector = currentProps?.value?.returnFocusSelector;
-
+        opts.setReturnFocus = () => {
           if (returnFocusSelector && !document.querySelector(returnFocusSelector)) {
             console.warn('SlideInPanelManager: cannot find elem with "returnFocusSelector", returning focus to main view'); // eslint-disable-line no-console
 
@@ -75,10 +80,8 @@ watch(
           }
 
           return returnFocusSelector || '.dashboard-root';
-        },
-        // putting the initial focus on the first element that is not conditionally displayed
-        initialFocus: slideInPanelManagerClose.value
-      };
+        };
+      }
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
         () => {
@@ -166,6 +169,8 @@ function closePanel() {
             data-testid="slide-in-close"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
+            @keypress.enter="closePanel"
+            @keyup.space="closePanel"
           />
         </div>
         <div class="main-panel">

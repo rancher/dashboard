@@ -3,6 +3,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import { ConfigProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
 const props = defineProps<ConfigProps>();
@@ -15,7 +16,7 @@ const i18n = useI18n(store);
     name="config-tab"
     :label="i18n.t('component.drawer.resourceDetailDrawer.configTab.title')"
   >
-    <div class="container">
+    <DrawerCard>
       <component
         :is="props.component"
         :value="props.resource"
@@ -25,23 +26,15 @@ const i18n = useI18n(store);
         :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
+        :default-tab="props.defaultTab"
         as="config"
       />
-    </div>
+    </DrawerCard>
   </Tab>
 </template>
 
 <style lang="scss" scoped>
 .config-tab {
-  .container {
-    background-color: var(--body-bg);
-    border-radius: var(--border-radius-md);
-    padding: 16px;
-    max-width: 100%;
-    width: 100%;
-    position: relative;
-  }
-
   // Handle the loading indicator
   :deep() .overlay-content-mode {
     left: 0;

@@ -1,14 +1,18 @@
+@mixin h-css() {
+  color: var(--body-text);
+  font-style: normal;
+  font-weight: 400;
+  margin: 0 0 10px 0;
+  font-family: var(--title-font-family, unset);
+}
+
 HTML, BODY {
   font-family: $body-font;
   font-size: 14px;
 }
 
 H1, H2, H3, H4, H5, H6 {
-  color: var(--body-text);
-  font-style: normal;
-  font-weight: 400;
-  margin: 0 0 10px 0;
-  font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
+  @include h-css;
 }
 
 H1 {
@@ -40,6 +44,11 @@ P {
   font-weight: 400;
   font-style: normal;
   margin: 0;
+}
+
+legend.h3-legend {
+  @include h-css;
+  font-size: 18px // Same as H3
 }
 
 //code

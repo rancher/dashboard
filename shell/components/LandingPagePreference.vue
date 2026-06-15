@@ -14,10 +14,6 @@ export default {
     Select,
   },
 
-  async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-  },
-
   data() {
     // Store the route as it was on page load (before the user may have changed it)
     const customRoute = this.$store.getters['prefs/get'](AFTER_LOGIN_ROUTE);
@@ -90,12 +86,24 @@ export default {
   },
 
   methods: {
-    updateLoginRoute(neu) {
+    async updateLoginRoute(neu) {
       if (neu) {
         this.afterLoginRoute = neu;
       } else {
+        this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
         this.afterLoginRoute = this.routeFromDropdown?.value || this.routeDropdownOptions[0]?.value;
       }
+    },
+  },
+
+  watch: {
+    afterLoginRoute: {
+      async handler(neu) {
+        if (typeof neu === 'object') {
+          this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+        }
+      },
+      immediate: true
     },
   }
 };
@@ -129,6 +137,7 @@ export default {
           />
           <Select
             v-model:value="routeFromDropdown"
+            :loading="clusters.length < 1"
             :aria-label="t('landing.landingPrefs.ariaLabelTakeMeToCluster')"
             :searchable="true"
             :disabled="afterLoginRoute === 'home' || afterLoginRoute === 'last-visited'"

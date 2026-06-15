@@ -2,6 +2,12 @@ import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import type {
+  ProductMetadata, ProductSinglePage,
+  StandardProductName, RouteRecordRawWithParams, ProductChild,
+  ProductChildGroup,
+  ProductChildPage
+} from './plugin-types';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -21,14 +27,14 @@ export interface PackageMetadata {
 //   children: Route[];
 // }
 
+export type PluginRouteRecordRaw = { [key: string]: any }
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
 export type CoreStoreInit = (store: any, ctx: any) => void;
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
-
-export type PluginRouteRecordRaw = { [key: string]: any }
 
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
@@ -60,6 +66,7 @@ export enum ExtensionPoint {
   PANEL = 'Panel', // eslint-disable-line no-unused-vars
   CARD = 'Card', // eslint-disable-line no-unused-vars
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
+  TABLE = 'Table', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding action locations that are extensible in the UI */
@@ -79,6 +86,11 @@ export enum PanelLocation {
 /** Enum regarding tab locations that are extensible in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+  OTHER = 'other-tab-locations', // eslint-disable-line no-unused-vars
+  RESOURCE_DETAIL_PAGE = 'resource-detail-page', // eslint-disable-line no-unused-vars
+  RESOURCE_CREATE_PAGE = 'resource-create-page', // eslint-disable-line no-unused-vars
+  RESOURCE_EDIT_PAGE = 'resource-edit-page', // eslint-disable-line no-unused-vars
+  RESOURCE_SHOW_CONFIGURATION = 'resource-show-configuration', // eslint-disable-line no-unused-vars
   CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }
 
@@ -91,6 +103,16 @@ export enum CardLocation {
 export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
+
+/** Enum regarding table locations that are extensible in the UI */
+export enum TableLocation {
+  RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
+}
+
+/** Definition of a Table extension hook */
+export type TableAction = {
+  tableHook: Function
+};
 
 /** Definition of the shortcut object (keyboard shortcuts) */
 export type ShortCutKey = {
@@ -235,6 +257,11 @@ export interface ProductOptions {
   ifHaveType?: string | RegExp;
 
   /**
+   * Hide the product if the type is present (opposite of ifHaveType)
+   */
+  ifNotHaveType?: string | RegExp;
+
+  /**
    * The vuex store that this product should use by default i.e. 'management'
    */
   inStore?: string;
@@ -243,6 +270,11 @@ export interface ProductOptions {
    * Show the cluster switcher in the navigation
    */
   showClusterSwitcher?: boolean;
+
+  /**
+   * Indicates whether UI Extensions can add pages to this product
+   */
+  extendable?: boolean;
 
   /**
    * Show the namespace filter in the header
@@ -260,6 +292,11 @@ export interface ProductOptions {
   to?: PluginRouteRecordRaw;
 
   /**
+   * Whether the product can be removed by users (default: false — products are built-in/not removable unless explicitly set to true)
+   */
+  removable?: boolean;
+
+  /**
    * Alternative to the icon property. Uses require
    */
   svg?: Function;
@@ -270,11 +307,26 @@ export interface ProductOptions {
   name?: string;
 
   /**
+   *  controls whether a workspace switcher dropdown appears in the header (instead of the namespace filter) if set to true
+   */
+  showWorkspaceSwitcher?: boolean;
+
+  /**
+   *
+   */
+  label?: string;
+
+  labelKey?: string;
+
+  iconHeader?: string;
+
+  // Do not use - internal use only
+  version?: number;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
   // supportRoute: string;
   // typeStoreMap: string;
 }
@@ -283,6 +335,11 @@ export interface ProductOptions {
  * Configuration required to show a header in a ResourceTable
  */
 export interface HeaderOptions {
+  /**
+   * Order/position of the table column added by an extension
+   */
+  weight?: number;
+
   /**
    * Name of the header. This should be unique.
    */
@@ -341,6 +398,17 @@ export interface HeaderOptions {
  * Configuration required to show a header in a ResourceTable when server-side pagination is enable
  */
 export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
+
+export type ResourceTypeConfig = {
+  options?: {
+    isCreatable?: boolean;
+    isEditable?: boolean;
+  },
+  listHeaders?: {
+    legacy?: HeaderOptions[];
+    paginated?: PaginationHeaderOptions[];
+  }
+};
 
 /**
  * External extension configuration for @HeaderOptions
@@ -463,9 +531,11 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   name: string;
 
   /**
-   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
+   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw} {@link RouteRecordRawWithParams}
    */
-  route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+  route: PluginRouteRecordRaw | RouteRecordRaw | RouteRecordRawWithParams | Object;
+
+  weight?: number;
 }
 
 export interface DSLReturnType {
@@ -475,7 +545,7 @@ export interface DSLReturnType {
    * @param group Conditionally a group you want to places all the types in
    * @returns {@link void}
    */
-  basicType: (types: string[], group?: string) => void;
+  basicType: (types: string[] | string, group?: string) => void;
 
   /**
    * Configure a myriad of options for the specified type
@@ -491,7 +561,7 @@ export interface DSLReturnType {
    * @param headers {@link HeaderOptions[]}
    * @returns {@link void}
    */
-  headers: (type: string, headers: HeaderOptions[]) => void;
+  headers: (type: string, headers?: HeaderOptions[], paginationHeaders?: PaginationHeaderOptions[]) => void;
 
   /**
    * Create and register a new product
@@ -501,12 +571,30 @@ export interface DSLReturnType {
   product: (options: ProductOptions) => void;
 
   /**
-   * Create and label a group. The group will show up in navigation
-   * @param groupNane Name of the group
-   * @param label Label in navigation
+   /**
+   * Remap group display names in the side-menu navigation.
+   *
+   * Each entry matches a group's internal ID (via string or regex) and replaces its display label
+   * with a new name. This only changes how the group is labelled in the UI — it does not move
+   * resources between groups.
+   *
+   * @param match String, string for a regex or a regex object to match against group names
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
    * @returns {@link void}
    */
-  mapGroup: (groupName: string, label: string) => void;
+  mapGroup: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
+
+  /**
+   * Remap a type ID to a display name
+   * @param match String, string for a regex or a regex object to match against type IDs
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
+   * @returns {@link void}
+   */
+  mapType: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
 
   /**
    * Create and configure a myriad of options for a type
@@ -534,18 +622,40 @@ export interface DSLReturnType {
   weightType: (input: string, weight: number, forBasic: boolean) => void;
 
   /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   * Never show the specified type in the navigation
+   * @param regexOrString String, string for a regex or a regex object to match against type names
+   * @returns {@link void}
    */
-  // componentForType: (type: string, replacementType: string)
-  // groupBy: (type: string, field: string)
-  // hideBulkActions: (type: string, field)
-  // ignoreGroup: (regexOrString)
-  // ignoreType: (regexOrString)
-  //
-  // mapType: (match, replace)
-  // moveType: (match, group)
-  // setGroupDefaultType: (input, defaultType)
-  // spoofedType: (obj)
+  ignoreType: (regexOrString: string | RegExp) => void;
+
+  /**
+   * Never show the specified group or any types in it
+   * @param regexOrString String, string for a regex or a regex object to match against group names
+   * @param fn Conditional function that accepts getters and returns true if the group should be ignored
+   * @returns {@link void}
+   */
+  ignoreGroup: (regexOrString: string | RegExp, fn?: (getters: any) => boolean) => void;
+
+  /**
+   * Move a resource type into a different navigation group
+   * @param match String or regex to match against resource type names
+   * @param group Target group name to move the matched types into
+   * @param weight Ordering weight for the mapping (default: 5)
+   * @returns {@link void}
+   */
+  moveType: (match: string | RegExp, group: string, weight?: number) => void;
+
+  /**
+   * Control visibility of bulk actions (e.g. delete) in the list view toolbar for a specific resource type
+   * @param type The resource type to configure
+   * @param hide Whether to hide bulk actions. Set to `true` to hide them
+   * @returns {@link void}
+   */
+  hideBulkActions: (type: string, hide: boolean) => void;
+
+  labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
+
+  setGroupDefaultType: (group: string, defaultType: string) => void;
 }
 
 /**
@@ -584,14 +694,59 @@ export type ModelExtensionContext = {
 export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
 /**
- * Interface for a Dashboard plugin
+ * Interface for a UI Extension
  */
-export interface IPlugin {
+export interface IExtension {
   /**
-   * Add a product
+   * Register a top-level product as a flag on the plugin
+   * @internal - DO NOT USE - Internal API only
+   */
+  _registerTopLevelProduct(): void;
+  /**
+   *
+   * @internal - DO NOT USE - Internal API only
+   */
+  _setStartRouteWithProduct(value: boolean): void;
+
+  /**
+   * Add a product to the sidebar, with children and a side menu for navigation for internal pages
+   * @param name
+   * @param config
+   */
+  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
+  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
+  addProduct(product: ProductMetadata, config: ProductChild[]): void;
+
+  /**
+   * Add a product to the sidebar, without children (no side menu, single page only)
+   * @param product
+   */
+  addProduct(product: ProductSinglePage): void;
+
+  /**
+   * Add a product with just a name (convenience/bridge method for quick setup).
+   * Creates a basic product with an empty page component automatically.
+   * This is useful for getting started quickly - expand to the full API once you're ready to add custom pages.
+   * @param productName Simple product name - will be used as both the name and label
+   */
+  addProduct(productName: string): void;
+
+  /**
+   * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
+   * @deprecated Use other `addProduct` signatures instead
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
+
+  /**
+   * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages
+   *
+   * @param product Product to be extended
+   * @param config Product extension configuration
+   */
+  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
+  extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
 
   /**
    * Add a locale to the i18n store
@@ -618,8 +773,8 @@ export interface IPlugin {
   /**
    * Add a route to the Vue Router
    */
-  addRoute(route: RouteRecordRaw): void;
-  addRoute(parent: string, route: RouteRecordRaw): void;
+  addRoute(route: RouteRecordRawWithParams | RouteRecordRaw): void;
+  addRoute(parent: string, route: RouteRecordRawWithParams | RouteRecordRaw): void;
 
   /**
    * Adds an action/button to the UI
@@ -655,6 +810,15 @@ export interface IPlugin {
   addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, column: TableColumn, paginationColumn?: TableColumn): void;
 
   /**
+   * Adds to Table events hook on ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   */
+  addTableHook(where: TableLocation | string, when: LocationConfig | string, action: TableAction): void;
+
+  /**
    * Set the component to use for the landing home page
    * @param component Home page component
    */
@@ -663,7 +827,7 @@ export interface IPlugin {
   /**
    * Add routes to the Vue Router
    */
-  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]): void;
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRawWithParams[] | RouteRecordRaw[]): void;
 
    /**
     * Add a hook to be called when the plugin is uninstalled
@@ -720,6 +884,7 @@ export interface IPlugin {
 
   /**
    * Will return all of the configuration functions used for creating a new product.
+   * @deprecated Should use `addProduct` and `extendProduct` instead and avoid using this directly
    * @param store The store that was passed to the function that's passed to `plugin.addProduct(function)`
    * @param productName The name of the new product. This name is displayed in the navigation.
    */
@@ -730,6 +895,12 @@ export interface IPlugin {
    */
   get environment(): ExtensionEnvironment;
 }
+
+/**
+ * Legacy interface for a plugin, which is just an extension but with the `DSL` function.
+ * @deprecated Should use `IExtension` interface instead
+ */
+export type IPlugin = IExtension;
 
 // Internal interface
 // Built-in extensions may use this, but external extensions should not, as this is subject to change

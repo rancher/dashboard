@@ -13,7 +13,7 @@ Primary color classes from _light.scss
 
 */
 
-const Color = require('color');
+import Color from 'color';
 
 export function createCssVars(color, theme = 'light', name = 'primary') {
   const contrastOpts = theme === 'light' ? LIGHT_CONTRAST_COLORS : DARK_CONTRAST_COLORS;

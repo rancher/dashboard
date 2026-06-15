@@ -4,9 +4,9 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import 'cypress-real-events/support';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -44,8 +44,8 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
     beforeEach(() => {
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        adminUserId = resp.body.status.userID;
       });
 
       cy.createE2EResourceName('git-repo').as('gitRepo');
@@ -53,12 +53,17 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
     it('Can create a GitRepo', () => {
       // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -67,8 +72,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const {
         repo, branch, paths, helmRepoURLRegex
       } = gitRepoCreateRequest.spec;
-
-      headerPo.selectWorkspace(workspace);
 
       // Metadata step
       gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
@@ -411,5 +414,28 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
   after(() => {
     reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  it('should display continuous delivery page git repo', () => {
+    const gitRepoList = new FleetGitRepoListPagePo();
+
+    gitRepoList.goTo();
+    gitRepoList.checkIsCurrentPage();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

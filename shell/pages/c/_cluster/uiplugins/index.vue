@@ -3,8 +3,10 @@ import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
+import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { isMissingDate } from '@shell/utils/time';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
@@ -14,10 +16,8 @@ import ActionMenu from '@shell/components/ActionMenuShell';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
-import { BadgeState } from '@components/BadgeState';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
-import CatalogList from './CatalogList/index.vue';
 import Banner from '@components/Banner/Banner.vue';
 import {
   isUIPlugin,
@@ -48,9 +48,7 @@ const TABS_VALUES = {
 export default {
   components: {
     ActionMenu,
-    BadgeState,
     IconMessage,
-    CatalogList,
     Banner,
     PluginInfoPanel,
     Tab,
@@ -68,6 +66,7 @@ export default {
       kubeVersion:                    null,
       activeTab:                      '',
       installing:                     {},
+      installedFromRepo:              {},
       errors:                         {},
       plugins:                        [], // The installed plugins
       helmOps:                        [], // Helm operations
@@ -77,10 +76,9 @@ export default {
       menuTargetEvent:                null,
       menuOpen:                       false,
       hasFeatureFlag:                 true,
-      defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
+      defaultIcon:                    genericPluginSvg,
       reloadRequired:                 false,
-      rancherVersion:                 null,
-      showCatalogList:                false
+      rancherVersion:                 null
     };
   },
 
@@ -103,6 +101,14 @@ export default {
 
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
       hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
+    }
+
+    // Load apps in UI_PLUGIN_NAMESPACE to determine which repo an extension was installed from
+    if (this.$store.getters['management/schemaFor'](CATALOG.APP)) {
+      hash.apps = this.$store.dispatch('management/findAll', {
+        type: CATALOG.APP,
+        opt:  { namespaced: UI_PLUGIN_NAMESPACE }
+      });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
@@ -130,6 +136,12 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    // Computed to reactively update when new apps are installed
+    apps() {
+      return this.$store.getters['management/all'](CATALOG.APP)
+        .filter((app) => app.metadata?.namespace === UI_PLUGIN_NAMESPACE);
+    },
 
     charts() {
       const c = this.$store.getters['catalog/rawCharts'];
@@ -175,14 +187,11 @@ export default {
         enabled: true
       });
 
-      // Only show Manage Extension Catalogs when on main charts view
-      if (!this.showCatalogList) {
-        menuActions.push({
-          action:  'manageExtensionView',
-          label:   this.t('plugins.manageCatalog.label'),
-          enabled: true
-        });
-      }
+      menuActions.push({
+        action:  'manageExtensionView',
+        label:   this.t('plugins.manageCatalog.label'),
+        enabled: true
+      });
 
       // Only show Developer Load action if the user has this enabled in preferences
       if (this.pluginDeveloper) {
@@ -204,7 +213,7 @@ export default {
       switch (this.activeTab) {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
-        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing) && p.installableVersions?.length > 0);
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       case TABS_VALUES.BUILTIN:
@@ -248,197 +257,51 @@ export default {
     },
 
     available() {
-      let all = this.charts.filter((c) => isUIPlugin(c));
+      let all = this.charts
+        .filter((c) => isUIPlugin(c))
+        .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'))
+        .map((chart) => this.mapChartToPluginItem(chart))
+        .filter((c) => c.versions.length > 0);
 
-      // Filter out hidden charts
-      all = all.filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
-
-      all = all.map((chart) => {
-        // Label can be overridden by chart annotation
-        const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
-        const item = {
-          name:        chart.chartName,
-          label,
-          description: chart.chartDescription,
-          id:          chart.id,
-          versions:    [],
-          installed:   false,
-          builtin:     false,
-        };
-
-        item.versions = [...chart.versions];
-        item.chart = chart;
-        item.incompatibilityMessage = '';
-
-        // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
-          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
-        }));
-
-        // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isSupportedChartVersion({
-          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
-        }, true));
-
-        const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
-
-        if (latestCompatible) {
-          item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
-          item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-
-          item.displayVersion = latestCompatible.version;
-          item.displayVersionLabel = getPluginChartVersionLabel(latestCompatible);
-          item.icon = latestCompatible.icon;
-          item.created = latestCompatible.created;
-        } else {
-          item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
-          item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
-
-          item.displayVersion = item.versions?.[0]?.version;
-          item.displayVersionLabel = getPluginChartVersionLabel(item.versions?.[0]);
-          item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
-          item.created = item.versions?.[0]?.created;
-        }
-
-        // add message of extension card if there's a newer version of the extension, but it's not available to be installed
-        if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          switch (latestNotCompatible.versionIncompatibilityData?.type) {
-          case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
-            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
-              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: latestNotCompatible.versionIncompatibilityData?.mainHost
-            }, true);
-            break;
-          default:
-            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
-              version:  latestNotCompatible.version,
-              required: latestNotCompatible.versionIncompatibilityData?.required
-            }, true);
-            break;
-          }
-        }
-
-        if (this.installing[item.name]) {
-          item.installing = this.installing[item.name];
-        }
-
-        return item;
-      });
-
-      // Remove charts with no installable versions
-      all = all.filter((c) => c.versions.length > 0);
-
-      // Check that all of the loaded plugins are represented
       this.uiplugins.forEach((p) => {
-        const chart = all.find((c) => c.name === p.name);
+        if (!all.find((c) => c.name === p.name)) {
+          const item = this.buildLoadedPluginItem(p);
 
-        if (!chart) {
-          // A plugin is loaded, but there is no chart, so add an item so that it shows up
-          const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
-
-          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
-          const item = {
-            name:                p.name,
-            label,
-            description:         p.metadata?.description,
-            icon:                p.metadata?.icon,
-            id:                  p.id,
-            versions:            [],
-            displayVersion:      p.metadata?.version,
-            displayVersionLabel: p.metadata?.version || '-',
-            installed:           true,
-            installedVersion:    p.metadata?.version,
-            builtin:             !!p.builtin,
-            experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
-            certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
-          };
-
-          // Built-in plugins can chose to be hidden - used where we implement as extensions
-          // but don't want to shows them individually on the extensions page
-          if (!(item.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN])) {
+          if (item) {
             all.push(item);
           }
         }
       });
 
-      // Go through the CRs for the plugins and wire them into the catalog
-      this.plugins.forEach((p) => {
-        const chart = all.find((c) => c.name === p.name);
+      this.plugins.forEach((p) => this.wirePluginCRToChart(p, all));
 
-        if (chart) {
-          chart.installed = true;
-          chart.uiplugin = p;
-          chart.installedVersion = p.version;
+      this.mergePluginErrors(all);
 
-          // Can't do this here
-          chart.installing = this.installing[chart.name];
-
-          // Check for upgrade
-          const latestInstallableVersion = chart.installableVersions?.[0];
-
-          if (latestInstallableVersion && p.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
-            // Use the currently installed version's metadata to show/hide the experimental and certified labels
-            const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === p.version);
-
-            if (installedVersion) {
-              chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
-              chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-            }
-
-            chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
-          }
-        } else {
-          // No chart, so add a card for the plugin based on its Custom resource being present
-          const item = {
-            name:                p.name,
-            label:               p.name,
-            description:         p.description || '-',
-            id:                  `${ p.name }-${ p.version }`,
-            versions:            [],
-            displayVersion:      p.version,
-            displayVersionLabel: p.version || '-',
-            installed:           true,
-            installing:          false,
-            builtin:             false,
-            uiplugin:            p,
-          };
-
-          all.push(item);
-        }
-      });
-
-      // Merge in the plugin load errors
-      Object.keys(this.uiErrors).forEach((e) => {
-        const chart = all.find((c) => c.name === e);
-
-        if (chart) {
-          const error = this.uiErrors[e];
-
-          if (error && typeof error === 'string') {
-            chart.installedError = this.t(this.uiErrors[e]);
-          } else {
-            chart.installedError = '';
-          }
-        }
-      });
-
-      // Merge in the plugin load errors from help ops
-      Object.keys(this.errors).forEach((e) => {
-        const chart = all.find((c) => c.name === e);
-
-        if (chart) {
-          chart.helmError = !!this.errors[e];
-        }
-      });
+      // Remove duplicate installed plugins - keep only ones with uiplugin (correct CR data)
+      const installedByName = {};
 
       all.forEach((plugin) => {
-        // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
         }
+
+        if (plugin.installed) {
+          const existing = installedByName[plugin.name];
+
+          if (!existing || plugin.uiplugin) {
+            installedByName[plugin.name] = plugin;
+          }
+        }
       });
 
-      // Sort by name
+      all = all.filter((plugin) => {
+        if (!plugin.installed) {
+          return true;
+        }
+
+        return installedByName[plugin.name] === plugin;
+      });
+
       return sortBy(all, 'name', false);
     }
   },
@@ -458,28 +321,50 @@ export default {
           const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
           if (op) {
+            const allWithSameName = this.available.filter((p) => p.name === plugin.name);
+            let targetPluginId;
+
+            // When multiple plugins share the same name (from different repositories),
+            // a single helm operation will trigger updates. We need to correctly identify
+            // the specific plugin that is either currently being installed/updated or is already installed
+            // so we don't accidentally mark all identically named plugins as "installing".
+            const installingPlugin = allWithSameName.find((p) => this.installing[p.id]);
+            const installedPlugin = allWithSameName.find((p) => p.installed);
+
+            if (installingPlugin) {
+              targetPluginId = installingPlugin.id;
+            } else if (installedPlugin) {
+              targetPluginId = installedPlugin.id;
+            } else {
+              targetPluginId = allWithSameName[0]?.id;
+            }
+
+            if (plugin.id !== targetPluginId) {
+              return;
+            }
+
             const active = op.metadata.state?.transitioning;
             const error = op.metadata.state?.error;
 
-            this.errors[plugin.name] = error;
+            this.errors[plugin.id] = error;
 
             if (active) {
             // Can use the status directly, apart from upgrade, which maps to update
               const status = op.status.action;
 
-              if (status === 'upgrade' && this.installing[plugin.name] === 'downgrade') {
+              if (status === 'upgrade' && this.installing[plugin.id] === 'downgrade') {
                 // Helm op is an upgrade, but we initiated a downgrade, so keep the 'downgrade' status
               } else {
-                this.updatePluginInstallStatus(plugin.name, status);
+                this.updatePluginInstallStatus(plugin.id, status);
               }
             } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             } else if (error) {
-              this.updatePluginInstallStatus(plugin.name, false);
+              this.updatePluginInstallStatus(plugin.id, false);
             }
           } else {
-            this.updatePluginInstallStatus(plugin.name, false);
+            this.updatePluginInstallStatus(plugin.id, false);
           }
         });
       },
@@ -505,7 +390,11 @@ export default {
               changes++;
             }
 
-            this.updatePluginInstallStatus(plugin.name, false);
+            (this.available || []).forEach((c) => {
+              if (c.name === plugin.name) {
+                this.updatePluginInstallStatus(c.id, false);
+              }
+            });
           }
         });
 
@@ -593,41 +482,39 @@ export default {
       });
     },
 
-    showCatalogLoadDialog() {
-      this.$store.dispatch('management/promptModal', {
-        component:           'ExtensionCatalogInstallDialog',
-        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
-        componentProps:      {
-          refresh: () => {
-            this.reloadRequired = true;
-          },
-          closed: (res) => {
-            this.didInstall(res);
-          }
-        }
-      });
-    },
-
-    showCatalogUninstallDialog(ev) {
-      this.$store.dispatch('management/promptModal', {
-        component:           'ExtensionCatalogUninstallDialog',
-        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
-        componentProps:      {
-          catalog: ev,
-          refresh: () => {
-            this.reloadRequired = true;
-          },
-          closed: (res) => {
-            this.didUninstall(res);
-          }
-        }
-      });
-    },
-
     showInstallDialog(plugin, action, ev, initialVersion = null) {
       ev?.target?.blur();
       ev?.preventDefault?.();
       ev?.stopPropagation?.();
+
+      // Check if a plugin with the same name is already installed from a different repo
+      if (action === 'install') {
+        const installedPlugin = this.available.find((p) => p.name === plugin.name && p.installed);
+        const isInstalledFromDifferentSource = !!installedPlugin && installedPlugin.id !== plugin.id;
+
+        if (isInstalledFromDifferentSource) {
+          // Show a different dialog that prompts the user to uninstall the existing version first
+          this.$store.dispatch('management/promptModal', {
+            component:                            'UninstallExistingExtensionDialog',
+            testId:                               'uninstall-existing-extension-modal',
+            returnFocusSelector:                  `[data-testid="extension-card-${ action }-btn-${ plugin?.name }"]`,
+            returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+            componentProps:                       {
+              installedPlugin,
+              updateStatus: (pluginId, type) => {
+                this.updatePluginInstallStatus(pluginId, type);
+              },
+              closed: (res) => {
+                if (res?.uninstalled) {
+                  this.didUninstall(res.plugin);
+                }
+              }
+            }
+          });
+
+          return;
+        }
+      }
 
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
@@ -638,10 +525,13 @@ export default {
           plugin,
           action,
           initialVersion,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
+            if (res && plugin?.chart?.repoName) {
+              this.installedFromRepo[plugin.name] = plugin.chart.repoName;
+            }
             this.didInstall(res);
           }
         }
@@ -660,8 +550,8 @@ export default {
         returnFocusFirstIterableNodeSelector: '#extensions-main-page',
         componentProps:                       {
           plugin,
-          updateStatus: (pluginName, type) => {
-            this.updatePluginInstallStatus(pluginName, type);
+          updateStatus: (pluginId, type) => {
+            this.updatePluginInstallStatus(pluginId, type);
           },
           closed: (res) => {
             this.didUninstall(res);
@@ -672,7 +562,7 @@ export default {
 
     didUninstall(plugin) {
       if (plugin) {
-        this.updatePluginInstallStatus(plugin.name, 'uninstall');
+        this.updatePluginInstallStatus(plugin.id, 'uninstall');
 
         if (plugin.catalog) {
           this.refreshCharts();
@@ -699,8 +589,8 @@ export default {
       this.$refs.infoPanel.show({ ...plugin, tags });
     },
 
-    updatePluginInstallStatus(name, status) {
-      this.installing[name] = status;
+    updatePluginInstallStatus(id, status) {
+      this.installing[id] = status;
     },
 
     setMenu(event) {
@@ -731,7 +621,48 @@ export default {
     },
 
     manageExtensionView() {
-      this.showCatalogList = !this.showCatalogList;
+      this.$router.push({
+        name:   'c-cluster-uiplugins-catalogs',
+        params: { cluster: this.$route.params.cluster }
+      });
+    },
+
+    handleMenuAction(payload) {
+      switch (payload?.action) {
+      case 'devLoad':
+        this.showDeveloperLoadDialog();
+        break;
+      case 'manageRepos':
+        this.manageRepos();
+        break;
+      case 'addRancherRepos':
+        this.showAddExtensionReposDialog();
+        break;
+      case 'manageExtensionView':
+        this.manageExtensionView();
+        break;
+      default:
+        console.warn(`Unknown menu action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
+    },
+
+    handlePluginCardAction(payload, card) {
+      switch (payload?.action) {
+      case 'uninstall':
+        this.showUninstallDialog(card.plugin, payload.event);
+        break;
+      case 'upgrade':
+        this.showInstallDialog(card.plugin, 'upgrade', payload.event);
+        break;
+      case 'downgrade':
+        this.showInstallDialog(card.plugin, 'downgrade', payload.event);
+        break;
+      case 'install':
+        this.showInstallDialog(card.plugin, 'install', payload.event);
+        break;
+      default:
+        console.warn(`Unknown plugin card action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
     },
 
     updateAddReposSetting() {
@@ -797,18 +728,12 @@ export default {
         label:       plugin.displayVersionLabel,
       }];
 
-      if (plugin.created) {
-        const hasZeroTime = plugin.created === ZERO_TIME;
-        const lastUpdatedItem = {
+      if (!isMissingDate(plugin.created)) {
+        items.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
-        };
-
-        if (hasZeroTime) {
-          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
-        }
-        items.push(lastUpdatedItem);
+          label:       day(plugin.created).format('MMM D, YYYY')
+        });
       }
 
       if (plugin.installing) {
@@ -842,13 +767,33 @@ export default {
     },
 
     getFooterItems(plugin) {
+      const footerItems = [];
+      const repoNameToDisplay = plugin?.chart?.repoNameDisplay || plugin?.originalRepoNameDisplay;
+
+      if (repoNameToDisplay) {
+        footerItems.push({
+          icon:        'repository-alt',
+          iconTooltip: { key: 'tableHeaders.repoName' },
+          labels:      [repoNameToDisplay]
+        });
+      }
+
       const labels = [];
+
+      // "developer load" tag
+      if (plugin.isDeveloper) {
+        labels.push(this.t('plugins.labels.isDeveloper'));
+      }
+
+      if (plugin.primeOnly) {
+        labels.push(this.t('plugins.labels.primeOnly'));
+      }
 
       if (plugin.builtin) {
         labels.push(this.t('plugins.labels.builtin'));
       }
 
-      if (!plugin.builtin && !plugin.certified) {
+      if (!plugin.builtin && !plugin.certified && !plugin.isDeveloper) {
         labels.push(this.t('plugins.labels.third-party'));
       }
 
@@ -856,34 +801,41 @@ export default {
         labels.push(this.t('plugins.labels.experimental'));
       }
 
-      return labels.length ? [{
-        icon:        'icon-tag-alt',
-        iconTooltip: { key: 'generic.tags' },
-        labels,
-      }] : [];
+      if (labels.length) {
+        footerItems.push({
+          icon:        'tag-alt',
+          iconTooltip: { key: 'generic.tags' },
+          labels,
+        });
+      }
+
+      return footerItems;
     },
 
     getStatuses(plugin) {
       const statuses = [];
 
-      const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
-      const isDeprecated = plugin?.chart?.deprecated;
+      const errorMsg = plugin.installedError || (plugin.helmError ? this.t('plugins.helmError') : null);
+      const incompatibilityMsg = plugin.incompatibilityMessage;
+      const isDeprecated = uiPluginHasAnnotation(plugin?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true');
 
-      if (isDeprecated || errorTooltip) {
-        let tooltip;
+      const tooltipMsgs = [];
 
-        if (isDeprecated && errorTooltip) {
-          tooltip = { text: `${ this.t('generic.deprecated') }. ${ this.t('generic.error') }: ${ errorTooltip }` };
-        } else if (isDeprecated) {
-          tooltip = { key: 'generic.deprecated' };
-        } else { // errorTooltip is present
-          tooltip = { text: `${ this.t('generic.error') }: ${ errorTooltip }` };
-        }
+      if (isDeprecated) {
+        tooltipMsgs.push(this.t('generic.deprecated'));
+      }
 
+      if (errorMsg) {
+        tooltipMsgs.push(errorMsg);
+      } else if (incompatibilityMsg) {
+        tooltipMsgs.push(incompatibilityMsg);
+      }
+
+      if (tooltipMsgs.length) {
         statuses.push({
-          icon:  'icon-alert-alt',
-          color: 'error',
-          tooltip
+          icon:    'icon-alert-alt',
+          color:   'error',
+          tooltip: { text: tooltipMsgs.join('<br/>') }
         });
       }
 
@@ -900,6 +852,196 @@ export default {
       }
 
       return statuses;
+    },
+
+    extractCertificationFlags(annotations) {
+      return {
+        primeOnly:    annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
+        experimental: annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+        certified:    annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER,
+      };
+    },
+
+    buildIncompatibilityMessage(versionData) {
+      const { versionIncompatibilityData, version } = versionData;
+      const params = {
+        version,
+        required: versionIncompatibilityData?.required,
+      };
+
+      if (versionIncompatibilityData?.type === EXTENSIONS_INCOMPATIBILITY_TYPES.HOST) {
+        params.mainHost = versionIncompatibilityData?.mainHost;
+      }
+
+      return this.t(versionIncompatibilityData?.cardMessageKey, params, true);
+    },
+
+    mapChartToPluginItem(chart) {
+      const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
+      const item = {
+        name:                   chart.chartName,
+        label,
+        description:            chart.chartDescription,
+        id:                     chart.id,
+        versions:               [...chart.versions],
+        installed:              false,
+        builtin:                false,
+        chart,
+        incompatibilityMessage: '',
+      };
+
+      item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
+        version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+      }));
+
+      item.versions = item.versions.map((version) => isSupportedChartVersion({
+        version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+      }, true));
+
+      const latestCompatible = item.installableVersions?.[0];
+      const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
+
+      if (latestCompatible) {
+        Object.assign(item, {
+          ...this.extractCertificationFlags(latestCompatible?.annotations),
+          displayVersion:      latestCompatible.version,
+          displayVersionLabel: getPluginChartVersionLabel(latestCompatible),
+          icon:                latestCompatible.icon,
+          created:             latestCompatible.created,
+        });
+      } else {
+        Object.assign(item, {
+          primeOnly:           uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.PRIME_ONLY, 'true'),
+          experimental:        uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
+          certified:           uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
+          displayVersion:      item.versions?.[0]?.version,
+          displayVersionLabel: getPluginChartVersionLabel(item.versions?.[0]),
+          icon:                chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'],
+          created:             item.versions?.[0]?.created,
+        });
+      }
+
+      if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
+        item.incompatibilityMessage = this.buildIncompatibilityMessage(latestNotCompatible);
+      }
+
+      if (this.installing[item.id]) {
+        item.installing = this.installing[item.id];
+      }
+
+      return item;
+    },
+
+    buildLoadedPluginItem(plugin) {
+      const rancher = typeof plugin.metadata?.rancher === 'object' ? plugin.metadata.rancher : {};
+      const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || plugin.name;
+
+      if (plugin.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN]) {
+        return null;
+      }
+
+      return {
+        name:                plugin.name,
+        label,
+        description:         plugin.metadata?.description,
+        icon:                plugin.metadata?.icon,
+        id:                  plugin.id,
+        versions:            [],
+        displayVersion:      plugin.metadata?.version,
+        displayVersionLabel: plugin.metadata?.version || '-',
+        installed:           true,
+        installedVersion:    plugin.metadata?.version,
+        builtin:             !!plugin.builtin,
+        ...this.extractCertificationFlags(rancher?.annotations),
+      };
+    },
+
+    wirePluginCRToChart(pluginCR, all) {
+      const app = this.apps.find((a) => a.metadata.name === pluginCR.name && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+
+      let chart;
+
+      if (originalRepoName) {
+        chart = all.find((c) => c.name === pluginCR.name && c.chart?.repoName === originalRepoName);
+      }
+
+      // fallback to try and prevent https://github.com/rancher/dashboard/issues/17956
+      // which we believe is due to a race condition
+      // we fall back to plugin name which should be present when going through the "installed plugins" (uiplugins) and should be enough to find the correct chart in the majority of cases, as long as there are not multiple charts with the same name across different repos
+      if (!chart) {
+        const fallbackRepoName = this.installedFromRepo?.[pluginCR.name];
+
+        if (fallbackRepoName) {
+          chart = all.find((c) => c.name === pluginCR.name && c.chart?.repoName === fallbackRepoName);
+        }
+      }
+
+      if (chart) {
+        chart.installed = true;
+        chart.uiplugin = pluginCR;
+        chart.installedVersion = pluginCR.version;
+        chart.installing = this.installing[chart.id];
+
+        const latestInstallableVersion = chart.installableVersions?.[0];
+
+        if (latestInstallableVersion && pluginCR.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
+          const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+
+          if (installedVersion) {
+            Object.assign(chart, this.extractCertificationFlags(installedVersion?.annotations));
+          }
+
+          chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
+        }
+      } else {
+        const appChartMeta = app?.spec?.chart?.metadata;
+        const appAnnotations = appChartMeta?.annotations || {};
+        let originalRepoDisplayName = null;
+
+        if (originalRepoName) {
+          originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
+        }
+
+        all.push({
+          name:                    pluginCR.name,
+          label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || pluginCR.name,
+          description:             appChartMeta?.description || pluginCR.description || '-',
+          icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
+          id:                      `${ pluginCR.name }-${ pluginCR.version }`,
+          versions:                [],
+          displayVersion:          pluginCR.version,
+          displayVersionLabel:     pluginCR.version || '-',
+          isDeveloper:             pluginCR.isDeveloper,
+          installed:               true,
+          installedVersion:        pluginCR.version,
+          installing:              false,
+          builtin:                 false,
+          uiplugin:                pluginCR,
+          originalRepoNameDisplay: originalRepoDisplayName,
+          ...this.extractCertificationFlags(appAnnotations),
+        });
+      }
+    },
+
+    mergePluginErrors(all) {
+      Object.keys(this.uiErrors).forEach((errorName) => {
+        const chart = all.find((c) => c.name === errorName);
+
+        if (chart) {
+          const error = this.uiErrors[errorName];
+
+          chart.installedError = (error && typeof error === 'string') ? this.t(error) : '';
+        }
+      });
+
+      Object.keys(this.errors).forEach((errorId) => {
+        const chart = all.find((c) => c.id === errorId);
+
+        if (chart) {
+          chart.helmError = !!this.errors[errorId];
+        }
+      });
     }
   }
 };
@@ -908,39 +1050,12 @@ export default {
 <template>
   <div id="extensions-main-page">
     <div class="plugin-header">
-      <!-- catalog view header -->
-      <template v-if="showCatalogList">
-        <div class="catalog-title">
-          <h2
-            class="mb-0 mr-10"
-            data-testid="extensions-catalog-title"
-          >
-            <a
-              class="link"
-              role="link"
-              tabindex="0"
-              :aria-label="t('plugins.manageCatalog.title')"
-              @click="manageExtensionView()"
-            >
-              {{ t('plugins.manageCatalog.title') }}:
-            </a>
-            <t k="plugins.manageCatalog.subtitle" />
-          </h2>
-          <BadgeState
-            color="bg-warning"
-            :label="t('generic.experimental')"
-            class="badge"
-          />
-        </div>
-      </template>
       <!-- normal extensions view header -->
-      <template v-else>
-        <h2 data-testid="extensions-page-title">
-          <TabTitle breadcrumb="vendor-only">
-            {{ t('plugins.title') }}
-          </TabTitle>
-        </h2>
-      </template>
+      <h2 data-testid="extensions-page-title">
+        <TabTitle breadcrumb="vendor-only">
+          {{ t('plugins.title') }}
+        </TabTitle>
+      </h2>
       <div class="actions-container">
         <!-- extensions reload toast/notification -->
         <div
@@ -966,13 +1081,10 @@ export default {
         <div v-if="hasFeatureFlag && hasMenuActions">
           <ActionMenu
             data-testid="extensions-page-menu"
-            button-role="tertiary"
+            button-variant="tertiary"
             :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
-            @devLoad="showDeveloperLoadDialog"
-            @manageRepos="manageRepos"
-            @addRancherRepos="showAddExtensionReposDialog"
-            @manageExtensionView="manageExtensionView"
+            @action-invoked="handleMenuAction"
           />
         </div>
       </div>
@@ -1005,112 +1117,100 @@ export default {
       />
     </div>
     <div v-else>
-      <!-- Extension Catalog list view -->
-      <template v-if="showCatalogList">
-        <CatalogList
-          @showCatalogLoadDialog="showCatalogLoadDialog"
-          @showCatalogUninstallDialog="showCatalogUninstallDialog($event)"
-        />
-      </template>
-      <template v-else>
-        <Banner
-          v-if="!loading && showAddReposBanner"
-          color="warning"
-          class="add-repos-banner mb-20"
-          data-testid="extensions-new-repos-banner"
+      <Banner
+        v-if="!loading && showAddReposBanner"
+        color="warning"
+        class="add-repos-banner mb-20"
+        data-testid="extensions-new-repos-banner"
+      >
+        <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+        <button
+          class="ml-10 btn btn-sm role-primary"
+          data-testid="extensions-new-repos-banner-action-btn"
+          role="button"
+          :aria-label="t('plugins.addRepos.bannerBtn')"
+          @click="showAddExtensionReposDialog()"
         >
-          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
-          <button
-            class="ml-10 btn btn-sm role-primary"
-            data-testid="extensions-new-repos-banner-action-btn"
-            role="button"
-            :aria-label="t('plugins.addRepos.bannerBtn')"
-            @click="showAddExtensionReposDialog()"
-          >
-            {{ t('plugins.addRepos.bannerBtn') }}
-          </button>
-        </Banner>
+          {{ t('plugins.addRepos.bannerBtn') }}
+        </button>
+      </Banner>
 
-        <Tabbed
-          v-if="!loading"
-          ref="tabs"
-          :tabs-only="true"
-          data-testid="extension-tabs"
-          @changed="tabChanged"
-        >
-          <Tab
-            v-if="installed.length"
-            :name="TABS_VALUES.INSTALLED"
-            data-testid="extension-tab-installed"
-            label-key="plugins.tabs.installed"
-            :badge="installed.length"
-            :weight="20"
-          />
-          <Tab
-            :name="TABS_VALUES.AVAILABLE"
-            data-testid="extension-tab-available"
-            label-key="plugins.tabs.available"
-            :weight="19"
-          />
-          <Tab
-            v-if="pluginDeveloper"
-            :name="TABS_VALUES.BUILTIN"
-            label-key="plugins.tabs.builtin"
-            :weight="17"
-          />
-        </Tabbed>
-        <div
-          v-if="loading"
-          class="data-loading"
-        >
-          <i class="icon-spin icon icon-spinner" />
-          <t
-            k="generic.loading"
-            :raw="true"
-          />
-        </div>
-        <div
-          v-else
-          class="plugin-cards"
-          :class="{'v-margin': !list.length}"
-        >
-          <IconMessage
-            v-if="list.length === 0"
-            :vertical="true"
-            :subtle="true"
-            icon="icon-extension"
-            class="mmt-9"
-            :message="emptyMessage"
-          />
-          <template v-else>
-            <rc-item-card
-              v-for="card in pluginCards"
-              :id="card.id"
-              :key="card.id"
-              :class="{ 'single-card': pluginCards.length === 1 }"
-              :header="card.header"
-              :image="card.image"
-              :content="card.content"
-              :actions="card.actions"
-              :clickable="true"
-              @card-click="showPluginDetail(card.plugin)"
-              @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
-              @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
-              @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
-              @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
-            >
-              <template #item-card-sub-header>
-                <AppChartCardSubHeader
-                  :items="card.subHeaderItems"
-                />
-              </template>
-              <template #item-card-footer>
-                <AppChartCardFooter :items="card.footerItems" />
-              </template>
-            </rc-item-card>
-          </template>
-        </div>
-      </template>
+      <Tabbed
+        v-if="!loading"
+        ref="tabs"
+        :tabs-only="true"
+        data-testid="extension-tabs"
+        @changed="tabChanged"
+      >
+        <Tab
+          v-if="installed.length"
+          :name="TABS_VALUES.INSTALLED"
+          data-testid="extension-tab-installed"
+          label-key="plugins.tabs.installed"
+          :badge="installed.length"
+          :weight="20"
+        />
+        <Tab
+          :name="TABS_VALUES.AVAILABLE"
+          data-testid="extension-tab-available"
+          label-key="plugins.tabs.available"
+          :weight="19"
+        />
+        <Tab
+          v-if="pluginDeveloper"
+          :name="TABS_VALUES.BUILTIN"
+          label-key="plugins.tabs.builtin"
+          :weight="17"
+        />
+      </Tabbed>
+      <div
+        v-if="loading"
+        class="data-loading"
+      >
+        <i class="icon-spin icon icon-spinner" />
+        <t
+          k="generic.loading"
+          :raw="true"
+        />
+      </div>
+      <div
+        v-else
+        class="plugin-cards"
+        :class="{'v-margin': !list.length}"
+      >
+        <IconMessage
+          v-if="list.length === 0"
+          :vertical="true"
+          :subtle="true"
+          icon="icon-extension"
+          class="mmt-9"
+          :message="emptyMessage"
+        />
+        <template v-else>
+          <rc-item-card
+            v-for="card in pluginCards"
+            :id="card.id"
+            :key="card.id"
+            :class="{ 'single-card': pluginCards.length === 1 }"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :actions="card.actions"
+            :clickable="true"
+            @card-click="showPluginDetail(card.plugin)"
+            @action-invoked="(payload) => handlePluginCardAction(payload, card)"
+          >
+            <template #item-card-sub-header>
+              <AppChartCardSubHeader
+                :items="card.subHeaderItems"
+              />
+            </template>
+            <template #item-card-footer>
+              <AppChartCardFooter :items="card.footerItems" />
+            </template>
+          </rc-item-card>
+        </template>
+      </div>
     </div>
   </div>
 </template>

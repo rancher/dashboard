@@ -5,6 +5,13 @@ export default class KontainerDriver extends Driver {
     return 'c-cluster-manager-driver-kontainerdriver';
   }
 
+  get parentLocationOverride() {
+    return {
+      name:   'c-cluster-manager-driver-kontainerdriver',
+      params: { cluster: this.$rootGetters['clusterId'] }
+    };
+  }
+
   get _availableActions() {
     const out = [
       {
@@ -54,6 +61,10 @@ export default class KontainerDriver extends Driver {
     return out;
   }
 
+  get isEmber() {
+    return !this.builtIn && !this.builtin;
+  }
+
   deactivate(resources = [this]) {
     this.$dispatch('promptModal', {
       componentProps: { drivers: resources, driverType: 'kontainerDrivers' },
@@ -70,7 +81,7 @@ export default class KontainerDriver extends Driver {
 
   activate() {
     return this.$dispatch('rancher/request', {
-      url:    `v3/kontainerDrivers/${ escape(this.id) }?action=activate`,
+      url:    `v3/kontainerDrivers/${ encodeURIComponent(this.id) }?action=activate`,
       method: 'post',
     }, { root: true }).catch((err) => {
       this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: this.nameDisplay }), err }, { root: true });
@@ -79,7 +90,7 @@ export default class KontainerDriver extends Driver {
 
   async activateBulk(resources) {
     await Promise.all(resources.map((resource) => this.$dispatch('rancher/request', {
-      url:    `v3/kontainerDrivers/${ escape(resource.id) }?action=activate`,
+      url:    `v3/kontainerDrivers/${ encodeURIComponent(resource.id) }?action=activate`,
       method: 'post',
     }, { root: true }).catch((err) => {
       this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: resource.nameDisplay }), err }, { root: true });

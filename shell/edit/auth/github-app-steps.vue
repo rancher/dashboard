@@ -49,6 +49,7 @@ defineProps<{
             <CopyToClipboard
               label-as="tooltip"
               :text="tArgs.serverUrl"
+              :aria-label="t('generic.copyValueToClipboard', { value: tArgs.serverUrl })"
               class="icon-btn"
               action-color="bg-transparent"
             />
@@ -67,6 +68,7 @@ defineProps<{
             <CopyToClipboard
               :text="t(`authConfig.${name}.form.callback.value`, tArgs, true)"
               label-as="tooltip"
+              :aria-label="t('generic.copyValueToClipboard', { value: t(`authConfig.${name}.form.callback.value`, tArgs, true) })"
               class="icon-btn"
               action-color="bg-transparent"
             />

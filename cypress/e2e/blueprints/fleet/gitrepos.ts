@@ -27,8 +27,9 @@ export function gitRepoTargetAllClustersRequest(
   name: string,
   repo: string,
   branch: string,
-  path: string
-):object {
+  path: string,
+  targets?: object[]
+) {
   return {
     type:     'fleet.cattle.io.gitrepo',
     metadata: {
@@ -40,7 +41,7 @@ export function gitRepoTargetAllClustersRequest(
       branch,
       paths:        [path],
       correctDrift: { enabled: false },
-      targets:      [{
+      targets:      targets || [{
         clusterSelector: {
           matchExpressions: [{
             key: 'provider.cattle.io', operator: 'NotIn', values: ['harvester']

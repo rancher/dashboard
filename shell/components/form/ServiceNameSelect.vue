@@ -1,15 +1,15 @@
 <script>
-import labeledFormElement from '@shell/mixins/labeled-form-element';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
 import { _VIEW } from '@shell/config/query-params';
+import { computed } from 'vue';
 
 export default {
+  inheritAttrs: false,
+
   emits: ['update:value'],
 
   components: { LabeledSelect, Banner },
-
-  mixins: [labeledFormElement],
 
   props: {
     disabled: {
@@ -66,6 +66,16 @@ export default {
       type:    Boolean,
       default: false,
     },
+    value: {
+      type:    String,
+      default: null
+    }
+  },
+
+  setup(props) {
+    const isView = computed(() => props.mode === _VIEW);
+
+    return { isView };
   },
 
   data() {
@@ -73,10 +83,6 @@ export default {
   },
 
   computed: {
-    isView() {
-      return this.mode === _VIEW;
-    },
-
     serviceNameNew() {
       if (!this.selected) {
         return false;
@@ -87,10 +93,6 @@ export default {
 
     serviceName() {
       return this.reduce(this.selected);
-    },
-
-    canPaginate() {
-      return false;
     },
   },
 

@@ -45,11 +45,11 @@ export default {
     },
 
     showLocale() {
-      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.dev;
+      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.showNone;
     },
 
     showNone() {
-      return !!process.env.dev && this.dev;
+      return !!process.env.dev;
     },
   },
 
@@ -79,7 +79,7 @@ export default {
       >
         <rc-dropdown-trigger
           data-testid="locale-selector"
-          link
+          variant="link"
           class="baseline locale-selector-btn"
           :aria-label="t('locale.menu')"
         >

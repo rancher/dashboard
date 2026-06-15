@@ -24,18 +24,26 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   }
 
   return computed(() => {
-    return {
-      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.namespace'),
-      value:           resourceValue.namespace,
-      valueDataTestid: 'masthead-subheader-namespace',
-      valueOverride:   {
-        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
-        props:     {
-          type:           NAMESPACE,
-          id:             resourceValue.namespace,
-          detailLocation: resourceValue.namespaceLocation
-        }
+    const currentStore = store.getters['currentStore'](NAMESPACE);
+    const canList = store.getters[`${ currentStore }/canList`](NAMESPACE);
+
+    const label = i18n.t('component.resource.detail.metadata.identifyingInformation.namespace');
+    const value = resourceValue.namespace;
+    const valueDataTestid = 'masthead-subheader-namespace';
+    const valueOverride = canList ? {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+      props:     {
+        type:           NAMESPACE,
+        id:             resourceValue.namespace,
+        detailLocation: resourceValue.namespaceLocation
       }
+    } : undefined;
+
+    return {
+      label,
+      value,
+      valueDataTestid,
+      valueOverride,
     };
   });
 };

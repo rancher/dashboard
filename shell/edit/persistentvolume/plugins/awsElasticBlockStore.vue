@@ -14,25 +14,24 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['awsElasticBlockStore'] = this.value.spec.awsElasticBlockStore || {};
     this.value.spec.awsElasticBlockStore['readOnly'] = this.value.spec.awsElasticBlockStore.readOnly || false;
     this.value.spec.awsElasticBlockStore['partition'] = this.value.spec.awsElasticBlockStore.partition || 0;
-
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    return { readOnlyOptions };
   },
   computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
     partition: {
       get() {
         return this.value.spec.awsElasticBlockStore.partition;

@@ -36,32 +36,34 @@ export default {
   },
 
   data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
+    return {
+      loadingDrivers: true,
+      csiDrivers:     [],
+    };
+  },
 
+  created() {
     this.value.spec['csi'] = this.value.spec.csi || {};
     this.value.spec.csi['readOnly'] = this.value.spec.csi.readOnly || false;
     this.value.spec.csi['nodePublishSecretRef'] = this.value.spec.csi.nodePublishSecretRef || {};
     this.value.spec.csi['nodeStageSecretRef'] = this.value.spec.csi.nodeStageSecretRef || {};
     this.value.spec.csi['controllerExpandSecretRef'] = this.value.spec.csi.controllerExpandSecretRef || {};
     this.value.spec.csi['controllerPublishSecretRef'] = this.value.spec.csi.controllerPublishSecretRef || {};
-
-    return {
-      readOnlyOptions,
-      loadingDrivers: true,
-      csiDrivers:     [],
-    };
   },
 
   computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
     driverOptions() {
       return this.csiDrivers.map((driver) => {
         return driver.metadata.name;

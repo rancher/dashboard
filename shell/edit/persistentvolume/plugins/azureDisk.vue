@@ -14,57 +14,58 @@ export default {
       required: true,
     },
   },
-  data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    const kindOptions = [
-      {
-        label: this.t('persistentVolume.azureDisk.kind.dedicated'),
-        value: 'Dedicated'
-      },
-      {
-        label: this.t('persistentVolume.azureDisk.kind.managed'),
-        value: 'Managed'
-      },
-      {
-        label: this.t('persistentVolume.azureDisk.kind.shared'),
-        value: 'Shared'
-      }
-    ];
-
-    const cachingModeOptions = [
-      {
-        label: this.t('persistentVolume.azureDisk.cachingMode.none'),
-        value: 'None'
-      },
-      {
-        label: this.t('persistentVolume.azureDisk.cachingMode.readOnly'),
-        value: 'ReadOnly'
-      },
-      {
-        label: this.t('persistentVolume.azureDisk.cachingMode.readWrite'),
-        value: 'ReadWrite'
-      }
-    ];
-
+  created() {
     this.value.spec['azureDisk'] = this.value.spec.azureDisk || {};
     this.value.spec.azureDisk['readOnly'] = this.value.spec.azureDisk.readOnly || false;
-    this.value.spec.azureDisk['cachingMode'] = this.value.spec.azureDisk.cachingMode || cachingModeOptions[0].value;
-    this.value.spec.azureDisk['kind'] = this.value.spec.azureDisk.kind || kindOptions[2].value;
-
-    return {
-      kindOptions, readOnlyOptions, cachingModeOptions
-    };
+    this.value.spec.azureDisk['cachingMode'] = this.value.spec.azureDisk.cachingMode || this.cachingModeOptions[0].value;
+    this.value.spec.azureDisk['kind'] = this.value.spec.azureDisk.kind || this.kindOptions[2].value;
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
+    kindOptions() {
+      return [
+        {
+          label: this.t('persistentVolume.azureDisk.kind.dedicated'),
+          value: 'Dedicated'
+        },
+        {
+          label: this.t('persistentVolume.azureDisk.kind.managed'),
+          value: 'Managed'
+        },
+        {
+          label: this.t('persistentVolume.azureDisk.kind.shared'),
+          value: 'Shared'
+        }
+      ];
+    },
+    cachingModeOptions() {
+      return [
+        {
+          label: this.t('persistentVolume.azureDisk.cachingMode.none'),
+          value: 'None'
+        },
+        {
+          label: this.t('persistentVolume.azureDisk.cachingMode.readOnly'),
+          value: 'ReadOnly'
+        },
+        {
+          label: this.t('persistentVolume.azureDisk.cachingMode.readWrite'),
+          value: 'ReadWrite'
+        }
+      ];
+    }
+  }
 };
 </script>
 

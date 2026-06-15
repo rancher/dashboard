@@ -29,7 +29,7 @@ export default {
       class="span-3"
     >
       <h3>{{ t('tableHeaders.commit') }}</h3>
-      <span>{{ value.status.commit }}</span>
+      <span>{{ value.status?.commit }}</span>
     </div>
   </div>
 </template>

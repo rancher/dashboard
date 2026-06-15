@@ -22,7 +22,7 @@ const graphEndpoint = 'https://graph.test.com';
 const mockStatusCode = 200;
 const mockBody = {};
 
-describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
+describe('Microsoft Entra ID', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   beforeEach(() => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
@@ -32,8 +32,8 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     azureadPo.waitForUrlPathWithoutContext();
   });
 
-  it('can navigate Auth Provider and select AzureAD', () => {
-    azureadPo.mastheadTitle().should('include', `AzureAD`);
+  it('can navigate Auth Provider and select Microsoft Entra ID', () => {
+    azureadPo.mastheadTitle().should('include', `Microsoft Entra ID`);
   });
 
   // it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
@@ -60,7 +60,7 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   //   cy.wait('@configureTest');
   // });
 
-  it('sends correct request to create custom Azure AD', () => {
+  it('sends correct request to create custom Microsoft Entra ID', () => {
     cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
       expect(req.body.tenantId).to.equal(tenantId);
       expect(req.body.applicationId).to.equal(applicationId);

@@ -116,8 +116,21 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tr.group-row', name);
   }
 
+  /**
+   * Get all group row elements that contain the given name
+   * Unlike groupElementWithName which only returns the first match,
+   * this returns all matching group rows
+   * @param name - The text to search for in group rows
+   * @returns Cypress chainable with all matching group row elements
+   */
+  groupElementsWithName(name: string) {
+    return this.self().find('tr.group-row').filter((index, el) => {
+      return Cypress.$(el).text().includes(name);
+    });
+  }
+
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row):not(.group-row)', options);
+    return this.self().find('tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)', options);
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
@@ -177,7 +190,8 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowActionMenu() {
-    return new ActionMenuPo();
+    // Get the visible dropdown menu - this ensures we only interact with a menu that's actually open
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
   }
 
   noRowsShouldNotExist() {
@@ -193,6 +207,13 @@ export default class SortableTablePo extends ComponentPo {
    */
   rowCount(): Cypress.Chainable<number> {
     return this.rowElements().then((el) => el.length);
+  }
+
+  /**
+   * get the count of rows in a group
+   */
+  groupRowCount(groupName: string) {
+    return this.groupElementWithName(groupName).nextUntil('tr.group-row').then((el) => el.length);
   }
 
   /**
@@ -217,22 +238,29 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string) {
+  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean) {
     this.rowWithName(name).actionBtn()
       .click().then((el) => {
         expect(el).to.have.attr('aria-expanded', 'true');
       });
 
-    return this.rowActionMenu();
+    const actionMenu = this.rowActionMenu();
+
+    // Wait for the dropdown menu to appear and be populated with actual content
+    actionMenu.self().should('exist');
+
+    // Wait for the dropdown to finish loading (not show "No actions available")
+    if (!skipNoActionAvailableCheck) {
+      actionMenu.checkNoActionsAvailable(false);
+      // Ensure at least one non-disabled menu item is present
+      actionMenu.atLeastOneActiveMenuItem();
+    }
+
+    return actionMenu;
   }
 
   rowActionMenuClose(name: string) {
-    this.rowWithName(name).actionBtn().then((el) => {
-      expect(el).to.have.attr('aria-expanded', 'true');
-    }).click()
-      .then((el) => {
-        expect(el).to.have.attr('aria-expanded', 'false');
-      });
+    this.rowWithName(name).actionBtn().click();
 
     return this.rowActionMenu();
   }

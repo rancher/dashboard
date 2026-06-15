@@ -17,24 +17,25 @@ export default {
       required: true,
     },
   },
-  data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['cephfs'] = this.value.spec.cephfs || {};
     this.value.spec.cephfs['readOnly'] = this.value.spec.cephfs.readOnly || false;
     this.value.spec.cephfs['secretRef'] = this.value.spec.cephfs.secretRef || {};
-
-    return { readOnlyOptions };
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

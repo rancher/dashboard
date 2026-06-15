@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { toRef } from 'vue';
 import { RcStatusBadgeProps } from './types';
+import { useStatusColors } from '@components/utils/status';
 
 const props = defineProps<RcStatusBadgeProps>();
+
+const status = toRef(props, 'status');
+const { backgroundColor, borderColor, textColor } = useStatusColors(status, 'outlined');
 </script>
 
 <template>
@@ -15,59 +20,23 @@ const props = defineProps<RcStatusBadgeProps>();
 
 <style lang="scss" scoped>
 .rc-status-badge {
+    box-sizing: border-box;
+    height: 21px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1px 7px;
+    padding: 2px 7px;
 
     border: 1px solid transparent;
     border-radius: 30px;
 
     font-family: Lato;
     font-size: 12px;
-    line-height: 19px;
+    line-height: 17px;
 
-    &.info {
-        background-color: var(--rc-info-secondary);
-        border-color: var(--rc-info-secondary);
-        color: var(--rc-info);
-    }
-
-    &.success {
-        background-color: var(--rc-success-secondary);
-        border-color: var(--rc-success-secondary);
-        color: var(--rc-success);
-    }
-
-    &.warning {
-        background-color: var(--rc-warning);
-        border-color: var(--rc-warning);
-        color: var(--rc-warning-secondary);
-    }
-
-    &.error {
-        background-color: var(--rc-error);
-        border-color: var(--rc-error);
-        color: var(--rc-error-secondary);
-    }
-
-    &.unknown {
-        background-color: var(--rc-unknown);
-        border-color: var(--rc-unknown);
-        color: var(--rc-unknown-secondary);
-    }
-
-    &.none {
-        border-color: var(--rc-none);
-        color: var(--rc-none-secondary);
-    }
-
-    &.prime {
-        background-color: var(--rc-success-secondary);
-        border-color: var(--rc-success-secondary);
-        color: var(--rc-success);
-        font-size: 10px;
-        line-height: 15px;
-    }
+    background-color: v-bind(backgroundColor);
+    border-color: v-bind(borderColor);
+    color: v-bind(textColor);
 }
 </style>

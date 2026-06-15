@@ -3,11 +3,11 @@ import ActionMenu from '@/cypress/e2e/po/components/action-menu.po';
 
 export default class RcItemCardPo extends ComponentPo {
   static getCardById(id: string) {
-    return new RcItemCardPo(`[data-testid="item-card-${ id }"`);
+    return new RcItemCardPo(`[data-testid="item-card-${ id }"]`);
   }
 
-  static getCardByTitle(title: string) {
-    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]').contains(title).parents('[data-testid*="item-card-"]'));
+  static getCardByTitle(title: string, options?: Partial<Cypress.Timeoutable>) {
+    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]', options).contains(title).parents('[data-testid*="item-card-"]'));
   }
 
   getImage() {

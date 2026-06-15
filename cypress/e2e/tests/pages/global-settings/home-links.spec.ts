@@ -26,7 +26,13 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
 
     HomePagePo.goTo();
-    homePage.supportLinks().should('have.length', 1).contains('Commercial Support');
+
+    // "SUSE Application Collection" for Rancher Prime, otherwise "Rancher Prime"
+    cy.getRancherVersion().then((version) => {
+      const expectedValue = version.RancherPrime === 'true' ? 'SUSE Application Collection' : 'Rancher Prime';
+
+      homePage.supportLinks().should('have.length', 1).contains(expectedValue);
+    });
 
     HomeLinksPagePo.navTo();
 

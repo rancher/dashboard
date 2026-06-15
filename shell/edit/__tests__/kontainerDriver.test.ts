@@ -30,7 +30,6 @@ describe('view: kontainerdriver should', () => {
           active:           true,
           checksum:         '',
           url:              '',
-          uiUrl:            '',
           whitelistDomains: []
         }
       },
@@ -65,32 +64,22 @@ describe('view: kontainerdriver should', () => {
 
   it('have "Create" button enabled and disabled depending on validation results', async() => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
-    const uiurlField = wrapper.find('[data-testid="driver-create-uiurl-field"]');
     const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]');
     const saveButton = wrapper.find('[data-testid="kontainer-driver-edit-save"]').element as HTMLInputElement;
 
     const testCases = [
       {
         url:      '1111',
-        uiurl:    'http://test.com',
         checksum: 'aaaaaBBBBdddd',
         result:   true
       },
       {
         url:      'http://test.com',
-        uiurl:    '1111',
-        checksum: 'aaaaaBBBBdddd',
-        result:   true
-      },
-      {
-        url:      'http://test.com',
-        uiurl:    'http://test.com',
         checksum: '!!!',
         result:   true
       },
       {
         url:      'http://test.com',
-        uiurl:    'http://test.com',
         checksum: 'aaaaaBBBBdddd',
         result:   false
       }
@@ -98,8 +87,6 @@ describe('view: kontainerdriver should', () => {
 
     for (const testCase of testCases) {
       urlField.setValue(testCase.url);
-      await nextTick();
-      uiurlField.setValue(testCase.uiurl);
       await nextTick();
       checksumField.setValue(testCase.checksum);
       await nextTick();

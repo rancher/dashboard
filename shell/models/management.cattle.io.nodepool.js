@@ -45,7 +45,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.name === this.spec.clusterName);
+    return this.$getters['byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.spec.clusterName }`);
   }
 
   get doneOverride() {

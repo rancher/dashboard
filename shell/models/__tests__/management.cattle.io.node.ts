@@ -167,11 +167,12 @@ describe('class MgmtNode', () => {
         id: nodeId
       }, {
         ...baseCtx,
-        getters: {
-          all: () => [{
-            mgmtClusterId,
-            nodes
-          }]
+        rootGetters: {
+          ...baseCtx.rootGetters,
+          'management/byId': () => ({
+            id:          mgmtClusterId,
+            provCluster: { nodes }
+          })
         }
       });
 

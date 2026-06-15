@@ -159,7 +159,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -211,8 +215,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_PASSWORD_MIN_LENGTH is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['password-min-length']?.source === 'env') {
+      settingsPage.environmentLabel('password-min-length').should('be.visible');
+      settingsPage.actionButtonByLabel('password-min-length').should('not.exist');
+
+      return;
+    }
+
+    // Update setting
     settingsPage.editSettingsByLabel('password-min-length');
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'password-min-length');
@@ -224,30 +238,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].new);
 
-    // this just causes problems
-    // Check new password requirement
-    // const banner = new BannersPo('.text-error');
-
-    // accountPage.waitForRequests();
-    // accountPage.changePassword();
-    // accountPage.currentPassword().set(Cypress.env('password'));
-    // accountPage.newPassword().set('NewPassword1');
-    // accountPage.confirmPassword().set('NewPassword1');
-
-    // // Note: For some odd reason, when running this test in CI,
-    // // the expected network error is not thrown
-    // // so we need to stub status code and body here to force the error
-    // // to prevent the user from updating the password.
-    // // To be clear, this is not a bug, the issue is specific to Cypress automation
-    // // cy.intercept('POST', '/v3/users?action=changepassword', {
-    // //   statusCode: 422,
-    // //   body:       { message: `Password must be at least ${ settings['password-min-length'].new } characters` }
-    // // }).as('changePwError');
-    // cy.intercept('POST', '/v3/users?action=changepassword').as('changePwError');
-
-    // accountPage.apply();
-    // cy.wait('@changePwError');
-    // banner.banner().contains(`Password must be at least ${ settings['password-min-length'].new } characters`).should('be.visible');
     // Reset
     SettingsPagePo.navTo();
     settingsPage.waitForUrlPathWithoutContext();
@@ -560,10 +550,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token'].default);
 
     // Check kubeconfig file
+    cy.deleteDownloadsFolder();
     const downloadsFolder = Cypress.config('downloadsFolder');
 
     clusterList.goTo();
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
 
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
@@ -571,8 +564,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
       const obj: any = jsyaml.load(buffer);
 
       // checks on the downloaded YAML
-      expect(obj.clusters.length).to.equal(1);
-      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.clusters.length).to.be.gte(1);
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.users[0].user.token).to.have.length.gt(0);
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');

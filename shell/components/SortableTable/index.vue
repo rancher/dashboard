@@ -26,6 +26,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
@@ -52,7 +53,8 @@ export default {
     'group-value-change',
     'selection',
     'rowClick',
-    'enter'
+    'enter',
+    'sortable-table-interaction',
   ],
 
   components: {
@@ -64,6 +66,7 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     ActionDropdownShell,
+    RcButton,
   },
 
   mixins: [
@@ -765,7 +768,7 @@ export default {
                 needRef = true;
               } else {
                 // Check if we have a formatter from a plugin
-                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+                const pluginFormatter = this.$extension?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
                   component = defineAsyncComponent(pluginFormatter);
@@ -1058,6 +1061,23 @@ export default {
     },
 
     paginationChanged() {
+      // event used for extensions TABLE hooks
+      this.$emit('sortable-table-interaction', {
+        pagination: {
+          page:    this.page,
+          perPage: this.perPage,
+        },
+        filtering: {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sorting: {
+          sort:       this.sortFields,
+          sortBy:     this.sortBy,
+          descending: this.descending
+        }
+      });
+
       if (!this.externalPaginationEnabled) {
         return;
       }
@@ -1098,17 +1118,17 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
-              <button
+              <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                variant="primary"
+                size="large"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
-                role="button"
                 :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
@@ -1120,7 +1140,7 @@ export default {
                   :class="act.icon"
                 />
                 <span v-clean-html="act.label" />
-              </button>
+              </RcButton>
               <template v-if="featureDropdownMenu">
                 <ActionDropdownShell
                   :disabled="!selectedRows.length"
@@ -1572,6 +1592,18 @@ export default {
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
+            <slot
+              :full-colspan="fullColspan"
+              :row="row.row"
+              :show-sub-row="row.row.stateDescription"
+              :sub-matches="subMatches"
+              :keyField="keyField"
+              :componentTestid="componentTestid"
+              :i="i"
+              :onRowMouseEnter="onRowMouseEnter"
+              :onRowMouseLeave="onRowMouseLeave"
+              name="additional-sub-row"
+            />
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
@@ -1906,9 +1938,22 @@ export default {
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
+        &.additional-sub-row.has-sub-row {
+          border-bottom: 0;
+        }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
         &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with only additional-sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with both additional-sub-row and sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
           background-color: var(--sortable-table-hover-bg);
         }
 
@@ -2056,13 +2101,13 @@ export default {
 
   $header-padding: 20px;
   .sub-header-row {
-    padding: 0 0 $header-padding / 2 0;
+    padding: 0 0 calc($header-padding / 2) 0;
   }
 
   .fixed-header-actions {
     padding: 0 0 $header-padding 0;
     &.with-sub-header {
-      padding: 0 0 $header-padding / 4 0;
+      padding: 0 0 calc($header-padding / 4) 0;
     }
 
     width: 100%;
@@ -2111,11 +2156,6 @@ export default {
         }
       }
 
-      .bulk-action  {
-        .icon {
-          vertical-align: -10%;
-        }
-      }
     }
 
     .middle {

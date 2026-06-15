@@ -63,6 +63,15 @@ export class SettingsPagePo extends RootClusterPage {
   }
 
   /**
+   * Get "Set by Environment Variable" label per setting name
+   * @param label
+   * @returns
+   */
+  environmentLabel(label: string) {
+    return cy.getId(`advanced-setting-env-label-${ label }`);
+  }
+
+  /**
    * Get modified label per setting name
    * @param label
    * @returns

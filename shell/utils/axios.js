@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import defu from 'defu';
+
 import axiosRetry from 'axios-retry';
 
 // Axios.prototype cannot be modified
@@ -37,9 +37,6 @@ const axiosExtra = {
   onError(fn) {
     this.onRequestError(fn);
     this.onResponseError(fn);
-  },
-  create(options) {
-    return createAxiosInstance(defu(options, this.defaults));
   }
 };
 

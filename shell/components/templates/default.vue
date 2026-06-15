@@ -9,7 +9,6 @@ import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
-import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
@@ -18,7 +17,6 @@ import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
-import AzureWarning from '@shell/components/auth/AzureWarning';
 import { MANAGEMENT } from '@shell/config/types';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
@@ -26,6 +24,7 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
 import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -40,20 +39,20 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    WindowManager,
     FixedBanner,
     AwsComplianceBanner,
-    AzureWarning,
     Inactivity,
     SideNav,
+    RcButton,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
+  inject: ['notifyWmContainerReady'],
+
   // Note - This will not run on route change
   data() {
     return {
-      layout:           Layout.default,
       noLocaleShortcut: process.env.dev || false,
       wantNavSync:      false,
     };
@@ -104,6 +103,10 @@ export default {
       return this.clusterReady &&
         this.clusterId === getClusterFromRoute(this.$route) && routeReady;
     },
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.default);
   },
 
   methods: {
@@ -161,9 +164,15 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <AwsComplianceBanner v-if="managementReady" />
-    <AzureWarning v-if="managementReady" />
     <div
       v-if="managementReady"
       class="dashboard-content"
@@ -176,8 +185,10 @@ export default {
       />
       <main
         v-if="clusterAndRouteReady"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
@@ -214,15 +225,22 @@ export default {
       <!-- Ensure there's an outlet to show the error (404) page -->
       <main
         v-else-if="unmatchedRoute"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
           class="outlet"
         />
       </main>
-      <WindowManager :layout="layout" />
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-default"
+        style="display: contents;"
+      />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
@@ -230,3 +248,17 @@ export default {
     <Inactivity />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.skip-to-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  transform: translateY(-100%);
+
+  &:focus {
+    transform: translate(1rem, 1rem);
+  }
+}
+</style>

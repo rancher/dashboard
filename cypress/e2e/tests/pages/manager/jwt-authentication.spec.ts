@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
+import { qase } from '@/cypress/support/qase';
 
 const jwtAuthenticationPage = new JWTAuthenticationPagePo();
 
@@ -73,16 +74,16 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     });
   });
 
-  it('should show the JWT Authentication list page', () => {
+  qase(3959, it('should show the JWT Authentication list page', () => {
     goToJWTAuthenticationPageAndSettle();
     jwtAuthenticationPage.list().masthead().title().should('contain', 'JWT Authentication');
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
-  });
+  }));
 
-  it('should be able to enable JWT Authentication for a cluster', () => {
+  qase(3961, it('should be able to enable JWT Authentication for a cluster', () => {
     goToJWTAuthenticationPageAndSettle();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowActionMenuOpen(instance0)
@@ -96,9 +97,9 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Enabled');
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
-  });
+  }));
 
-  it('should be able to disable JWT Authentication for a cluster', () => {
+  qase(3962, it('should be able to disable JWT Authentication for a cluster', () => {
     goToJWTAuthenticationPageAndSettle();
 
     cy.intercept('PUT', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
@@ -113,9 +114,9 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
-  });
+  }));
 
-  it('should be able to enable JWT Authentication in bulk', () => {
+  qase(3958, it('should be able to enable JWT Authentication in bulk', () => {
     goToJWTAuthenticationPageAndSettle();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
 
@@ -132,9 +133,9 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     });
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Enabled');
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Enabled');
-  });
+  }));
 
-  it('should be able to disable JWT Authentication in bulk', () => {
+  qase(4397, it('should be able to disable JWT Authentication in bulk', () => {
     goToJWTAuthenticationPageAndSettle();
     cy.intercept('PUT', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
 
@@ -152,7 +153,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
     jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
-  });
+  }));
 
   after('clean up', () => {
     if (removeCluster0) {
@@ -173,7 +174,7 @@ describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@
     HomePagePo.goTo();
   });
 
-  it('should not have JWT Authentication side menu entry', () => {
+  qase(5572, it('should not have JWT Authentication side menu entry', () => {
     const homePage = new HomePagePo();
     const clusterManagerPage = new ClusterManagerListPagePo('_');
 
@@ -185,5 +186,91 @@ describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@
 
     sideNav.navToSideMenuGroupByLabel('Advanced');
     sideNav.checkSideMenuEntryByLabel('JWT Authentication', 'not.exist');
+  }));
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  qase(18427, it('should display JWT Authentication empty list page', () => {
+    const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+
+    JWTAuthenticationPagePo.goTo('_');
+    jwtAuthenticationPage.checkIsCurrentPage();
+
+    jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
+    jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+
+    // takes percy snapshot.
+    cy.percySnapshot('JWT Authentication list page');
+  }));
+
+  describe('Populated list', { tags: ['@jenkins'] }, () => {
+    let instance0 = '';
+    let removeCluster0 = false;
+    const region = 'us-west-1';
+    const namespace = 'fleet-default';
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('rke2cluster0').as('rke2Ec2ClusterName0');
+
+      cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
+        instance0 = name;
+        // create real cluster
+        cy.createAmazonRke2ClusterWithoutMachineConfig({
+          cloudCredentialsAmazon: {
+            workspace: namespace,
+            name,
+            region,
+            accessKey: Cypress.env('awsAccessKey'),
+            secretKey: Cypress.env('awsSecretKey')
+          },
+          rke2ClusterAmazon: {
+            clusterName: name,
+            namespace,
+          }
+        }).then(() => {
+          removeCluster0 = true;
+        });
+      });
+    });
+
+    qase(18428, it('should display JWT Authentication populated list page', () => {
+      const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+
+      JWTAuthenticationPagePo.goTo('_');
+      jwtAuthenticationPage.checkIsCurrentPage();
+
+      jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
+      jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      // ensure rows are there
+      jwtAuthenticationPage.list().resourceTable().sortableTable().rowElements()
+        .should('have.length.at.least', 1);
+
+      // hide elements before taking percy snapshot
+      cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]', '[data-testid="sortable-table-activate"]');
+
+      // takes percy snapshot.
+      cy.percySnapshot('JWT Authentication populated list page');
+    }));
+
+    after('clean up', () => {
+      if (removeCluster0) {
+        //  delete cluster
+        cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance0);
+      }
+    });
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

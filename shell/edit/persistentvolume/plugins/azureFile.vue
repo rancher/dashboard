@@ -14,23 +14,24 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['azureFile'] = this.value.spec.azureFile || {};
     this.value.spec.azureFile['readOnly'] = this.value.spec.azureFile.readOnly || false;
-
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    return { readOnlyOptions };
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

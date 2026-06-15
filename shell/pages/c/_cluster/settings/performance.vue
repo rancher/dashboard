@@ -237,11 +237,6 @@ export default {
             {{ t('performance.serverPagination.label') }}
           </h2>
           <p>{{ t('performance.serverPagination.description') }}</p>
-          <Banner
-            color="warning"
-          >
-            <div v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
-          </Banner>
           <Collapse
             :title="t('performance.serverPagination.applicable')"
             :open="steveCacheEnabled && ssPApplicableTypesOpen"

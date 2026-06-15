@@ -269,4 +269,80 @@ describe('eKS Networking', () => {
     subnetOpts = subnetDropdown.props().options;
     expect(subnetOpts.filter((opt) => opt.disabled && opt.kind !== 'group')).toHaveLength(5);
   });
+
+  it('should emit update:ipFamily when the radio selection changes', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE },
+      ...setup
+    });
+
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+
+    expect(ipFamilyRadio.exists()).toBe(true);
+
+    // Simulate updating the value from RadioGroup
+    ipFamilyRadio.vm.$emit('update:value', 'ipv6');
+
+    expect(wrapper.emitted('update:ipFamily')).toBeTruthy();
+    expect(wrapper.emitted('update:ipFamily')?.[0]).toStrictEqual(['ipv6']);
+  });
+
+  it('should enable ipFamily selection when isNewOrUnprovisioned is true', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, isNewOrUnprovisioned: true },
+      ...setup
+    });
+
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+
+    expect(ipFamilyRadio.props().disabled).toBe(false);
+  });
+
+  it('should disable ipFamily selection when isNewOrUnprovisioned is false', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, isNewOrUnprovisioned: false },
+      ...setup
+    });
+
+    const ipFamilyRadio = wrapper.findComponent('[data-testid="eks-ip-family-radio"]');
+
+    expect(ipFamilyRadio.props().disabled).toBe(true);
+  });
+
+  it('shows vpc/subnet ids when name tags are not present', async() => {
+    const setup = requiredSetup();
+
+    // eslint-disable-next-line prefer-const
+    let wrapper: any;
+
+    jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
+    });
+
+    wrapper = shallowMount(Networking, {
+      propsData: { mode: _CREATE, subnets: ['subnet-1234'] },
+      ...setup
+    });
+
+    wrapper.setProps({ amazonCredentialSecret: 'abc' });
+    wrapper.setData({ chooseSubnet: true });
+
+    await wrapper.vm.$nextTick();
+
+    // verify that no options are literally labeled 'undefined' // https://github.com/rancher/dashboard/issues/16668
+    const networkDropdown = wrapper.getComponent('[data-testid="eks-subnets-dropdown"]');
+    const optionsWithUndefined = networkDropdown.props().options.filter((opt: any) => opt.label?.includes('undefined'));
+
+    expect(optionsWithUndefined).toHaveLength(0);
+
+    // verify that the vpc and subnet without name tags are showing their ids in the dropdown
+    const vpcWithoutNameTag = networkDropdown.props().options.find((opt: any) => opt.label === 'vpc-123');
+    const subnetWithoutNameTag = networkDropdown.props().options.find((opt: any) => opt.label === 'subnet-1234');
+
+    expect(vpcWithoutNameTag).toBeDefined();
+    expect(subnetWithoutNameTag).toBeDefined();
+  });
 });

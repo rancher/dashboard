@@ -25,6 +25,13 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    chartsPage.chartsSearchFilterInput().type(chartName);
+    // Wait for the URL to update and then assert the 'q' parameter's value.
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.eq(chartName);
+    });
     chartsPage.clickChart(chartName);
   }
 
@@ -37,7 +44,7 @@ export class ChartPage extends PagePo {
   }
 
   goToInstall() {
-    const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
+    const btn = new AsyncButtonPo('[data-testid="btn-chart-install"]');
 
     btn.checkVisible(MEDIUM_TIMEOUT_OPT);
     btn.click(true);

@@ -18,9 +18,9 @@
  */
 import { Solver } from '@shell/utils/svg-filter';
 import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
+import { mapGetters } from 'vuex';
 
 const filterCache = {};
-const cssCache = {};
 
 const colors = {
   header: {
@@ -33,7 +33,7 @@ const colors = {
   },
   primary: {
     color:          '--on-tertiary',
-    hover:          '--link',
+    hover:          '--tertiary-hover-app-bar',
     colorFallback:  '--on-tertiary',
     hoverFallback:  '--primary-hover-text',
     active:         '--on-active',
@@ -63,13 +63,30 @@ export default {
   },
 
   data() {
-    return { className: '' };
+    return {
+      className:    '',
+      mainFilter:   null,
+      hoverFilter:  null,
+      activeFilter: null,
+    };
   },
 
   created() {
     if (this.src) {
       this.setColor();
     }
+  },
+
+  computed: {
+    ...mapGetters({
+      brand: 'management/brand',
+      theme: 'prefs/theme',
+    })
+  },
+
+  watch: {
+    brand: 'recomputeColor',
+    theme: 'recomputeColor',
   },
 
   methods: {
@@ -86,11 +103,11 @@ export default {
 
       const solver = new Solver(rgb);
       const res = solver.solve();
-      const filter = res?.filter;
+      const filterVal = res?.filterVal;
 
-      filterCache[cacheKey] = filter;
+      filterCache[cacheKey] = filterVal;
 
-      return filter;
+      return filterVal;
     },
 
     setColor() {
@@ -111,43 +128,23 @@ export default {
 
       const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
 
-      if (!cssCache[className]) {
-        const hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
-        const mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
-        const activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
-
-        // Add stylesheet (added as global styles)
-        const styles = `
-          img.${ className } {
-            ${ mainFilter };
-          }
-          img.${ className }:hover {
-            ${ hoverFilter };
-          }
-          button:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          li:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          a.option:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          a.option.active-menu-link > img.${ className } {
-            ${ activeFilter };
-          }
-        `;
-
-        const styleSheet = document.createElement('style');
-
-        styleSheet.innerText = styles;
-        document.head.appendChild(styleSheet);
-
-        cssCache[className] = true;
-      }
+      this.hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+      this.mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
+      this.activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
 
       this['className'] = className;
-    }
+    },
+
+    recomputeColor() {
+      if (!this.src) {
+        return;
+      }
+
+      this.mainFilter = null;
+      this.hoverFilter = null;
+      this.activeFilter = null;
+      this.setColor();
+    },
   }
 };
 </script>
@@ -172,8 +169,30 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .svg-icon {
+  img.svg-icon {
+    filter: v-bind(mainFilter);
+  }
+
+  button:hover > img.svg-icon,
+  li:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a > img.svg-icon {
     height: 24px;
     width: 24px;
+    filter: v-bind(mainFilter);
+  }
+
+  .side-menu .category div a:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a.active-menu-link > img.svg-icon {
+    filter: v-bind(activeFilter);
+
+    &:hover {
+      filter: v-bind(activeFilter);
+    }
   }
 </style>

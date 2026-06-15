@@ -1,7 +1,10 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
+import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   components: { LabeledInput, FileSelector },
@@ -16,6 +19,28 @@ export default {
       type:     String,
       required: true,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'tls.key',
+          rules:          ['required'],
+          translationKey: 'secret.certificate.privateKey',
+        },
+        {
+          path:           'tls.crt',
+          rules:          ['required'],
+          translationKey: 'secret.certificate.certificate',
+        },
+      ]
+    );
+
+    return { getRules };
   },
 
   data() {
@@ -63,9 +88,12 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="key"
+          name="tls.key"
+          required
           type="multiline"
           :label="t('secret.certificate.privateKey')"
           :mode="mode"
+          :rules="getRules('tls.key')"
           :placeholder="t('secret.certificate.privateKeyPlaceholder')"
         />
         <FileSelector
@@ -77,10 +105,12 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="crt"
+          name="tls.crt"
           required
           type="multiline"
           :label="t('secret.certificate.certificate')"
           :mode="mode"
+          :rules="getRules('tls.crt')"
           :placeholder="t('secret.certificate.certificatePlaceholder')"
         />
         <FileSelector

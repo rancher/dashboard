@@ -60,3 +60,6 @@ harvesterManager:
     placeholder: 'Please select a VGPU'
     allocatable: allocatable
     allocatableUnknown: missing allocation info
+  cpuModel:
+    label: CPU Model
+    optionLabel: "{modelName} (Ready nodes: {count})"

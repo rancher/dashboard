@@ -1,7 +1,6 @@
 import PortalVue from 'portal-vue';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
-import vSelect from 'vue-select';
 import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
@@ -17,15 +16,13 @@ import axiosShell from '@shell/plugins/axios';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
-import nuxtClientInit from '@shell/plugins/nuxt-client-init';
+import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
-import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
-import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
-import internalApiPlugin from '@shell/plugins/internal-api';
+import { initUiApis } from '@shell/apis/impl/apis';
 
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
@@ -44,17 +41,30 @@ export async function installPlugins(vueApp) {
       preventContainer: ['#modal-container-element']
     });
   vueApp.use(InstallCodeMirror);
-  vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, plugin, steveCreateWorker, emberCookie, internalApiPlugin, dynamicContent];
+  const pluginDefinitions = [
+    config,
+    axios,
+    initUiApis,
+    pluginsLoader,
+    axiosShell,
+    intNumber,
+    codeMirror,
+    dashboardClientInit,
+    replaceAll,
+    plugin,
+    steveCreateWorker,
+    dynamicContent,
+  ];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
       await pluginDefinition(
         app.context,
-        (key, value) => inject(key, value, app.context, vueApp)
+        (key, value) => inject(key, value, app.context, vueApp),
+        vueApp
       );
     }
   });

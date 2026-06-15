@@ -16,7 +16,7 @@ jobs:
     if: (startsWith(github.event.comment.body, '/backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
       - name: Read secrets
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID;
@@ -24,7 +24,7 @@ jobs:
 
       - name: Generate Token
         id: generate-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ env.APPID }}
           private-key: ${{ env.PRIVATEKEY }}
@@ -87,7 +87,7 @@ jobs:
 
       - name: Checkout
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ env.target_branch }}
           fetch-depth: '0'
@@ -148,7 +148,8 @@ jobs:
               echo "Created temporary body file: ${BODY}"
               echo -e "This is an automated request to port PR #${ORIGINAL_ISSUE_NUMBER} by @${GITHUB_ACTOR}\n\n" > $BODY
               echo -e "Original PR body:\n\n" >> $BODY
-              echo "${ORIGINAL_PR}" | jq -r .body >> $BODY
+              CLEANED_BODY=$(echo "${ORIGINAL_PR}" | jq -r .body | sed -E 's@(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+([a-zA-Z0-9.-]+/[a-zA-Z0-9.-]*)?#[0-9]+\s*,?\s*@Original text redacted by port-pr.yaml @gI')
+              echo "${CLEANED_BODY}" >> $BODY
               if [ -n "$ISSUE_NUMBER" ]; then
                   echo -e "\n\nFixes #${ISSUE_NUMBER}" >> $BODY
               fi

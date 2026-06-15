@@ -1,4 +1,4 @@
-import { Status } from '@components/Pill/types';
+import { Status } from '@components/utils/status';
 
 export interface RcStatusBadgeProps {
   status: Status;

@@ -1,8 +1,6 @@
-import { ref, provide, nextTick, defineEmits } from 'vue';
+import { ref, provide, nextTick, EmitFn } from 'vue';
 import { useDropdownCollection } from './useDropdownCollection';
 import { RcButtonType } from '@components/RcButton';
-
-const rcDropdownEmits = defineEmits(['update:open']);
 
 /**
  * Composable that provides the context for a dropdown menu. Includes methods
@@ -13,7 +11,7 @@ const rcDropdownEmits = defineEmits(['update:open']);
  * @returns Dropdown context methods and state. Used for programmatic
  * interactions and setting focus.
  */
-export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
+export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
   const {
     dropdownItems,
     firstDropdownItem,

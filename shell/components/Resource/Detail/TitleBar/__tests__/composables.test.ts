@@ -16,13 +16,14 @@ jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
 
 describe('composables: TitleBar', () => {
   const resource = {
-    nameDisplay:       'RESOURCE_NAME',
-    namespace:         'RESOURCE_NAMESPACE',
-    type:              'RESOURCE_TYPE',
-    stateBackground:   'RESOURCE_STATE_BACKGROUND',
-    stateDisplay:      'RESOURCE_STATE_DISPLAY',
-    description:       'RESOURCE_DESCRIPTION',
-    showConfiguration: jest.fn(),
+    nameDisplay:                 'RESOURCE_NAME',
+    namespace:                   'RESOURCE_NAMESPACE',
+    type:                        'RESOURCE_TYPE',
+    stateBackground:             'RESOURCE_STATE_BACKGROUND',
+    stateDisplay:                'RESOURCE_STATE_DISPLAY',
+    description:                 'RESOURCE_DESCRIPTION',
+    showConfiguration:           jest.fn(),
+    detailPageAdditionalActions: undefined as any,
   };
   const labelFor = 'LABEL_FOR';
   const schema = { type: 'SCHEMA' };
@@ -53,5 +54,35 @@ describe('composables: TitleBar', () => {
 
     props.value.onShowConfiguration?.('callback');
     expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
+  });
+
+  it('should include additionalActions from resource.detailPageAdditionalActions', async() => {
+    const additionalActions = [
+      {
+        label: 'Action 1', variant: 'secondary', onClick: jest.fn()
+      }
+    ];
+
+    resource.detailPageAdditionalActions = additionalActions;
+
+    mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
+    mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
+    mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
+
+    const props = useDefaultTitleBarProps(resource, ref(undefined));
+
+    expect(props.value.additionalActions).toStrictEqual(additionalActions);
+  });
+
+  it('should have undefined additionalActions when resource does not define detailPageAdditionalActions', async() => {
+    resource.detailPageAdditionalActions = undefined;
+
+    mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
+    mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
+    mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
+
+    const props = useDefaultTitleBarProps(resource, ref(undefined));
+
+    expect(props.value.additionalActions).toBeUndefined();
   });
 });

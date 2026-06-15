@@ -9,10 +9,12 @@ import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { getVersionInfo } from '@shell/utils/version';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
-    BackLink, ExtensionPanel, Loading, TabTitle
+    BackLink, ExtensionPanel, Loading, TabTitle, RcButton
   },
   mixins: [BackRoute],
   async fetch() {
@@ -30,7 +32,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return this.settings.find((s) => s.id === SETTING.VERSION_RANCHER);
+      return getVersionInfo(this.$store).fullVersion;
     },
     appName() {
       return getVendor();
@@ -84,16 +86,14 @@ export default {
           {{ t('about.title') }}
         </TabTitle>
       </h1>
-      <router-link
+      <rc-button
+        size="large"
         :to="{ name: 'diagnostic' }"
-        class="btn role-primary"
         data-testid="about__diagnostics_button"
-        role="button"
         :aria-label="t('about.diagnostic.title')"
-        @keyup.space="$router.push({ name: 'diagnostic' })"
       >
         {{ t('about.diagnostic.title') }}
-      </router-link>
+      </rc-button>
     </div>
     <!-- Extensions area -->
     <ExtensionPanel
@@ -124,7 +124,7 @@ export default {
           >
             {{ t("about.versions.rancher") }}
           </a>
-        </td><td>{{ rancherVersion.value }}</td>
+        </td><td>{{ rancherVersion }}</td>
       </tr>
       <tr v-if="dashboardVersion">
         <td>

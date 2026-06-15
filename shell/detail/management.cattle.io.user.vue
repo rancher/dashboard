@@ -3,7 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { NAME } from '@shell/config/table-headers';
 
@@ -31,7 +31,6 @@ export default {
     if (this.canSeeRoleTemplates) {
       // Upfront fetch, avoid async computes
       await Promise.all([
-        await this.$store.dispatch('rancher/find', { type: NORMAN.USER, id: this.value.id }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING })

@@ -18,6 +18,10 @@ export default class ResourceSearchDialog extends ComponentPo {
     super('[data-testid="search-modal"]');
   }
 
+  waitForNoDialog(): Cypress.Chainable {
+    return this.self().should('not.exist');
+  }
+
   open() {
     cy.keyboardControls(CMD_K_KEY, 1);
   }

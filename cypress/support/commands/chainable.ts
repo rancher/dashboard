@@ -24,7 +24,7 @@ Cypress.Commands.add('isEnabled', { prevSubject: true }, (subject) => {
   cy.wrap(subject).should('be.enabled');
 });
 
-function setupWebSocket(CATTLE_TEST_URL: string, NAMESPACE: string, POD_NAME: string, CONTAINER_NAME: string, commandSend: string, BEARER_TOKEN: string, folderName: string) {
+function setupWebSocketLocal(CATTLE_TEST_URL: string, NAMESPACE: string, POD_NAME: string, CONTAINER_NAME: string, commandSend: string, BEARER_TOKEN: string, folderName: string) {
   return cy.task('setupWebSocket', {
     CATTLE_TEST_URL,
     NAMESPACE,
@@ -35,4 +35,4 @@ function setupWebSocket(CATTLE_TEST_URL: string, NAMESPACE: string, POD_NAME: st
   });
 }
 
-Cypress.Commands.add('setupWebSocket', setupWebSocket);
+Cypress.Commands.add('setupWebSocket', setupWebSocketLocal);

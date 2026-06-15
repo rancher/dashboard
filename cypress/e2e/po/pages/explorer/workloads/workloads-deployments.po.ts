@@ -3,14 +3,24 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import RedeployDialogPo from '@/cypress/e2e/po/components/workloads/redeploy-dialog.po';
 
+type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
+
 export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo {
-  constructor(workloadId: string, protected clusterId: string = 'local', workloadType = 'apps.deployment', namespaceId = 'default', queryParams?: Record<string, string>) {
+  constructor(workloadId: string, protected clusterId: string = 'local', workloadType = 'apps.deployment' as WorkloadType, namespaceId = 'default', queryParams?: Record<string, string>) {
     super(workloadId, clusterId, workloadType, queryParams, namespaceId);
+  }
+
+  openEmptyShowConfigurationLabelsLink() {
+    return this.self().find('[data-testid="empty-show-configuration_labels"]').click();
+  }
+
+  labelsAndAnnotationsTab() {
+    return cy.get('[data-testid="btn-labels"]');
   }
 }
 
 export class WorkloadsDeploymentsListPagePo extends WorkloadsListPageBasePo {
-  constructor(protected clusterId: string = 'local', workloadType = 'apps.deployment', queryParams?: Record<string, string>) {
+  constructor(protected clusterId: string = 'local', workloadType = 'apps.deployment' as WorkloadType, queryParams?: Record<string, string>) {
     super(clusterId, workloadType, queryParams);
   }
 
@@ -29,7 +39,7 @@ export class WorkloadsDeploymentsListPagePo extends WorkloadsListPageBasePo {
 }
 
 export class WorkloadsDeploymentsCreatePagePo extends WorkloadsCreatePageBasePo {
-  constructor(protected clusterId: string = 'local', workloadType = 'apps.deployment', queryParams?: Record<string, string>) {
+  constructor(protected clusterId: string = 'local', workloadType = 'apps.deployment' as WorkloadType, queryParams?: Record<string, string>) {
     super(clusterId, workloadType, queryParams);
   }
 }

@@ -56,7 +56,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('shows fleet controller status', () => {
@@ -101,7 +105,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
-    cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');
@@ -183,7 +187,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     }).then((el: any) => {
       el.click();
 
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment');
+      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
 
       workloadDeployments.waitForPage();
     });
@@ -221,8 +225,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Create a pod to trigger events
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -311,7 +315,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard with limited permissions', () => {
+  describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;
@@ -324,8 +328,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // log in as admin
       cy.login();
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        const adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.status.userID;
 
         // create project
         return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
@@ -372,17 +376,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
-      cy.login();
+      cy.login(); // bypass cy.session
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
       cy.get<string>('@standardUserProject').then((projectId) => {
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
-      cy.get('@createUserRequest').then((req) => {
+      cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
-        cy.deleteRancherResource('v3', 'users', userId);
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', userId);
       });
     });
   });
@@ -401,7 +405,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     status:  403,
   };
 
-  describe('Cluster dashboard - Fleet agent', () => {
+  describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
+    // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
+    // which log in as a standard user and may leave session cookies in an inconsistent state
+    beforeEach(() => {
+      cy.login();
+    });
+
     it('does not show fleet controller status if a 403 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
@@ -434,6 +444,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   after(function() {
+    // Ensure admin auth is restored before cleanup, as previous tests may have
+    // logged in as a different user or left the session in an inconsistent state
+    cy.login();
+
     if (removePods) {
       podNames.forEach((podName) => {
         cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);

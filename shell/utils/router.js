@@ -117,3 +117,53 @@ export function findMeta(route, key) {
 
   return undefined;
 }
+
+/**
+ * Find a route definition given a routeName
+ * @param {*} router VueRouter instance
+ * @param {*} routeName the name we want to look up
+ * @returns the route definition or undefined if it wasn't found
+ */
+export function findRouteDefinitionByName(router, routeName) {
+  const routes = router.getRoutes();
+
+  return routes.find((r) => r.name === routeName);
+}
+
+/**
+ * Looks for the route definition and then ensures there's only valid params
+ * @param {*} router VueRouter instance
+ * @param {*} routeRecord an object conforming to the Route Record interface
+ * @returns the passed in routeLocation with only valid params.
+ */
+export function filterLocationValidParams(router, routeRecord) {
+  if (!routeRecord || !routeRecord.name || !routeRecord.params) {
+    console.warn('filterLocationValidParams received invalid arguments'); // eslint-disable-line no-console
+
+    return routeRecord;
+  }
+
+  const routeDefinition = findRouteDefinitionByName(router, routeRecord.name);
+
+  if (!routeDefinition) {
+    console.warn('Could not find a route definition given the routeRecord', routeRecord); // eslint-disable-line no-console
+
+    return routeRecord;
+  }
+
+  const specifiedParams = routeRecord.params;
+  const validParams = {};
+
+  Object.entries(specifiedParams).forEach(([key, value]) => {
+    const pathParam = `:${ key }`;
+
+    if (routeDefinition.path.includes(pathParam)) {
+      validParams[key] = value;
+    }
+  });
+
+  return {
+    ...routeRecord,
+    params: validParams
+  };
+}

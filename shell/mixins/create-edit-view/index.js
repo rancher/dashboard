@@ -48,6 +48,11 @@ export default defineComponent({
     useTabbedHash: {
       type:    Boolean,
       default: undefined
+    },
+
+    defaultTab: {
+      type:    String,
+      default: undefined
     }
   },
 });

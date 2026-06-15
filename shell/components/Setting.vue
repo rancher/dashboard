@@ -29,6 +29,7 @@ export default {
           <span
             v-if="value.fromEnv"
             class="modified"
+            :data-testid="`advanced-setting-env-label-${value.id}`"
           >{{ t('advancedSettings.setEnv') }}</span>
           <span
             v-else-if="value.customized"
@@ -45,7 +46,7 @@ export default {
           :resource="value.data"
           :button-aria-label="t('advancedSettings.edit.label')"
           data-testid="action-button"
-          button-role="tertiary"
+          button-variant="tertiary"
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
 import semver from 'semver';
+import { isRancherPrime } from '@shell/config/version';
 
 // Version of the plugin API supported
 // here we inject the current shell version that we read in vue.config
@@ -43,6 +44,7 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
   HIDDEN_BUILTIN:     'catalog.cattle.io/ui-hidden-builtin',
+  PRIME_ONLY:         'catalog.cattle.io/prime-only'
 };
 
 // Extension catalog labels
@@ -58,6 +60,7 @@ export const EXTENSIONS_INCOMPATIBILITY_TYPES = {
   EXTENSIONS_API:         'extensionsApiVersion',
   KUBE:                   'kubeVersion',
   HOST:                   'host',
+  PRIME_ONLY:             'primeOnly',
 };
 
 export const EXTENSIONS_INCOMPATIBILITY_DATA = {
@@ -86,6 +89,11 @@ export const EXTENSIONS_INCOMPATIBILITY_DATA = {
     cardMessageKey: 'plugins.incompatibleHost',
     tooltipKey:     'plugins.info.requiresHost',
     mainHost:       UI_PLUGIN_HOST_APP,
+  },
+  PRIME_ONLY: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.PRIME_ONLY,
+    cardMessageKey: 'plugins.incompatiblePrimeOnly',
+    tooltipKey:     'plugins.info.requiresRancherPrime',
   },
 };
 
@@ -124,10 +132,29 @@ export function parseRancherVersion(v) {
  * Check if a version is incompatible with the current environment
  */
 function checkIncompatibility(currentVersion, requiredVersion, incompatibilityData, returnObj, versionObj) {
-  if ((incompatibilityData.type === EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API_MISSING && !requiredVersion) || (requiredVersion && !semver.satisfies(currentVersion, requiredVersion))) {
+  let passed = true;
+
+  switch (incompatibilityData.type) {
+  case EXTENSIONS_INCOMPATIBILITY_TYPES.PRIME_ONLY:
+    if (requiredVersion && !currentVersion) {
+      passed = false;
+    }
+    break;
+  case EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API_MISSING:
+    !requiredVersion ? passed = false : passed = true;
+    break;
+  default:
+    if (requiredVersion && !semver.satisfies(currentVersion, requiredVersion)) {
+      passed = false;
+    }
+    break;
+  }
+
+  if (!passed) {
     if (!returnObj) {
       return false;
     }
+
     versionObj.isVersionCompatible = false;
     versionObj.versionIncompatibilityData = { ...incompatibilityData, required: requiredVersion };
 
@@ -137,7 +164,7 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
   return true;
 }
 
-// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion, plugins.error.version, plugins.error.developerPkg, plugins.error.apiAnnotationMissing
+// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion, plugins.error.version, plugins.error.developerPkg, plugins.error.apiAnnotationMissing, plugins.error.primeOnly
 
 /**
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
@@ -148,6 +175,8 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
  * @returns String | Boolean
  */
 export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {
+  const isCurrRancherPrime = isRancherPrime();
+
   const {
     name, version, endpoint, compressedEndpoint
   } = UIPluginResource;
@@ -169,6 +198,13 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
     return 'plugins.error.apiAnnotationMissing';
   } else if (requiredUiExtensionsVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
     return 'plugins.error.api';
+  }
+
+  // Prime only
+  const primeOnlyAnnotation = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.PRIME_ONLY] === 'true';
+
+  if (!isCurrRancherPrime && primeOnlyAnnotation) {
+    return 'plugins.error.primeOnly';
   }
 
   // Host application
@@ -220,10 +256,13 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
  * @returns Boolean | Object
  */
 export function isSupportedChartVersion(versionData, returnObj = false) {
+  const isCurrRancherPrime = isRancherPrime();
+
   const { version, rancherVersion, kubeVersion } = versionData;
   const versionObj = {
     ...version, isVersionCompatible: true, versionIncompatibilityData: {}
   };
+
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
 
@@ -258,6 +297,11 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
       requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST],
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.HOST,
     },
+    {
+      currentVersion:      isCurrRancherPrime,
+      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.PRIME_ONLY] === 'true',
+      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.PRIME_ONLY,
+    }
   ];
 
   for (const { currentVersion, requiredVersion, incompatibilityData } of checks) {

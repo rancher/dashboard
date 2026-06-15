@@ -1,0 +1,6 @@
+name: Alibaba Cloud (ACK) Provisioning
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: SUSE's solution to create Alibaba Cloud clusters in Rancher
+url: https://www.suse.com/partners/alliance/alibaba-cloud/
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/icons/ali/1.0.1-alibaba.svg

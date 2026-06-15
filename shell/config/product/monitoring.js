@@ -38,6 +38,7 @@ export function init(store) {
     icon:                'monitoring',
     showNamespaceFilter: true,
     weight:              90,
+    extendable:          true,
   });
 
   virtualType({

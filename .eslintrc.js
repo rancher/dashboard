@@ -63,7 +63,6 @@ module.exports = {
     'vue/one-component-per-file':                 'off',
     'vue/no-deprecated-slot-attribute':           'off',
     'vue/v-on-event-hyphenation':                 'off',
-    'jest/no-hooks':                              'off',
   },
   overrides: [
     {

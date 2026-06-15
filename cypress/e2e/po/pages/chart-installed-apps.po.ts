@@ -12,7 +12,7 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.app`;
   }
 
-  static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
+  goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }
 
@@ -29,7 +29,7 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting

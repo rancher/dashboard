@@ -19,6 +19,7 @@ export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
 export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-version-management';
 export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
 export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
+export const SERVICE_LINKS = 'ui.rancher/service-links';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -85,7 +86,9 @@ export const CATALOG = {
   _PARTNER:  'partner',
   _OTHER:    'other',
 
+  PRIME_ONLY:   'catalog.cattle.io/prime-only',
   EXPERIMENTAL: 'catalog.cattle.io/experimental',
+  DEPRECATED:   'catalog.cattle.io/deprecated',
   NAMESPACE:    'catalog.cattle.io/namespace',
   RELEASE_NAME: 'catalog.cattle.io/release-name',
   FEATURED:     'catalog.cattle.io/featured',
@@ -107,12 +110,13 @@ export const CATALOG = {
   _CLUSTER_TPL:  'cluster-template',
   _CLUSTER_TOOL: 'cluster-tool',
 
-  COMPONENT:         'catalog.cattle.io/ui-component',
-  SOURCE_REPO_TYPE:  'catalog.cattle.io/ui-source-repo-type',
-  SOURCE_REPO_NAME:  'catalog.cattle.io/ui-source-repo',
-  COLOR:             'catalog.cattle.io/ui-color',
-  DISPLAY_NAME:      'catalog.cattle.io/display-name',
-  CLUSTER_REPO_NAME: 'catalog.cattle.io/cluster-repo-name',
+  COMPONENT:           'catalog.cattle.io/ui-component',
+  SOURCE_REPO_TYPE:    'catalog.cattle.io/ui-source-repo-type',
+  SOURCE_REPO_NAME:    'catalog.cattle.io/ui-source-repo',
+  COLOR:               'catalog.cattle.io/ui-color',
+  DISPLAY_NAME:        'catalog.cattle.io/display-name',
+  CLUSTER_REPO_NAME:   'catalog.cattle.io/cluster-repo-name',
+  SUSE_APP_COLLECTION: 'catalog.cattle.io/suse-application-collection',
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',

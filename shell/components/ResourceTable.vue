@@ -5,8 +5,9 @@ import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
+import { COUNT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
-import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
+import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
@@ -238,6 +239,7 @@ export default {
        */
       sortGeneration:               undefined,
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
+      hasSearchFilter:              false,
     };
   },
 
@@ -316,28 +318,9 @@ export default {
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
       // gate it so that we prevent errors on older versions of dashboard
-      if (this.$store.$plugin?.getUIConfig) {
+      if (this.$store.$extension?.getUIConfig) {
         // { column: TableColumn, paginationColumn: PaginationTableColumn }[]
         const extensionCols = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE, this.$route);
-
-        // Try and insert the columns before the Age column
-        let insertPosition = headers.length;
-
-        if (headers.length > 0) {
-          const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
-
-          if (ageColIndex >= 0) {
-            insertPosition = ageColIndex;
-          } else {
-            // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
-            // if we are to add cols, let's push them before these so that the UI doesn't look weird
-            const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
-
-            if (lastViableColIndex >= 0) {
-              insertPosition = lastViableColIndex;
-            }
-          }
-        }
 
         // adding extension defined cols to the correct header config
         extensionCols.forEach((config) => {
@@ -377,6 +360,37 @@ export default {
           if (!col.value && col.getValue) {
             col.value = col.getValue;
           }
+
+          // Establish a valid header position for the new table column
+          let insertPosition = headers.length;
+
+          if (headers.length > 0) {
+            const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
+
+            if (ageColIndex >= 0) {
+              // we will allow for the table col to be added right after the AGE col
+              // but that will be the limit
+              insertPosition = ageColIndex + 1;
+            } else {
+              // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
+              // if we are to add cols, let's push them before these so that the UI doesn't look weird
+              const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
+
+              if (lastViableColIndex >= 0) {
+                insertPosition = lastViableColIndex;
+              }
+            }
+          }
+
+          // apply table col ordering if it's present on the new table col config
+          if (col.weight) {
+            if (col.weight < 0) {
+              insertPosition = 0;
+            } else if (col.weight < insertPosition) {
+              insertPosition = col.weight;
+            }
+          }
+
           headers.splice(insertPosition, 0, col);
         });
       }
@@ -412,6 +426,16 @@ export default {
       }
 
       return headers;
+    },
+
+    _applicableExtensionTableHooks() {
+      if (this.$store.$extension?.getUIConfig) {
+        const extensionTableHooks = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE, TableLocation.RESOURCE, this.$route);
+
+        return extensionTableHooks;
+      }
+
+      return [];
     },
 
     /**
@@ -578,6 +602,26 @@ export default {
         pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
       };
     },
+
+    /**
+     * Get the counts data by namespace for the current resource type
+     */
+    namespaceCounts() {
+      if (!this.inStore || !this.schema?.id) {
+        return {};
+      }
+
+      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      return counts[this.schema.id]?.namespaces || {};
+    },
+
+    /**
+     * Whether we should show namespace counts in group tabs
+     */
+    showNamespaceCounts() {
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
+    },
   },
 
   methods: {
@@ -640,6 +684,18 @@ export default {
       }
     },
 
+    // this is where we handle the callbacks to the TABLE extension hooks
+    handleSortableTableInteraction(arg) {
+      if (this._applicableExtensionTableHooks?.length) {
+        this._applicableExtensionTableHooks.forEach((item) => {
+          if (item.tableHook) {
+            item.tableHook(arg);
+          }
+        });
+      }
+
+      this.hasSearchFilter = !!arg?.filtering?.searchQuery;
+    }
   }
 };
 </script>
@@ -679,6 +735,7 @@ export default {
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     @enter="handleEnterKeyPress"
+    @sortable-table-interaction="handleSortableTableInteraction"
   >
     <template
       v-if="showGrouping && _groupOptions.length > 1"
@@ -717,10 +774,15 @@ export default {
     </template>
 
     <template #group-by="{group: thisGroup}">
-      <div
-        v-clean-html="thisGroup.ref"
-        class="group-tab"
-      />
+      <div class="group-tab">
+        <span v-clean-html="thisGroup.ref" />
+        <span
+          v-if="showNamespaceCounts && Number.isInteger(namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count)"
+          class="count"
+        >
+          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count }})
+        </span>
+      </div>
     </template>
 
     <!-- Pass down templates provided by the caller -->
@@ -765,5 +827,10 @@ export default {
 <style lang="scss" scoped>
 .auto-update {
   min-width: 150px; height: 40px
+}
+
+.group-tab .count {
+  opacity: 0.7;
+  margin-left: 2px;
 }
 </style>

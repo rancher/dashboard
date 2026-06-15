@@ -4,6 +4,7 @@ import HelmOp from '@shell/models/fleet.cattle.io.helmop';
 import HelmOpComponent from '@shell/edit/fleet.cattle.io.helmop.vue';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import { createStore } from 'vuex';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -85,6 +86,14 @@ const initHelmOp = (props: any, options = {}) => {
       value,
       ...props
     },
+    provide: {
+      store: createStore({
+        getters: {
+          currentStore:                   () => 'current_store',
+          'management/paginationEnabled': () => () => false
+        }
+      })
+    },
     computed: mockComputed,
     global:   { mocks },
   };
@@ -97,6 +106,49 @@ describe('view: fleet.cattle.io.helmop, mode: view', () => {
     const advancedInfoBanner = wrapper.find('[data-testid="helmOp-advanced-info"]');
 
     expect(advancedInfoBanner.exists()).toBe(false);
+  });
+});
+
+describe('helmOp component lifecycle', () => {
+  it('should have registerBeforeHook method available and call updateBeforeSave', () => {
+    const helmOpOptions = {
+      metadata: {
+        name:      'test-helmop',
+        namespace: 'test-namespace',
+        labels:    {}
+      }
+    };
+
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode: _CREATE }, helmOpOptions));
+
+    // Mock registerBeforeHook to spy on calls
+    const mockRegisterBeforeHook = jest.fn();
+
+    wrapper.vm.registerBeforeHook = mockRegisterBeforeHook;
+
+    // Verify updateBeforeSave method exists
+    expect(typeof wrapper.vm.updateBeforeSave).toBe('function');
+
+    // Call the method that would be called during created lifecycle
+    wrapper.vm.registerBeforeHook(wrapper.vm.updateBeforeSave);
+
+    // Verify that registerBeforeHook was called with updateBeforeSave function
+    expect(mockRegisterBeforeHook).toHaveBeenCalledWith(wrapper.vm.updateBeforeSave);
+  });
+
+  it('should have doCreateSecrets method available for registerBeforeHook', () => {
+    const helmOpOptions = {
+      metadata: {
+        name:      'test-helmop',
+        namespace: 'test-namespace',
+        labels:    {}
+      }
+    };
+
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode: _CREATE }, helmOpOptions));
+
+    // Verify doCreateSecrets method exists
+    expect(typeof wrapper.vm.doCreateSecrets).toBe('function');
   });
 });
 
@@ -174,7 +226,7 @@ describe.each([
 
     expect(pollingCheckbox.exists()).toBe(true);
     expect(pollingCheckbox.vm.value).toBe(enabled);
-    expect(pollingCheckbox.element.classList.value.includes('v-popper--has-tooltip')).toBe(!enabled);
+    expect(pollingCheckbox.element.classList.value.includes('has-clean-tooltip')).toBe(!enabled);
     expect(pollingIntervalInput.exists()).toBe(enabled);
     expect(pollingIntervalMinimumValueWarning.exists()).toBe(minValueWarnVisible);
   });
@@ -221,6 +273,7 @@ describe.each([
 
     wrapper.vm.pollingInterval = inputValue;
     wrapper.vm.updatePollingInterval(inputValue);
+    wrapper.vm.validatePollingInterval();
 
     await wrapper.vm.$nextTick();
 
@@ -262,4 +315,58 @@ describe.each([
 
     expect(wrapper.vm.value.spec.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
+
+  if (mode === _CREATE) {
+    it('should set created-by-user-id label when updateBeforeSave is called in CREATE mode', () => {
+      const mockCurrentUser = { id: 'user-123' };
+      const helmOpOptions = {
+        metadata: {
+          name:      'test-helmop',
+          namespace: 'test-namespace',
+          labels:    {}
+        }
+      };
+      const wrapper = mount(HelmOpComponent, initHelmOp({ mode, realMode: mode }, helmOpOptions));
+
+      // Ensure metadata.labels exists
+      if (!wrapper.vm.value.metadata.labels) {
+        wrapper.vm.value.metadata.labels = {};
+      }
+
+      // Mock the currentUser
+      (wrapper.vm as any).currentUser = mockCurrentUser;
+
+      // Call updateBeforeSave method
+      wrapper.vm.updateBeforeSave();
+
+      // Should set the created-by-user-id label in CREATE mode
+      expect(wrapper.vm.value.metadata.labels['fleet.cattle.io/created-by-user-id']).toBe('user-123');
+    });
+  } else {
+    it('should not set created-by-user-id label when updateBeforeSave is called in EDIT mode', () => {
+      const mockCurrentUser = { id: 'user-123' };
+      const helmOpOptions = {
+        metadata: {
+          name:      'test-helmop',
+          namespace: 'test-namespace',
+          labels:    {}
+        }
+      };
+      const wrapper = mount(HelmOpComponent, initHelmOp({ mode, realMode: mode }, helmOpOptions));
+
+      // Ensure metadata.labels exists
+      if (!wrapper.vm.value.metadata.labels) {
+        wrapper.vm.value.metadata.labels = {};
+      }
+
+      // Mock the currentUser
+      (wrapper.vm as any).currentUser = mockCurrentUser;
+
+      // Call updateBeforeSave method
+      wrapper.vm.updateBeforeSave();
+
+      // Should not set the label in EDIT mode
+      expect(wrapper.vm.value.metadata.labels['fleet.cattle.io/created-by-user-id']).toBeUndefined();
+    });
+  }
 });

@@ -18,8 +18,7 @@ import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
-import { _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import {
@@ -137,9 +136,7 @@ export default {
     },
 
     customizations() {
-      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-      const brandMeta = getBrandMeta(setting?.value);
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
       const login = brandMeta?.login || {};
 
       return {
@@ -288,13 +285,21 @@ export default {
           }
         });
 
-        const user = await this.$store.dispatch('rancher/findAll', {
-          type: NORMAN.USER,
-          opt:  { url: '/v3/users?me=true', load: _MULTI }
+        // we have to do the XHR requests because we don't have schemas loaded yet...
+        let mgmtUser;
+        const selfUser = await this.$store.dispatch('management/request', {
+          url:    `/v1/${ EXT.SELFUSER }`,
+          method: 'POST',
+          data:   {}
         });
 
-        if (!!user?.[0]) {
-          this.$store.dispatch('auth/gotUser', user[0]);
+        if (selfUser) {
+          await this.$store.dispatch('auth/updateSelfUser', selfUser);
+          mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` });
+        }
+
+        if (!!mgmtUser) {
+          this.$store.dispatch('auth/gotUser', mgmtUser);
         }
 
         if ( this.remember ) {
@@ -317,12 +322,12 @@ export default {
         // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
         // the plugins will load via the boot-time plugin
         await loadPlugins({
-          app:     this.$store.app,
-          store:   this.$store,
-          $plugin: this.$store.$plugin
+          app:        this.$store.app,
+          store:      this.$store,
+          $extension: this.$store.$extension,
         });
 
-        if (this.firstLogin || user[0]?.mustChangePassword) {
+        if (this.firstLogin || mgmtUser?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {

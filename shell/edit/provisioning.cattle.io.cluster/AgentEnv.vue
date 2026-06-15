@@ -33,6 +33,7 @@ export default {
       :supported="(row) => typeof row.valueFrom === 'undefined'"
       :read-allowed="true"
       :value-can-be-empty="true"
+      :read-accept="'text/plain'"
       :key-label="t('cluster.agentEnvVars.keyLabel')"
       :parse-lines-from-file="true"
     />

@@ -4,8 +4,9 @@ module.exports = {
     node:    true
   },
   globals: {
-    NodeJS: true,
-    Timer:  true
+    NodeJS:                true,
+    Timer:                 true,
+    WebpackRequireContext: true
   },
   plugins: [
     'jest',
@@ -215,10 +216,11 @@ module.exports = {
         '@typescript-eslint/no-empty-function':              'off',
         '@typescript-eslint/no-non-null-assertion':          'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
-        'jest/prefer-expect-assertions':                     'off'
+        'jest/prefer-expect-assertions':                     'off',
+        'jest/expect-expect':                                ['warn', { assertFunctionNames: ['expect', 'test*'] }]
       },
       extends: [
-        'plugin:jest/all'
+        'plugin:jest/recommended'
       ]
     },
     {

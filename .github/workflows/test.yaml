@@ -2,7 +2,7 @@ name: Tests
 on:
   push:
     branches:
-      # - master - See https://github.com/rancher/dashboard/issues/14230
+      - master
       - 'release-*'
   pull_request:
     branches:
@@ -21,11 +21,6 @@ env:
   CATTLE_BOOTSTRAP_PASSWORD: password
   TEST_BASE_URL: https://127.0.0.1.sslip.io
   API: https://127.0.0.1.sslip.io
-  TEST_PROJECT_ID: rancher-dashboard
-  TEST_DISABLE_DASHBOARD: ${{ vars.TEST_DISABLE_DASHBOARD }} # This is required to get it from the project configuration
-  TEST_DISABLE_DASHBOARD_LABEL: "${{ contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e-cypress-dashboard')}}"
-  CYPRESS_API_URL: http://139.59.134.103:1234/
-  TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
@@ -40,7 +35,7 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -48,7 +43,7 @@ jobs:
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}/
@@ -56,7 +51,7 @@ jobs:
           retention-days: 10
           compression-level: 9
       - name: Upload e2e build ember
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
@@ -88,7 +83,7 @@ jobs:
         ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -96,27 +91,19 @@ jobs:
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # NOTE - If we need to pin chrome again we should...
-      # 1. create a repo gh action to install chrome (see .github/actions)
-      # 2. call it here
-      # 3. call it from `a11y-test` as well
-
-      # - name: Install Chrome 127
-      #   run: |
-      #     sudo apt-get install -y wget libu2f-udev
-      #     cd /tmp
-      #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     google-chrome --version
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -146,16 +133,18 @@ jobs:
         run: yarn docker:local:logs
 
       - name: Create Artifacts Folder
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: |
           mkdir artifacts
-          cp -r cypress/screenshots artifacts
-          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs
-          cp browser-logs/out.html artifacts/browser-logs.html
+          cp -r cypress/screenshots artifacts 2>/dev/null || :
+          cp -r cypress/videos artifacts 2>/dev/null || :
+          cp -r cypress/reports/* artifacts || :
+          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+          cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
           path: artifacts/
@@ -168,19 +157,25 @@ jobs:
     needs: e2e-ui-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
 
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
+      #     chrome-version-checksum:
+
       - name: Download e2e build
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -204,9 +199,10 @@ jobs:
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
+          TEST_NO_VIDEOS: true          
 
       - name: Upload report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
@@ -214,7 +210,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
       
@@ -228,15 +224,20 @@ jobs:
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
+      - name: Upload unit test junit file
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-unit-tests
+          path: unit-test-reports/*
   i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
 
@@ -246,7 +247,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
 
@@ -256,10 +257,10 @@ jobs:
   check-i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -274,10 +275,10 @@ jobs:
   check-i18n-links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -297,7 +298,7 @@ jobs:
   #       with:
   #         fetch-depth: 1
 
-  #     - uses: actions/setup-node@v5
+  #     - uses: actions/setup-node@v6
   #       with:
   #         node-version-file: '.nvmrc'
 
@@ -307,7 +308,10 @@ jobs:
   #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
   #     - name: Install Codecov CLI
-  #       run : .github/workflows/scripts/install-codecov.sh
+  #       uses : .github/workflows/scripts/install-codecov.sh
+  #       with:
+  #         codecov-version:
+  #         codecov-version-checksum:
 
   #     - name: Upload tests coverage report to Codecov
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
@@ -315,12 +319,53 @@ jobs:
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: '.nvmrc'
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
+
+  check-cypress-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify Cypress build
+        working-directory: ./cypress
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-pkg --verify
+
+  # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message
+  store-origin:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - name: Save PR number or Branch name
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          mkdir -p ./origin
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Storing PR number ${PR_NUMBER} for TestHub registration"
+            echo "pr/$PR_NUMBER" > ./origin/origin
+          else
+            echo "Storing branch name ${GITHUB_REF_NAME} for TestHub registration"
+            echo "branch/$GITHUB_REF_NAME" > ./origin/origin
+          fi
+
+          cat ./origin/origin
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        name: Upload origin artifact
+        with:
+          name: origin
+          path: origin/

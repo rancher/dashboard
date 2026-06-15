@@ -6,7 +6,7 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET, SCHEMA } from '@shell/config/types';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import { allHash } from 'utils/promise';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'FleetDetailCluster',
@@ -57,6 +57,12 @@ export default {
         type: SCHEMA,
       },
     };
+  },
+
+  created() {
+    if (this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
   },
 
   computed: {

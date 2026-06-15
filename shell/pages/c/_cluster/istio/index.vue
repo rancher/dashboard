@@ -2,16 +2,33 @@
 import { mapGetters } from 'vuex';
 import { SERVICE } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
+import kialiSvg from '~shell/assets/images/vendor/kiali.svg';
+import jaegerSvg from '~shell/assets/images/vendor/jaeger.svg';
 export default {
   components: { Loading },
 
   async fetch() {
-    try {
-      this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
-    } catch {}
-    try {
-      this.jaegerService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/tracing' });
-    } catch {}
+    if (this.$store.getters['cluster/schemaFor'](SERVICE)) {
+      try {
+        const kialiResponse = await this.$store.dispatch('cluster/findLabelSelector', {
+          type:     SERVICE,
+          matching: { labelSelector: { matchLabels: { app: 'kiali' } } },
+          opt:      { transient: true }
+        });
+
+        this.kialiService = kialiResponse.data?.[0] || null;
+      } catch {}
+
+      try {
+        const jaegerResponse = await this.$store.dispatch('cluster/findLabelSelector', {
+          type:     SERVICE,
+          matching: { labelSelector: { matchLabels: { app: 'jaeger' } } },
+          opt:      { transient: true }
+        });
+
+        this.jaegerService = jaegerResponse.data?.[0] || null;
+      } catch {}
+    }
   },
 
   data() {
@@ -23,7 +40,7 @@ export default {
 
     kialiLogo() {
       // @TODO move to theme css
-      return require(`~shell/assets/images/vendor/kiali.svg`);
+      return kialiSvg;
     },
 
     kialiUrl() {
@@ -31,7 +48,7 @@ export default {
     },
 
     jaegerLogo() {
-      return require(`~shell/assets/images/vendor/jaeger.svg`);
+      return jaegerSvg;
     },
 
     jaegerUrl() {

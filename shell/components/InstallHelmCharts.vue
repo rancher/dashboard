@@ -248,7 +248,7 @@ export default {
 
       };
 
-      this.installCmd.namespace = this.targetNamespace || this.chart?.targetNamespace || 'default';
+      this.installCmd.namespace = this.targetNamespace || this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] || this.chart?.targetNamespace || 'default';
     }
   },
 
@@ -360,7 +360,7 @@ export default {
           this.canInstallChart = false;
         } else {
           try {
-            const app = await this.$store.dispatch(`${ this.store }/find`, { type: CATALOG.APP, id: `${ this.targetNamespace || this.chart?.targetNamespace || 'default' }/${ this.chartName }` });
+            const app = await this.$store.dispatch(`${ this.store }/find`, { type: CATALOG.APP, id: `${ this.targetNamespace || this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] || this.chart?.targetNamespace || 'default' }/${ this.chartName }` });
 
             if (app) {
               this.installedVersion = app?.spec?.chart?.metadata?.appVersion;

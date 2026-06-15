@@ -50,7 +50,11 @@ if (ghProjectId.length !== 2) {
 }
 
 // The event object
-const event = require(process.env.GITHUB_EVENT_PATH);
+// Note: We use PR_EVENT_PATH (not GITHUB_EVENT_PATH) because the latter is a
+// reserved GitHub Actions env var that always points to the workflow_run event,
+// which would shadow the custom value set in the workflow YAML.
+const path = require('path');
+const event = require(path.resolve(process.cwd(), process.env.PR_EVENT_PATH));
 
 function getReferencedIssues(body) {
   // https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword

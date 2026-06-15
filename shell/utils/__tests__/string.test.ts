@@ -1,4 +1,4 @@
-import { decodeHtml, resourceNames, pathArrayToTree } from '@shell/utils/string';
+import { decodeHtml, resourceNames, pathArrayToTree, isBase64EncodedCert } from '@shell/utils/string';
 
 describe('fx: decodeHtml', () => {
   it('should decode HTML values from escaped string into valid markup', () => {
@@ -359,5 +359,27 @@ describe('fx: pathArrayToTree', () => {
 
     sortTree(actual);
     expect(actual).toStrictEqual(expected);
+  });
+});
+
+describe('fx: isBase64EncodedCert', () => {
+  it.each([
+    ['valid base64 cert', 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t', true],
+    ['base64 with padding', 'c3NoIGtleQ==', false],
+    ['base64 with newlines', 'LS0tLS1CRUdJTiBDRVJU\nSUZJQ0FURS0tLS0t\nTUlJQmtUQ0I=', true],
+    ['base64 with CRLF', 'LS0tLS1CRUdJTiBDRVJU\r\nSUZJQ0FURS0tLS0t\r\nTUlJQmtUQ0I=', true],
+  ])('should return %p for %p', (_, value, expected) => {
+    expect(isBase64EncodedCert(value as string)).toBe(expected);
+  });
+
+  it.each([
+    ['empty string', ''],
+    ['null', null],
+    ['undefined', undefined],
+    ['short string like "test"', 'test'],
+    ['short valid base64', 'Zm9v'],
+    ['invalid characters', 'not-valid-base64!'],
+  ])('should return false for %p', (_, value) => {
+    expect(isBase64EncodedCert(value as string)).toBe(false);
   });
 });

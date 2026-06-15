@@ -244,7 +244,7 @@ describe('dynamic content', () => {
         logger:   mockLogger,
         config:   mockConfig,
         isAdmin:  true,
-        settings: { releaseNotesUrl: '', suseExtensions: [] },
+        settings: { suseExtensions: [] },
       };
     });
 

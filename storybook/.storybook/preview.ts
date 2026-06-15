@@ -29,10 +29,12 @@ setup((vueApp) => {
 
   vueApp.component('v-select', vSelect);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  vueApp.component('router-link', {
-    props:   ['to'],
-    template: '<a>link</a>',
-  })
+  const RouterLinkStub = {
+    props:    ['to'],
+    template: '<a :href="typeof to === \'string\' ? to : \'#\'"><slot /></a>',
+  };
+  vueApp.component('router-link', RouterLinkStub);
+  vueApp.component('RouterLink', RouterLinkStub);
   vueApp.config.globalProperties.$store = store
 })
 

@@ -21,16 +21,17 @@ describe('component: Type', () => {
     const defaultCount = 1;
     const storeMock = {
       getters: {
-        currentStore:    () => 'cluster',
-        'cluster/count': () => defaultCount,
+        currentStore:          () => 'cluster',
+        'cluster/count':       () => defaultCount,
+        'type-map/optionsFor': () => {},
       }
     };
     const routerMock = {
       resolve: jest.fn((route) => {
-        return { fullPath: route };
+        return { fullPath: route, path: route };
       })
     };
-    const routeMock = { fullPath: 'route' };
+    const routeMock = { fullPath: 'route', path: 'route' };
 
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
@@ -103,7 +104,7 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad', path: 'bad' }
             },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
@@ -150,6 +151,23 @@ describe('component: Type', () => {
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
 
         expect(elementWithSelector.exists()).toBe(false);
+      });
+      it('should use active and exact active classes when route matches but includes query and hash', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash', path: 'route' }
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
+        });
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+        expect(wrapper.find(`.${ exactActiveClass }`).exists()).toBe(true);
       });
     });
 
@@ -245,6 +263,65 @@ describe('component: Type', () => {
         });
 
         const elementWithSelector = wrapper.find(`.depth-1`);
+
+        expect(elementWithSelector.exists()).toBe(true);
+      });
+    });
+
+    describe('should respect highlightRoute prop', () => {
+      it('should not use active class when highlightRoute is false even if route is active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: false },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ activeClass }`);
+
+        expect(elementWithSelector.exists()).toBe(false);
+      });
+
+      it('should not use exact active class when highlightRoute is false even if route is exact active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: false },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ exactActiveClass }`);
+
+        expect(elementWithSelector.exists()).toBe(false);
+      });
+
+      it('should use active class when highlightRoute is true (default) and route is active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ activeClass }`);
 
         expect(elementWithSelector.exists()).toBe(true);
       });
@@ -390,8 +467,9 @@ describe('component: Type', () => {
 
               $store: {
                 getters: {
-                  currentStore:    () => 'cluster',
-                  'cluster/count': () => null,
+                  currentStore:          () => 'cluster',
+                  'cluster/count':       () => null,
+                  'type-map/optionsFor': () => {},
                 }
               },
               $router: routerMock,

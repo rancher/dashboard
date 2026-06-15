@@ -12,6 +12,7 @@ import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
@@ -27,6 +28,9 @@ export default {
   },
 
   data() {
+    const sideNavServiceInitialized = sideNavService.initialized;
+    const maxClustersToShow = MENU_MAX_CLUSTERS;
+
     sideNavService.init(this.$store);
 
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -43,26 +47,27 @@ export default {
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
-    if (!canPagination) {
-      // Reduce the impact of the initial load, but only if we're not making a request
+    if (!canPagination || !sideNavServiceInitialized) {
+      // Reduce the impact of the initial load, or properly initialised
+      // Doing this here means we don't need an 'immediate' on the watches below
       const args = {
-        pinnedIds:   this.pinnedIds,
-        searchTerm:  this.search,
-        unPinnedMax: this.maxClustersToShow
+        pinnedIds:   this.$store.getters['prefs/get'](PINNED_CLUSTERS),
+        searchTerm:  '',
+        unPinnedMax: maxClustersToShow
       };
 
       helper.update(args);
     }
 
     return {
-      shown:             false,
+      shown:         false,
       displayVersion,
       fullVersion,
-      clusterFilter:     '',
+      clusterFilter: '',
       hasProvCluster,
-      maxClustersToShow: MENU_MAX_CLUSTERS,
-      emptyCluster:      BLANK_CLUSTER,
-      routeCombo:        false,
+      maxClustersToShow,
+      emptyCluster:  BLANK_CLUSTER,
+      routeCombo:    false,
 
       canPagination,
       helper,
@@ -92,6 +97,17 @@ export default {
       const count = counts[MANAGEMENT.CLUSTER] || {};
 
       return count?.summary.count;
+    },
+
+    routeComboActive() {
+      if (!this.routeCombo || !this.isCurrRouteClusterExplorer) {
+        return false;
+      }
+
+      const ready = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready);
+      const readyCount = ready.length;
+
+      return readyCount > 1 || (readyCount === 1 && this.clusterId !== ready[0].id);
     },
 
     // New
@@ -182,8 +198,22 @@ export default {
           to.params.product = p.name;
         }
 
+        let label;
+
+        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
+        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
+        if (p.labelKey) {
+          label = this.$store.getters['i18n/t'](p.labelKey);
+        } else if (p.label) {
+          label = p.label;
+        }
+
+        if (!label) {
+          label = this.$store.getters['i18n/withFallback'](`product.${ p.name }`, null, ucFirst(p.name));
+        }
+
         return {
-          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          label,
           icon:              `icon-${ p.icon || 'copy' }`,
           svg:               p.svg,
           value:             p.name,
@@ -208,7 +238,7 @@ export default {
     },
 
     isCurrRouteClusterExplorer() {
-      return this.$route?.name?.startsWith('c-cluster');
+      return this.$route?.name?.startsWith('c-cluster') && this.productFromRoute === EXPLORER;
     },
 
     productFromRoute() {
@@ -266,6 +296,12 @@ export default {
       const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
 
       return value === 'true';
+    },
+
+    clusterCountsFromCounts() {
+      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
+
+      return counts[CAPI.RANCHER_CLUSTER]?.summary.count;
     }
   },
 
@@ -284,7 +320,6 @@ export default {
     // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
 
     pinnedIds: {
-      immediate: true,
       handler(neu, old) {
         if (sameContents(neu, old)) {
           return;
@@ -302,25 +337,41 @@ export default {
 
     provClusters: {
       handler(neu, old) {
+        if (this.canPagination) {
+          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
+          return;
+        }
+
         // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
-      deep:      true,
-      immediate: true,
+      deep: true,
     },
 
     mgmtClusters: {
       handler(neu, old) {
+        if (this.canPagination) {
+          // Shouldn't be doing this at all if pagination is on (updates handled by  TopLevelMenu pagination wrapper)
+          return;
+        }
+
         // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
-      deep:      true,
-      immediate: true,
+      deep: true,
     },
 
     hideLocalCluster() {
       this.updateClusters(this.pinnedIds, 'slow');
+    },
+
+    clusterCountsFromCounts: {
+      async handler(neu, old) {
+        await this.helper.updateCount(neu);
+      },
+      immediate: true,
     }
+
   },
 
   mounted() {
@@ -343,11 +394,15 @@ export default {
     },
 
     handleKeyComboClick() {
+      if (!this.isCurrRouteClusterExplorer) {
+        return;
+      }
+
       this.routeCombo = !this.routeCombo;
     },
 
     clusterMenuClick(ev, cluster) {
-      if (this.routeCombo) {
+      if (this.routeComboActive) {
         ev.preventDefault();
 
         if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
@@ -384,7 +439,7 @@ export default {
     },
 
     async goToHarvesterCluster() {
-      const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((C) => C.id === 'fleet-local/local');
+      const localCluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, 'fleet-local/local');
 
       try {
         await localCluster.goToHarvesterCluster();
@@ -407,7 +462,7 @@ export default {
         content = this.shown ? null : contentText;
 
       // if key combo is pressed, then we update the tooltip as well
-      } else if (this.routeCombo &&
+      } else if (this.routeComboActive &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
         item !== null &&
@@ -454,16 +509,25 @@ export default {
         unPinnedMax: this.maxClustersToShow
       };
 
-      switch (speed) {
-      case 'slow':
-        this.debouncedHelperUpdateSlow(args);
-        break;
-      case 'medium':
-        this.debouncedHelperUpdateMedium(args);
-        break;
-      case 'quick':
-        this.debouncedHelperUpdateQuick(args);
-        break;
+      try {
+        switch (speed) {
+        case 'slow':
+          this.debouncedHelperUpdateSlow(args);
+          break;
+        case 'medium':
+          this.debouncedHelperUpdateMedium(args);
+          break;
+        case 'quick':
+          this.debouncedHelperUpdateQuick(args);
+          break;
+        }
+      } catch (err) {
+        if (this.canPagination) {
+          // Double bubble up errors here, errors are tracked further down
+          // Note that this won't pick up async errors, further tweaks are required for that
+        } else {
+          throw err;
+        }
       }
     }
   }
@@ -658,7 +722,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -737,7 +801,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div

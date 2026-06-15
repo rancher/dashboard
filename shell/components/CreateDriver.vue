@@ -22,7 +22,6 @@ export default {
     rules: {
       default: () => ({
         url:              [],
-        uiUrl:            [],
         checksum:         [],
         whitelistDomains: []
       }),
@@ -54,17 +53,6 @@ export default {
         :mode="mode"
         :rules="rules.checksum"
         :data-testid="'driver-create-checksum-field'"
-      />
-    </div>
-    <div class="row mb-20">
-      <LabeledInput
-        v-model:value.trim="value.uiUrl"
-        :label="t('drivers.add.customUiUrl.label')"
-        :tooltip="t('drivers.add.customUiUrl.tooltip', null, true)"
-        :placeholder="t('drivers.add.customUiUrl.placeholder', null, true)"
-        :mode="mode"
-        :rules="rules.uiUrl"
-        :data-testid="'driver-create-uiurl-field'"
       />
     </div>
     <div class="col span-6">

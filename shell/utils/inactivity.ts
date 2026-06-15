@@ -1,8 +1,7 @@
 import { EXT } from '@shell/config/types';
-import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
+import { SteveGetResponse } from '@shell/types/rancher/steve.api';
 
-interface UserActivityResponse {
-  metadata: RancherKubeMetadata,
+interface UserActivityResponse extends SteveGetResponse {
   status: {
     expiresAt: string
   }

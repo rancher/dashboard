@@ -6,7 +6,7 @@ Panels are added to Rancher via the `addPanel` method.
 
 ## addPanel
 
-*(Rancher version v2.7.2)*
+*(From Rancher version v2.7.2)*
 
 This method adds a panel/content to the UI.
 
@@ -20,11 +20,12 @@ _Arguments_
 
 `where` string parameter admissable values for this method:
 
-| Key | Type | Description |
-|---|---|---|
-|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.2) and `create` (v2.7.7)) |
-|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.) and `create` (v2.7.7)) |
-|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area - only for mode `list` (v2.7.2)) |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`PanelLocation.DETAILS_MASTHEAD`| String | v2.7.2 | Location for a panel on the Details Masthead area of a Resource Detail page (only for modes `detail`, `edit`, `config` and `create` (v2.7.7)) |
+|`PanelLocation.DETAIL_TOP`| String | v2.7.2 | Location for a panel on the Detail Top area of a Resource Detail page (only for modes `detail`, `edit`, `config` and `create` (v2.7.7)) |
+|`PanelLocation.RESOURCE_LIST`| String | v2.7.2 | Location for a panel on a Resource List View page (above the table area - only for mode `list` (v2.7.2)) |
+|`PanelLocation.ABOUT_TOP`| String | v2.13.0 | Location for a panel on the About page of Rancher Dashboard |
 
 <br/>
 
@@ -36,6 +37,8 @@ _Arguments_
 <br/>
 
 ### PanelLocation.DETAILS_MASTHEAD options
+
+*(From Rancher version v2.7.2)*
 
 ![Details Masthead](../screenshots/masthead.png)
 
@@ -60,6 +63,8 @@ plugin.addPanel(
 
 ### PanelLocation.DETAIL_TOP options
 
+*(From Rancher version v2.7.2)*
+
 ![DetailTop](../screenshots/detailtop.png)
 
 `options` config object. Admissable parameters for the `options` with `'PanelLocation.DETAIL_TOP'` are:
@@ -83,13 +88,15 @@ plugin.addPanel(
 
 ### PanelLocation.RESOURCE_LIST options
 
+*(From Rancher version v2.7.2)*
+
 ![List View](../screenshots/list-view.png)
 
 `options` config object. Admissable parameters for the `options` with `'PanelLocation.RESOURCE_LIST'` are:
 
-| Key | Type | Description |
-|---|---|---|
-|`component`| Function | Component to be rendered as content above a table on a "list view" |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`component`| Function | v2.7.2 | Component to be rendered as content above a table on a "list view" |
 
 Usage example for `'PanelLocation.RESOURCE_LIST'`:
 
@@ -105,6 +112,8 @@ plugin.addPanel(
 <br/>
 
 ### PanelLocation.ABOUT_TOP options
+
+*(From Rancher version v2.13.0)*
 
 ![List View](../screenshots/about-top.png)
 

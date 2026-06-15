@@ -299,6 +299,8 @@ export const actions = {
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
+
+    return notification.id;
   },
 
   async fromGrowl( { commit, getters }: any, notification: Notification) {
@@ -385,7 +387,7 @@ export const actions = {
    */
   async init({ commit, getters } : any, userData: any) {
     const userKey = userData.id;
-    const userId = userData.v3User?.uuid;
+    const userId = userData.user?.metadata?.uid;
 
     if (!userKey || !userId) {
       console.error('Unable to initialize notifications - required user info not available'); // eslint-disable-line no-console

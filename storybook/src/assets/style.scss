@@ -3,14 +3,9 @@
   gap: 10px
 }
 
-.theme-dark {
-  &, .docs-story {
-    background-color: #1b1c21;
-  }
-}
-
+.theme-dark,
 .theme-light {
   &, .docs-story {
-    background-color: #ffffff;
+    background-color: var(--body-bg);
   }
 }

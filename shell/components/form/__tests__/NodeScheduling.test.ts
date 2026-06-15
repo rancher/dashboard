@@ -1,17 +1,31 @@
 import { mount } from '@vue/test-utils';
 import NodeScheduling from '@shell/components/form/NodeScheduling.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { createStore } from 'vuex';
 
 const requiredSetup = () => {
   return {
+    provide: {
+      store: createStore({
+        getters: {
+          currentStore:                () => 'cluster',
+          'cluster/paginationEnabled': () => () => false,
+        },
+      }),
+    },
     global: {
       mocks: {
-        $store: {
+        $fetchState: { pending: false },
+        $store:      {
           getters: {
-            currentProduct: { inStore: 'cluster' },
-            'i18n/t':       (text: string) => text,
-            t:              (text: string) => text,
-          }
+            currentStore:                () => 'cluster',
+            currentProduct:              { inStore: 'cluster' },
+            'i18n/t':                    (text: string) => text,
+            t:                           (text: string) => text,
+            'cluster/paginationEnabled': () => false,
+            'cluster/all':               () => ['node-0', 'node-1'],
+          },
+          dispatch: jest.fn(),
         }
       },
     }
@@ -20,8 +34,6 @@ const requiredSetup = () => {
 
 describe('component: NodeScheduling', () => {
   const value = { nodeName: 'node-1' };
-
-  const nodes = ['node-0', 'node-1'];
 
   it.each([
     _VIEW,
@@ -32,13 +44,13 @@ describe('component: NodeScheduling', () => {
       NodeScheduling,
       {
         props: {
-          mode, loading: false, value, nodes
+          mode, loading: false, value
         },
         ...requiredSetup(),
       }
     );
 
     expect(wrapper.find('[data-testid="node-scheduling-selectNode"]').exists()).toBeTruthy();
-    expect(wrapper.find('[data-testid="node-scheduling-nodeSelector"]').element.textContent).toContain(value.nodeName);
+    expect(wrapper.find('[data-testid="node-scheduling-nodeSelector"] .vs__selected').text()).toBe(value.nodeName);
   });
 });

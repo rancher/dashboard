@@ -8,7 +8,7 @@ export type Annotation = Row;
 export interface AnnotationsProps {
   annotations: Annotation[];
 
-  onShowConfiguration?: (returnFocusSelector: string) => void;
+  onShowConfiguration?: (returnFocusSelector: string, defaultTab: string) => void;
 }
 
 </script>
@@ -26,6 +26,6 @@ const i18n = useI18n(store);
     :rows="annotations"
     type="active"
 
-    @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+    @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector, 'labels-and-annotations')"
   />
 </template>

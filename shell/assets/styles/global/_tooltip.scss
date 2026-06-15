@@ -162,7 +162,12 @@
 }
 
 //icon tooltip
-.icon-info.v-popper--has-tooltip {
+.icon-info.has-clean-tooltip {
   font-size: 14px;
+}
+
+// making sure hovering on the tooltip's arrow part does not cause flickering
+.v-popper__arrow-container {
+  pointer-events: none;
 }
 

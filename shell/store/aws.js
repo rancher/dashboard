@@ -2,6 +2,7 @@ import { sortBy } from '@shell/utils/sort';
 import { randomStr } from '@shell/utils/string';
 import { FetchHttpHandler } from '@smithy/fetch-http-handler';
 import { isArray, addObjects } from '@shell/utils/array';
+import { formatAWSError } from '@shell/utils/error';
 
 export const state = () => {
   return {
@@ -11,9 +12,10 @@ export const state = () => {
 };
 
 class Handler {
-  constructor(cloudCredentialId, options) {
+  constructor(cloudCredentialId, options, proxyApi) {
     this.cloudCredentialId = (cloudCredentialId || '');
     this.fetchHandler = new FetchHttpHandler(options);
+    this.proxyApi = proxyApi;
   }
 
   async handle(httpRequest, options = {}) {
@@ -23,24 +25,34 @@ class Handler {
 
     httpRequest.headers['x-api-headers-restrict'] = 'Content-Length';
 
-    if (this.cloudCredentialId) {
-      httpRequest.headers['x-api-cattleauth-header'] = `awsv4 credID=${ this.cloudCredentialId }`;
-    } else if (httpRequest?.headers['authorization']) {
-      httpRequest.headers['x-api-auth-header'] = httpRequest.headers['authorization'];
-    }
+    // Build proxy options: use awsv4 credential signing when a cloud credential
+    // is available, otherwise forward the SDK-generated Authorization header
+    // directly via x-api-auth-header.
+    const upstreamUrl = new URL(`https://${ httpRequest.hostname }${ httpRequest.path }`);
+    const proxyOptions = this.cloudCredentialId ? {
+      url:            upstreamUrl,
+      authentication: {
+        id:         this.cloudCredentialId,
+        authSigner: 'awsv4',
+      },
+    } : {
+      url:     upstreamUrl,
+      headers: httpRequest?.headers['authorization'] ? { 'x-api-auth-header': httpRequest.headers['authorization'] } : {},
+    };
 
+    const { url: proxyPath, headers: proxyHeaders } = this.proxyApi.prepareRequest(proxyOptions);
+
+    // Merge proxy auth headers; remove the upstream Authorization and the
+    // Accept header added by prepareRequest (AWS SDK manages its own Accept).
+    Object.assign(httpRequest.headers, proxyHeaders);
     delete httpRequest.headers['authorization'];
+    delete httpRequest.headers['Accept'];
 
     const originalContentType = httpRequest.headers['content-type'] ?? '';
 
     httpRequest.headers['content-type'] = originalContentType ? `rancher:${ originalContentType }` : 'rancher:';
 
-    const endpoint = `/meta/proxy/`;
-
-    if (!httpRequest.path.startsWith(endpoint)) {
-      httpRequest.path = endpoint + httpRequest.hostname + httpRequest.path;
-    }
-
+    httpRequest.path = proxyPath;
     httpRequest.protocol = window.location.protocol;
     httpRequest.hostname = window.location.hostname;
     httpRequest.port = window.location.port;
@@ -113,7 +125,7 @@ export const actions = {
     const client = new lib.EC2({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
-      requestHandler:            new Handler(cloudCredentialId),
+      requestHandler:            new Handler(cloudCredentialId, undefined, this.$shell.proxy),
       useDualstackEndpoint:      true,
     });
 
@@ -128,7 +140,7 @@ export const actions = {
     const client = new lib.EKS({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
-      requestHandler:            new Handler(cloudCredentialId),
+      requestHandler:            new Handler(cloudCredentialId, undefined, this.$shell.proxy),
       useDualstackEndpoint:      true,
     });
 
@@ -143,7 +155,7 @@ export const actions = {
     const client = new lib.KMS({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
-      requestHandler:            new Handler(cloudCredentialId),
+      requestHandler:            new Handler(cloudCredentialId, undefined, this.$shell.proxy),
       useDualstackEndpoint:      true,
     });
 
@@ -158,7 +170,7 @@ export const actions = {
     const client = new lib.IAM({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
-      requestHandler:            new Handler(cloudCredentialId),
+      requestHandler:            new Handler(cloudCredentialId, undefined, this.$shell.proxy),
       useDualstackEndpoint:      true,
     });
 
@@ -247,21 +259,26 @@ export const actions = {
     opt = opt || {};
 
     while ( hasNext ) {
-      const res = await client[cmd](opt);
+      try {
+        const res = await client[cmd](opt);
 
-      if ( !key ) {
-        key = Object.keys(res).find((x) => isArray(res[x]));
-      }
+        if ( !key ) {
+          key = Object.keys(res).find((x) => isArray(res[x]));
+        }
 
-      addObjects(out, res[key]);
-      if (res.NextToken) {
-        opt.NextToken = res.NextToken;
-        hasNext = true;
-      } else if (res.Marker) {
-        opt.Marker = res.Marker;
-        hasNext = true;
-      } else {
+        addObjects(out, res[key]);
+        if (res.NextToken) {
+          opt.NextToken = res.NextToken;
+          hasNext = true;
+        } else if (res.Marker) {
+          opt.Marker = res.Marker;
+          hasNext = true;
+        } else {
+          hasNext = false;
+        }
+      } catch (err) {
         hasNext = false;
+        throw formatAWSError(err);
       }
     }
 

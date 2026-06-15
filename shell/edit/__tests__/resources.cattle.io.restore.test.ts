@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import RestoreComponent from '@shell/edit/resources.cattle.io.restore.vue';
 import { _CREATE } from '@shell/config/query-params';
+import { createStore } from 'vuex';
 
 describe('view: restore storage source switching', () => {
   let wrapper: any;
@@ -30,6 +31,14 @@ describe('view: restore storage source switching', () => {
     };
 
     return mount(RestoreComponent, {
+      provide: {
+        store: createStore({
+          getters: {
+            currentStore:                () => 'current_store',
+            'cluster/paginationEnabled': () => () => false
+          }
+        })
+      },
       global: {
         mocks: {
           $store:      mockStore,

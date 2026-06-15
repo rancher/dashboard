@@ -74,8 +74,11 @@ export default defineComponent({
           const content = enclosingTagName ? match[2] : '';
 
           if (slots[tagName]) {
-            // If a slot is provided for this tag, render the slot with the content.
-            children.push(slots[tagName]({ content: purifyHTML(content) }));
+            const slotContent = slots[tagName]({ content: purifyHTML(content) });
+
+            if (slotContent) {
+              children.push(...slotContent);
+            }
           } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
             // If it's an allowed HTML tag, render it directly.
             if (content) {

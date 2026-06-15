@@ -7,7 +7,7 @@
 // } from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-data';
 // import { payloadComparisonData } from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-payload';
 
-describe('[Vue3 Skip]: Agent Configuration for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
+describe('[Vue3 Skip]: Agent Configuration for RKE2', { tags: ['@manager', '@adminUser', '@clusterConfig'] }, () => {
   it('every file must have a test...', () => {});
 });
 

@@ -68,6 +68,7 @@ export const actions = {
     return out;
   },
 
+  // DEPRECATED: accessing /meta/proxy directly is deprecated
   async request({ dispatch }, {
     clientId, clientSecret, credentialId, command, opt, out
   }) {

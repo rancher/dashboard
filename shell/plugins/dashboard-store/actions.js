@@ -471,7 +471,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort?.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -491,16 +491,18 @@ export default {
       return Promise.reject(e);
     }
 
-    // Of type @StorePagination
+    // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
       request: {
-        namespace:  opt.namespaced,
-        pagination: opt.pagination
+        namespace:             opt.namespaced,
+        pagination:            opt.pagination,
+        includeAssociatedData: opt.includeAssociatedData,
       },
       result: {
         count:     out.count,
         pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        revision:  out.revision
       }
     } : undefined;
 
@@ -511,6 +513,13 @@ export default {
         data:     out.data,
         pagination,
         revision: out.revision,
+      });
+    }
+
+    if (opt.saveCountAs) {
+      commit('setSavedCount', {
+        name:  opt.saveCountAs,
+        count: out.count,
       });
     }
 
@@ -546,7 +555,6 @@ export default {
    */
   async findLabelSelector(ctx, {
     type,
-    context,
     matching: {
       namespace,
       labelSelector
@@ -554,14 +562,10 @@ export default {
     opt
   }) {
     const { getters, dispatch } = ctx;
-    const args = {
-      id: type,
-      context,
-    };
 
     opt = opt || {};
 
-    if (getters[`paginationEnabled`]?.(args)) {
+    if (getters[`paginationEnabled`]?.()) {
       if (isLabelSelectorEmpty(labelSelector)) {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
       }
@@ -573,7 +577,7 @@ export default {
           ...opt,
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
-          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods ar eusually be cached AND watched
+          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods are usually cached AND watched
         }
       });
     }
@@ -656,12 +660,8 @@ export default {
     return getters.all(type);
   },
 
-  // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  // opt: @ActionFindArgs
+  // @returns @ActionFindResponse
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {
@@ -693,24 +693,36 @@ export default {
       }
     }
 
+    const havePage = getters.havePage(type);
+
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
+    if (!havePage && getters.havePage(type)) {
+      // There may be a super edge case where list --> detail (whilst loading) --> list navigation causes the list's rows to disappear
+      // Somehow the `findPage` from the list page returns before the `find`. The `find` then clears the page state in the cache.
+      // If this has happened silently return (we don't care about result)
+      // https://github.com/rancher/dashboard/issues/17524
+      console.warn(`Prevented \`find\` action from polluting cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
 
-    if ( opt.watch !== false ) {
+      return;
+    }
+
+    if (!opt.transient) {
+      await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
+    }
+
+    if (!opt.transient && opt.watch !== false ) {
       dispatch('watch', createFindWatchArg({
         type, id, opt, res
       }));
     }
 
-    out = getters.byId(type, id);
-
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return out;
+    return opt.transient ? await dispatch('create', res) : getters.byId(type, id);
   },
 
   /**
@@ -826,19 +838,33 @@ export default {
   /**
    * Remove all cached entries for a resource and stop watches
    */
-  forgetType({ commit, dispatch, state }, type, compareWatches) {
-    // Stop all known watches
-    state.started
-      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
-      .forEach((entry) => dispatch('unwatch', entry));
+  forgetType({ commit, dispatch, state }, payload) {
+    let type = payload;
+    let config = {};
 
-    // Stop all known back-off watch processes for this type
-    dispatch('resetWatchBackOff', {
-      type, compareWatches, resetStarted: false
-    });
+    if ( typeof payload === 'object' && payload !== null && payload.type ) {
+      type = payload.type;
+      config = payload;
+    }
 
-    // Remove entries from store
-    commit('forgetType', type);
+    const { compareWatches, unwatch = true, forget = true } = config;
+
+    if (unwatch) {
+      // Stop all known watches
+      state.started
+        .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
+        .forEach((entry) => dispatch('unwatch', entry));
+
+      // Stop all known back-off watch processes for this type
+      dispatch('resetWatchBackOff', {
+        type, compareWatches, resetStarted: false
+      });
+    }
+
+    if (forget) {
+      // Remove entries from store
+      commit('forgetType', type);
+    }
   },
 
   promptRemove({ commit, state }, resources ) {

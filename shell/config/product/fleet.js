@@ -32,9 +32,10 @@ export function init(store) {
     removable:             false,
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
+    extendable:            true,
     to:                    {
       name:   'c-cluster-fleet',
-      params: { resource: FLEET.DASHBOARD, cluster: BLANK_CLUSTER }
+      params: { cluster: BLANK_CLUSTER }
     },
   });
 

@@ -1,12 +1,13 @@
 import { matching, convertSelectorObj } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
@@ -30,18 +31,28 @@ function normalizeStateCounts(data) {
 
 export default class FleetApplication extends SteveModel {
   async getCurrentUser() {
-    const user = this.$rootGetters['auth/v3User'];
+    const user = this.$rootGetters['auth/user'];
 
     if (user?.id) {
       return user;
     }
 
-    const res = await this.$dispatch('rancher/request', {
-      url:    '/v3/users?me=true',
-      method: 'get',
-    }, { root: true });
+    const selfUser = await this.$dispatch('auth/getSelfUser');
 
-    return res?.data?.[0] || {};
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      const user = await this.$dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      }, { root: true });
+
+      if (user) {
+        this.$dispatch('auth/gotUser', user, { root: true });
+
+        return user;
+      }
+    }
+
+    return {};
   }
 
   pause() {
@@ -95,7 +106,7 @@ export default class FleetApplication extends SteveModel {
 
     for (const tgt of this.spec.targets) {
       if (tgt.clusterName) {
-        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
+        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName) || findBy(clusters, 'nameDisplay', tgt.clusterName);
 
         if (cluster) {
           addObject(out, cluster);
@@ -128,7 +139,8 @@ export default class FleetApplication extends SteveModel {
   }
 
   get targetInfo() {
-    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace);
+    const areHarvesterHostsVisible = this.$rootGetters['features/get'](HARVESTER_CONTAINER);
+    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace, areHarvesterHostsVisible);
 
     return {
       mode,

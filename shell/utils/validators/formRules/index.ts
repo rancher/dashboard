@@ -4,10 +4,10 @@ import { RBAC } from '@shell/config/types';
 import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
-import isUrl from 'is-url';
-// import uniq from 'lodash/uniq';
 import { Translation } from '@shell/types/t';
-import { isHttps, isLocalhost, hasTrailingForwardSlash, isDomainWithoutProtocol } from '@shell/utils/validators/setting';
+import {
+  isHttps, isLocalhost, hasTrailingForwardSlash, isDomainWithoutProtocol, isValidUrl
+} from '@shell/utils/validators/setting';
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
@@ -172,9 +172,9 @@ export default function(
 
   const trailingForwardSlash: Validator = (val: string) => hasTrailingForwardSlash(val) ? t('validation.setting.serverUrl.trailingForwardSlash') : undefined;
 
-  const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
+  const url: Validator = (val: string) => val && !isValidUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-  const genericUrl: Validator = (val: string) => val && !isUrl(val) ? t('validation.genericUrl') : undefined;
+  const genericUrl: Validator = (val: string) => val && !isValidUrl(val) ? t('validation.genericUrl') : undefined;
 
   const urlRepository: Validator = (url: string) => {
     const message = t('validation.repository.url');
@@ -269,6 +269,8 @@ export default function(
   const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key }) : undefined;
 
   const containerImage: Validator = (val: any) => !val?.image ? t('workload.validation.containerImage', { name: val.name }) : undefined;
+
+  const localhostProfile: Validator = (val: any) => (val?.securityContext?.seccompProfile?.type === 'Localhost' && !val?.securityContext.seccompProfile?.localhostProfile && !val?.securityContext?.privileged) ? t('workload.validation.localhostProfile', { name: val.name }) : undefined;
 
   const containerImages: Validator = (val: any | [any]) => {
     const containers = val.jobTemplate ? val?.jobTemplate?.spec?.template?.spec?.containers : val?.template?.spec?.containers;
@@ -602,6 +604,7 @@ export default function(
     clusterName,
     containerImage,
     containerImages,
+    localhostProfile,
     cronSchedule,
     dnsLabel,
     dnsLabelIanaServiceName,

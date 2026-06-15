@@ -2,7 +2,6 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
-import { DEFAULT_GCP_ZONE } from '@shell/components/google/util/gcp';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 /******
@@ -10,7 +9,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -77,13 +76,16 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     const cloudCredForm = createGKEClusterPage.cloudCredentialsForm();
 
     // Select GKE and create GKE cluster page
-    ClusterManagerListPagePo.navTo();
+    // Navigate directly to avoid CI flakiness when the side menu is not rendered yet.
+    ClusterManagerListPagePo.goTo('_');
     clusterList.waitForPage();
     clusterList.createCluster();
     createGKEClusterPage.selectKubeProvider(2);
     loadingPo.checkNotExists();
     createGKEClusterPage.rke2PageTitle().should('include', 'Create Google GKE');
     createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
+    // Wait for the inline cloud credential form's async fetch to complete before interacting with it.
+    loadingPo.checkNotExists();
 
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -107,7 +109,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
 
       // Verify that gke-zone-select dropdown is set to the default zone
       createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
-      ClusterManagerCreateGKEPagePo.getGkeZoneSelect().checkOptionSelected(DEFAULT_GCP_ZONE);
+      ClusterManagerCreateGKEPagePo.getGkeZoneSelect().checkOptionSelected('us-central1-c');
 
       // Get latest GKE kubernetes version and verify that gke-version-select dropdown is set to the default version as defined by versionOptions(); in Config.vue
       cy.wait('@getGKEVersions').then(({ response }) => {

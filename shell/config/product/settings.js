@@ -28,6 +28,7 @@ export function init(store) {
     showClusterSwitcher: false,
     category:            'configuration',
     weight:              100,
+    extendable:          true,
   });
 
   virtualType({

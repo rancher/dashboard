@@ -54,7 +54,9 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   customClusterRegistrationCmd(cmd: string) {
-    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
+    const sshUser = Cypress.env('customNodeUser');
+
+    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ${ sshUser }@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
   }
 
   credentialsBanner() {

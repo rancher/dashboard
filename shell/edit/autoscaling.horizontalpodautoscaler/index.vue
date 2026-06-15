@@ -1,27 +1,52 @@
-<script>
+<script lang="ts">
 import CreateEditView from '@shell/mixins/create-edit-view';
 
-import CruResource from '@shell/components/CruResource';
+import CruResource from '@shell/components/CruResource.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Labels from '@shell/components/form/Labels';
-import Loading from '@shell/components/Loading';
-import NameNsDescription from '@shell/components/form/NameNsDescription';
-import Tab from '@shell/components/Tabbed/Tab';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
+import Labels from '@shell/components/form/Labels.vue';
+import Loading from '@shell/components/Loading.vue';
+import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed';
-import MetricsRow from '@shell/edit/autoscaling.horizontalpodautoscaler/metrics-row';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric';
+import MetricsRow from '@shell/edit/autoscaling.horizontalpodautoscaler/metrics-row.vue';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
+import { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 
-import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
+import { API_SERVICE, SCALABLE_WORKLOAD_TYPES, WORKLOAD_KIND_TO_TYPE_MAPPING } from '@shell/config/types';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
-import { findBy } from '@shell/utils/array';
 import HpaScalingRule from '@shell/edit/autoscaling.horizontalpodautoscaler/hpa-scaling-rule.vue';
+import { ResourceLabeledSelectPaginateSettings, ResourceLabeledSelectSettings } from '@shell/types/components/resourceLabeledSelect';
+import { PaginationParam, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
+
+/**
+ * HPA spec.scaleTargetRef
+ */
+interface OBJECT_REFERENCE {
+  apiVersion: string;
+  kind: string;
+  name: string;
+}
+
+type Workload = any;
+
+/**
+ * Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
+ */
+const mapWorkload = (workload: Workload | OBJECT_REFERENCE): OBJECT_REFERENCE => {
+  return {
+    kind:       workload.kind,
+    name:       workload.metadata?.name || workload.name,
+    apiVersion: workload.apiVersion,
+  };
+};
 
 export default {
   name: 'CruHPA',
@@ -35,6 +60,7 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
+    ResourceLabeledSelect,
     Labels,
     Loading,
     NameNsDescription,
@@ -57,40 +83,45 @@ export default {
     },
   },
 
-  fetch() {
-    const promises = [this.loadAPIServices(), this.loadWorkloads()];
-
-    return Promise.all(promises);
+  async fetch() {
+    await this.loadAPIServices();
   },
 
   data() {
-    return { defaultResourceMetric: DEFAULT_RESOURCE_METRIC };
+    const sharedSettings = {
+      labelSelectOptions: {
+        'get-option-label': (opt: Workload) => opt?.name,
+        'option-key':       'name',
+      },
+    };
+
+    const paginateSettings: ResourceLabeledSelectPaginateSettings = {
+      ...sharedSettings,
+      updateResources: (resources) => {
+        return resources.map(mapWorkload);
+      },
+      requestSettings: this.pageRequestSettings
+    };
+
+    const allSettings: ResourceLabeledSelectSettings = {
+      ...sharedSettings,
+      updateResources: this.mapWorkloads,
+    };
+
+    const scalableWorkloadType = WORKLOAD_KIND_TO_TYPE_MAPPING[this.value?.spec?.scaleTargetRef?.kind] || Object.values(SCALABLE_WORKLOAD_TYPES)[0];
+
+    return {
+      defaultResourceMetric: DEFAULT_RESOURCE_METRIC,
+      paginateSettings,
+      allSettings,
+      scalableWorkloadType,
+      scalableWorkloadTypes: Object.values(SCALABLE_WORKLOAD_TYPES).map((v) => ({ label: this.t(`typeLabel."${ v }"`, { count: 1 }), value: v })),
+    };
   },
 
   computed: {
     allMetrics() {
       return this.value?.spec?.metrics;
-    },
-    allWorkloadsFiltered() {
-      return (
-        Object.values(SCALABLE_WORKLOAD_TYPES)
-          .flatMap((type) => this.$store.getters['cluster/all'](type))
-          .filter(
-            // Filter out anything that has an owner, which should probably be the one with the HPA
-            // For example ReplicaSets can be associated with a HPA (https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#replicaset-as-a-horizontal-pod-autoscaler-target)
-            // but wouldn't make sense if it's owned by a deployment
-            (wl) => wl.metadata.namespace === this.value.metadata.namespace && !wl.ownedByWorkload
-          )
-      );
-    },
-    allWorkloadsMapped() {
-      return this.allWorkloadsFiltered
-      // Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
-        .map((workload) => ({
-          kind:       workload.kind,
-          name:       workload.metadata.name,
-          apiVersion: workload.apiVersion,
-        }));
     },
     allServices() {
       return this.$store.getters['cluster/all'](API_SERVICE);
@@ -107,17 +138,13 @@ export default {
       );
     },
     selectedTargetRef() {
-      const { scaleTargetRef: { name } } = this.value.spec;
-      const { allWorkloadsFiltered } = this;
-      const match = findBy(allWorkloadsFiltered, 'metadata.name', name);
-
-      return match ?? null;
+      return this.value?.spec?.scaleTargetRef;
     },
     hasScaleDownRules: {
       get() {
         return !!this.value.spec.behavior?.scaleDown;
       },
-      set(hasScaleDownRules) {
+      set(hasScaleDownRules: boolean) {
         if (hasScaleDownRules) {
           if (!this.value.spec.behavior) {
             this.value.spec['behavior'] = {};
@@ -134,7 +161,7 @@ export default {
       get() {
         return !!this.value.spec.behavior?.scaleUp;
       },
-      set(hasScaleUpRules) {
+      set(hasScaleUpRules: boolean) {
         if (hasScaleUpRules) {
           if (!this.value.spec.behavior) {
             this.value.spec['behavior'] = {};
@@ -147,6 +174,12 @@ export default {
         }
       }
     },
+    /**
+     * Unique id that when changes resets the state used to show candidate targets
+     */
+    targetResetKey() {
+      return `${ this.value.metadata.namespace }/${ this.scalableWorkloadType }`;
+    }
   },
 
   created() {
@@ -171,16 +204,56 @@ export default {
         metrics: [{ ...this.defaultResourceMetric }]
       };
     },
-    async loadWorkloads() {
-      await Promise.all(
-        Object.values(SCALABLE_WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
-        )
-      );
-    },
     async loadAPIServices() {
       await this.$store.dispatch('cluster/findAll', { type: API_SERVICE });
     },
+
+    /**
+     * Fn of type @PaginateTypeOverridesFn
+     */
+    pageRequestSettings(opts: LabelSelectPaginationFunctionOptions): LabelSelectPaginationFunctionOptions {
+      const { opts: { filter } } = opts;
+
+      const filters: PaginationParam[] = [
+        PaginationParamFilter.createSingleField({
+          field: 'metadata.namespace', value: this.value.metadata.namespace, equals: true
+        }),
+      ];
+
+      if (!!filter) {
+        filters.push( PaginationParamFilter.createSingleField({
+          field: 'metadata.name', value: filter, equals: true, exact: false
+        }));
+      }
+
+      return {
+        ...opts,
+        classify:         false,
+        groupByNamespace: false,
+        sort:             [{ asc: true, field: 'metadata.name' }],
+        filters
+      };
+    },
+
+    /**
+     * Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
+     */
+    mapWorkload(workload: Workload | OBJECT_REFERENCE): OBJECT_REFERENCE {
+      return mapWorkload(workload);
+    },
+
+    mapWorkloads(workloads: Workload[]) {
+      return workloads
+        .filter((w) => w.metadata.namespace === this.value.metadata.namespace)
+        .map(mapWorkload);
+    }
   },
+
+  watch: {
+    targetResetKey() {
+      delete this.value.spec.scaleTargetRef;
+    },
+  }
 };
 </script>
 
@@ -196,7 +269,7 @@ export default {
       :resource="value"
       :validation-passed="true"
       :errors="errors"
-      @error="(e) => (errors = e)"
+      @error="(e: any) => (errors = e)"
       @finish="save"
       @cancel="done"
     >
@@ -209,6 +282,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         :use-hash="useTabbedHash"
+        :default-tab="defaultTab"
       >
         <Tab
           name="target"
@@ -218,17 +292,24 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
+                v-model:value="scalableWorkloadType"
+                :options="scalableWorkloadTypes"
+                :mode="mode"
+                :label="t('hpa.workloadTab.targetReferenceType')"
+                :required="true"
+              />
+            </div>
+            <div class="col span-6">
+              <ResourceLabeledSelect
+                :key="targetResetKey"
                 v-model:value="value.spec.scaleTargetRef"
-                :get-option-label="(opt) => opt.name"
                 :mode="mode"
                 :label="t('hpa.workloadTab.targetReference')"
-                :options="allWorkloadsMapped"
                 :required="true"
-              >
-                <template v-slot:option="option">
-                  {{ option.name }}<span class="pull-right">{{ option.kind }}</span>
-                </template>
-              </LabeledSelect>
+                :resource-type="scalableWorkloadType"
+                :paginated-resource-settings="paginateSettings"
+                :all-resources-settings="allSettings"
+              />
             </div>
           </div>
           <div class="row">
@@ -281,6 +362,7 @@ export default {
                 :mode="mode"
                 :metrics-available="resourceMetricsAvailable"
                 :referent="selectedTargetRef"
+                :namespace="value.metadata.namespace"
               />
             </template>
           </ArrayListGrouped>

@@ -13,10 +13,10 @@ export default function({
   store,
   $axios,
   redirect,
-  $plugin,
+  $extension,
 }, inject) {
   if (dynamicLoader) {
-    dynamicLoader.default($plugin);
+    dynamicLoader.default($extension);
   }
 
   // The libraries we build have Vue externalised, so we need to expose Vue as a global for

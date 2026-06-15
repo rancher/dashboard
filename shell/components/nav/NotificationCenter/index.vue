@@ -36,7 +36,7 @@ const open = (opened: boolean) => {
     @update:open="open"
   >
     <rc-dropdown-trigger
-      tertiary
+      variant="tertiary"
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
     >

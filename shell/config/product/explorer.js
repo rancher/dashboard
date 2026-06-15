@@ -3,7 +3,7 @@ import {
   CONFIG_MAP,
   EVENT,
   NODE, SECRET, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA,
+  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA, AUDIT_POLICY,
   MANAGEMENT,
   NAMESPACE,
   NORMAN,
@@ -27,13 +27,15 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL,
+  STEVE_WORKLOAD_HEALTH_SCALE
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
 import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { POD_LAST_RESTART_FIELD as POD_RESTARTS_LAST_FIELD, POD_RESTART_FIELD as POD_RESTARTS_COUNT_FIELD } from '@shell/types/resources/pod';
 
 export const NAME = 'explorer';
 
@@ -58,6 +60,7 @@ export function init(store) {
     weight:              3,
     showNamespaceFilter: true,
     icon:                'compass',
+    extendable:          true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
@@ -83,6 +86,7 @@ export function init(store) {
     NETWORK_POLICY,
     POD_DISRUPTION_BUDGET,
     RESOURCE_QUOTA,
+    AUDIT_POLICY,
   ], 'policy');
 
   basicType([
@@ -118,6 +122,7 @@ export function init(store) {
   weightGroup('storage', 95, true);
   weightGroup('policy', 94, true);
   weightType(POD, -1, true);
+  weightType(AUDIT_POLICY, -1, true);
 
   // here is where we define the usage of the WORKLOAD custom list view for
   // all the workload types (ex: deployments, cron jobs, daemonsets, etc)
@@ -152,6 +157,7 @@ export function init(store) {
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');
+  mapGroup('auditlog.cattle.io', 'Policy');
   mapGroup(/^(.+\.)?api(server)?.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'admission');
@@ -180,7 +186,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?(scc)\.cattle\.io$/, 'SCC');
 
   const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
-  const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true }) ;
+  const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true });
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
@@ -194,7 +200,7 @@ export function init(store) {
   configureType(SECRET, { showListMasthead: false });
   weightType(SECRET, 1, false);
 
-  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false });
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false, resource: SECRET });
   weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });
@@ -383,11 +389,11 @@ export function init(store) {
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.DAEMON_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL]
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE]
   );
   headers(WORKLOAD_TYPES.REPLICA_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -395,17 +401,17 @@ export function init(store) {
   );
   headers(WORKLOAD_TYPES.STATEFUL_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.JOB,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
       ...DURATION,
       value:     'metadata.fields.3',
-      sort:      false,
+      sort:      'metadata.fields.3',
       search:    'metadata.fields.3',
       formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
-    }, STEVE_AGE_COL],
+    }, STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.CRON_JOB,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -425,7 +431,23 @@ export function init(store) {
         ...POD_IMAGES,
         sort:   false,
         search: 'spec.containers.image'
-      }, 'Ready', 'Restarts', 'IP', {
+      },
+      'Ready',
+      {
+        name:     'pod-restart',
+        labelKey: 'tableHeaders.podRestarts',
+        search:   false,
+        sort:     [POD_RESTARTS_COUNT_FIELD, POD_RESTARTS_LAST_FIELD, 'metadata.name'],
+        value:    'restartsCount',
+      }, {
+        name:     'pod-last-restart',
+        labelKey: 'tableHeaders.podLastRestart',
+        value:    'restartsLaster',
+        search:   false,
+        sort:     [POD_RESTARTS_LAST_FIELD, POD_RESTARTS_COUNT_FIELD, 'metadata.name'],
+      },
+      'IP',
+      {
         ...NODE_COL,
         search: 'spec.nodeName'
       },
@@ -645,7 +667,6 @@ export function init(store) {
       name:   'c-cluster-product-resource',
       params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
     },
-    exact:      true,
     ifHaveType: [{
       store: 'management',
       type:  SECRET

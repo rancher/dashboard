@@ -67,13 +67,6 @@ Finally run one of the 2 commands:
 
 For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
 
-### Setup for dashboard purposes ONLY
-
-If you want your tests to be tracked on Cypress dashboards you will have to enable the following:
-
-- `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
-- `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
-
 ### Skip and only features
 
 Existing `TEST_SKIP_SETUP` logic has been replaced with something more generic included in the `cypress.ts` script/utility.
@@ -81,41 +74,20 @@ It is now possible to skip features by using the `TEST_SKIP` env var, e.g. `TEST
 Alternatively is possible to solely run a specific feature by using the `TEST_ONLY` env var, e.g. `TEST_ONLY=setup`.
 The features are folder name based and can be found in `cypress/e2e/tests/pages`.
 
-## E2E Dashboard
+### Skip chart tests behavior
 
-### Self-hosted: Sorry Cypress
+Some chart E2E tests check charts that are hidden in the UI catalog. If a chart is intentionally hidden, the E2E test is skipped.
 
-Link to the dashboard: http://139.59.134.103:8080/
+- `CYPRESS_ALLOW_FILTERED_CATALOG_SKIP=true`: skip those tests.
+- `CYPRESS_ALLOW_FILTERED_CATALOG_SKIP` unset (or not `true`): fail those tests.
 
-E2E tests can be added and displayed in a dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script:
+This only applies when the chart exists in the unfiltered catalog index but is hidden in the UI filtered catalog.
 
-```bash
-yarn cy:run:sorry
-```
-
-### Cypress dashboard installation guide
-
-The setup is done using a cloud hosting service and with its IP we configured the Sorry Cypress as indicated in the [guide](https://docs.sorry-cypress.dev/guide/dashboard-and-api). The process is straightforward, except for the IP which is required to be overwritten within `minio.yml` manifest as the default `http://localhost` value generate CORS issues.
-
-### Cypress Dashboard
-
-E2E tests can be displayed in Cypress dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script by passing the parameters
-
-```bash
-yarn cy:run --record --key YOUR_RECORD_KEY_HERE
-```
-
-These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
-
-It's also possible to run a workflow in GitHub Actions E2E test using these values to record on personal dashboards.
-
-### Skip dashboard or tests
+## Skipping e2e tests
 
 CI gates can be disabled in the following way:
 
 - Use label `ci/skip-e2e` to skip the E2E tests in the PR
-- Use label `ci/skip-e2e-cypress-dashboard` to run the E2E tests without Sorry Cypress dashboard in the PR (it will enable `TEST_DISABLE_DASHBOARD_LABEL` env var)
-- Use GitHub settings and define env var `TEST_DISABLE_DASHBOARD` as `true` (which is string and not boolean) to disable the Cypress dashboard entirely in every CI run
 
 ## Local and CI/prod run
 

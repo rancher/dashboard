@@ -3,6 +3,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export class FleetBundlesListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/fleet.cattle.io.bundle`
@@ -57,7 +58,19 @@ export class FleetBundleDetailsPo extends BaseDetailPagePo {
     super(FleetBundleDetailsPo.createPath(fleetWorkspace, bundleName));
   }
 
+  tabs(): TabbedPo {
+    return new TabbedPo();
+  }
+
   resourcesList() {
-    return new ResourceTablePo(this.self());
+    return new ResourceTablePo('#resources [data-testid="sortable-table-list-container"]');
+  }
+
+  conditionsList() {
+    return new ResourceTablePo('#conditions [data-testid="sortable-table-list-container"]');
+  }
+
+  eventsList() {
+    return new ResourceTablePo('#events [data-testid="sortable-table-list-container"]');
   }
 }

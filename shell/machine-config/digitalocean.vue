@@ -16,7 +16,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  emits: ['update:hasIpv6'],
+  emits: ['update:isDualStack'],
 
   props: {
     credentialId: {
@@ -29,7 +29,7 @@ export default {
       default: false
     },
 
-    hasIpv6: {
+    isDualStack: {
       type:    Boolean,
       default: false
     },
@@ -119,7 +119,7 @@ export default {
     'value.image': 'updateUsername',
 
     'value.ipv6'(neu) {
-      this.$emit('update:hasIpv6', neu);
+      this.$emit('update:isDualStack', neu);
     }
   },
 

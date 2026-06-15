@@ -65,7 +65,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.updateStatus(plugin.name, 'uninstall');
+      this.updateStatus(plugin.id, 'uninstall');
 
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
@@ -132,31 +132,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  @import '@shell/assets/styles/base/_mixins.scss';
+
   .plugin-install-dialog {
-    padding: 10px;
-
-    h4 {
-      font-weight: bold;
-    }
-
-    .dialog-panel {
-      display: flex;
-      flex-direction: column;
-      min-height: 100px;
-
-      .dialog-info {
-        flex: 1;
-      }
-    }
-
-    .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 10px;
-
-      > *:not(:last-child) {
-        margin-right: 10px;
-      }
-    }
+    @include extension-dialog;
   }
 </style>

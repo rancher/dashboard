@@ -3,6 +3,7 @@ import { REVISION_TOO_OLD } from '../../../utils/socket';
 import { STEVE_WATCH_MODE } from '../../../types/store/subscribe.types';
 import backOff from '../../../utils/back-off';
 import { SteveWatchEventListenerManager } from '../../subscribe-events';
+import { STEVE_RESPONSE_CODE } from '../../../types/rancher/steve.api';
 
 describe('steve: subscribe', () => {
   describe('actions', () => {
@@ -13,7 +14,8 @@ describe('steve: subscribe', () => {
         schemaFor:       () => null,
         inError:         () => false,
         watchStarted:    () => false,
-        listenerManager: state.listenerManager
+        listenerManager: state.listenerManager,
+        typeRegistered:  () => true,
       };
       const rootGetters = {
         'type-map/isSpoofed': () => false,
@@ -108,6 +110,139 @@ describe('steve: subscribe', () => {
           getters, commit, dispatch
         }, msg);
         expect(commit).toHaveBeenCalledWith('setInError', { msg, reason: 'NO_PERMS' });
+      });
+    });
+
+    describe('fetchPageResources', () => {
+      const dispatch = jest.fn();
+      const getters = {
+        backOffId:    jest.fn(),
+        typeEntry:    jest.fn(),
+        canBackoff:   jest.fn(),
+        watchStarted: jest.fn(),
+        inError:      jest.fn(),
+      };
+      let backOffSpy: any;
+      const context = { $socket: {} };
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+        backOffSpy = {
+          getBackOff: jest.spyOn(backOff, 'getBackOff'),
+          reset:      jest.spyOn(backOff, 'reset'),
+          recurse:    jest.spyOn(backOff, 'recurse'),
+        };
+        getters.backOffId.mockReturnValue('backoff-id');
+        getters.typeEntry.mockReturnValue({ revision: '10' });
+        backOffSpy.getBackOff.mockReturnValue({ metadata: { revision: '10' } } as any);
+        backOffSpy.recurse.mockResolvedValue(undefined);
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('should abort if current revision is newer than target revision', async() => {
+        // Current (10) > Target (5)
+        const params = {
+          resourceType: 'type', namespace: 'ns', revision: '5'
+        };
+
+        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+          opt: {}, storePagination: {}, params
+        });
+
+        expect(backOffSpy.recurse).not.toHaveBeenCalled();
+      });
+
+      it('should reset backoff if target revision is newer than active revision', async() => {
+        // Active (10) < Target (15)
+        const params = {
+          resourceType: 'type', namespace: 'ns', revision: '15'
+        };
+
+        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+          opt: {}, storePagination: {}, params
+        });
+
+        expect(backOffSpy.reset).toHaveBeenCalledWith('backoff-id');
+        expect(backOffSpy.recurse).toHaveBeenCalledWith(expect.objectContaining({
+          id:       'backoff-id',
+          metadata: { revision: '15' }
+        }));
+      });
+
+      it('should recurse if revisions are valid', async() => {
+        const params = {
+          resourceType: 'type', namespace: 'ns', revision: '10'
+        };
+
+        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+          opt: {}, storePagination: {}, params
+        });
+
+        expect(backOffSpy.recurse).toHaveBeenCalledWith(expect.objectContaining({
+          id:       'backoff-id',
+          metadata: { revision: '10' }
+        }));
+      });
+
+      describe('recurse options', () => {
+        const params = {
+          resourceType: 'type', namespace: 'ns', revision: '10'
+        };
+        let recurseArgs: any;
+
+        beforeEach(async() => {
+          await actions.fetchPageResources.call(context, { getters, dispatch }, {
+            opt: {}, storePagination: { request: { filter: 'foo' } }, params
+          });
+          recurseArgs = backOffSpy.recurse.mock.calls[0][0];
+        });
+
+        it('canFn should return false if socket closed', () => {
+          getters.canBackoff.mockReturnValue(false);
+          expect(recurseArgs.canFn()).toBe(false);
+          expect(getters.canBackoff).toHaveBeenCalledWith(context.$socket);
+        });
+
+        it('canFn should return false if watch not started and not in REVISION_TOO_OLD error', () => {
+          getters.canBackoff.mockReturnValue(true);
+          getters.watchStarted.mockReturnValue(false);
+          getters.inError.mockReturnValue('some-other-error');
+          expect(recurseArgs.canFn()).toBe(false);
+        });
+
+        it('canFn should return true if watch started', () => {
+          getters.canBackoff.mockReturnValue(true);
+          getters.watchStarted.mockReturnValue(true);
+          expect(recurseArgs.canFn()).toBe(true);
+        });
+
+        it('canFn should return true if watch not started but in REVISION_TOO_OLD error', () => {
+          getters.canBackoff.mockReturnValue(true);
+          getters.watchStarted.mockReturnValue(false);
+          getters.inError.mockReturnValue(REVISION_TOO_OLD);
+          expect(recurseArgs.canFn()).toBe(true);
+        });
+
+        it('continueOnError should return true for UNKNOWN_REVISION error', async() => {
+          const err = { status: 400, code: STEVE_RESPONSE_CODE.UNKNOWN_REVISION };
+
+          expect(await recurseArgs.continueOnError(err)).toBe(true);
+        });
+
+        it('delayedFn should dispatch findPage', async() => {
+          await recurseArgs.delayedFn();
+          expect(dispatch).toHaveBeenCalledWith('findPage', {
+            type: 'type',
+            opt:  {
+              namespaced: 'ns',
+              revision:   '10',
+              filter:     'foo'
+            }
+          });
+        });
       });
     });
   });
@@ -209,7 +344,7 @@ describe('steve: subscribe', () => {
 
         // call watch
         actions.watch({
-          state, dispatch, getters, rootGetters
+          state, dispatch, getters, rootGetters, commit
         }, {
           ...obj,
           revision,
@@ -354,6 +489,7 @@ describe('steve: subscribe', () => {
         const state = {
           started:         [],
           inError:         {},
+          queue:           [],
           listenerManager: new SteveWatchEventListenerManager()
         };
         const _getters = {
@@ -364,7 +500,8 @@ describe('steve: subscribe', () => {
           watchStarted:    (...args) => getters.watchStarted(state)(...args),
           backOffId:       (...args) => getters.backOffId()(...args),
           canBackoff:      () => true,
-          listenerManager: state.listenerManager
+          listenerManager: state.listenerManager,
+          typeRegistered:  () => true,
         };
         const commit = (type, ...args) => mutations[type](state, ...args);
 

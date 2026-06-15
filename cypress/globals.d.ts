@@ -1,7 +1,13 @@
-import { Verbs } from '@shell/types/api';
-import { UserPreferences } from '@shell/types/userPreferences';
+// External version of globals.d.ts for @rancher/cypress package
+// Dependencies on @shell/types removed for standalone use
 
-type Matcher = '$' | '^' | '~' | '*' | '';
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface UserPreferences {
+  [key: string]: any;
+}
+
+export type Matcher = '$' | '^' | '~' | '*' | '';
 
 export type CreateUserParams = {
   username: string,
@@ -67,18 +73,24 @@ export interface CreateResourceNameOptions {
 
 declare global {
   namespace Cypress {
+    interface RancherVersion {
+      RancherPrime?: string;
+    }
+
     interface Chainable {
       setupWebSocket: any;
-      hideElementBySelector(text:string) :void;
+      hideElementBySelector(...selectors: string[]): Chainable<void>;
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;
+      clearAllSessions(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
       createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
 
       createUser(params: CreateUserParams, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
+      createUserPasswordAsSecret(userId: string, password: string): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
       setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
       setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
@@ -114,16 +126,23 @@ declare global {
          */
         wait?: number,
       }): Chainable;
-
+      applyDefaultTestTheme(): Chainable<any>;
+      restoreProductDefaultTestTheme(): Chainable<any>;
+      getRancherVersion(): Chainable<RancherVersion>;
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
-      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean}): Chainable;
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean, retryOnNetworkFailure?: boolean, timeout?: number}): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
+      waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
-      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number): Chainable;
+      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
+      checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
+      getClusterToolsChartCount(repoName?: string): Chainable<number>;
+      installChart(repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string): Chainable;
+      getChartVersions(repo: string, chartId: string): Chainable<string[]>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
@@ -152,9 +171,9 @@ declare global {
       }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
-      setUserPreference(prefs: any);
+      setUserPreference(prefs: any, verify?: boolean, retries?: number);
 
       /**
        * update namespace filter
@@ -199,8 +218,6 @@ declare global {
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
-      iFrame(): Chainable<Element>;
-
       // Check if an element is visible to the user on the screen.
       isVisible(): Chainable<Element>;
 
@@ -212,6 +229,11 @@ declare global {
 
       // Check css var
       shouldHaveCssVar(name: string, value: string);
+
+      /**
+       * realHover event from cypress-real-events
+       */
+      realHover(): Chainable<Element>;
 
       /**
        * Fetch the steve `revision` / timestamp of request
@@ -233,6 +255,14 @@ declare global {
        */
       checkElementAccessibility(selector: any, description?: string);
 
+      /**
+       * Custom command to delete Cypress.config('downloadsFolder') folder
+       * @example
+       *  cy.deleteDownloadsFolder()
+       *
+       *  copied from node_modules/cypress-delete-downloads-folder/src/index.d.ts
+       */
+      deleteDownloadsFolder(): Chainable<null>
     }
   }
 }

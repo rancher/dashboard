@@ -96,22 +96,33 @@ export default {
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
-    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+    let extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
+    let provider = this.value.machineProvider;
+
+    if (!extClass) {
+      extClass = this.$extension.getDynamic('provisioner', this.value.provisioner.toLowerCase());
+      provider = this.value.provisioner.toLowerCase();
+    }
+
+    if (!extClass && this.value.isImported) {
+      extClass = this.$extension.getDynamic('provisioner', 'imported');
+      provider = 'imported';
+    }
 
     if (extClass) {
       this.extProvider = new extClass({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        $t:       this.t
+        dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        $t:         this.t
       });
 
       this.extDetailTabs = {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     // Support for a model extension
@@ -120,7 +131,7 @@ export default {
         ...this.extDetailTabs,
         ...this.value.customProvisionerHelper.detailTabs
       };
-      this.extCustomParams = { provider: this.value.machineProvider };
+      this.extCustomParams = { provider };
     }
 
     const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
@@ -145,10 +156,6 @@ export default {
     // Need to get Norman clusters so that we can check if user has permissions to access the local cluster
     if ( this.$store.getters['rancher/canList'](NORMAN.CLUSTER) ) {
       fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
-    }
-
-    if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
     const fetchOneRes = await allHash(fetchOne);
@@ -202,10 +209,6 @@ export default {
     // This request does not need to be blocking
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
     }
   },
 
@@ -284,9 +287,11 @@ export default {
       extCustomParams: null,
       extDetailTabs:   {
         machines:     true, // in this component
+        nodes:        true, // in this component
         logs:         true, // in this component
         registration: true, // in this component
         snapshots:    true, // in this component
+        autoscaler:   true, // in this component
         related:      true, // in ResourceTabs
         events:       true, // in ResourceTabs
         conditions:   true, // in ResourceTabs
@@ -364,7 +369,8 @@ export default {
         const machineFullName = machineNameFn(this.value.name, mp.name);
 
         const machines = this.value.machines.filter((machine) => {
-          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          // elemental machines use an older version of CAPI CRDs that use apiVersion instead of apiGroup
+          const isElementalCluster = (machine.spec?.infrastructureRef?.apiGroup || machine.spec?.infrastructureRef?.apiVersion).startsWith('elemental.cattle.io');
           const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
           if (isElementalCluster) {
@@ -407,8 +413,23 @@ export default {
 
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
+        // The MachineDeployment still exists for empty pools. The
+        // infrastructureRef points to the template that matches the current
+        // config. Fallback to the prefix-match to return an arbitrary template
+        // when multiple exist
+        const machineDeployment = this.allMachineDeployments.find(
+          (d) => d.metadata.name === pool.metadata.name && d.metadata.namespace === pool.metadata.namespace
+        );
+        const activeTemplateName = machineDeployment?.spec?.template?.spec?.infrastructureRef?.name;
+
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => {
+          if (activeTemplateName) {
+            return t.metadata.name === activeTemplateName;
+          }
+
+          return t.metadata.name.startsWith(templateNamePrefix);
+        });
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 
@@ -450,7 +471,7 @@ export default {
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.machines;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.nodes;
     },
 
     showSnapshots() {
@@ -578,6 +599,7 @@ export default {
       // Hosted kubernetes providers with private endpoints need the registration tab
       // https://github.com/rancher/dashboard/issues/6036
       // https://github.com/rancher/dashboard/issues/4545
+
       if ( this.value.isHostedKubernetesProvider && this.value.isPrivateHostedProvider && !this.isClusterReady ) {
         return this.extDetailTabs.registration;
       }
@@ -626,7 +648,7 @@ export default {
     },
 
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
@@ -892,6 +914,7 @@ export default {
                         :disabled="!group.ref.canScaleDownPool()"
                         type="button"
                         class="btn btn-sm role-secondary"
+                        data-testid="scale-down-button"
                         @click="toggleScaleDownModal($event, group.ref)"
                       >
                         <i class="icon icon-sm icon-minus" />
@@ -901,6 +924,7 @@ export default {
                         :disabled="!group.ref.canScaleUpPool()"
                         type="button"
                         class="btn btn-sm role-secondary ml-10"
+                        data-testid="scale-up-button"
                         @click="group.ref.scalePool(1)"
                       >
                         <i class="icon icon-sm icon-plus" />

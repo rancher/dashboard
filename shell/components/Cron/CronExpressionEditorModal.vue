@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 
   .custom-cron-editor {
     margin: 64px auto;
-    max-width: 600px;
+    max-width: 660px;
   }
 
   .cron-info {

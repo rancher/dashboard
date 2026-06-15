@@ -8,20 +8,26 @@ export const AFTER_SAVE_HOOKS = '_afterSaveHooks';
 
 export default {
   methods: {
-    registerBeforeHook(boundFn, name, priority = 99, boundFnContext) {
-      this._registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
+    registerHook(key, boundFn, name, priority = 99, boundFnContext) {
+      this._registerHook(key, boundFn, name, priority, boundFnContext);
     },
 
-    unregisterBeforeSaveHook(name) {
-      this[BEFORE_SAVE_HOOKS] = this[BEFORE_SAVE_HOOKS].filter((hook) => {
-        // BEFORE_SAVE_HOOKS is an array of objects with keys
-        // fn, name and priority.
+    registerBeforeHook(boundFn, name, priority = 99, boundFnContext) {
+      this.registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
+    },
+
+    unregisterHook(key, name) {
+      this[key] = (this[key] || []).filter((hook) => {
         return hook.name !== name;
       });
     },
 
+    unregisterBeforeSaveHook(name) {
+      this.unregisterHook(BEFORE_SAVE_HOOKS, name);
+    },
+
     registerAfterHook(boundFn, name, priority = 99, boundFnContext) {
-      this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
+      this.registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
     },
 
     async applyHooks(key, ...args) {

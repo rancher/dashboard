@@ -68,7 +68,7 @@ export default class Namespace extends SteveModel {
         label:      this.t('namespace.move'),
         bulkable:   true,
         bulkAction: 'move',
-        enabled:    true,
+        enabled:    this.canUpdate,
         icon:       'icon icon-fork',
         weight:     3,
       });
@@ -132,6 +132,10 @@ export default class Namespace extends SteveModel {
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
     return project;
+  }
+
+  get projectNameDisplay() {
+    return this.project?.nameDisplay || '';
   }
 
   get groupById() {
@@ -267,7 +271,9 @@ export default class Namespace extends SteveModel {
   }
 
   get hideDetailLocation() {
-    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
+    const currentProduct = this.$rootGetters['currentProduct'];
+
+    return currentProduct ? !!currentProduct.hideNamespaceLocation : true;
   }
 
   get glance() {

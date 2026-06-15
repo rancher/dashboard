@@ -17,6 +17,7 @@ import { NotificationLevel } from '@shell/types/notifications';
 import { READ_NEW_RELEASE } from '@shell/store/prefs';
 import { Context, ReleaseInfo, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
+import { getReleaseNotesURL } from '@shell/utils/version';
 
 export async function processReleaseVersion(context: Context, releaseInfo: ReleaseInfo[] | undefined, versionInfo: VersionInfo) {
   if (!releaseInfo || !versionInfo?.version || !Array.isArray(releaseInfo)) {
@@ -55,7 +56,8 @@ export async function processReleaseVersion(context: Context, releaseInfo: Relea
 
 async function addNewReleaseNotification(context: Context, version: string) {
   const prefix = 'new-release-';
-  const releaseNotesUrl = context.settings.releaseNotesUrl.replace('$version', version);
+  const releaseNotesUrl = getReleaseNotesURL(context.config.prime, version);
+
   const { dispatch, getters, logger } = context;
 
   // TODO: Get the preference
@@ -89,8 +91,8 @@ async function addNewReleaseNotification(context: Context, version: string) {
 async function addNewMultipleReleasesNotification(context: Context, version1: string, version2: string) {
   const prefix = 'new-release-';
   const key = `${ version1 }-${ version2 }`;
-  const releaseNotesUrl1 = context.settings.releaseNotesUrl.replace('$version', version1);
-  const releaseNotesUrl2 = context.settings.releaseNotesUrl.replace('$version', version2);
+  const releaseNotesUrl1 = getReleaseNotesURL(context.config.prime, version1);
+  const releaseNotesUrl2 = getReleaseNotesURL(context.config.prime, version2);
   const { dispatch, getters, logger } = context;
 
   // TODO: Get the preference

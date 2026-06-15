@@ -74,6 +74,7 @@ export default {
       class="mt-15"
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         name="basics"

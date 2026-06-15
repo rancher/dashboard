@@ -35,11 +35,11 @@ export default {
   computed: {
     ...QUOTA_COMPUTED,
     projectResourceQuotaLimits() {
-      return this.project?.spec?.resourceQuota?.limit || {};
+      return this.flatListFromLimits(this.project?.spec?.resourceQuota?.limit || {});
     },
     namespaceResourceQuotaLimits() {
       return this.project.namespaces.map((namespace) => ({
-        ...namespace.resourceQuota.limit,
+        ...this.flatListFromLimits(namespace.resourceQuota.limit),
         id: namespace.id
       }));
     },
@@ -47,7 +47,7 @@ export default {
       return Object.keys(this.projectResourceQuotaLimits);
     },
     defaultResourceQuotaLimits() {
-      return this.project.spec.namespaceDefaultResourceQuota.limit;
+      return this.flatListFromLimits(this.project.spec.namespaceDefaultResourceQuota.limit || {});
     }
   },
 
@@ -57,14 +57,35 @@ export default {
         .filter((type) => !this.types.includes(type.value) || type.value === currentType);
     },
     update(key, value) {
-      const resourceQuota = {
-        limit: {
-          ...this.value.resourceQuota.limit,
-          [key]: value
-        }
-      };
+      this.value['resourceQuota'] = { limit: this.limitsFromFlatList(key, value) };
+    },
+    flatListFromLimits(limit) {
+      const result = {};
 
-      this.value['resourceQuota'] = resourceQuota;
+      Object.keys(limit || {}).forEach((key) => {
+        if (key === 'extended') {
+          Object.keys(limit.extended || {}).forEach((extKey) => {
+            result[`extended.${ extKey }`] = limit.extended[extKey];
+          });
+        } else {
+          result[key] = limit[key];
+        }
+      });
+
+      return result;
+    },
+    limitsFromFlatList(key, value) {
+      const limit = { ...this.value.resourceQuota.limit };
+
+      if (key.startsWith('extended.')) {
+        const resourceIdentifier = key.slice('extended.'.length);
+
+        limit.extended = { ...(limit.extended || {}), [resourceIdentifier]: value };
+      } else {
+        limit[key] = value;
+      }
+
+      return limit;
     }
   },
 };

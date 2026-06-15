@@ -1,7 +1,7 @@
 <script lang="ts">
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { defineComponent } from 'vue';
 

@@ -1,27 +1,10 @@
 import { mount } from '@vue/test-utils';
-import Bubble from '@shell/components/Resource/Detail/Card/PodsCard/Bubble.vue';
-import PodsCard from '@shell/components/Resource/Detail/Card/PodsCard/index.vue';
+import PodsCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import Scaler from '@shell/components/Resource/Detail/Card/Scaler.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import { createStore } from 'vuex';
-
-describe('component: Bubble', () => {
-  it('should render element with bubble class for styling', async() => {
-    const content = 'content';
-    const wrapper = mount(Bubble, { slots: { default: content } });
-
-    expect(wrapper.element.className).toStrictEqual('bubble');
-  });
-
-  it('should render default slot content', async() => {
-    const content = 'content';
-    const wrapper = mount(Bubble, { slots: { default: content } });
-
-    expect(wrapper.find('.bubble').element.innerHTML).toStrictEqual(content);
-  });
-});
 
 describe('component: PodsCard', () => {
   const store = createStore({});
@@ -30,11 +13,12 @@ describe('component: PodsCard', () => {
   const podFail = { stateSimpleColor: 'error', stateDisplay: 'Error' };
 
   it('should pass title to Card prop correctly', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true }, global: { provide: { store } } });
+    const title = 'component.resource.detail.card.podsCard.title';
+    const wrapper = mount(PodsCard, { props: { title, showScaling: true }, global: { provide: { store } } });
 
     const card = wrapper.findComponent(Card);
 
-    expect(card.props('title')).toStrictEqual('component.resource.detail.card.podsCard.title');
+    expect(card.props('title')).toStrictEqual(title);
   });
 
   it('should show Scaler when showScaling is true', async() => {
@@ -50,15 +34,25 @@ describe('component: PodsCard', () => {
   });
 
   it('should pass the appropriate props to the Scaler component', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true, pods: [podSuccess] }, global: { provide: { store } } });
+    const wrapper = mount(PodsCard, {
+      props: {
+        title: 'Test', showScaling: true, resources: [podSuccess]
+      },
+      global: { provide: { store } }
+    });
     const scaler = wrapper.findComponent(Scaler);
 
     expect(scaler.props('value')).toStrictEqual(1);
     expect(scaler.props('min')).toStrictEqual(0);
   });
 
-  it('should pass the appropriate props to the StatusBar component based on the pods input', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true, pods: [podSuccess, podFail] }, global: { provide: { store } } });
+  it('should pass the appropriate props to the StatusBar component based on the resources input', async() => {
+    const wrapper = mount(PodsCard, {
+      props: {
+        title: 'Test', showScaling: true, resources: [podSuccess, podFail]
+      },
+      global: { provide: { store } }
+    });
     const statusBar = wrapper.findComponent(StatusBar);
 
     const segments = statusBar.props('segments');
@@ -70,8 +64,13 @@ describe('component: PodsCard', () => {
     expect(segments[1].percent).toStrictEqual(50);
   });
 
-  it('should pass the appropriate props to the StatusRow component based on the pods input', async() => {
-    const wrapper = mount(PodsCard, { props: { showScaling: true, pods: [podSuccess, podFail] }, global: { provide: { store } } });
+  it('should pass the appropriate props to the StatusRow component based on the resources input', async() => {
+    const wrapper = mount(PodsCard, {
+      props: {
+        title: 'Test', showScaling: true, resources: [podSuccess, podFail]
+      },
+      global: { provide: { store } }
+    });
     const rows = wrapper.findComponent(StatusRow);
 
     expect(rows.props()).toStrictEqual({

@@ -38,6 +38,10 @@ export default {
       type:    String,
       default: 'disabled',
     },
+    tooltipField: {
+      type:    String,
+      default: 'tooltip',
+    },
 
     asLink: {
       type:    Boolean,
@@ -104,6 +108,7 @@ export default {
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
+      v-clean-tooltip="get(r, tooltipField) || null"
       :role="asLink ? 'link' : null"
       :aria-disabled="asLink && get(r, disabledField) === true ? true : null"
       :aria-label="get(r, nameField)"
@@ -126,16 +131,6 @@ export default {
         class="side-label"
         :class="{'indicator': true }"
       />
-      <div v-if="r.deploysOnWindows">
-        <label class="deploys-os-label">
-          {{ t('catalog.charts.deploysOnWindows') }}
-        </label>
-      </div>
-      <div v-if="r.windowsIncompatible">
-        <label class="os-incompatible-label">
-          {{ t('catalog.charts.windowsIncompatible') }}
-        </label>
-      </div>
       <div
         v-if="get(r, sideLabelField)"
         class="side-label"

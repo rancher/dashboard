@@ -11,12 +11,12 @@
   },
   "scripts": {},
   "engines": {
-    "node": ">=16"
+    "node": ">=24"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "@vue/cli-plugin-typescript": "~5.0.0"
+    "@vue/cli-plugin-babel": "5.0.9",
+    "@vue/cli-service": "5.0.8",
+    "@vue/cli-plugin-typescript": "5.0.9"
   },
   "browserslist": [
     "> 1%",

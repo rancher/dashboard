@@ -1,8 +1,6 @@
 <script>
 import Closeable from '@shell/mixins/closeable';
 import BrandImage from '@shell/components/BrandImage';
-import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
 import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
@@ -21,9 +19,7 @@ export default {
   },
 
   data() {
-    const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-    const brandMeta = getBrandMeta(setting?.value);
+    const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
     const banner = brandMeta?.banner || {};
     const align = banner.textAlign || 'center';
     const bannerClass = banner.bannerClass || '';

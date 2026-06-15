@@ -1,5 +1,5 @@
 <script>
-import { isV4Format, isV6Format } from 'ip';
+import ipaddr from 'ipaddr.js';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge';
@@ -15,10 +15,16 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     filteredExternalIps() {
-      return this.row.externalIps?.filter((ip) => this.isIp(ip)) || [];
+      const ips = this.row.externalIps ||
+        (this.row.externalIp && this.row.externalIp !== this.t('generic.none') ? [this.row.externalIp] : []);
+
+      return ips.filter((ip) => this.isIp(ip));
     },
     filteredInternalIps() {
-      return this.row.internalIps?.filter((ip) => this.isIp(ip)) || [];
+      const ips = this.row.internalIps ||
+        (this.row.internalIp ? [this.row.internalIp] : []);
+
+      return ips.filter((ip) => this.isIp(ip));
     },
     internalSameAsExternal() {
       return this.externalIp && this.internalIp && this.externalIp === this.internalIp;
@@ -59,7 +65,7 @@ export default {
   },
   methods: {
     isIp(ip) {
-      return ip && (isV4Format(ip) || isV6Format(ip));
+      return ip && (ipaddr.IPv4.isValidFourPartDecimal(ip) || ipaddr.IPv6.isValid(ip));
     }
   }
 };
@@ -108,10 +114,13 @@ export default {
     >
       <template #default>
         <RcStatusBadge
-          v-clean-tooltip="tooltipContent"
+          v-clean-tooltip="{content: tooltipContent, triggers: ['hover', 'focus']}"
+          :aria-label="t('generic.plusMore', {n: remainingIpCount})"
+          tabindex="0"
           status="info"
           data-testid="plus-more"
           @click.stop
+          @keyup.enter.space="$refs.dropdown.show()"
         >
           {{ t('generic.plusMore', {n: remainingIpCount}) }}
         </RcStatusBadge>
