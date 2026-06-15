@@ -3,7 +3,7 @@ import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, parse, matches } from '@shell/utils/selector';
+import { convertSelectorObj, parse, matches, convert } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
@@ -747,19 +747,26 @@ export default class Workload extends WorkloadService {
   }
 
   get relatedServices() {
-    // Find Services that have selectors that match this workload's Pod(s).
+    if (this.type === WORKLOAD_TYPES.JOB || this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return [];
+    }
+
+    const podTemplateLabels = this.spec?.template?.metadata?.labels;
+
+    if (!podTemplateLabels || Object.keys(podTemplateLabels).length === 0) {
+      return [];
+    }
+
+    const templateAsObj = { metadata: { labels: podTemplateLabels } };
+
     return this.servicesInNamespace.filter((service) => {
       const selector = service.spec.selector;
 
-      for (let i = 0; i < this.pods.length; i++) {
-        const pod = this.pods[i];
-
-        if (service.metadata?.namespace === this.metadata?.namespace && matches(pod, selector)) {
-          return true;
-        }
+      if (!selector || typeof selector !== 'object') {
+        return false;
       }
 
-      return false;
+      return matches(templateAsObj, convert(selector));
     });
   }
 
