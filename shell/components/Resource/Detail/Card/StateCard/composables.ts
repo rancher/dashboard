@@ -3,6 +3,10 @@ import { isHigherAlert, StateColor } from '@shell/utils/style';
 import { RouteLocationRaw } from 'vue-router';
 import { simpleColorForState, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 
+interface Tuple extends Count {
+  color: StateColor;
+}
+
 export interface SummaryCountValue {
   total: number;
   namespace?: Record<string, number>;
@@ -31,12 +35,9 @@ export function useResourceCardRow(label: string, resources: any[], stateColorKe
     agg[state].count++;
   });
 
-  interface Tuple extends Count {
-    color: StateColor;
-  }
   const tuples: Tuple[] = Object.values(agg);
 
-  tuples.sort((left: any, right: any) => {
+  tuples.sort((left: Tuple, right: Tuple) => {
     if (isHigherAlert(left.color, right.color)) {
       return -1;
     }
@@ -84,9 +85,6 @@ export function useResourceCardRowFromRelationships(label: string, relationships
     agg[state].count++;
   });
 
-  interface Tuple extends Count {
-    color: StateColor;
-  }
   const tuples: Tuple[] = Object.values(agg);
 
   tuples.sort((left: Tuple, right: Tuple) => {
