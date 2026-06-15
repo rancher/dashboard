@@ -33,7 +33,7 @@
     "@babel/preset-typescript": "7.16.7",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.60",
+    "@rancher/icons": "2.0.62",
     "@smithy/fetch-http-handler": "5.1.1",
     "@types/is-url": "1.2.30",
     "@types/node": "25.3.3",
