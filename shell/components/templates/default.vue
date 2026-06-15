@@ -152,7 +152,7 @@ export default {
       // Cluster shell is disabled via feature flag
       if (!this.$store.getters['features/get'](CLUSTER_SHELL)) {
         return;
-      };
+      }
 
       if (!shellFeatureEnabled) {
         return;
