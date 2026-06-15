@@ -6,7 +6,9 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 
 import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import { FLEET_APPCO_AUTH_GENERATE_NAME, fetchAppCoCharts, deriveRepoName } from '@shell/utils/fleet-appco';
+import {
+  FLEET_APPCO_AUTH_GENERATE_NAME, fetchAppCoCharts, deriveRepoName, ensureAppCoResources, ensureAppCoImagePullSecret
+} from '@shell/utils/fleet-appco';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { REPO_TYPE, REPO, CHART } from '@shell/config/query-params';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
@@ -35,6 +37,7 @@ const chartsFetchError = ref(false);
 const repoState = ref<RepoState | null>(null);
 const secretName = ref((route.query.secret as string) || '');
 const abortController = shallowRef<AbortController | null>(null);
+const repoCreationAttempted = ref(false);
 
 onBeforeUnmount(() => {
   abortController.value?.abort();
@@ -96,6 +99,20 @@ const loadCharts = async() => {
     if (!result.entries) {
       if (result.repoState?.error || result.repoState?.transitioning) {
         chartsFetchError.value = false;
+      } else if (result.notFound && !repoCreationAttempted.value && !abortController.value?.signal.aborted) {
+        // The repo genuinely doesn't exist (404) but a secret was supplied: create
+        // the image-pull secret + ClusterRepo (same as the credentials page) and
+        // retry. A real connection error (non-404) falls through to the error state
+        // below instead of being mistaken for an absent repo.
+        repoCreationAttempted.value = true;
+
+        const ensured = await ensureAppCoResources(store, secretName.value, namespace.value, t);
+
+        if (ensured) {
+          return loadCharts();
+        }
+
+        chartsFetchError.value = true;
       } else {
         chartsFetchError.value = true;
       }
@@ -104,6 +121,15 @@ const loadCharts = async() => {
     }
 
     chartEntries.value = result.entries;
+
+    // The repo exists, but its image-pull secret may have been removed (or never
+    // created if the repo was added outside this flow). Ensure it idempotently so
+    // chart installs can still pull images. A failure here must not block listing.
+    try {
+      await ensureAppCoImagePullSecret(store, secretName.value, namespace.value);
+    } catch (e) {
+      console.error('Failed to ensure AppCo image-pull secret:', e); // eslint-disable-line no-console
+    }
 
     await store.dispatch('catalog/loadRepo', { repoName: repoName.value });
   } catch (e) {

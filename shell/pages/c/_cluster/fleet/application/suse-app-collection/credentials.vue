@@ -7,8 +7,7 @@ import { AUTH_TYPE, SECRET } from '@shell/config/types';
 import {
   FLEET_APPCO_AUTH_GENERATE_NAME,
   createAppCoAuthSecret,
-  ensureAppCoImagePullSecret,
-  ensureAppCoClusterRepo,
+  ensureAppCoResources,
 } from '@shell/utils/fleet-appco';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
@@ -134,10 +133,7 @@ const save = async() => {
       secretName = secret.metadata.name;
     }
 
-    await Promise.all([
-      ensureAppCoImagePullSecret(store, secretName, namespace.value),
-      ensureAppCoClusterRepo(store, secretName, namespace.value, store.getters['i18n/t']),
-    ]);
+    await ensureAppCoResources(store, secretName, namespace.value, t);
 
     router.push({
       name:   'c-cluster-fleet-application-appco-charts',
