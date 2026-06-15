@@ -53,7 +53,7 @@ export function zodValidators(t: I18n['t']) {
     // Plain optional case (field() with no chained validators). Skip the
     // superRefine wrapper entirely since it would always be a no-op.
     if (transforms.length === 0 && requiredKey === undefined) {
-      return z.preprocess((v) => v ?? '', z.string());
+      return z.preprocess((v) => (v ?? '').toString(), z.string());
     }
 
     // Compiled once per builder state, then reused across every superRefine call
@@ -62,7 +62,7 @@ export function zodValidators(t: I18n['t']) {
     const requiredSchema = requiredKey !== undefined ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(requiredKey) })) : undefined;
 
     return z.preprocess(
-      (v) => v ?? '',
+      (v) => (v ?? '').toString(),
       z.string().superRefine((v: string, ctx) => {
         const requiredResult = requiredSchema?.safeParse(v);
         const hasIssue = requiredResult?.success === false ? requiredResult.error.issues[0] : (!v ? undefined : firstIssue(compiledTransforms, v));
