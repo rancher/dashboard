@@ -231,7 +231,7 @@ button.btn-medium.toggle-button {
   flex-shrink: 0;
   font-size: 16px;
   color: var(--body-text, inherit);
-  padding: 0;
+  --rc-button-padding: 0;
   min-height: initial;
 }
 
