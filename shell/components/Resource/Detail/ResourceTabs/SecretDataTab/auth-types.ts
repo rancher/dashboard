@@ -1,5 +1,9 @@
 import { computed, toValue } from 'vue';
 import { base64Decode } from '@shell/utils/crypto';
+import { extractDockerAuthCredentials } from '@shell/utils/secret';
+
+export type { DockerAuthEntry } from '@shell/utils/secret';
+export { extractDockerAuthCredentials } from '@shell/utils/secret';
 
 export const useSecretInfo = (resource: any) => {
   return computed(() => {
@@ -55,10 +59,9 @@ export const useDockerBasic = (resource: any) => {
   const dockerRegistry = useDockerRegistry(resource);
 
   return computed(() => {
-    return {
-      username: dockerAuths.value[dockerRegistry.value.registryUrl].username,
-      password: dockerAuths.value[dockerRegistry.value.registryUrl].password,
-    };
+    const authEntry = dockerAuths.value[dockerRegistry.value.registryUrl] || {};
+
+    return extractDockerAuthCredentials(authEntry);
   });
 };
 
