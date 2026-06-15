@@ -513,7 +513,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -718,7 +718,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -764,7 +764,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -814,7 +814,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -857,7 +857,7 @@ describe('class: Workload', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
-        spec:     {}
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
