@@ -27,9 +27,9 @@ describe('Home Links', { testIsolation: 'off' }, () => {
 
     HomePagePo.goTo();
 
-    // "SUSE Application Collection" for Rancher Prime, otherwise "Commercial Support"
+    // "SUSE Application Collection" for Rancher Prime, otherwise "Rancher Prime"
     cy.getRancherVersion().then((version) => {
-      const expectedValue = version.RancherPrime === 'true' ? 'SUSE Application Collection' : 'Commercial Support';
+      const expectedValue = version.RancherPrime === 'true' ? 'SUSE Application Collection' : 'Rancher Prime';
 
       homePage.supportLinks().should('have.length', 1).contains(expectedValue);
     });

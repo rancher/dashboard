@@ -4143,8 +4143,8 @@ landing:
     docs: Docs
     forums: Forums
   commercial:
-    title: Commercial Support
-    body: Learn about commercial support
+    title: Rancher Prime
+    body: Learn about Rancher Prime
   landingPrefs:
     body: "You can change where you land when you login"
     ariaLabelTakeMeToCluster: Select which cluster to take me to after login
@@ -9160,31 +9160,10 @@ customLinks:
     slack:      Slack
     issues:     File an Issue
     getStarted: Get Started
-    commercialSupport: Commercial Support
+    commercialSupport: Rancher Prime
     appCo: SUSE Application Collection
 
-##############################
-### Support Page
-##############################
-
-support:
-  bannerImage: Support page banner image
-  community:
-    title: SUSE Rancher provides world-class support
-    linksTitle: Community Support
-    learnMore: Find out more about SUSE Rancher Support
-    pricing: Contact us for pricing
-  subscription:
-    haveSupport: Already have support?
-    addSubscription: Add a Subscription ID
-    removeSubscription: Remove your Subscription ID
-    addTitle: Add your SUSE Subscription ID
-    addLabel: "Please enter a valid Subscription ID:"
-    removeTitle: Remove your ID?
-    removeBody: "Note: This will not affect your subscription."
-
   suse:
-    title: "Great News - You're covered"
     editBrand: Customize UI Theme
     access:
       title: Get Support
