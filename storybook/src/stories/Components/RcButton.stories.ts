@@ -26,6 +26,10 @@ const meta: Meta<typeof RcButton> = {
       control:     { type: 'select' },
       description: 'Icon to display on the right side of the button text.'
     },
+    disabled: {
+      control:     { type: 'boolean' },
+      description: 'When true, the button is visually muted and non-interactive.'
+    },
     to: {
       control:     { type: 'text' },
       description: 'When provided, renders the button as a RouterLink for client-side navigation instead of a plain button element.'
@@ -45,8 +49,9 @@ export const Default: Story = {
     template: '<RcButton v-bind="args">Button Text</RcButton>',
   }),
   args: {
-    variant: 'primary',
-    size:    'medium',
+    variant:  'primary',
+    size:     'medium',
+    disabled: false,
   },
 };
 

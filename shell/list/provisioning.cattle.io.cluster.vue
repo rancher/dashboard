@@ -343,14 +343,14 @@ export default {
           >
             {{ t('cluster.explore') }}
           </rc-button>
-          <button
+          <rc-button
             v-else
+            variant="secondary"
             data-testid="cluster-manager-list-explore"
             :disabled="true"
-            class="btn btn-sm role-secondary"
           >
             {{ t('cluster.explore') }}
-          </button>
+          </rc-button>
         </template>
       </PaginatedResourceTable>
     </template>
