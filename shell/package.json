@@ -77,7 +77,7 @@
     "eslint-import-resolver-node": "0.3.9",
     "eslint-module-utils": "2.6.1",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-jest": "29.15.2",
     "eslint-plugin-n": "15.2.0",
     "eslint-plugin-vue": "9.32.0",
     "event-target-shim": "5.0.1",
