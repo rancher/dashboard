@@ -154,10 +154,6 @@ export default {
         return;
       }
 
-      if (!shellFeatureEnabled) {
-        return;
-      }
-
       const cluster = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id:   clusterId,
