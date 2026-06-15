@@ -43,7 +43,13 @@ export default {
 
     if (this.$store.getters[`${ inStore }/canList`](CATALOG.APP)) {
       try {
-        const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+        let res;
+
+        try {
+          res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring-dashboards' });
+        } catch (err) {
+          res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+        }
 
         this.monitoringVersion = res?.currentVersion;
       } catch (err) {}

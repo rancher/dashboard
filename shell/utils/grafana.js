@@ -68,9 +68,16 @@ export async function allDashboardsExist(store, clusterId, embeddedUrls, storeNa
     try {
       res = await store.dispatch(`${ storeName }/find`, {
         type: CATALOG.APP,
-        id:   'cattle-monitoring-system/rancher-monitoring'
+        id:   'cattle-monitoring-system/rancher-monitoring-dashboards'
       });
     } catch (err) {
+      try {
+        res = await store.dispatch(`${ storeName }/find`, {
+          type: CATALOG.APP,
+          id:   'cattle-monitoring-system/rancher-monitoring'
+        });
+      } catch (err) {
+      }
     }
 
     monitoringVersion = res?.currentVersion;
