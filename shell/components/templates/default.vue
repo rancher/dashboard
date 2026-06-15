@@ -25,6 +25,7 @@ import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
 import { Layout } from '@shell/types/window-manager';
 import { RcButton } from '@components/RcButton';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -140,10 +141,20 @@ export default {
       debugger;
     },
 
+    // Open the shell for the current cluster if the user has permissions and the feature is enabled (invoked via keyboard shortcut)
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
       if ( !clusterId ) {
+        return;
+      }
+
+      // Cluster shell is disabled via feature flag
+      if (!this.$store.getters['features/get'](CLUSTER_SHELL)) {
+        return;
+      };
+
+      if (!shellFeatureEnabled) {
         return;
       }
 
