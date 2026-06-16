@@ -36,6 +36,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     // Clean up stale Harvester extension app and extension source repos to prevent test collisions
     cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+    cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (resourceResp) => resourceResp.status === 404, 10, { failOnStatusCode: false })
+      .should('eq', true);
 
     cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos').then((resp: Cypress.Response<any>) => {
       const extensionRepoUrls = ['rancher/ui-plugin-charts', 'harvester/harvester-ui-extension'];
@@ -90,7 +92,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // verify harvester extension added to extensions page
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
-      extensionsPo.waitForPage(null, 'installed');
+      extensionsPo.waitForPage(undefined, 'installed');
       extensionsPo.extensionCard(harvesterTitle).checkVisible();
 
       // verify harvester repo is added to repos list page
@@ -104,7 +106,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.waitForPage();
       cy.wait('@updateChart', LONG_TIMEOUT_OPT);
       harvesterPo.importHarvesterClusterButton().click();
-      harvesterPo.createHarvesterClusterForm().waitForPage(null, 'memberRoles');
+      harvesterPo.createHarvesterClusterForm().waitForPage(undefined, 'memberRoles');
       harvesterPo.createHarvesterClusterForm().title().should('contain', 'Harvester Cluster:');
       harvesterPo.createHarvesterClusterForm().nameNsDescription().name().set(harvesterClusterName);
       harvesterPo.createHarvesterClusterForm().nameNsDescription().description().set(`${ harvesterClusterName }-desc`);
@@ -115,7 +117,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         const harvesterClusterId = response.body.id;
         const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterId);
 
-        harvesterDetails.waitForPage(null, 'registration');
+        harvesterDetails.waitForPage(undefined, 'registration');
         harvesterDetails.title().should('contain', harvesterClusterName);
 
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
@@ -159,7 +161,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
-      extensionsPo.waitForPage(null, 'available', MEDIUM_TIMEOUT_OPT);
+      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
       // click on install button on card
@@ -170,7 +172,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.installModal().selectVersionClick(1);
       extensionsPo.installModal().installButton().click();
       cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
-      extensionsPo.waitForPage(null, 'installed');
+      extensionsPo.waitForPage(undefined, 'installed');
 
       extensionsPo.extensionReloadBanner().should('be.visible');
       extensionsPo.extensionReloadClick();
@@ -236,7 +238,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       extensionsPo.goTo();
       extensionsPo.waitForTabs();
-      extensionsPo.waitForPage(null, 'available', MEDIUM_TIMEOUT_OPT);
+      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
       extensionsPo.loading().should('not.exist');
 
       // click on install button on card
@@ -252,7 +254,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         extensionsPo.installModal().selectVersionClick(2, false);
         extensionsPo.installModal().installButton().click();
         cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
-        extensionsPo.waitForPage(null, 'installed');
+        extensionsPo.waitForPage(undefined, 'installed');
 
         extensionsPo.extensionReloadBanner().should('be.visible');
         extensionsPo.extensionReloadClick();
@@ -286,7 +288,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
         extensionsPo.goTo();
         extensionsPo.waitForTabs();
-        extensionsPo.waitForPage(null, 'installed');
+        extensionsPo.waitForPage(undefined, 'installed');
         extensionsPo.loading().should('not.exist');
         // check harvester version on card after update - should be latest
         extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);

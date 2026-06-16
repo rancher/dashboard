@@ -369,7 +369,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .noRowsShouldNotExist();
       fleetWorkspacesListPage.baseResourceList().masthead().create();
-      fleetWorkspaceCreateEditPage.waitForPage(null, 'allowedtargetnamespaces');
+      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'allowedtargetnamespaces');
       fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Workspace: Create');
       });
