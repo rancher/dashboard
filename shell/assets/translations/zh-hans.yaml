@@ -4947,9 +4947,6 @@ setup:
   confirmPassword: 确认新密码
   defaultPassword:
     intro: 这是你第一次访问 {vendor}。如果你预先设置了 Bootstrap 密码，请在此处输入。否则我们会为你生成一个随机密码。找到它：<br/><br/>
-    dockerPrefix: '"docker run" 安装：'
-    dockerPs: '运行<code>docker ps</code>找到你的容器 ID，然后运行：'
-    dockerSuffix: ""
     helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
   eula: 选中此框，即表示你接受<a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
