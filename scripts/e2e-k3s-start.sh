@@ -15,7 +15,7 @@ else
 fi
 
 if [ -n "$BRANCH_DATA" ]; then
-  K3S_VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["kube"].version')
+  KUBE_VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["kube"].version')
 
   # Helm Repo Info
   # - rancher-latest will have released versions (--devel rc's)
@@ -54,7 +54,7 @@ fi
 
 echo "--------------------------------------"
 echo "Using the following configuration:"
-echo "K3S_VERSION: ${K3S_VERSION}"
+echo "KUBE_VERSION: ${KUBE_VERSION}"
 echo "RANCHER_HELM_REPO_URL: ${RANCHER_HELM_REPO_URL}"
 echo "RANCHER_IMG_REPO: ${RANCHER_IMG_REPO}"
 echo "RANCHER_IMG_TAG: ${RANCHER_IMG_TAG}"
@@ -90,7 +90,7 @@ if [ "$DOWNLOADED_CHECKSUM" != "${K3S_CHECKSUM}" ]; then
   exit 1
 fi
 
-INSTALL_K3S_VERSION="$K3S_VERSION" sh k3s-script
+INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
 export KUBECONFIG=~/.kube/config
 mkdir ~/.kube 2> /dev/null
 sudo k3s kubectl config view --raw > "$KUBECONFIG"
