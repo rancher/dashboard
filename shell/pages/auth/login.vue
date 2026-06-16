@@ -410,13 +410,6 @@ export default {
             k="setup.defaultPassword.intro"
             :raw="true"
           />
-
-          <div>
-            <t
-              k="setup.defaultPassword.helmPrefix"
-              :raw="true"
-            />
-          </div>
           <br>
           <CopyCode>
             {{ kubectlCmd }}

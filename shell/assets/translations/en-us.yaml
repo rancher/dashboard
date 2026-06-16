@@ -6516,8 +6516,7 @@ setup:
   currentPassword: Bootstrap Password
   confirmPassword: Confirm New Password
   defaultPassword:
-    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.  To find it:<br/><br/>
-    helmPrefix: 'Run:'
+    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.  To find it, run:<br/><br/>
     helmSuffix: ""
   eula: By checking the box, you accept the <a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
   newPassword: New Password
