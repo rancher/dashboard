@@ -24,8 +24,11 @@ if [ -n "$BRANCH_DATA" ]; then
   # - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
   RANCHER_HELM_REPO_URL=$(echo "$BRANCH_DATA" | jq -r '.e2e["helm"]["repo-url"]')
 
+  ## {registry}/{repo namespace}/{repo name}:{tag}
+  ## stgregistry.suse.com/rancher/rancher:v2-13-head
 
   # Helm Image version
+  RANCHER_IMG_REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
   RANCHER_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].namespace')
   RANCHER_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].name')
   RANCHER_IMG_REPO=$RANCHER_IMG_NAMESPACE/$RANCHER_IMG_NAME
@@ -37,17 +40,10 @@ if [ -n "$BRANCH_DATA" ]; then
   RANCHER_AGENT_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-agent"].tag')
 
   RANCHER_AGENT_IMG=$RANCHER_AGENT_IMG_NAMESPACE/$RANCHER_AGENT_IMG_NAME:$RANCHER_AGENT_IMG_TAG
-  
-  # TODO: RC wire in registry (currently always dockerhub)
-  # if [ -n "$REGISTRY" ]; then
-  #   RANCHER_IMG_REGISTRY="${REGISTRY}/"
-  # fi
 else
   echo "Error: Failed to get branch metadata"
   exit 1
 fi
-
-
 
 RANCHER_HELM_REPO_NAME=rancher-helm
 
@@ -85,7 +81,6 @@ RANCHER_AUDIT_LOG_LEVEL=3
 # ---------------------------------
 
 echo "Installing k3s (with kubectl).........."
-# TODO: RC cache in different step
 export K3S_CHECKSUM=8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
 curl -sfL -o k3s-script https://raw.githubusercontent.com/k3s-io/k3s/v1.35.3%2Bk3s1/install.sh
 
@@ -142,6 +137,7 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --devel \
   --set hostname=$DASHBOARD_URL \
   --set replicas="1" \
+  --set systemDefaultRegistry=$RANCHER_IMG_REGISTRY \
   --set image.repository="$RANCHER_IMG_REPO" \
   --set image.tag="$RANCHER_IMG_TAG" \
   --set image.pullPolicy="Always" \
