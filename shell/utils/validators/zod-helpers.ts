@@ -4,21 +4,22 @@ import type { I18n } from '@shell/composables/useI18n';
 
 export type Transform = (schema: ZodString) => ZodTypeAny;
 
-// Erased view of a transform factory used only when iterating the registry
-// below - individual factories keep their real parameter types via
-// TransformFactories/FieldBuilder.
+// Untyped alias used for iterating factories; callers see the real signatures
+// through FieldBuilder.
 type TransformFactory = (...args: any[]) => Transform;
 
-// Factories for validators that simply append a Transform to a field's
-// pipeline. Each closes over the field's own key so it can default messages to
-// it (e.g. url's keyOverride || fieldKey || undefined). Add new transform-style
+// Factories for validators that append a Transform to a field's pipeline. Each
+// closes over the field's own key so it can default messages to it (e.g. url's
+// keyOverride || fieldKey || undefined). Add new transform-style
 // validators here. FieldBuilder and makeBuilder pick them up automatically.
 function createTransformFactories(t: I18n['t'], fieldKey: string) {
+  const key = (override?: string) => override || fieldKey;
+
   return {
     url: (keyOverride?: string): Transform => {
-      const key = keyOverride || fieldKey || undefined;
+      const k = key(keyOverride) || undefined;
 
-      return (s) => s.url(key ? t('validation.url', { key: t(key) }) : t('validation.genericUrl'));
+      return (s) => s.url(k ? t('validation.url', { key: t(k) }) : t('validation.genericUrl'));
     },
   };
 }
@@ -56,8 +57,9 @@ export function zodValidators(t: I18n['t']) {
       return z.preprocess((v) => (v ?? '').toString(), z.string());
     }
 
-    // Compiled once per builder state, then reused across every superRefine call
-    // (e.g. every keystroke revalidation) since none of these depend on `v`.
+    // Compiled once per builder state, then reused across every superRefine
+    // call (e.g. every keystroke revalidation) since none of these depend on
+    // `v`.
     const compiledTransforms = transforms.map((transform) => transform(z.string()));
     const requiredSchema = requiredKey !== undefined ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(requiredKey) })) : undefined;
 
