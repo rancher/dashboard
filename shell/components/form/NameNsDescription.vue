@@ -310,8 +310,8 @@ export default {
 
     if (props.namespaced) {
       if (props.forceNamespace) {
-        namespace.value = toRef(props.forceNamespace);
-        updateNamespace(namespace);
+        namespace.value = props.forceNamespace;
+        updateNamespace(namespace.value);
       } else if (props.namespaceKey) {
         namespace.value = get(v.value, props.namespaceKey);
       } else {
@@ -321,7 +321,7 @@ export default {
       if (!namespace.value && !props.noDefaultNamespace) {
         namespace.value = store.getters['defaultNamespace'];
         if (metadata) {
-          metadata.namespace = namespace;
+          metadata.namespace = namespace.value;
         }
       }
     }
