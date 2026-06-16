@@ -48,6 +48,9 @@ describe('function: dateTimeFormat', () => {
 
 describe('function: secondsToLargestUnit', () => {
   it.each([
+    [0, { value: 0, unit: 1 }],
+    [-1, { value: -1, unit: 1 }],
+    [-86400, { value: -86400, unit: 1 }],
     [86400, { value: 1, unit: 86400 }],
     [172800, { value: 2, unit: 86400 }],
     [3600, { value: 1, unit: 3600 }],

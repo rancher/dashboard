@@ -158,6 +158,10 @@ const DURATION_UNITS = [
  * @returns An object with `value` (the count) and `unit` (the multiplier in seconds: 86400, 3600, 60, or 1)
  */
 export function secondsToLargestUnit(seconds: number): { value: number, unit: number } {
+  if (seconds <= 0) {
+    return { value: seconds, unit: 1 };
+  }
+
   if (seconds % 86400 === 0) {
     return { value: seconds / 86400, unit: 86400 };
   }
