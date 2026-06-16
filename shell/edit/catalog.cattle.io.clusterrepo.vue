@@ -15,7 +15,7 @@ import {
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { getVersionData } from '@shell/config/version';
-import { secondsToLargestUnit } from '@shell/utils/time';
+import { SECONDS_PER, secondsToLargestUnit } from '@shell/utils/duration';
 import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params.js';
 import { RcIconType } from '@components/RcIcon/types';
@@ -89,7 +89,7 @@ export default {
     const refreshEnabled = storedInterval === undefined || storedInterval >= 0;
 
     let refreshDisplayValue = null;
-    let refreshUnit = 3600;
+    let refreshUnit = SECONDS_PER.h;
 
     if (storedInterval && storedInterval > 0) {
       const parsed = secondsToLargestUnit(storedInterval);
@@ -135,10 +135,10 @@ export default {
     },
     unitOptions() {
       return [
-        { label: this.t('unit.sec'), value: 1 },
-        { label: this.t('unit.min'), value: 60 },
-        { label: this.t('unit.hour', { count: 2 }), value: 3600 },
-        { label: this.t('unit.day', { count: 2 }), value: 86400 },
+        { label: this.t('unit.sec'), value: SECONDS_PER.s },
+        { label: this.t('unit.min'), value: SECONDS_PER.m },
+        { label: this.t('unit.hour', { count: 2 }), value: SECONDS_PER.h },
+        { label: this.t('unit.day', { count: 2 }), value: SECONDS_PER.d },
       ];
     },
     refreshIntervalRules() {
@@ -247,7 +247,7 @@ export default {
       delete this.value.spec['refreshInterval'];
       this.refreshEnabled = true;
       this.refreshDisplayValue = null;
-      this.refreshUnit = 3600;
+      this.refreshUnit = SECONDS_PER.h;
     },
     resetOciValues() {
       delete this.value.spec['url'];
@@ -261,7 +261,7 @@ export default {
       this.ociMaxRetries = undefined;
       this.refreshEnabled = true;
       this.refreshDisplayValue = null;
-      this.refreshUnit = 3600;
+      this.refreshUnit = SECONDS_PER.h;
     },
     resetHelmValues() {
       delete this.value.spec['url'];

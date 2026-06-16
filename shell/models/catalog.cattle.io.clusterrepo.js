@@ -4,7 +4,7 @@ import { insertAt } from '@shell/utils/array';
 import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { _CREATE } from '@shell/config/query-params';
-import { formatDuration } from '@shell/utils/time';
+import { formatDuration } from '@shell/utils/duration';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 
