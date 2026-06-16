@@ -1,4 +1,15 @@
-import { findRouteDefinitionByName, filterLocationValidParams } from '@shell/utils/router';
+import {
+  findRouteDefinitionByName,
+  filterLocationValidParams,
+  queryParamsFor,
+  findMeta,
+  getClusterFromRoute,
+  getProductFromRoute,
+  getPackageFromRoute,
+  routeMatched,
+  routeRequiresAuthentication,
+  routeRequiresInstallRedirect,
+} from '@shell/utils/router';
 
 describe('findRouteDefinitionByName', () => {
   const createMockRouter = (routes) => ({ getRoutes: () => routes });
@@ -234,5 +245,247 @@ describe('filterLocationValidParams', () => {
       id:       'my-pod',
     });
     expect(result.params.extra).toBeUndefined();
+  });
+});
+
+describe('queryParamsFor', () => {
+  it.each([
+    {
+      desc:     'includes key when no default is defined',
+      current:  {},
+      qp:       { page: 2 },
+      defaults: {},
+      expected: { page: 2 },
+    },
+    {
+      desc:     'sets key to null when default is false and val is truthy',
+      current:  {},
+      qp:       { verbose: true },
+      defaults: { verbose: false },
+      expected: { verbose: null },
+    },
+    {
+      desc:     'deletes key when default is false and val is falsy',
+      current:  { verbose: null },
+      qp:       { verbose: false },
+      defaults: { verbose: false },
+      expected: {},
+    },
+    {
+      desc:     'deletes key when value matches non-false default',
+      current:  {},
+      qp:       { sort: 'name' },
+      defaults: { sort: 'name' },
+      expected: {},
+    },
+    {
+      desc:     'sets key when value differs from non-false default',
+      current:  {},
+      qp:       { sort: 'age' },
+      defaults: { sort: 'name' },
+      expected: { sort: 'age' },
+    },
+    {
+      desc:     'preserves unrelated keys from current',
+      current:  { filter: 'active' },
+      qp:       { page: 2 },
+      defaults: {},
+      expected: { filter: 'active', page: 2 },
+    },
+    {
+      desc:     'treats null current as empty object',
+      current:  null,
+      qp:       { page: 1 },
+      defaults: {},
+      expected: { page: 1 },
+    },
+  ])('$desc', ({
+    current, qp, defaults, expected
+  }) => {
+    expect(queryParamsFor(current, qp, defaults)).toStrictEqual(expected);
+  });
+});
+
+describe('findMeta', () => {
+  it.each([
+    {
+      desc:     'returns undefined when route has no meta',
+      route:    { params: {} },
+      key:      'product',
+      expected: undefined,
+    },
+    {
+      desc:     'returns undefined when route is null',
+      route:    null,
+      key:      'product',
+      expected: undefined,
+    },
+    {
+      desc:     'returns value from a plain meta object',
+      route:    { meta: { product: 'explorer' } },
+      key:      'product',
+      expected: 'explorer',
+    },
+    {
+      desc:     'returns value from a matching item in array meta',
+      route:    { meta: [{ cluster: 'local' }, { product: 'explorer' }] },
+      key:      'product',
+      expected: 'explorer',
+    },
+    {
+      desc:     'returns undefined when key is absent from all meta items',
+      route:    { meta: [{ cluster: 'local' }] },
+      key:      'product',
+      expected: undefined,
+    },
+  ])('$desc', ({ route, key, expected }) => {
+    expect(findMeta(route, key)).toStrictEqual(expected);
+  });
+});
+
+describe('getClusterFromRoute', () => {
+  it.each([
+    {
+      desc:     'returns cluster from route params',
+      to:       { params: { cluster: 'local' } },
+      expected: 'local',
+    },
+    {
+      desc:     'returns cluster from route meta when not in params',
+      to:       { params: {}, meta: { cluster: 'remote' } },
+      expected: 'remote',
+    },
+    {
+      desc:     'returns undefined when cluster is not in params or meta',
+      to:       { params: {} },
+      expected: undefined,
+    },
+  ])('$desc', ({ to, expected }) => {
+    expect(getClusterFromRoute(to)).toStrictEqual(expected);
+  });
+});
+
+describe('getProductFromRoute', () => {
+  it.each([
+    {
+      desc:     'returns product from route params',
+      to:       { params: { product: 'explorer' } },
+      expected: 'explorer',
+    },
+    {
+      desc:     'infers product segment from c-cluster-<product>-* route name',
+      to:       { name: 'c-cluster-explorer-workloads', params: {} },
+      expected: 'explorer',
+    },
+    {
+      desc: 'returns product from route meta when params and name do not have it',
+      to:   {
+        name: 'some-route', params: {}, meta: { product: 'manager' }
+      },
+      expected: 'manager',
+    },
+    {
+      desc:     'returns undefined when product is not found anywhere',
+      to:       { params: {} },
+      expected: undefined,
+    },
+  ])('$desc', ({ to, expected }) => {
+    expect(getProductFromRoute(to)).toStrictEqual(expected);
+  });
+});
+
+describe('getPackageFromRoute', () => {
+  it.each([
+    {
+      desc:     'returns undefined when route has no meta',
+      route:    {},
+      expected: undefined,
+    },
+    {
+      desc:     'returns pkg from array meta',
+      route:    { meta: [{ pkg: 'my-package' }] },
+      expected: 'my-package',
+    },
+    {
+      desc:     'returns pkg from plain object meta',
+      route:    { meta: { pkg: 'my-package' } },
+      expected: 'my-package',
+    },
+    {
+      desc:     'returns undefined when no meta item defines pkg',
+      route:    { meta: [{ product: 'explorer' }] },
+      expected: undefined,
+    },
+  ])('$desc', ({ route, expected }) => {
+    expect(getPackageFromRoute(route)).toStrictEqual(expected);
+  });
+});
+
+describe('routeMatched', () => {
+  it.each([
+    {
+      desc:     'returns false when route has no matched array',
+      to:       {},
+      fn:       (m) => !!m.meta?.test,
+      expected: false,
+    },
+    {
+      desc:     'returns true when predicate matches a route entry',
+      to:       { matched: [{ meta: { test: true } }] },
+      fn:       (m) => !!m.meta?.test,
+      expected: true,
+    },
+    {
+      desc:     'returns false when predicate matches no route entry',
+      to:       { matched: [{ meta: { other: true } }] },
+      fn:       (m) => !!m.meta?.test,
+      expected: false,
+    },
+  ])('$desc', ({ to, fn, expected }) => {
+    expect(routeMatched(to, fn)).toStrictEqual(expected);
+  });
+});
+
+describe('routeRequiresAuthentication', () => {
+  it.each([
+    {
+      desc:     'returns true when a matched route requires authentication',
+      to:       { matched: [{ meta: { requiresAuthentication: true } }] },
+      expected: true,
+    },
+    {
+      desc:     'returns false when no matched route requires authentication',
+      to:       { matched: [{ meta: {} }] },
+      expected: false,
+    },
+    {
+      desc:     'returns false when route has no matched array',
+      to:       {},
+      expected: false,
+    },
+  ])('$desc', ({ to, expected }) => {
+    expect(routeRequiresAuthentication(to)).toStrictEqual(expected);
+  });
+});
+
+describe('routeRequiresInstallRedirect', () => {
+  it.each([
+    {
+      desc:     'returns true when a matched route meta contains installRedirect',
+      to:       { matched: [{ meta: { installRedirect: 'some-product' } }] },
+      expected: true,
+    },
+    {
+      desc:     'returns false when no matched route has installRedirect',
+      to:       { matched: [{ meta: {} }] },
+      expected: false,
+    },
+    {
+      desc:     'returns false when route has no matched array',
+      to:       {},
+      expected: false,
+    },
+  ])('$desc', ({ to, expected }) => {
+    expect(routeRequiresInstallRedirect(to)).toStrictEqual(expected);
   });
 });

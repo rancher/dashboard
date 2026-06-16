@@ -78,6 +78,7 @@ export function init(store) {
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
+  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
@@ -129,10 +130,12 @@ export function init(store) {
 
   basicType([
     HOSTED_PROVIDER,
+    CAPI.CAPI_PROVIDER,
     'rke-kontainer-providers',
     'rke-node-providers',
   ], 'providers');
 
+  weightType(CAPI.CAPI_PROVIDER, 4, true);
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
@@ -231,7 +234,13 @@ export function init(store) {
 
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
-    NAME_COL,
+    NAME_COL, {
+      name:     'cluster',
+      labelKey: 'tableHeaders.cluster',
+      value:    'clusterName',
+      getValue: (row) => row.clusterName,
+      sort:     ['clusterName'],
+    },
     MACHINE_SUMMARY,
     AGE
   ]);
@@ -270,4 +279,24 @@ export function init(store) {
       })
     }
   });
+
+  const clusterGroupConfig = {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:          'icon-folder',
+      value:         'clusterName',
+      field:         'clusterName',
+      hideColumn:    'cluster',
+      tooltipKey:    'resourceTable.groupBy.cluster',
+      groupLabelKey: 'groupByLabel',
+    }],
+    listGroupsWillOverride: true,
+  };
+
+  configureType(CAPI.MACHINE_DEPLOYMENT, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE_SET, { ...clusterGroupConfig });
+  configureType(CAPI.MACHINE, { ...clusterGroupConfig });
 }

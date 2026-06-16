@@ -1,8 +1,9 @@
 <script>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 import isEqual from 'lodash/isEqual';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import { RadioGroup } from '@components/Form/Radio';
@@ -11,11 +12,13 @@ import { Checkbox } from '@components/Form/Checkbox';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
-import AuthConfig from '@shell/mixins/auth-config';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 import { get } from '@shell/utils/object';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { useFormValidation } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -68,7 +71,73 @@ export default {
     AuthProviderWarningBanners
   },
 
-  mixins: [CreateEditView, AuthConfig, FormValidation],
+  mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    const editMemberConfigRef = ref(false);
+    const isLogoutAllSupported = ref(false);
+    const sloTypeRef = ref(null);
+    const sloEndSessionEndpointUiEnabled = computed(() => (
+      sloTypeRef.value === SLO_OPTION_VALUES.all || sloTypeRef.value === SLO_OPTION_VALUES.both
+    ));
+
+    const urlRule = formRulesGenerator(t, {}).genericUrl;
+
+    const extraRules = {
+      applicationSecretRequired: (value) => {
+        if (!editMemberConfigRef.value && !value) {
+          return t('validation.required', { key: t('authConfig.azuread.applicationSecret.label') });
+        }
+
+        return undefined;
+      },
+      endSessionEndpointRequiredAndValid: (value) => {
+        if (!isLogoutAllSupported.value || !sloEndSessionEndpointUiEnabled.value) {
+          return undefined;
+        }
+        if (!value) {
+          return t('validation.required', { key: t('authConfig.azuread.endSessionEndpoint.title') });
+        }
+
+        return urlRule(value);
+      },
+    };
+
+    const { getRules, isFormValid } = useFormValidation(t, [
+      {
+        path: 'tenantId', rules: ['required'], translationKey: 'authConfig.azuread.tenantId.label'
+      },
+      {
+        path: 'applicationId', rules: ['required'], translationKey: 'authConfig.azuread.applicationId.label'
+      },
+      { path: 'applicationSecret', rules: ['applicationSecretRequired'] },
+      {
+        path: 'endpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.endpoint.label'
+      },
+      {
+        path: 'graphEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.graphEndpoint.label'
+      },
+      {
+        path: 'tokenEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.tokenEndpoint.label'
+      },
+      {
+        path: 'authEndpoint', rules: ['required', 'url'], translationKey: 'authConfig.azuread.authEndpoint.label'
+      },
+      { path: 'endSessionEndpoint', rules: ['endSessionEndpointRequiredAndValid'] },
+    ], extraRules);
+
+    return {
+      getRules,
+      isFormValid,
+      editMemberConfigRef,
+      isLogoutAllSupported,
+      sloTypeRef,
+      sloEndSessionEndpointUiEnabled,
+    };
+  },
 
   async fetch() {
     await this.reloadModel();
@@ -76,6 +145,8 @@ export default {
     if ( this.value?.graphEndpoint ) {
       this.setInitialEndpoint(this.value.graphEndpoint);
     }
+
+    await this.mixinFetch();
   },
 
   data() {
@@ -83,40 +154,15 @@ export default {
       isGroupMembershipFilterEnabled: !!this.value.groupMembershipFilter,
       endpoint:                       'standard',
       oldEndpoint:                    false,
+      SLO_OPTION_VALUES,
 
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
-      applicationSecret: this.value.applicationSecret,
-      fvFormRuleSets:    [
-        { path: 'tenantId', rules: ['tenantIdRequired'] },
-        { path: 'applicationId', rules: ['applicationIdRequired'] },
-        { path: 'applicationSecret', rules: ['applicationSecretRequired'] },
-        { path: 'endpoint', rules: ['endpointRequired', 'endpointMustBeURL'] },
-        { path: 'graphEndpoint', rules: ['graphEndpointRequired', 'graphEndpointMustBeURL'] },
-        { path: 'tokenEndpoint', rules: ['tokenEndpointRequired', 'tokenEndpointMustBeURL'] },
-        { path: 'authEndpoint', rules: ['authEndpointRequired', 'authEndpointMustBeURL'] },
-      ]
+      applicationSecret: this.value.applicationSecret
     };
   },
 
   computed: {
-    // Cannot pass this.model as a rootObject because it is undefined at that point, so had to use a workaround
-    fvExtraRules() {
-      return {
-        tenantIdRequired:          this.modelFieldRequired('tenantId', 'authConfig.azuread.tenantId.label'),
-        applicationIdRequired:     this.modelFieldRequired('applicationId', 'authConfig.azuread.applicationId.label'),
-        applicationSecretRequired: this.applicationSecretRequired(),
-        endpointRequired:          this.modelFieldRequired('endpoint', 'authConfig.azuread.endpoint.label'),
-        endpointMustBeURL:         this.modelFieldURL('endpoint'),
-        graphEndpointRequired:     this.modelFieldRequired('graphEndpoint', 'authConfig.azuread.graphEndpoint.label'),
-        graphEndpointMustBeURL:    this.modelFieldURL('graphEndpoint'),
-        tokenEndpointRequired:     this.modelFieldRequired('tokenEndpoint', 'authConfig.azuread.tokenEndpoint.label'),
-        tokenEndpointMustBeURL:    this.modelFieldURL('tokenEndpoint'),
-        authEndpointRequired:      this.modelFieldRequired('authEndpoint', 'authConfig.azuread.authEndpoint.label'),
-        authEndpointMustBeURL:     this.modelFieldURL('authEndpoint')
-      };
-    },
-
     tArgs() {
       return {
         baseUrl:  this.baseUrl,
@@ -165,10 +211,43 @@ export default {
     },
     editMemberConfig() {
       return this.model.enabled && !this.isEnabling && !this.editConfig;
-    }
+    },
+
+    displayName() {
+      return this.t('model.authConfig.name.azuread');
+    },
+
+    sloOptions() {
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.displayName }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.displayName }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      return sloOptionSelected?.label || '';
+    },
+
   },
 
   watch: {
+    editMemberConfig: {
+      handler(val) {
+        this.editMemberConfigRef = val;
+      },
+      immediate: true,
+    },
+
+    'model.logoutAllSupported': {
+      handler(val) {
+        this.isLogoutAllSupported = !!val;
+      },
+      immediate: true,
+    },
+
     endpoint(value) {
       this.setEndpoints(value);
     },
@@ -177,6 +256,29 @@ export default {
       if (this.endpoint !== 'custom') {
         this.setEndpoints(this.endpoint);
       }
+    },
+
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType: {
+      handler(neu) {
+        this.sloTypeRef = neu;
+        switch (neu) {
+        case SLO_OPTION_VALUES.rancher:
+          this.model.logoutAllEnabled = false;
+          this.model.logoutAllForced = false;
+          this.model.endSessionEndpoint = '';
+          break;
+        case SLO_OPTION_VALUES.all:
+          this.model.logoutAllEnabled = true;
+          this.model.logoutAllForced = true;
+          break;
+        case SLO_OPTION_VALUES.both:
+          this.model.logoutAllEnabled = true;
+          this.model.logoutAllForced = false;
+          break;
+        }
+      },
+      immediate: true,
     },
 
     model: {
@@ -278,23 +380,6 @@ export default {
           });
       }
     },
-    modelFieldRequired(path, label) {
-      return () => {
-        return !this.model[path] ? `${ this.t('validation.required', { key: this.t(label) }) }` : undefined;
-      };
-    },
-    applicationSecretRequired() {
-      return () => {
-        return !this.editMemberConfig && !this.model.applicationSecret ? `${ this.t('validation.required', { key: this.t('authConfig.azuread.applicationSecret.label') }) }` : undefined;
-      };
-    },
-    modelFieldURL(path) {
-      return () => {
-        const rule = formRulesGenerator(this.$store.getters['i18n/t'], {}).url;
-
-        return rule(this.model[path]);
-      };
-    }
   }
 };
 </script>
@@ -307,7 +392,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="fvFormIsValid"
+      :validation-passed="isFormValid"
       :finish-button-mode="model && model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -347,6 +432,14 @@ export default {
             <tr>
               <td>{{ t(`authConfig.azuread.authEndpoint.label`) }}:</td>
               <td>{{ model.authEndpoint }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t('authConfig.slo.sloTitle') }}:</td>
+              <td>{{ sloTypeText }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported && sloEndSessionEndpointUiEnabled">
+              <td>{{ t('authConfig.azuread.endSessionEndpoint.title') }}:</td>
+              <td>{{ model.endSessionEndpoint }}</td>
             </tr>
           </template>
           <template
@@ -398,10 +491,11 @@ export default {
             <LabeledInput
               id="tenant-id"
               v-model:value="model.tenantId"
+              name="tenantId"
               :label="t('authConfig.azuread.tenantId.label')"
               :mode="mode"
               :required="true"
-              :rules="fvGetAndReportPathRules('tenantId')"
+              :rules="getRules('tenantId')"
               :tooltip="t('authConfig.azuread.tenantId.tooltip')"
               :placeholder="t('authConfig.azuread.tenantId.placeholder')"
               data-testid="input-azureAD-tenantId"
@@ -413,10 +507,11 @@ export default {
             <LabeledInput
               id="application-id"
               v-model:value="model.applicationId"
+              name="applicationId"
               :label="t('authConfig.azuread.applicationId.label')"
               :mode="mode"
               :required="true"
-              :rules="fvGetAndReportPathRules('applicationId')"
+              :rules="getRules('applicationId')"
               :placeholder="t('authConfig.azuread.applicationId.placeholder')"
               data-testid="input-azureAD-applcationId"
             />
@@ -425,10 +520,11 @@ export default {
             <LabeledInput
               id="application-secret"
               v-model:value="model.applicationSecret"
+              name="applicationSecret"
               type="password"
               :label="t('authConfig.azuread.applicationSecret.label')"
               :required="true"
-              :rules="fvGetAndReportPathRules('applicationSecret')"
+              :rules="getRules('applicationSecret')"
               :mode="mode"
               data-testid="input-azureAD-applicationSecret"
             />
@@ -480,19 +576,21 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.endpoint"
+                name="endpoint"
                 :label="t('authConfig.azuread.endpoint.label')"
                 :mode="mode"
                 :required="true"
-                :rules="fvGetAndReportPathRules('endpoint')"
+                :rules="getRules('endpoint')"
                 data-testid="input-azureAD-endpoint"
               />
             </div>
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.graphEndpoint"
+                name="graphEndpoint"
                 :label="t('authConfig.azuread.graphEndpoint.label')"
                 :required="true"
-                :rules="fvGetAndReportPathRules('graphEndpoint')"
+                :rules="getRules('graphEndpoint')"
                 :mode="mode"
                 data-testid="input-azureAD-graphEndpoint"
               />
@@ -502,21 +600,64 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.tokenEndpoint"
+                name="tokenEndpoint"
                 :label="t('authConfig.azuread.tokenEndpoint.label')"
                 :mode="mode"
                 :required="true"
-                :rules="fvGetAndReportPathRules('tokenEndpoint')"
+                :rules="getRules('tokenEndpoint')"
                 data-testid="input-azureAD-tokenEndpoint"
               />
             </div>
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.authEndpoint"
+                name="authEndpoint"
                 :label="t('authConfig.azuread.authEndpoint.label')"
                 :required="true"
-                :rules="fvGetAndReportPathRules('authEndpoint')"
+                :rules="getRules('authEndpoint')"
                 :mode="mode"
                 data-testid="input-azureAD-authEndpoint"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- SLO logout -->
+        <div
+          v-if="isLogoutAllSupported"
+          class="mb-20"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4">
+              <RadioGroup
+                v-model:value="sloType"
+                :mode="mode"
+                :options="sloOptions"
+                :disabled="!model.logoutAllSupported"
+                name="sloTypeRadio"
+                data-testid="azuread-sloType"
+              />
+            </div>
+          </div>
+          <div
+            v-if="sloEndSessionEndpointUiEnabled"
+            class="row mt-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.endSessionEndpoint"
+                name="endSessionEndpoint"
+                :tooltip="t('authConfig.azuread.endSessionEndpoint.tooltip', { name: displayName, tenantId: `${ tenantId || 'tenant-id' }` }, true)"
+                :label="t('authConfig.azuread.endSessionEndpoint.title')"
+                :mode="mode"
+                :rules="getRules('endSessionEndpoint')"
+                :required="true"
+                data-testid="azuread-endSessionEndpoint"
               />
             </div>
           </div>

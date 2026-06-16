@@ -26,12 +26,12 @@ jobs:
     container: registry.suse.com/bci/nodejs:20
     steps:
     - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
     # The FOSSA token is shared between all repos in Rancher's GH org. It can
     # be used directly and there is no need to request specific access to EIO.
     - name: Read FOSSA token
-      uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
+      uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
       with:
         secrets: |
           secret/data/github/org/rancher/fossa/push token | FOSSA_API_KEY_PUSH_ONLY

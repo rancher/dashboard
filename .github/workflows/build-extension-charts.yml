@@ -46,7 +46,7 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout (test flow)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
@@ -54,7 +54,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -72,7 +72,7 @@ jobs:
           version: v3.8.0
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           cache: yarn
           node-version-file: '.nvmrc'
@@ -125,7 +125,7 @@ jobs:
       release-status: ${{ job.status }}
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: '${{ inputs.target_branch }}'
 

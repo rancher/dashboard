@@ -6,7 +6,7 @@ import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 import { qase } from '@/cypress/support/qase';
 
-const extensionName = 'kubewarden';
+const extensionName = 'SUSE Security Admission Controller';
 const gitRepoName = 'rancher-extensions';
 let removeExtensions = false;
 

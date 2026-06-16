@@ -1,4 +1,9 @@
 <script>
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -13,6 +18,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import FileSelector from '@shell/components/form/FileSelector';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   components: {
@@ -29,6 +35,49 @@ export default {
   },
 
   mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    // These refs sync Options API state into the Composition API for the reactive schema.
+    const isGithubAppRef = ref(false);
+    const isPublicRef = ref(true);
+
+    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
+    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
+    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
+    const optionalField = coerce(z.string());
+
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        clientId:     requiredField('authConfig.github.clientId.label'),
+        clientSecret: requiredField('authConfig.github.clientSecret.label'),
+        appId:        isGithubAppRef.value ? requiredField('authConfig.githubapp.githubAppId.label') : optionalField,
+        privateKey:   isGithubAppRef.value ? requiredField('authConfig.githubapp.privateKey.label') : optionalField,
+        targetUrl:    !isPublicRef.value ? requiredUrlField('authConfig.github.host.label') : optionalField,
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
+    return {
+      isGithubAppRef,
+      isPublicRef,
+      isFormValid,
+      validateAllFields,
+    };
+  },
 
   async fetch() {
     await this.mixinFetch();
@@ -97,32 +146,37 @@ export default {
     },
 
     validationPassed() {
-      // Allows for configuring authorized users and groups
       if ( this.model.enabled && !this.editConfig ) {
         return true;
       }
 
-      if (!this.model.clientId || !this.model.clientSecret) {
-        return false;
-      }
-
-      if (this.isGithubApp && (!this.model.appId || !this.model.privateKey)) {
-        return false;
-      }
-
-      return true;
+      return this.isFormValid;
     },
 
   },
 
   watch: {
-    targetType: 'updateHost',
-    targetUrl:  'updateHost',
+    'model.id': {
+      handler(newVal) {
+        this.isGithubAppRef = newVal === 'githubapp';
+      },
+      immediate: true,
+    },
+
+    targetType: {
+      handler(newVal) {
+        this.isPublicRef = newVal === 'public';
+        this.updateHost();
+      },
+      immediate: true,
+    },
+
+    targetUrl: 'updateHost',
   },
 
   methods: {
     updateHost() {
-      const match = this.targetUrl.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
+      const match = this.targetUrl?.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
 
       if ( match ) {
         if ( match[3] === 'http') {
@@ -212,6 +266,7 @@ export default {
             <LabeledInput
               v-if="!isPublic"
               v-model:value="targetUrl"
+              name="targetUrl"
               :label-key="`authConfig.${NAME}.host.label`"
               :placeholder="t(`authConfig.${NAME}.host.placeholder`)"
               :required="true"
@@ -231,6 +286,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientId"
+              name="clientId"
               required
               data-testid="client-id"
               :label="t(`authConfig.${NAME}.clientId.label`)"
@@ -240,6 +296,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientSecret"
+              name="clientSecret"
               required
               data-testid="client-secret"
               type="password"
@@ -253,6 +310,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.appId"
+                name="appId"
                 required
                 data-testid="app-id"
                 :label="t(`authConfig.${NAME}.githubAppId.label`)"
@@ -272,6 +330,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.privateKey"
+                name="privateKey"
                 required
                 data-testid="private-key"
                 type="multiline"

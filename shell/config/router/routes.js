@@ -58,12 +58,7 @@ export default [
         path:      '/home',
         component: () => interopDefault(import('@shell/pages/home.vue')),
         name:      'home'
-      },
-      {
-        path:      '/support',
-        component: () => interopDefault(import('@shell/pages/support/index.vue')),
-        name:      'support'
-      },
+      }
     ]
   },
   {

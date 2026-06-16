@@ -12,7 +12,7 @@ on:
     name: pr-fix
   reaction: "eyes"
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_PR_FIX != 'true'
 
 permissions: read-all
 

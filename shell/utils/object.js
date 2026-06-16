@@ -163,6 +163,9 @@ returns an object with no key/value pairs (including nested) where the value is:
   undefined
 */
 export function cleanUp(obj) {
+  if ( !obj || typeof obj !== 'object') {
+    return obj;
+  }
   Object.keys(obj).map((key) => {
     const val = obj[key];
 
@@ -267,7 +270,7 @@ export function diff(from, to, preventNull = false) {
     }
 
     if (preventNull) {
-    // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
+      // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
       // so that we can access the value of the obj property
       let key = k;
 
@@ -282,7 +285,24 @@ export function diff(from, to, preventNull = false) {
         set(out, key, null);
       }
     } else {
-      set(out, k, null);
+      const parts = splitObjectPath(k);
+
+      // Skip any missing nested key whose parent path in out is already a
+      // non-object. We don't want to attempt to null out the key that appeared
+      // in the diff when a pre-defined key
+      // (githubConfigSecret.github_token: '') gets updated to
+      // (githubConfigSecret: 'preexisting-secret')
+      const skip = parts.some((part) => {
+        const existingVal = out?.[part];
+
+        if (existingVal !== undefined && !isObject(existingVal)) {
+          return true;
+        }
+      });
+
+      if (!skip) {
+        set(out, k, null);
+      }
     }
   }
 

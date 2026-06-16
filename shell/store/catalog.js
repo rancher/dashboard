@@ -559,7 +559,10 @@ function addChart(ctx, map, chart, repo) {
 
     const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
-    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+
+    const isRancherRepoFlag = isRancherRepo(repo, chart);
+    const permittedSystems = getPermittedOSs(chart.annotations, isRancherRepoFlag);
+    const windowsIncompatible = permittedSystems.length > 0 && !permittedSystems.includes('windows');
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
@@ -608,6 +611,7 @@ function addChart(ctx, map, chart, repo) {
       provides:         [],
       windowsIncompatible,
       deploysOnWindows,
+      isRancherRepo:    isRancherRepoFlag,
       tags
     });
 
@@ -692,13 +696,13 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   }
 
   return versions.filter((ver) => {
-    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+    const osPermitted = getPermittedOSs(ver?.annotations, chart?.isRancherRepo);
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
       return false;
     }
 
-    if ( !os || difference(os, osPermitted).length === 0) {
+    if ( !os || osPermitted.length === 0 || difference(os, osPermitted).length === 0) {
       return true;
     }
 
@@ -786,4 +790,24 @@ export function filterAndArrangeCharts(charts, {
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
+}
+
+/**
+ * Detects if a repository is a Rancher repository.
+ */
+export function isRancherRepo(repo, chart) {
+  return !!(chart?.isRancherRepo || repo?.isRancherSource);
+}
+
+/**
+ * Returns an array of permitted operating systems for a given chart or version.
+ * If the chart explicitly defines permitted OSs via annotation, those are returned.
+ * Otherwise, if the chart is from a Rancher repository, it defaults to Linux.
+ * External charts with no annotations have no OS restrictions (returns empty array).
+ */
+export function getPermittedOSs(annotations, isRancher) {
+  const permittedOs = annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS];
+  const fallbackOs = isRancher ? LINUX : '';
+
+  return (permittedOs || fallbackOs).split(',').filter(Boolean);
 }

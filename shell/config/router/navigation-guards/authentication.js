@@ -61,18 +61,20 @@ export async function authenticate(to, from, next, { store }) {
     await store.dispatch('auth/getUser');
     const user = store.getters['auth/user'] || {};
 
-    if (user?.mustChangePassword) {
-      return next({ name: 'auth-setup' });
-    }
-
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
+
+    const mustChangePasswordFor = (me) => user?.mustChangePassword && me?.provider === 'local';
 
     if ( fromHeader === 'none' ) {
       noAuth(store);
       handleOidcRedirectToCallbackUrl();
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
+
+      if (mustChangePasswordFor(me)) {
+        return next({ name: 'auth-setup' });
+      }
 
       await isLoggedIn(store, getUserObject(user, me));
       handleOidcRedirectToCallbackUrl();
@@ -84,6 +86,10 @@ export async function authenticate(to, from, next, { store }) {
       // Older versions look at principals and see what happens
       try {
         const me = await findMe(store);
+
+        if (mustChangePasswordFor(me)) {
+          return next({ name: 'auth-setup' });
+        }
 
         await isLoggedIn(store, getUserObject(user, me));
         handleOidcRedirectToCallbackUrl();

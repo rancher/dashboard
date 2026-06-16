@@ -3,6 +3,10 @@ import Resource from '@shell/plugins/dashboard-store/resource-class.js';
 import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
 import { EVENT } from '@shell/config/types';
 
+jest.mock('@shell/config/version', () => ({ getVersionData: () => ({ Version: 'v2.13.0' }) }));
+jest.mock('@shell/config/uiplugins', () => ({ parseRancherVersion: (v: string) => v }));
+jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: () => [] }));
+
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
     const customResource = resourceClassJunkObject;
@@ -399,6 +403,99 @@ describe('class: Resource', () => {
 
       expect(cards).toHaveLength(0);
     });
+
+    it('should include the resources card when relationships exist', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 'a'
+            },
+            {
+              rel: 'uses', fromType: 'pod', fromId: 'b'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(1);
+      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+    });
+  });
+
+  describe('getter: resourcesCard', () => {
+    it('should return null when there are no relationships', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      expect(resource.resourcesCard).toBeNull();
+    });
+
+    it('should return rows for both referredToBy and refersTo when relationships exist in both directions', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'owner', fromType: 'rs', fromId: 'r-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-2'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(2);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
+      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+      expect(rows[1].counts[0].count).toBe(2);
+    });
+
+    it('should omit a direction with no relationships', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+    });
   });
 
   describe('getter: insightCardProps', () => {
@@ -495,6 +592,90 @@ describe('class: Resource', () => {
       expect(actions[0].variant).toBe('secondary');
       expect(actions[1].label).toBe('Action 2');
       expect(actions[1].variant).toBe('primary');
+    });
+  });
+
+  describe('getter: _availableActions', () => {
+    function createResource(links: Record<string, string>, overrides: Record<string, any> = {}) {
+      const resource = new Resource({
+        type: 'test-type',
+        links,
+        ...overrides,
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:           jest.fn(),
+            resourceMethods:   [],
+            collectionMethods: [],
+          }),
+        },
+        dispatch:    jest.fn(),
+        rootState:   { $extension: { getPlugins: () => ({}) } },
+        rootGetters: {
+          'i18n/t':                 (key: string) => key,
+          'type-map/hasCustomEdit': () => false,
+          'type-map/optionsFor':    () => ({
+            isEditable: false, isRemovable: true, isCreatable: false
+          }),
+          'prefs/get':    () => false,
+          currentCluster: undefined,
+          currentProduct: undefined,
+          ...overrides.rootGetters,
+        },
+      });
+
+      jest.spyOn(resource, 'currentRouter').mockReturnValue({ currentRoute: { value: {} } } as any);
+
+      return resource;
+    }
+
+    function findAction(actions: any[], actionName: string) {
+      return actions.find((a: any) => a.action === actionName);
+    }
+
+    it('should hide "View YAML" when "Show Configuration" is enabled and resource cannot edit YAML', () => {
+      const resource = createResource({ view: '/api/v1/test' });
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewYaml.enabled).toBe(false);
+    });
+
+    it('should show "Edit YAML" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/optionsFor': () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            })
+          }
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editYaml = findAction(actions, 'goToEditYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editYaml.enabled).toBe(true);
+    });
+
+    it('should show "View YAML" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { disableResourceDetailDrawer: true },
+      );
+
+      const actions = resource._availableActions;
+      const viewYaml = findAction(actions, 'goToViewYaml');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewYaml.enabled).toBe(true);
     });
   });
 });

@@ -9,10 +9,11 @@ import { NAME } from '@shell/config/product/auth';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
-    AsyncButton, ResourceTable, Masthead, Loading
+    AsyncButton, ResourceTable, Masthead, Loading, RcButton
   },
   props: {
     resource: {
@@ -130,13 +131,13 @@ export default {
           :class="{'mr-5': canCreateGlobalRoleBinding}"
           @click="refreshGroupMemberships"
         />
-        <router-link
+        <rc-button
           v-if="canCreateGlobalRoleBinding"
+          size="large"
           :to="assignLocation"
-          class="btn role-primary"
         >
           {{ t("authGroups.actions.assignRoles") }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
 

@@ -262,6 +262,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.driver` },
       { field: `status.provider` },
       { field: `status.info.kubernetesVersion` },
+      { field: `spec.fleetWorkspaceName` },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
@@ -655,7 +656,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * A lot of the requirements and details are taken directly from
    * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
    */
-  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
+  convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 

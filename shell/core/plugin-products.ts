@@ -47,4 +47,8 @@ export class PluginProduct {
   get newProduct(): boolean {
     return this.instance.isNewProduct;
   }
+
+  get productName(): string {
+    return this.instance.productName;
+  }
 }

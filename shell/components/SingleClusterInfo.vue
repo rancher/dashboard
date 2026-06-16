@@ -13,6 +13,7 @@ export default {
   },
 
   async fetch() {
+    // There's only one cluster, might as well fetch them all...
     this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
   },
 

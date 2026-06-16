@@ -17,7 +17,7 @@
       name: test-assist
     reaction: "eyes"
 
-  if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+  if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_TEST_IMPROVER != 'true'
 
   timeout-minutes: 30
 
