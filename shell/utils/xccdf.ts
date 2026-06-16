@@ -61,16 +61,17 @@ export interface BenchmarkMetadata {
   source?: string;
 }
 
-export interface StigCheckMetadata {
+export interface CheckDecoration {
   ruleId?: string;
   version?: string;
   severity?: string;
   fixId?: string;
   checkId?: string;
-  cci?: string[];
+  /** Generic XCCDF idents — STIG populates with CCIs, CIS with control IDs, etc. */
+  idents?: { system: string; value: string }[];
 }
 
-export type StigChecks = Record<string, StigCheckMetadata>;
+export type CheckDecorations = Record<string, CheckDecoration>;
 
 export interface XccdfTargetFact {
   name: string;
@@ -82,7 +83,7 @@ export interface GenerateXccdfArgs {
   report: XccdfReport;
   benchmarkVersion: string;
   metadata?: BenchmarkMetadata;
-  stigChecks?: StigChecks;
+  decorations?: CheckDecorations;
   targetAddresses?: string[];
   targetFacts?: XccdfTargetFact[];
   /** Override the cluster name used for the <target> element. Falls back to metadata.clusterName, then derived node names. */
@@ -101,32 +102,27 @@ const fixIdFor = (checkId: string): string => `${ ruleIdFor(checkId) }_fix`;
 
 const profileIdFor = (benchmarkVersion: string): string => `${ ID_PREFIX }_profile_${ safeId(benchmarkVersion) }`;
 
-const stigGroupId = (checkId: string): string => {
-  const parts = checkId.split('-');
-
-  if (parts.length >= 2) {
-    return `${ parts[0] }-${ parts[1] }`;
-  }
-
-  return checkId;
-};
-
-const effectiveRuleId = (stig: StigCheckMetadata, checkId: string): string => {
-  if (!stig.ruleId) {
+const effectiveRuleId = (decoration: CheckDecoration, groupId: string, checkId: string, hitGroupKey: boolean): string => {
+  if (!decoration.ruleId) {
     return ruleIdFor(checkId);
   }
-  const gid = stigGroupId(checkId);
-
-  if (checkId === gid) {
-    return stig.ruleId;
+  if (!hitGroupKey) {
+    return decoration.ruleId;
   }
-  const suffix = checkId.startsWith(`${ gid }-`) ? checkId.slice(gid.length + 1) : checkId;
+  const suffix = checkId.startsWith(`${ groupId }-`) ? checkId.slice(groupId.length + 1) : checkId;
 
-  return `${ stig.ruleId }_${ suffix }`;
+  return `${ decoration.ruleId }_${ suffix }`;
 };
 
-const lookupStig = (stigChecks: StigChecks, checkId: string): StigCheckMetadata => {
-  return stigChecks[stigGroupId(checkId)] || {};
+const lookupDecoration = (decorations: CheckDecorations, groupId: string, checkId: string): { decoration: CheckDecoration; hitGroupKey: boolean } => {
+  if (decorations[checkId]) {
+    return { decoration: decorations[checkId], hitGroupKey: false };
+  }
+  if (decorations[groupId]) {
+    return { decoration: decorations[groupId], hitGroupKey: true };
+  }
+
+  return { decoration: {}, hitGroupKey: false };
 };
 
 const mapResult = (state?: string): string => {
@@ -142,18 +138,18 @@ const mapResult = (state?: string): string => {
 
 const severityFor = (scored?: boolean): string => (scored ? 'medium' : 'low');
 
-const stigSeverity = (stigSev: string | undefined, scored?: boolean): string => stigSev || severityFor(scored);
+const decorationSeverity = (sev: string | undefined, scored?: boolean): string => sev || severityFor(scored);
 
 const ruleWeight = (scored?: boolean): string => (scored ? '10' : '0');
 
 const ruleRole = (scored?: boolean): string => (scored ? 'full' : 'unscored');
 
-const stigIdents = (ccis?: string[]): { system: string; value: string }[] => {
-  if (!ccis || ccis.length === 0) {
+const decorationIdents = (idents?: { system: string; value: string }[]): { system: string; value: string }[] => {
+  if (!idents || idents.length === 0) {
     return [{ system: NA, value: NA }];
   }
 
-  return ccis.map((cci) => ({ system: 'http://cyber.mil/cci', value: cci }));
+  return idents;
 };
 
 const collectTargets = (report: XccdfReport): string[] => {
@@ -187,7 +183,7 @@ export function generateXCCDF({
   report,
   benchmarkVersion,
   metadata = {},
-  stigChecks = {},
+  decorations = {},
   targetAddresses,
   targetFacts,
   clusterName,
@@ -239,7 +235,7 @@ export function generateXCCDF({
   profile.ele('title').txt(benchmarkTitle);
   profile.ele('description').txt(na(metadata.description));
 
-  const ruleResults: { check: XccdfReportCheck; effectiveId: string; stig: StigCheckMetadata }[] = [];
+  const ruleResults: { check: XccdfReportCheck; effectiveId: string; decoration: CheckDecoration }[] = [];
   const groups = report.results || [];
 
   groups.forEach((group) => {
@@ -250,10 +246,11 @@ export function generateXCCDF({
 
     (group.checks || []).forEach((check) => {
       const checkId = check.id || '';
-      const stig = lookupStig(stigChecks, checkId);
-      const effectiveId = effectiveRuleId(stig, checkId);
-      const ruleFixId = stig.fixId || fixIdFor(checkId);
-      const ruleCheckSystem = stig.checkId || CHECK_SYSTEM;
+      const groupId = group.id || '';
+      const { decoration, hitGroupKey } = lookupDecoration(decorations, groupId, checkId);
+      const effectiveId = effectiveRuleId(decoration, groupId, checkId, hitGroupKey);
+      const ruleFixId = decoration.fixId || fixIdFor(checkId);
+      const ruleCheckSystem = decoration.checkId || CHECK_SYSTEM;
       const checkHref = na(metadata.checkHref);
       const checkName = na(metadata.checkName);
 
@@ -262,10 +259,10 @@ export function generateXCCDF({
         selected: 'true',
         weight:   ruleWeight(check.scored),
         role:     ruleRole(check.scored),
-        severity: stigSeverity(stig.severity, check.scored),
+        severity: decorationSeverity(decoration.severity, check.scored),
       });
 
-      rule.ele('version').txt(na(stig.version));
+      rule.ele('version').txt(na(decoration.version));
       rule.ele('title').txt(na(`${ checkId } ${ check.description || '' }`));
       rule.ele('description').txt(na(check.description));
 
@@ -277,7 +274,7 @@ export function generateXCCDF({
       ruleRef.ele('type').txt(na(metadata.referenceType));
       ruleRef.ele('identifier').txt(na(metadata.referenceIdentifier));
 
-      stigIdents(stig.cci).forEach((ident) => {
+      decorationIdents(decoration.idents).forEach((ident) => {
         rule.ele('ident', { system: ident.system }).txt(ident.value);
       });
 
@@ -290,7 +287,7 @@ export function generateXCCDF({
       ruleCheck.ele('check-content').txt(na(check.audit));
 
       ruleResults.push({
-        check, effectiveId, stig
+        check, effectiveId, decoration
       });
     });
   });
@@ -348,8 +345,8 @@ export function generateXCCDF({
     rrCheck.ele('check-content-ref', { name: NA, href: NA });
     rrCheck.ele('check-content').txt(NA);
   } else {
-    ruleResults.forEach(({ check, effectiveId, stig }) => {
-      const ruleCheckSystem = stig.checkId || CHECK_SYSTEM;
+    ruleResults.forEach(({ check, effectiveId, decoration }) => {
+      const ruleCheckSystem = decoration.checkId || CHECK_SYSTEM;
       const checkHref = na(metadata.checkHref);
       const checkName = na(metadata.checkName);
 
@@ -357,12 +354,12 @@ export function generateXCCDF({
         idref:    effectiveId,
         role:     ruleRole(check.scored),
         time:     timeStr,
-        severity: stigSeverity(stig.severity, check.scored),
-        version:  na(stig.version),
+        severity: decorationSeverity(decoration.severity, check.scored),
+        version:  na(decoration.version),
         weight:   ruleWeight(check.scored),
       });
 
-      stigIdents(stig.cci).forEach((ident) => {
+      decorationIdents(decoration.idents).forEach((ident) => {
         rr.ele('ident', { system: ident.system }).txt(ident.value);
       });
       rr.ele('result').txt(mapResult(check.state));

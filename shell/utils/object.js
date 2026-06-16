@@ -163,6 +163,9 @@ returns an object with no key/value pairs (including nested) where the value is:
   undefined
 */
 export function cleanUp(obj) {
+  if ( !obj || typeof obj !== 'object') {
+    return obj;
+  }
   Object.keys(obj).map((key) => {
     const val = obj[key];
 

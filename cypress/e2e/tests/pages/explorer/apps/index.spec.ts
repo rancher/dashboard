@@ -1,15 +1,16 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { qase } from '@/cypress/support/qase';
 
-describe('Apps Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Apps Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  it('can redirect', () => {
+  qase(3286, it('can redirect', () => {
     const page = new PagePo('/c/local/apps');
 
     page.goTo();
 
     cy.url().should('includes', `${ Cypress.config().baseUrl }/c/local/apps/charts`);
-  });
+  }));
 });

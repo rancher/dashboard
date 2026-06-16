@@ -20,6 +20,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { isLocalhost, isValidUrl } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
 import { getBrandMeta } from '@shell/utils/brand';
+import { findMe } from '@shell/utils/auth';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -77,6 +78,16 @@ export default {
       // Always show setup if this is the first log in
       return;
     } else if (mustChangePassword) {
+      // Skip password change for non-local sessions
+      try {
+        const me = await findMe(this.$store);
+
+        if (me && me.provider !== 'local') {
+          return this.$router.replace('/');
+        }
+      } catch (e) {
+      }
+
       // If the password needs changing and this isn't the first log in ensure we have the password
       if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
