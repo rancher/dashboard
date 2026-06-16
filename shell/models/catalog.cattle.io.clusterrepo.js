@@ -234,7 +234,7 @@ export default class ClusterRepo extends SteveModel {
       return this.t('generic.disabled');
     }
 
-    return formatDuration(val || this.defaultRefreshInterval);
+    return formatDuration(val ?? this.defaultRefreshInterval);
   }
 
   get details() {
