@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
-set -x
+# set -x
+
+# ---------------------------------
+# ----------------------- Input
+# ---------------------------------
+
+USE_LOCAL_BRANCH_METADATA=true # we use an updated branch_metadata. once that's in master we can toggle this to false
+USE_K3S=${USE_K3S:-true} # use k3s, or k3d
+OVERRIDE_UIS=${USE_K3S:-false} # use provided UIs (built externally, used in github CI) or not
+TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 
 # --------------------------------------
 # ----------------------- Setup Env Vars
 # --------------------------------------
-
-USE_LOCAL_BRANCH_METADATA=true # we use an updated branch_metadata. once that's in master we can toggle this to false
 
 # Get container image from branch-metadata. when testing locally update to pass in your target branch
 if [ "$USE_LOCAL_BRANCH_METADATA" = "true" ]; then
@@ -45,13 +52,6 @@ else
   exit 1
 fi
 
-RANCHER_HELM_REPO_NAME=rancher-helm
-
-# check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
-if [ $# -eq 1 ]; then
-  RANCHER_IMG_TAG=$1
-fi
-
 echo "--------------------------------------"
 echo "Using the following configuration:"
 echo "KUBE_VERSION: ${KUBE_VERSION}"
@@ -80,34 +80,40 @@ RANCHER_AUDIT_LOG_LEVEL=3
 # ----------------------- Setup Env
 # ---------------------------------
 
-echo "Installing k3s (with kubectl).........."
-export K3S_CHECKSUM=8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
-curl -sfL -o k3s-script https://raw.githubusercontent.com/k3s-io/k3s/v1.35.3%2Bk3s1/install.sh
+if [ "$USE_K3S" = "true" ]; then
+  echo "Installing k3s (with kubectl).........."
+  export K3S_CHECKSUM=8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
+  curl -sfL -o k3s-script https://raw.githubusercontent.com/k3s-io/k3s/v1.35.3%2Bk3s1/install.sh
 
-DOWNLOADED_CHECKSUM=$(sha256sum k3s-script | awk '{print $1}')
-if [ "$DOWNLOADED_CHECKSUM" != "${K3S_CHECKSUM}" ]; then
-  echo "Error: K3S checksum mismatch! Expected ${K3S_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
-  exit 1
+  DOWNLOADED_CHECKSUM=$(sha256sum k3s-script | awk '{print $1}')
+  if [ "$DOWNLOADED_CHECKSUM" != "${K3S_CHECKSUM}" ]; then
+    echo "Error: K3S checksum mismatch! Expected ${K3S_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
+    exit 1
+  fi
+
+  INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
+  export KUBECONFIG=~/.kube/config
+  mkdir ~/.kube 2> /dev/null
+  sudo k3s kubectl config view --raw > "$KUBECONFIG"
+  chmod 600 "$KUBECONFIG"
+  
+  echo "Installing helm.........."
+  export HELM_CHECKSUM=38b65f882d9cae3891755bdb03becc6a01ae6f9cb24826c191f219ddfee70a5d
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+  DOWNLOADED_CHECKSUM=$(sha256sum get_helm.sh | awk '{print $1}')
+  if [ "$DOWNLOADED_CHECKSUM" != "${HELM_CHECKSUM}" ]; then
+    echo "Error: Helm checksum mismatch! Expected ${HELM_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
+    exit 1
+  fi
+
+  chmod 700 get_helm.sh
+  ./get_helm.sh
+else
+  K3D_VERSION=${KUBE_VERSION/+/-}
+  k3d cluster delete e2e 
+  k3d cluster create e2e --image rancher/k3s:$K3D_VERSION -p 80:80@loadbalancer -p 443:443@loadbalancer --agents 1
 fi
-
-INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
-export KUBECONFIG=~/.kube/config
-mkdir ~/.kube 2> /dev/null
-sudo k3s kubectl config view --raw > "$KUBECONFIG"
-chmod 600 "$KUBECONFIG"
-
-echo "Installing helm.........."
-export HELM_CHECKSUM=38b65f882d9cae3891755bdb03becc6a01ae6f9cb24826c191f219ddfee70a5d
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-
-DOWNLOADED_CHECKSUM=$(sha256sum get_helm.sh | awk '{print $1}')
-if [ "$DOWNLOADED_CHECKSUM" != "${HELM_CHECKSUM}" ]; then
-  echo "Error: Helm checksum mismatch! Expected ${HELM_CHECKSUM} but got $DOWNLOADED_CHECKSUM"
-  exit 1
-fi
-
-chmod 700 get_helm.sh
-./get_helm.sh
 
 echo "Installing cert-manager.........."
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
@@ -122,6 +128,7 @@ echo "Cert manager pods should be up"
 kubectl get pods --namespace cert-manager
 
 echo "Setting up Rancher Repo.........."
+RANCHER_HELM_REPO_NAME=rancher-helm
 helm repo add $RANCHER_HELM_REPO_NAME $RANCHER_HELM_REPO_URL
 helm repo update
 helm search repo $RANCHER_HELM_REPO_NAME --devel
@@ -185,32 +192,35 @@ if [ "$STATUS" != "200" ]; then
   exit 1
 fi
 
-echo "Updating UI within Rancher container.........."
-# Note - these will pick the first container within the pod, so replicas=1 above is important
-POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
-echo "POD NAME: $POD_NAME"
-if [ "$POD_NAME" == "" ]; then
-  echo "Failed to find rancher pod"
-  exit 1
-fi
 
-# Remove root folders that container UIs
-kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
-kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+if [ "$OVERRIDE_UIS" == "true" ]; then
+  echo "Updating UI within Rancher container.........."
+  # Note - these will pick the first container within the pod, so replicas=1 above is important
+  POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
+  echo "POD NAME: $POD_NAME"
+  if [ "$POD_NAME" == "" ]; then
+    echo "Failed to find rancher pod"
+    exit 1
+  fi
 
-# Copy local builds to root folders that should contain UIs
-mv $DASHBOARD_DIST dashboard
-mv $EMBER_DIST ui
-kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
-kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
+  # Remove root folders that container UIs
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
 
-# Final validation
-STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
-echo "Status: $STATUS"
+  # Copy local builds to root folders that should contain UIs
+  mv $DASHBOARD_DIST dashboard
+  mv $EMBER_DIST ui
+  kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
+  kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
-if [ "$STATUS" != "200" ]; then
-  echo "After updating dashboard with dev build it is no longer available"
-  exit 1
+  # Final validation
+  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+  echo "Status: $STATUS"
+
+  if [ "$STATUS" != "200" ]; then
+    echo "After updating dashboard with dev build it is no longer available"
+    exit 1
+  fi
 fi
 
 echo "Dashboard UI is ready"
