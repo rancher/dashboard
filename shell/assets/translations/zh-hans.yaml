@@ -981,6 +981,8 @@ catalog:
     version: 版本
     versions:
       current: '{ver}（当前）'
+      current_linux: '{ver}（当前，仅限 Linux）'
+      current_windows: '{ver}（当前，仅限 Windows）'
       linux: '{ver}（仅限 Linux）'
       windows: '{ver}（仅限 Windows）'
   operation:

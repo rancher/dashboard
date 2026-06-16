@@ -1378,6 +1378,8 @@ catalog:
     version: Version
     versions:
       current: '{ver} (Current)'
+      current_linux: '{ver} (Current, Linux-only)'
+      current_windows: '{ver} (Current, Windows-only)'
       linux: '{ver} (Linux-only)'
       windows: '{ver} (Windows-only)'
   delete:
