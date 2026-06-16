@@ -54,11 +54,17 @@ fi
 
 echo "--------------------------------------"
 echo "Using the following configuration:"
+echo 
 echo "KUBE_VERSION: ${KUBE_VERSION}"
+echo 
 echo "RANCHER_HELM_REPO_URL: ${RANCHER_HELM_REPO_URL}"
 echo "RANCHER_IMG_REPO: ${RANCHER_IMG_REPO}"
 echo "RANCHER_IMG_TAG: ${RANCHER_IMG_TAG}"
 echo "RANCHER_AGENT_IMG: ${RANCHER_AGENT_IMG}"
+echo
+echo "USE_K3S: ${USE_K3S}"
+echo "OVERRIDE_UIS: ${OVERRIDE_UIS}"
+echo "TEST_BASE_URL: ${TEST_BASE_URL}"
 echo "--------------------------------------"
 
 

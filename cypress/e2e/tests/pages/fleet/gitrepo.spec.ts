@@ -1,4 +1,4 @@
-import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { FleetApplicationCreatePo, FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
@@ -27,6 +27,7 @@ const reposToDelete = [];
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const listPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();
+  const createPage = new FleetApplicationCreatePo();
 
   before(() => {
     cy.login();
@@ -64,8 +65,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
+      listPage.create();
+      createPage.createGitRepo();
 
-      gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
 
       const { name } = gitRepoCreateRequest.metadata;

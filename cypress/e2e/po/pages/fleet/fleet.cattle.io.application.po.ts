@@ -33,6 +33,10 @@ export class FleetApplicationListPagePo extends BaseListPagePo {
 
     this.list().checkVisible();
   }
+
+  create() {
+    return this.self().get('.rc-button').contains('Create App Bundle').click();
+  }
 }
 
 export class FleetApplicationCreatePo extends BaseDetailPagePo {
