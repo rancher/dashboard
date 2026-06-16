@@ -86,6 +86,37 @@ export const AllVariants: Story = {
   },
 };
 
+export const DisabledVariants: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+
+      return { variants };
+    },
+    template: `<div style="display: flex; flex-direction: column; gap: 20px; max-width: 800px;">
+      <div v-for="variant in variants" :key="variant" style="display: flex; align-items: center; gap: 20px;">
+        <div style="min-width: 120px; font-weight: bold;">{{ variant }}</div>
+        <RcButton :variant="variant" size="medium" :disabled="true">{{ variant }}</RcButton>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      source: {
+        code: `<RcButton variant="primary" :disabled="true">Primary</RcButton>
+<RcButton variant="secondary" :disabled="true">Secondary</RcButton>
+<RcButton variant="tertiary" :disabled="true">Tertiary</RcButton>
+<RcButton variant="link" :disabled="true">Link</RcButton>
+<RcButton variant="multiAction" :disabled="true">MultiAction</RcButton>
+<RcButton variant="ghost" :disabled="true">Ghost</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
 export const AsRouterLink: Story = {
   render: () => ({
     components: { RcButton },

@@ -227,11 +227,12 @@ function toggle() {
   color: var(--body-text, inherit);
 }
 
-button.btn-medium.toggle-button {
+// TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)
+.left-wrapper :deep(button.toggle-button.btn-medium:not(.btn-sm)) {
   flex-shrink: 0;
   font-size: 16px;
   color: var(--body-text, inherit);
-  --rc-button-padding: 0;
+  padding: 0;
   min-height: initial;
 }
 
