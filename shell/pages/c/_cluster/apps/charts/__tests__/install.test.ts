@@ -146,7 +146,7 @@ describe('page: Install', () => {
   });
 
   describe('computed properties: monitoring banners', () => {
-    const setupComponent = (existing: any, releaseName: string, componentName: string, chartName: string) => {
+    const setupComponent = (existing: any, releaseName: string, componentName: string, chartName: string, installedApps: any[] = []) => {
       const mockStore = {
         getters: {
           'i18n/withFallback':       () => '',
@@ -158,8 +158,14 @@ describe('page: Install', () => {
           'prefs/get':               () => {},
           'management/all':          () => [],
           'cluster/all':             () => [],
-          'cluster/byId':            () => null,
-          'catalog/charts':          [],
+          'cluster/byId':            (type: string, id: string) => {
+            if (type === 'catalog.cattle.io.app') {
+              return installedApps.find((app) => app.id === id);
+            }
+
+            return null;
+          },
+          'catalog/charts': [],
         }
       };
 
@@ -211,24 +217,44 @@ describe('page: Install', () => {
 
     it('showMonitoringBanner should return translation key if existing is true and releaseName matches rancher-monitoring', () => {
       const wrapper1 = setupComponent(true, 'rancher-monitoring', '', '');
+
       expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
 
       const wrapper2 = setupComponent(true, '', 'rancher-monitoring', 'rancher-monitoring');
+
       expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
 
       const wrapper3 = setupComponent(false, 'rancher-monitoring', '', '');
+
       expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
     });
 
     it('showMonitoringBanner should return translation key if existing is false and releaseName matches rancher-monitoring-dashboards', () => {
       const wrapper1 = setupComponent(false, 'rancher-monitoring-dashboards', '', '');
+
       expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.newMonitoringChartWarning');
 
       const wrapper2 = setupComponent(false, '', 'rancher-monitoring-dashboards', 'rancher-monitoring-dashboards');
+
       expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
 
       const wrapper3 = setupComponent(true, 'rancher-monitoring-dashboards', '', '');
+
       expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+    });
+
+    it('showUninstallMonitoringBanner should return translation key if releaseName matches rancher-monitoring-dashboards and rancher-monitoring is installed', () => {
+      const wrapper1 = setupComponent(false, 'rancher-monitoring-dashboards', '', '', [{ id: 'cattle-monitoring-system/rancher-monitoring' }]);
+
+      expect((wrapper1.vm as any).showUninstallMonitoringBanner).toBe('catalog.install.steps.basics.uninstallMonitoringChartWarning');
+
+      const wrapper2 = setupComponent(false, 'rancher-monitoring-dashboards', '', '', []);
+
+      expect((wrapper2.vm as any).showUninstallMonitoringBanner).toBeNull();
+
+      const wrapper3 = setupComponent(false, 'other-chart', '', '', [{ id: 'cattle-monitoring-system/rancher-monitoring' }]);
+
+      expect((wrapper3.vm as any).showUninstallMonitoringBanner).toBeNull();
     });
   });
 });

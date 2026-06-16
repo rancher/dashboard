@@ -515,6 +515,17 @@ export default {
       return null;
     },
 
+    showUninstallMonitoringBanner() {
+      const releaseName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const isOldMonitoringInstalled = !!this.$store.getters['cluster/byId'](CATALOG.APP, 'cattle-monitoring-system/rancher-monitoring');
+
+      if (releaseName === 'rancher-monitoring-dashboards' && isOldMonitoringInstalled) {
+        return this.t('catalog.install.steps.basics.uninstallMonitoringChartWarning');
+      }
+
+      return null;
+    },
+
     /**
      * Return list of variables to filter chart questions
      */
@@ -1609,6 +1620,12 @@ export default {
             color="warning"
           >
             {{ showMonitoringBanner }}
+          </Banner>
+          <Banner
+            v-if="showUninstallMonitoringBanner"
+            color="warning"
+          >
+            {{ showUninstallMonitoringBanner }}
           </Banner>
           <Banner
             v-if="step1Description"
