@@ -6,7 +6,6 @@ import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
 import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
-import { NODE_SHELL } from '@shell/store/features';
 
 /**
  * Prevent scaling down control plane or etcd machines to zero
@@ -57,7 +56,6 @@ export function notOnlyOfRole(current, all) {
 export default class CapiMachine extends CapiMachineRoot {
   get _availableActions() {
     const out = super._availableActions;
-    const nodeShellFeatureEnabled = !!this.$rootGetters['features/get'](NODE_SHELL);
 
     const openSsh = {
       action:  'openSsh',
@@ -89,10 +87,7 @@ export default class CapiMachine extends CapiMachineRoot {
 
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, downloadKeys);
-    // Only add the menu item for the node shell if the feature flag is enabled
-    if (nodeShellFeatureEnabled) {
-      insertAt(out, 0, openSsh);
-    }
+    insertAt(out, 0, openSsh);
     insertAt(out, 0, scaleDown);
     insertAt(out, 0, forceRemove);
 
