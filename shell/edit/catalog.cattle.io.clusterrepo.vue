@@ -241,30 +241,31 @@ export default {
       this.refreshUnit = val;
       this.syncRefreshIntervalToSpec();
     },
-    resetGitRepoValues() {
-      delete this.value.spec['gitRepo'];
-      delete this.value.spec['gitBranch'];
+    resetRefreshIntervalValues() {
       delete this.value.spec['refreshInterval'];
       this.refreshEnabled = true;
       this.refreshDisplayValue = null;
       this.refreshUnit = SECONDS_PER.h;
+    },
+    resetGitRepoValues() {
+      delete this.value.spec['gitRepo'];
+      delete this.value.spec['gitBranch'];
+      this.resetRefreshIntervalValues();
     },
     resetOciValues() {
       delete this.value.spec['url'];
       delete this.value.spec['insecurePlainHttp'];
       delete this.value.spec['insecureSkipTLSVerify'];
       delete this.value.spec['caBundle'];
-      delete this.value.spec['refreshInterval'];
       delete this.value.spec['exponentialBackOffValues'];
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
-      this.refreshEnabled = true;
-      this.refreshDisplayValue = null;
-      this.refreshUnit = SECONDS_PER.h;
+      this.resetRefreshIntervalValues();
     },
     resetHelmValues() {
       delete this.value.spec['url'];
+      this.resetRefreshIntervalValues();
     },
     resetClientSecret() {
       this.value.spec['clientSecret'] = null;
