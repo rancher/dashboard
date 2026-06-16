@@ -97,7 +97,7 @@ export default class ProvCluster extends SteveModel {
 
   get canEdit() {
     // If the cluster is a KEV1 cluster, Harvester cluster, or v2 provisioning cluster that uses upstream capi infrastructure providers, then prevent edit
-    if (this.isKev1 || this.isHarvester || this.isCapiHybrid) {
+    if (this.isKev1 || this.isHarvester || this.isCapiWithoutExtension) {
       return false;
     }
 
@@ -105,7 +105,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canCustomEdit() {
-    return !this.isCapiHybrid && super.canCustomEdit;
+    return !this.isCapiWithoutExtension && super.canCustomEdit;
   }
 
   get _availableActions() {
@@ -319,8 +319,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
-  get isCapiHybrid() {
-    return this.mgmt?.isCapiHybrid;
+  get isCapiWithoutExtension() {
+    return this.mgmt?.isCapiHybrid && !this.mgmt?.isCAPIProvider;
   }
 
   get mgmtClusterId() {
@@ -789,7 +789,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get disableResourceDetailDrawerConfigTab() {
-    return !!this.isHarvester || this.isCapiHybrid;
+    return !!this.isHarvester || this.isCapiWithoutExtension;
   }
 
   get fullDetailPageOverride() {
