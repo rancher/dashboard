@@ -410,7 +410,6 @@ export default {
             k="setup.defaultPassword.intro"
             :raw="true"
           />
-          <br>
           <CopyCode>
             {{ kubectlCmd }}
           </CopyCode>
