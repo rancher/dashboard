@@ -5,29 +5,66 @@ set -x
 # ----------------------- Setup Env Vars
 # --------------------------------------
 
-# K3S_VERSION=v1.32.6+k3s1 // when using the 'latest' repo it can only (atm) install rc1 which has a max of 1.33
-K3S_VERSION=v1.33.1+k3s1
+USE_LOCAL_BRANCH_METADATA=true # we use an updated branch_metadata. once that's in master we can toggle this to false
 
-# Helm Repo Info
-# - rancher-latest will have released versions (--devel rc's)
-#   - RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
-# - rancher-alpha will have alphas (--devel required)
-# - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
-RANCHER_RELEASE=release-2.15 # TODO: RC this will change given branch. get from branch-metadata
-RANCHER_HELM_REPO_URL=https://charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE
+# Get container image from branch-metadata. when testing locally update to pass in your target branch
+if [ "$USE_LOCAL_BRANCH_METADATA" = "true" ]; then
+  BRANCH_DATA=$(./scripts/get-branch-metadata.sh --local ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+else
+  BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+fi
 
-# rancher-latest --devel will have rc's and released versions. rancher-alpha will have alpha
-RANCHER_HELM_REPO_NAME=rancher-$RANCHER_RELEASE
+if [ -n "$BRANCH_DATA" ]; then
+  K3S_VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["kube"].version')
 
-# Helm Image version
-RANCHER_IMG_REPO=rancher/rancher
-RANCHER_IMG_TAG=head # TODO: RC this will change on branch. get from branch-metadata
-RANCHER_AGENT_IMG=rancher/rancher:head # eh
+  # Helm Repo Info
+  # - rancher-latest will have released versions (--devel rc's)
+  #   - RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
+  # - rancher-alpha will have alphas (--devel required)
+  # - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
+  RANCHER_HELM_REPO_URL=$(echo "$BRANCH_DATA" | jq -r '.e2e["helm"]["repo-url"]')
+
+
+  # Helm Image version
+  RANCHER_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].namespace')
+  RANCHER_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].name')
+  RANCHER_IMG_REPO=$RANCHER_IMG_NAMESPACE/$RANCHER_IMG_NAME
+
+  RANCHER_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].tag')
+
+  RANCHER_AGENT_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-agent"].namespace')
+  RANCHER_AGENT_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-agent"].name')
+  RANCHER_AGENT_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-agent"].tag')
+
+  RANCHER_AGENT_IMG=$RANCHER_AGENT_IMG_NAMESPACE/$RANCHER_AGENT_IMG_NAME:$RANCHER_AGENT_IMG_TAG
+  
+  # TODO: RC wire in registry (currently always dockerhub)
+  # if [ -n "$REGISTRY" ]; then
+  #   RANCHER_IMG_REGISTRY="${REGISTRY}/"
+  # fi
+else
+  echo "Error: Failed to get branch metadata"
+  exit 1
+fi
+
+
+
+RANCHER_HELM_REPO_NAME=rancher-helm
 
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
   RANCHER_IMG_TAG=$1
 fi
+
+echo "--------------------------------------"
+echo "Using the following configuration:"
+echo "K3S_VERSION: ${K3S_VERSION}"
+echo "RANCHER_HELM_REPO_URL: ${RANCHER_HELM_REPO_URL}"
+echo "RANCHER_IMG_REPO: ${RANCHER_IMG_REPO}"
+echo "RANCHER_IMG_TAG: ${RANCHER_IMG_TAG}"
+echo "RANCHER_AGENT_IMG: ${RANCHER_AGENT_IMG}"
+echo "--------------------------------------"
+
 
 DASHBOARD_URL="${TEST_BASE_URL#https://}"
 RANCHER_NAMESPACE=cattle-system
@@ -105,9 +142,9 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --devel \
   --set hostname=$DASHBOARD_URL \
   --set replicas="1" \
-  --set rancherImage="$RANCHER_IMG_REPO" \
-  --set rancherImageTag="$RANCHER_IMG_TAG" \
-  --set rancherImagePullPolicy="Always" \
+  --set image.repository="$RANCHER_IMG_REPO" \
+  --set image.tag="$RANCHER_IMG_TAG" \
+  --set image.pullPolicy="Always" \
   --set auditLog.enabled=true \
   --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL \
   --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \

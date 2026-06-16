@@ -130,7 +130,7 @@ jobs:
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
-        run: yarn docker:local:logs
+        run: yarn k3s:local:logs
 
       - name: Create Artifacts Folder
         if: ${{ always() }}
