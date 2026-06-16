@@ -3,6 +3,7 @@ import {
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
   EVENT
 } from '@shell/config/types';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
@@ -740,19 +741,19 @@ export default class ProvCluster extends SteveModel {
   get namespaceLocation() {
     const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
 
-    if (localCluster) {
-      return {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  localCluster.id,
-          product:  this.$rootGetters['productId'],
-          resource: NAMESPACE,
-          id:       this.namespace
-        }
-      };
+    if (!localCluster) {
+      return null;
     }
 
-    return null;
+    return {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  localCluster.id,
+        product:  EXPLORER,
+        resource: NAMESPACE,
+        id:       this.namespace
+      }
+    };
   }
 
   /**

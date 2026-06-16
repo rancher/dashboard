@@ -1,5 +1,8 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import { LOCAL_CLUSTER, MANAGEMENT, NAMESPACE } from '@shell/config/types';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
@@ -439,6 +442,53 @@ describe('class ProvCluster', () => {
 
       expect(cluster.isCapiWithoutExtension).toStrictEqual(expected);
       jest.clearAllMocks();
+    });
+  });
+
+  describe('namespaceLocation', () => {
+    const makeCluster = ({ productId, hasLocalCluster }: { productId: string, hasLocalCluster: boolean }) => {
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
+      const byId = jest.fn((type, id) => {
+        if (type === MANAGEMENT.CLUSTER && id === LOCAL_CLUSTER) {
+          return hasLocalCluster ? { id: LOCAL_CLUSTER } : null;
+        }
+
+        return null;
+      });
+
+      jest.spyOn(cluster, '$rootGetters', 'get').mockReturnValue({
+        productId,
+        'management/byId': byId,
+      });
+
+      return cluster;
+    };
+
+    it('should route to the local cluster explorer when called from the manager product', () => {
+      const cluster = makeCluster({ productId: MANAGER, hasLocalCluster: true });
+
+      expect(cluster.namespaceLocation).toStrictEqual({
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  LOCAL_CLUSTER,
+          product:  EXPLORER,
+          resource: NAMESPACE,
+          id:       'fleet-default',
+        },
+      });
+    });
+
+    it('should route to the local cluster explorer even when called from the explorer product', () => {
+      const cluster = makeCluster({ productId: EXPLORER, hasLocalCluster: true });
+
+      expect(cluster.namespaceLocation?.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(cluster.namespaceLocation?.params.product).toBe(EXPLORER);
+    });
+
+    it('should return null when the user has no access to the local cluster', () => {
+      const cluster = makeCluster({ productId: MANAGER, hasLocalCluster: false });
+
+      expect(cluster.namespaceLocation).toBeNull();
     });
   });
 });
