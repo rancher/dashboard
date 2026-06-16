@@ -20,7 +20,7 @@ export default class ClusterProjectMembersPo extends PagePo {
   }
 
   triggerAddClusterOrProjectMemberAction() {
-    return cy.get('.btn.role-primary.pull-right').click();
+    return cy.get(`[data-testid="button-cluster-member-add"]`).click();
   }
 
   triggerAddProjectMemberAction(projectLabel: string) {

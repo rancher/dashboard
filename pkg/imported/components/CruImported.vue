@@ -203,7 +203,11 @@ export default defineComponent({
       return !!this.value.isRke1;
     },
     isRke2() {
-      return !!this.value.isRke2;
+      // Also check mgmt status provider for local clusters where spec.rkeConfig may not be set
+      // (local RKE2 clusters have no spec.rkeConfig so isRke2 is false, but status.provider is 'rke2')
+      const mgmtProvider = this.value.mgmt?.status?.provider;
+
+      return !!(this.value.isRke2 || mgmtProvider?.startsWith('rke2'));
     },
     enableNetworkPolicySupported() {
       // https://github.com/rancher/rancher/pull/33070/files
@@ -264,7 +268,6 @@ export default defineComponent({
   },
 
   methods: {
-
     onMembershipUpdate(update) {
       this.membershipUpdate = update;
     },
@@ -423,6 +426,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
   >
@@ -634,9 +638,3 @@ export default defineComponent({
     </div>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-    .accordion {
-        border-radius: 16px;
-    }
-</style>

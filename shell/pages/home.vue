@@ -35,6 +35,7 @@ import Preset from '@shell/mixins/preset';
 import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
+import { RcButton } from '@components/RcButton';
 
 export default defineComponent({
   name:       'Home',
@@ -50,6 +51,7 @@ export default defineComponent({
     ResourceTable,
     DynamicContentBanner,
     DynamicContentPanel,
+    RcButton
   },
 
   mixins: [PageHeaderActions, Preset],
@@ -504,39 +506,31 @@ export default defineComponent({
                   #header-middle
                 >
                   <div class="table-heading">
-                    <router-link
+                    <rc-button
                       v-if="!!provClusterSchema"
+                      variant="secondary"
                       :to="manageLocation"
-                      class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
-                      role="button"
                       :aria-label="t('cluster.manageAction')"
-                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
-                    </router-link>
-                    <router-link
+                    </rc-button>
+                    <rc-button
                       v-if="canCreateCluster"
                       :to="importLocation"
-                      class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
-                      role="button"
                       :aria-label="t('cluster.importAction')"
-                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
-                    </router-link>
-                    <router-link
+                    </rc-button>
+                    <rc-button
                       v-if="canCreateCluster"
                       :to="createLocation"
-                      class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
-                      role="button"
                       :aria-label="t('generic.create')"
-                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
-                    </router-link>
+                    </rc-button>
                   </div>
                 </template>
                 <template #col:name="{row}">
@@ -604,14 +598,6 @@ export default defineComponent({
                     &mdash;
                   </td>
                 </template>
-                <!-- <template #cell:explorer="{row}">
-                    <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
-                      {{ t('landing.clusters.explore') }}
-                    </router-link>
-                    <button v-else :disabled="true" class="btn btn-sm role-primary">
-                      {{ t('landing.clusters.explore') }}
-                    </button>
-                  </template> -->
               </ResourceTable>
             </div>
             <div
@@ -665,39 +651,31 @@ export default defineComponent({
                   #header-middle
                 >
                   <div class="table-heading">
-                    <router-link
+                    <rc-button
                       v-if="!!provClusterSchema"
+                      variant="secondary"
                       :to="manageLocation"
-                      class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
-                      role="button"
                       :aria-label="t('cluster.manageAction')"
-                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
-                    </router-link>
-                    <router-link
+                    </rc-button>
+                    <rc-button
                       v-if="canCreateCluster"
                       :to="importLocation"
-                      class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
-                      role="button"
                       :aria-label="t('cluster.importAction')"
-                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
-                    </router-link>
-                    <router-link
+                    </rc-button>
+                    <rc-button
                       v-if="canCreateCluster"
                       :to="createLocation"
-                      class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
-                      role="button"
                       :aria-label="t('generic.create')"
-                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
-                    </router-link>
+                    </rc-button>
                   </div>
                 </template>
                 <template #col:name="{row}">
@@ -748,14 +726,6 @@ export default defineComponent({
                     &mdash;
                   </td>
                 </template>
-                <!-- <template #cell:explorer="{row}">
-                  <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
-                    {{ t('landing.clusters.explore') }}
-                  </router-link>
-                  <button v-else :disabled="true" class="btn btn-sm role-primary">
-                    {{ t('landing.clusters.explore') }}
-                  </button>
-                </template> -->
               </PaginatedResourceTable>
             </div>
             <div

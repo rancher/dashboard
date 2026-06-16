@@ -76,13 +76,16 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     const cloudCredForm = createGKEClusterPage.cloudCredentialsForm();
 
     // Select GKE and create GKE cluster page
-    ClusterManagerListPagePo.navTo();
+    // Navigate directly to avoid CI flakiness when the side menu is not rendered yet.
+    ClusterManagerListPagePo.goTo('_');
     clusterList.waitForPage();
     clusterList.createCluster();
     createGKEClusterPage.selectKubeProvider(2);
     loadingPo.checkNotExists();
     createGKEClusterPage.rke2PageTitle().should('include', 'Create Google GKE');
     createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
+    // Wait for the inline cloud credential form's async fetch to complete before interacting with it.
+    loadingPo.checkNotExists();
 
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();

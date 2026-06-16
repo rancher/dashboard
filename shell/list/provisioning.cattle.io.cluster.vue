@@ -17,10 +17,15 @@ import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
 import { STEVE_AUTOSCALER_ENABLED } from '@shell/config/pagination-table-headers';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
-    Banner, PaginatedResourceTable, Masthead, MachineSummaryGraph
+    Banner,
+    PaginatedResourceTable,
+    Masthead,
+    MachineSummaryGraph,
+    RcButton,
   },
 
   data() {
@@ -289,13 +294,14 @@ export default {
           v-if="canImport"
           #extraActions
         >
-          <router-link
+          <rc-button
+            size="large"
+            class="mr-10"
             :to="importLocation"
-            class="btn role-primary mr-10"
             data-testid="cluster-manager-list-import"
           >
             {{ t('cluster.importAction') }}
-          </router-link>
+          </rc-button>
         </template>
       </Masthead>
 
@@ -329,14 +335,14 @@ export default {
         </template>
         <template #cell:explorer="{row}">
           <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
-          <router-link
+          <rc-button
             v-if="row.canExplore"
+            variant="secondary"
             data-testid="cluster-manager-list-explore-management"
-            class="btn btn-sm role-secondary"
             :to="{name: 'c-cluster', params: {cluster: row.id}}"
           >
             {{ t('cluster.explore') }}
-          </router-link>
+          </rc-button>
           <button
             v-else
             data-testid="cluster-manager-list-explore"

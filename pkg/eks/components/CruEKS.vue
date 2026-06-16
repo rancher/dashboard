@@ -662,6 +662,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="hasCredential"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"
@@ -724,6 +725,7 @@ export default defineComponent({
       <template v-else>
         <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
         <Tabbed
+          :title="t('eks.nodeGroups.title')"
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"

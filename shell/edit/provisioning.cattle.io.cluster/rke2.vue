@@ -94,8 +94,8 @@ const NODE_TOTAL = {
 };
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
-
 const REGISTRIES_TAB_NAME = 'registry';
+const INIT_HOOKS = '_initHooks';
 
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
@@ -274,6 +274,7 @@ export default {
       truncateLimit:                            this.value.defaultHostnameLengthLimit || 0,
       busy:                                     false,
       machinePoolValidation:                    {}, // map of validation states for each machine pool
+      infrastructureClusterValid:               true,
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
@@ -300,6 +301,7 @@ export default {
       basicsValid:                              true,
       registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
+      infrastructureCluster:                    null,
     };
   },
 
@@ -327,6 +329,14 @@ export default {
 
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
+    },
+
+    isUpstreamCAPIProvider() {
+      if (this.extensionProvider?.isUpstreamCAPIProvider !== undefined) {
+        return !!this.extensionProvider.isUpstreamCAPIProvider;
+      }
+
+      return false;
     },
 
     chartValues() {
@@ -548,7 +558,7 @@ export default {
           getters:    this.$store.getters,
           axios:      this.$store.$axios,
           $extension: this.$store.app.$extension,
-          $t:         this.t,
+          t:          (...args) => this.t.apply(this, args),
           isCreate:   this.isCreate
         });
       }
@@ -826,6 +836,10 @@ export default {
       return null;
     },
 
+    extensionInfrastructureSection() {
+      return this.extensionProvider?.extensionInfrastructureSection || null;
+    },
+
     showForm() {
       return !!this.credentialId || !this.needCredential;
     },
@@ -879,7 +893,9 @@ export default {
 
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
 
-      return validRequiredPools && base && !hasAddonConfigErrors && !this.stackPreferenceError;
+      const hasInfrastructureClusterError = this.isUpstreamCAPIProvider ? !this.infrastructureClusterValid : false;
+
+      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !this.stackPreferenceError;
     },
 
     currentCluster() {
@@ -1015,6 +1031,11 @@ export default {
   },
 
   created() {
+    // Hooks to be run when cluster is getting initialized
+    if (this.extensionProvider?.registerInitHooks) {
+      this.extensionProvider.registerInitHooks(this.registerHook.bind(this, INIT_HOOKS), this.value);
+    }
+    // Other hooks to be run before/after saving the cluster
     this.registerBeforeHook(this.showIpv6Warning, 'show-ipv6-warning', 1);
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 2);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
@@ -1032,6 +1053,21 @@ export default {
 
   methods: {
     set,
+
+    updateExtensionInfrastructureSection(neu) {
+      if (!neu || typeof neu !== 'object') {
+        return;
+      }
+
+      if (!this.infrastructureCluster || typeof this.infrastructureCluster !== 'object') {
+        this.infrastructureCluster = neu;
+
+        return;
+      }
+
+      // Preserve the original resource model instance while applying extension updates.
+      mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
+    },
 
     async handleVsphereCpiSecret() {
       return VsphereUtils.handleVsphereCpiSecret(this);
@@ -1056,8 +1092,8 @@ export default {
       if (!this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector)) {
         this.value.spec.machineSelectorConfig.unshift({ config: {} });
       }
-
-      if (this.value.spec.cloudCredentialSecretName) {
+      // TODO handle upstream capi once credentials part is clear
+      if (this.value.spec.cloudCredentialSecretName ) {
         await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
         this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
       }
@@ -1106,6 +1142,9 @@ export default {
       if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
         set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
       }
+
+      await this.applyHooks(INIT_HOOKS, this.value);
+      this.localValue = this.value;
     },
 
     /**
@@ -1281,6 +1320,10 @@ export default {
 
           if (this.isElementalCluster) {
             type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else if (this.isUpstreamCAPIProvider && pool.machineConfigRef?.apiVersion) {
+            const [group] = (pool.machineConfigRef.apiVersion || '').split('/');
+
+            type = `${ group }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           } else {
             type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           }
@@ -1386,8 +1429,18 @@ export default {
         pool.pool.machineOS = 'linux';
       }
 
-      if (this.isElementalCluster) {
+      if (this.isElementalCluster && this.machineConfigSchema?.attributes) {
         pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
+      // Upstream CAPI MachineTemplate resources are referenced by full apiVersion so that
+      // initMachinePools can resolve the correct management store type on subsequent loads.
+      if (this.isUpstreamCAPIProvider && this.machineConfigSchema?.attributes) {
+        const { group, version } = this.machineConfigSchema.attributes;
+
+        if (group && version) {
+          pool.pool.machineConfigRef.apiVersion = `${ group }/${ version }`;
+        }
       }
 
       this.machinePools.push(pool);
@@ -1538,6 +1591,10 @@ export default {
     },
 
     async cleanupMachinePools() {
+      // Allow the extension provider to handle its own resource cleanup
+      if (this.extensionProvider?.cleanupMachinePools) {
+        return await this.extensionProvider.cleanupMachinePools(this.machinePools);
+      }
       for (const entry of this.machinePools) {
         if (entry.remove && entry.config) {
           try {
@@ -2349,7 +2406,8 @@ export default {
       if (this.errors) {
         clear(this.errors);
       }
-      if (this.value.cloudProvider === 'aws') {
+
+      if ( this.value.cloudProvider === 'aws') {
         const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
 
         if (missingProfileName) {
@@ -2358,7 +2416,7 @@ export default {
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
-        if (typeof this.$refs.pool[index]?.test === 'function') {
+        if (typeof this.$refs.pool?.[index]?.test === 'function') {
           try {
             const res = await this.$refs.pool[index].test();
 
@@ -2475,7 +2533,22 @@ export default {
         >
           {{ appsOSWarning }}
         </Banner>
-
+        <div class="span-12">
+          <component
+            :is="extensionInfrastructureSection"
+            v-if="extensionInfrastructureSection"
+            :value="infrastructureCluster"
+            :mode="mode"
+            :provider="provider"
+            :credential-id="credentialId"
+            :provisioning-cluster="value"
+            data-testid="extension-top-section"
+            class="span-12"
+            @update:value="updateExtensionInfrastructureSection"
+            @error="e => errors.push(e)"
+            @validationChanged="(val) => infrastructureClusterValid = val"
+          />
+        </div>
         <!-- Pools Extras -->
         <template v-if="hasMachinePools">
           <div class="clearfix">
@@ -2509,7 +2582,6 @@ export default {
               />
             </div>
           </div>
-
           <!-- Extra Tabs for Machine Pool -->
           <Tabbed
             ref="pools"
@@ -2544,6 +2616,8 @@ export default {
                   :busy="busy"
                   :pool-id="obj.id"
                   :pool-create-mode="obj.create"
+                  :infrastructure-cluster="infrastructureCluster"
+                  :hide-advanced="isUpstreamCAPIProvider"
                   @error="handleMachinePoolError"
                   @validationChanged="v => machinePoolValidationChanged(obj.id, v)"
                 />
