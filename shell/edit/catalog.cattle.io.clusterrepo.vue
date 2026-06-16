@@ -147,7 +147,7 @@ export default {
       ];
     },
     refreshIntervalPlaceholder() {
-      const defaultHours = this.clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 1;
+      const defaultHours = (this.clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL || this.clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION) ? 24 : 1;
 
       return this.t('catalog.repo.refreshInterval.placeholder', {
         value: defaultHours,
