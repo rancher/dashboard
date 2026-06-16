@@ -67,6 +67,7 @@ export const SETTING = {
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
   UI_OFFLINE_PREFERRED:                          'ui-offline-preferred',
   SYSTEM_DEFAULT_REGISTRY:                       'system-default-registry',
+  SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS:          'system-default-registry-pull-secrets',
   UI_ISSUES:                                     'ui-issues',
   PL:                                            'ui-pl',
   PL_RANCHER_VALUE:                              'rancher',
@@ -163,6 +164,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
+  [SETTING.SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS]: {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
@@ -188,8 +190,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
-  [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET }
-
+  [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
 };
 
 /**

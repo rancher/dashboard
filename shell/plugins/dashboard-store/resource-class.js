@@ -1218,6 +1218,7 @@ export default class Resource {
     if ( !opt.url ) {
       if ( forNew ) {
         const schema = this.$getters['schemaFor'](this.type);
+
         let url = schema.linkFor('collection');
 
         if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {

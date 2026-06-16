@@ -560,6 +560,7 @@ export default defineComponent({
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
         />
       </Accordion>
     </div>

@@ -18,7 +18,7 @@ import {
 export default {
   name: 'SelectOrCreateAuthSecret',
 
-  emits: ['inputauthval', 'update:value'],
+  emits: ['inputauthval', 'update:value', 'update:willCreateSecret'],
 
   components: {
     Banner,
@@ -195,6 +195,12 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    // Overwrite the default label for "None" option ('generic.none')
+    noneLabel: {
+      type:    [String, null],
+      default: null
+    }
   },
 
   async fetch() {
@@ -370,7 +376,7 @@ export default {
       }
       if ( this.allowNone ) {
         out.unshift({
-          label: this.t('generic.none'),
+          label: this.noneLabel || this.t('generic.none'),
           value: AUTH_TYPE._NONE,
         });
       }
@@ -449,6 +455,10 @@ export default {
       }
 
       return (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts ? 'col span-3' : 'col span-4';
+    },
+
+    willCreateSecret() {
+      return [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected);
     }
   },
 
@@ -470,6 +480,10 @@ export default {
         this.filteredSecrets = await this.filterSecretsByApi();
       }
     },
+
+    willCreateSecret(neu) {
+      this.$emit('update:willCreateSecret', neu);
+    }
   },
 
   created() {
@@ -541,7 +555,7 @@ export default {
     },
 
     updateKeyVal() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) ) {
+      if ( !this.willCreateSecret ) {
         this.privateKey = '';
         this.publicKey = '';
         this.sshKnownHosts = '';
@@ -585,7 +599,7 @@ export default {
     },
 
     async doCreate() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) || this.delegateCreateToParent ) {
+      if ( !this.willCreateSecret || this.delegateCreateToParent ) {
         return;
       }
 
@@ -655,6 +669,7 @@ export default {
             secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
           }
 
+          // TODO nb this forces users to provide a full url but actually just providing hostname should be fine
           if (this.selected === AUTH_TYPE._IMAGE_PULL_SECRET && this.imagePullSecretDockerJsonUrlConfig) {
             const registryHost = this.imagePullSecretDockerJsonUrlConfig ? new URL(this.imagePullSecretDockerJsonUrlConfig).host : '';
 
@@ -672,7 +687,6 @@ export default {
           }
         }
       }
-
       await secret.save();
 
       await this.$nextTick(() => {
