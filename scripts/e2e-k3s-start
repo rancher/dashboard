@@ -197,7 +197,7 @@ done
 echo "Waiting for capi-webhook-service to exist..."
 okay=0
 while [ $okay -lt 30 ] ; do
-  if kubectl -n cattle-provisioning-capi-system get service capi-webhook-service | grep '443/TCP' ; then
+  if kubectl -n cattle-capi-system get service capi-webhook-service | grep '443/TCP' ; then
     break
   else
     echo "capi-webhook-service does not exist, checking again in 10s..."
