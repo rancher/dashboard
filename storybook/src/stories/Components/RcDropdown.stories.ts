@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { ref } from 'vue';
 import {
   RcDropdown,
   RcDropdownTrigger,
@@ -121,10 +122,13 @@ export const WithCheckboxAndSelectItems: Story = {
       RcDropdownSeparator,
     },
     setup() {
-      const checked = false;
+      const checked = ref(false);
+      const sortBy = ref('name');
       const sortOptions = [{ label: 'Name', value: 'name' }, { label: 'Date', value: 'date' }];
 
-      return { checked, sortOptions };
+      return {
+        checked, sortBy, sortOptions
+      };
     },
     template: `
       <RcDropdown aria-label="Filter and sort">
@@ -132,15 +136,15 @@ export const WithCheckboxAndSelectItems: Story = {
           Filter
         </RcDropdownTrigger>
         <template #dropdownCollection>
-          <RcDropdownItemCheckbox :model-value="checked" @click="(v) => console.log('Toggled:', v)">
+          <RcDropdownItemCheckbox :model-value="checked" @click="checked = $event">
             Show only running
           </RcDropdownItemCheckbox>
           <RcDropdownSeparator />
           <RcDropdownItemSelect
             label="Sort by"
-            model-value="name"
+            :model-value="sortBy"
             :options="sortOptions"
-            @select="(v) => console.log('Selected:', v)"
+            @select="sortBy = $event"
           />
         </template>
       </RcDropdown>
