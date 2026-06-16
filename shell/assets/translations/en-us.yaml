@@ -72,6 +72,7 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  or: or
   other: |-
     {count, plural,
     one  {other}
@@ -6476,7 +6477,7 @@ selectOrCreateAuthSecret:
   createS3: Create an S3-Compatible Auth Secret
   createRKE: Create an RKE Auth Config Secret
   createImagePullSecretBasedOnAuth: Create an Image Pull Secret based on Authentication Secret
-  createImagePullSecret: Create a new Image Pull Secret with new Username/Password
+  createImagePullSecret: Create an Image Pull Secret with a Username and Password
 
 serviceAccount:
   automount: Automount Service Account Token
@@ -8966,6 +8967,7 @@ advancedSettings:
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
     'system-default-registry': 'Private registry to be used for all Rancher System Container Images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
+    'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'

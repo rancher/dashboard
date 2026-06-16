@@ -606,9 +606,11 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="normanCluster.importedConfig.imagePullSecret"
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />
