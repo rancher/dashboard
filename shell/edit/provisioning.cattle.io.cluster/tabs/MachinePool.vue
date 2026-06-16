@@ -41,6 +41,11 @@ export default {
       default: () => ({})
     },
 
+    infrastructureCluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
     // no credentials are required for elemental machine pools
     credentialId: {
       type:    String,
@@ -86,6 +91,10 @@ export default {
     poolCreateMode: {
       type:     Boolean,
       required: true,
+    },
+    hideAdvanced: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -368,6 +377,7 @@ export default {
       v-model:is-ipv6="value.isIpv6"
       v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
+      :infrastructure-cluster="infrastructureCluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
@@ -396,6 +406,7 @@ export default {
     />
 
     <AdvancedSection
+      v-if="!hideAdvanced"
       ref="advanced"
       :mode="mode"
       class="advanced"

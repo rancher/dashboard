@@ -243,6 +243,16 @@ export interface IClusterProvisioner {
   machineConfigSchema?: { [key: string]: any };
 
   /**
+   * Schema for infrastructure cluster object. For example infrastructure.cluster.x-k8s.io.awscluster
+   *
+   * The `id` should be in the format of `infrastructure.cluster.x-k8s.io.${ provider id }cluster`
+   *
+   * The `attributes: { kind: <value> }` should match the last part of the id
+   * The `attributes: { group: <value> }` should match the remaining parts of the id
+   */
+  infrastructureClusterSchema?: { [key: string]: any };
+
+  /**
    * Override the default method to create a machine config object that will be inserted into a new machine pool
    *
    * The machine config will be an instance related to the machine config schema
@@ -274,6 +284,16 @@ export interface IClusterProvisioner {
    */
   saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
 
+  /**
+   * Optional custom UI section for infrastructure-cluster-specific configuration.
+   */
+  extensionInfrastructureSection?: any
+
+  /**
+   * Indicates the provisioner manages upstream CAPI infrastructure resources directly.
+   */
+  isUpstreamCAPIProvider?: boolean
+
   /* --------------------------------------------------------------------------------------
    * Optionally override parts of the cluster save process with
    * - hooks that run before or after the cluster resource is saved
@@ -292,6 +312,15 @@ export interface IClusterProvisioner {
    * @param cluster The cluster (`provisioning.cattle.io.cluster`)
    */
   registerSaveHooks?(registerBeforeHook: RegisterClusterSaveHook, registerAfterHook: RegisterClusterSaveHook, cluster: any): void;
+
+  /**
+   * Register hooks that run during `initSpecs` while initializing the cluster form.
+   *
+   * @param registerInitHook
+   *  Call `registerInitHook` with a function. The function will be executed during form initialization.
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   */
+  registerInitHooks?(registerInitHook: RegisterClusterSaveHook, cluster: any): void;
 
   /**
    * Optionally override the save of the cluster resource itself
