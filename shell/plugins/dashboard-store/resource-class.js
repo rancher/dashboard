@@ -12,6 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
+import { EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -39,7 +40,6 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { EVENT } from '@shell/config/types';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
@@ -511,12 +511,17 @@ export function simpleColorForState(state, isError = false, isTransitioning = fa
   return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
 }
 
-export function stateDisplay(state) {
+export function stateDisplay(state, preserveOriginal = false) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
   if ( REMAP_STATE[key] ) {
     return REMAP_STATE[key];
+  }
+
+  // Preserves the original state name returned by the
+  if ( preserveOriginal ) {
+    return ucFirst(state);
   }
 
   return key.split(/-/).map(ucFirst).join('-');
