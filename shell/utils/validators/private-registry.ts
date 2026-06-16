@@ -1,7 +1,7 @@
 import { VuexStore } from 'types/store/vuex';
 import { Translation } from '@shell/types/t';
 import formRulesGenerator from '@shell/utils/validators/formRules';
-import { SETTING } from 'config/settings';
+import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
 
 interface PrivateRegistryRuleContext {
