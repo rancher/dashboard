@@ -65,7 +65,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.updateStatus(plugin.name, 'uninstall');
+      this.updateStatus(plugin.id, 'uninstall');
 
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
@@ -103,7 +103,7 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t('plugins.uninstall.title', { name: plugin?.label }) }}
+      {{ t('plugins.uninstall.title', { name: `"${plugin?.label}"` }, true) }}
     </h4>
     <div class="mt-10 dialog-panel">
       <div class="dialog-info">
@@ -122,6 +122,7 @@ export default {
         </button>
         <AsyncButton
           mode="uninstall"
+          :icon="busy ? '' : 'icon-delete'"
           data-testid="uninstall-ext-modal-uninstall-btn"
           @click="uninstall()"
         />
@@ -131,31 +132,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  @import '@shell/assets/styles/base/_mixins.scss';
+
   .plugin-install-dialog {
-    padding: 10px;
-
-    h4 {
-      font-weight: bold;
-    }
-
-    .dialog-panel {
-      display: flex;
-      flex-direction: column;
-      min-height: 100px;
-
-      .dialog-info {
-        flex: 1;
-      }
-    }
-
-    .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 10px;
-
-      > *:not(:last-child) {
-        margin-right: 10px;
-      }
-    }
+    @include extension-dialog;
   }
 </style>

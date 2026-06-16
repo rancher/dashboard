@@ -1,5 +1,6 @@
 import { insertAt } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export const configType = {
   activedirectory: 'ldap',
@@ -14,12 +15,17 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
+  githubapp:       'oauth',
   keycloakoidc:    'oidc',
   genericoidc:     'oidc',
   cognito:         'oidc',
 };
 
-const imageOverrides = { keycloakoidc: 'keycloak', genericoidc: 'openid' };
+const imageOverrides = {
+  azuread:      'entraid',
+  keycloakoidc: 'keycloak',
+  genericoidc:  'openid',
+};
 
 export default class AuthConfig extends SteveModel {
   get _availableActions() {
@@ -55,7 +61,7 @@ export default class AuthConfig extends SteveModel {
 
   get icon() {
     try {
-      return require(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+      return requireAsset(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
     } catch (e) {
       return '';
     }

@@ -2,7 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
-import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
+import { ConfigMapListPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 
@@ -42,12 +42,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adm
     dialog.checkExists();
     dialog.checkVisible();
 
-    dialog.searchBox().type('auth');
+    dialog.searchBox().type('provisioning.cattle');
 
     // Wait for less than 20 - then we know the results are updated for our search
     dialog.results().should('have.length.lt', 20);
-    dialog.results().should('have.length.gt', 1);
-    dialog.results().first().should('have.text', 'SelfSubjectReviews (selfsubjectreviews.authentication.k8s.io)');
+    dialog.results().should('have.length.gt', 0);
+    dialog.results().first().should('have.text', 'Clusters (clusters.provisioning.cattle.io)');
 
     dialog.close();
 
@@ -77,7 +77,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adm
 
     dialog.results().first().click();
 
-    const configMapPage = new ConfigMapPagePo('local');
+    const configMapPage = new ConfigMapListPagePo('local');
 
     configMapPage.waitForPage();
 

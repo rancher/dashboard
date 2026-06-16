@@ -15,6 +15,10 @@ export default {
     reference: {
       type:    String,
       default: null,
+    },
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
     }
   },
   computed: {
@@ -23,7 +27,11 @@ export default {
         return get(this.row, this.reference);
       }
 
-      return this.row?.detailLocation;
+      if (this.getCustomDetailLink) {
+        return this.getCustomDetailLink(this.row);
+      }
+
+      return this.row?.provCluster?.detailLocation;
     },
 
     statusErrorConditions() {
@@ -68,12 +76,6 @@ export default {
       v-clean-tooltip="row.unavailableMachines"
       class="conditions-alert-icon icon-alert icon"
       data-testid="unavailable-machines-alert-icon"
-    />
-    <i
-      v-if="row.isRke1"
-      v-clean-tooltip="t('cluster.rke1Unsupported')"
-      class="rke1-unsupported-icon icon-warning icon"
-      data-testid="rke1-unsupported-icon"
     />
     <i
       v-if="row.hasError && statusErrorConditions.length > 0"

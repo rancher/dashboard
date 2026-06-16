@@ -10,13 +10,14 @@ import { isEmpty } from '@shell/utils/object';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
-import { AWS } from '../types';
+import * as AWS from '@shell/types/aws-sdk';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
 
 // map between fields in rancher eksConfig and amazon launch templates
@@ -44,7 +45,7 @@ echo "Running custom user data script"
 export default defineComponent({
   name: 'EKSNodePool',
 
-  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:ec2SshKey'],
+  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:arm'],
 
   components: {
     LabeledInput,
@@ -53,10 +54,15 @@ export default defineComponent({
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector
+    FileSelector,
+    RadioGroup
   },
 
   props: {
+    arm: {
+      type:    Boolean,
+      default: false
+    },
     nodeRole: {
       type:    String,
       default: ''
@@ -243,6 +249,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
+      architecture:          this.arm ? 'arm64' : 'x86_64',
       originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
@@ -282,11 +289,65 @@ export default defineComponent({
     },
 
     'requestSpotInstances'(neu) {
-      if (neu && !this.templateValue('instanceType')) {
+      // if a launch template is being used to provide an instance type, we don't want to override it
+      if (this.templateValue('instanceType')) {
+        return;
+      }
+
+      if (neu) {
         this.$emit('update:instanceType', null);
       } else {
-        this.$emit('update:spotInstanceTypes', null);
+        this.$emit('update:spotInstanceTypes', []);
+        // when disabling spot instances, we want to make sure we have a default instance type selected
+        this.$emit('update:instanceType', this.instanceType || this.defaultInstanceType);
       }
+    },
+
+    'architecture'(neu) {
+      if (!this.isView) {
+        this.$emit('update:arm', neu === 'arm64');
+      }
+
+      if (this.templateValue('instanceType')) {
+        return;
+      }
+
+      // If the architecture changes, we need to make sure the selected instance type is still compatible
+      if (this.requestSpotInstances) {
+        const currentSpots = this.spotInstanceTypes || [];
+        const allCompatible = currentSpots.length > 0 && currentSpots.every((val: any) => {
+          const opt = this.instanceTypeOptions.find((o: any) => o.value === val);
+
+          return opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+        });
+
+        if (!allCompatible) {
+          this.$emit('update:spotInstanceTypes', []);
+        }
+      } else {
+        const current = this.instanceType;
+        const opt = this.instanceTypeOptions.find((o: any) => o.value === current);
+        const isCompatible = opt && opt.supportedArchitectures && opt.supportedArchitectures.includes(neu);
+
+        if (!isCompatible) {
+          this.$emit('update:instanceType', this.defaultInstanceType);
+        }
+      }
+    },
+
+    instanceType: {
+      handler:   'updateArchitecture',
+      immediate: true
+    },
+
+    spotInstanceTypes: {
+      handler:   'updateArchitecture',
+      immediate: true
+    },
+
+    instanceTypeOptions: {
+      handler:   'updateArchitecture',
+      immediate: true
     },
 
     sshKeyPairs: {
@@ -301,6 +362,25 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    defaultInstanceType() {
+      return this.architecture === 'arm64' ? 't4g.medium' : 't3.medium';
+    },
+
+    architectureOptions() {
+      return [
+        { label: this.t('eks.nodeGroups.architecture.x86_64.label'), value: 'x86_64' },
+        { label: this.t('eks.nodeGroups.architecture.arm64.label'), value: 'arm64' }
+      ];
+    },
+
+    filteredInstanceOptions() {
+      return this.filterByArchitecture(this.instanceTypeOptions);
+    },
+
+    filteredSpotInstanceOptions() {
+      return this.filterByArchitecture(this.spotInstanceTypeOptions);
+    },
 
     rancherTemplate() {
       const eksStatus = this.normanCluster?.eksStatus || {};
@@ -439,10 +519,80 @@ export default defineComponent({
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    instanceTypeLabel() {
+      if (!this.instanceType) {
+        return '';
+      }
+      const allOptions = this.instanceTypeOptions;
+      const option = allOptions.find((opt) => opt.value === this.instanceType);
+
+      return option ? option.label : this.instanceType;
     }
   },
 
   methods: {
+    // We need to update the architecture based on the selected instance type
+    // This is especially important in Edit/View modes where the architecture is not stored in the config
+    updateArchitecture() {
+      const isSpot = this.requestSpotInstances;
+      const instanceTypeValue = isSpot ? (this.spotInstanceTypes || [])[0] : this.instanceType;
+      const optionsToCheck = isSpot ? this.spotInstanceTypeOptions : this.instanceTypeOptions;
+
+      if (!instanceTypeValue) {
+        return;
+      }
+
+      const option = optionsToCheck.find((o: any) => o.value === instanceTypeValue);
+
+      if (option?.supportedArchitectures) {
+        const archs = option.supportedArchitectures;
+        const detectedArch = archs.includes('x86_64') ? 'x86_64' : (archs.includes('arm64') ? 'arm64' : null);
+
+        if (detectedArch && detectedArch !== this.architecture) {
+          this.architecture = detectedArch;
+        }
+      }
+    },
+
+    filterByArchitecture(options) {
+      if (!this.architecture) {
+        return options;
+      }
+
+      const grouped = [];
+      let currentGroup = null;
+
+      // The 'options' array is a flat list containing group headers and their items.
+      // First, we need to process this flat list into a nested structure.
+      // e.g., [{ kind: 'group', ...}, item1, item2, { kind: 'group', ...}, item3]
+      // becomes: [ { header: group1, items: [item1, item2] }, { header: group2, items: [item3] } ]
+      for (const option of options) {
+        if (option.kind === 'group') {
+          currentGroup = { header: option, items: [] };
+          grouped.push(currentGroup);
+        } else if (currentGroup) {
+          currentGroup.items.push(option);
+        }
+      }
+
+      // Filter groups to only include those with items matching the selected architecture.
+      const out = [];
+
+      for (const group of grouped) {
+        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(this.architecture)
+        );
+
+        // If a group has at least one matching item, add the group header and the matching items to the output.
+        if (matchingItems.length) {
+          out.push(group.header, ...matchingItems);
+        }
+      }
+
+      return out;
+    },
+
     async fetchLaunchTemplateVersionInfo(launchTemplate: AWS.LaunchTemplate) {
       const { region, amazonCredentialSecret } = this;
 
@@ -497,7 +647,14 @@ export default defineComponent({
         } else if (this.templateValue(rancherKey)) {
           this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
         } else {
-          this.$emit(`update:${ rancherKey }`, DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG]);
+          let defaultVal = DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG];
+
+          // If requesting spot instances, we want to ensure instanceType is NOT set to the default (t3.medium)
+          if (rancherKey === 'instanceType' && this.requestSpotInstances) {
+            defaultVal = null;
+          }
+
+          this.$emit(`update:${ rancherKey }`, defaultVal);
         }
       });
 
@@ -699,7 +856,7 @@ export default defineComponent({
       label-key="eks.nodeGroups.imageId.tooltip"
     />
     <div class="row mb-10">
-      <div class="col span-4">
+      <div class="col span-8">
         <LabeledInput
           label-key="eks.nodeGroups.imageId.label"
           :mode="mode"
@@ -709,22 +866,6 @@ export default defineComponent({
           @update:value="$emit('update:imageId', $event)"
         />
       </div>
-      <div class="col span-4">
-        <LabeledSelect
-          :required="!requestSpotInstances && !templateValue('instanceType')"
-          :mode="mode"
-          label-key="eks.nodeGroups.instanceType.label"
-          :options="instanceTypeOptions"
-          :loading="loadingInstanceTypes"
-          :value="instanceType"
-          :disabled="!!templateValue('instanceType') || requestSpotInstances"
-          :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
-          :rules="!requestSpotInstances ? rules.instanceType : []"
-          data-testid="eks-instance-type-dropdown"
-          @update:value="$emit('update:instanceType', $event)"
-        />
-      </div>
-
       <div class="col span-4">
         <UnitInput
           :required="!templateValue('diskSize')"
@@ -747,18 +888,53 @@ export default defineComponent({
       data-testid="eks-spot-instance-banner"
     />
     <div class="row mb-10">
-      <div class="col span-4">
-        <Checkbox
+      <div class="col span-2">
+        <h4>{{ t('eks.nodeGroups.architecture.label') }}</h4>
+        <RadioGroup
+          v-model:value="architecture"
           :mode="mode"
-          label-key="eks.nodeGroups.gpu.label"
-          :value="gpu"
-          :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
-          :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
-          data-testid="eks-gpu-input"
-          @update:value="$emit('update:gpu', $event)"
+          name="architecture"
+          :options="architectureOptions"
+          :disabled="!!templateValue('instanceType') || loadingInstanceTypes"
         />
       </div>
-      <div class="col span-4">
+    </div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <template v-if="!templateValue('instanceType')">
+          <LabeledSelect
+            v-if="!requestSpotInstances"
+            :required="true"
+            :mode="mode"
+            label-key="eks.nodeGroups.instanceType.label"
+            :options="filteredInstanceOptions"
+            :loading="loadingInstanceTypes"
+            :value="instanceType"
+            :rules="rules.instanceType"
+            data-testid="eks-instance-type-dropdown"
+            @update:value="$emit('update:instanceType', $event)"
+          />
+          <LabeledSelect
+            v-else
+            :mode="mode"
+            :value="spotInstanceTypes"
+            label-key="eks.nodeGroups.spotInstanceTypes.label"
+            :options="filteredSpotInstanceOptions"
+            :multiple="true"
+            :loading="loadingSelectedVersion || loadingInstanceTypes"
+            data-testid="eks-spot-instance-type-dropdown"
+            @update:value="$emit('update:spotInstanceTypes', $event)"
+          />
+        </template>
+        <LabeledInput
+          v-else
+          label-key="eks.nodeGroups.instanceType.label"
+          :value="instanceTypeLabel"
+          :mode="mode"
+          :disabled="true"
+        />
+      </div>
+      <div class="col span-4 spot-instances-checkbox">
         <Checkbox
           :value="requestSpotInstances"
           :mode="mode"
@@ -768,22 +944,16 @@ export default defineComponent({
         />
       </div>
     </div>
-    <div
-      v-if="requestSpotInstances && !templateValue('instanceType')"
-      class="row mb-10"
-    >
-      <div
-        class="col span-6"
-      >
-        <LabeledSelect
+    <div class="row mmt-5 mmb-5">
+      <div class="col span-6">
+        <Checkbox
           :mode="mode"
-          :value="spotInstanceTypes"
-          label-key="eks.nodeGroups.spotInstanceTypes.label"
-          :options="spotInstanceTypeOptions"
-          :multiple="true"
-          :loading="loadingSelectedVersion || loadingInstanceTypes"
-          data-testid="eks-spot-instance-type-dropdown"
-          @update:value="$emit('update:spotInstanceTypes', $event)"
+          label-key="eks.nodeGroups.gpu.label"
+          :value="gpu"
+          :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
+          :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
+          data-testid="eks-gpu-input"
+          @update:value="$emit('update:gpu', $event)"
         />
       </div>
     </div>
@@ -853,5 +1023,10 @@ export default defineComponent({
 .upgrade-version {
   display: flex;
   align-items: center;
+}
+
+.spot-instances-checkbox {
+  display: flex;
+  align-items: flex-end
 }
 </style>

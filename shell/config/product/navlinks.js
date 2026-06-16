@@ -10,6 +10,7 @@ export function init(store) {
   product({
     ifHaveType: UI.NAV_LINK,
     icon:       'external-link',
+    extendable: false,
   });
 
   headers(UI.NAV_LINK, [

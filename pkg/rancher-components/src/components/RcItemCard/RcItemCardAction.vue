@@ -17,8 +17,20 @@
 <template>
   <div
     item-card-action
+    class="rc-item-card-action"
     data-testid="rc-item-card-action"
   >
     <slot />
   </div>
 </template>
+
+<style lang="scss">
+.rc-item-card-action {
+  .v-popper {
+    .icon-actions {
+      color: var(--body-text);
+      font-size: 19px;
+    }
+  }
+}
+</style>

@@ -8,6 +8,13 @@ export default {
   name:       'WorkspaceSwitcher',
   components: { Select },
 
+  props: {
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+
   computed: {
     ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace', 'getActiveNamespaces']),
 
@@ -66,7 +73,7 @@ export default {
   created() {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
-    const initValue = !this.workspace ? this.$store.getters['prefs/get'](LAST_NAMESPACE) : '';
+    const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
 
     this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
   },
@@ -94,6 +101,7 @@ export default {
       label="label"
       :options="options"
       :clearable="false"
+      :disabled="disabled"
       :reduce="(opt) => opt.value"
     />
     <!--button v-shortkey.once="['w']" class="hide" @shortkey="focus()" /-->
@@ -186,5 +194,10 @@ export default {
 
 .filter :deep() .unlabeled-select INPUT[type='search'] {
   padding: 7px;
+}
+
+.filter :deep() .unlabeled-select.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

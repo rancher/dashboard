@@ -5,6 +5,7 @@ import { useStore } from 'vuex';
 import AppModal from '@shell/components/AppModal.vue';
 
 const store = useStore();
+const componentRendered = ref(false);
 
 const isOpen = computed(() => store.getters['modal/isOpen']);
 const component = computed(() => store.getters['modal/component']);
@@ -23,11 +24,19 @@ function close() {
     backgroundClosing.value();
   }
 
+  componentRendered.value = false;
   store.commit('modal/closeModal');
 }
 
 function registerBackgroundClosing(fn: Function) {
   backgroundClosing.value = fn;
+}
+
+function onSlotComponentMounted() {
+  // variable for the watcher based focus-trap
+  // so that we know when the component is rendered
+  // works in tandem with trigger-focus-trap="true"
+  componentRendered.value = true;
 }
 </script>
 
@@ -39,7 +48,7 @@ function registerBackgroundClosing(fn: Function) {
       :width="modalWidth"
       :style="{ '--prompt-modal-width': modalWidth }"
       :trigger-focus-trap="true"
-      tabindex="0"
+      :focus-trap-watcher-based-variable="componentRendered"
       @close="close"
     >
       <component
@@ -48,6 +57,7 @@ function registerBackgroundClosing(fn: Function) {
         data-testid="modal-manager-component"
         :resources="resources"
         :register-background-closing="registerBackgroundClosing"
+        @vue:mounted="onSlotComponentMounted"
         @close="close"
       />
     </app-modal>

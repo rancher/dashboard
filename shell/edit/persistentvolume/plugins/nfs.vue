@@ -14,23 +14,24 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['nfs'] = this.value.spec.nfs || {};
     this.value.spec.nfs['readOnly'] = this.value.spec.nfs.readOnly || false;
-
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    return { readOnlyOptions };
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

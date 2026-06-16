@@ -1,6 +1,6 @@
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { LAST_NAMESPACE } from '@shell/store/prefs';
-import { exceptionToErrorsArray } from '@shell/utils/error';
+import { exceptionToErrorsArray, isDoNotLogError } from '@shell/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { clear } from '@shell/utils/array';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
@@ -117,7 +117,16 @@ export default {
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
     async conflict() {
-      return await handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store, this.storeOverride || this.$store.getters['currentStore'](this.value.type));
+      return await handleConflict(
+        this.initialValue,
+        this.value,
+        this.liveValue,
+        {
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters
+        },
+        this.storeOverride || this.$store.getters['currentStore'](this.value.type)
+      );
     },
 
     async save(buttonDone, url, depth = 0) {
@@ -175,8 +184,10 @@ export default {
         } else {
           this.errors = exceptionToErrorsArray(err);
         }
-        // Provide a stack trace for easier debugging of save errors
-        console.error('CreateEditView mixin failed to save: ', err); // eslint-disable-line no-console
+        if (!isDoNotLogError(err)) {
+          // Provide a stack trace for easier debugging of save errors
+          console.error('CreateEditView mixin failed to save: ', err); // eslint-disable-line no-console
+        }
         buttonDone && buttonDone(false);
       }
     },

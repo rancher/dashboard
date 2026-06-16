@@ -194,7 +194,6 @@ nav:
     placeholder: 输入关键词，搜索资源
   header:
     setLoginPage: 设置为登录页面
-    restoreCards: 恢复隐藏的卡片
   userMenu:
     preferences: 偏好设置
     accountAndKeys: 账号 & API 密钥
@@ -213,7 +212,7 @@ product:
   apps: 应用
   auth: 用户 & 认证
   backup: Rancher 备份
-  cis: CIS Benchmark
+  compliance: Compliance
   ecm: Cluster Manager
   explorer: 集群浏览器
   fleet: 持续交付
@@ -532,16 +531,16 @@ authConfig:
     tokenEndpoint: Token 端点
     authEndpoint: Auth 端点
     reply:
-      info: '在开始设置之前，Azure AD 需要 Rancher Server 的白名单 URL。请确保在 Azure 门户的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
+      info: '在开始设置之前，Microsoft Entra ID 需要 Rancher Server 的白名单 URL。请确保在 Microsoft Entra 管理中心的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
       label: 回复 URL
     updateEndpoint:
       button: 更新端点
       banner:
-        message: '必须更新 Azure AD 身份认证：它使用了 Azure Graph API，该 API 将于 2022 年底弃用。'
+        message: '必须更新 Microsoft Entra ID 身份认证：它使用了 Azure AD Graph API，该 API 已于 2022 年底弃用。'
         linkText: '在此处进行更新。'
       modal:
         title: 是否确认？此更新是不可逆的。
-        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Azure AD 应用已将 Directory.Read.All <b>Application</b> 权限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份认证时自定义了端点，这些端点将不会自动更新。</p>'
+        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Microsoft Entra ID 应用已将 Directory.Read.All <b>Application</b> 权限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Microsoft Entra ID 身份认证时自定义了端点，这些端点将不会自动更新。</p>'
   oidc:
     oidc: 配置 OIDC 账号
     keycloakoidc: 配置 Keycloak OIDC 账号
@@ -652,6 +651,10 @@ asyncButton:
     action: 保存
     success: 已保存
     waiting: 正在保存&hellip;
+  editVersion:
+    action: 保存更改
+    success: 已保存
+    waiting: 正在保存更改&hellip;
   enable:
     action: 启用
     success: 启用
@@ -866,7 +869,6 @@ catalog:
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
-    featuredCharts: 精选 Chart
     noCharts: '没有可用的 Chart，你有添加仓库吗？'
     noWindows: 你的应用商店没有能够部署在具有 Windows 节点的集群的 Chart。
     noWindowsAndLinux: 你的应用商店没有能部署在具有 Windows 和 Linux Worker 节点的集群的 Chart。
@@ -876,8 +878,13 @@ catalog:
       windows: Windows
     search: 筛选
   install:
-    action:
-      goToUpgrade: 编辑/升级
+    warning:
+      managed: |-
+        警告，{manager} 管理 {name} 应用的部署和升级。不支持升级此应用。<br>
+        {version, select,
+          null { }
+          other { 在大多数情况下，无需用户干预即可确保 {version} 版本与你正在运行的 Rancher 版本兼容。}
+        }
     appReadmeMissing: 此 Chart 没有其他 Chart 信息。
     appReadmeTitle: Chart 信息（Helm 自述）
     chart: Chart
@@ -943,6 +950,8 @@ catalog:
             install { 创建 }
             upgrade { 升级 }
             update { 更新 }
+            editVersion { 更新 }
+            downgrade { 降级 }
           } 这个 {existing, select,
             true { 应用 }
             false { Chart}
@@ -1046,10 +1055,10 @@ chartHeading:
   overview: 概述
   poweredBy: "Powered by:"
 
-cis:
+compliance:
   addTest: 添加测试 ID
   alertNeeded: |-
-    必须在 CIS Chart values.yaml 中开启告警。
+    必须在 Compliance Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
     ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
@@ -4002,13 +4011,9 @@ podDisruptionBudget:
 
 inactivity:
   title: 会话即将过期
-  titleExpired: 会话已过期
   banner: 由于不活动，你的会话即将过期。任何未保存的更改都将丢失。
-  bannerExpired: 由于不活动，此选项卡中的会话已过期。
   content: 单击“恢复会话”来让选项卡中的会话保持活动状态，或在会话过期后刷新浏览器。
-  contentExpired: 要返回此页面，请单击下面的“刷新”或刷新浏览器。
   cta: 恢复会话
-  ctaExpired: 刷新
 
 # Rancher Extensions
 plugins:
@@ -6264,7 +6269,7 @@ model:
       local: 本地
       multiple: Multiple
       activedirectory: Active Directory
-      azuread: AzureAD
+      azuread: Microsoft Entra ID
       github: GitHub
       keycloak: Keycloak
       ldap: LDAP
@@ -6334,10 +6339,7 @@ typeDescription:
   monitoring.coreos.com.prometheus: Prometheus server 是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
   monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收器。
   node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"页面管理可用节点的生命周期。
-  catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。'
-  catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。集群模板是通过 Helm Chart 部署的。'
   catalog.cattle.io.operation: 最近的操作指的是最近应用于集群的一系列 Helm 操作。
-  catalog.cattle.io.app: 已安装的应用指的是通过我们的 Chart 或 Helm CLI 安装的 Helm 3 Chart。
   logging.banzaicloud.io.clusterflow: 集群日志将被收集并投递到选定的 ClusterOutput 中。
   logging.banzaicloud.io.clusteroutput: ClusterOutput 定义了日志可以发送到哪些日志提供程序。只有部署在 Logging operator 所在的命名空间中时，ClusterOutput 才生效。
   logging.banzaicloud.io.flow: Flow 定义了要收集和过滤的日志，以及日志的输出目标。Flow 是一个命名空间资源。换言之，只有部署了该 Flow 的命名空间日志才能被该 Flow 收集。
@@ -6996,9 +6998,8 @@ advancedSettings:
     'ingress-ip-domain': '用于自动生成 Ingress 主机名的通配符 DNS 域。<ingress-name>.<namespace-name>.<ip address of ingress controller> 会被添加到该域。'
     'server-url': '默认 {appName} 安装地址。必须使用 HTTPS。你集群中的所有节点都必须能够访问此地址。'
     'system-default-registry': '用于所有 Rancher System 容器镜像的私有镜像仓库。如果未指定任何值，则使用容器运行时的默认镜像仓库。对于 Docker 和 containerd，默认为 `docker.io`。'
-    'ui-index': 'Cluster Manager UI 的 HTML 索引位置。'
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
-    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
+    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'
@@ -7304,10 +7305,6 @@ support:
     four:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。
-
-embedding:
-  retry: 重试
-  unavailable: Cluster Manager UI 不可用
 
 legacy:
   alerts: 告警

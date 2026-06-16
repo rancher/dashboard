@@ -285,8 +285,8 @@ export const actions = {
       return;
     }
 
-    const lastLoad = rootState.$plugin?.lastLoad;
-    const i18nExt = rootState.$plugin?.getDynamic('l10n', locale);
+    const lastLoad = rootState.$extension?.lastLoad;
+    const i18nExt = rootState.$extension?.getDynamic('l10n', locale);
     const reload = lastLoaded < lastLoad;
 
     lastLoaded = lastLoad;
@@ -314,7 +314,7 @@ export const actions = {
 
         // load all of the default locales from the plugins for fallback
         if (locale !== DEFAULT_LOCALE) {
-          const defaultI18nExt = rootState.$plugin?.getDynamic('l10n', DEFAULT_LOCALE);
+          const defaultI18nExt = rootState.$extension?.getDynamic('l10n', DEFAULT_LOCALE);
 
           if (defaultI18nExt && defaultI18nExt.length) {
             defaultI18nExt.forEach((fn) => {

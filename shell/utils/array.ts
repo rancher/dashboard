@@ -231,17 +231,6 @@ export function concatStrings(a: string[], b: string[]): string[] {
   return [...a.map((aa) => b.map((bb) => aa.concat(bb)))].reduce((acc, arr) => [...arr, ...acc], []);
 }
 
-interface KubeResource { metadata: { labels: { [name: string]: string} } } // Migrate to central kube types resource when those are brought in
-export function getUniqueLabelKeys<T extends KubeResource>(aryResources: T[]): string[] {
-  const uniqueObj = aryResources.reduce((res, r) => {
-    Object.keys(r.metadata.labels).forEach((l) => (res[l] = true));
-
-    return res;
-  }, {} as {[label: string]: boolean});
-
-  return Object.keys(uniqueObj).sort();
-}
-
 /**
  * Join list as string into a new string without duplicates
  * @param {string} a 'a b c'

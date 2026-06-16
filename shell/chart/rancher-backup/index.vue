@@ -6,11 +6,13 @@ import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-import { get } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PV } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { STORAGE } from '@shell/config/labels-annotations';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { monitoringStatus } from '@shell/utils/monitoring';
 
 export default {
   emits: ['valid'],
@@ -22,7 +24,8 @@ export default {
     S3,
     LabeledInput,
     LabeledSelect,
-    Banner
+    Banner,
+    Checkbox
   },
 
   props: {
@@ -36,6 +39,16 @@ export default {
     mode: {
       type:    String,
       default: 'create'
+    }
+  },
+
+  created() {
+    // Initialize monitoring before template renders to avoid undefined access
+    if (!this.value.monitoring) {
+      set(this.value, 'monitoring', {
+        metrics:        { enabled: false },
+        serviceMonitor: { enabled: false }
+      });
     }
   },
 
@@ -64,6 +77,8 @@ export default {
   },
 
   computed: {
+    ...monitoringStatus(),
+
     defaultStorageClass() {
       return this.storageClasses.filter((sc) => sc.metadata.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
@@ -248,6 +263,24 @@ export default {
             </div>
           </div>
         </template>
+
+        <h3 class="mb-10 mt-10">
+          {{ t('backupRestoreOperator.monitoring.label') }}
+        </h3>
+        <div class="row monitoring-options">
+          <Checkbox
+            v-model:value="value.monitoring.metrics.enabled"
+            :label="t('backupRestoreOperator.monitoring.enableMetrics')"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.monitoring.serviceMonitor.enabled"
+            :label="t('backupRestoreOperator.monitoring.enableServiceMonitor')"
+            :disabled="!monitoringStatus.installed"
+            :tooltip="!monitoringStatus.installed ? t('backupRestoreOperator.monitoring.serviceMonitorTooltip') : null"
+            :mode="mode"
+          />
+        </div>
       </Tab>
     </Tabbed>
   </div>
@@ -256,5 +289,11 @@ export default {
 <style lang='scss' scoped>
 :deep() .radio-group.label>SPAN {
   font-size: 1em;
+}
+
+.monitoring-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 </style>

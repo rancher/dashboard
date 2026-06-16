@@ -1,4 +1,5 @@
 import { FleetWorkspaceListPagePo, FleetWorkspaceCreateEditPo, FleetWorkspaceDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
+import { FleetApplicationListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
@@ -25,7 +26,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let initialCount: number;
 
     it('check table headers are available in list and details view', () => {
@@ -39,7 +40,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         .checkRowCount(false, 1);
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Clusters', 'Cluster Groups', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Helm Ops', 'Clusters', 'Cluster Groups', 'Age'];
 
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
@@ -415,10 +416,10 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
 
     it('user sees custom workspace as an option in workspace selector', () => {
-      fleetWorkspacesListPage.goTo();
-      fleetWorkspacesListPage.waitForPage();
-      fleetWorkspacesListPage.list().resourceTable().sortableTable()
-        .noRowsShouldNotExist();
+      const appBundleListPage = new FleetApplicationListPagePo();
+
+      appBundleListPage.goTo();
+      appBundleListPage.waitForPage();
       headerPo.checkCurrentWorkspace(customWorkspace);
     });
 

@@ -34,6 +34,7 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',
+    extendable:          true,
   });
 
   virtualType({
@@ -62,7 +63,18 @@ export function init(store) {
       }
     }
   });
+
   configureType(MANAGEMENT.USER, { showListMasthead: false });
+
+  configureType(MANAGEMENT.OIDC_CLIENT, {
+    listCreateButtonLabelKey: 'oidcclient.listViewCreate',
+    isCreatable:              true,
+    isEditable:               true,
+    isRemovable:              true,
+    showAge:                  true,
+    showState:                true,
+    canYaml:                  true,
+  });
 
   spoofedType({
     labelKey:          'typeLabel."group.principal"',
@@ -132,6 +144,7 @@ export function init(store) {
         }));
     }
   });
+
   configureType(NORMAN.SPOOFED.GROUP_PRINCIPAL, {
     isCreatable:      false,
     showAge:          false,
@@ -139,9 +152,11 @@ export function init(store) {
     isRemovable:      false,
     showListMasthead: false,
   });
+
   // Use labelFor... so lookup succeeds with .'s in path.... and end result is 'trimmed' as per other entries
   mapType(NORMAN.SPOOFED.GROUP_PRINCIPAL, store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2));
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
+  weightType(MANAGEMENT.OIDC_CLIENT, 90, true);
 
   virtualType({
     labelKey:   'auth.roleTemplate',
@@ -163,6 +178,7 @@ export function init(store) {
   });
 
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/github`, 'auth/github');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/githubapp`, 'auth/github');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/openldap`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/freeipa`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/activedirectory`, 'auth/ldap/index');
@@ -181,7 +197,8 @@ export function init(store) {
     'config',
     USERS_VIRTUAL_TYPE,
     NORMAN.SPOOFED.GROUP_PRINCIPAL,
-    ROLES_VIRTUAL_TYPE
+    ROLES_VIRTUAL_TYPE,
+    MANAGEMENT.OIDC_CLIENT
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [

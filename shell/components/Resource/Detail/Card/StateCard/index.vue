@@ -1,14 +1,8 @@
-<script lang="ts">
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
-import ResourceRow, { Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.vue';
-
-export interface Props {
-  title: string;
-  rows: ResourceRowProps[];
-}
-</script>
-
 <script setup lang="ts">
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
+import { Props } from './types';
+
 const { title, rows } = defineProps<Props>();
 </script>
 

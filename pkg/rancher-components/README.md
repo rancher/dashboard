@@ -59,7 +59,7 @@ Running `yarn install` will automatically link inter-package dependencies for ea
   "name": "@rancher/shell",
   "version": "0.1.4",
   "description": "Rancher Dashboard Shell",
-  "repository": "https://github.com/rancherlabs/dashboard",
+  "repository": "https://github.com/rancher/dashboard",
   ...
   "dependencies": {
     ...

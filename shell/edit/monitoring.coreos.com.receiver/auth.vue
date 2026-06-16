@@ -106,7 +106,7 @@ export default {
           :mode="mode"
           :label="t('monitoringReceiver.auth.password')"
           type="password"
-          autocomplete="password"
+          autocomplete="current-password"
         />
       </div>
     </div>
@@ -121,7 +121,7 @@ export default {
           :label="t('monitoringReceiver.auth.bearerToken.label')"
           :placeholder="t('monitoringReceiver.auth.bearerToken.placeholder')"
           type="password"
-          autocomplete="password"
+          autocomplete="current-password"
         />
       </div>
     </div>

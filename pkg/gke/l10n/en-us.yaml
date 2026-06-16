@@ -4,6 +4,7 @@ asyncButton:
     success: Authenticated
     waiting: Authenticating
 gke:
+  description: Provision new Google Kubernetes Engine (GKE) clusters or register existing ones.
   accordion:
     advanced: Additional Options
     config: Config

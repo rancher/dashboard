@@ -16,7 +16,7 @@
     "typeRoots": [
       "../../node_modules",
       "../../shell/types",
-      "./types"
+      "../../shell/components/google/types"
     ],
     "types": [
       "node",

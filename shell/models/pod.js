@@ -1,9 +1,11 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, simpleColorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
+import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -46,6 +48,20 @@ export default class Pod extends WorkloadService {
     return this.$getters['byId'](NODE, this.spec.nodeName);
   }
 
+  get customValidationRules() {
+    const out = [
+      {
+        nullable:       false,
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+        type:           'subDomain',
+      },
+    ];
+
+    return out;
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
@@ -61,7 +77,7 @@ export default class Pod extends WorkloadService {
     return {
       action:  'openShell',
       enabled: !!this.links.view && this.isRunning,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon-chevron-right',
       label:   'Execute Shell',
       total:   1,
     };
@@ -71,7 +87,7 @@ export default class Pod extends WorkloadService {
     return {
       action:  'openLogs',
       enabled: !!this.links.view,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   'View Logs',
       total:   1,
     };
@@ -141,6 +157,37 @@ export default class Pod extends WorkloadService {
     return initContainers.includes(container);
   }
 
+  get resourceContainers() {
+    const statuses = [...(this.status?.containerStatuses || []), ...(this.status?.initContainerStatuses || [])];
+
+    return statuses.map((s) => {
+      const state = Object.keys(s.state || {})[0] || 'unknown';
+
+      return {
+        stateDisplay:     stateDisplay(state),
+        stateSimpleColor: simpleColorForState(state),
+      };
+    });
+  }
+
+  get resourcesCardRows() {
+    const rows = [...this._resourcesCardRows];
+
+    if (this.resourceContainers.length) {
+      rows.unshift(useResourceCardRow(this.t('workload.container.titles.containers'), this.resourceContainers, 'stateSimpleColor', 'stateDisplay', '#containers'));
+    }
+
+    return rows;
+  }
+
+  get cards() {
+    return [
+      this.resourcesCard,
+      this.insightCard,
+      ...this._cards
+    ].filter((c) => c);
+  }
+
   get imageNames() {
     return this.spec.containers.map((container) => shortenedImage(container.image));
   }
@@ -208,12 +255,29 @@ export default class Pod extends WorkloadService {
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
   }
 
+  /**
+   * How many times has the first container restarted
+   */
   get restartCount() {
     if (this.status.containerStatuses) {
       return this.status?.containerStatuses[0].restartCount || 0;
     }
 
     return 0;
+  }
+
+  /**
+   * How many times does native kube report this pod has restarted
+   */
+  get restartsCount() {
+    return this.metadata?.fields?.[3]?.match(POD_RESTARTS_REG_EX)?.[1] || '';
+  }
+
+  /**
+   * When does native kube think the last pod restart happen?
+   */
+  get restartsLaster() {
+    return this.metadata?.fields?.[3]?.match(POD_RESTARTS_REG_EX)?.[2] || '';
   }
 
   processSaveResponse(res) {

@@ -66,14 +66,15 @@ describe('class MgmtNodePool', () => {
       const { spec, nodes } = data;
       const mgmtNode = new MgmtNodePool({
         spec,
-        id: nodeId
+        metadata: {},
+        id:       nodeId
       }, {
         ...baseCtx,
         getters: {
-          all: () => [{
-            mgmtClusterId,
+          byId: () => ({
+            id: mgmtClusterId,
             nodes
-          }]
+          })
         }
       });
 

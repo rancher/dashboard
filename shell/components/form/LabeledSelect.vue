@@ -1,14 +1,19 @@
 <script>
 import CompactInput from '@shell/mixins/compact-input';
-import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
-import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { calculatePosition } from '@shell/utils/select';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
+import { useLabeledSelectPagination, labeledSelectPaginationProps } from '@shell/components/form/labeled-select-utils/useLabeledSelectPagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
+import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
+import { ref, toRef } from 'vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 export default {
   name: 'LabeledSelect',
@@ -18,27 +23,23 @@ export default {
   components: { LabeledTooltip },
   mixins:     [
     CompactInput,
-    LabeledFormElement,
     VueSelectOverrides,
-    LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'on-focus', 'on-blur', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
 
   props: {
+    ...labeledFormElementProps,
+    ...labeledSelectPaginationProps,
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean]
+    },
     appendToBody: {
       default: true,
       type:    Boolean,
     },
     clearable: {
-      default: false,
-      type:    Boolean
-    },
-    disabled: {
-      default: false,
-      type:    Boolean
-    },
-    required: {
       default: false,
       type:    Boolean
     },
@@ -96,13 +97,17 @@ export default {
       default: null,
       type:    [String, Object]
     },
-    value: {
-      default: null,
-      type:    [String, Object, Number, Array, Boolean]
-    },
     options: {
       type:    Array,
       default: () => ([])
+    },
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
+    filterable: {
+      default: true,
+      type:    Boolean
     },
     closeOnSelect: {
       type:    Boolean,
@@ -111,7 +116,92 @@ export default {
     noOptionsLabelKey: {
       type:    String,
       default: 'labelSelect.noOptions.empty'
+    },
+
+    name: {
+      type:    String,
+      default: null
     }
+  },
+
+  setup(props, { emit }) {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    const {
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField
+    } = useLabeledFormElement(props, emit);
+
+    const {
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+    } = useLabeledSelectPagination(props);
+
+    const {
+      isSearchable,
+      isFilterable,
+      resizeHandler: resizeHandlerFn
+    } = useLabeledSelect(props, canPaginate);
+
+    const resizeHandler = () => {
+      resizeHandlerFn(select);
+    };
+
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
+    return {
+      isOpen,
+      select,
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage: effectiveValidationMessage,
+      requiredField,
+      isSearchable,
+      isFilterable,
+      resizeHandler,
+      canPaginate,
+      canLoadMore,
+      optionCounts,
+      _options,
+      pages,
+      totalResults,
+      paginating,
+      loadMore,
+      setPaginationFilter,
+      veeHandleBlur,
+      veeValidate,
+    };
   },
 
   data() {
@@ -119,7 +209,6 @@ export default {
       selectedVisibility:   'visible',
       shouldOpen:           true,
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
-      isOpen:               false,
       generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
@@ -135,11 +224,6 @@ export default {
       return this.canPaginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
     },
 
-    _options() {
-      // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
-      return this.canPaginate ? this.page : this.options;
-    },
-
     filteredAttrs() {
       const {
         class: _class,
@@ -152,24 +236,33 @@ export default {
     // update placeholder text to inform user they can add their own opts when none are found
     showTagPrompts() {
       return !this.options.length && this.$attrs.taggable && this.isSearchable;
-    }
+    },
   },
 
   methods: {
-    // resizeHandler = in mixin
-    focusSearch(ev) {
-      if (this.isView || this.disabled || this.loading) {
+    clickSelect(event) {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
         return;
       }
 
-      const searchBox = document.querySelector('.vs__search');
-
-      // added to mitigate https://github.com/rancher/dashboard/issues/14361
-      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
-        ev.preventDefault();
+      // Ensure we don't toggle when clicking the clear button on multi-select
+      if (this.$attrs.multiple && event?.target.className === 'vs__deselect') {
+        return;
       }
 
-      this.$refs['select-input'].open = true;
+      this.isOpen = !this.isOpen;
+
+      // Ensure we only focus on open, otherwise we re-open on close
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
+    // resizeHandler = in mixin
+    focusSearch() {
+      if (this.isView || this.disabled || this.loading) {
+        return;
+      }
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -180,25 +273,46 @@ export default {
       });
     },
 
+    focusWrapper() {
+      this.$refs.select.focus();
+    },
+
     onFocus() {
+      this.$emit('on-focus');
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
     },
 
     onBlur() {
+      this.$emit('on-blur');
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
+      this.veeHandleBlur(undefined, false);
+      this.veeValidate();
     },
 
     onOpen() {
-      this.isOpen = true;
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
-    onClose() {
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
+    close() {
       this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
       this.$emit('on-close');
+      this.focusWrapper();
     },
 
     getOptionLabel(option) {
@@ -228,11 +342,11 @@ export default {
 
     get,
 
-    onClickOption(option, event) {
-      onClickOption.call(this, option, event);
-    },
-
     dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       const { noDrop, mutableLoading } = instance;
       const { open } = instance;
       const shouldOpen = this.shouldOpen;
@@ -297,10 +411,10 @@ export default {
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-required="requiredField"
-    @click="focusSearch"
-    @keydown.enter="focusSearch"
-    @keydown.down.prevent="focusSearch"
-    @keydown.space="focusSearch"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
@@ -327,6 +441,7 @@ export default {
       ref="select-input"
       v-bind="filteredAttrs"
       class="inline"
+      :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
@@ -346,14 +461,15 @@ export default {
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
       :uid="generatedUid"
-      :aria-label="'-'"
+      :aria-label="`- ${value}`"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
-      @option:selecting="$emit('selecting', $event)"
+      @option:selecting="closeOnSelecting"
+      @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
       @keydown.enter.stop
     >
@@ -388,7 +504,6 @@ export default {
           v-else
           class="vs__option-kind"
           :class="{ 'has-icon' : hasGroupIcon}"
-          @mousedown="(e) => onClickOption(option, e)"
         >
           {{ getOptionLabel(option) }}
           <i

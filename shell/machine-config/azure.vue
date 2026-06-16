@@ -35,9 +35,9 @@ const defaultConfig = {
   dns:                   '',
   environment:           'AzurePublicCloud',
   faultDomainCount:      '3',
-  image:                 'canonical:UbuntuServer:18.04-LTS:latest',
+  image:                 'canonical:ubuntu-24_04-lts:server-gen1:latest',
   location:              'westus',
-  managedDisks:          false,
+  managedDisks:          true,
   noPublicIp:            false,
   nsg:                   null,
   privateIpAddress:      null,
@@ -207,6 +207,10 @@ export default {
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
+  },
+
+  setup() {
+    return { _EDIT };
   },
 
   data() {
@@ -518,6 +522,11 @@ export default {
     </div>
   </div>
   <div v-else>
+    <Banner
+      v-if="mode === _EDIT && !value.managedDisks"
+      color="warning"
+      :label="t('cluster.machineConfig.azure.managedDisks.deprecationWarning', {}, true)"
+    />
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
@@ -842,6 +851,11 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
+          />
+          <Banner
+            v-if="!value.managedDisks"
+            color="warning"
+            :label="t('cluster.machineConfig.azure.managedDisks.deprecationWarning', {}, true)"
           />
           <Banner
             v-if="value.availabilityZone && !value.managedDisks"

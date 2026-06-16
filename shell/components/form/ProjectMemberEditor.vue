@@ -62,11 +62,6 @@ export default {
           value: false,
         },
         {
-          key:   'projectcatalogs-manage',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsManage'),
-          value: false,
-        },
-        {
           key:   'projectroletemplatebindings-manage',
           label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsManage'),
           value: false,
@@ -109,11 +104,6 @@ export default {
         {
           key:   'monitoring-ui-view',
           label: this.t('projectMembers.projectPermissions.monitoringUiView'),
-          value: false,
-        },
-        {
-          key:   'projectcatalogs-view',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsView'),
           value: false,
         },
         {
@@ -286,6 +276,7 @@ export default {
       <template v-slot:body>
         <RadioGroup
           v-model:value="value.permissionGroup"
+          :mode="mode"
           data-testid="permission-options"
           :options="options"
           name="permission-group"
@@ -301,6 +292,7 @@ export default {
           >
             <Checkbox
               v-model:value="permission.value"
+              :mode="mode"
               :data-testid="`custom-permission-${i}`"
               :disabled="permission.locked"
               class="mb-5"
@@ -309,7 +301,7 @@ export default {
             <i
               v-if="permission.locked"
               v-clean-tooltip="permission.tooltip"
-              class="icon icon-lock icon-fw"
+              class="icon icon-lock"
             />
           </div>
         </div>

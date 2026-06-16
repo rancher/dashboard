@@ -43,7 +43,6 @@ export const rke1Supports = [
 // Map a credential driver name to a component name
 // e.g. ec2 and eks both use the 'aws' driver to share the same pool of creds.
 const driverMap = {
-  aks:                             'azure',
   amazonec2:                       'aws',
   amazoneks:                       'aws',
   amazonelasticcontainerservice:   'aws',
@@ -62,6 +61,9 @@ const driverToFieldMap = {
   aws:    'amazonec2',
   gcp:    'google',
   oracle: 'oci',
+  aks:    'azure',
+  eks:    'amazonec2',
+  gke:    'google'
 };
 
 // Machine driver fields that are probably a credential field
@@ -107,8 +109,10 @@ const driverToCloudProviderMap = {
   linode:              '', // Show restricted options
   vmwarevsphere:       'rancher-vsphere',
   ovhcloudpubliccloud: '',
-
-  custom: undefined // Show all options
+  aks:                 'azure',
+  eks:                 'aws',
+  gke:                 'google',
+  custom:              undefined // Show all options
 };
 
 // Dynamically loaded drivers can call this eventually to register their options
@@ -168,14 +172,14 @@ export const getters = {
     return async(name) => {
       const schema = getters.schemaForDriver(name);
 
-      await schema.fetchResourceFields();
-
       if ( !schema ) {
         // eslint-disable-next-line no-console
         console.error(`Machine Driver Config schema not found for ${ name }`);
 
         return [];
       }
+      await schema.fetchResourceFields();
+
       // This is used in places where `createPopulated` has been called, which has called fetchResourceFields to populate resourceFields
       const out = Object.keys(schema?.resourceFields || {});
 
@@ -187,12 +191,15 @@ export const getters = {
 
   fieldsForDriver(state, getters) {
     return async(name) => {
+      const out = {};
       const schema = getters.schemaForDriver(name);
+
+      if ( !schema ) {
+        return out;
+      }
 
       await schema.fetchResourceFields();
       const names = await getters.fieldNamesForDriver(name);
-
-      const out = {};
 
       for ( const n of names ) {
         out[n] = schema.resourceFields[n];

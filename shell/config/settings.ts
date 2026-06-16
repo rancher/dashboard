@@ -2,6 +2,11 @@
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
 
+export const AGENT_CONFIGURATION_TYPES = {
+  CLUSTER: 'cluster',
+  FLEET:   'fleet'
+} as const;
+
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
@@ -17,6 +22,7 @@ interface GlobalSetting {
     kind?: string,
     options?: string[]
     readOnly?: boolean,
+    agent?: typeof AGENT_CONFIGURATION_TYPES.CLUSTER | typeof AGENT_CONFIGURATION_TYPES.FLEET,
     /**
      * Function used from the form validation
      */
@@ -45,18 +51,18 @@ export const SETTING = {
   AUTH_TOKEN_MAX_TTL_MINUTES:                    'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:                     'kubeconfig-generate-token',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:          'kubeconfig-default-token-ttl-minutes',
-  ENGINE_URL:                                    'engine-install-url',
   ENGINE_ISO_URL:                                'engine-iso-url',
   FIRST_LOGIN:                                   'first-login',
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
   SERVER_URL:                                    'server-url',
+  RKE_METADATA_CONFIG:                           'rke-metadata-config',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
+  AUTH_USER_SESSION_IDLE_TTL_MINUTES:            'auth-user-session-idle-ttl-minutes',
   AUTH_USER_SESSION_TTL_MINUTES:                 'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
   PASSWORD_MIN_LENGTH:                           'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
-  UI_INDEX:                                      'ui-index',
   UI_DASHBOARD_INDEX:                            'ui-dashboard-index',
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
   UI_OFFLINE_PREFERRED:                          'ui-offline-preferred',
@@ -106,15 +112,23 @@ export const SETTING = {
   DISABLE_INACTIVE_USER_AFTER:                   'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
+  SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
-  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
+  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
+  FLEET_AGENT_DEFAULT_PRIORITY_CLASS:            'fleet-agent-default-priority-class',
+  FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET:   'fleet-agent-default-pod-disruption-budget',
+  KEV2_OPERATORS:                                'kev2-operators',
+  /**
+   * Dynamic Content settings
+   */
+  DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
+  DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CA_CERTS]:            { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:          {},
   [SETTING.ENGINE_ISO_URL]:      {},
   [SETTING.PASSWORD_MIN_LENGTH]: {
     kind:    'integer',
@@ -140,14 +154,15 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
+  [SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES]:   {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
+  [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
-  [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
@@ -160,17 +175,39 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
   },
+  [SETTING.SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
+  },
   [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
     kind:    'integer',
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
-  [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json' },
-  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json' }
+  // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
+  [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
+  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
+  [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
+  [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET }
 
 };
 
-export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management', 'cluster-agent-default-priority-class', 'cluster-agent-default-pod-disruption-budget'];
+/**
+ * Show settings in a special cluster provisioning section
+ *
+ * These should probably be an option in the maps above...
+ */
+export const PROVISIONING_SETTINGS = [
+  SETTING.ENGINE_ISO_URL,
+  SETTING.RKE_METADATA_CONFIG,
+  SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
+  SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
+  SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
+  SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+];
+
 /**
  * Settings on how to handle warnings returning in api responses, specifically which to show as growls
  */

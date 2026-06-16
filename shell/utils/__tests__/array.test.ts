@@ -1,5 +1,5 @@
 import {
-  addObject, addObjects, clear, filterBy, findBy, getUniqueLabelKeys, insertAt, isArray, joinStringList, removeAt, removeObject, removeObjects, replaceWith, sameContents, uniq
+  addObject, addObjects, clear, filterBy, findBy, insertAt, isArray, joinStringList, removeAt, removeObject, removeObjects, replaceWith, sameContents, uniq
 } from '@shell/utils/array';
 
 interface Obj {
@@ -470,34 +470,6 @@ describe('fx: replaceWith', () => {
 
     expect(a).toStrictEqual(c);
     expect(a).toBe(b);
-  });
-});
-
-describe('fx: getUniqueLabelKeys', () => {
-  it('should get list of unique resource labels', () => {
-    const resources = [
-      {
-        metadata: {
-          labels: {
-            keyOne: 'value',
-            keyTwo: 'value',
-          }
-        }
-      },
-      {
-        metadata: {
-          labels: {
-            keyOne:   'value',
-            keyThree: 'value',
-          }
-        }
-      },
-    ] as unknown as { metadata: { labels: { [name: string]: string} } }[] ;
-
-    const expected = ['keyOne', 'keyThree', 'keyTwo'];
-    const result = getUniqueLabelKeys(resources);
-
-    expect(result).toStrictEqual(expected);
   });
 });
 

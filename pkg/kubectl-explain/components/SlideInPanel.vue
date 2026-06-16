@@ -41,7 +41,7 @@ export default {
     // and therefore not triggering the focus trap
     isOpen(neu, old) {
       if (neu && neu !== old) {
-        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '[data-testid="slide-in-panel-resource-explain"]', {
+        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, this.$refs.slideInPanelResourceExplain, {
           escapeDeactivates: false,
           allowOutsideClick: true,
           // putting the initial focus on the first element that is not conditionally displayed
@@ -204,7 +204,8 @@ export default {
       :class="{ 'slide-in-glass-open': isOpen }"
       @click="close()"
     />
-    <div
+    <aside
+      ref="slideInPanelResourceExplain"
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
@@ -220,7 +221,7 @@ export default {
       />
       <div class="main-panel">
         <div class="header">
-          <div
+          <nav
             v-if="breadcrumbs"
             class="breadcrumbs"
           >
@@ -250,7 +251,7 @@ export default {
                 @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
               >{{ b.name }}</a>
             </div>
-          </div>
+          </nav>
           <div
             v-else
             class="scroll-title"
@@ -333,7 +334,7 @@ export default {
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   </div>
 </template>
 
@@ -446,12 +447,13 @@ export default {
     flex-direction: column;
     position: fixed;
     top: 0;
-    z-index: 2000;
     width: $slidein-width;
     background-color: var(--body-bg);
     right: -$slidein-width;
     transition: right 0.5s;
     border-left: 1px solid var(--border);
+
+    z-index: calc(z-index('slide-in') + 1);
   }
 
   .slide-in-open {
@@ -470,11 +472,12 @@ export default {
       height :100vh;
       width: 100vw;
 
+      z-index: z-index('slide-in');
+
     &.slide-in-glass-open {
       background-color: var(--body-bg);
       display: block;
       opacity: 0.5;
-      z-index: 1000;
     }
   }
 

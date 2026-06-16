@@ -1,9 +1,10 @@
-//
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
@@ -13,14 +14,14 @@ describe('Apps', () => {
       beforeEach(() => {
         cy.login();
 
-        appRepoList.goTo();
-        appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+        appRepoList.goTo('local', 'apps');
+        appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });
 
       describe('Contained', () => {
-        const reposToDelete = [];
+        const reposToDelete: string[] = [];
 
         it('After add Repo list should not contain multiple entries', function() {
           const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
@@ -93,14 +94,14 @@ describe('Apps', () => {
         // make sure the value is set
         appRepoCreate.helmIndexUrl().should('eq', helmIndexUrl);
         // select git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // switch back to helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // test helm index value is empty
         appRepoCreate.helmIndexUrl().should('be.empty');
 
         // select Git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // fill the git repo form
         appRepoCreate.enterGitRepoName(gitRepoName);
         appRepoCreate.enterGitBranchName(gitRepoBranchName);
@@ -108,16 +109,16 @@ describe('Apps', () => {
         appRepoCreate.gitRepoName().should('eq', gitRepoName);
         appRepoCreate.gitRepoBranchName().should('eq', gitRepoBranchName);
         // select helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // switch back to git repo option
-        appRepoCreate.selectRadioOptionGitRepo(1);
+        appRepoCreate.selectRcItemCard('git-repo');
         // test git repo value is empty
         appRepoCreate.gitRepoName().should('be.empty');
         // test git repo branch value is empty
         appRepoCreate.gitRepoBranchName().should('be.empty');
 
         // select oci option
-        appRepoCreate.selectRadioOptionGitRepo(2);
+        appRepoCreate.selectRcItemCard('oci-url');
         // fill the oci form
         appRepoCreate.enterOciURL(ociValues.url);
         appRepoCreate.enterOciCaBundle(ociValues.caBundle);
@@ -135,9 +136,9 @@ describe('Apps', () => {
         appRepoCreate.ociMaxWait().should('eq', ociValues.maxWait);
         appRepoCreate.ociMaxRetries().should('eq', ociValues.maxRetries);
         // select helm index url option
-        appRepoCreate.selectRadioOptionGitRepo(0);
+        appRepoCreate.selectRcItemCard('helm-url');
         // switch back to oci option
-        appRepoCreate.selectRadioOptionGitRepo(2);
+        appRepoCreate.selectRcItemCard('oci-url');
         // test oci values to be empty
         appRepoCreate.ociUrl().should('be.empty');
         appRepoCreate.ociCaBundle().should('be.empty');
@@ -163,55 +164,82 @@ describe('Apps', () => {
 
       beforeEach(() => {
         cy.login();
+        cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
 
-        appRepoList.goTo();
+        appRepoList.goTo(clusterId, 'apps');
         appRepoList.waitForPage();
       });
 
-      it('Repo Refresh results in correct api requests', () => {
-        // Root request to the Rancher helm chart repo
-        cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts1');
+      it('Repo Refresh results in correct api requests', function() {
+        runTestWhenChartAvailable('rancher-charts', 'rancher-backup', this, () => {
+          // Root request to the Rancher helm chart repo
+          cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts1');
 
-        // Nav to a summary page for a specific chart
-        chartsPage.goTo();
-        chartsPage.resetAllFilters();
+          // Nav to a summary page for a specific chart
+          chartsPage.goTo();
+          chartsPage.waitForPage();
+          chartsPage.resetAllFilters();
 
-        chartsPage.clickChart('Rancher Backups');
-        chartPage.waitForPage();
+          // Wait for charts to load and search for the specific chart
+          chartsPage.chartCards().should('have.length.greaterThan', 0);
 
-        // The repo charts should have been fetched
-        cy.wait('@rancherCharts1').its('request.url').should('include', 'link=index');
-        // The specific version of the chart should be fetched
-        cy.wait('@rancherCharts1').its('request.url').should('include', 'version=');
+          // Search for the chart to ensure it's available
+          chartsPage.chartsSearchFilterInput().clear().type('Rancher Backups');
 
-        // Nav to any other page
-        ReposListPagePo.navTo(clusterId, 'apps');
-        appRepoList.waitForPage();
+          // Wait for search to complete and ensure chart is visible
+          chartsPage.getChartByName('Rancher Backups').self().should('be.visible');
 
-        // Nav back to the summary page for a specific chart
-        // Note we're intercepting a more precise url here to avoid any icon requests made from the charts list
-        cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?link=info&chartName=rancher-backup&version=*`, cy.spy().as('rancherCharts2'));
-        ChartPage.navTo(clusterId, 'Rancher Backups');
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
-        // The specific version of the chart (and any other) should NOT be fetched
-        cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
-        cy.get('@rancherCharts2').should('not.have.been.called');
+          // Wait for search to filter down to only one chart card
+          chartsPage.chartCards().should('have.length', 1);
 
-        // Nav to the helm chart repo page
-        ReposListPagePo.navTo(clusterId, 'apps');
-        appRepoList.waitForPage();
+          chartsPage.clickChart('Rancher Backups');
+          chartPage.waitForPage();
 
-        // Refresh the Rancher repo (clears caches)
-        cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts3');
-        appRepoList.list().refreshRepo('Rancher');
-        // The charts should immediately update
-        cy.wait('@rancherCharts3').its('request.url').should('include', '?link=index');
+          // The repo charts should have been fetched
+          cy.wait('@rancherCharts1').its('request.url').should('include', 'link=index');
+          // The specific version of the chart should be fetched
+          cy.wait('@rancherCharts1').its('request.url').should('include', 'version=');
 
-        // Nav to the summary page for a specific chart
-        ChartPage.navTo(clusterId, 'Rancher Backups');
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
-        // The specific version of the chart should be fetched (as the cache was cleared)
-        cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
+          // Nav to any other page
+          ReposListPagePo.navTo(clusterId, 'apps');
+          appRepoList.waitForPage();
+
+          // Nav back to the summary page for a specific chart
+          // Note we're intercepting a more precise url here to avoid any icon requests made from the charts list
+          cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?link=info&chartName=rancher-backup&version=*`, cy.spy().as('rancherCharts2'));
+          ChartPage.navTo(clusterId, 'Rancher Backups');
+          chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
+          // The specific version of the chart (and any other) should NOT be fetched
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+          cy.get('@rancherCharts2').should('not.have.been.called');
+
+          // Nav to the helm chart repo page
+          ReposListPagePo.navTo(clusterId, 'apps');
+          appRepoList.waitForPage();
+
+          // Refresh the Rancher repo (clears caches)
+          cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts`).as('refreshRepo');
+          cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts3');
+          appRepoList.list().refreshRepo('Rancher');
+          // Wait for the refresh operation to complete
+          cy.wait('@refreshRepo', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+          // Wait for the repository to become active again
+          appRepoList.list().state('Rancher').contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
+          // Wait for the charts (in repo) to be fetched again
+          cy.wait('@rancherCharts3').its('response.statusCode').should('eq', 200);
+
+          // Nav to the summary page for a specific chart
+          ChartPage.navTo(clusterId, 'Rancher Backups');
+          chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
+          // The specific version of the chart should be fetched (as the cache was cleared)
+          cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
+        });
+      });
+
+      after(() => {
+        cy.setUserPreference({ 'show-pre-release': false });
       });
     });
   });

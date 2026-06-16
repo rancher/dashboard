@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
 
@@ -51,23 +50,6 @@ export default defineComponent({
     sticky: {
       type:    Boolean,
       default: false,
-    },
-    triggerFocusTrap: {
-      type:    Boolean,
-      default: false,
-    },
-  },
-  setup(props) {
-    if (props.triggerFocusTrap) {
-      useBasicSetupFocusTrap('#focus-trap-card-container-element', {
-        // needs to be false because of import YAML modal from header
-        // where the YAML editor itself is a focus trap
-        // and we can't have it superseed the "escape key" to blur that UI element
-        // In this case the focus trap moves the focus out of the modal
-        // correctly once it closes because of the "onBeforeUnmount" trigger
-        escapeDeactivates: false,
-        allowOutsideClick: true,
-      });
     }
   }
 });
@@ -116,7 +98,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
  .card-container {
   &.highlight-border {
     border-left: 5px solid var(--primary);

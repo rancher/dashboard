@@ -1,3 +1,4 @@
+import 'cypress-real-events/support';
 import '@cypress/code-coverage/support';
 import './commands/commands';
 import './commands/chainable';
@@ -5,10 +6,10 @@ import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
 import registerCypressGrep from '@cypress/grep/src/support';
-import { addCustomCommand } from 'cypress-delete-downloads-folder';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
+const { addCustomCommand } = require('cypress-delete-downloads-folder');
 
 registerCypressGrep();
 addCustomCommand();
@@ -20,4 +21,10 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
+});
+
+require('cypress-terminal-report/src/installLogsCollector')({
+  collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
+  // Enable logging of before and after all
+  enableExtendedCollector: true
 });

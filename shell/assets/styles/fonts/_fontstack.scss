@@ -18,24 +18,148 @@
     url('~@shell/assets/fonts/poppins/poppins-v15-latin-500.woff') format('woff'), /* Modern Browsers */
 }
 
-/* lato-regular - latin */
+/**
+ * Lato Font (Latin) (see: https://www.latofonts.com/)
+ **/
+
+/* Webfont: Lato-Light (300) */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Light.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Light.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-LightItalic (300) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-LightItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-LightItalic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-Regular (400) */
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: normal;
-  src: local(''),
-    url('~@shell/assets/fonts/lato/lato-v17-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
-    url('~@shell/assets/fonts/lato/lato-v17-latin-regular.woff') format('woff'), /* Modern Browsers */
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Regular.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Regular.woff') format('woff'); /* Modern Browsers */
 }
 
-/* lato-700 - latin */
+/* Webfont: Lato-Italic (400) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: normal;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Italic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Italic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-Medium (500) */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Medium.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Medium.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-MediumItalic (500) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-MediumItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-MediumItalic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: LatoLatin-Semibold (600) */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 600;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Semibold.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Semibold.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: LatoLatin-SemiboldItalic (600) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 600;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-SemiboldItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-SemiboldItalic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: LatoLatin-Bold (700) */
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: bold;
-  src: local(''),
-    url('~@shell/assets/fonts/lato/lato-v17-latin-700.woff2') format('woff2'), /* Super Modern Browsers */
-    url('~@shell/assets/fonts/lato/lato-v17-latin-700.woff') format('woff'), /* Modern Browsers */
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Bold.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Bold.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: LatoLatin-BoldItalic (700) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: bold;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-BoldItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-BoldItalic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-Heavy (800) */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 800;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Heavy.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Heavy.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-HeavyItalic (800) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 800;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-HeavyItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-HeavyItalic.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-Black (900) */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 900;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-Black.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-Black.woff') format('woff'); /* Modern Browsers */
+}
+
+/* Webfont: Lato-BlackItalic (900) */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 900;
+  text-rendering: optimizeLegibility;
+  src: url('~@shell/assets/fonts/lato/LatoLatin-BlackItalic.woff2') format('woff2'), /* Modern Browsers */
+       url('~@shell/assets/fonts/lato/LatoLatin-BlackItalic.woff') format('woff'); /* Modern Browsers */
 }
 
 /* roboto-mono-regular - latin */
@@ -46,4 +170,56 @@
   src: local(''),
     url('~@shell/assets/fonts/roboto-mono/roboto-mono-v13-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
     url('~@shell/assets/fonts/roboto-mono/roboto-mono-v13-latin-regular.woff') format('woff'), /* Modern Browsers */
+}
+
+// SUSE Font
+
+/* suse-300 - latin */
+@font-face {
+  font-display: swap;
+  font-family: 'SUSE';
+  font-style: normal;
+  font-weight: 300;
+  src: url('~@shell/assets/fonts/suse/suse-v2-latin-300.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+       url('~@shell/assets/fonts/suse/suse-v2-latin-300.woff') format('woff'), /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+, iOS 5+ */
+}
+
+/* suse-regular - latin */
+@font-face {
+  font-display: swap;
+  font-family: 'SUSE';
+  font-style: normal;
+  font-weight: 400;
+  src: url('~@shell/assets/fonts/suse/suse-v2-latin-regular.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+       url('~@shell/assets/fonts/suse/suse-v2-latin-regular.woff') format('woff'), /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+, iOS 5+ */
+}
+
+/* suse-600 - latin */
+@font-face {
+  font-display: swap;
+  font-family: 'SUSE';
+  font-style: normal;
+  font-weight: 600;
+  src: url('~@shell/assets/fonts/suse/suse-v2-latin-600.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+       url('~@shell/assets/fonts/suse/suse-v2-latin-600.woff') format('woff'), /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+, iOS 5+ */
+}
+
+/* suse-700 - latin */
+@font-face {
+  font-display: swap;
+  font-family: 'SUSE';
+  font-style: normal;
+  font-weight: 700;
+  src: url('~@shell/assets/fonts/suse/suse-v2-latin-700.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+       url('~@shell/assets/fonts/suse/suse-v2-latin-700.woff') format('woff'), /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+, iOS 5+ */
+}
+
+/* suse-800 - latin */
+@font-face {
+  font-display: swap;
+  font-family: 'SUSE';
+  font-style: normal;
+  font-weight: 800;
+  src: url('~@shell/assets/fonts/suse/suse-v2-latin-800.woff2') format('woff2'), /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+       url('~@shell/assets/fonts/suse/suse-v2-latin-800.woff') format('woff'), /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+, iOS 5+ */
 }

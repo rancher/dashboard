@@ -13,6 +13,11 @@ import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import FormValidation from '@shell/mixins/form-validation';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
+import slackLogo from '@shell/assets/images/vendor/slack.svg';
+import emailLogo from '@shell/assets/images/vendor/email.svg';
+import pagerdutyLogo from '@shell/assets/images/vendor/pagerduty.svg';
+import webhookLogo from '@shell/assets/images/vendor/webhook.svg';
+import customLogo from '@shell/assets/images/vendor/custom.svg';
 
 // i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
 // i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
@@ -23,14 +28,14 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.slack.title',
     info:  'monitoringReceiver.slack.info',
     key:   'slackConfigs',
-    logo:  require(`@shell/assets/images/vendor/slack.svg`)
+    logo:  slackLogo
   },
   {
     name:  'email',
     label: 'monitoringReceiver.email.label',
     title: 'monitoringReceiver.email.title',
     key:   'emailConfigs',
-    logo:  require(`@shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:  'pagerduty',
@@ -38,21 +43,21 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.pagerduty.title',
     info:  'monitoringReceiver.pagerduty.info',
     key:   'pagerdutyConfigs',
-    logo:  require(`@shell/assets/images/vendor/pagerduty.svg`)
+    logo:  pagerdutyLogo
   },
   {
     name:  'opsgenie',
     label: 'monitoringReceiver.opsgenie.label',
     title: 'monitoringReceiver.opsgenie.title',
     key:   'opsgenieConfigs',
-    logo:  require(`@shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:  'webhook',
     label: 'monitoringReceiver.webhook.label',
     title: 'monitoringReceiver.webhook.title',
     key:   'webhookConfigs',
-    logo:  require(`@shell/assets/images/vendor/webhook.svg`),
+    logo:  webhookLogo,
   },
   {
     name:  'custom',
@@ -60,7 +65,7 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.custom.title',
     info:  'monitoringReceiver.custom.info',
     key:   'webhookConfigs',
-    logo:  require(`@shell/assets/images/vendor/custom.svg`)
+    logo:  customLogo
   },
 ];
 
@@ -101,6 +106,10 @@ export default {
       type:     Function,
       required: true
     },
+    useTabbedHash: {
+      type:    Boolean,
+      default: undefined
+    }
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -124,6 +133,16 @@ export default {
     const expectedFields = Object.keys(receiverSchema.resourceFields);
     const suffix = {};
 
+    // Values contains multiple receivers of two types
+    // 1. Known (expected, from schema) shown in their own tabs with explicity forms
+    // 2. unknown (not expected, missing in schema) shown as a yaml blob
+
+    // - expectedFields and suffixYaml are only used if the receiver is of type `custom`
+    // - expectedFields are the known types
+    // - suffixYaml are the unknown types
+    // - usages,
+    //   - for custom, we need to know only the unknown / yaml blog. so suffixYaml is created by extracting all known (expectedFields) from value
+    //   - on edit of custom we then combine the two again and save to value
     Object.keys(this.value).forEach((key) => {
       if (!expectedFields.includes(key)) {
         suffix[key] = this.value[key];
@@ -191,7 +210,7 @@ export default {
       return {
         duplicateName: () => {
           const receiversArray = this.alertmanagerConfigResource.spec.receivers;
-          const receiverNamesArray = receiversArray.map((R) => R.name);
+          const receiverNamesArray = receiversArray?.map((R) => R.name) || [];
           const receiversSet = new Set(receiverNamesArray);
 
           if (receiversArray.length !== receiversSet.size) {
@@ -299,7 +318,9 @@ export default {
     <Tabbed
       ref="tabbed"
       :side-tabs="true"
-      default-tab="overview"
+      :default-tab="defaultTab || 'overview'"
+      :use-hash="useTabbedHash"
+
       @changed="tabChanged"
     >
       <Tab

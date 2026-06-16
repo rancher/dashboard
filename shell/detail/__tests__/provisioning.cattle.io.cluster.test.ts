@@ -1,11 +1,22 @@
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
+import * as MastheadComposable from '@shell/components/Resource/Detail/Masthead/composable';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 
+jest.mock('@shell/components/Resource/Detail/Masthead/composable');
+
 describe('view: provisioning.cattle.io.cluster', () => {
+  const useDefaultMastheadPropsSpy = jest.spyOn(MastheadComposable, 'useDefaultMastheadProps');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    useDefaultMastheadPropsSpy.mockReturnValue({} as any);
+  });
+
   const mockStore = {
     getters: {
       'management/canList':      () => true,
@@ -114,6 +125,120 @@ describe('view: provisioning.cattle.io.cluster', () => {
       await wrapper.setData({ clusterToken: {} });
 
       expect(wrapper.vm.showRegistration).toStrictEqual(false);
+    });
+  });
+
+  describe('fakeMachines', () => {
+    const clusterName = 'my-cluster';
+    const poolName = 'pool1';
+    const namespace = 'fleet-default';
+    const poolFullName = `${ clusterName }-${ poolName }`;
+
+    const wrongTemplate = { metadata: { name: `${ poolFullName }-aaaa1111`, namespace } };
+    const correctTemplate = { metadata: { name: `${ poolFullName }-bbbb2222`, namespace } };
+
+    const baseValue = {
+      name:        clusterName,
+      nameDisplay: clusterName,
+      namespace,
+      machines:    [],
+      spec:        {
+        rkeConfig: {
+          machinePools: [
+            {
+              name:             poolName,
+              machineConfigRef: { name: `nc-${ poolFullName }-xyz`, kind: 'Amazonec2Config' },
+            },
+          ],
+        },
+      },
+    };
+
+    it('uses MachineDeployment infrastructureRef to select the correct template for an empty pool', async() => {
+      const machineDeployment = {
+        metadata: { name: poolFullName, namespace },
+        spec:     { template: { spec: { infrastructureRef: { name: correctTemplate.metadata.name } } } },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value: baseValue },
+        global: { mocks },
+      });
+
+      await wrapper.setData({
+        allMachineDeployments: [machineDeployment],
+        machineTemplates:      [wrongTemplate, correctTemplate],
+      });
+
+      const [fakeMachine] = wrapper.vm.fakeMachines;
+
+      expect(fakeMachine.pool._template).toStrictEqual(correctTemplate);
+    });
+
+    it('returns the first prefix-matching template when no MachineDeployment exists for the pool', async() => {
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value: baseValue },
+        global: { mocks },
+      });
+
+      await wrapper.setData({
+        allMachineDeployments: [],
+        machineTemplates:      [wrongTemplate, correctTemplate],
+      });
+
+      const [fakeMachine] = wrapper.vm.fakeMachines;
+
+      expect(fakeMachine.pool._template).toStrictEqual(wrongTemplate);
+    });
+
+    it('returns undefined template when MachineDeployment infrastructureRef does not match any template', async() => {
+      const machineDeployment = {
+        metadata: { name: poolFullName, namespace },
+        spec:     { template: { spec: { infrastructureRef: { name: `${ poolFullName }-nonexistent` } } } },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value: baseValue },
+        global: { mocks },
+      });
+
+      await wrapper.setData({
+        allMachineDeployments: [machineDeployment],
+        machineTemplates:      [wrongTemplate, correctTemplate],
+      });
+
+      const [fakeMachine] = wrapper.vm.fakeMachines;
+
+      expect(fakeMachine.pool._template).toBeUndefined();
+    });
+
+    it('does not include a pool in fakeMachines when it has active machines', async() => {
+      const valueWithMachines = {
+        ...baseValue,
+        machines: [
+          {
+            metadata: {
+              labels: {
+                'cluster.x-k8s.io/cluster-name':       clusterName,
+                'rke.cattle.io/rke-machine-pool-name': poolName,
+              },
+            },
+            spec: { infrastructureRef: { apiGroup: 'rke-machine.cattle.io', name: `${ poolFullName }-bbbb2222` } },
+          },
+        ],
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value: valueWithMachines },
+        global: { mocks },
+      });
+
+      await wrapper.setData({
+        allMachineDeployments: [],
+        machineTemplates:      [wrongTemplate, correctTemplate],
+      });
+
+      expect(wrapper.vm.fakeMachines).toHaveLength(0);
     });
   });
 });

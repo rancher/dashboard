@@ -28,7 +28,20 @@ export default defineComponent({
       color="warning"
       data-testid="auth-provider-admin-permissions-warning-banner"
     >
-      <span v-clean-html="t('authConfig.associatedWarning', tArgs, true)" />
+      <span class="banner-content">
+        <span v-clean-html="t('authConfig.associatedWarning', tArgs, true)" />
+        <slot name="additional-warning">
+          <!--Empty slot content-->
+        </slot>
+      </span>
     </Banner>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+</style>

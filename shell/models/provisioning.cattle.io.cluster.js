@@ -1,24 +1,31 @@
 import {
-  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
+  CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
+  EVENT
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
-import { sortBy } from '@shell/utils/sort';
-import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
-import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
-import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import jsyaml from 'js-yaml';
+import { defineAsyncComponent, markRaw } from 'vue';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const RKE1_ALLOWED_ACTIONS = [
+  'promptRemove',
   'openShell',
   'downloadKubeConfig',
   'copyKubeConfig',
   'download',
   'viewInApi'
 ];
+
+const AUTOSCALER_STATUS = {
+  PROVISIONING: 'provisioning',
+  UNAVAILABLE:  'unavailable'
+};
 
 /**
  * Class representing Cluster resource.
@@ -47,6 +54,17 @@ export default class ProvCluster extends SteveModel {
         label:   this.t('cluster.detail.machines'),
         content: this.desired,
       },
+      {
+        label:         'Autoscaler',
+        content:       this.isAutoscalerEnabled,
+        valueOverride: {
+          component: markRaw(defineAsyncComponent(() => import('@shell/components/formatter/Autoscaler.vue'))),
+          props:     {
+            value: true,
+            row:   this
+          }
+        }
+      }
     ].filter((x) => !!x.content);
 
     if (!this.machineProvider) {
@@ -73,15 +91,21 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
-  // Models can specify a single action that will be shown as a button in the details masthead
-  get detailsAction() {
-    const canExplore = this.mgmt?.isReady && !this.hasError;
+  get canExplore() {
+    return this.mgmt?.canExplore;
+  }
 
-    return {
-      action:  'explore',
-      label:   this.$rootGetters['i18n/t']('cluster.explore'),
-      enabled: canExplore,
-    };
+  get canEdit() {
+    // If the cluster is a KEV1 cluster, Harvester cluster, or v2 provisioning cluster that uses upstream capi infrastructure providers, then prevent edit
+    if (this.isKev1 || this.isHarvester || this.isCapiWithoutExtension) {
+      return false;
+    }
+
+    return super.canEdit;
+  }
+
+  get canCustomEdit() {
+    return !this.isCapiWithoutExtension && super.canCustomEdit;
   }
 
   get _availableActions() {
@@ -100,7 +124,7 @@ export default class ProvCluster extends SteveModel {
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
-    const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
+    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -116,12 +140,12 @@ export default class ProvCluster extends SteveModel {
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
+        enabled:    this.mgmt?.canCreateKubeconfig,
       }, {
         action:   'copyKubeConfig',
         label:    this.t('cluster.copyConfig'),
         bulkable: false,
-        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
+        enabled:  this.mgmt?.canCreateKubeconfig,
         icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
@@ -133,7 +157,7 @@ export default class ProvCluster extends SteveModel {
       }, {
         action:  'restoreSnapshotAction',
         label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
-        icon:    'icon icon-fw icon-backup-restore',
+        icon:    'icon icon-backup-restore',
         enabled: canSnapshot,
       }, {
         action:  'rotateCertificates',
@@ -145,25 +169,19 @@ export default class ProvCluster extends SteveModel {
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
         enabled: canEditRKE2cluster
-      }, { divider: true }];
-
-    // Harvester Cluster 1:1 Harvester Cloud Cred
-    if (this.cloudCredential?.canRenew || this.cloudCredential?.canBulkRenew) {
-      out.splice(0, 0, { divider: true });
-      out.splice(0, 0, {
-        action:     'renew',
-        enabled:    this.cloudCredential?.canRenew,
-        bulkable:   this.cloudCredential?.canBulkRenew,
-        bulkAction: 'renewBulk',
-        icon:       'icon icon-fw icon-refresh',
-        label:      this.$rootGetters['i18n/t']('cluster.cloudCredentials.renew'),
-      });
-    }
+      },
+      {
+        action:  'toggleAutoscalerRunner',
+        label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
+        icon:    `icon ${ this.isAutoscalerPaused ? 'icon-play' : 'icon-pause' }`,
+        enabled: this.canPauseResumeAutoscaler
+      },
+      { divider: true }];
 
     const all = actions.concat(out);
 
-    // If the cluster is a KEV1 cluster then prevent edit
-    if (this.isKev1) {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
       const edit = all.find((action) => action.action === 'goToEdit');
 
       if (edit) {
@@ -199,25 +217,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get normanCluster() {
-    const name = this.status?.clusterName;
-
-    if ( !name ) {
-      return null;
-    }
-
-    const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
-
-    return out;
+    return this.mgmt?.normanCluster;
   }
 
   async findNormanCluster() {
-    const name = this.status?.clusterName;
-
-    if ( !name ) {
-      return null;
-    }
-
-    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: name }, { root: true });
+    return this.mgmt?.findNormanCluster();
   }
 
   explore() {
@@ -230,35 +234,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   async goToHarvesterCluster() {
-    const harvesterCluster = await this.$dispatch('create', {
-      ...this,
-      type: HCI.CLUSTER
-    });
-
-    try {
-      await harvesterCluster.goToCluster();
-    } catch {
-    }
-  }
-
-  goToViewYaml() {
-    let location;
-
-    if ( !this.isRke2 ) {
-      location = this.mgmt?.detailLocation;
-    }
-
-    if ( !location ) {
-      location = this.detailLocation;
-    }
-
-    location.query = {
-      ...location.query,
-      [MODE]: _VIEW,
-      [AS]:   _YAML
-    };
-
-    this.currentRouter().push(location);
+    return this.mgmt?.goToHarvesterCluster();
   }
 
   get canDelete() {
@@ -274,24 +250,22 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const providers = ['AKS', 'EKS', 'GKE'];
+    return this.mgmt?.isHostedKubernetesProvider;
+  }
 
-    return providers.includes(this.provisioner);
+  get providerConfig() {
+    if ( this.isRke2 ) {
+      return this.spec.rkeConfig;
+    }
+    if (this.mgmt && this.mgmt.config) {
+      return this.mgmt.config;
+    }
+
+    return null;
   }
 
   get isPrivateHostedProvider() {
-    if (this.isHostedKubernetesProvider && this.mgmt && this.provisioner) {
-      switch (this.provisioner.toLowerCase()) {
-      case 'gke':
-        return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
-      case 'eks':
-        return this.mgmt.spec?.eksConfig?.privateAccess;
-      case 'aks':
-        return this.mgmt.spec?.aksConfig?.privateCluster;
-      }
-    }
-
-    return false;
+    return this.mgmt?.isPrivateHostedProvider || false;
   }
 
   get isLocal() {
@@ -300,7 +274,7 @@ export default class ProvCluster extends SteveModel {
 
   // Is the cluster a legacy (unsupported) KEV1 cluster?
   get isKev1() {
-    return KEV1.includes(this.mgmt?.spec?.genericEngineConfig?.driverName);
+    return this.mgmt?.isKev1;
   }
 
   get isImported() {
@@ -308,37 +282,11 @@ export default class ProvCluster extends SteveModel {
       return false;
     }
 
-    // imported rke2 and k3s have status.driver === rke2 and k3s respectively
-    // Provisioned rke2 and k3s have status.driver === imported
-    if (this.mgmt?.status?.provider === 'k3s' || this.mgmt?.status?.provider === 'rke2') {
-      return this.mgmt?.status?.driver === this.mgmt?.status?.provider;
-    }
-
-    // imported KEv2
-    // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
-
-    const isImportedKontainer = kontainerConfigs.filter((key) => {
-      return this.mgmt?.spec?.[key]?.imported === true;
-    }).length;
-
-    if (isImportedKontainer) {
-      return true;
-    }
-
-    return this.provisioner === 'imported';
+    return this.mgmt?.isImported;
   }
 
   get isCustom() {
-    if ( this.isRke2 ) {
-      return !(this.spec?.rkeConfig?.machinePools?.length);
-    }
-
-    if ( this.isRke1 ) {
-      return !this.pools?.length;
-    }
-
-    return false;
+    return this.mgmt?.isCustom;
   }
 
   get confirmRemove() {
@@ -346,32 +294,45 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedK3s() {
-    return this.isImported && this.isK3s;
+    return this.mgmt?.isImportedK3s;
   }
 
   get isImportedRke2() {
-    return this.isImported && this.mgmt?.status?.provider?.startsWith('rke2');
+    return this.mgmt?.isImportedRke2;
   }
 
   get isK3s() {
-    return this.mgmt?.status ? this.mgmt?.status.provider === 'k3s' : (this.spec?.kubernetesVersion || '').includes('k3s') ;
+    return this.mgmt?.isK3s;
   }
 
   get isRke2() {
+    // This isn't mapped to mgmt isRke2 to ensure the create flow --> edit yaml (where no mgmt cluster exists) works correctly
     return !!this.spec?.rkeConfig;
   }
 
   get isRke1() {
-    // rancherKubernetesEngineConfig is not defined on imported RKE1 clusters
-    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.mgmt?.labels['provider.cattle.io'] === 'rke';
+    return false;
   }
 
   get isHarvester() {
     return !!this.mgmt?.isHarvester;
   }
 
+  // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
+  get isCapiWithoutExtension() {
+    return this.mgmt?.isCapiHybrid && !this.mgmt?.isCAPIProvider;
+  }
+
   get mgmtClusterId() {
-    return this.status?.clusterName;
+    if (this.status?.clusterName) {
+      return this.status.clusterName;
+    }
+
+    // when a cluster is created `this` instance isn't immediately updated with `status.clusterName`
+    // Workaround - Get fresh copy from the store
+    const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
+
+    return pCluster?.status?.clusterName;
   }
 
   get mgmt() {
@@ -385,7 +346,7 @@ export default class ProvCluster extends SteveModel {
   // nodeGroups can be undefined for an EKS cluster that has just been created and has not
   // had any node groups added to it
   get eksNodeGroups() {
-    return this.mgmt?.spec?.eksConfig?.nodeGroups || [];
+    return this.mgmt?.eksNodeGroups || [];
   }
 
   waitForProvisioner(timeout, interval) {
@@ -396,148 +357,47 @@ export default class ProvCluster extends SteveModel {
 
   waitForMgmt(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
-      // `this` instance isn't getting updated with `status.clusterName`
-      // Workaround - Get fresh copy from the store
-      const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
-      const name = this.status?.clusterName || pCluster?.status?.clusterName;
+      const mgmtId = this.mgmtClusterId;
 
-      return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
+      try {
+        if (mgmtId) {
+          // Just in case we're not generically watching all mgmt clusters and...
+          // thus won't receive new mgmt cluster over socket...
+          // fire and forget a request to fetch it (this won't make multiple requests if one is already running)
+          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: mgmtId });
+        }
+      } catch {}
+
+      return mgmtId && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, mgmtId);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout', { type: MANAGEMENT.CLUSTER, name: this.mgmtClusterId }), timeout, interval);
   }
 
   get provisioner() {
-    if ( this.isRke2 ) {
-      const allKeys = Object.keys(this.spec);
-      const configKey = allKeys.find( (k) => k.endsWith('Config'));
-
-      if ( configKey === 'rkeConfig') {
-        return 'rke2';
-      } else if ( configKey ) {
-        return configKey.replace(/config$/i, '');
-      }
-    } else if ( this.mgmt ) {
-      return this.mgmt.provisioner;
-    }
-
-    return null;
+    return this.mgmt?.provisioner;
   }
 
   get provisionerDisplay() {
-    // Allow a model extension to override the display of the provisioner
-    if (this.customProvisionerHelper?.provisionerDisplay) {
-      return this.customProvisionerHelper?.provisionerDisplay(this);
-    }
-
-    let provisioner = (this.provisioner || '').toLowerCase();
-
-    // RKE provisioner can actually do K3s too...
-    if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
-      provisioner = 'k3s';
-    } else if ( this.isImportedK3s ) {
-      provisioner = 'k3s';
-    } else if ( this.isImportedRke2 ) {
-      provisioner = 'rke2';
-    } else if ((this.isImported || this.isLocal) && this.isRke1) {
-      provisioner = 'rke';
-    }
-
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
+    return this.mgmt?.provisionerDisplay;
   }
 
   get providerLogo() {
     return this.mgmt?.providerLogo;
   }
 
-  get nodesArchitecture() {
-    const obj = {};
-
-    this.nodes?.forEach((node) => {
-      if (!node.metadata?.state?.transitioning) {
-        const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
-
-        const key = architecture || this.t('cluster.architecture.label.unknown');
-
-        obj[key] = (obj[key] || 0) + 1;
-      }
-    });
-
-    return obj;
-  }
-
   get architecture() {
-    const keys = Object.keys(this.nodesArchitecture);
-
-    switch (keys.length) {
-    case 0:
-      return { label: this.t('generic.provisioning') };
-    case 1:
-      return { label: keys[0] };
-    default:
-      return {
-        label:   this.t('cluster.architecture.label.mixed'),
-        tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-      };
-    }
+    return this.mgmt?.architecture;
   }
 
   get kubernetesVersion() {
-    const unknown = this.$rootGetters['i18n/t']('generic.unknown');
-
-    if ( this.isRke2 ) {
-      const fromStatus = this.status?.version?.gitVersion;
-      const fromSpec = this.spec?.kubernetesVersion;
-
-      return fromStatus || fromSpec || unknown;
-    } else if ( this.mgmt ) {
-      return this.mgmt.kubernetesVersion || unknown;
-    } else {
-      return unknown;
-    }
+    return this.mgmt?.kubernetesVersion;
   }
 
   get machineProvider() {
-    // First check annotation - useful for clusters created by extension providers
-    const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-    if (fromAnnotation) {
-      return fromAnnotation;
-    }
-
-    if (this.isHarvester) {
-      return HARVESTER;
-    } else if ( this.isImported ) {
-      return null;
-    } else if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.machinePools?.[0]?.machineConfigRef?.kind?.toLowerCase();
-
-      if ( kind ) {
-        return kind.replace(/config$/i, '').toLowerCase();
-      }
-
-      return null;
-    } else if ( this.mgmt?.machineProvider ) {
-      return this.mgmt.machineProvider.toLowerCase();
-    }
-
-    return null;
+    return this.mgmt?.machineProvider?.toLowerCase();
   }
 
   get machineProviderDisplay() {
-    if (this.customProvisionerHelper?.machineProviderDisplay) {
-      return this.customProvisionerHelper?.machineProviderDisplay(this);
-    }
-
-    if ( this.isImported ) {
-      return null;
-    }
-
-    const provider = (this.machineProvider || '').toLowerCase();
-
-    if ( provider ) {
-      return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
-    } else {
-      return this.$rootGetters['i18n/t']('generic.unknown');
-    }
+    return this.mgmt?.machineProviderDisplay;
   }
 
   get machinePoolDefaults() {
@@ -565,120 +425,47 @@ export default class ProvCluster extends SteveModel {
   }
 
   get nodes() {
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.mgmtClusterId));
+    return this.mgmt?.nodes || [];
   }
 
   get machines() {
-    return this.$rootGetters['management/all'](CAPI.MACHINE).filter((machine) => {
-      if ( machine.metadata?.namespace !== this.metadata.namespace ) {
-        return false;
-      }
-
-      return machine.spec?.clusterName === this.metadata.name;
-    });
+    return this.mgmt?.machines || [];
   }
 
   get displayName() {
-    if ( this.mgmt && !this.isRke2 ) {
-      return this.mgmt.spec.displayName;
-    }
-
-    return null;
+    return this.mgmt?.nameDisplay || null;
   }
 
   get pools() {
-    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter((pool) => pool.spec?.clusterName === this.metadata.name);
-
-    if (!!deployments.length) {
-      return deployments;
-    }
-
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.status?.clusterName);
+    return this.mgmt?.pools || [];
   }
 
   get desired() {
-    return this.pools.reduce((acc, pool) => acc + (pool.desired || 0), 0);
+    return this.mgmt?.desired || 0;
   }
 
   get pending() {
-    return this.pools.reduce((acc, pool) => acc + (pool.pending || 0), 0);
+    return this.mgmt?.pending || 0;
   }
 
   get outdated() {
-    return this.pools.reduce((acc, pool) => acc + (pool.outdated || 0), 0);
+    return this.mgmt?.outdated || 0;
   }
 
   get ready() {
-    return this.pools.reduce((acc, pool) => acc + (pool.ready || 0), 0);
+    return this.mgmt?.ready || 0;
   }
 
   get unavailable() {
-    return this.pools.reduce((acc, pool) => acc + (pool.unavailable || 0), 0);
+    return this.mgmt?.unavailable || 0;
   }
 
   get unavailableMachines() {
-    if (this.isReady) {
-      if (this.isRke1) {
-        const names = this.nodes.filter((node) => {
-          return node.status.conditions.find((c) => c.error && c.type === 'Ready');
-        }).map((node) => {
-          const name = node.status.nodeName || node.metadata.name;
-
-          return this.t('cluster.availabilityWarnings.node', { name });
-        });
-
-        return names.join('<br>');
-      } else {
-        const names = this.machines.filter((machine) => {
-          return machine.status?.conditions?.find((c) => c.error && c.type === 'NodeHealthy');
-        }).map((machine) => {
-          if (machine.status?.nodeRef?.name) {
-            return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
-          }
-
-          return this.t('cluster.availabilityWarnings.machine', { name: machine.metadata.name });
-        });
-
-        return names.join('<br>');
-      }
-    }
-
-    return '';
+    return this.mgmt?.unavailableMachines || '';
   }
 
   get stateParts() {
-    const out = [
-      {
-        label:     'Pending',
-        color:     'bg-info',
-        textColor: 'text-info',
-        value:     this.pending,
-        sort:      1,
-      },
-      {
-        label:     'Outdated',
-        color:     'bg-warning',
-        textColor: 'text-warning',
-        value:     this.outdated,
-        sort:      2,
-      },
-      {
-        label:     'Unavailable',
-        color:     'bg-error',
-        textColor: 'text-error',
-        value:     this.unavailable,
-        sort:      3,
-      },
-      {
-        label:     'Ready',
-        color:     'bg-success',
-        textColor: 'text-success',
-        value:     this.ready,
-        sort:      4,
-      },
-    ].filter((x) => x.value > 0);
-
-    return sortBy(out, 'sort:desc');
+    return this.mgmt?.stateParts;
   }
 
   async getOrCreateToken() {
@@ -822,33 +609,6 @@ export default class ProvCluster extends SteveModel {
     return this._stateObj;
   }
 
-  get rkeTemplate() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
-
-    if (!template || !revision) {
-      return false;
-    }
-
-    return {
-      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      template,
-      revision,
-    };
-  }
-
   get _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
@@ -876,7 +636,11 @@ export default class ProvCluster extends SteveModel {
 
     const cni = this.spec?.rkeConfig?.machineGlobalConfig?.cni;
 
-    if ( cni && cni !== 'calico' ) {
+    if ( cni === 'flannel' && compare(this.kubernetesVersion, 'v1.29.2') < 0 ) {
+      return false;
+    }
+
+    if ( cni && cni !== 'calico' && cni !== 'flannel' ) {
       return false;
     }
 
@@ -970,27 +734,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get hasError() {
-    // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
-    // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
-    // which is what this 'hasError' is used for.
-    // We now check if there's a ready condition after an error, which helps dictate the readiness of a cluster
-    // Based on the findings in https://github.com/rancher/dashboard/issues/10043
-    if (this.status?.conditions && this.status?.conditions.length) {
-      // if there are errors, we compare with how recent the "Ready" condition is compared to that error, otherwise we just move on
-      if (this.status?.conditions.some((c) => c.error === true)) {
-        // there's no ready condition and has an error, mark it
-        if (!this.status?.conditions.some((c) => c.type === 'Ready')) {
-          return true;
-        }
-
-        const filteredConditions = this.status?.conditions.filter((c) => c.error === true || c.type === 'Ready');
-        const mostRecentCondition = filteredConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
-
-        return mostRecentCondition.error;
-      }
-    }
-
-    return false;
+    return this.mgmt ? this.mgmt.hasError : true;
   }
 
   get namespaceLocation() {
@@ -1011,6 +755,28 @@ export default class ProvCluster extends SteveModel {
     return null;
   }
 
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
+    }
+
+    return null;
+  }
+
   // JSON Paths that should be folded in the YAML editor by default
   get yamlFolding() {
     return [
@@ -1022,24 +788,201 @@ export default class ProvCluster extends SteveModel {
     return super.description || this.mgmt?.description;
   }
 
-  renew() {
-    return this.cloudCredential?.renew();
+  get disableResourceDetailDrawerConfigTab() {
+    return !!this.isHarvester || this.isCapiWithoutExtension;
   }
 
-  renewBulk(clusters = []) {
-    // In theory we don't need to filter by cloudCred, but do so for safety
-    const cloudCredentials = clusters.filter((c) => c.cloudCredential).map((c) => c.cloudCredential);
-
-    return this.cloudCredential?.renewBulk(cloudCredentials);
+  get fullDetailPageOverride() {
+    return true;
   }
 
-  get cloudCredential() {
-    return this.$rootGetters['rancher/all'](NORMAN.CLOUD_CREDENTIAL).find((cc) => cc.id === this.spec.cloudCredentialSecretName);
+  async loadAutoscalerEvents() {
+    const autoscalerConfigMap = await this.loadAutoscalerConfigMap();
+    const eventSchema = this.$rootGetters['management/schemaFor'](EVENT);
+    const fields = [new PaginationFilterField({
+      field: 'involvedObject.uid',
+      value: autoscalerConfigMap.metadata.uid,
+      exact: true,
+    }),
+    new PaginationFilterField({
+      field: 'metadata.namespace',
+      value: 'kube-system',
+      exact: true,
+    })];
+    const pagination = {
+      page:     1,
+      pageSize: 200,
+      filters:  [
+        new PaginationParamFilter({ fields })
+      ]
+
+    };
+    const params = stevePaginationUtils.createParamsForPagination({ schema: eventSchema, opt: { pagination } });
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ EVENT }?${ params }`;
+
+    const events = (await this.$dispatch('cluster/request', { url }, { root: true }))?.data || [];
+
+    return events.filter((event) => event.involvedObject.name === 'cluster-autoscaler-status');
   }
 
-  get cloudCredentialWarning() {
-    const expireData = this.cloudCredential?.expireData;
+  get hasAccessToAutoscalerConfigMap() {
+    // This may change but for now this is the best proxy we have for access to the configmap without attempting to access it and getting a 404.
+    return this.canEdit;
+  }
 
-    return expireData?.expired || expireData?.expiring;
+  async loadAutoscalerConfigMap() {
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ CONFIG_MAP }/${ AUTOSCALER_CONFIG_MAP_ID }`;
+
+    return await this.$dispatch('cluster/request', { url }, { root: true });
+  }
+
+  get canPauseResumeAutoscaler() {
+    return this.isAutoscalerEnabled && this.canExplore && this.hasAccessToAutoscalerConfigMap;
+  }
+
+  async loadAutoscalerStatus() {
+    if (!this.canExplore) {
+      return AUTOSCALER_STATUS.PROVISIONING;
+    }
+
+    if (!this.hasAccessToAutoscalerConfigMap) {
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+
+    try {
+      const configMap = await this.loadAutoscalerConfigMap();
+      const yaml = configMap?.data?.status || '';
+
+      return jsyaml.load(yaml);
+    } catch (ex) {
+      console.error(ex); // eslint-disable-line no-console
+
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+  }
+
+  async loadAutoscalerDetails() {
+    const out = [];
+
+    if (this.isAutoscalerPaused) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.paused')
+      });
+
+      return out;
+    }
+
+    const status = await this.loadAutoscalerStatus();
+
+    if (status === AUTOSCALER_STATUS.UNAVAILABLE) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.unavailable')
+      });
+
+      return out;
+    }
+
+    if (status === AUTOSCALER_STATUS.PROVISIONING) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.provisioning')
+      });
+
+      return out;
+    }
+
+    if (status.autoscalerStatus) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: status.autoscalerStatus
+      });
+    }
+
+    if (status.clusterWide?.health?.status) {
+      const statusValue = status.clusterWide.health.status;
+
+      out.push({
+        label: this.t('autoscaler.card.details.health'),
+        value: {
+          component: 'BadgeStateFormatter',
+          props:     {
+            value: statusValue, arbitrary: true, row: {}
+          },
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleDown?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleDown'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleDown.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleUp?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleUp'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleUp.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.health?.nodeCounts?.registered) {
+      out.push({ label: this.t('autoscaler.card.details.nodes') });
+
+      out.push({
+        label: this.t('autoscaler.card.details.ready'),
+        value: status.clusterWide.health.nodeCounts.registered.ready || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.notStarted'),
+        value: status.clusterWide.health.nodeCounts.registered.notStarted || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.inTotal'),
+        value: status.clusterWide.health.nodeCounts.registered.total || '0'
+      });
+    }
+
+    return out;
+  }
+
+  get isAutoscalerEnabled() {
+    return this.mgmt?.isAutoscalerEnabled;
+  }
+
+  get isAutoscalerPaused() {
+    return !!this.metadata?.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE];
+  }
+
+  pauseAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, 'true');
+  }
+
+  resumeAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, undefined);
+  }
+
+  toggleAutoscalerRunner() {
+    if (this.isAutoscalerPaused) {
+      this.resumeAutoscaler();
+    } else {
+      this.pauseAutoscaler();
+    }
+
+    return this.save();
   }
 }

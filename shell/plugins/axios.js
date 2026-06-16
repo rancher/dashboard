@@ -2,15 +2,17 @@ import https from 'https';
 import { CSRF } from '@shell/config/cookies';
 
 export default function({
-  $axios, $cookies, isDev, req
+  $axios, store, isDev, req
 }) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
   $axios.defaults.withCredentials = true;
 
   $axios.onRequest((config) => {
-    const csrf = $cookies.get(CSRF, { parseJSON: false });
+    const options = { parseJSON: false };
+    const csrf = store.getters['cookies/get']({ key: CSRF, options });
 
-    if ( csrf ) {
+    // Request can ask not to send the CSRF header
+    if (csrf && !config.noApiCsrf) {
       config.headers['x-api-csrf'] = csrf;
     }
   });

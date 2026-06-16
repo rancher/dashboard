@@ -20,7 +20,8 @@ export function init(store) {
 
   product({
     ifHaveGroup: 'longhorn.io',
-    icon:        'longhorn'
+    icon:        'longhorn',
+    extendable:  true,
   });
 
   virtualType({

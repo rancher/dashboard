@@ -9,12 +9,12 @@ export function machineSelectorConfigPayload(registryHost: string):Array<object>
   ];
 }
 
-export function registriesWithSecretPayload(registryAuthHost: string, registrySecret: string, caBundleNull = false):object {
+export function registriesWithSecretPayload(registryAuthHost: string, registrySecret: string):object {
   return {
     configs: {
       [registryAuthHost]: {
         authConfigSecretName: registrySecret,
-        caBundle:             caBundleNull ? null : '',
+        caBundle:             null,
         insecureSkipVerify:   false,
         tlsSecretName:        null
       },

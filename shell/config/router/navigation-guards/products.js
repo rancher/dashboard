@@ -1,4 +1,4 @@
-import { setProduct } from '@shell/utils/auth';
+import { setProduct } from '@shell/utils/product';
 import { applyProducts } from '@shell/store/type-map';
 
 export function install(router, context) {
@@ -9,7 +9,7 @@ export async function loadProducts(to, from, next, { store }) {
   // GC should be notified of route change before any find/get request is made that might be used for that page
   store.dispatch('gcRouteChanged', to);
 
-  await applyProducts(store, store.$plugin);
+  await applyProducts(store, store.$extension);
   setProduct(store, to);
   next();
 }

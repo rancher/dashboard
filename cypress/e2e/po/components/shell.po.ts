@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class Shell extends ComponentPo {
   constructor() {
-    super('#windowmanager');
+    super('#horizontal-window-manager');
   }
 
   openTerminal() {

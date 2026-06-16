@@ -102,7 +102,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
     // check details page
     machineSetsPage.list().details(this.machineSetName, 2).find('a').click();
-    cy.contains('secretName2').should('be.visible');
+    cy.contains('secretName2')
+      .scrollIntoView()
+      .should('be.visible');
   });
 
   it('can clone a MachineSet', function() {
@@ -141,7 +143,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
-      expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
+      expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta2');
       expect(obj.metadata.name).to.equal(this.machineSetName);
       expect(obj.kind).to.equal('MachineSet');
     });

@@ -1,5 +1,7 @@
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import {
+  PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter, PaginationFilterEquality
+} from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import ModelNamespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
@@ -15,11 +17,13 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
-import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+import { parseField } from '@shell/utils/sort';
+import { POD_LAST_RESTART_FIELD, POD_RESTART_FIELD } from '@shell/types/resources/pod';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -34,18 +38,33 @@ interface Namespace extends ModelNamespace {
   }
 }
 
+interface NamespaceProjectFilterResult {
+  /**
+   * True if the ns should be filtered IN. False if filtered OUT.
+   */
+  [nsName: string]: boolean;
+}
+
+/**
+ * Helper class, contains namespace / project filter specific functions
+ */
 class NamespaceProjectFilters {
   /**
    * User needs all resources.... except if there's some settings which should remove resources in specific circumstances
    */
   protected handlePrefAndSettingFilter(args: {
     allNamespaces: Namespace[],
+    /**
+     * Reserved / Obscure namespaces are ones used to support clusters and users. By default these are hidden
+     */
     showReservedRancherNamespaces: boolean,
+    /**
+     * Has product config disabled system projects and namespaces
+     */
     productHidesSystemNamespaces: boolean,
-  }): PaginationParamFilter[] {
+  }): NamespaceProjectFilterResult {
     const { allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces } = args;
 
-    // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
@@ -55,13 +74,11 @@ class NamespaceProjectFilters {
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
       if (hideObscure || hideSystem) {
-        res.push(PaginationParamFilter.createSingleField({
-          field: 'metadata.namespace', value: ns.name, equals: false
-        }));
+        res[ns.name] = false;
       }
 
       return res;
-    }, [] as PaginationParamFilter[]);
+    }, {} as NamespaceProjectFilterResult);
   }
 
   /**
@@ -75,31 +92,88 @@ class NamespaceProjectFilters {
     allNamespaces: Namespace[],
     isAllSystem: boolean,
     isAllUser: boolean,
-  }) {
-    const { allNamespaces, isAllSystem } = args;
+  }): NamespaceProjectFilterResult {
+    const { allNamespaces, isAllSystem, isAllUser } = args;
     const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
-    // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has
-    // > a matching project... which could lead to results in the user project resource being included in the system filter
-    if (isAllSystem) {
-      // return resources in system ns 1 OR in system ns 2 ...
-      // &filter=metadata.namespace=system ns 1,metadata.namespace=system ns 2
-      return [PaginationParamFilter.createMultipleFields(
-        allSystem.map(
-          (ns) => new PaginationFilterField({ field: 'metadata.namespace', value: ns.name })
-        )
-      )];
-    } else { // if isAllUser
-      // return resources not in system ns 1 AND not in system ns 2 ...
-      // &filter=metadata.namespace!=system ns 1&filter=metadata.namespace!=system ns 2
-      return allSystem.map((ns) => PaginationParamFilter.createSingleField({
-        field: 'metadata.namespace', value: ns.name, equals: false
+    return allSystem.reduce((res, ns) => {
+      if (isAllSystem) {
+        // We want to filter IN system namespaces
+        res[ns.name] = true;
+      }
+
+      if (isAllUser) {
+        // We want to filter OUT system namespaces
+        res[ns.name] = false;
+      }
+
+      return res;
+    }, {} as NamespaceProjectFilterResult);
+  }
+
+  /**
+   * Combine result `b` into `a` and return result
+   */
+  protected combineNsProjectFilterResults(a: NamespaceProjectFilterResult, b: NamespaceProjectFilterResult): NamespaceProjectFilterResult {
+    // Start with `a`
+    const res = { ...a };
+
+    // Merge entries from `b` into `a` if they don't exist in `a`. This maintains a hierarchy
+    // 1. if something has been excluded in `a` ignore requests to include given `b`
+    // 2. if something has been included in `a` ignore requests to exclude given `b`
+    Object.entries(b).forEach(([ns, include]) => {
+      if (res[ns] === undefined) {
+        res[ns] = include;
+      }
+    });
+
+    return res;
+  }
+
+  /**
+   * Convert @NamespaceProjectFilterResult into @PaginationParamFilter
+   */
+  protected createFiltersFromNamespaceProjectFilterResult(filterResult: NamespaceProjectFilterResult): PaginationParamFilter[] {
+    const inList: string[] = [];
+    const outList: string[] = [];
+
+    Object.entries(filterResult).forEach(([ns, include]) => {
+      if (include) {
+        inList.push(ns);
+      } else {
+        outList.push(ns);
+      }
+    });
+
+    const res: PaginationParamFilter[] = [];
+
+    // There's no point having both IN and OUT lists together, so prefer the IN list
+    if (inList.length) {
+      res.push(new PaginationParamFilter({
+        fields: [{
+          value:    inList.join(','),
+          equality: PaginationFilterEquality.IN,
+          field:    'metadata.namespace',
+        }],
+      }));
+    } else if (outList.length) {
+      res.push(new PaginationParamFilter({
+        fields: [{
+          value:    outList.join(','),
+          equality: PaginationFilterEquality.NOT_IN,
+          field:    'metadata.namespace',
+        }],
       }));
     }
+
+    return res;
   }
 
   /**
    * User needs resources in a set of projects or namespaces
+   *
+   * Mainly deals with the projectornamespaces filter, also ensures namespace in local cluster matching target project's aren't included
+   *
    */
   protected handleSelectionFilter(neu: string[], isLocalCluster: boolean) {
     // User has one or more projects or namespaces. We can pass this straight through to projectsornamespaces
@@ -111,12 +185,12 @@ class NamespaceProjectFilters {
     ];
 
     if (isLocalCluster) {
-      // > As per `handleSystemOrUserFilter` above, we need to be careful of the local cluster where there's namespaces related to projects with the same id
-      // > In this case
+      // We need to be careful of the local cluster where there's namespaces related to projects with the same id
+      // In this case
       // - We're including resources in the project and it's related namespace (via projectsornamespaces)
       // - We're also then excluding resources in the related namespace (via below `filter`)
 
-      // Exclude resources NOT in projects namespace 1 AND not in projects namespace 2
+      // Exclude resources NOT in project's backing namespace 1 AND not in project's backing namespace 2
       // &filter=metadata.namespace!=pn1&filter=metadata.namespace!=pn2
       return {
         projectsOrNamespaces,
@@ -140,9 +214,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * Match
    * - a-z (case insensitive)
    * - 0-9
-   * - `-`, `_`, `.`
+   * - `_`, `.`
    */
-  static VALID_FIELD_VALUE_REGEX = /^[\w\-.]+$/;
+  static VALID_FIELD_VALUE_REGEX = /^[\w.]+$/;
 
   /**
    * Filtering with the vai cache supports specific fields
@@ -156,14 +230,19 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'id' },
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
+      { field: 'metadata.labels', startsWith: true },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
       { field: 'status.nodeInfo.operatingSystem' },
+      { field: 'spec.taints.key' },
+      { field: 'status.addresses.type' },
     ],
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
+      { field: POD_RESTART_FIELD },
+      { field: POD_LAST_RESTART_FIELD },
     ],
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
@@ -178,17 +257,23 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.connected` },
+      { field: `status.info.machineProvider` },
+      { field: `status.driver` },
+      { field: `status.provider` },
+      { field: `status.info.kubernetesVersion` },
+      { field: `spec.fleetWorkspaceName` },
     ],
-    [CONFIG_MAP]: [
-      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    [SECRET]: [
+      { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
     ],
     [NAMESPACE]: [
-      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' }
+      { field: 'spec.clusterName' },
+    ],
+    [CAPI.MACHINE_DEPLOYMENT]: [
+      { field: 'spec.clusterName' },
     ],
     [EVENT]: [
       { field: '_type' },
@@ -208,7 +293,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
       { field: `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]` }
@@ -218,14 +302,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.clusterIP' },
     ],
     [INGRESS]: [
-      { field: 'spec.rules.host' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.rules.host' },
       { field: 'spec.ingressClassName' },
     ],
     [HPA]: [
-      { field: 'spec.scaleTargetRef.name' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.minReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.maxReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.currentReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      { field: 'spec.scaleTargetRef.name' },
+      { field: 'spec.minReplicas' },
+      { field: 'spec.maxReplicas' },
+      { field: 'spec.currentReplicas' },
     ],
     [PVC]: [
       { field: 'spec.volumeName' },
@@ -243,29 +327,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICA_SET]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
   }
 
@@ -341,24 +425,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     let projectsOrNamespaces: PaginationParamProjectOrNamespace[] = [];
     // used to return resources in / not in namespaces
     // &filter=metadata.namespace=abc
-    let filters: PaginationParamFilter[] = [];
+    const filters: PaginationParamFilter[] = [];
+    let nsProjectFilterResults = {};
 
     if (!showReservedRancherNamespaces || productHidesSystemNamespaces) {
-      // We need to hide reserved namespaces ('c-', 'user-', etc) OR system namespaces
-      filters = this.handlePrefAndSettingFilter({
+      // We need to hide reserved namespaces ('c-', 'user-', etc) OR system namespaces (given product may hide them)
+      nsProjectFilterResults = this.combineNsProjectFilterResults(nsProjectFilterResults, this.handlePrefAndSettingFilter({
         allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces
-      });
+      }));
     }
 
     const isAllSystem = selection[0] === NAMESPACE_FILTER_ALL_SYSTEM;
     const isAllUser = selection[0] === NAMESPACE_FILTER_ALL_USER;
 
     if (selection.length === 1 && (isAllSystem || isAllUser)) {
-      // Filter by resources either in or not in system namespaces
-      filters.push(...this.handleSystemOrUserFilter({
+      // Filter by resources either in or not in system namespaces (given user selection)
+      nsProjectFilterResults = this.combineNsProjectFilterResults(nsProjectFilterResults, this.handleSystemOrUserFilter({
         allNamespaces, isAllSystem, isAllUser
       }));
+
+      filters.push(...this.createFiltersFromNamespaceProjectFilterResult(nsProjectFilterResults));
     } else {
+      filters.push(...this.createFiltersFromNamespaceProjectFilterResult(nsProjectFilterResults));
+
       // User has one or more projects or namespaces
       const res = this.handleSelectionFilter(selection, isLocalCluster);
 
@@ -403,9 +492,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       const joined = opt.pagination.sort
         .map((s) => {
-          this.validateField(validateFields, schema, s.field);
+          // Use the same mechanism as local sorting to flip logic for asc/des
+          const { field, reverse } = parseField(s.field);
+          const asc = reverse ? !s.asc : s.asc;
 
-          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 
@@ -432,6 +525,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       }
     }
 
+    if (opt.includeAssociatedData) {
+      params.push('includeAssociatedData=true');
+    }
+
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
@@ -454,7 +551,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     // First check in our hardcoded list of supported filters
     if (
-      process.env.NODE_ENV === 'dev' &&
       !!schema &&
       [
         StevePaginationUtils.VALID_FIELDS[''], // Global
@@ -500,25 +596,37 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const encodedValue = encodeURIComponent(field.value);
-
-              // = exact match (equals + exact)
-              // ~ partial match (equals + !exact)
-              // != not exact match (!equals + exact)
-              // !~ not partial match (!equals + !exact)
-              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              let safeValue;
-
-              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value)) {
-                // Does not contain any protected characters, send as is
-                safeValue = encodedValue;
-              } else {
-                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
-                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
-                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              // we're just checking that the field exists, so there's no equality or value
+              if (field.exists) {
+                return field.field;
               }
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
+              // If field was created by PaginationFilterField ctor equality will be set. If field created by json (legacy) it might not
+              const equality = field.equality || PaginationFilterField.safeEquality(field);
+
+              if (!equality) {
+                throw new Error(`A pagination filter must contain an equality. ${ JSON.stringify(field) }`);
+              }
+
+              let safeValue;
+
+              if ([PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality)) {
+                safeValue = `(${ field.value })`;
+              } else {
+                const booleanSafeValue = typeof field.value === 'undefined' || field.value === null ? '' : field.value;
+                const encodedValue = encodeURIComponent(booleanSafeValue);
+
+                if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(booleanSafeValue)) {
+                  // All characters safe, send as is
+                  safeValue = encodedValue;
+                } else {
+                  // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                  // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                  safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+                }
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ equality }${ safeValue }`;
             }
 
             return field.value;
@@ -548,7 +656,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * A lot of the requirements and details are taken directly from
    * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
    */
-  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
+  convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
@@ -614,7 +722,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=!${ labelKey }`);
         break;
       case 'Gt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
 
         if (typeof exp.values !== 'string') {
@@ -627,7 +734,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
       case 'Lt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
           console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
@@ -648,7 +754,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 }
 
-export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
   cluster: {
     resources: {
       enableAll:  false,
@@ -661,7 +767,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
         ],
         generic: true,
       }
@@ -672,9 +778,10 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
           { resource: CATALOG.APP, context: ['branding'] },
+          SECRET
         ],
         generic: false,
       }

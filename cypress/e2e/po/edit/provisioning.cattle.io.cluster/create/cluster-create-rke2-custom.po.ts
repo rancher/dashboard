@@ -27,7 +27,7 @@ export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManager
   }
 
   title(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   clusterConfigurationTabs(): TabbedPo {

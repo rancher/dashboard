@@ -2,17 +2,20 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 const defaultStubs = {
-  Banner:        true,
-  LabeledSelect: true,
-  YamlEditor:    true,
-  Checkbox:      true
+  Banner:          true,
+  LabeledSelect:   true,
+  YamlEditor:      true,
+  Checkbox:        true,
+  RichTranslation: true
 };
 
 const defaultCiliumStubs = {
-  LabeledSelect: true,
-  YamlEditor:    true,
+  LabeledSelect:   true,
+  YamlEditor:      true,
+  RichTranslation: true
 };
 
 // const defaultComputed = {
@@ -25,46 +28,65 @@ const defaultCiliumStubs = {
 // };
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
-const mockServerArgs = { disable: {}, cni: { options: [] } };
+const mockServerArgs = { disable: { options: [] }, cni: { options: [] } };
 
+jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
+  RETENTION_DEFAULT:         5,
+  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
+  RKE2_TRAEFIK:              'rke2-traefik',
+  INGRESS_NGINX:             'ingress-nginx',
+  INGRESS_CONTROLLER:        'ingress-controller',
+  TRAEFIK:                   'traefik',
+  HARVESTER:                 'harvester',
+  INGRESS_DUAL:              'dual',
+  INGRESS_NONE:              'none',
+  INGRESS_OPTIONS:           [],
+  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+}));
+const mockRke2Charts = {
+  [RKE2_INGRESS_NGINX]: {},
+  [RKE2_TRAEFIK]:       {},
+  'rke2-cilium':        {}
+};
+const mockK3sCharts = { 'rke2-cilium': {} };
 const rke2Versions = [
   {
-    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   },
   {
-    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockRke2Charts
   }
 ];
 const k3sVersions = [
   {
-    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   },
   {
-    id: 'v1.23.0+k3s1', value: 'v1.23.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    id: 'v1.23.0+k3s1', value: 'v1.23.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: mockK3sCharts
   }
 ];
 const mockVersionOptions = [...rke2Versions, ...k3sVersions];
@@ -83,7 +105,7 @@ const defaultMocks = {
   $route: {
     name:  'anything',
     query: { AS: 'yaml' },
-  },
+  }
 };
 
 const defaultSpec = {
@@ -96,12 +118,6 @@ const defaultCiliumSpec = {
   chartValues: {},
 };
 
-// ipv6
-const legacyOnValue = { cilium: { ipv6: { enabled: true } } };
-const legacyOffValue = { cilium: { ipv6: { enabled: false } } };
-const newOnValue = { ipv6: { enabled: true } };
-const newOffValue = { ipv6: { enabled: false } };
-
 // bandwidth manager
 const bmOnValue = { bandwidthManager: { enabled: true } };
 const bmOffValue = { bandwidthManager: { enabled: false } };
@@ -109,6 +125,9 @@ const bmOffValue = { bandwidthManager: { enabled: false } };
 function createBasicsTab(version : string, userChartValues: any, options = {}) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
+  const providedUserChartValues = userChartValues || {};
+  const providedVersionInfo = k8s.charts || {};
+
   const wrapper = mount(Basics, {
     props: {
       mode:  'create',
@@ -122,7 +141,8 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
       },
       addonVersions:               [],
       provider:                    'custom',
-      userChartValues:             userChartValues || {},
+      userChartValues:             providedUserChartValues,
+      versionInfo:                 providedVersionInfo,
       cisOverride:                 false,
       cisPsaChangeBanner:          true,
       allPsas:                     [],
@@ -148,7 +168,6 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
         ...defaultMocks,
         $store: { getters: defaultGetters },
       },
-
       stubs: defaultCiliumStubs,
     },
   });
@@ -182,6 +201,8 @@ describe('component: Basics', () => {
         },
         provider:                    'whatever',
         userChartValues:             {},
+        addonVersions:               [],
+        versionInfo:                 {},
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
@@ -234,6 +255,8 @@ describe('component: Basics', () => {
         },
         provider:                    'whatever',
         userChartValues:             {},
+        addonVersions:               [],
+        versionInfo:                 {},
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
@@ -283,6 +306,8 @@ describe('component: Basics', () => {
         },
         provider:           'custom',
         userChartValues:    {},
+        addonVersions:      [],
+        versionInfo:        {},
         cisPsaChangeBanner: true,
         allPsas:            [],
         cisOverride:        override,
@@ -290,7 +315,7 @@ describe('component: Basics', () => {
         versionOptions:     [{
           value:     k8s,
           agentArgs: { profile: { options: [cis] } },
-          charts:    {},
+          charts:    mockRke2Charts,
           profile:   { options: [cis] }
         }],
         isHarvesterDriver:           false,
@@ -321,244 +346,139 @@ describe('component: Basics', () => {
   });
 
   describe('cilium CNI', () => {
-    it('should toggle ipv6 on/off with the legacy structure', async() => {
-      const wrapper = createBasicsTab('v1.23.0+rke2r1', {});
-      const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]');
-
-      expect(ipv6Checkbox.exists()).toBe(true);
-      expect(ipv6Checkbox.isVisible()).toBe(true);
-
-      // Click the checkbox - should enable ipv6
-      await ipv6Checkbox.find('label').trigger('click');
-      await nextTick();
-      await nextTick();
-
-      // Check and update user values with the emitted value
-      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
-
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOnValue));
-
-      await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
-
-      // Click the checkbox to turn ipv6 off again
-      await ipv6Checkbox.find('label').trigger('click');
-      await nextTick();
-      await nextTick();
-
-      // Update from the emitted value
-      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
-
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOffValue));
-    });
-
-    it('should toggle ipv6 on/off with the new structure', async() => {
+    it('should toggle bandwidth manager support on/off', async() => {
       const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
-      const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]');
+      const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
 
-      expect(ipv6Checkbox.exists()).toBe(true);
-      expect(ipv6Checkbox.isVisible()).toBe(true);
+      expect(bmCheckbox.exists()).toBe(true);
+      expect(bmCheckbox.isVisible()).toBe(true);
 
-      // Click the checkbox - should enable ipv6
-      await ipv6Checkbox.find('label').trigger('click');
+      // Click the checkbox - should enable bandwidth manager
+      await bmCheckbox.find('label').trigger('click');
       await nextTick();
       await nextTick();
 
       // Check and update user values with the emitted value
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOnValue));
+      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOnValue));
 
       await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
 
-      // Click the checkbox to turn ipv6 off again
-      await ipv6Checkbox.find('label').trigger('click');
+      // Click the checkbox to turn bm off again
+      await bmCheckbox.find('label').trigger('click');
       await nextTick();
       await nextTick();
 
       // Update from the emitted value
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
 
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOffValue));
+      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOffValue));
     });
 
-    it('should migrate when the k8s version is changed', async() => {
-      const userChartValues = { 'rke2-cilium': { ipv6: { enabled: true } } };
-      const wrapper = createBasicsTab('v1.25.0+rke2r1', userChartValues);
+    it('should supportbandwidth manager', async() => {
+      const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
+      const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
 
-      // Check that the checkbox is checked
-      const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]').find('input');
-
-      expect(ipv6Checkbox.exists()).toBe(true);
-      expect(ipv6Checkbox.isVisible()).toBe(true);
-      expect(ipv6Checkbox.attributes().value).toBe('true');
-
-      // Change the kubernetes version that needs the legacy format
-      const k8s123 = mockVersionOptions.find((v) => v.id === 'v1.23.0+rke2r1');
-
-      await wrapper.setProps({ selectedVersion: k8s123 });
+      // Click the checkbox - should enable bandwidth manager
+      await bmCheckbox.find('label').trigger('click');
+      await nextTick();
+      await nextTick();
 
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOnValue));
+      await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
 
-      // Change back the version so that the new format should be used
-      const k8s125 = mockVersionOptions.find((v) => v.id === 'v1.25.0+rke2r1');
+      const exp = { bandwidthManager: { enabled: true } };
 
-      await wrapper.setProps({ selectedVersion: k8s125 });
+      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(exp));
+
+      // Check that other properties are preserved
+      latest = {
+        ...latest,
+        bandwidthManager: {
+          test:    true,
+          enabled: false
+        },
+      };
+
+      await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
+
+      // Click the checkbox to turn bandwidth manager off again
+      await bmCheckbox.find('label').trigger('click');
+      await nextTick();
+      await nextTick();
 
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
-      expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOnValue));
+
+      const expected = '{"bandwidthManager":{"test":true,"enabled":true}}';
+
+      expect(JSON.stringify(latest)).toStrictEqual(expected);
     });
-  });
 
-  it('should toggle bandwidth manager support on/off', async() => {
-    const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
-    const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
+    it.each([
+      ['create', true, true, '%cluster.banner.cloudProviderUnsupportedAzure%'],
+      ['create', false, true, undefined],
+      ['create', true, false, undefined],
+      ['edit', true, true, undefined],
+      ['view', true, true, undefined],
+    ])('should display Unsupported Azure provider warning message', (mode, showCloudProvider, isAzureProviderUnsupported, warningMessage) => {
+      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+        mode,
+        showCloudProvider,
+        isAzureProviderUnsupported,
+        canAzureMigrateOnEdit: true
+      });
 
-    expect(bmCheckbox.exists()).toBe(true);
-    expect(bmCheckbox.isVisible()).toBe(true);
+      let cloudProviderUnsupportedAzureWarningMessage;
+      const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"]');
 
-    // Click the checkbox - should enable bandwidth manager
-    await bmCheckbox.find('label').trigger('click');
-    await nextTick();
-    await nextTick();
-
-    // Check and update user values with the emitted value
-    let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
-
-    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOnValue));
-
-    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
-
-    // Click the checkbox to turn ipv6 off again
-    await bmCheckbox.find('label').trigger('click');
-    await nextTick();
-    await nextTick();
-
-    // Update from the emitted value
-    latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
-
-    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOffValue));
-  });
-
-  it('should support ipv6 and bandwidth manager', async() => {
-    const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
-    const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
-    const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]');
-
-    // Click the checkbox - should enable bandwidth manager
-    await bmCheckbox.find('label').trigger('click');
-    await nextTick();
-    await nextTick();
-
-    let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
-
-    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
-
-    // Click the checkbox - should enable ipv6
-    await ipv6Checkbox.find('label').trigger('click');
-    await nextTick();
-    await nextTick();
-
-    // Check and update user values with the emitted value
-    latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
-
-    const combined = {
-      bandwidthManager: { enabled: true },
-      ipv6:             { enabled: true }
-    };
-
-    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(combined));
-
-    // Check that other properties are preserved
-    latest = {
-      ...latest,
-      bandwidthManager: {
-        test:    true,
-        enabled: false
-      },
-      ipv6: {
-        test:    true,
-        enabled: false
+      if (warningElement.exists()) {
+        cloudProviderUnsupportedAzureWarningMessage = warningElement.element.textContent;
       }
-    };
 
-    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
-
-    // Click the checkbox to turn bandwidth manager off again
-    await bmCheckbox.find('label').trigger('click');
-    await nextTick();
-    await nextTick();
-
-    latest = (wrapper.emitted()['cilium-values-changed'] || [])[2][0];
-
-    const expected = '{"bandwidthManager":{"test":true,"enabled":true},"ipv6":{"test":true,"enabled":false}}';
-
-    expect(JSON.stringify(latest)).toStrictEqual(expected);
-  });
-
-  it.each([
-    ['create', true, true, '%cluster.banner.cloudProviderUnsupportedAzure%'],
-    ['create', false, true, undefined],
-    ['create', true, false, undefined],
-    ['edit', true, true, undefined],
-    ['view', true, true, undefined],
-  ])('should display Unsupported Azure provider warning message', (mode, showCloudProvider, isAzureProviderUnsupported, warningMessage) => {
-    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-      mode,
-      showCloudProvider,
-      isAzureProviderUnsupported,
-      canAzureMigrateOnEdit: true
+      expect(cloudProviderUnsupportedAzureWarningMessage).toBe(warningMessage);
     });
 
-    let cloudProviderUnsupportedAzureWarningMessage;
-    const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"]');
+    it.each([
+      ['edit', true, true, '%cluster.banner.cloudProviderMigrateAzure%'],
+      ['edit', false, true, undefined],
+      ['edit', true, false, undefined],
+      ['create', true, true, undefined],
+      ['view', true, true, undefined],
+    ])('should display Azure Migration warning message', (mode, showCloudProvider, canAzureMigrateOnEdit, warningMessage) => {
+      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+        mode,
+        showCloudProvider,
+        canAzureMigrateOnEdit,
+        isAzureProviderUnsupported: true,
+      });
 
-    if (warningElement.exists()) {
-      cloudProviderUnsupportedAzureWarningMessage = warningElement.element.textContent;
-    }
+      let cloudProviderMigrateAzureWarningMessage;
+      const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"]');
 
-    expect(cloudProviderUnsupportedAzureWarningMessage).toBe(warningMessage);
-  });
+      if (warningElement.exists()) {
+        cloudProviderMigrateAzureWarningMessage = warningElement.element.textContent;
+      }
 
-  it.each([
-    ['edit', true, true, '%cluster.banner.cloudProviderMigrateAzure%'],
-    ['edit', false, true, undefined],
-    ['edit', true, false, undefined],
-    ['create', true, true, undefined],
-    ['view', true, true, undefined],
-  ])('should display Azure Migration warning message', (mode, showCloudProvider, canAzureMigrateOnEdit, warningMessage) => {
-    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-      mode,
-      showCloudProvider,
-      canAzureMigrateOnEdit,
-      isAzureProviderUnsupported: true,
+      expect(cloudProviderMigrateAzureWarningMessage).toBe(warningMessage);
     });
 
-    let cloudProviderMigrateAzureWarningMessage;
-    const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"]');
+    it.each([
+      ['create', true, false],
+      ['edit', false, true],
+      ['edit', true, false],
+      ['view', true, false],
+    ])('should disable Cloud Provider', (mode, canAzureMigrateOnEdit, disabled) => {
+      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+        mode,
+        showCloudProvider: true,
+        canAzureMigrateOnEdit,
+      });
 
-    if (warningElement.exists()) {
-      cloudProviderMigrateAzureWarningMessage = warningElement.element.textContent;
-    }
+      const cloudProvider = wrapper.find('[data-testid="clusterBasics__cloudProvider"]');
 
-    expect(cloudProviderMigrateAzureWarningMessage).toBe(warningMessage);
-  });
-
-  it.each([
-    ['create', true, false],
-    ['edit', false, true],
-    ['edit', true, false],
-    ['view', true, false],
-  ])('should disable Cloud Provider', (mode, canAzureMigrateOnEdit, disabled) => {
-    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-      mode,
-      showCloudProvider: true,
-      canAzureMigrateOnEdit,
+      expect(cloudProvider.attributes().disabled).toBe(disabled.toString());
     });
-
-    const cloudProvider = wrapper.find('[data-testid="clusterBasics__cloudProvider"]');
-
-    expect(cloudProvider.attributes().disabled).toBe(disabled.toString());
   });
 });

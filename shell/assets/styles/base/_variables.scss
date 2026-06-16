@@ -10,6 +10,8 @@ $unlabeled-input-height: 40px;
 $unlabaled-select-padding: 3px 0;
 $footer-height: 60px;
 
+$resource-detail-min-width: 740px;
+
 $input-padding-lg: 18px;
 $input-padding-sm: 10px;
 $input-line-height: 18px;
@@ -42,30 +44,38 @@ $z-indexes: (
 
   cruFooter: 19,
 
-  modalOverlay: 20,
-  modalContent: 21,
+  copyToClipboard: 20,
 
-  tooltip: 30,
+  loadingMain: 51,
 
-  dropdownOverlay: 40,
-  dropdownContent: 41,
+  slide-in: 52,
 
-  loadingMain: 51
+  modalOverlay: 53,
+  modalContent: 54,
+
+  dropdownOverlay: 55,
+  dropdownContent: 56,
+
+  tooltip: 57,
 );
 
 // Usage Example:
 // @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {
 // }
 $breakpoints: (
-  '--viewport-4':  480px, // Phone
-  '--viewport-7':  768px, // Tablet
-  '--viewport-9':  992px, // Laptop/Desktop
-  '--viewport-12': 1281px, // Desktop
+  '--viewport-4': 480px,
+  // Phone
+  '--viewport-7': 768px,
+  // Tablet
+  '--viewport-9': 992px,
+  // Laptop/Desktop
+  '--viewport-12': 1281px,
+  // Desktop
 );
 
 $font-size-h2: 21px;
 
 // Global spacing variables
 $space-s: 10px;
-$space-m: 20px;
+$space-m: 24px;
 $space-l: 40px;

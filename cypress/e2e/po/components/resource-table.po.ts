@@ -28,10 +28,11 @@ export default class ResourceTablePo extends ComponentPo {
   /**
    * Navigates to the detail page for a given resource name
    * @param name
+   * @param selector
    * @returns
    */
-  goToDetailsPage(name: string) {
-    return this.sortableTable().detailsPageLinkWithName(name)
+  goToDetailsPage(name: string, selector?: string) {
+    return this.sortableTable().detailsPageLinkWithName(name, selector)
       .click();
   }
 }

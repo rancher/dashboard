@@ -75,15 +75,6 @@ const getProxyConfig = (proxyConfig) => ({
   '/v1-*':           proxyOpts(api), // SAML, KDM, etc
   '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
   '/version':        proxyPrimeOpts(api), // Rancher Kube version endpoint
-  // These are for Ember embedding
-  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':             proxyOpts('https://127.0.0.1:8000'),
-  '/g/':             proxyOpts('https://127.0.0.1:8000'),
-  '/n/':             proxyOpts('https://127.0.0.1:8000'),
-  '/p/':             proxyOpts('https://127.0.0.1:8000'),
-  '/assets':         proxyOpts('https://127.0.0.1:8000'),
-  '/translations':   proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 });
 
 /**
@@ -110,27 +101,40 @@ const getPackageImport = (dir) => new webpack.NormalModuleReplacementPlugin(/^@p
 /**
  * Instrument code for code coverage in e2e tests
  */
-const instrumentCode = () => {
+const instrumentCode = (config) => {
   const instrumentedCode = (process.env.TEST_INSTRUMENT === 'true');
 
-  // Instrument code for tests
-  const babelPlugins = [
-    // TODO: Browser support; also add explanation to this TODO
-    // ['@babel/plugin-transform-modules-commonjs'],
-    ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-    ['@babel/plugin-proposal-class-properties', { loose: true }]
-  ];
+  // Only instrument when the environment variable is set
+  if (!instrumentedCode) {
+    return;
+  }
 
-  if (instrumentedCode) {
-    babelPlugins.push([
-      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
-    ]);
+  // Find the js/ts rule and add the babel-loader
+  const loader = config.module.rules.find((item) => {
+    return 'file.jsx'.match(item?.test) && item.exclude && item.use;
+  });
 
+  if (loader) {
     console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
+
+    loader.use.push({
+      loader:  'babel-loader',
+      options: {
+        plugins: [
+          [
+            'babel-plugin-istanbul',
+            {
+              extension: ['.js', '.vue', '.ts'],
+              all:       true,
+            }
+          ]
+        ]
+      }
+    });
   }
 };
 
-const getLoaders = (SHELL_ABS) => [
+const getLoaders = (SHELL_ABS, dir) => [
   // no fallback for pre-2013 browsers https://caniuse.com/webworkers
   {
     test:    /web-worker.[a-z-]+.js/i,
@@ -186,7 +190,8 @@ const getLoaders = (SHELL_ABS) => [
           appendTsxSuffixTo: [
             '\\.vue$'
           ],
-          configFile: path.join(SHELL_ABS, 'tsconfig.json')
+          configFile:      path.join(SHELL_ABS, 'tsconfig.json'),
+          compilerOptions: { rootDir: dir }
         }
       }
     ]
@@ -323,16 +328,16 @@ const getVirtualModules = (dir, includePkg) => {
 
         // Package file must have rancher field to be a plugin
         if (includePkg(name) && library.rancher) {
-          reqs += `$plugin.registerBuiltinExtension('${ name }', require(\'~/pkg/${ name }\')); `;
+          reqs += `$extension.registerBuiltinExtension('${ name }', require(\'~/pkg/${ name }\')); `;
         }
       });
   }
 
   Object.keys(librariesIndex).forEach((i) => {
-    reqs += `$plugin.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
+    reqs += `$extension.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
   });
 
-  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($extension) { ${ reqs } };` });
 };
 
 const getAutoImport = () => new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
@@ -515,7 +520,7 @@ module.exports = function(dir, appConfig = {}) {
             @import "~shell/assets/styles/base/_variables.scss";
             @import "~shell/assets/styles/base/_functions.scss";
             @import "~shell/assets/styles/base/_mixins.scss";
-            @import 'node_modules/xterm/css/xterm.css';
+            @import 'node_modules/@xterm/xterm/css/xterm.css';
           `
         }
       }
@@ -546,7 +551,7 @@ module.exports = function(dir, appConfig = {}) {
       config.plugins.push(getVirtualModulesAutoImport(dir));
       config.plugins.push(getPackageImport(dir));
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
-      config.plugins.push(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
+      config.plugins.push(new NodePolyfillPlugin({ additionalAliases: ['process'] })); // required from Webpack 5 to polyfill node modules
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
@@ -567,8 +572,8 @@ module.exports = function(dir, appConfig = {}) {
 
       config.resolve.symlinks = false;
       processShellFiles(config, SHELL_ABS);
-      instrumentCode();
-      config.module.rules.push(...getLoaders(SHELL_ABS));
+      config.module.rules.push(...getLoaders(SHELL_ABS, dir));
+      instrumentCode(config);
       preserveWhitespace(config);
     },
   };

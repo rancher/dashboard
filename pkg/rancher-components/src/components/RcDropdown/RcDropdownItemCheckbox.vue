@@ -8,7 +8,7 @@ import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 const props = defineProps({ modelValue: Boolean, disabled: Boolean });
 const emits = defineEmits(['click']);
 
-const { handleKeydown, handleActivate } = useDropdownItem();
+const { handleKeydown, handleActivate, scrollIntoView } = useDropdownItem();
 
 const handleClick = () => {
   if (props.disabled) {
@@ -30,6 +30,7 @@ const handleClick = () => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
+    @focusin="scrollIntoView"
   >
     <rc-checkbox :value="modelValue">
       <template #label>

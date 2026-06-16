@@ -63,6 +63,14 @@ beforeAll(() => {
       getImageData:         jest.fn(() => ({ data: [] }))
     }))
   });
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    value:    jest.fn().mockImplementation(() => ({
+      observe:    jest.fn(),
+      unobserve:  jest.fn(),
+      disconnect: jest.fn(),
+    })),
+  });
 });
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
 // eslint-disable-next-line no-console
@@ -87,8 +95,8 @@ beforeEach(() => {
   // jest.clearAllMocks(); // Use this function inside your test if you need to reset mocks
   jest.restoreAllMocks(); // Use this function inside your test if you need to reset mocks and restore existing functionality
 
-  // Mock the $plugin object
-  // config.mocks['$plugin'] = { getDynamic: () => undefined };
+  // Mock the $extension object
+  // config.mocks['$extension'] = { getDynamic: () => undefined };
 
   config.global.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
   // Overrides some components

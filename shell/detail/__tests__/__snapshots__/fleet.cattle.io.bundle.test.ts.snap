@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`view: fleet.cattle.io.bundle should render resources when bundle deployments exist 1`] = `
+<div class="tabbed-container resource-tabs view" data-testid="tabbed">
+  <ul role="tablist" class="tabs clearfix horizontal" data-testid="tabbed-block" tabindex="0">
+    <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+    <li id="resources" data-testid="resources" class="tab active"><a id="tab-resources" data-testid="btn-resources" aria-controls="resources" aria-selected="true" aria-label="Resources" role="tab" tabindex="0">
+        <!--v-if--><span>Resources</span>
+        <!--v-if-->
+        <!--v-if-->
+      </a></li>
+    <!--v-if-->
+    <!--v-if-->
+  </ul>
+  <div class="tab-container">
+    <!-- This is where "normal" tab content goes... -->
+    <section id="resources" aria-hidden="false" role="tabpanel" aria-labelledby="tab-resources" style="">
+      <!--v-if-->
+      <resource-table-stub rows="[object Object],[object Object]" loading="false" altloading="false" keyfield="tableKey" headers="[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]" search="true" tableactions="false" paginglabel="sortableTable.paging.resource" rowactions="false" groupoptions="[object Object],[object Object]" groupdefault="namespace" grouptooltip="resourceTable.groupBy.namespace" overflowx="false" overflowy="false" ignorefilter="false" hasadvancedfiltering="false" advfilterhidelabelsascols="false" advfilterpreventfilteringlabels="false" usequeryparamsforsimplefiltering="false" forceupdateliveanddelayed="0" externalpaginationenabled="false" default-sort-by="state"></resource-table-stub>
+    </section>
+    <!--v-if-->
+    <!--v-if-->
+    <!--v-if-->
+    <!-- Extension tabs content goes here... -->
+  </div>
+</div>
+`;
+
+exports[`view: fleet.cattle.io.bundle should render the bundle detail page 1`] = `<resource-tabs-stub mode="view" needconditions="true" needevents="true" needrelated="false" usehash="true" value="[object Object]"></resource-tabs-stub>`;
+
+exports[`view: fleet.cattle.io.bundle should render the bundle detail page with full mount 1`] = `
+<div class="tabbed-container resource-tabs view" data-testid="tabbed">
+  <ul role="tablist" class="tabs clearfix horizontal" data-testid="tabbed-block" tabindex="0">
+    <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
+    <!--v-if-->
+    <!--v-if-->
+  </ul>
+  <div class="">
+    <!-- This is where "normal" tab content goes... -->
+    <section id="resources" aria-hidden="true" role="tabpanel" aria-labelledby="tab-resources" style="display: none;">
+      <!--v-if-->
+      <resource-table-stub rows="" loading="false" altloading="false" keyfield="tableKey" headers="[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]" search="true" tableactions="false" paginglabel="sortableTable.paging.resource" rowactions="false" groupoptions="[object Object],[object Object]" groupdefault="namespace" grouptooltip="resourceTable.groupBy.namespace" overflowx="false" overflowy="false" ignorefilter="false" hasadvancedfiltering="false" advfilterhidelabelsascols="false" advfilterpreventfilteringlabels="false" usequeryparamsforsimplefiltering="false" forceupdateliveanddelayed="0" externalpaginationenabled="false" default-sort-by="state"></resource-table-stub>
+    </section>
+    <!--v-if-->
+    <!--v-if-->
+    <!--v-if-->
+    <!-- Extension tabs content goes here... -->
+  </div>
+</div>
+`;
+
+exports[`view: fleet.cattle.io.bundle should show Loading when fetch is pending 1`] = `<loading-stub loading="true" mode="content" nodelay="false"></loading-stub>`;

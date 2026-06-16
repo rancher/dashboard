@@ -1,6 +1,7 @@
 <script>
 import Closeable from '@shell/mixins/closeable';
 import BrandImage from '@shell/components/BrandImage';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   components: { BrandImage },
@@ -15,22 +16,29 @@ export default {
       type:    String,
       default: null,
     },
-
-    small: {
-      type:    Boolean,
-      default: false
-    }
   },
+
+  data() {
+    const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
+    const banner = brandMeta?.banner || {};
+    const align = banner.textAlign || 'center';
+    const bannerClass = banner.bannerClass || '';
+
+    return { alignClass: `banner-text-${ align }`, bannerClass };
+  }
 };
 </script>
 
 <template>
   <div
     v-if="shown"
-    class="banner-graphic"
-    :class="{'small': small}"
+    class="banner-graphic-area"
+    :class="{[alignClass]: true}"
   >
-    <div class="graphic">
+    <div
+      :class="bannerClass"
+      class="graphic banner-graphic-height"
+    >
       <BrandImage
         class="banner"
         data-testid="banner-brand__img"
@@ -55,17 +63,15 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-  $banner-height: 240px;
-  $banner-height-small: 200px;
+<style lang="scss" scoped>
+  $banner-height: 200px;
 
-  .banner-graphic {
+  .banner-graphic-area {
     position: relative;
 
     .graphic {
       display: flex;
       flex-direction: column;
-      height: $banner-height;
       overflow: hidden;
       > img.banner {
         flex: 1;
@@ -74,22 +80,31 @@ export default {
     }
     .title {
       display: flex;
-      justify-content: center;
       align-items: center;
       position: absolute;
       text-align: center;
       top: 0;
       height: 100%;
       width: 100%;
-      margin-top: -20px;
     }
-    &.small {
-      .graphic {
-        height: $banner-height-small;
-        img.banner {
-          margin-top: math.div(($banner-height-small - $banner-height), 2);
-        }
+
+    &.banner-text-center {
+      .title {
+        justify-content: center;
+        margin-top: -20px;
       }
     }
+
+    &.banner-text-left {
+      .title {
+        justify-content: left;
+        padding-left: 20px;
+      }
+    }
+  }
+
+  // Use top-level style so that a theme style can easily override via its own style without having to worry about specificity of CSS styles
+  .banner-graphic-height {
+    height: var(--banner-graphic-height, $banner-height);
   }
 </style>

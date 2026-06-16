@@ -34,23 +34,24 @@ export default {
 
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
-    const alertmanagerConfigId = this.value.id;
-
-    const { receiverSchema, routeSchema } = await fetchAlertManagerConfigSpecs(this.$store);
+    const { receiverSchema } = await fetchAlertManagerConfigSpecs(this.$store);
 
     this.receiverSchema = receiverSchema;
-    this.routeSchema = routeSchema;
 
-    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
+    // The edit page is (mis)used as the detail page. When it's in create world none of the below is valid (there's no existing resource)
+    if (!this.isCreate) {
+      const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: this.value.id });
 
-    this.alertmanagerConfigId = alertmanagerConfigId;
-    this.alertmanagerConfigResource = alertmanagerConfigResource;
-    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource?._detailLocation;
+      this.alertmanagerConfigId = this.value.id;
+      this.alertmanagerConfigResource = alertmanagerConfigResource;
 
-    const alertmanagerConfigActions = alertmanagerConfigResource.availableActions;
-    const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
+      this.alertmanagerConfigDetailRoute = alertmanagerConfigResource._detailLocation;
 
-    this.receiverActions = receiverActions;
+      const alertmanagerConfigActions = alertmanagerConfigResource.availableActions;
+      const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
+
+      this.receiverActions = receiverActions;
+    }
   },
 
   data() {
@@ -176,6 +177,21 @@ export default {
       this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
       // After saving the AlertmanagerConfig, the resource has been deleted.
       this.alertmanagerConfigResource.save(...arguments);
+    },
+    handleReceiverAction(payload) {
+      switch (payload?.action) {
+      case 'goToEdit':
+        this.goToEdit();
+        break;
+      case 'goToEditYaml':
+        this.goToEditYaml();
+        break;
+      case 'promptRemove':
+        this.promptRemove();
+        break;
+      default:
+        console.warn(`Unknown receiver action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
     }
   }
 };
@@ -203,7 +219,10 @@ export default {
       @input="$emit('input', $event)"
     />
 
-    <Tabbed>
+    <Tabbed
+      :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
+    >
       <Tab
         :label="t('monitoring.route.label')"
         :weight="1"
@@ -259,9 +278,7 @@ export default {
       :custom-target-element="actionMenuTargetElement"
       :custom-target-event="actionMenuTargetEvent"
       @close="receiverActionMenuIsOpen = false"
-      @goToEdit="goToEdit"
-      @goToEditYaml="goToEditYaml"
-      @promptRemove="promptRemove"
+      @action-invoked="handleReceiverAction"
     />
   </CruResource>
 </template>

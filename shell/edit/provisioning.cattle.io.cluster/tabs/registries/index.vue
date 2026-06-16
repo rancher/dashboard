@@ -8,7 +8,7 @@ import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/reg
 import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
 
 export default {
-  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed'],
+  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed', 'registry-validation-changed'],
   components: {
     LabeledInput,
     Banner,
@@ -78,7 +78,7 @@ export default {
     <div class="row">
       <Checkbox
         :value="showCustomRegistryInput"
-        class="mb-20"
+        :mode="mode"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
         @update:value="$emit('custom-registry-changed', $event)"
@@ -86,11 +86,12 @@ export default {
     </div>
     <div
       v-if="showCustomRegistryInput"
-      class="row"
+      class="row mt-20"
     >
       <div class="col span-6">
         <LabeledInput
           :value="registryHost"
+          :mode="mode"
           label-key="catalog.chart.registry.custom.inputLabel"
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"
@@ -114,7 +115,6 @@ export default {
       </div>
     </div>
     <div
-      v-if="showCustomRegistryInput"
       class="row"
     >
       <AdvancedSection
@@ -142,6 +142,7 @@ export default {
           :cluster-register-before-hook="registerBeforeHook"
           @update:value="$emit('input', $event)"
           @updateConfigs="$emit('update-configs-changed', $event)"
+          @validation-changed="$emit('registry-validation-changed', $event)"
         />
       </AdvancedSection>
     </div>

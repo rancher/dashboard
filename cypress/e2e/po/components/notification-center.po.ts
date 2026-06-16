@@ -63,6 +63,17 @@ export default class NotificationsCenterPo extends ComponentPo {
     return new NotificationPo(() => cy.get(selector).eq(index));
   }
 
+  /**
+   * Get a notification by selector name
+   * @param selectorName Selector name of the notification in the notification center
+   * @returns Notification
+   */
+  getNotificationByName(selectorName: string) {
+    const selector = `[data-testid^="notifications-center-item-${ selectorName }"]`;
+
+    return new NotificationPo(() => cy.get(selector));
+  }
+
   markAllRead() {
     cy.get('[data-testid="notifications-center-markall-read"]').click({ force: true });
   }
@@ -72,5 +83,10 @@ export default class NotificationsCenterPo extends ComponentPo {
    */
   checkCount(count: number) {
     return this.self().find('[data-testid="notifications-center-item"]').should('have.length', count);
+  }
+
+  /** Assert at least `min` notifications (exact count may vary). */
+  checkCountAtLeast(min: number) {
+    return this.self().find('[data-testid="notifications-center-item"]').should('have.length.at.least', min);
   }
 }

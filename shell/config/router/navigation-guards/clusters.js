@@ -3,8 +3,9 @@ import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { validateResource, setProduct } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeRequiresAuthentication } from '@shell/utils/router';
+import { setProduct } from '@shell/utils/product';
+import { validateResource } from '@shell/utils/resource';
 
 export function install(router, context) {
   router.beforeEach((to, from, next) => loadClusters(to, from, next, context));
@@ -29,12 +30,12 @@ export async function loadClusters(to, from, next, { store }) {
     const oldPkg = getPackageFromRoute(from);
     const oldProduct = getProductFromRoute(from);
 
-    // TODO: Replace all references to store.$plugin.
+    // TODO: Replace all references to store.$extension.
     //       Unfortunately the initialization code has circular dependencies between creating
     //       the router and creating the store that will need to be untangled before this can be tackled.
 
     // Leave an old pkg where we weren't before?
-    const oldPkgPlugin = oldPkg ? Object.values(store.$plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
+    const oldPkgPlugin = oldPkg ? Object.values(store.$extension.getPlugins()).find((p) => p.name === oldPkg) : null;
 
     if (oldPkg && oldPkg !== pkg ) {
       // Execute anything optional the plugin wants to. For example resetting it's store to remove data
@@ -52,7 +53,7 @@ export async function loadClusters(to, from, next, { store }) {
     ];
 
     // Entering a new package where we weren't before?
-    const newPkgPlugin = pkg ? Object.values(store.$plugin.getPlugins()).find((p) => p.name === pkg) : null;
+    const newPkgPlugin = pkg ? Object.values(store.$extension.getPlugins()).find((p) => p.name === pkg) : null;
 
     // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
     if (pkg && (oldPkg !== pkg || from.fullPath === to.fullPath)) {

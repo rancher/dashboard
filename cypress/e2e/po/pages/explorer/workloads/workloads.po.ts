@@ -10,8 +10,9 @@ import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-stor
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-
-export class workloadDetailsPageBasePo extends BaseDetailPagePo {
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import CardPo from '~/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';
+export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(
@@ -37,9 +38,9 @@ export class workloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   constructor(workloadId: string, clusterId: string, workloadType: WorkloadType, queryParams?: Record<string, string>, namespaceId = 'default') {
-    super(workloadDetailsPageBasePo.createPath(workloadId, clusterId, workloadType, namespaceId, queryParams));
+    super(WorkloadDetailsPageBasePo.createPath(workloadId, clusterId, workloadType, namespaceId, queryParams));
 
-    workloadDetailsPageBasePo.url = workloadDetailsPageBasePo.createPath(
+    WorkloadDetailsPageBasePo.url = WorkloadDetailsPageBasePo.createPath(
       workloadId,
       clusterId,
       workloadType,
@@ -52,6 +53,14 @@ export class workloadDetailsPageBasePo extends BaseDetailPagePo {
     return new WorkloadPagePo();
   }
 
+  private card() {
+    return new CardPo();
+  }
+
+  title(): Cypress.Chainable {
+    return cy.get(`${ this.selector } h1`);
+  }
+
   deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
@@ -61,19 +70,90 @@ export class workloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   podScaleUp(): Cypress.Chainable {
-    return this.self().find('.btn-sm .icon-plus');
+    return this.card().scaleUp();
   }
 
   podScaleDown(): Cypress.Chainable {
-    return this.self().find('.btn-sm .icon-minus');
+    return this.card().scaleDown();
   }
 
   podsRunningTotal(): Cypress.Chainable {
-    return this.self().find('.count-gauge h1').first();
+    return this.card().podsRunningTotal();
   }
 
-  gaugesPods(): Cypress.Chainable {
-    return this.self().find('.gauges__pods');
+  replicaCount(): Cypress.Chainable {
+    return this.card().replicaCount();
+  }
+
+  podsStatus(): Cypress.Chainable {
+    return this.card().podsStatus();
+  }
+
+  podsStatusCount(): Cypress.Chainable {
+    return this.card().podsStatusCount();
+  }
+
+  /**
+   * Wait until there's exactly one pods status count element
+   */
+  waitForSinglePodsStatusCount(): Cypress.Chainable {
+    return this.podsStatusCount().should('have.length', 1, MEDIUM_TIMEOUT_OPT);
+  }
+
+  /**
+   * Wait for the workload details page to be fully loaded
+   * This ensures the masthead title is present and the scaling controls are ready
+   */
+  waitForDetailsPage(workloadName: string) {
+    this.waitForPage();
+    this.waitForMastheadTitle(workloadName);
+    this.podsRunningTotal().should('be.visible');
+
+    return this;
+  }
+
+  /**
+   * Wait for scale operations to complete by checking button states and pending elements
+   * This ensures scale buttons are enabled and no pending/loading indicators are present
+   */
+  waitForScaleOperationComplete() {
+    this.waitForScaleButtonsEnabled();
+    this.waitForPendingOperationsToComplete();
+    this.ensureReplicaCountStable();
+
+    return this;
+  }
+
+  /**
+   * Wait for both scale up and down buttons to be enabled and visible
+   */
+  waitForScaleButtonsEnabled() {
+    this.podScaleUp().scrollIntoView().should('be.visible').and('not.be.disabled')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    this.podScaleDown().scrollIntoView().should('be.visible').and('not.be.disabled')
+      .should('not.have.attr', 'aria-disabled', 'true');
+
+    return this;
+  }
+
+  /**
+   * Wait for any pending or loading operations in the scale area to complete
+   */
+  waitForPendingOperationsToComplete() {
+    cy.get('.plus-minus:contains("Pending"):visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+    cy.get('.plus-minus .bg-info:visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+    cy.get('.plus-minus [class*="loading"]:visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+
+    return this;
+  }
+
+  /**
+   * Ensure the replica count element is visible and stable
+   */
+  ensureReplicaCountStable() {
+    this.replicaCount().should('be.visible').and('not.be.empty');
+
+    return this;
   }
 }
 
@@ -134,7 +214,7 @@ export class WorkloadsListPageBasePo extends BaseListPagePo {
     return cy.wait('@deleteDeployment');
   }
 
-  createWithKubectl(blueprintJson: string | Object, wait = 6000, timeout = { timeout: 10000 }) {
+  createWithKubectl(blueprintJson: string | Object, wait = MEDIUM_TIMEOUT_OPT.timeout, timeout = MEDIUM_TIMEOUT_OPT) {
     this.workload().createWithKubectl(blueprintJson, wait, timeout);
   }
 

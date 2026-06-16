@@ -168,9 +168,9 @@ describe('component: LabeledSelect', () => {
 
       await wrapper.trigger('click');
 
-      const dropdownOpen = wrapper.find('.vs--open');
+      const dropdownOpen = wrapper.vm.isOpen;
 
-      expect(dropdownOpen.exists()).toBe(isOpen);
+      expect(dropdownOpen).toBe(isOpen);
     });
   });
 
@@ -208,6 +208,7 @@ describe('component: LabeledSelect', () => {
       const wrapper = mount(ParentComponent);
 
       // https://test-utils.vuejs.org/guide/essentials/event-handling#Asserting-the-arguments-of-the-event
+      await wrapper.trigger('click');
       await wrapper.find('input').trigger('focus');
       await wrapper.find('.vs__dropdown-option').trigger('click');
 
@@ -252,7 +253,7 @@ describe('component: LabeledSelect', () => {
     // in the current architecture of the component
     // screen readers won't pick up the default "Select option" aria-label
     // from the library
-    expect(vSelectInput.attributes('aria-label')).toBe('-');
+    expect(vSelectInput.attributes('aria-label')).toBe(`- ${ value }`);
   });
 
   it('pressing space key while focused on search should not prevent event propagation', async() => {
@@ -267,7 +268,8 @@ describe('component: LabeledSelect', () => {
         value,
         label:      'some-label',
         options,
-        searchable: true
+        searchable: true,
+        loading:    false,
       }
     });
 
@@ -281,10 +283,145 @@ describe('component: LabeledSelect', () => {
     await input.trigger('keydown.enter');
 
     // mimic pressing space on search box inside v-select
-    await input.trigger('keydown.space', mockEvent);
+    const search = input.find('input');
+
+    await search.trigger('keydown.space', mockEvent);
 
     // eslint-disable-next-line
     expect(spyFocus).toHaveBeenCalled();
     expect(spyPreventDefault).not.toHaveBeenCalled();
+  });
+
+  describe('function: clickSelect', () => {
+    it('should open dropdown when clickSelect is called and not disabled', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          disabled: false,
+          loading:  false,
+          mode:     _EDIT
+        }
+      });
+
+      expect(wrapper.vm.isOpen).toBe(false);
+
+      wrapper.vm.clickSelect();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+    });
+
+    it('should not open dropdown when clickSelect is called and disabled', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          disabled: true,
+          loading:  false,
+          mode:     _EDIT
+        }
+      });
+
+      expect(wrapper.vm.isOpen).toBe(false);
+
+      wrapper.vm.clickSelect();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not open dropdown when loading is true', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          disabled: false,
+          loading:  true,
+          mode:     _EDIT
+        }
+      });
+
+      expect(wrapper.vm.isOpen).toBe(false);
+
+      wrapper.vm.clickSelect();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not open dropdown when mode is _VIEW', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          disabled: false,
+          loading:  false,
+          mode:     _VIEW
+        }
+      });
+
+      expect(wrapper.vm.isOpen).toBe(false);
+
+      wrapper.vm.clickSelect();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not clear value if disabled', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          multiple: true,
+          disabled: true,
+          mode:     _EDIT
+        }
+      });
+
+      const clearBtn = wrapper.find('.vs__deselect');
+
+      expect(clearBtn.exists()).toBe(true);
+
+      await clearBtn.trigger('mousedown');
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it('should not open dropdown when remove button is clicked', async() => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options:  [{ label, value }],
+          multiple: true,
+          mode:     _EDIT
+        }
+      });
+
+      expect(wrapper.vm.isOpen).toBe(false);
+
+      const clearBtn = wrapper.find('.vs__deselect');
+
+      await clearBtn.trigger('mousedown');
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+      expect(wrapper.vm.isOpen).toBe(false);
+    });
   });
 });

@@ -18,18 +18,26 @@
  */
 import { Solver } from '@shell/utils/svg-filter';
 import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
+import { mapGetters } from 'vuex';
 
 const filterCache = {};
-const cssCache = {};
 
 const colors = {
   header: {
-    color: '--header-btn-text',
-    hover: '--header-btn-text-hover'
+    color:          '--on-tertiary-header',
+    hover:          '--on-tertiary-header-hover',
+    colorFallback:  '--header-btn-text',
+    hoverFallback:  '--header-btn-text-hover',
+    active:         '--on-tertiary-header-hover',
+    activeFallback: '--header-btn-text-hover',
   },
   primary: {
-    color: '--link',
-    hover: '--primary-hover-text'
+    color:          '--on-tertiary',
+    hover:          '--tertiary-hover-app-bar',
+    colorFallback:  '--on-tertiary',
+    hoverFallback:  '--primary-hover-text',
+    active:         '--on-active',
+    activeFallback: '--primary-hover-text',
   }
 };
 
@@ -44,6 +52,10 @@ export default {
       type:    String,
       default: () => undefined,
     },
+    imgAlt: {
+      type:    String,
+      default: () => undefined,
+    },
     color: {
       type:    String,
       default: () => 'primary',
@@ -51,7 +63,12 @@ export default {
   },
 
   data() {
-    return { className: '' };
+    return {
+      className:    '',
+      mainFilter:   null,
+      hoverFilter:  null,
+      activeFilter: null,
+    };
   },
 
   created() {
@@ -60,79 +77,74 @@ export default {
     }
   },
 
+  computed: {
+    ...mapGetters({
+      brand: 'management/brand',
+      theme: 'prefs/theme',
+    })
+  },
+
+  watch: {
+    brand: 'recomputeColor',
+    theme: 'recomputeColor',
+  },
+
   methods: {
-    getComputedStyleFor(cssVar) {
-      return normalizeHex(mapStandardColors((window.getComputedStyle(document.body).getPropertyValue(cssVar)).trim()));
+    getComputedStyleFor(cssVar, fallback) {
+      const value = window.getComputedStyle(document.body).getPropertyValue(cssVar).trim();
+
+      return normalizeHex(mapStandardColors(value ?? fallback));
+    },
+
+    resolveColorFilter(cacheKey, rgb) {
+      if (filterCache[cacheKey]) {
+        return filterCache[cacheKey];
+      }
+
+      const solver = new Solver(rgb);
+      const res = solver.solve();
+      const filterVal = res?.filterVal;
+
+      filterCache[cacheKey] = filterVal;
+
+      return filterVal;
     },
 
     setColor() {
-      const uiColor = this.getComputedStyleFor(colors[this.color].color);
-      const hoverColor = this.getComputedStyleFor(colors[this.color].hover);
+      const colorConfig = colors[this.color];
+      const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
+      const hoverColor = this.getComputedStyleFor(colorConfig.hover, colorConfig.hoverFallback);
+      const activeColor = this.getComputedStyleFor(colorConfig.active, colorConfig.activeFallback);
 
-      if (!uiColor || !hoverColor) {
+      if (!uiColor || !hoverColor || !activeColor) {
         return;
       }
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);
+      const activeColorRGB = colorToRgb(activeColor);
       const uiColorStr = `${ uiColorRGB.r }-${ uiColorRGB.g }-${ uiColorRGB.b }`;
       const hoverColorStr = `${ hoverColorRGB.r }-${ hoverColorRGB.g }-${ hoverColorRGB.b }`;
 
       const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
 
-      if (!cssCache[className]) {
-        let hoverFilter = filterCache[hoverColor];
-
-        if (!hoverFilter) {
-          const solver = new Solver(hoverColorRGB);
-          const res = solver.solve();
-
-          hoverFilter = res?.filter;
-          filterCache[hoverColor] = hoverFilter;
-        }
-
-        let mainFilter = filterCache[uiColor];
-
-        if (!mainFilter) {
-          const solver = new Solver(uiColorRGB);
-          const res = solver.solve();
-
-          mainFilter = res?.filter;
-          filterCache[uiColor] = mainFilter;
-        }
-
-        // Add stylesheet (added as global styles)
-        const styles = `
-          img.${ className } {
-            ${ mainFilter };
-          }
-          img.${ className }:hover {
-            ${ hoverFilter };
-          }
-          button:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          li:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          a.option:hover > img.${ className } {
-            ${ hoverFilter };
-          }
-          a.option.active-menu-link > img.${ className } {
-            ${ hoverFilter };
-          }
-        `;
-
-        const styleSheet = document.createElement('style');
-
-        styleSheet.innerText = styles;
-        document.head.appendChild(styleSheet);
-
-        cssCache[className] = true;
-      }
+      this.hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+      this.mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
+      this.activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
 
       this['className'] = className;
-    }
+    },
+
+    recomputeColor() {
+      if (!this.src) {
+        return;
+      }
+
+      this.mainFilter = null;
+      this.hoverFilter = null;
+      this.activeFilter = null;
+      this.setColor();
+    },
   }
 };
 </script>
@@ -143,6 +155,7 @@ export default {
     :src="src"
     class="svg-icon"
     :class="className"
+    :alt="imgAlt"
   >
   <i
     v-else-if="icon"
@@ -156,8 +169,30 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .svg-icon {
+  img.svg-icon {
+    filter: v-bind(mainFilter);
+  }
+
+  button:hover > img.svg-icon,
+  li:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a > img.svg-icon {
     height: 24px;
     width: 24px;
+    filter: v-bind(mainFilter);
+  }
+
+  .side-menu .category div a:hover > img.svg-icon {
+    filter: v-bind(hoverFilter);
+  }
+
+  .side-menu .category div a.active-menu-link > img.svg-icon {
+    filter: v-bind(activeFilter);
+
+    &:hover {
+      filter: v-bind(activeFilter);
+    }
   }
 </style>

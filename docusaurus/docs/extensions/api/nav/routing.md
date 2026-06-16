@@ -1,6 +1,10 @@
 # Routing
 
 ## Routes definition for an Extension as a top-level product
+If you are not familiar with the concept of "an Extension as a top-level product", we recommend that your about the concept **[here](../concepts.md#what-is-a-top-level-product)**.
+
+For this type of product we recommend following this route structure: `product-c-cluster-resoure`.
+
 Extensions should use a `pages` directory, as the shell currently does, but routing needs to be explicitly defined then added in the extension index using the extension `addRoutes` method. Extension routes can override existing dashboard routes: they'll be loaded on extension entry and unloaded (with old dashboard routes re-loaded...) on extension leave. 
 
 As touched on above, cluster and product information used to connect to the cluster and define navigation is determined from the route. Consequently, while extensions have a lot of control over their own routing, anything tied into one kubernetes cluster should be nested in `pages/c/_cluster`.
@@ -31,6 +35,8 @@ export default function(plugin: IPlugin) {
 }
 ```
 
+### Top-level product - entry routes for each page definition
+
 Let's then take into consideration the following example a of `product.ts` config:
 
 ```ts
@@ -41,7 +47,7 @@ import { IPlugin } from '@shell/core/types';
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -51,7 +57,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a top-level product
   product({
@@ -138,6 +144,8 @@ route: {
 Within the params property, we define **cluster** as `BLANK_CLUSTER`. `BLANK_CLUSTER` is a notion on which Rancher will ignore the context of the cluster the user is browsing, which is the desired effect when creating a product that is "above" the notion of a cluster.
 
 This pattern is a very important aspect for Top-level products that you should be mindful at all times when creating a product of this type.
+
+### Top-level product - adding your defined routes to Vue Router
 
 Considering the above, `/routing/extension-routing.ts` would then have to be defined like:
 
@@ -285,6 +293,10 @@ The routing definition on this example for `/routing/extension-routing.ts` is ba
 
 
 ## Routes definitions for an Extension as a cluster-level product
+If you are not familiar with the concept of "an Extension as a cluster-level product", we recommend that your about the concept **[here](../concepts.md#what-is-a-cluster-level-product)**.
+
+For this type of product we recommend following this route structure: `c-cluster-product-resoure`.
+
 Routes definitions start very similar as a top-level product with the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 
 ```ts
@@ -309,12 +321,14 @@ export default function(plugin: IPlugin) {
 }
 ```
 
+### Cluster-level product - entry routes for each page definition
+
 For a Cluster-level product, let's then take into consideration the following example a of `product.ts` config:
 
 ```ts
 import { IPlugin } from '@shell/core/types';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -324,7 +338,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a top-level product
   product({
@@ -399,6 +413,8 @@ route: {
 Within the params property, we do not define the cluster parameter as this is provided by the context in which cluster the user is currently browsing.
 
 This pattern is a very important aspect for Cluster-level products that you should be mindful at all times when creating a product of this type.
+
+### Cluster-level product - adding your defined routes to Vue Router
 
 Considering the above, `/routing/extension-routing.ts` would then have to be defined like:
 

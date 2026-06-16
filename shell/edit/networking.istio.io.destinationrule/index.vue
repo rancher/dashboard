@@ -66,7 +66,11 @@ export default {
     </div>
 
     <div class="mb-20">
-      <Tabbed :side-tabs="true">
+      <Tabbed
+        :side-tabs="true"
+        :use-hash="useTabbedHash"
+        :default-tab="defaultTab"
+      >
         <Tab
           name="subsets"
           :label="t('istio.destinationRule.subsets.label')"

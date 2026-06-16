@@ -1,7 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 import { SNAPSHOT } from '@shell/config/labels-annotations';
 import { CAPI } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
@@ -17,7 +16,7 @@ export default class EtcdBackup extends NormanModel {
     return [{
       action: 'promptRestore',
       enabled,
-      icon:   'icon icon-fw icon-backup-restore',
+      icon:   'icon icon-backup-restore',
       label:  'Restore'
     }];
   }
@@ -39,7 +38,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return findBy(this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER), 'metadata.name', this.clusterName);
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.clusterName }`);
   }
 
   get rke2() {

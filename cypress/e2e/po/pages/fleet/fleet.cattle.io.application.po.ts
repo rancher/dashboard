@@ -132,7 +132,7 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
   displaySelfHealingInformationMessage() {
     this.self().get('[data-testid="labeledTooltip-info-icon"]').eq(0).as('selfhealingicon');
 
-    cy.get('@selfhealingicon').realHover();
+    (cy.get('@selfhealingicon') as any).realHover();
     cy.get('@selfhealingicon').should('have.attr', 'data-popper-shown');
   }
 }

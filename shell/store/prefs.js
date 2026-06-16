@@ -1,6 +1,7 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
+import { getBrandMeta } from '@shell/utils/brand';
 
 const definitions = {};
 /**
@@ -74,7 +75,6 @@ export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 export const SHOW_PRE_RELEASE = create('show-pre-release', false, { options: [false, true], parseJSON });
-export const SHOW_CHART_MODE = create('chart-mode', 'featured', { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [
@@ -115,6 +115,16 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 export const MENU_MAX_CLUSTERS = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
+
+// Dynamic content
+export const READ_NEW_RELEASE = create('read-new-release', '', { parseJSON });
+export const READ_SUPPORT_NOTICE = create('read-support-notice', '', { parseJSON });
+export const READ_UPCOMING_SUPPORT_NOTICE = create('read-upcoming-support-notice', '', { parseJSON });
+export const READ_ANNOUNCEMENTS = create('read-announcements', '', { parseJSON });
+
+// Hidden banners
+export const HIDE_SUSE_APP_COLLECTION_REPO_BANNER = create('hide-suse-app-collection-repo-banner', false);
+
 // --------------------
 
 const cookiePrefix = 'R_';
@@ -226,13 +236,13 @@ export const getters = {
       }
       const clusterPref = getters['get'](CLUSTER);
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterPref } };
     }
     case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
     {
       const clusterId = afterLoginRoutePref.split('-dashboard')[0];
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterId } };
     }
     default:
       return { name: afterLoginRoutePref };
@@ -290,12 +300,16 @@ export const actions = {
     commit('load', { key, value });
 
     if ( definition.asCookie ) {
-      const opt = {
+      const options = {
         ...cookieOptions,
         parseJSON: definition.parseJSON === true
       };
 
-      this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
+      const computedKey = `${ cookiePrefix }${ key }`.toUpperCase();
+
+      commit('cookies/set', {
+        key: computedKey, value, options
+      }, { root: true });
     }
 
     if ( definition.asUserPreference ) {
@@ -337,7 +351,7 @@ export const actions = {
     await dispatch('set', { key: THEME, value: val });
   },
 
-  loadCookies({ state, commit }) {
+  loadCookies({ state, commit, rootGetters }) {
     if ( state.cookiesLoaded ) {
       return;
     }
@@ -349,8 +363,9 @@ export const actions = {
         continue;
       }
 
-      const opt = { parseJSON: definition.parseJSON === true };
-      const value = this.$cookies.get(`${ cookiePrefix }${ key }`.toUpperCase(), opt);
+      const options = { parseJSON: definition.parseJSON === true };
+      const computedKey = `${ cookiePrefix }${ key }`.toUpperCase();
+      const value = rootGetters['cookies/get']({ key: computedKey, options });
 
       if (value !== undefined) {
         commit('load', { key, value });
@@ -511,16 +526,14 @@ export const actions = {
   setBrandStyle({ rootState, rootGetters }, dark = false) {
     if (rootState.managementReady) {
       try {
-        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+        const brandSetting = rootGetters['management/brand'];
 
-        if (brandSetting && brandSetting.value && brandSetting.value !== '') {
-          const brand = brandSetting.value;
-
-          const brandMeta = require(`~shell/assets/brand/${ brand }/metadata.json`);
+        if (brandSetting !== '') {
+          const brandMeta = getBrandMeta(brandSetting);
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {
-            document.body.classList.add(brand);
+            document.body.classList.add(brandMeta);
           } else {
             // TODO option apply color at runtime
           }

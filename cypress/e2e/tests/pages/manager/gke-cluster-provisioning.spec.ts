@@ -2,7 +2,6 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
-import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 /******
@@ -10,7 +9,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins', '@provisioning'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -41,6 +40,9 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   } else {
     console.warn('gkeServiceAccount environment variable is undefined or empty.');
   }
+
+  // Convert service account object to JSON string for input field
+  const serviceAccountJsonString = serviceAccount ? JSON.stringify(serviceAccount) : '';
 
   before(() => {
     cy.login();
@@ -74,28 +76,31 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     const cloudCredForm = createGKEClusterPage.cloudCredentialsForm();
 
     // Select GKE and create GKE cluster page
-    ClusterManagerListPagePo.navTo();
+    // Navigate directly to avoid CI flakiness when the side menu is not rendered yet.
+    ClusterManagerListPagePo.goTo('_');
     clusterList.waitForPage();
     clusterList.createCluster();
     createGKEClusterPage.selectKubeProvider(2);
     loadingPo.checkNotExists();
     createGKEClusterPage.rke2PageTitle().should('include', 'Create Google GKE');
-    createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
+    createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
+    // Wait for the inline cloud credential form's async fetch to complete before interacting with it.
+    loadingPo.checkNotExists();
 
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.gkeCloudCredentialName);
-    // while issue #1717 in qa-tasks is open, line 91 is duplicated as a workaround. The duplicate line needs to be removed after issue is fixed
-    cloudCredForm.serviceAccount().set(serviceAccount);
-    cloudCredForm.serviceAccount().set(serviceAccount);
+    cloudCredForm.serviceAccount().set(serviceAccountJsonString, false, false);
     cloudCredForm.saveButton().expectToBeEnabled();
-    cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('pageLoad');
+
+    cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id.replace(':', '%3A');
 
       // Authenticate GKE credential by providing the Project ID
-      createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
+      createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
       createGKEClusterPage.authProjectId().set( gkeProjectId );
       cy.intercept('POST', `/meta/gkeVersions?cloudCredentialId=${ cloudcredentialId }&projectId=${ gkeProjectId }&zone=${ gkeDefaultZone }`).as('getGKEVersions');
       cloudCredForm.authenticateButton().click();
@@ -103,8 +108,8 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       loadingPo.checkNotExists();
 
       // Verify that gke-zone-select dropdown is set to the default zone
-      createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
-      ClusterManagerCreateGKEPagePo.getGkeZoneSelect().checkOptionSelected(DEFAULT_GCP_ZONE);
+      createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
+      ClusterManagerCreateGKEPagePo.getGkeZoneSelect().checkOptionSelected('us-central1-c');
 
       // Get latest GKE kubernetes version and verify that gke-version-select dropdown is set to the default version as defined by versionOptions(); in Config.vue
       cy.wait('@getGKEVersions').then(({ response }) => {

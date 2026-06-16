@@ -87,6 +87,14 @@ export default {
       type:    Function,
       default: null,
     },
+
+    /**
+     * When making a supporting HTTP request include associated resource data
+     */
+    includeAssociatedData: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -185,9 +193,10 @@ export default {
           return;
         }
         const opt = {
-          hasManualRefresh: this.hasManualRefresh,
-          pagination:       { ...this.pagination },
-          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+          hasManualRefresh:      this.hasManualRefresh,
+          pagination:            { ...this.pagination },
+          force:                 this.paginating !== null, // Fix for manual refresh (before ripped out).
+          includeAssociatedData: this.includeAssociatedData,
         };
 
         if (this.apiFilter) {
@@ -242,7 +251,9 @@ export default {
     },
 
     __getCountForResource(resourceName, namespace, storeType) {
-      const resourceCounts = this.$store.getters[`${ storeType }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
+      const currStore = storeType || this.$store.getters['currentStore']();
+
+      const resourceCounts = this.$store.getters[`${ currStore }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
       const resourceCount = namespace && resourceCounts?.namespaces ? resourceCounts?.namespaces[namespace]?.count : resourceCounts?.summary?.count;
 
       return resourceCount || 0;

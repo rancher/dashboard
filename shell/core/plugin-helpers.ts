@@ -137,6 +137,30 @@ function checkExtensionRouteBinding($route: any, locationConfig: any, context: a
   return res;
 }
 
+// Track which ExtensionPoint keys are missing from the extension manager's uiConfig.
+// This handles forwards-compatibility when extensions ship a newer shell that defines
+// ExtensionPoint values the running dashboard doesn't know about (e.g. 'Table' on 2.13).
+const _uiConfigPatched: { [point: string]: boolean } = {};
+
+function ensureUIConfigCompat(extensionManager: any) {
+  const uiConfig = extensionManager.getAllUIConfig?.();
+
+  if (uiConfig) {
+    const missingPoints: { [point: string]: boolean } = {};
+
+    Object.values(ExtensionPoint).forEach((ep) => {
+      if (!uiConfig[ep] && !_uiConfigPatched[ep]) {
+        missingPoints[ep] = true;
+        _uiConfigPatched[ep] = true;
+      }
+    });
+
+    if (Object.keys(missingPoints).length) {
+      console.warn(`[plugin-helpers] These ExtensionPoints aren't available for usage in this Rancher version: ${ Object.keys(missingPoints).join(', ') }`); // eslint-disable-line no-console
+    }
+  }
+}
+
 export function getApplicableExtensionEnhancements<T>(
   pluginCtx: ComponentOptionsMixin,
   actionType: ExtensionPoint,
@@ -147,8 +171,15 @@ export function getApplicableExtensionEnhancements<T>(
   const extensionEnhancements: T[] = [];
 
   // gate it so that we prevent errors on older versions of dashboard
-  if (pluginCtx.$plugin?.getUIConfig) {
-    const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
+  if (pluginCtx.$extension?.getUIConfig) {
+    ensureUIConfigCompat(pluginCtx.$extension);
+
+    // Exit early if actionType doesn't exist in the extension manager's uiConfig
+    if (_uiConfigPatched[actionType]) {
+      return [];
+    }
+
+    const actions = pluginCtx.$extension.getUIConfig(actionType, uiArea);
 
     actions.forEach((action: any, i: number) => {
       if (checkExtensionRouteBinding(currRoute, action.locationConfig, context || {})) {
@@ -195,6 +226,8 @@ export function getApplicableExtensionEnhancements<T>(
                 if (i < keyboardCombo.length - 1) {
                   if (key === 'meta') {
                     key = '\u2318';
+                  } else if (isMac && key === 'alt') {
+                    key = '⌥';
                   } else {
                     key = ucFirst(key);
                   }

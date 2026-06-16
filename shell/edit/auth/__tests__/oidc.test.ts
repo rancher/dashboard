@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
-import { mount, type VueWrapper } from '@vue/test-utils';
+import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
@@ -8,6 +8,18 @@ import oidc from '@shell/edit/auth/oidc.vue';
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
+
+const mockStore = {
+  getters: {
+    'i18n/t':      (key: string) => key,
+    'i18n/exists': () => false,
+  },
+};
+
+jest.mock('vuex', () => ({
+  ...jest.requireActual('vuex'),
+  useStore: () => mockStore,
+}));
 
 const validClientId = 'rancheroidc';
 const validClientSecret = 'TOkUxg0P67m1UXWNkJLHDPkUZFIKOWSq';
@@ -79,20 +91,26 @@ describe('oidc.vue', () => {
     });
 
     describe('have "Create" button disabled', () => {
-      it('given missing Auth endpoint URL', () => {
+      // validateAllFields() replicates what happens on blur in a real browser: it runs
+      // the toTypedSchema validators for every registered field and flushes async errors.
+      it('given missing Auth endpoint URL', async() => {
         wrapper.vm.model.authEndpoint = '';
         wrapper.vm.model.scopes = 'openid profile email'; // set scope to be sure
         wrapper.vm.oidcScope = ['openid', 'profile', 'email']; // TODO #13457: this is duplicated due wrong format of scopes
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
 
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
         expect(saveButton.disabled).toBe(true);
       });
 
-      it('given missing required basic scopes', () => {
-        wrapper.vm.model.authEndpoint = 'whatever'; // set auth endpoint to be sure
+      it('given missing required basic scopes', async() => {
+        wrapper.vm.model.authEndpoint = validAuthEndpoint; // set auth endpoint to be sure
         wrapper.vm.model.scopes = 'something else'; // set wrong scope
         wrapper.vm.oidcScope = ['something', 'else']; // TODO #13457: this is duplicated due wrong format of scopes
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
 
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -101,7 +119,8 @@ describe('oidc.vue', () => {
 
       it('when provider is disabled and editing config before fields are filled in', async() => {
         wrapper.setData({ model: {}, editConfig: true });
-        await nextTick();
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
 
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -110,7 +129,8 @@ describe('oidc.vue', () => {
 
       it('when provider is disabled and editing config after required fields and scope is missing openid', async() => {
         wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm } });
-        await nextTick();
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
 
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -220,6 +240,136 @@ describe('oidc.vue', () => {
 
       expect(issuer).toBe('');
       expect(endpoint).toBe('');
+    });
+
+    it('custom claims fields should not appear in UI if Amazon cognito', async() => {
+      wrapper.vm.model.id = 'cognito';
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(false);
+      expect(groupsClaim.exists()).toBe(false);
+      expect(emailClaim.exists()).toBe(false);
+    });
+
+    it('custom claims fields should appear in UI if genericoidc', async() => {
+      wrapper.vm.model.id = 'genericoidc';
+      wrapper.vm.addCustomClaims = true;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(true);
+      expect(groupsClaim.exists()).toBe(true);
+      expect(emailClaim.exists()).toBe(true);
+    });
+
+    it('should render addCustomClaims and supportsGroupSearch  checkbox when provider is keycloak', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      await nextTick();
+
+      const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
+      const groupSearchCheckbox = wrapper.find('[data-testid="input-group-search"]');
+
+      expect(addCustomClaimsCheckbox.exists()).toBe(true);
+      expect(groupSearchCheckbox.exists()).toBe(true);
+    });
+
+    it('should render custom claims section when provider is keycloak and addCustomClaims is true', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      wrapper.vm.addCustomClaims = true;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(true);
+      expect(groupsClaim.exists()).toBe(true);
+      expect(emailClaim.exists()).toBe(true);
+    });
+
+    it('should render both addCustomClaims and groupSearch checkboxes when provider is genericoidc', async() => {
+      wrapper.vm.model.id = 'genericoidc';
+      await nextTick();
+
+      const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
+      const groupSearchCheckbox = wrapper.find('[data-testid="input-group-search"]');
+
+      expect(addCustomClaimsCheckbox.exists()).toBe(true);
+      expect(groupSearchCheckbox.exists()).toBe(true);
+    });
+
+    it('should NOT render custom claims section when provider is keycloak and addCustomClaims is false', async() => {
+      wrapper.vm.model.id = 'keycloakoidc';
+      wrapper.vm.addCustomClaims = false;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(false);
+      expect(groupsClaim.exists()).toBe(false);
+      expect(emailClaim.exists()).toBe(false);
+    });
+
+    describe('clientAuthenticatedSearch checkbox', () => {
+      it('is not rendered for genericoidc', async() => {
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(false);
+      });
+
+      it('is not rendered for cognito', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(false);
+      });
+
+      it('is rendered for keycloakoidc', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+
+        const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
+
+        expect(checkbox.exists()).toBe(true);
+      });
+
+      it('defaults to falsy when not set on keycloakoidc', async() => {
+        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBeFalsy();
+      });
+
+      it('updates model when checkbox is clicked', async() => {
+        await wrapper.setData({
+          model: {
+            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: false
+          }
+        });
+
+        const checkbox = wrapper.getComponent('[data-testid="input-client-authenticated-group-search"]');
+
+        await checkbox.find('[role="checkbox"]').trigger('click');
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+
+      it('reflects a pre-existing true value from the model', async() => {
+        await wrapper.setData({
+          model: {
+            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: true
+          }
+        });
+
+        expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
     });
   });
 });

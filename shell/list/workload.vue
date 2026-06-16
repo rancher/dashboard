@@ -5,6 +5,7 @@ import {
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import { STEVE_CACHE } from '@shell/store/features';
 
 const workloadSchema = {
   id:         'workload',
@@ -84,13 +85,26 @@ export default {
   },
 
   data() {
+    const allTypes = this.$route.params.resource === workloadSchema.id;
+
+    if (allTypes && this.$store.getters['features/get'](STEVE_CACHE)) {
+      this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource: workloadSchema.id }, true)));
+
+      return;
+    }
     // Ensure these are set on load (to determine if the NS filter is required) rather than too late on `fetch`
     const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
 
     const { params:{ resource: type } } = this.$route;
-    const allTypes = this.$route.params.resource === workloadSchema.id;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
     const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+
+    const workloadIncludeAssociatedData = paginationEnabled && [
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.JOB,
+    ].includes(type);
 
     return {
       allTypes,
@@ -98,7 +112,8 @@ export default {
       paginationEnabled,
       resources: [],
       loadResources,
-      loadIndeterminate
+      loadIndeterminate,
+      workloadIncludeAssociatedData
     };
   },
 
@@ -136,10 +151,8 @@ export default {
      * Fetch resources required to populate POD_RESTARTS and WORKLOAD_HEALTH_SCALE columns
      */
     loadHeathResources() {
-      // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
       if (this.paginationEnabled) {
-        // Unfortunately with SSP enabled we cannot fetch all pods to then let each row find applicable pods by locally applied selectors (bad for scaling)
-        // See https://github.com/rancher/dashboard/issues/14211
+        // When SSP is enabled we efficiently fetch stats for health column imbedded in the original resource type by supplying `includeAssociatedData` param
         return;
       }
 
@@ -177,6 +190,7 @@ export default {
       v-if="paginationEnabled"
       :schema="schema"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :includeAssociatedData="workloadIncludeAssociatedData"
     />
     <ResourceTable
       v-else

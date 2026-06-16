@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
@@ -62,6 +61,7 @@ export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
+export const AUDIT_POLICY = 'auditlog.cattle.io.auditpolicy';
 export const SCHEMA = 'schema';
 export const SERVICE = 'service';
 export const SECRET = 'secret';
@@ -82,7 +82,11 @@ export const RBAC = {
 
 export const WORKLOAD = 'workload';
 
-// The types that are aggregated into a "workload"
+/**
+ * Rancher Workload types
+ *
+ * The types that are aggregated into a "workload"
+ */
 export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
   CRON_JOB:               'batch.cronjob',
@@ -93,15 +97,44 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
+/**
+ * Kube Workload Kinds
+ */
+export const WORKLOAD_KINDS = {
+  DEPLOYMENT:             'Deployment',
+  CRON_JOB:               'CronJob',
+  DAEMON_SET:             'DaemonSet',
+  JOB:                    'Job',
+  STATEFUL_SET:           'StatefulSet',
+  REPLICA_SET:            'ReplicaSet',
+  REPLICATION_CONTROLLER: 'ReplicationController',
+};
+
+/**
+ * Map Rancher Workload types to Kube Workload Kinds
+ */
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
-  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
-  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
-  [WORKLOAD_TYPES.JOB]:                    'Job',
-  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
-  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
-  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.DEPLOYMENT,
+  [WORKLOAD_TYPES.CRON_JOB]:               WORKLOAD_KINDS.CRON_JOB,
+  [WORKLOAD_TYPES.DAEMON_SET]:             WORKLOAD_KINDS.DAEMON_SET,
+  [WORKLOAD_TYPES.JOB]:                    WORKLOAD_KINDS.JOB,
+  [WORKLOAD_TYPES.STATEFUL_SET]:           WORKLOAD_KINDS.STATEFUL_SET,
+  [WORKLOAD_TYPES.REPLICA_SET]:            WORKLOAD_KINDS.REPLICA_SET,
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: WORKLOAD_KINDS.REPLICATION_CONTROLLER,
+};
+
+/**
+ * Map Kube Workload Kinds types to Rancher Workload
+ */
+export const WORKLOAD_KIND_TO_TYPE_MAPPING = {
+  [WORKLOAD_KINDS.DEPLOYMENT]:             WORKLOAD_TYPES.DEPLOYMENT,
+  [WORKLOAD_KINDS.CRON_JOB]:               WORKLOAD_TYPES.CRON_JOB,
+  [WORKLOAD_KINDS.DAEMON_SET]:             WORKLOAD_TYPES.DAEMON_SET,
+  [WORKLOAD_KINDS.JOB]:                    WORKLOAD_TYPES.JOB,
+  [WORKLOAD_KINDS.STATEFUL_SET]:           WORKLOAD_TYPES.STATEFUL_SET,
+  [WORKLOAD_KINDS.REPLICA_SET]:            WORKLOAD_TYPES.REPLICA_SET,
+  [WORKLOAD_KINDS.REPLICATION_CONTROLLER]: WORKLOAD_TYPES.REPLICATION_CONTROLLER,
 };
 
 export const METRICS_SUPPORTED_KINDS = [
@@ -132,6 +165,14 @@ export const CATALOG = {
   OPERATION:    'catalog.cattle.io.operation',
   APP:          'catalog.cattle.io.app',
   REPO:         'catalog.cattle.io.repo',
+};
+
+// Charts/Apps
+export const CATALOG_SORT_OPTIONS = {
+  RECOMMENDED:       'recommended',
+  LAST_UPDATED_DESC: 'lastupdatedDescending',
+  ALPHABETICAL_ASC:  'alphaAscending',
+  ALPHABETICAL_DESC: 'alphaDescending'
 };
 
 // UI Plugin type
@@ -211,7 +252,24 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
-  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient',
+  PROXY_ENDPOINT:                'management.cattle.io.proxyEndpoint',
+};
+
+export const BRAND = {
+  SUSE:    'suse',
+  CSP:     'csp',
+  FEDERAL: 'federal',
+  RGS:     'rgs',
+};
+
+export const EXT = {
+  USER_ACTIVITY:                     'ext.cattle.io.useractivity',
+  SELFUSER:                          'ext.cattle.io.selfuser',
+  GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
+  PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest',
+  KUBECONFIG:                        'ext.cattle.io.kubeconfig',
 };
 
 export const CAPI = {
@@ -221,6 +279,7 @@ export const CAPI = {
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',
   MACHINE_CONFIG_GROUP: 'rke-machine-config.cattle.io',
+  CAPI_PROVIDER:        'turtles-capi.cattle.io.capiprovider'
 };
 
 // --------------------------------------
@@ -294,11 +353,11 @@ export const BACKUP_RESTORE = {
   RESTORE:      'resources.cattle.io.restore',
 };
 
-export const CIS = {
-  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
-  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
-  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
-  REPORT:               'cis.cattle.io.clusterscanreport'
+export const COMPLIANCE = {
+  CLUSTER_SCAN:         'compliance.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'compliance.cattle.io.clusterscanprofile',
+  BENCHMARK:            'compliance.cattle.io.clusterscanbenchmark',
+  REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
@@ -307,6 +366,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 
@@ -332,20 +392,34 @@ export const ADDRESSES = {
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
 export const AUTH_TYPE = {
-  _NONE:  '_none',
-  _BASIC: '_basic',
-  _SSH:   '_ssh',
-  _S3:    '_S3',
-  _RKE:   '_RKE',
+  _NONE:              '_none',
+  _BASIC:             '_basic',
+  _SSH:               '_ssh',
+  _S3:                '_S3',
+  _RKE:               '_RKE',
+  _IMAGE_PULL_SECRET: '_IPS',
 };
 
 export const LOCAL_CLUSTER = 'local';
 
 export const CLUSTER_REPO_TYPES = {
-  HELM_URL: 'helm-url',
-  GIT_REPO: 'git-repo',
-  OCI_URL:  'oci-url'
+  HELM_URL:            'helm-url',
+  GIT_REPO:            'git-repo',
+  OCI_URL:             'oci-url',
+  SUSE_APP_COLLECTION: 'suse-application-collection'
 };
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for SUSE App Collection repositories.
+ */
+export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for standard repositories.
+ */
+export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
@@ -353,3 +427,9 @@ export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
 
 export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
+export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
+export const HOSTED_PROVIDER = 'hostedprovider';
+
+// Named saved counts
+
+export const SAVED_COUNTS = { K8S_CLUSTERS: 'k8sClusters' };

@@ -2,7 +2,7 @@
 import { mapGetters, useStore } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import {
-  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION
+  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION, PROJECT_NAMESPACES_NAME
 } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
@@ -20,6 +20,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name:       'ListProjectNamespace',
@@ -29,6 +30,7 @@ export default {
     ResourceTable,
     ButtonMultiAction,
     ActionMenu,
+    RcButton
   },
   mixins: [ResourceFetch],
 
@@ -122,13 +124,11 @@ export default {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
     headers() {
-      const headers = [
-        STATE,
-        NAME,
-        DESCRIPTION
-      ];
+      let headers;
 
       if (this.groupPreference === 'none') {
+        headers = [STATE, NAME, DESCRIPTION];
+
         const projectHeader = {
           name:  'project',
           label: this.t('tableHeaders.project'),
@@ -137,6 +137,8 @@ export default {
         };
 
         headers.push(projectHeader);
+      } else {
+        headers = [STATE, PROJECT_NAMESPACES_NAME, DESCRIPTION];
       }
 
       if (this.isHarvester && this.harvesterResourceQuotaSchema) {
@@ -178,12 +180,12 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupById:        `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
-          isFake:           true,
-          mainRowKey:       project.id,
-          nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
+          groupById:          `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
+          isFake:             true,
+          mainRowKey:         project.id,
+          projectNameDisplay: project.spec?.displayName, // Enable filtering by the project name
           project,
-          availableActions: []
+          availableActions:   []
         };
       });
 
@@ -295,7 +297,7 @@ export default {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
     },
     showCreateNsButton() {
-      return this.groupPreference !== 'namespace';
+      return this.groupPreference !== 'namespace' && this.isNamespaceCreatable;
     },
     projectGroupBy() {
       return this.groupPreference === 'none' ? null : 'groupById';
@@ -445,13 +447,14 @@ export default {
         v-if="showCreateNsButton"
         #extraActions
       >
-        <router-link
+        <rc-button
+          size="large"
+          class="mr-10"
           :to="createNamespaceLocationFlatList()"
-          class="btn role-primary mr-10"
           data-testid="create_project_namespaces"
         >
           {{ t('projectNamespaces.createNamespace') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
     <!-- Extensions area -->
@@ -495,13 +498,14 @@ export default {
             </div>
           </div>
           <div class="right mr-10">
-            <router-link
+            <rc-button
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
-              class="create-namespace btn btn-sm role-secondary mr-5"
+              variant="secondary"
+              class="mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
-            </router-link>
+            </rc-button>
             <template v-if="featureDropdownMenu">
               <ActionMenu
                 v-if="showProjectActionButton(group.group)"
@@ -593,15 +597,12 @@ export default {
 
 .project-namespaces {
   & :deep() {
-    .project-namespaces-table table {
-      table-layout: fixed;
-    }
-
     .project-name {
       line-height: 30px;
     }
 
     .project-bar {
+      contain: inline-size;
       display: flex;
       flex-direction: row;
       justify-content: space-between;

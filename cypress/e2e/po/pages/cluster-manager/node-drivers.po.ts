@@ -22,7 +22,7 @@ export default class NodeDriversPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    sideNav.navToSideMenuGroupByLabel('Drivers');
+    sideNav.navToSideMenuGroupByLabel('Providers');
     sideNav.navToSideMenuEntryByLabel('Node Drivers');
   }
 

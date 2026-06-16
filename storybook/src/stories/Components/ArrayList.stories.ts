@@ -25,13 +25,13 @@ const Template: Story = {
       return { args };
     },
     template: `<ArrayList v-bind="args">
-                 <template v-if="args.titleSlot" v-slot:title><div :innerHTML="args.titleSlot"></template>
-                 <template v-if="args.columnHeadersSlot" v-slot:column-headers><div :innerHTML="args.columnHeadersSlot"></template>
-                 <template v-if="args.columnsSlot" v-slot:columns><div :innerHTML="args.columnsSlot"></template>
-                 <template v-if="args.valueSlot" v-slot:value><div :innerHTML="args.valueSlot"></template>
-                 <template v-if="args.removeButtonSlot" v-slot:remove-button><div :innerHTML="args.removeButtonSlot"></template>
-                 <template v-if="args.emptySlot" v-slot:empty><div :innerHTML="args.emptySlot"></template>
-                 <template v-if="args.addSlot" v-slot:add><div :innerHTML="args.addSlot"></template>
+                 <template v-if="args.titleSlot" v-slot:title><div :innerHTML="args.titleSlot"/></template>
+                 <template v-if="args.columnHeadersSlot" v-slot:column-headers><div :innerHTML="args.columnHeadersSlot"/></template>
+                 <template v-if="args.columnsSlot" v-slot:columns><div :innerHTML="args.columnsSlot"/></template>
+                 <template v-if="args.valueSlot" v-slot:value><div :innerHTML="args.valueSlot"/></template>
+                 <template v-if="args.removeButtonSlot" v-slot:remove-button><div :innerHTML="args.removeButtonSlot"/></template>
+                 <template v-if="args.emptySlot" v-slot:empty><div :innerHTML="args.emptySlot"/></template>
+                 <template v-if="args.addSlot" v-slot:add><div :innerHTML="args.addSlot"/></template>
                </ArrayList>`,
   }),
 };

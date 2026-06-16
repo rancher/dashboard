@@ -1,4 +1,6 @@
 import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/cluster-create-import.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import AddonConfigPo from '@/cypress/e2e/po/components/addon-config.po';
 
 /**
  * Edit page for an RKE2 custom cluster
@@ -8,11 +10,19 @@ export default class ClusterManagerEditRke2CustomPagePo extends ClusterManagerCr
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
   }
 
-  static goTo(clusterId: string, clusterName: string): Cypress.Chainable<Cypress.AUTWindow> {
+  goTo(clusterId: string, clusterName: string): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ClusterManagerEditRke2CustomPagePo.createPath(clusterId, clusterName));
   }
 
   constructor(clusterId = '_', clusterName: string) {
     super(ClusterManagerEditRke2CustomPagePo.createPath(clusterId, clusterName));
+  }
+
+  clusterConfigurationTabs(): TabbedPo {
+    return new TabbedPo();
+  }
+
+  calicoAddonConfig(): AddonConfigPo {
+    return new AddonConfigPo();
   }
 }

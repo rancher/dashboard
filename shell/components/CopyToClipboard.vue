@@ -38,7 +38,35 @@ export default {
     success-label="Copied!"
     error-label="Error Copying"
     v-bind="$attrs"
+    :success-color="$attrs['action-color'] || 'role-primary'"
+    :waiting-color="$attrs['action-color'] || 'role-primary'"
     :delay="2000"
     @click="clicked"
   />
 </template>
+
+<style lang="scss" scoped>
+.icon-btn {
+  min-height: 24px;
+  min-width: 24px;
+  justify-content: center;
+}
+
+.bg-transparent {
+  &:active {
+    background-color: var(--primary-keyboard-focus);
+    color: var(--primary-text);
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+  }
+}
+
+.role-primary {
+  &:active {
+    background-color: var(--primary-keyboard-focus);
+    color: var(--primary-text);
+  }
+}
+</style>

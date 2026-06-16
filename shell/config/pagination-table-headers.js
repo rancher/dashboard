@@ -1,7 +1,14 @@
+import { UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
   EVENT_LAST_SEEN_TIME,
-  EVENT_TYPE
+  EVENT_TYPE,
+  SECRET_ORIGIN,
+  EVENT_FIRST_SEEN_TIME,
+  WORKLOAD_HEALTH_SCALE,
+  MGMT_CLUSTER_PROVIDER,
+  MGMT_CLUSTER_KUBE_VERSION,
+  AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -54,10 +61,17 @@ export const STEVE_EVENT_OBJECT = {
   search: 'involvedObject.kind',
 };
 
+export const STEVE_EVENT_FIRST_SEEN = {
+  ...EVENT_FIRST_SEEN_TIME,
+
+  value: 'metadata.fields.7',
+  sort:  'metadata.fields.7:desc',
+};
+
 export const STEVE_EVENT_LAST_SEEN = {
   ...EVENT_LAST_SEEN_TIME,
   value: 'metadata.fields.0',
-  sort:  'metadata.fields.0',
+  sort:  'metadata.fields.0:desc',
 };
 
 export const STEVE_EVENT_TYPE = {
@@ -78,3 +92,30 @@ export const STEVE_LIST_GROUPS = [{
   tooltipKey:    'resourceTable.groupBy.namespace',
   groupLabelKey: 'groupByLabel',
 }];
+
+export const STEVE_SECRET_ORIGIN = {
+  ...SECRET_ORIGIN,
+  // We can't sort by the 'UI_PROJECT_SECRET' label (management.cattle.io/project-scoped-secret) due to backend limitations.
+  // So we sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
+  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+};
+
+export const STEVE_WORKLOAD_HEALTH_SCALE = {
+  ...WORKLOAD_HEALTH_SCALE,
+  sort:   false,
+  search: false,
+};
+
+export const STEVE_MGMT_CLUSTER_PROVIDER = { ...MGMT_CLUSTER_PROVIDER };
+
+export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
+  ...MGMT_CLUSTER_KUBE_VERSION,
+  sort:   'status.info.kubernetesVersion',
+  search: 'status.info.kubernetesVersion',
+};
+
+export const STEVE_AUTOSCALER_ENABLED = {
+  ...AUTOSCALER_ENABLED,
+  sort:   false,
+  search: false,
+};

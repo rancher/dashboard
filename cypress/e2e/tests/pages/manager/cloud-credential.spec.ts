@@ -1,23 +1,108 @@
 import { cloudCredentialCreatePayloadDO, cloudCredentialCreatePayloadAzure } from '@/cypress/e2e/blueprints/manager/cloud-credential-create-payload';
-import { clusterProvDigitalOceanSingleResponse } from '@/cypress/e2e/blueprints/manager/digital-ocean-cluster-provisioning-response';
+import { clusterMgmtDigitalOceanSingleResponse, clusterProvDigitalOceanSingleResponse } from '@/cypress/e2e/blueprints/manager/digital-ocean-cluster-provisioning-response';
 import { machinePoolConfigResponse } from '@/cypress/e2e/blueprints/manager/machine-pool-config-response';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-azure.po';
-import CloudCredentialsCreatePagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
+import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
-import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
+import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-describe('Cloud Credential', { testIsolation: 'off' }, () => {
+/******
+*  Running this test will delete all Amazon cloud credentials from the target cluster
+******/
+describe('Cloud Credential', { tags: ['@manager', '@adminUser', '@clusterConfig'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
-  const doCreatedCloudCredsIds = [];
-  const azCreatedCloudCredsIds = [];
+  const doCreatedCloudCredsIds: any[] = [];
+  const azCreatedCloudCredsIds: any[] = [];
 
   before(() => {
     cy.login();
+    // Clean up any orphaned Amazon cloud credentials from previous test runs to ensure tests start with a clean state
+    cy.getRancherResource('v3', 'cloudcredentials', undefined, undefined).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id, false);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
+      }
+    });
   });
 
-  it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
+  beforeEach(() => {
+    cy.login();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
+  });
+
+  it('Ensure we validate credentials and show an error when invalid', () => {
+    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
+    const name = 'name';
+    const access = 'access';
+    const secret = 'secret';
+    const errorMessage = 'Authentication test failed, please check your credentials';
+
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
+
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
+
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
+    // In the previous bug this text would get truncated to the first letter
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
+  });
+
+  it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', () => {
+    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
+    const name = 'name';
+    const access = 'access';
+    const secret = 'secret';
+    const errorMessage = 'Authentication test failed, please check your credentials';
+
+    const clusterCreate = new ClusterManagerCreatePagePo();
+    const loadingPo = new LoadingPo('.loading-indicator');
+
+    clusterCreate.goTo();
+    clusterCreate.waitForPage();
+    clusterCreate.selectCreate(0);
+    loadingPo.checkNotExists();
+    clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
+    clusterCreate.waitForPage('type=amazonec2&rkeType=rke2');
+
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
+
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
+
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
+    // In the previous bug this text would get truncated to the first letter
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
+  });
+
+  it('Editing a cluster cloud credential should work with duplicate named cloud credentials', () => {
     const credsName = 'test-do-creds';
     const clusterName = 'test-cluster-digital-ocean';
     const machinePoolId = 'dummy-id';
@@ -63,7 +148,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       },
     ];
 
-    const create = (cloudCredsToCreate) => {
+    const create = (cloudCredsToCreate: any) => {
       return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadDO(
         cloudCredsToCreate.name,
         cloudCredsToCreate.token
@@ -76,14 +161,12 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       .then(() => create(cloudCredsToCreate[1]))
       .then(() => create(cloudCredsToCreate[2]))
       .then(() => {
-        clusterList.goTo();
+        const mgmtClusterResponse = clusterMgmtDigitalOceanSingleResponse(clusterName);
+        const provClusterResponse = clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId);
 
-        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', (req) => {
-          req.reply({
-            statusCode: 200,
-            body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),
-          });
-        }).as('dummyClusterListLoad');
+        ClusterManagerListPagePo.mockListRequests(provClusterResponse, mgmtClusterResponse);
+
+        clusterList.goTo();
 
         clusterList.checkIsCurrentPage();
         clusterList.editCluster(clusterName);
@@ -99,7 +182,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
   });
 
-  it('Changing credential environment should change the list of locations when creating an Azure cluster', { tags: ['@manager', '@adminUser'] }, () => {
+  it('Changing credential environment should change the list of locations when creating an Azure cluster', () => {
     const clusterName = 'test-cluster-azure';
     const machinePoolId = 'dummy-id';
 
@@ -167,10 +250,10 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
     }).as('aksVMSizesV2Load');
 
-    ClusterManagerListPagePo.navTo();
+    clusterList.goTo();
     clusterList.waitForPage();
 
-    const create = (cloudCredsToCreate) => {
+    const create = (cloudCredsToCreate: any) => {
       return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadAzure(
         cloudCredsToCreate.name,
         cloudCredsToCreate.environment,
@@ -229,61 +312,8 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
   });
 
-  it('Ensure we validate credentials and show an error when invalid', { tags: ['@manager', '@adminUser'] }, () => {
-    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
-    const name = 'name';
-    const access = 'access';
-    const secret = 'secret';
-    const errorMessage = 'Authentication test failed, please check your credentials';
-
-    CloudCredentialsCreatePagePo.goTo();
-    const createCredentialsPo = new CloudCredentialsCreatePagePo();
-
-    createCredentialsPo.waitForPageWithExactUrl();
-
-    const createCredentialsAwsPo = createCredentialsPo.selectAws();
-
-    createCredentialsAwsPo.waitForPageWithExactUrl();
-
-    createCredentialsAwsPo.accessKeyInput().set(access);
-    createCredentialsAwsPo.secretKeyInput().set(secret);
-    createCredentialsAwsPo.credentialNameInput().set(name);
-
-    createCredentialsAwsPo.credentialNameInput().value().should('eq', name);
-
-    createCredentialsAwsPo.clickCreate();
-    // In the previous bug this text would get truncated to the first letter
-    createCredentialsAwsPo.errorBanner().should('contain.text', errorMessage);
-  });
-
-  it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', { tags: ['@manager', '@adminUser'] }, () => {
-    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
-    const name = 'name';
-    const access = 'access';
-    const secret = 'secret';
-    const errorMessage = 'Authentication test failed, please check your credentials';
-
-    const clusterCreate = new ClusterManagerCreatePagePo();
-
-    clusterCreate.goTo();
-    clusterCreate.waitForPage();
-    clusterCreate.selectCreate(0);
-    clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
-
-    const createCredentialsAwsPo = new CloudCredentialsCreateAWSPagePo();
-
-    createCredentialsAwsPo.accessKeyInput().set(access);
-    createCredentialsAwsPo.secretKeyInput().set(secret);
-    createCredentialsAwsPo.credentialNameInput().set(name);
-
-    createCredentialsAwsPo.credentialNameInput().value().should('eq', name);
-
-    createCredentialsAwsPo.clickCreate();
-    // In the previous bug this text would get truncated to the first letter
-    createCredentialsAwsPo.errorBanner().should('contain.text', errorMessage);
-  });
-
   after(() => {
+    cy.login(); // this is needed to avoid getting "Unauthorized 401: must authenticate" error
     for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {
       cy.deleteRancherResource('v3', `cloudcredentials`, doCreatedCloudCredsIds[i]);
     }
@@ -291,5 +321,33 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
     for (let i = 0; i < azCreatedCloudCredsIds.length; i++) {
       cy.deleteRancherResource('v3', `cloudcredentials`, azCreatedCloudCredsIds[i]);
     }
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  beforeEach(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
+  });
+
+  it('should display empty cloud credential creation page', () => {
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+
+    // hide cloud credential elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]', '[data-testid="nav_header_showUserMenu"]', '.clusters');
+    // takes percy snapshot.
+    cy.percySnapshot('empty cloud credential creation page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

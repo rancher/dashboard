@@ -5,11 +5,13 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import { createPrivateLabelSettingsResponse, createPutSettingsResponse } from '@/cypress/e2e/blueprints/settings/branding-settings';
 
 const loginPage = new LoginPagePo();
 const homePage = new HomePagePo();
 const brandingPage = new BrandingPagePo();
 const burgerMenu = new BurgerMenuPo();
+let resetPrivateLabel = false;
 
 const settings = {
   privateLabel: {
@@ -75,7 +77,13 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Set
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+
+    cy.intercept('PUT', '**/ui-pl', createPutSettingsResponse(settings.privateLabel.new)).as('setPrivateLabel');
+
+    brandingPage.applyButton().click().then(() => {
+      cy.wait('@setPrivateLabel');
+      resetPrivateLabel = true;
+    });
 
     // Visit the Home Page
     BurgerMenuPo.toggle();
@@ -88,15 +96,27 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Check in session
     cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
+    // Mock the GET settings request that happens after reload
+    cy.intercept('GET', '**/management.cattle.io.settings?exclude=metadata.managedFields',
+      createPrivateLabelSettingsResponse(settings.privateLabel.new)
+    ).as('getSettingsAfterReload');
+
     // Check over reload
     cy.reload();
+
+    cy.wait('@getSettingsAfterReload');
     cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     BrandingPagePo.navTo();
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+    cy.intercept('PUT', '**/ui-pl', createPutSettingsResponse(settings.privateLabel.original)).as('resetPrivateLabel');
+
+    brandingPage.applyButton().click().then(() => {
+      cy.wait('@resetPrivateLabel');
+    });
+
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
     cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
@@ -182,6 +202,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
   it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
+    // Clear any banner hiding preferences
+    // Ensure the banner is visible by resetting any user preferences that might hide it
+    // This prevents the test from failing if the banner was previously hidden
+    cy.setUserPreference({ 'home-page-cards': '{}' });
+
     BrandingPagePo.navTo();
     brandingPage.customBannerCheckbox().set();
     brandingPage.customBannerCheckbox().hasAppropriateWidth();
@@ -245,7 +270,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
-  it('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background (Dark)', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -254,22 +279,18 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.customLoginBackgroundCheckbox().hasAppropriateWidth();
     brandingPage.customLoginBackgroundCheckbox().hasAppropriateHeight();
 
-    // Upload Light Background
-    brandingPage.uploadButton('Upload Light Background')
-      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
-
-    // Upload Dark Background
+    // Upload only Dark Background
     brandingPage.uploadButton('Upload Dark Background')
       .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-dark.svg', { force: true });
 
     // Apply
-    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
 
-    // Banner Preview
+    // Only dark preview should be visible, light preview should not exist
     brandingPage.loginBackgroundPreview('dark').scrollIntoView().should('be.visible');
-    brandingPage.loginBackgroundPreview('light').scrollIntoView().should('be.visible');
+    brandingPage.loginBackgroundPreview('light').should('not.exist');
 
-    // Set dashboard theme to Dark and check login page for updated background in dark mode
+    // Set dashboard theme to Dark and check login page for updated background
     PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
@@ -288,7 +309,12 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
 
-    // Set dashboard theme to Dark and check login page for updated background in light mode
+    // Reset
+    BrandingPagePo.navTo();
+    brandingPage.customLoginBackgroundCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
+
+    // Set theme back to Light
     PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
@@ -298,7 +324,29 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(request.body.data).to.have.property('theme', '"ui-light"');
       expect(response?.body.data).to.have.property('theme', '"ui-light"');
     });
+  });
 
+  it('Login Background (Light)', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    BrandingPagePo.navTo();
+
+    // Ensure login background customization is disabled to clear any leftover dark config
+    brandingPage.customLoginBackgroundCheckbox().uncheck();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-dark', 200);
+
+    brandingPage.customLoginBackgroundCheckbox().set();
+
+    // Upload only Light Background
+    brandingPage.uploadButton('Upload Light Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
+
+    // Apply
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+
+    // Only light preview should be visible, dark preview should not exist
+    brandingPage.loginBackgroundPreview('light').scrollIntoView().should('be.visible');
+    brandingPage.loginBackgroundPreview('dark').should('not.exist');
+
+    // Verify login page shows the light background
     cy.fixture('branding/backgrounds/login-landscape-light.svg', 'base64').then((expectedBase64) => {
       loginPage.goTo();
       loginPage.loginBackgroundImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
@@ -347,8 +395,20 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Reset
     brandingPage.customFaviconCheckbox().set();
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon', 200);
-    cy.get('head link[rel="shortcut icon"]').then((el) => {
-      expect(el).attr('href').to.include('/favicon.png');
+
+    // Prime builds use SUSE brand favicon, community builds use default favicon.png
+    cy.getRancherVersion().then((version) => {
+      if (version.RancherPrime === 'true') {
+        cy.fixture('global/favicons/prime-favicon.png', 'base64').then((expectedBase64) => {
+          cy.get('head link[rel="shortcut icon"]').then((el) => {
+            expect(el).attr('href').to.include(`data:image/png;base64,${ expectedBase64 }`);
+          });
+        });
+      } else {
+        cy.get('head link[rel="shortcut icon"]').then((el) => {
+          expect(el).attr('href').to.include('/favicon.png');
+        });
+      }
     });
   });
 
@@ -457,5 +517,19 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorCheckbox().isDisabled();
     brandingPage.linkColorCheckbox().isDisabled();
     brandingPage.applyButton().checkNotExists();
+  });
+
+  after(() => {
+    // Reset Private label to default - needed incase of 'Private Label' test failure
+    if (resetPrivateLabel) {
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', null).then((resp: Cypress.Response<any>) => {
+        const resourceVersion = resp.body.metadata.resourceVersion;
+
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', {
+          value:    `${ settings.privateLabel.original }`.toLowerCase(),
+          metadata: { name: 'ui-pl', resourceVersion }
+        });
+      });
+    }
   });
 });

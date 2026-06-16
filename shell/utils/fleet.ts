@@ -20,17 +20,6 @@ type Labels = {
   [key: string]: string,
 }
 
-interface KeyRef {
-  key: string;
-  name: string;
-  namespace?: string;
-}
-
-interface ValueFrom {
-  configMapKeyRef?: KeyRef;
-  secretKeyRef?: KeyRef;
-}
-
 function resourceKey(r: BundleResourceKey): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
 }
@@ -44,6 +33,13 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Application {
+  /**
+   * gitrepos/helmops are already restricted to clusters in their own namespace
+   *
+   * this empty selector means all applicable clusters will be selected
+   */
+  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } }
+
   excludeHarvesterRule = {
     clusterSelector: {
       matchExpressions: [{
@@ -56,7 +52,7 @@ class Application {
     },
   };
 
-  getTargetMode(targets: Target[], namespace: string): TargetMode {
+  getTargetMode(targets: Target[], namespace: string, areHarvesterHostsVisible: boolean): TargetMode {
     if (namespace === 'fleet-local') {
       return 'local';
     }
@@ -75,11 +71,11 @@ class Application {
         clusterGroupSelector,
       } = target;
 
-      if (clusterGroup || clusterGroupSelector) {
+      if (clusterGroupSelector) {
         return 'advanced';
       }
 
-      if (clusterName) {
+      if (clusterName || clusterGroup) {
         mode = 'clusters';
       }
 
@@ -94,73 +90,15 @@ class Application {
       return target;
     });
 
-    // Check if targets contains only harvester rule after name normalizing
-    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+    // Check if targets contains only harvester rule or no rule at all after name normalizing
+    // That means the ALL option has been selected previously
+    // one case for feature harvester-baremetal-container-workload ON
+    // and another for feature harvester-baremetal-container-workload OFF
+    if (isEqual(normalized, [this.includeAllWorkgroupRule]) || isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 
     return mode;
-  }
-}
-
-class HelmOp {
-  fromValuesFrom(data: ValueFrom[]): { valueFrom: ValueFrom }[] {
-    return (data || []).map((elem) => {
-      const out = {} as any;
-
-      const cm = elem.configMapKeyRef;
-
-      if (cm) {
-        out.valueFrom = {
-          configMapKeyRef: {
-            key:  cm.key || '',
-            name: cm.name || '',
-          }
-        };
-      }
-
-      const sc = elem.secretKeyRef;
-
-      if (sc) {
-        out.valueFrom = {
-          secretKeyRef: {
-            key:  sc.key || '',
-            name: sc.name || '',
-          }
-        };
-      }
-
-      return out;
-    });
-  }
-
-  toValuesFrom(data: { valueFrom: ValueFrom }[], namespace: string): ValueFrom[] {
-    return (data || [])
-      .filter((f) => f.valueFrom?.configMapKeyRef || f.valueFrom?.secretKeyRef)
-      .map(({ valueFrom }) => {
-        const cm = valueFrom.configMapKeyRef;
-        const sc = valueFrom.secretKeyRef;
-
-        const out = {} as ValueFrom;
-
-        if (cm?.name) {
-          out.configMapKeyRef = {
-            key:  cm.key,
-            name: cm.name,
-            namespace
-          };
-        }
-
-        if (sc?.name) {
-          out.secretKeyRef = {
-            key:  sc.key,
-            name: sc.name,
-            namespace
-          };
-        }
-
-        return out;
-      });
   }
 }
 
@@ -203,7 +141,7 @@ class Fleet {
     {
       index:           3,
       id:              'info',
-      label:           'InProgress',
+      label:           'Pending',
       color:           '#3d98d3',
       icon:            'icon icon-warning',
       stateBackground: 'bg-info'
@@ -211,7 +149,6 @@ class Fleet {
   ];
 
   Application = new Application();
-  HelmOp = new HelmOp();
 
   GIT_HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
   GIT_SSH_REGEX = /^git@github\.com:.*\.git$/;
@@ -257,7 +194,7 @@ class Fleet {
   }
 
   detailLocation(r: Resource, mgmtClusterName: string): any {
-    return mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
+    const location = mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
       name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
       params: {
         product:   EXPLORER_NAME,
@@ -267,6 +204,13 @@ class Fleet {
         id:        r.name,
       },
     };
+
+    // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+    if (location && !location.params.namespace) {
+      delete location.params.namespace;
+    }
+
+    return location;
   }
 
   /**

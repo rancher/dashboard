@@ -177,24 +177,32 @@ export default {
       }
     },
 
-    onRowMouseEnter(e) {
+    removeOrAddHover(option, e) {
+      // Hardcoded logic to not overcomplicate just adding the conditions of next and previous
       const tr = e.target.closest('TR');
 
-      if (tr.classList.contains('sub-row')) {
-        const trMainRow = tr.previousElementSibling;
+      if (tr.classList.contains('sub-row') || tr.classList.contains('additional-sub-row')) {
+        const trPreviousRow = tr.previousElementSibling;
+        const trNextRow = tr.nextElementSibling;
 
-        trMainRow.classList.add('sub-row-hovered');
+        trPreviousRow.classList[option]('sub-row-hovered');
+
+        if (!trPreviousRow.classList.contains('main-row')) {
+          const trMainRow = trPreviousRow.previousElementSibling;
+
+          trMainRow.classList[option]('sub-row-hovered');
+        }
+        if (trNextRow?.classList.contains('sub-row')) {
+          trNextRow.classList[option]('sub-row-hovered');
+        }
       }
+    },
+    onRowMouseEnter(e) {
+      this.removeOrAddHover('add', e);
     },
 
     onRowMouseLeave(e) {
-      const tr = e.target.closest('TR');
-
-      if (tr.classList.contains('sub-row')) {
-        const trMainRow = tr.previousElementSibling;
-
-        trMainRow.classList.remove('sub-row-hovered');
-      }
+      this.removeOrAddHover('remove', e);
     },
 
     nodeForEvent(e) {
@@ -344,7 +352,6 @@ export default {
         return;
       }
 
-      e.preventDefault();
       e.stopPropagation();
 
       this.prevNode = node;
@@ -487,6 +494,11 @@ export default {
 
       this.$nextTick(() => {
         this.$emit('selection', this.selectedRows);
+        if (this.selectedRows && this.selectedRows.length) {
+          for ( let i = 0 ; i < this.selectedRows.length ; i++ ) {
+            this.updateInput(this.selectedRows[i], true, this.keyField);
+          }
+        }
       });
     },
 
@@ -506,7 +518,7 @@ export default {
           let tr = input.closest('tr');
           let first = true;
 
-          while ( tr && (first || tr.classList.contains('sub-row') ) ) {
+          while ( tr && (first || tr.classList.contains('sub-row') || tr.classList.contains('additional-sub-row')) ) {
             if (on) {
               tr.classList.add('row-selected');
             } else {
@@ -614,27 +626,45 @@ function _execute(resources, action, args, opts = {}, ctx) {
     return action.invoke.apply(ctx, [actionOpts, resources || [], args]);
   }
 
+  /**
+   * for the given resource find it's action matching the target action. if that target action has an alt resource return it
+   */
+  const findResourceFromAction = (r) => {
+    const actualAction = r.availableActions.find((aa) => aa.action === action.action);
+
+    return actualAction?.altResource || r;
+  };
+
+  // if there there are multiple resources and a bulk action, use it and pass in the resources
+  // for example cluster management cluster list Download KubeConfig
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    const fn = resources[0][action.bulkAction];
+    const applyResource = findResourceFromAction(resources[0]);
+    const fn = applyResource[action.bulkAction];
 
     if ( fn ) {
-      return fn.call(resources[0], resources, ...args);
+      const applyResources = resources.map(findResourceFromAction);
+
+      return fn.call(applyResource, applyResources, ...args);
     }
   }
 
   const promises = [];
 
+  // if there is a single resource or no bulk action, for each resource execute it's action
+  // for example delete when only one row is selected
   for ( const resource of resources ) {
     let fn;
 
+    const applyResource = findResourceFromAction(resource);
+
     if (opts.alt && action.altAction) {
-      fn = resource[action.altAction];
+      fn = applyResource[action.altAction];
     } else {
-      fn = resource[action.action];
+      fn = applyResource[action.action];
     }
 
     if ( fn ) {
-      promises.push(fn.apply(resource, args));
+      promises.push(fn.apply(applyResource, args));
     }
   }
 

@@ -14,10 +14,11 @@ import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, communityRepoRegexes } from '../types';
+import {
+  HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, harvesterRepoRegexes, HARVESTER_CATALOG_IMAGES
+} from '../types';
 import {
   getLatestExtensionVersion,
-  getHelmRepositoryExact,
   getHelmRepositoryMatch,
   createHelmRepository,
   refreshHelmRepository,
@@ -26,6 +27,7 @@ import {
   waitForUIPackage,
 } from '@shell/utils/uiplugins';
 import { isRancherPrime, getVersionData } from '@shell/config/version';
+import { RcButton } from '@components/RcButton';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
@@ -36,7 +38,8 @@ export default {
     ResourceTable,
     Masthead,
     TypeDescription,
-    Loading
+    Loading,
+    RcButton,
   },
 
   props: {
@@ -65,6 +68,7 @@ export default {
     this.mgmtClusters = hash.mgmtClusters;
 
     this.harvesterRepository = await this.getHarvesterRepository();
+    this.kubeVersion = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, 'local')?.kubernetesVersionBase || '';
   },
 
   data() {
@@ -80,7 +84,7 @@ export default {
       hciClusters:                    [],
       mgmtClusters:                   [],
       rancherVersion:                 getVersionData()?.Version || '',
-      kubeVersion:                    this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, 'local')?.kubernetesVersionBase || '',
+      kubeVersion:                    null,
       harvesterRepository:            null,
       harvesterInstallVersion:        true,
       harvesterUpdateVersion:         null,
@@ -103,6 +107,7 @@ export default {
   },
 
   watch: {
+    // watch harvester repository, if it changes to a valid one, then we will check if there is an update for harvester extension, which will trigger the extension update message in the UI
     async harvesterRepository(neu) {
       if (neu) {
         await refreshHelmRepository(this.$store, neu.spec.gitRepo || neu.spec.url);
@@ -119,6 +124,7 @@ export default {
 
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
+      // if installed harvester ui extension, but no harvester repository, then we will show missing repository warning message
       const missingRepository = !!extension && !this.harvesterRepository;
 
       const action = async(btnCb) => {
@@ -149,24 +155,41 @@ export default {
         } else if (!extension) {
           action = 'install';
         }
-
         let key = `harvesterManager.extension.${ action }.${ label }`;
 
         if (label === 'prompt' && !this.isAdmin) {
           key = `harvesterManager.extension.${ action }.${ label }-standard-user`;
         }
 
+        let params = {};
+
+        switch (key) {
+        case 'harvesterManager.extension.update.prompt':
+          params = { newVersion: `v${ this.harvesterUpdateVersion }` };
+          break;
+        case 'harvesterManager.extension.update.warning': {
+          const version = this?.harvester?.extension?.version;
+          const currentVersion = version ? `v${ version }` : 'unknown';
+
+          params = { currentVersion };
+          break;
+        }
+        default:
+          params = {};
+        }
+
         return {
           ...acc,
-          [label]: this.t(key, {}, true),
+          [label]: this.t(key, params, true),
         };
       }, {});
+      const toUpdate = missingRepository || !!this.harvesterUpdateVersion;
 
       return {
         extension,
         missingRepository,
         toInstall: !extension,
-        toUpdate:  missingRepository || !!this.harvesterUpdateVersion,
+        toUpdate,
         action,
         panelLabel,
         hasErrors,
@@ -181,12 +204,6 @@ export default {
           resource: this.schema.id,
         },
       };
-    },
-
-    canCreateCluster() {
-      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
-
-      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     rows() {
@@ -227,11 +244,7 @@ export default {
   methods: {
     async getHarvesterRepository() {
       try {
-        if (isRancherPrime()) {
-          return await getHelmRepositoryExact(this.$store, HARVESTER_REPO.gitRepo);
-        } else {
-          return await getHelmRepositoryMatch(this.$store, communityRepoRegexes);
-        }
+        return await getHelmRepositoryMatch(this.$store, harvesterRepoRegexes, HARVESTER_CATALOG_IMAGES);
       } catch (error) {
         this.harvesterRepositoryError = true;
       }
@@ -258,13 +271,11 @@ export default {
         if (!harvesterRepository) {
           harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
         }
-
         /**
          * Server issue
          * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
          */
         await refreshHelmRepository(this.$store, harvesterRepository.spec.gitRepo || harvesterRepository.spec.url);
-
         this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
         if (!this.harvesterInstallVersion) {
@@ -288,6 +299,7 @@ export default {
 
         installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
+        console.error('Error installing Harvester UI extension', error); // eslint-disable-line no-console
       }
 
       this.harvesterExtensionInstallError = !installed;
@@ -381,15 +393,15 @@ export default {
         </template>
 
         <template
-          v-if="canCreateCluster"
+          v-if="isAdmin"
           #extraActions
         >
-          <router-link
+          <rc-button
+            size="large"
             :to="importLocation"
-            class="btn role-primary"
           >
             {{ t('cluster.importAction') }}
-          </router-link>
+          </rc-button>
         </template>
       </Masthead>
       <ResourceTable
@@ -424,7 +436,7 @@ export default {
         <template #cell:harvester="{row}">
           <button
             class="btn btn-sm role-primary"
-            :disabled="!row.isSupportedHarvester"
+            :disabled="!row.isSupportedHarvester || !row.canCreateAndManageCluster"
             @click="$router.push(row.detailLocation)"
           >
             {{ t('harvesterManager.manage') }}
@@ -549,7 +561,7 @@ export default {
     > div {
       font-size: 16px;
       line-height: 22px;
-      max-width: 80%;
+      max-width: 100%;
       text-align: center;
     }
   }

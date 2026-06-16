@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
+import { VuexStore } from '@shell/types/store/vuex';
 
 /**
  * This is meant to enable ResourceList like capabilities outside of List pages / components
@@ -36,6 +37,35 @@ export default defineComponent({
       default: null,
     },
 
+    groupTooltip: {
+      type:    String,
+      default: 'resourceTable.groupBy.namespace',
+    },
+
+    /**
+     * Field to group rows by, row[groupBy] must be something that can be a map key (or also use groupSort)
+     */
+    groupBy: {
+      type:    String,
+      default: null,
+    },
+
+    /**
+     * Field to order groups by, defaults to groupBy
+     */
+    groupSort: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Override any product based group options
+     */
+    groupOptions: {
+      type:    Array,
+      default: null
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
@@ -59,6 +89,14 @@ export default defineComponent({
     },
 
     /**
+     * Use this store instead of the store `inStore` getters
+     */
+    overrideInStore: {
+      type:    String,
+      default: undefined,
+    },
+
+    /**
      * Information may be required from resources other than the primary one shown per row
      *
      * This will fetch only those relevant to the current page using server-side pagination based filters
@@ -78,28 +116,28 @@ export default defineComponent({
   },
 
   async fetch() {
-    const promises = [
-      this.$fetchType(this.resource, [], this.inStore),
-    ];
-
     if (this.fetchSecondaryResources) {
-      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
+      await this.fetchSecondaryResources({ canPaginate: this.canPaginate });
     }
 
-    await Promise.all(promises);
+    await this.$fetchType(this.resource, [], this.overrideInStore || this.inStore);
   },
 
   computed: {
     safeHeaders(): any[] {
       const customHeaders: any[] = this.canPaginate ? this.paginationHeaders : this.headers;
 
-      return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
+      const $store = this.$store as VuexStore;
+
+      return customHeaders || $store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }
   },
 
   methods: {
     clearSelection() {
-      this.$refs.table.clearSelection();
+      const table = this.$refs.table as { clearSelection: () => void };
+
+      table.clearSelection();
     },
   }
 });
@@ -115,13 +153,21 @@ export default defineComponent({
       :rows="rows"
       :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
+
+      :group-by="groupBy"
+      :group-sort="groupSort"
       :groupable="groupable"
+      :groupTooltip="groupTooltip"
+      :groupOptions="groupOptions"
+
+      :override-in-store="overrideInStore"
 
       :headers="safeHeaders"
       :namespaced="namespaced"
 
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+
       @pagination-changed="paginationChanged"
     >
       <!-- Pass down templates provided by the caller -->

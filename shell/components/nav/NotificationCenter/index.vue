@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
-  onMounted,
-  onUnmounted,
   ref,
-  watch
 } from 'vue';
 import { useStore } from 'vuex';
 import Notification from './Notification.vue';
@@ -14,12 +11,10 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { StoredNotification } from '@shell/types/notifications';
-import { encrypt } from '@shell/utils/crypto/encryption';
-import { loadFromString } from '@shell/utils/notifications';
 
 const store = useStore();
-const allNotifications = computed(() => store.getters['notifications/all']);
+// We don't want any hidden notifications showing in the notification center (these are shown elsewhere, e.g. home page dynamic content announcements)
+const allNotifications = computed(() => store.getters['notifications/visible']);
 const unreadLevelClass = computed(() => {
   return store.getters['notifications/unreadCount'] === 0 ? '' : 'unread';
 });
@@ -33,44 +28,6 @@ const open = (opened: boolean) => {
     store.dispatch('growl/clear');
   }
 };
-
-const localStorageKey = store.getters['notifications/localStorageKey'];
-const encryptionKey = store.getters['notifications/encryptionKey'];
-
-const localStorageEventHandler = async(ev: any) => {
-  if (ev.key === localStorageKey) {
-    try {
-      const data = await loadFromString(ev.newValue || '{}', encryptionKey);
-
-      store.dispatch('notifications/load', data);
-    } catch (e) {
-      console.error('Error parsing notifications from storage event', e); // eslint-disable-line no-console
-    }
-  }
-};
-
-/**
- * When notifications are updated, write to local storage
- */
-watch(allNotifications, async(newData: StoredNotification[]) => {
-  try {
-    const data = JSON.stringify(newData);
-    const enc = await encrypt(data, encryptionKey);
-
-    window.localStorage.setItem(localStorageKey, JSON.stringify(enc));
-  } catch (e) {
-    console.error('Unable to save notifications to local storage', e); // eslint-disable-line no-console
-  }
-}, { deep: true });
-
-onMounted(async() => {
-  // Listen to storage events, so if the UI is open in multiple tabs, notifications in one tab will be sync'ed across all tabs
-  window.addEventListener('storage', localStorageEventHandler);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('storage', localStorageEventHandler);
-});
 </script>
 
 <template>
@@ -79,7 +36,7 @@ onUnmounted(() => {
     @update:open="open"
   >
     <rc-dropdown-trigger
-      tertiary
+      variant="tertiary"
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
     >
@@ -117,7 +74,10 @@ onUnmounted(() => {
             v-for="(a, index) in allNotifications"
             :key="a.id"
           >
-            <rc-dropdown-separator v-if="index > 0" />
+            <rc-dropdown-separator
+              v-if="index > 0"
+              class="notification-separator"
+            />
             <Notification :item="a" />
           </template>
         </div>
@@ -139,8 +99,13 @@ onUnmounted(() => {
     .scroll-container {
       overflow: auto;
       max-height: 80vh;
-      padding: 5px 0;
+      padding: 3px 0; // Need padding at top and bottom in order to show the focus border for the notification
     }
+  }
+
+  .notification-separator {
+    margin: 0 3px;
+    width: auto;
   }
 
   .no-notifications {
@@ -162,15 +127,15 @@ onUnmounted(() => {
     display: flex;
     position: relative;
     height: 20px;
-    width: 20px;
+    width: 18px;
 
     .trigger-level {
       position: absolute;
-      right: -5px;
-      top: -5px;
+      right: -6px;
+      top: -4px;
       border-radius: 50%;
-      height: 11px;
-      width: 11px;
+      height: 8px;
+      width: 8px;
       background-color: var(--primary);
       transition: opacity 0.5s ease-in-out;
       opacity: 0;

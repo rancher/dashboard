@@ -8,7 +8,7 @@ import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  emits: ['update:value', 'remove'],
+  emits: ['update:value', 'add', 'remove'],
 
   components: { Select, LabeledSelect },
   props:      {
@@ -52,6 +52,11 @@ export default {
     showAddButton: {
       type:    Boolean,
       default: true
+    },
+
+    labelKey: {
+      type:    String,
+      default: '',
     },
 
     addLabel: {
@@ -231,6 +236,12 @@ export default {
       }
 
       this.rules.push(newRule);
+
+      this.$nextTick(() => {
+        this.focus(this.rules.length - 1);
+
+        this.$emit('add');
+      });
     },
 
     update() {
@@ -264,6 +275,10 @@ export default {
           this.$emit('update:value', simplify(out));
         }
       });
+    },
+
+    focus(index = 0) {
+      this.$refs[`input-match-expression-key-${ index }`]?.[0]?.focus();
     }
   }
 };
@@ -293,7 +308,7 @@ export default {
         {{ t('workload.scheduling.affinity.matchExpressions.matchType') }}
       </label>
       <label>
-        {{ t('workload.scheduling.affinity.matchExpressions.key') }}
+        {{ labelKey || t('workload.scheduling.affinity.matchExpressions.key') }}
       </label>
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.operator') }}
@@ -334,6 +349,7 @@ export default {
         </div>
         <input
           v-else-if="!hasKeySelectOptions"
+          :ref="`input-match-expression-key-${index}`"
           v-model="row.key"
           :mode="mode"
           :data-testid="`input-match-expression-key-control-${index}`"
@@ -341,6 +357,7 @@ export default {
         >
         <LabeledSelect
           v-else
+          :ref="`input-match-expression-key-${index}`"
           v-model:value="row.key"
           :mode="mode"
           :options="keysSelectOptions"
@@ -408,7 +425,7 @@ export default {
     </div>
     <div
       v-if="!isView && showAddButton"
-      class="mt-20"
+      class="mmt-4"
     >
       <button
         type="button"

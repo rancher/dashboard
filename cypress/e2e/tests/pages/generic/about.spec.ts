@@ -1,121 +1,94 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
-import * as path from 'path';
+import { qase } from '@/cypress/support/qase';
 
 const aboutPage = new AboutPagePo();
-const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-  before(() => {
+describe('About Page', { testIsolation: 'on', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  beforeEach(() => {
     cy.login();
   });
 
-  it('can navigate to About page', () => {
+  qase(1521, it('can navigate to About page', () => {
     HomePagePo.goToAndWaitForGet();
     AboutPagePo.navTo();
     aboutPage.waitForPage();
-  });
+  }));
 
-  it('no Prime info when community', () => {
-    HomePagePo.goToAndWaitForGet();
-    AboutPagePo.navTo();
+  qase(8584, it('no Prime info when community', { tags: '@noPrime' }, () => {
+    aboutPage.goTo();
     aboutPage.waitForPage();
-
     aboutPage.rancherPrimeInfo().should('not.exist');
-  });
+  }));
 
-  it('can navigate to Diagnostics page', () => {
-    AboutPagePo.navTo();
+  qase(1519, it('can navigate to Diagnostics page', () => {
+    aboutPage.goTo();
     aboutPage.waitForPage();
     aboutPage.diagnosticsBtn().click();
 
     const diagnosticsPo = new DiagnosticsPagePo();
 
     diagnosticsPo.waitForPage();
-  });
+  }));
 
-  it('can View release notes', () => {
-    AboutPagePo.navTo();
+  qase(1520, it('can View release notes', () => {
+    aboutPage.goTo();
     aboutPage.waitForPage();
+    cy.getRancherVersion().then((version) => {
+      const isPrime = version.RancherPrime === 'true';
+      const expectedOrigin = isPrime ? 'https://documentation.suse.com' : 'https://github.com';
+      const expectedUrlPattern = isPrime ? '/cloudnative/rancher-manager/.+/en/release-notes' : '/rancher/rancher/releases/tag/';
 
-    aboutPage.clickVersionLink('View release notes');
-    cy.origin('https://github.com/rancher/rancher', () => {
-      cy.url().should('include', 'https://github.com/rancher/rancher/releases/tag/');
+      aboutPage.clickVersionLink('View release notes');
+      cy.origin(expectedOrigin, { args: { expectedUrlPattern } }, ({ expectedUrlPattern }) => {
+        cy.url().should('match', new RegExp(expectedUrlPattern));
+      });
     });
-  });
+  }));
 
   describe('Versions', () => {
     beforeEach(() => {
       aboutPage.goTo();
+      aboutPage.waitForPage();
     });
 
-    it('can see rancher version', () => {
+    qase(1506, it('can see rancher version', () => {
       // Check Rancher version
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
         const rancherVersion = resp.body['value'];
 
         cy.contains(rancherVersion).should('be.visible');
       });
-    });
+    }));
 
-    it('can navigate to /rancher/rancher', () => {
+    qase(1504, it('can navigate to /rancher/rancher', () => {
       aboutPage.clickVersionLink('Rancher');
-      cy.origin('https://github.com/rancher/rancher', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/rancher');
       });
-    });
+    }));
 
-    it('can navigate to /rancher/dashboard', () => {
+    qase(1507, it('can navigate to /rancher/dashboard', () => {
       aboutPage.clickVersionLink('Dashboard');
-      cy.origin('https://github.com/rancher/dashboard', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/dashboard');
       });
-    });
+    }));
 
-    it('can navigate to /rancher/helm', () => {
+    qase(1508, it('can navigate to /rancher/helm', () => {
       aboutPage.clickVersionLink('Helm');
-      cy.origin('https://github.com/rancher/helm', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/helm');
       });
-    });
+    }));
 
-    it('can navigate to /rancher/machine', () => {
+    qase(1505, it('can navigate to /rancher/machine', () => {
       aboutPage.clickVersionLink('Machine');
-      cy.origin('https://github.com/rancher/machine', () => {
+      cy.origin('https://github.com', () => {
         cy.url().should('include', 'https://github.com/rancher/machine');
       });
-    });
-  });
-
-  describe('Image List', () => {
-    before(() => {
-      aboutPage.goTo();
-    });
-
-    it('can download Linux Image List', () => {
-      // Download txt and verify file exists
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
-
-      aboutPage.getLinuxDownloadLink().click();
-
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
-      });
-    });
-
-    it('can download Windows Image List', () => {
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
-
-      aboutPage.getWindowsDownloadLink().click();
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
-      });
-    });
+    }));
   });
 
   describe('CLI Downloads', () => {
@@ -125,10 +98,11 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
       aboutPage.goTo();
+      aboutPage.waitForPage();
       cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
     });
 
-    it('can download macOS CLI', () => {
+    qase(1450, it('can download macOS CLI', () => {
       aboutPage.getLinkDestination('rancher-darwin').then((el) => {
         const macOsVersion = el.split('/')[5];
 
@@ -140,9 +114,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           expect(request.url).includes(macOsVersion);
         });
       });
-    });
+    }));
 
-    it('can download Linux CLI', () => {
+    qase(1451, it('can download Linux CLI', () => {
       aboutPage.getLinkDestination('rancher-linux').then((el) => {
         const linuxVersion = el.split('/')[5];
 
@@ -154,9 +128,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           expect(request.url).includes(linuxVersion);
         });
       });
-    });
+    }));
 
-    it('can download Windows CLI', () => {
+    qase(1449, it('can download Windows CLI', () => {
       aboutPage.getLinkDestination('rancher-windows').then((el) => {
         const windowsVersion = el.split('/')[5];
 
@@ -168,10 +142,10 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           expect(request.url).includes(windowsVersion);
         });
       });
-    });
+    }));
   });
 
-  describe('Rancher Prime', () => {
+  describe('Rancher Prime', { tags: '@prime' }, () => {
     function interceptVersionAndSetToPrime() {
       return cy.intercept('GET', '/rancherversion', {
         statusCode: 200,
@@ -183,13 +157,20 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
       });
     }
 
-    it('should show prime panel on about page', () => {
+    beforeEach(() => {
       interceptVersionAndSetToPrime().as('rancherVersion');
-      cy.login();
-      aboutPage.goTo();
+    });
+
+    qase(11248, it('should show prime panel on about page', () => {
+      HomePagePo.goToAndWaitForGet();
+
+      AboutPagePo.navTo();
       aboutPage.waitForPage();
 
+      // Wait for the intercepted rancherversion request to complete
+      cy.wait('@rancherVersion');
+
       aboutPage.rancherPrimeInfo().should('exist');
-    });
+    }));
   });
 });

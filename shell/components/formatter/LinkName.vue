@@ -26,7 +26,7 @@ export default {
 
     product: {
       type:    String,
-      default: EXPLORER,
+      default: '',
     }
   },
 
@@ -35,11 +35,17 @@ export default {
       const name = `c-cluster-product-resource${ this.namespace ? '-namespace' : '' }-id`;
 
       const params = {
+        cluster:   this.$store.getters['clusterId'],
+        product:   this.product || this.$store.getters['productId'] || EXPLORER,
         resource:  this.type,
         namespace: this.namespace,
         id:        this.objectId ? this.objectId : this.value,
-        product:   this.product || EXPLORER,
       };
+
+      // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+      if (!params.namespace) {
+        delete params.namespace;
+      }
 
       return { name, params };
     },

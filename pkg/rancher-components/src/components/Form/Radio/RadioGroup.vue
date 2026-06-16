@@ -12,6 +12,7 @@ interface Option {
 }
 
 export default defineComponent({
+  name:       'RadioGroup',
   components: { RadioButton },
   props:      {
     /**
@@ -311,7 +312,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 .radio-group {
   &:focus, &:focus-visible {
     border: none;

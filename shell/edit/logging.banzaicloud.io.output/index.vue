@@ -21,7 +21,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 export default {
   components: {
     Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor, Loading
-  }, //
+  },
 
   mixins: [CreateEditView],
 
@@ -211,6 +211,8 @@ export default {
         v-else
         ref="tabbed"
         :side-tabs="true"
+        :use-hash="useTabbedHash"
+        :default-tab="defaultTab"
         @changed="tabChanged($event)"
       >
         <Tab

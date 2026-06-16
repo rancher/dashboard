@@ -9,8 +9,8 @@ import { RcDropdownMenuComponentProps, DropdownOption } from './types';
 import IconOrSvg from '@shell/components/IconOrSvg';
 
 withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
-  buttonRole: 'primary',
-  buttonSize: undefined,
+  buttonVariant: 'primary',
+  buttonSize:    undefined,
 });
 
 const emit = defineEmits(['update:open', 'select']);
@@ -26,8 +26,8 @@ const hasOptions = (options: DropdownOption[]) => {
     @update:open="(e: boolean) => emit('update:open', e)"
   >
     <rc-dropdown-trigger
-      :[buttonRole]="true"
-      :[buttonSize]="true"
+      :variant="buttonVariant"
+      :size="buttonSize"
       :data-testid="dataTestid"
       :aria-label="buttonAriaLabel"
     >

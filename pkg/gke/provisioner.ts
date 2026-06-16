@@ -1,11 +1,11 @@
-import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
+import { IClusterProvisioner, ClusterProvisionerContext, ClusterProvisionerDetailTabs } from '@shell/core/types';
 import CruGKE from './components/CruGKE.vue';
-import { mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue';
-import { MANAGEMENT } from '@shell/config/types';
+import { isProviderEnabled } from '@shell/utils/settings';
+import { mapDriver } from '@shell/store/plugins';
 
 export class GKEProvisioner implements IClusterProvisioner {
-  static ID = 'googlegke'
+  static ID = 'gke';
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'gcp' );
@@ -20,11 +20,15 @@ export class GKEProvisioner implements IClusterProvisioner {
   }
 
   get group(): string {
-    return 'kontainer';
+    return 'hosted';
   }
 
   get label(): string {
     return this.context.t('gke.label');
+  }
+
+  get description(): string {
+    return this.context.t('gke.description');
   }
 
   get component(): Component {
@@ -32,20 +36,20 @@ export class GKEProvisioner implements IClusterProvisioner {
   }
 
   get hidden(): boolean {
-    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'googlekubernetesengine');
-
-    return !kontainerDriver?.spec?.active;
+    return !isProviderEnabled(this.context, this.id);
   }
 
-  get detailTabs(): any {
+  get detailTabs(): ClusterProvisionerDetailTabs {
     return {
+      nodes:        false,
       machines:     false,
       logs:         false,
-      registration: false,
+      registration: true,
       snapshots:    false,
       related:      true,
-      events:       false,
-      conditions:   false,
+      events:       true,
+      conditions:   true,
+      autoscaler:   false
     };
   }
 

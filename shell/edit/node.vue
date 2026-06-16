@@ -50,6 +50,8 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
+      :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
       @update:value="$emit('input', $event)"
     >
       <Tab

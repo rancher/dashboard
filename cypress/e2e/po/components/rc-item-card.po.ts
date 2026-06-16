@@ -1,12 +1,13 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ActionMenu from '@/cypress/e2e/po/components/action-menu.po';
 
 export default class RcItemCardPo extends ComponentPo {
   static getCardById(id: string) {
-    return new RcItemCardPo(`[data-testid="item-card-${ id }"`);
+    return new RcItemCardPo(`[data-testid="item-card-${ id }"]`);
   }
 
-  static getCardByTitle(title: string) {
-    return new RcItemCardPo(cy.get('.item-card').contains(title));
+  static getCardByTitle(title: string, options?: Partial<Cypress.Timeoutable>) {
+    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]', options).contains(title).parents('[data-testid*="item-card-"]'));
   }
 
   getImage() {
@@ -15,5 +16,11 @@ export default class RcItemCardPo extends ComponentPo {
 
   click() {
     this.self().click();
+  }
+
+  openActionMenu() {
+    this.self().find('[data-testid="item-card-header-action-menu"]').click();
+
+    return new ActionMenu(undefined);
   }
 }

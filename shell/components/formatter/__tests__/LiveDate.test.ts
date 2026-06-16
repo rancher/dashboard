@@ -16,6 +16,15 @@ const defaultMock = {
 };
 
 describe('component: LiveDate', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-07-10T10:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('should show a dash if no date is provided', () => {
     const wrapper = mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { global: { mocks: defaultMock } });
     const element = wrapper.find('span');
@@ -55,8 +64,7 @@ describe('component: LiveDate', () => {
     let element = wrapper.find('span');
 
     expect(element.text()).toContain('Just now');
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    await wrapper.vm.liveUpdate(Date.now());
+    await wrapper.vm.liveUpdate(Date.now() + 1000);
 
     element = wrapper.find('span');
     expect(element.text()).toContain('1 %unit.sec%');

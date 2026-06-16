@@ -68,11 +68,12 @@ export default defineComponent({
     <template v-if="hover">
       <i
         v-clean-tooltip="tooltipContent"
-        v-stripped-aria-label="isObject(value) ? value.content : value"
+        v-stripped-aria-label="`${t('generic.tooltip')} - ${(isObject(value) ? value.content : value)}`"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
         tabindex="0"
         :data-testid="componentTestid"
+        role="tooltip"
       />
     </template>
     <template v-else>
@@ -94,7 +95,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 .labeled-tooltip {
     position: absolute;
     width: 100%;
@@ -135,15 +136,5 @@ export default defineComponent({
     &.success {
         @include tooltipColors(var(--success));
     }
-}
-
-// Ensure code blocks inside tootips don't look awful
-.v-popper__popper.v-popper--theme-tooltip {
-  .v-popper__inner {
-    pre {
-      padding: 2px;
-      vertical-align: middle;
-    }
-  }
 }
 </style>

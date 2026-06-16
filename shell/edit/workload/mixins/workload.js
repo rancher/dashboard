@@ -5,7 +5,6 @@ import {
   CONFIG_MAP,
   SECRET,
   WORKLOAD_TYPES,
-  NODE,
   SERVICE,
   PVC,
   SERVICE_ACCOUNT,
@@ -152,7 +151,8 @@ export default {
     const fetches = {};
 
     if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
-      fetches.rancherClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+      // I could only find one place where a prov cluster might be used by this and parent components - shell/components/form/WorkloadPorts.vue provisioningCluster
+      fetches.rancherCluster = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
     }
 
     if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
@@ -203,6 +203,12 @@ export default {
 
     const spec = this.value.spec;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+
+    // Area to add default value to securityContext on POD CREATE
+    // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
+    if (this.mode === _CREATE && !podTemplateSpec.securityContext) {
+      podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
+    }
 
     let containers = podTemplateSpec.containers || [];
     let container;
@@ -257,8 +263,6 @@ export default {
     return {
       secondaryResourceData:      this.secondaryResourceDataConfig(),
       namespacedConfigMaps:       [],
-      allNodes:                   null,
-      allNodeObjects:             [],
       namespacedSecrets:          [],
       imagePullNamespacedSecrets: [],
       allServices:                [],
@@ -276,23 +280,49 @@ export default {
       container,
       containerChange:            0,
       tabChange:                  0,
-      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
-      fvFormRuleSets:             [],
-      fvReportedValidationPaths:  ['spec'],
-      isNamespaceNew:             false,
-      idKey:                      ID_KEY
+      // [fvFormRulesets][localhostProfile] added as default not required, needs to be on the INDEX 0
+      fvFormRuleSets:             [{
+        path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+        rules:          [''],
+        rootObject:     this,
+        translationKey: 'workload.container.security.localhostProfile.label'
+      }],
+      fvReportedValidationPaths: ['spec'],
+      isNamespaceNew:            false,
+      idKey:                     ID_KEY
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-    tabErrors() {
-      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    seccompProfileTypes() {
+      return [
+        {
+          value: 'None',
+          label: this.t('workload.container.security.seccompProfile.types.none.label')
+        },
+        {
+          value: 'RuntimeDefault',
+          label: this.t('workload.container.security.seccompProfile.types.runtimeDefault.label')
+        },
+        {
+          value: 'Localhost',
+          label: this.t('workload.container.security.seccompProfile.types.localhost.label')
+        }, {
+          value: 'Unconfined',
+          label: this.t('workload.container.security.seccompProfile.types.unconfined.label')
+        }];
     },
 
-    defaultTab() {
+    tabErrors() {
+      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
+
+      return tabErrors;
+    },
+
+    defaultWorkloadTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
         const container = this.allContainers.find((c) => c.__active);
 
@@ -422,8 +452,15 @@ export default {
         }),
       ].map((container) => {
         const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
+        const localhostProfileRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).localhostProfile;
 
-        container.error = containerImageRule(container);
+        const imageError = containerImageRule(container);
+        const localhostProfileError = localhostProfileRule(container);
+
+        container.error = {
+          general:          imageError,
+          localhostProfile: localhostProfileError
+        };
 
         return container;
       });
@@ -560,6 +597,26 @@ export default {
       this.servicesOwned = await this.value.getServicesOwned();
     },
 
+    'podTemplateSpec.securityContext.seccompProfile.type'(neu) {
+      if (neu === 'Localhost') {
+        // [fvFormRulesets][localhostProfile] added here, should be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          ['required'],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      } else {
+        // [fvFormRulesets][localhostProfile] added here, should not be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          [''],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      }
+    },
+
     isNamespaceNew(neu, old) {
       if (!old && neu) {
         // As the namespace is new any resource that's been fetched with a namespace is now invalid
@@ -602,15 +659,6 @@ export default {
       this.value['type'] = neu;
       delete this.value.apiVersion;
     },
-
-    container: {
-      handler(c) {
-        this.fvFormRuleSets = [{
-          path: 'image', rootObject: c, rules: ['required'], translationKey: 'workload.container.image'
-        }];
-      },
-      immediate: true
-    }
   },
 
   created() {
@@ -635,17 +683,6 @@ export default {
                 var:         'imagePullNamespacedSecrets',
                 parsingFunc: (data) => {
                   return data.filter((secret) => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-                }
-              }
-            ]
-          },
-          [NODE]: {
-            applyTo: [
-              { var: 'allNodeObjects' },
-              {
-                var:         'allNodes',
-                parsingFunc: (data) => {
-                  return data.map((node) => node.id);
                 }
               }
             ]
@@ -806,7 +843,6 @@ export default {
       }
 
       this.fixPodAffinity(podAntiAffinity);
-      this.fixPodSecurityContext(this.podTemplateSpec);
 
       template.metadata.namespace = this.value.metadata.namespace;
 
@@ -901,20 +937,6 @@ export default {
       });
 
       return podAffinity;
-    },
-
-    fixPodSecurityContext(podTempSpec) {
-      if (this.podFsGroup) {
-        podTempSpec.securityContext = podTempSpec.securityContext || {};
-        podTempSpec.securityContext.fsGroup = this.podFsGroup;
-      } else {
-        if (podTempSpec.securityContext?.fsGroup) {
-          delete podTempSpec.securityContext.fsGroup;
-        }
-        if (Object.keys(podTempSpec.securityContext || {}).length === 0) {
-          delete podTempSpec.securityContext;
-        }
-      }
     },
 
     selectType(type) {

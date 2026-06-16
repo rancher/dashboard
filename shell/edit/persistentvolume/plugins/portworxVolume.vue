@@ -14,24 +14,25 @@ export default {
       required: true,
     },
   },
-  data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['portworxVolume'] = this.value.spec.portworxVolume || {};
     this.value.spec.portworxVolume['readOnly'] = this.value.spec.portworxVolume.readOnly || false;
     this.value.spec.portworxVolume['secretRef'] = this.value.spec.portworxVolume.secretRef || {};
-
-    return { readOnlyOptions };
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

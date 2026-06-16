@@ -1,15 +1,14 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
-import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
+import TitleBar, { AdditionalActionButton } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { createStore } from 'vuex';
-
-jest.mock(`@shell/assets/images/icons/document.svg`, () => `@shell/assets/images/icons/document.svg`);
+import { defineComponent, h } from 'vue';
 
 describe('component: TitleBar/index', () => {
   const resourceTypeLabel = 'RESOURCE_TYPE_LABEL';
   const resourceTo = 'RESOURCE_TO';
   const resourceName = 'RESOURCE_NAME';
-  const store = createStore({});
+  const store = createStore({ getters: {} });
 
   it('should render container with class title-bar', async() => {
     const wrapper = mount(TitleBar, {
@@ -79,7 +78,7 @@ describe('component: TitleBar/index', () => {
     const button = wrapper.find('.top > .actions > .show-configuration');
     const buttonComponent = button.getComponent<any>('rc-button-stub');
 
-    expect(buttonComponent.props('primary')).toStrictEqual(true);
+    expect(buttonComponent.props('variant')).toStrictEqual('primary');
     button.trigger('click');
 
     expect(wrapper.emitted()).toHaveProperty('show-configuration');
@@ -109,7 +108,7 @@ describe('component: TitleBar/index', () => {
     const actions = wrapper.find('.top > .actions');
     const actionMenuComponent = actions.getComponent<any>('action-menu-stub');
 
-    expect(actionMenuComponent.props('buttonRole')).toStrictEqual('multiAction');
+    expect(actionMenuComponent.props('buttonVariant')).toStrictEqual('multiAction');
     expect(actionMenuComponent.props('resource')).toStrictEqual(actionMenuResource);
   });
 
@@ -138,5 +137,152 @@ describe('component: TitleBar/index', () => {
 
     expect(wrapper.find('.bottom.description').exists()).toBeTruthy();
     expect(wrapper.find('.bottom.description').element.innerHTML).toStrictEqual(description);
+  });
+
+  describe('additionalActions', () => {
+    it('should not render additional action buttons when additionalActions is not provided', async() => {
+      const wrapper = mount(TitleBar, {
+        props:  { resourceTypeLabel, resourceName },
+        global: { stubs: { 'router-link': RouterLinkStub, RcButton: true }, provide: { store } }
+      });
+
+      const actionButtons = wrapper.findAll('.top > .actions > rc-button-stub');
+
+      expect(actionButtons).toHaveLength(0);
+    });
+
+    it('should render buttons when additionalActions is an array of button props', async() => {
+      const onClick1 = jest.fn();
+      const onClick2 = jest.fn();
+      const additionalActions = [
+        {
+          label: 'Action 1', variant: 'secondary', onClick: onClick1
+        },
+        {
+          label: 'Action 2', variant: 'primary', size: 'large', onClick: onClick2
+        }
+      ];
+
+      const wrapper = mount(TitleBar, {
+        props: {
+          resourceTypeLabel, resourceName, additionalActions
+        },
+        global: { stubs: { 'router-link': RouterLinkStub, RcButton: true }, provide: { store } }
+      });
+
+      const actionButtons = wrapper.findAll('.top > .actions > rc-button-stub');
+
+      expect(actionButtons).toHaveLength(2);
+
+      const button1 = actionButtons[0].getComponent<any>('rc-button-stub');
+      const button2 = actionButtons[1].getComponent<any>('rc-button-stub');
+
+      expect(button1.props('variant')).toStrictEqual('secondary');
+      expect(button2.props('variant')).toStrictEqual('primary');
+      expect(button2.props('size')).toStrictEqual('large');
+    });
+
+    it('should call onClick handler when additional action button is clicked', async() => {
+      const onClick = jest.fn();
+      const additionalActions = [
+        {
+          label: 'Action 1', variant: 'secondary', onClick
+        }
+      ];
+
+      const wrapper = mount(TitleBar, {
+        props: {
+          resourceTypeLabel, resourceName, additionalActions
+        },
+        global: { stubs: { 'router-link': RouterLinkStub, RcButton: true }, provide: { store } }
+      });
+
+      const actionButton = wrapper.find('.top > .actions > rc-button-stub');
+
+      await actionButton.trigger('click');
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should render a custom component when additionalActions is a Vue component', async() => {
+      const CustomComponent = defineComponent({
+        name:   'CustomActions',
+        render: () => h('div', { class: 'custom-actions' }, 'Custom Actions')
+      });
+
+      const wrapper = mount(TitleBar, {
+        props: {
+          resourceTypeLabel, resourceName, additionalActions: CustomComponent
+        },
+        global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
+      });
+
+      expect(wrapper.find('.custom-actions').exists()).toBeTruthy();
+      expect(wrapper.find('.custom-actions').text()).toBe('Custom Actions');
+    });
+
+    it('should use slot content when additional-actions slot is provided', async() => {
+      const additionalActions = [
+        {
+          label: 'Action 1', variant: 'secondary', onClick: jest.fn()
+        }
+      ];
+
+      const wrapper = mount(TitleBar, {
+        props: {
+          resourceTypeLabel, resourceName, additionalActions
+        },
+        slots:  { 'additional-actions': '<button class="slot-button">Slot Button</button>' },
+        global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
+      });
+
+      // Slot content should override the additionalActions prop
+      expect(wrapper.find('.slot-button').exists()).toBeTruthy();
+      expect(wrapper.find('.slot-button').text()).toBe('Slot Button');
+    });
+
+    it('should render the actions container correctly when additional-actions slot contains nested buttons', async() => {
+      const wrapper = mount(TitleBar, {
+        props:  { resourceTypeLabel, resourceName },
+        slots:  { 'additional-actions': '<div class="btn-group"><button class="nested-btn">A</button><button class="nested-btn">B</button></div>' },
+        global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
+      });
+
+      const actions = wrapper.find('.actions');
+
+      expect(actions.find('.btn-group').exists()).toBeTruthy();
+      expect(actions.findAll('.btn-group .nested-btn')).toHaveLength(2);
+    });
+  });
+
+  it('should match the full component snapshot', () => {
+    const additionalActions: AdditionalActionButton[] = [
+      {
+        label: 'Deploy', variant: 'primary', onClick: jest.fn()
+      },
+      {
+        label: 'Rollback', variant: 'secondary', size: 'large', onClick: jest.fn()
+      },
+    ];
+
+    const wrapper = mount(TitleBar, {
+      props: {
+        resource:           {},
+        resourceTypeLabel,
+        resourceName,
+        resourceTo,
+        description:        'A test description',
+        badge:              { color: 'bg-success', label: 'Active' },
+        additionalActions,
+        actionMenuResource: { resource: 'test-menu' },
+        onShowConfiguration() {},
+      },
+      global: {
+        stubs:   { 'router-link': RouterLinkStub },
+        provide: { store }
+      }
+    });
+
+    expect(wrapper.html()).toMatchSnapshot();
   });
 });

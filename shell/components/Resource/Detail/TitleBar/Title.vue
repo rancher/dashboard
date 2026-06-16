@@ -8,6 +8,7 @@
   h1.title {
     display: inline-block;
     align-items: center;
-    line-height: 18px;
+    display: flex;
+    flex-direction: row;
   }
 </style>

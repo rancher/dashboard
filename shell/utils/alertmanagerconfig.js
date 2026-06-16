@@ -19,8 +19,8 @@ export const fetchAlertManagerConfigSpecs = async($store) => {
   await schema.fetchResourceFields();
 
   return {
-    receiverSchema: schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.receivers`],
-    routeSchema:    schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.route`],
+    receiverSchema: schema.schemaDefinitions?.[`${ schema.schemaDefinition.type }.spec.receivers`],
+    routeSchema:    schema.schemaDefinitions?.[`${ schema.schemaDefinition.type }.spec.route`],
   };
 };
 

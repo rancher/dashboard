@@ -1,7 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import KeyValue from '@shell/components/Resource/Detail/Metadata/KeyValue.vue';
 import { createStore } from 'vuex';
-import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
 describe('component: Metadata/IdentifyingInformation', () => {
   const propertyName = 'PROPERTY_NAME';
@@ -16,9 +16,13 @@ describe('component: Metadata/IdentifyingInformation', () => {
 
   it('should render container with identifying information', async() => {
     const wrapper = mount(KeyValue, {
-      props:  { propertyName, rows },
+      props: {
+        propertyName, rows, type: 'active'
+      },
       global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
+        stubs: {
+          'router-link': RouterLinkStub, 'clean-tooltip': true, KeyValueRow: true
+        },
         provide: { store },
         directives
       }
@@ -29,9 +33,13 @@ describe('component: Metadata/IdentifyingInformation', () => {
 
   it('should render property name and count', async() => {
     const wrapper = mount(KeyValue, {
-      props:  { propertyName, rows },
+      props: {
+        propertyName, rows, type: 'active'
+      },
       global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
+        stubs: {
+          'router-link': RouterLinkStub, 'clean-tooltip': true, KeyValueRow: true
+        },
         provide: { store },
         directives
       }
@@ -43,9 +51,13 @@ describe('component: Metadata/IdentifyingInformation', () => {
 
   it('should render no rows messaging', async() => {
     const wrapper = mount(KeyValue, {
-      props:  { propertyName, rows: [] },
+      props: {
+        propertyName, rows: [], type: 'active'
+      },
       global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
+        stubs: {
+          'router-link': RouterLinkStub, 'clean-tooltip': true, KeyValueRow: true
+        },
         provide: { store },
         directives
       }
@@ -58,10 +70,12 @@ describe('component: Metadata/IdentifyingInformation', () => {
   it('should render show all button if rows length exceeds max', async() => {
     const wrapper = mount(KeyValue, {
       props: {
-        propertyName, rows: [...rows, ...rows], maxRows: 1
+        propertyName, rows: [...rows, ...rows], maxRows: 1, type: 'active'
       },
       global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
+        stubs: {
+          'router-link': RouterLinkStub, 'clean-tooltip': true, KeyValueRow: true
+        },
         provide: { store },
         directives
       }
@@ -70,38 +84,22 @@ describe('component: Metadata/IdentifyingInformation', () => {
     expect(wrapper.find('.show-all').exists()).toBeTruthy();
   });
 
-  it('should pass outline down to rectangle', async() => {
+  it('should pass type down to KeyValueRow', async() => {
     const wrapper = mount(KeyValue, {
       props: {
-        propertyName, rows, outline: false
+        propertyName, rows, type: 'active'
       },
       global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
+        stubs: {
+          'router-link': RouterLinkStub, 'clean-tooltip': true, KeyValueRow: true
+        },
         provide: { store },
         directives
       }
     });
 
-    const rectangleComponent = wrapper.find('.row').findComponent(Rectangle);
+    const keyValueRowComponent: any = wrapper.findComponent('key-value-row-stub');
 
-    expect(rectangleComponent.props('outline')).toStrictEqual(false);
-  });
-
-  it('should render a concatenated string for the tooltip and default slot of the rectangle', async() => {
-    const wrapper = mount(KeyValue, {
-      props:  { propertyName, rows },
-      global: {
-        stubs:   { 'router-link': RouterLinkStub, 'clean-tooltip': true },
-        provide: { store },
-        directives
-      }
-    });
-
-    const row = rows[0];
-    const concatenated = `${ row.key }: ${ row.value }`;
-    const rectangleComponent = wrapper.find('.row').findComponent(Rectangle);
-
-    expect(rectangleComponent.element.innerHTML).toStrictEqual(concatenated);
-    expect(cleanTooltip.mock.calls[0][1].value).toStrictEqual(concatenated);
+    expect(keyValueRowComponent.props('type')).toStrictEqual('active');
   });
 });

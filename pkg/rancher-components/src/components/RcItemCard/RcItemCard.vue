@@ -5,6 +5,9 @@ import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import RcItemCardAction from './RcItemCardAction';
+import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { RcIconType } from '@components/RcIcon/types';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -24,11 +27,11 @@ type Label = {
 
 /**
  * Represents an image used in the card.
+ * Can be either a traditional image (src) or an icon (icon).
  */
-type Image = {
-  src: string;
-  alt?: Label;
-};
+type Image =
+ | { src?: never, icon: RcIconType; alt: Label; }
+ | { src: string; icon?: never, alt: Label; };
 
 /**
  * Optional pill badge, typically used to highlight a tag or state.
@@ -71,7 +74,7 @@ interface RcItemCardProps {
   id: string;
 
   /** Any object value associated with this card */
-  value: ItemValue;
+  value?: ItemValue;
 
   /** Card title, status icons and action menu. Image will be included in the header in small variant too */
   header: Header;
@@ -79,8 +82,26 @@ interface RcItemCardProps {
   /** Optional image to show in card (position depends on variant). A slot is available for it too #item-card-image */
   image?: Image;
 
-  /** Optional actions that will be displayed inside an action-menu */
-  actions?: DropdownOption;
+  /** Optional actions that will be displayed inside an action-menu
+   *
+   * Each action should include an `action` name, which is included in the payload
+   * of the 'action-invoked' event when the action is selected.
+   *
+   * Example:
+   * <rc-item-card
+   *   :actions="[
+   *     {
+   *       action: 'focusSearch',
+   *       label: t('catalog.charts.search'),
+   *       enabled: true
+   *     }
+   *   ]"
+   *   @action-invoked="handleActionInvoked"
+   * />
+   *
+   * The handler receives a payload with { action: string, actionData: object, event: MouseEvent, ... }
+   */
+  actions?: DropdownOption[];
 
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
@@ -93,14 +114,24 @@ interface RcItemCardProps {
 
   /** Makes the card clickable and emits 'card-click' on click/enter/space */
   clickable?: boolean;
+
+  /** The card will have same style as hover clickable with the blue border when selected */
+  selected?: boolean;
+
+  /** Disables the card, preventing clicks and keyboard interaction */
+  disabled?: boolean;
+
+  role?: 'link' | 'button' | undefined;
 }
 
 const props = defineProps<RcItemCardProps>();
 
 /**
- * Emits 'card-click' when card is clicked or activated via keyboard.
+ * Emits:
+ * - 'card-click' when card is clicked or activated via keyboard.
+ * - 'action-invoked' when an action is selected from the action menu (only when `actions` prop is used).
  */
-const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
+const emit = defineEmits<{(e: 'card-click', value?: ItemValue): void; (e: 'action-invoked', payload: unknown): void;}>();
 
 /**
  * Handles the card click while avoiding nested interactive elements
@@ -108,6 +139,10 @@ const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
  * which then gets used to ignore 'card-click'
  */
 function _handleCardClick(e: MouseEvent | KeyboardEvent) {
+  if (props.disabled) {
+    return;
+  }
+
   const interactiveSelector = '[item-card-action]';
 
   // Prevent card click if the user clicks on an inner actionable element like repo, category, or tag
@@ -138,24 +173,25 @@ const contentText = computed(() => labelText(props.content));
 const statusTooltips = computed(() => props.header.statuses?.map((status) => labelText(status.tooltip)) || []);
 
 const cardMeta = computed(() => ({
-  ariaLabel: props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
-  tabIndex:  props.clickable ? '0' : undefined,
-  role:      props.clickable ? 'button' : undefined
+  ariaLabel:       props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
+  tabIndex:        props.clickable && !props.disabled ? '0' : undefined,
+  role:            props.role ?? (props.clickable && !props.disabled ? 'button' : undefined),
+  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) }),
 }));
 
+const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
 </script>
 
 <template>
   <div
     ref="cardEl"
     class="item-card"
-    :role="cardMeta.role"
-    :tabindex="cardMeta.tabIndex"
-    :aria-label="cardMeta.ariaLabel"
     :data-testid="`item-card-${id}`"
+    :class="{
+      'clickable':
+        clickable && !disabled,'selected': selected, 'disabled': disabled
+    }"
     @click="_handleCardClick"
-    @keydown.enter="_handleCardClick"
-    @keydown.space.prevent="_handleCardClick"
   >
     <div :class="['item-card-body', variant]">
       <template v-if="variant !== 'small'">
@@ -166,11 +202,19 @@ const cardMeta = computed(() => ({
               :class="['item-card-image', variant]"
               data-testid="item-card-image"
             >
-              <LazyImage
-                :src="image.src"
-                :alt="imageAlt"
-                :style="{'width': '40px', 'height': '40px', 'object-fit': 'contain'}"
-              />
+              <template v-if="image.icon">
+                <RcIcon
+                  :type="image.icon"
+                  size="xxlarge"
+                />
+              </template>
+              <template v-else-if="image.src">
+                <LazyImage
+                  :src="image.src"
+                  :alt="imageAlt"
+                  :style="{'width': '40px', 'height': '40px', 'object-fit': 'contain'}"
+                />
+              </template>
             </div>
           </slot>
           <slot name="item-card-pill">
@@ -188,7 +232,16 @@ const cardMeta = computed(() => ({
 
       <div :class="['item-card-body-details', variant]">
         <div :class="['item-card-header', variant]">
-          <div class="item-card-header-left">
+          <div
+            class="item-card-header-left"
+            :data-testid="`card-header-left`"
+            :role="cardMeta.role"
+            :tabindex="cardMeta.tabIndex"
+            :aria-label="cardMeta.ariaLabel"
+            @click.self="_handleCardClick"
+            @keydown.enter="_handleCardClick"
+            @keydown.space.prevent="_handleCardClick"
+          >
             <template v-if="variant === 'small'">
               <slot name="item-card-image">
                 <div
@@ -196,11 +249,19 @@ const cardMeta = computed(() => ({
                   :class="['item-card-image', variant]"
                   data-testid="item-card-image"
                 >
-                  <LazyImage
-                    :src="image.src"
-                    :alt="imageAlt"
-                    :style="{'width': '24px', 'height': '24px', 'object-fit': 'contain'}"
-                  />
+                  <template v-if="image.icon">
+                    <RcIcon
+                      :type="image.icon"
+                      size="xlarge"
+                    />
+                  </template>
+                  <template v-else-if="image.src">
+                    <LazyImage
+                      :src="image.src"
+                      :alt="imageAlt"
+                      :style="{'width': '32px', 'height': '32px', 'object-fit': 'contain'}"
+                    />
+                  </template>
                 </div>
               </slot>
             </template>
@@ -241,17 +302,22 @@ const cardMeta = computed(() => ({
               </div>
             </template>
             <template v-else-if="actions">
-              <div class="item-card-header-action-menu">
+              <rc-item-card-action class="item-card-header-action-menu">
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
+                  :button-aria-label="cardMeta.actionMenuLabel"
                   :custom-actions="actions"
+                  @action-invoked="(payload) => emit('action-invoked', payload)"
                 />
-              </div>
+              </rc-item-card-action>
             </template>
           </div>
         </div>
 
-        <slot name="item-card-sub-header" />
+        <slot name="item-card-sub-header">
+          <!-- DIV added to add the gap if the sub-header is not provided -->
+          <div />
+        </slot>
 
         <template v-if="$slots['item-card-content']">
           <slot name="item-card-content">
@@ -287,14 +353,36 @@ $image-medium-box-width: 48px;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border);
   background: var(--body-bg);
+  cursor: v-bind(cursorValue);
 
-  &:hover {
+  &.clickable:hover,
+  &.selected {
     border-color: var(--primary);
   }
 
-  &:focus-visible {
+  &.disabled {
+    cursor: not-allowed;
+    background-color: var(--disabled-bg);
+    color: var(--disabled-text);
+
+    .item-card-image {
+      background-color: var(--disabled-bg);
+    }
+
+    .item-card-header-title,
+    .item-card-content {
+      color: var(--disabled-text);
+    }
+  }
+
+  &:has(.item-card-header-left:focus-visible) {
+    border-color: var(--primary);
     @include focus-outline;
     outline-offset: -2px;
+  }
+
+  &:focus-visible {
+    outline: none;
   }
 
   &-image {
@@ -303,8 +391,9 @@ $image-medium-box-width: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
+    background: var(--rc-image-bg);
     border-radius: var(--border-radius);
+    color: var(--rc-image-color);
 
     &.small {
       width: 32px;
@@ -321,6 +410,10 @@ $image-medium-box-width: 48px;
     height: 24px;
     color: var(--body-text);
 
+    &.small {
+      height: 32px;
+    }
+
     &-left,
     &-right {
       display: flex;
@@ -329,10 +422,15 @@ $image-medium-box-width: 48px;
 
     &-left {
       flex-grow: 1;
+      min-width: 0;
+
+      &:focus-visible {
+        outline: none;
+      }
     }
 
     &-title {
-      max-width: 60%;
+      max-width: 80%;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 0px;
@@ -365,7 +463,8 @@ $image-medium-box-width: 48px;
     }
 
     &-action-menu {
-      margin-left: 12px;
+      margin-left: 8px;
+      margin-right: -8px;
     }
   }
 

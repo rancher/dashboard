@@ -470,4 +470,53 @@ describe('aks provisioning form', () => {
 
     expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
   });
+
+  it('should set the network plugin to azure when user defined routing is selected', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const outboundTypeSelect = wrapper.findComponent('[data-testid="aks-outbound-type-select"]');
+    const outboundTypeOpts = outboundTypeSelect.props().options;
+
+    outboundTypeSelect.vm.$emit('update:value', outboundTypeOpts[1].value);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.config.networkPlugin).toBe('azure');
+    const networkPluginSelect = wrapper.findComponent('[data-testid="aks-network-plugin-select"]');
+
+    const kubeOption = networkPluginSelect.props().options.find((opt) => opt.value === 'kubenet');
+
+    expect(kubeOption.disabled).toBeTruthy();
+  });
+
+  it('should make virtual network required when user defined routing is selected', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const outboundTypeSelect = wrapper.findComponent('[data-testid="aks-outbound-type-select"]');
+    const outboundTypeOpts = outboundTypeSelect.props().options;
+
+    outboundTypeSelect.vm.$emit('update:value', outboundTypeOpts[1].value);
+    await wrapper.vm.$nextTick();
+
+    const virtualNetworkSelect = wrapper.findComponent('[data-testid="aks-virtual-network-select"]');
+
+    expect(virtualNetworkSelect.props().required).toBe(true);
+  });
 });

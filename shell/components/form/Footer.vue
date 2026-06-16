@@ -1,11 +1,11 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
 import Banner from '@components/Banner/Banner.vue';
 
 export default defineComponent({
-  emits: ['save', 'done'],
+  emits: ['save', 'done', 'closeError'],
 
   components: { AsyncButton, Banner },
 
@@ -20,8 +20,8 @@ export default defineComponent({
     },
 
     errors: {
-      type:    Array,
-      default: null,
+      type:    Array as PropType<string[]>,
+      default: () => []
     },
 
     disableSave: {
@@ -37,6 +37,10 @@ export default defineComponent({
   },
 
   methods: {
+    closeError(index: number) {
+      this.$emit('closeError', index);
+    },
+
     save(buttonCb: AsyncButtonCallback) {
       this.$emit('save', buttonCb);
     },
@@ -58,6 +62,8 @@ export default defineComponent({
       <Banner
         color="error"
         :label="err"
+        :closable="true"
+        @close="closeError(idx)"
       />
     </div>
     <div class="buttons">

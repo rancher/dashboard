@@ -124,7 +124,7 @@ describe('rcItemCard', () => {
       }
     });
 
-    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+    const root = wrapper.get(`[data-testid="card-header-left"]`);
 
     expect(root.attributes('role')).toBe('button');
     expect(root.attributes('tabindex')).toBe('0');
@@ -152,7 +152,9 @@ describe('rcItemCard', () => {
       }
     });
 
-    await wrapper.trigger('keydown.enter');
+    const clickTarget = wrapper.find('.item-card-header-left');
+
+    await clickTarget.trigger('keydown.enter');
     expect(wrapper.emitted('card-click')).toBeTruthy();
   });
 
@@ -185,5 +187,35 @@ describe('rcItemCard', () => {
     const icon = wrapper.get('[data-testid="item-card-header-status-0"]');
 
     expect(icon.attributes('style')).toContain('color: red');
+  });
+
+  it('emits action-invoked event when action is triggered', async() => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        actions: [
+          { action: 'myActionA', label: 'Edit' },
+          { action: 'myActionB', label: 'Delete' }
+        ]
+      }
+    });
+
+    // Simulate the action-invoked event being emitted from ActionMenu
+    const actionMenu = wrapper.findComponent({ name: 'ActionMenuShell' });
+
+    expect(actionMenu.exists()).toBe(true);
+
+    // Emit action-invoked event with payload
+    const payload = {
+      action: 'myActionA', actionData: { action: 'myActionA', label: 'Edit' }, event: new MouseEvent('click')
+    };
+
+    actionMenu.vm.$emit('action-invoked', payload);
+    await wrapper.vm.$nextTick();
+
+    const emitted = wrapper.emitted('action-invoked');
+
+    expect(emitted).toBeTruthy();
+    expect(emitted?.[0]).toStrictEqual([payload]);
   });
 });

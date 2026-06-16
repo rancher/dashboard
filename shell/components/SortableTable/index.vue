@@ -3,7 +3,7 @@ import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
-import { dasherize, ucFirst } from '@shell/utils/string';
+import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -26,6 +26,8 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { RcButton } from '@components/RcButton';
+import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -52,6 +54,7 @@ export default {
     'selection',
     'rowClick',
     'enter',
+    'sortable-table-interaction',
   ],
 
   components: {
@@ -63,6 +66,7 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     ActionDropdownShell,
+    RcButton,
   },
 
   mixins: [
@@ -130,7 +134,7 @@ export default {
     },
     groupSort: {
       // Field to order groups by, defaults to groupBy
-      type:    Array,
+      type:    String,
       default: null
     },
 
@@ -432,6 +436,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     this.debouncedPaginationChanged();
+    this.updateTabCount(this.totalRows);
   },
 
   beforeUnmount() {
@@ -445,6 +450,7 @@ export default {
     const $main = document.querySelector('main');
 
     $main?.removeEventListener('scroll', this._onScroll);
+    this.clearTabCount();
   },
 
   watch: {
@@ -559,10 +565,13 @@ export default {
 
     const store = useStore();
     const { featureDropdownMenu } = useRuntimeFlag(store);
+    const { updateTabCount, clearTabCount } = useTabCountUpdater();
 
     return {
       table,
       featureDropdownMenu,
+      updateTabCount,
+      clearTabCount
     };
   },
 
@@ -735,7 +744,7 @@ export default {
         grp.rows.forEach((row) => {
           const rowData = {
             row,
-            key:                        this.get(row, this.keyField),
+            key:                        this.get(row, this.keyField) ?? randomStr(),
             showSubRow:                 this.showSubRow(row, this.keyField),
             canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
             columns:                    []
@@ -759,7 +768,7 @@ export default {
                 needRef = true;
               } else {
                 // Check if we have a formatter from a plugin
-                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+                const pluginFormatter = this.$extension?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
                   component = defineAsyncComponent(pluginFormatter);
@@ -1038,7 +1047,7 @@ export default {
     handleActionButtonClick(i, event) {
       // Each row in the table gets its own ref with
       // a number based on its index. If you are using
-      // an ActionMenu that doen't have a dependency on Vuex,
+      // an ActionMenu that doesn't have a dependency on Vuex,
       // these refs are useful because you can reuse the
       // same ActionMenu component on a page with many different
       // target elements in a list,
@@ -1052,6 +1061,23 @@ export default {
     },
 
     paginationChanged() {
+      // event used for extensions TABLE hooks
+      this.$emit('sortable-table-interaction', {
+        pagination: {
+          page:    this.page,
+          perPage: this.perPage,
+        },
+        filtering: {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sorting: {
+          sort:       this.sortFields,
+          sortBy:     this.sortBy,
+          descending: this.descending
+        }
+      });
+
       if (!this.externalPaginationEnabled) {
         return;
       }
@@ -1084,7 +1110,7 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
       >
         <div
           :class="bulkActionsClass"
@@ -1092,17 +1118,17 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
-              <button
+              <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                variant="primary"
+                size="large"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
-                role="button"
                 :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
@@ -1114,7 +1140,7 @@ export default {
                   :class="act.icon"
                 />
                 <span v-clean-html="act.label" />
-              </button>
+              </RcButton>
               <template v-if="featureDropdownMenu">
                 <ActionDropdownShell
                   :disabled="!selectedRows.length"
@@ -1290,6 +1316,12 @@ export default {
           <slot name="header-button" />
         </div>
       </div>
+      <div
+        v-if="!!$slots['sub-header-row']"
+        class="sub-header-row"
+      >
+        <slot name="sub-header-row" />
+      </div>
     </div>
     <table
       ref="table"
@@ -1398,7 +1430,7 @@ export default {
         </slot>
         <template
           v-for="(row, i) in groupedRows.rows"
-          :key="i"
+          :key="row.key"
         >
           <slot
             name="main-row"
@@ -1462,6 +1494,7 @@ export default {
                     <td
                       v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
+                      v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
@@ -1559,6 +1592,18 @@ export default {
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
+            <slot
+              :full-colspan="fullColspan"
+              :row="row.row"
+              :show-sub-row="row.row.stateDescription"
+              :sub-matches="subMatches"
+              :keyField="keyField"
+              :componentTestid="componentTestid"
+              :i="i"
+              :onRowMouseEnter="onRowMouseEnter"
+              :onRowMouseLeave="onRowMouseLeave"
+              name="additional-sub-row"
+            />
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
@@ -1893,9 +1938,22 @@ export default {
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
+        &.additional-sub-row.has-sub-row {
+          border-bottom: 0;
+        }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
         &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with only additional-sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with both additional-sub-row and sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
           background-color: var(--sortable-table-hover-bg);
         }
 
@@ -2041,8 +2099,17 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  $header-padding: 20px;
+  .sub-header-row {
+    padding: 0 0 calc($header-padding / 2) 0;
+  }
+
   .fixed-header-actions {
-    padding: 0 0 20px 0;
+    padding: 0 0 $header-padding 0;
+    &.with-sub-header {
+      padding: 0 0 calc($header-padding / 4) 0;
+    }
+
     width: 100%;
     z-index: z-index('fixedTableHeader');
     background: transparent;
@@ -2089,11 +2156,6 @@ export default {
         }
       }
 
-      .bulk-action  {
-        .icon {
-          vertical-align: -10%;
-        }
-      }
     }
 
     .middle {

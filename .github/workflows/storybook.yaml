@@ -1,22 +1,40 @@
 name: storybook
 on:
   push:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
   pull_request:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
 jobs:
   storybook:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
         node-version-file: '.nvmrc'
     - name: Install packages
-      run: yarn install
+      run: yarn install --frozen-lockfile
     - name: Build Storybook
       run: |
         yarn build-storybook

@@ -163,6 +163,9 @@ returns an object with no key/value pairs (including nested) where the value is:
   undefined
 */
 export function cleanUp(obj) {
+  if ( !obj || typeof obj !== 'object') {
+    return obj;
+  }
   Object.keys(obj).map((key) => {
     const val = obj[key];
 
@@ -205,7 +208,7 @@ export function definedKeys(obj) {
   return compact(flattenDeep(keys));
 }
 
-export function diff(from, to) {
+export function diff(from, to, preventNull = false) {
   from = from || {};
   to = to || {};
 
@@ -220,8 +223,14 @@ export function diff(from, to) {
     if ( Array.isArray(toVal) || Array.isArray(fromVal) ) {
       // Don't diff arrays, just use the whole value
       res[k] = toVal;
-    } else if ( isObject(toVal) && isObject(from[k]) ) {
-      res[k] = diff(fromVal, toVal);
+    } else if ( isObject(toVal) && isObject(fromVal) ) {
+      const nested = diff(fromVal, toVal, preventNull);
+
+      if (isEmpty(toVal) && !isEmpty(fromVal)) {
+        res[k] = {};
+      } else if (!isEmpty(nested)) {
+        res[k] = nested;
+      }
     } else {
       res[k] = toVal;
     }
@@ -234,7 +243,67 @@ export function diff(from, to) {
   const missing = difference(fromKeys, toKeys);
 
   for ( const k of missing ) {
-    set(out, k, null);
+    // we need to gate this in order to prevent unforseen problems with addonConfig
+    const hasDescendant = toKeys.some(
+      (tk) => tk.startsWith(`${ k }.`)
+    );
+
+    if (hasDescendant) {
+      continue;
+    }
+
+    // If we already have a value in 'out' for any parent of this missing key, do NOT nullify the child.
+    const parts = splitObjectPath(k);
+    let hasUpdatedParent = false;
+
+    for (let i = 1; i < parts.length; i++) {
+      const parentPath = joinObjectPath(parts.slice(0, i));
+
+      if (get(out, parentPath) !== undefined) {
+        hasUpdatedParent = true;
+        break;
+      }
+    }
+
+    if (hasUpdatedParent) {
+      continue;
+    }
+
+    if (preventNull) {
+      // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
+      // so that we can access the value of the obj property
+      let key = k;
+
+      if (!k.includes('.')) {
+        key = k.replaceAll('"', '');
+      }
+
+      // // if value exists in "from" but is missing in "to", let's add it, otherwise we just set it null as we did before
+      if (from[key] !== undefined && from[key] !== null) {
+        set(out, key, from[key]);
+      } else {
+        set(out, key, null);
+      }
+    } else {
+      const parts = splitObjectPath(k);
+
+      // Skip any missing nested key whose parent path in out is already a
+      // non-object. We don't want to attempt to null out the key that appeared
+      // in the diff when a pre-defined key
+      // (githubConfigSecret.github_token: '') gets updated to
+      // (githubConfigSecret: 'preexisting-secret')
+      const skip = parts.some((part) => {
+        const existingVal = out?.[part];
+
+        if (existingVal !== undefined && !isObject(existingVal)) {
+          return true;
+        }
+      });
+
+      if (!skip) {
+        set(out, k, null);
+      }
+    }
   }
 
   return out;
@@ -527,3 +596,39 @@ export function mergeWithReplace(
     }
   });
 }
+/**
+ * Converts Object into a string of a format "key1, val1, key2, val2"
+ * @param {Object} input - KV object to convert
+ * @returns string
+ */
+export const convertKVToString = (input) => {
+  if (!input || typeof input !== 'object') return '';
+
+  return Object.entries(input)
+    .flatMap(([key, value]) => [key, String(value)])
+    .join(',');
+};
+
+/**
+ * Converts kv string into object
+ * @param {string} input - a string of a format "key1, val1, key2, val2"
+ * @returns
+ */
+export const convertStringToKV = ( input ) => {
+  if (!input?.trim()) return {};
+
+  const parts = input.split(',').map((part) => part.trim());
+  const result = {};
+
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    const key = parts[i];
+    const value = parts[i + 1];
+
+    // Accept empty keys but ignore undefined values
+    if (typeof key === 'string') {
+      result[key] = value ?? '';
+    }
+  }
+
+  return result;
+};

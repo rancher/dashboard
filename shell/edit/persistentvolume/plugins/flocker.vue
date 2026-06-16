@@ -13,10 +13,8 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['flocker'] = this.value.spec.flocker || {};
-
-    return {};
   },
 };
 </script>

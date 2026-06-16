@@ -75,6 +75,7 @@ export default {
       <button
         :disabled="disable"
         @click="customBadgeDialog"
+        @keydown.enter.space.prevent="customBadgeDialog"
       >
         <i class="icon icon-brush-icon" />
         <span>
@@ -117,6 +118,10 @@ export default {
         top: 0;
         color: var(--link);
         background: transparent;
+
+        &:focus-visible {
+          @include focus-outline;
+        }
 
         i {
           margin-right: 2px;

@@ -5,24 +5,29 @@ on:
     tags:
         - 'components-v*'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       with:
         fetch-depth: 0
         persist-credentials: false
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
         node-version-file: '.nvmrc'
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
+
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
 
     - name: Install
       run: yarn install:ci
@@ -46,5 +51,3 @@ jobs:
         else
           yarn publish:lib
         fi
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

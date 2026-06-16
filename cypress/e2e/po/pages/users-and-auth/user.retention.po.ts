@@ -4,6 +4,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ToggleSwitchPo from '@/cypress/e2e/po/components/toggle-switch.po';
+import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 
 export default class UserRetentionPo extends PagePo {
   constructor(private clusterId = '_') {
@@ -12,6 +13,14 @@ export default class UserRetentionPo extends PagePo {
 
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/auth/user.retention`;
+  }
+
+  static navTo() {
+    const usersPo = new UsersPo();
+
+    usersPo.goTo();
+    usersPo.waitForPage();
+    usersPo.userRetentionLink().click();
   }
 
   saveButton() {

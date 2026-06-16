@@ -32,7 +32,7 @@ export default {
           { value: 'simple', label: 'Key/Value Pair' },
           { value: 'resourceFieldRef', label: 'Resource' },
           { value: 'configMapKeyRef', label: 'ConfigMap Key' },
-          { value: 'secretKeyRef', label: 'Secret key' },
+          { value: 'secretKeyRef', label: 'Secret Key' },
           { value: 'fieldRef', label: 'Pod Field' },
           { value: 'secretRef', label: 'Secret' },
           { value: 'configMapRef', label: 'ConfigMap' },

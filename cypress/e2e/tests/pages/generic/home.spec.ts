@@ -1,20 +1,21 @@
+import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
-import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
+import { qase } from '@/cypress/support/qase';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
-const provClusterList = new ClusterManagerListPagePo('local');
+const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
 // Reset the home page card prefs, go the home page and ensure the page is fully loaded
 function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
-
-  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', {
+  cy.intercept('GET', '/v1/management.cattle.io.clusters?*', {
     statusCode: 200,
     body:       {
       count: 0,
@@ -30,12 +31,22 @@ function goToHomePageAndSettle() {
   cy.wait('@fetchClustersHomePage');
 
   // Wait for the cluster table to load and filter so there are no rows
-  homeClusterList.resourceTable().sortableTable().filter('random text');
+  homeClusterList.resourceTable().sortableTable().filter('random text', 200);
   homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 
+// Prime shows an extra notification vs Community
+// Min items: Community 1, Prime 2. Count can be higher (dynamic new-release applies to Community and Prime).
+function assertHomeNotificationCount(nc: NotificationsCenterPo) {
+  cy.getRancherVersion().then((version) => {
+    const minCount = version.RancherPrime === 'true' ? 2 : 1;
+
+    nc.checkCountAtLeast(minCount);
+  });
+}
+
 describe('Home Page', () => {
-  it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  qase(3002, it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
 
     cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
@@ -48,22 +59,22 @@ describe('Home Page', () => {
     // Yes this is bad, but want to ensure no other settings requests are made.
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
     cy.get('@settingsReq.all').should('have.length', 1);
-  });
+  }));
 
   describe('List', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
     });
 
-    it('Validate home page with percy', { tags: ['@generic', '@adminUser'] }, () => {
+    qase(8563, it('Validate home page with percy', { tags: ['@generic', '@adminUser'] }, () => {
       // Navigate to home page and wait for page to be fully loaded.
       HomePagePo.goToAndWaitForGet();
 
       // #takes percy snapshot.
       cy.percySnapshot('Home Page');
-    });
+    }));
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
+    qase(14900, it('Can see that cluster details match those in Cluster Management page', { tags: ['@generic', '@adminUser'] }, () => {
       /**
        * Get cluster details from the Home page
        * Verify that the cluster details match those on the Cluster Management page
@@ -79,27 +90,29 @@ describe('Home Page', () => {
       homeClusterList.version(clusterName).invoke('text').as('versionText');
       homeClusterList.provider(clusterName).invoke('text').as('providerText');
 
-      provClusterList.goTo();
-      provClusterList.waitForPage();
+      clusterMgmtClusterList.goTo();
+      clusterMgmtClusterList.waitForPage();
 
       cy.get('@stateText').then((state) => {
-        provClusterList.list().details(clusterName, 1).should('contain.text', state);
+        clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
       });
 
-      cy.get('@nameText').then((name) => {
-        provClusterList.list().details(clusterName, 2).should('contain.text', name);
+      cy.get('@nameText').then((nameElm) => {
+        const name = (nameElm as unknown as string).trim(); // nameElm is text...
+
+        clusterMgmtClusterList.list().details(clusterName, 2).should('contain.text', name);
       });
 
       cy.get('@versionText').then((version) => {
-        provClusterList.list().details(clusterName, 3).should('contain.text', version);
+        clusterMgmtClusterList.list().details(clusterName, 4).should('contain.text', version);
       });
 
       cy.get('@providerText').then((provider) => {
-        provClusterList.list().details(clusterName, 4).should('contain.text', provider);
+        clusterMgmtClusterList.list().details(clusterName, 3).should('contain.text', provider);
       });
-    });
+    }));
 
-    it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
+    qase(4109, it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
       /**
        * Filter rows in the cluster list
        */
@@ -115,15 +128,23 @@ describe('Home Page', () => {
       homeClusterList.name('local').should((el) => {
         expect(el).to.contain.text('local');
       });
-    });
+    }));
 
-    it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
+    qase(4108, it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
       // since I wasn't able to fully mock a list of clusters
       // the next best thing is to add a description to the current local cluster
       // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+
+      const homePageWithLocalPagination = '/v1/management.cattle.io.clusters?*';
+
+      // Why the long intercept url?
+      // There are two requests to fetch clusters (side nav + cluster list). In theory "cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`" should intercept them both
+      // how is not, only the first one for the side nav, and not the second for the list.
+      // const homePageWithSSP = `/v1/provisioning.cattle.io.clusters?page=1&pagesize=100&sort=metadata.annotations[provisioning.cattle.io/management-cluster-display-name]&filter=metadata.labels[provider.cattle.io]!=harvester&filter=status.provider!=harvester&exclude=metadata.managedFields`;
+
+      cy.intercept('GET', homePageWithLocalPagination, (req) => {
         req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+          const localIndex = res.body.data.findIndex((item: any) => item.id === 'local');
 
           if (localIndex >= 0) {
             res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
@@ -140,9 +161,9 @@ describe('Home Page', () => {
         .get('.cluster-description');
 
       desc.contains(longClusterDescription);
-    });
+    }));
 
-    it('check table headers are visible', { tags: ['@vai', '@generic', '@adminUser'] }, () => {
+    qase(4107, it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
       homePage.goTo();
       homePage.waitForPage();
 
@@ -157,7 +178,7 @@ describe('Home Page', () => {
 
           expect(text).to.eq(expectedHeaders[i]);
         });
-    });
+    }));
   });
 
   describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -167,18 +188,24 @@ describe('Home Page', () => {
       HomePagePo.goTo();
     });
 
-    it('can click on Docs link', () => {
+    qase(1477, it('can click on Docs link', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
 
-      homePage.supportLinks().should('have.length', 6);
+      homePage.supportLinks().should('have.length.at.least', 6);
       homePage.clickSupportLink(0, true);
 
-      cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        cy.url().should('include', 'ranchermanager.docs.rancher.com');
-      });
-    });
+      // Doc link differs between Rancher Prime and Community
+      cy.getRancherVersion().then((version) => {
+        const expectedOrigin = version.RancherPrime === 'true' ? 'https://documentation.suse.com' : 'https://ranchermanager.docs.rancher.com';
+        const expectedUrl = version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'ranchermanager.docs.rancher.com';
 
-    it('can click on Forums link', () => {
+        cy.origin(expectedOrigin, { args: { expectedUrl } }, ({ expectedUrl }) => {
+          cy.url().should('include', expectedUrl);
+        });
+      });
+    }));
+
+    qase(1475, it('can click on Forums link', () => {
       catchTargetPageException('TenantFeatures', 'https://forums.suse.com');
 
       // click Forums link
@@ -187,40 +214,53 @@ describe('Home Page', () => {
       cy.origin('https://forums.suse.com', () => {
         cy.url().should('include', 'forums.suse.com/');
       });
-    });
+    }));
 
-    it('can click on Slack link', () => {
+    qase(1474, it('can click on Slack link', () => {
       // click Slack link
       homePage.clickSupportLink(2, true);
 
       cy.origin('https://slack.rancher.io', () => {
         cy.url().should('include', 'slack.rancher.io/');
       });
-    });
+    }));
 
-    it('can click on File an Issue link', () => {
+    qase(1478, it('can click on File an Issue link', () => {
       // click File an Issue link
       homePage.clickSupportLink(3, true);
 
       cy.origin('https://github.com', () => {
         cy.url().should('include', 'github.com/login');
       });
-    });
+    }));
 
-    it('can click on Get Started link', () => {
+    qase(1473, it('can click on Get Started link', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
 
       // click Get Started link
       homePage.clickSupportLink(4, true);
 
       cy.url().should('include', 'getting-started/overview');
-    });
+    }));
 
-    it('can click on Commercial Support link', () => {
-      // click Commercial Support link
-      homePage.clickSupportLink(5);
+    qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
+      catchTargetPageException();
 
-      cy.url().should('include', '/support');
+      // click Rancher Prime link (replaces old Commercial Support link)
+      homePage.clickSupportLink(5, true);
+      cy.origin('https://www.suse.com', () => {
+        cy.url().should('include', 'suse.com/products/rancher');
+      });
+    }));
+
+    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
+      // click SUSE Application Collection link
+      homePage.clickSupportLink(5, true);
+      cy.origin('https://apps.rancher.io/', () => {
+        cy.url().should('include', 'apps.rancher.io/');
+      });
     });
   });
 
@@ -229,12 +269,7 @@ describe('Home Page', () => {
       cy.login();
     });
 
-    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      HomePagePo.navTo();
-      homePage.waitForPage();
-    });
-
-    it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    qase(9690, it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       cy.setUserPreference({ 'read-whatsnew': '' });
 
       goToHomePageAndSettle();
@@ -250,10 +285,11 @@ describe('Home Page', () => {
       nc.checkExists();
       nc.checkVisible();
       nc.checkHasUnread();
-      nc.checkCount(1);
 
-      // Get the release notes notification - this is the first (and only) one
-      let item = nc.getNotificationByIndex(0);
+      assertHomeNotificationCount(nc);
+
+      // Get the release notes notification - this is the first one on Community builds, second on Prime builds
+      let item = nc.getNotificationByName('release-notes');
 
       item.checkExists();
 
@@ -278,11 +314,11 @@ describe('Home Page', () => {
 
       nc.checkExists();
       nc.checkVisible();
-      nc.checkCount(1);
+      assertHomeNotificationCount(nc);
       nc.checkAllRead();
 
       // Now mark the notification as unread
-      item = nc.getNotificationByIndex(0);
+      item = nc.getNotificationByName('release-notes');
 
       item.title().should('contain', `Welcome to Rancher v`);
       item.primaryActionButton().should('exist');
@@ -291,9 +327,9 @@ describe('Home Page', () => {
       item.toggleRead();
       item.checkUnread();
       nc.checkHasUnread();
-    });
+    }));
 
-    it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    qase(7009, it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
       // Banner graphic should be visible
@@ -303,15 +339,20 @@ describe('Home Page', () => {
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic should be visible
+      // Banner graphic should be hidden
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic
       homePage.toggleBanner();
       homePage.bannerGraphic().graphicBanner().should('exist');
-    });
+    }));
 
-    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    qase(8910, it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      HomePagePo.navTo();
+      homePage.waitForPage();
+    }));
+
+    qase(1427, it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click 'Manage' button and verify user lands on the Cluster Management page
      * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
@@ -331,37 +372,46 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
       homePage.createButton().click();
       genericCreateClusterPage.waitForPage();
-    });
+    }));
 
-    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    qase(2059, it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       cy.setUserPreference({ 'read-whatsnew': '' });
       HomePagePo.navTo();
       homePage.waitForPage();
 
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const nc = homePage.notificationsCenter();
+      const nc = homePage.notificationsCenter();
 
-        // Open the notification centre
-        nc.toggle();
+      // Open the notification centre
+      nc.toggle();
 
-        nc.checkOpen();
-        nc.checkExists();
-        nc.checkVisible();
-        nc.checkCount(1);
+      nc.checkOpen();
+      nc.checkExists();
+      nc.checkVisible();
+      assertHomeNotificationCount(nc);
 
-        // Get the release notes notification
-        const item = nc.getNotificationByIndex(0);
+      const item = nc.getNotificationByName('release-notes');
 
-        item.checkExists();
+      item.checkExists();
 
+      cy.getRancherVersion().then((version) => {
         cy.window().then((win) => {
           cy.stub(win, 'open', () => {}).as('openReleaseNotes');
         });
 
         item.primaryActionButton().click();
 
-        cy.get('@openReleaseNotes').should('be.calledWith', 'https://github.com/rancher/rancher/releases/latest', '_blank');
+        cy.get('@openReleaseNotes').should((stub: any) => {
+          const [url, target] = stub.getCall(0).args;
+
+          expect(url).to.contain(version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'github.com/rancher/rancher/releases');
+          expect(target).to.eq('_blank');
+        });
       });
-    });
+    }));
+  });
+
+  after(() => {
+    // Clear any banner hiding preferences - needed incase of 'Can toggle banner graphic' test failure
+    cy.setUserPreference({ 'home-page-cards': '{}' });
   });
 });

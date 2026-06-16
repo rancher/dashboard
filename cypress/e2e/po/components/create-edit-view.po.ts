@@ -3,6 +3,10 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
 export default class CreateEditViewPo extends ComponentPo {
+  errorBanner() {
+    return this.self().find('#cru-errors');
+  }
+
   nameNsDescription() {
     return new NameNsDescription(this.self());
   }
@@ -20,7 +24,7 @@ export default class CreateEditViewPo extends ComponentPo {
   }
 
   cancel() {
-    return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-secondary')).click();
+    return new AsyncButtonPo(this.self().find('.cru-resource-footer .variant-secondary')).click();
   }
 
   saveAndWait() {

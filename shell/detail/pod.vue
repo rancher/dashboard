@@ -97,6 +97,7 @@ export default {
 
         return {
           ...container,
+          kind:             'Container',
           status:           status || {},
           stateDisplay:     status ? this.value.containerStateDisplay(status) : undefined,
           stateBackground:  status ? this.value.containerStateColor(status).replace('text', 'bg') : undefined,
@@ -105,7 +106,7 @@ export default {
           availableActions: this.value.containerActions,
           stateObj:         status, // Required if there's a description
           stateDescription: descriptions.join(' | '), // Required to display the description
-          initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
+          initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark text-success ml-5' : 'icon-minus text-muted ml-5',
 
           // Call openShell here so that opening the shell
           // at the container level still has 'this' in scope.
@@ -231,7 +232,7 @@ export default {
           :detail-url="POD_METRICS_DETAIL_URL"
           :summary-url="POD_METRICS_SUMMARY_URL"
           :vars="graphVars"
-          graph-height="550px"
+          graph-height="600px"
         />
       </template>
     </Tab>
@@ -247,7 +248,7 @@ export default {
           :detail-url="POD_PROJECT_METRICS_DETAIL_URL"
           :summary-url="POD_PROJECT_METRICS_SUMMARY_URL"
           :vars="graphVars"
-          graph-height="550px"
+          graph-height="600px"
         />
       </template>
     </Tab>

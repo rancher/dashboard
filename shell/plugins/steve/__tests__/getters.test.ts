@@ -120,7 +120,7 @@ describe('steve: getters:', () => {
       expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar');
     });
     it('returns a string without an exclude statement for "managedFields" if omitExcludeFields includes it and the url starts with "/v1/"', () => {
-      expect(urlOptionsGetter('/v1/foo', { omitExcludeFields: ['metadata.managedFields'] })).toBe('/v1/foo?');
+      expect(urlOptionsGetter('/v1/foo', { omitExcludeFields: ['metadata.managedFields'] })).toBe('/v1/foo');
     });
     it('returns a string without an exclude statement if excludeFields is set but the url does not start with "/v1/"', () => {
       expect(urlOptionsGetter('foo', { excludeFields: ['bar'] })).toBe('foo');

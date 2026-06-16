@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-const localWorkspace = 'fleet-local';
+// const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
 let customRestrictionName = '';
 let removeRestriction = false;
@@ -62,38 +62,38 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
-    it.skip('can Edit Config', () => {
-      const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo(defaultWorkspace, customRestrictionName);
+    // it.skip('can Edit Config', () => {
+    //   const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo(defaultWorkspace, customRestrictionName);
 
-      cy.intercept('PUT', `/v1/fleet.cattle.io.gitreporestrictions/${ defaultWorkspace }/${ customRestrictionName }`).as('editRestriction');
+    //   cy.intercept('PUT', `/v1/fleet.cattle.io.gitreporestrictions/${ defaultWorkspace }/${ customRestrictionName }`).as('editRestriction');
 
-      fleetRestrictionsListPage.goTo();
-      fleetRestrictionsListPage.waitForPage();
-      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Edit YAML')
-        .click();
-      fleetRestrictionCreateEditPage.waitForPage('mode=edit&as=yaml');
-      fleetRestrictionCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`GitRepoRestriction: ${ customRestrictionName }`);
-      });
-      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-        .value()
-        .then((val) => {
-          // convert yaml into json to update values
-          const json: any = jsyaml.load(val);
+    //   fleetRestrictionsListPage.goTo();
+    //   fleetRestrictionsListPage.waitForPage();
+    //   fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Edit YAML')
+    //     .click();
+    //   fleetRestrictionCreateEditPage.waitForPage('mode=edit&as=yaml');
+    //   fleetRestrictionCreateEditPage.mastheadTitle().then((title) => {
+    //     expect(title.replace(/\s+/g, ' ')).to.contain(`GitRepoRestriction: ${ customRestrictionName }`);
+    //   });
+    //   fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //     .value()
+    //     .then((val) => {
+    //       // convert yaml into json to update values
+    //       const json: any = jsyaml.load(val);
 
-          json.metadata.namespace = localWorkspace;
+    //       json.metadata.namespace = localWorkspace;
 
-          fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-            .set(jsyaml.dump(json));
-        });
-      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
-        .click();
-      cy.wait('@editRestriction').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body.metadata.namespace).equals(localWorkspace);
-      });
-      fleetRestrictionsListPage.waitForPage();
-    });
+    //       fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //         .set(jsyaml.dump(json));
+    //     });
+    //   fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
+    //     .click();
+    //   cy.wait('@editRestriction').then(({ response }) => {
+    //     expect(response?.statusCode).to.eq(200);
+    //     expect(response?.body.metadata.namespace).equals(localWorkspace);
+    //   });
+    //   fleetRestrictionsListPage.waitForPage();
+    // });
 
     it('can clone a gitrepo restriction', () => {
       const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo(defaultWorkspace, customRestrictionName);

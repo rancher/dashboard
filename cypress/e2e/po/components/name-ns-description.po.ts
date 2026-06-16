@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class NameNsDescription extends ComponentPo {
   name() {
@@ -8,6 +9,15 @@ export default class NameNsDescription extends ComponentPo {
 
   description() {
     return new LabeledInputPo(this.self().find('[data-testid="name-ns-description-description"] input'));
+  }
+
+  namespace() {
+    return new LabeledSelectPo(`[data-testid="name-ns-description-namespace"]`, this.self());
+  }
+
+  selectNamespace(label: string) {
+    this.namespace().toggle();
+    this.namespace().clickLabel(label);
   }
 
   project() {

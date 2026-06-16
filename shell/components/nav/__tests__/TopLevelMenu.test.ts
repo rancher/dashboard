@@ -3,6 +3,16 @@ import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { nextTick } from 'vue';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+
+jest.mock('@shell/utils/pagination-wrapper', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      request:   jest.fn().mockResolvedValue({ data: [] }),
+      onDestroy: jest.fn(),
+    };
+  });
+});
 
 /**
  * `clusters` doubles up as both mgmt and prov clusters (don't shoot the messenger)
@@ -53,11 +63,15 @@ const waitForIt = async() => {
 describe('topLevelMenu', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    sideNavService.reset();
+    sideNavService.initialized = false;
+    jest.restoreAllMocks();
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('should display clusters', async() => {
@@ -96,28 +110,28 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'x33-cwf5-name',
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'x34-cwf5-name',
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     true
+                canExplore:  true
               },
               {
                 name:        'local-name',
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true
+                canExplore:  true
               },
             ])
           }
@@ -142,28 +156,28 @@ describe('topLevelMenu', () => {
         id:          'an-id1',
         mgmt:        { id: 'an-id1' },
         nameDisplay: 'c-cluster',
-        isReady:     true
+        canExplore:  true
       },
       {
         name:        'x33-cwf5-name',
         id:          'an-id2',
         mgmt:        { id: 'an-id2' },
         nameDisplay: 'a-cluster',
-        isReady:     false
+        canExplore:  false
       },
       {
         name:        'x34-cwf5-name',
         id:          'an-id3',
         mgmt:        { id: 'an-id3' },
         nameDisplay: 'b-cluster',
-        isReady:     true
+        canExplore:  true
       },
       {
         name:        'local-name',
         id:          'local',
         mgmt:        { id: 'local' },
         nameDisplay: 'local',
-        isReady:     true,
+        canExplore:  true,
         isLocal:     true,
       },
     ];
@@ -181,9 +195,9 @@ describe('topLevelMenu', () => {
     await waitForIt();
 
     expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
     expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
     expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
-    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
   });
 
   it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
@@ -198,7 +212,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -206,7 +220,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -214,7 +228,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -222,7 +236,7 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
             ])
@@ -257,7 +271,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -265,7 +279,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               {
@@ -273,7 +287,7 @@ describe('topLevelMenu', () => {
                 id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
-                isReady:     false,
+                canExplore:  false,
                 pinned:      true
               },
               {
@@ -281,7 +295,7 @@ describe('topLevelMenu', () => {
                 id:          'local',
                 mgmt:        { id: 'local' },
                 nameDisplay: 'local',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
             ])
@@ -314,7 +328,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id1' },
                 description: 'some-description1',
                 nameDisplay: 'some-label',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               // pinned NOT ready cluster
@@ -333,7 +347,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id3' },
                 description: 'some-description3',
                 nameDisplay: 'some-label',
-                isReady:     true
+                canExplore:  true
               },
               // unpinned NOT ready cluster
               {
@@ -378,7 +392,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id1' },
                 description: 'some-description1',
                 nameDisplay: 'some-label',
-                isReady:     true,
+                canExplore:  true,
                 pinned:      true
               },
               // pinned NOT ready cluster
@@ -397,7 +411,7 @@ describe('topLevelMenu', () => {
                 mgmt:        { id: 'an-id3' },
                 description: 'some-description3',
                 nameDisplay: 'some-label',
-                isReady:     true
+                canExplore:  true
               },
               // unpinned NOT ready cluster
               {
@@ -432,8 +446,6 @@ describe('topLevelMenu', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', async() => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: 'whatever' }),
-
           global: {
             mocks: {
               $route: {},
@@ -451,6 +463,8 @@ describe('topLevelMenu', () => {
             stubs: ['BrandImage', 'router-link'],
           },
         });
+
+        await wrapper.setData({ clusterFilter: 'whatever' });
 
         await waitForIt();
 
@@ -525,8 +539,6 @@ describe('topLevelMenu', () => {
       it('given clusters with status pinned', async() => {
         const search = 'you found me';
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: search }),
-
           global: {
             mocks: {
               $route: {},
@@ -546,12 +558,400 @@ describe('topLevelMenu', () => {
           },
         });
 
+        await wrapper.setData({ clusterFilter: search });
+
         await waitForIt();
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
 
         expect(wrapper.vm.pinFiltered).toHaveLength(1);
         expect(noResults.exists()).toBe(false);
+      });
+    });
+  });
+
+  describe('initialization', () => {
+    it('should initialize sideNavService', () => {
+      const spyInit = jest.spyOn(sideNavService, 'init');
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(spyInit).toHaveBeenCalled(); // eslint-disable-line jest/prefer-called-with
+    });
+
+    it('should call helper.update if pagination is disabled', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => false;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).toHaveBeenCalledWith({
+        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+      });
+    });
+
+    it('should call helper.update if pagination is enabled but service not initialized', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      sideNavService.initialized = false;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).toHaveBeenCalledWith({
+        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+      });
+    });
+
+    it('should NOT call helper.update if pagination is enabled and service initialized', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      sideNavService.initialized = true;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: [], updateCount: () => {}
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should populate clusters from store if pagination is disabled', () => {
+      const clusters = [{ id: 'c1' }];
+      const store = generateStore(clusters);
+
+      store.getters['management/paginationEnabled'] = () => false;
+      store.getters['management/schemaFor'] = () => true;
+
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(wrapper.vm.provClusters).toStrictEqual(clusters);
+      expect(wrapper.vm.mgmtClusters).toStrictEqual(clusters);
+    });
+
+    it('should NOT populate clusters from store if pagination is enabled', () => {
+      const clusters = [{ id: 'c1' }];
+      const store = generateStore(clusters);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      store.getters['management/schemaFor'] = () => true;
+
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(wrapper.vm.provClusters).toStrictEqual([]);
+      expect(wrapper.vm.mgmtClusters).toStrictEqual([]);
+    });
+  });
+
+  describe('computed properties', () => {
+    describe('routeComboActive', () => {
+      it('should be true when routeCombo is true and there are multiple ready clusters', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+              $store: {
+                ...generateStore([
+                  {
+                    nameDisplay: 'cluster1',
+                    id:          'an-id1',
+                    mgmt:        { id: 'an-id1' },
+                    canExplore:  true
+                  },
+                  {
+                    nameDisplay: 'cluster2',
+                    id:          'an-id2',
+                    mgmt:        { id: 'an-id2' },
+                    canExplore:  true
+                  }
+                ])
+              }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(true);
+      });
+
+      it('should be false when routeCombo is false', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: {
+                ...generateStore([
+                  {
+                    nameDisplay: 'cluster1',
+                    id:          'an-id1',
+                    mgmt:        { id: 'an-id1' },
+                    canExplore:  true
+                  },
+                  {
+                    nameDisplay: 'cluster2',
+                    id:          'an-id2',
+                    mgmt:        { id: 'an-id2' },
+                    canExplore:  true
+                  }
+                ])
+              }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: false });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+      });
+
+      it('should be false when there is only one ready cluster and it is the current cluster', async() => {
+        const store = generateStore([
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true
+          }
+        ]);
+
+        store.getters.clusterId = 'an-id1' as any;
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: {},
+              $store: store
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+      });
+
+      it('should be true when there is only one ready cluster but it is not the current cluster', async() => {
+        const store = generateStore([
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true
+          }
+        ]);
+
+        store.getters.clusterId = 'some-other-cluster-id' as any;
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+              $store: store
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(true);
+      });
+    });
+
+    describe('handleKeyComboClick', () => {
+      it('should not toggle routeCombo when route is a non-explorer c-cluster route', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
+              $router: { push: jest.fn() },
+              $store:  { ...generateStore([]) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        expect(wrapper.vm.routeCombo).toBe(false);
+        wrapper.vm.handleKeyComboClick();
+        expect(wrapper.vm.routeCombo).toBe(false);
+      });
+
+      it('should toggle routeCombo when route is cluster explorer', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+              $router: { push: jest.fn() },
+              $store:  { ...generateStore([]) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        expect(wrapper.vm.routeCombo).toBe(false);
+        wrapper.vm.handleKeyComboClick();
+        expect(wrapper.vm.routeCombo).toBe(true);
+      });
+    });
+
+    describe('clusterMenuClick', () => {
+      it('should navigate normally on non-explorer c-cluster route even with routeCombo set', async() => {
+        const mockPush = jest.fn();
+        const clusterRoute = { name: 'c-cluster-explorer' };
+        const clusters = [
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            clusterRoute
+          },
+          {
+            nameDisplay: 'cluster2',
+            id:          'an-id2',
+            mgmt:        { id: 'an-id2' },
+            canExplore:  true,
+            clusterRoute
+          }
+        ];
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
+              $router: { push: mockPush },
+              $store:  { ...generateStore(clusters) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+
+        const ev = { preventDefault: jest.fn() };
+
+        wrapper.vm.clusterMenuClick(ev, clusters[1]);
+
+        expect(mockPush).toHaveBeenCalledWith(clusterRoute);
+      });
+
+      it('should navigate to cluster route when routeComboActive is false', async() => {
+        const mockPush = jest.fn();
+        const clusterRoute = { name: 'c-cluster-explorer' };
+        const clusters = [
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            clusterRoute
+          }
+        ];
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'fleet-management', params: {} },
+              $router: { push: mockPush },
+              $store:  { ...generateStore(clusters) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        const ev = { preventDefault: jest.fn() };
+
+        wrapper.vm.clusterMenuClick(ev, clusters[0]);
+
+        expect(mockPush).toHaveBeenCalledWith(clusterRoute);
       });
     });
   });

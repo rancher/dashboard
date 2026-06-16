@@ -16,7 +16,9 @@ describe('Side Menu: main', () => {
 
   describe('Needs intercepts BEFORE route navigation', () => {
     beforeEach(() => {
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({
+        fakeProvClusterId, fakeMgmtClusterId, longClusterDescription
+      });
 
       HomePagePo.goTo();
     });
@@ -29,15 +31,15 @@ describe('Side Menu: main', () => {
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
-      BurgerMenuPo.burgerMenuGetNavClusterbyLabel('local').should('exist');
-      BurgerMenuPo.burgerMenuGetNavClusterbyLabel(fakeProvClusterId).should('exist');
+      BurgerMenuPo.burgerMenuGetNavClusterByLabel('local').should('exist');
+      BurgerMenuPo.burgerMenuGetNavClusterByLabel(fakeProvClusterId).should('exist');
 
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
 
       // assert that icons are displayed for the key combo
-      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(0);
-      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(1);
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel('local');
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheckByLabel(fakeProvClusterId);
 
       // nav to local
       pagePoFake.navToClusterMenuEntry('local');
@@ -53,9 +55,9 @@ describe('Side Menu: main', () => {
       const burgerMenuPo = new BurgerMenuPo();
 
       // we cannot assert text truncation because it always adds to the HTML the full content
-      // truncation (text-overflow: ellipsis) is just a CSS gimick thing that adds the ... visually
-      burgerMenuPo.getClusterDescription().should('include', longClusterDescription);
-      burgerMenuPo.showClusterDescriptionTooltip();
+      // truncation (text-overflow: ellipsis) is just a CSS gimmick thing that adds the ... visually
+      burgerMenuPo.getClusterDescription('local').should('include', longClusterDescription);
+      burgerMenuPo.showClusterDescriptionTooltip('local');
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
       burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription).and('be.visible');
     });
@@ -97,10 +99,20 @@ describe('Side Menu: main', () => {
     it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.allClusters().first().trigger('mouseover');
-      BurgerMenuPo.checkIconTooltipOff();
+      // Collapse the menu
       BurgerMenuPo.toggle();
-      BurgerMenuPo.checkIconTooltipOn();
+      BurgerMenuPo.checkClosed();
+
+      // Hover over the first cluster icon and check that the tooltip is shown with the correct content
+      burgerMenuPo.firstClusterIcon().realHover();
+      BurgerMenuPo.checkIconTooltipOn('local');
+
+      // Open the menu
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+
+      burgerMenuPo.firstClusterIcon().realHover();
+      BurgerMenuPo.checkIconTooltipOff();
     });
 
     // TODO: #5966: Verify cause of race condition issue making navigation link not trigger

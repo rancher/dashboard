@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: ViewOptions/index should match the snapshot 1`] = `
+<div class="btn-group"><button data-testid="button-group-child-0" type="button" class="btn bg-primary" role="button" aria-label="%resourceDetail.masthead.detail%" aria-pressed="true">
+    <!--v-if--><span k="resourceDetail.masthead.detail"></span>
+  </button><button data-testid="button-group-child-1" type="button" class="btn bg-disabled" role="button" aria-label="%resourceDetail.masthead.graph%" aria-pressed="false">
+    <!--v-if--><span k="resourceDetail.masthead.graph"></span>
+  </button></div>
+`;

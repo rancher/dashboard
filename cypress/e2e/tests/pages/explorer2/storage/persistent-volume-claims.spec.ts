@@ -1,21 +1,22 @@
 import { generatePersistentVolumeClaimsDataSmall, persistentVolumeClaimsNoData } from '@/cypress/e2e/blueprints/explorer/storage/persistent-volume-claims-get';
 import { PersistentVolumeClaimsPagePo } from '@/cypress/e2e/po/pages/explorer/persistent-volume-claims.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { qase } from '@/cypress/support/qase';
 
 const cluster = 'local';
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
-describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });
 
-    it('validate persistent volume claims table in empty state', () => {
+    qase(4102, it('validate persistent volume claims table in empty state', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
 
       const tag = 'persistentvolumeclaimsNoData';
@@ -34,9 +35,9 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
         });
 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkRowCount(true, 1);
-    });
+    }));
 
-    it('flat list: validate persistent volume claims table', () => {
+    qase(4104, it('flat list: validate persistent volume claims table', () => {
       const tag = 'persistentvolumeclaimsDataSmall';
 
       generatePersistentVolumeClaimsDataSmall(tag);
@@ -57,10 +58,10 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-    });
+    }));
 
     // storage/persistent-volume-claims.spec.ts
-    it('group by namespace: validate persistent volume claims table', () => {
+    qase(4103, it('group by namespace: validate persistent volume claims table', () => {
       const tag = 'persistentvolumeclaimsDataSmall';
 
       generatePersistentVolumeClaimsDataSmall(tag);
@@ -88,7 +89,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
         .scrollIntoView()
         .should('be.visible');
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-    });
+    }));
 
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');

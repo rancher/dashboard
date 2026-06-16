@@ -10,6 +10,7 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';
 import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
+import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 
 export default {
 
@@ -40,8 +41,17 @@ export default {
       default: () => ({})
     },
 
+    infrastructureCluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
     // no credentials are required for elemental machine pools
     credentialId: {
+      type:    String,
+      default: null
+    },
+    projectId: {
       type:    String,
       default: null
     },
@@ -81,11 +91,131 @@ export default {
     poolCreateMode: {
       type:     Boolean,
       required: true,
+    },
+    hideAdvanced: {
+      type:    Boolean,
+      default: false
     }
   },
 
   data() {
-    const parseDuration = (duration) => {
+    return {
+      uuid: randomStr(),
+
+      unhealthyNodeTimeoutInteger: 0,
+
+      validationErrors: [],
+
+      MACHINE_POOL_VALIDATION,
+
+      fvFormRuleSets: MACHINE_POOL_VALIDATION.RULESETS,
+      fvExtraRules:   {
+        isAutoscalerMaxGreaterThanMin: () => {
+          const min = this.value?.pool?.autoscalingMinSize || 0;
+          const max = this.value?.pool?.autoscalingMaxSize || 0;
+
+          return max - min >= 0 ? undefined : this.t('cluster.machinePool.autoscaler.validation.isAutoscalerMaxGreaterThanMin');
+        },
+        uniquePoolName: (name) => {
+          if (!name) {
+            return undefined;
+          }
+
+          const otherPools = (this.machinePools || []).filter((p) => !p.remove && p !== this.value);
+          const isDuplicate = otherPools.some((p) => p.pool.name?.toLowerCase() === name.toLowerCase());
+
+          return isDuplicate ? this.t('cluster.machinePool.name.unique') : undefined;
+        }
+      }
+    };
+  },
+
+  computed: {
+    configComponent() {
+      if (this.$store.getters['type-map/hasCustomMachineConfigComponent'](this.provider)) {
+        return this.$store.getters['type-map/importMachineConfig'](this.provider);
+      }
+
+      return this.$store.getters['type-map/importMachineConfig']('generic');
+    },
+
+    isWindows() {
+      return this.value?.config?.os === 'windows';
+    },
+
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
+    isAutoscalerEnabled: {
+      get() {
+        return typeof this.value?.pool?.autoscalingMinSize !== 'undefined' || typeof this.value?.pool?.autoscalingMinSize !== 'undefined';
+      },
+      set(val) {
+        if (!val) {
+          delete this.value.pool.autoscalingMinSize;
+          delete this.value.pool.autoscalingMaxSize;
+        } else {
+          this.value.pool.autoscalingMinSize = 1;
+          this.value.pool.autoscalingMaxSize = 2;
+        }
+      }
+    }
+  },
+
+  watch: {
+    isWindows(neu) {
+      if (neu) {
+        this.value.pool.etcdRole = false;
+        this.value.pool.controlPlaneRole = false;
+        this.value.pool.machineOS = 'windows';
+      } else {
+        this.value.pool.machineOS = 'linux';
+      }
+    },
+
+    validationErrors: {
+      handler(newValue) {
+        this.$emit('validationChanged', newValue.length === 0);
+      },
+      deep: true
+    },
+
+    fvFormIsValid: {
+      handler(newValue) {
+        this.$emit('validationChanged', newValue);
+      },
+      deep: true
+    },
+
+    'value.pool.etcdRole'(neu) {
+      if (neu) {
+        this.isAutoscalerEnabled = false;
+      }
+    },
+    'value.pool.controlPlaneRole'(neu) {
+      if (neu) {
+        this.isAutoscalerEnabled = false;
+      }
+    },
+  },
+
+  /**
+   * On creation, ensure that the pool is marked valid - custom machine pools can emit further validation events
+   */
+  created() {
+    this.unhealthyNodeTimeoutInteger = this.value.pool.unhealthyNodeTimeout ? this.parseDuration(this.value.pool.unhealthyNodeTimeout) : 0;
+
+    this.$emit('validationChanged', true);
+  },
+
+  beforeUnmount() {
+    // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
+    this.$emit('validationChanged', undefined);
+  },
+
+  methods: {
+    parseDuration(duration) {
       // The back end stores the timeout in Duration format, for example, "42d31h10m30s".
       // Here we convert that string to an integer and return the duration as seconds.
       const splitStr = duration.split(/([a-z])/);
@@ -120,74 +250,7 @@ export default {
       }, []);
 
       return durationsAsSeconds.reduce((old, neu) => old + neu);
-    };
-
-    return {
-      uuid: randomStr(),
-
-      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0,
-
-      validationErrors: [],
-
-      MACHINE_POOL_VALIDATION,
-
-      fvFormRuleSets: MACHINE_POOL_VALIDATION.RULESETS,
-    };
-  },
-
-  computed: {
-    configComponent() {
-      if (this.$store.getters['type-map/hasCustomMachineConfigComponent'](this.provider)) {
-        return this.$store.getters['type-map/importMachineConfig'](this.provider);
-      }
-
-      return this.$store.getters['type-map/importMachineConfig']('generic');
     },
-
-    isWindows() {
-      return this.value?.config?.os === 'windows';
-    }
-  },
-
-  watch: {
-    isWindows(neu) {
-      if (neu) {
-        this.value.pool.etcdRole = false;
-        this.value.pool.controlPlaneRole = false;
-        this.value.pool.machineOS = 'windows';
-      } else {
-        this.value.pool.machineOS = 'linux';
-      }
-    },
-
-    validationErrors: {
-      handler(newValue) {
-        this.$emit('validationChanged', newValue.length === 0);
-      },
-      deep: true
-    },
-
-    fvFormIsValid: {
-      handler(newValue) {
-        this.$emit('validationChanged', newValue);
-      },
-      deep: true
-    }
-  },
-
-  /**
-   * On creation, ensure that the pool is marked valid - custom machine pools can emit further validation events
-   */
-  created() {
-    this.$emit('validationChanged', true);
-  },
-
-  beforeUnmount() {
-    // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
-    this.$emit('validationChanged', undefined);
-  },
-
-  methods: {
     emitError(e) {
       this.$emit('error', e);
     },
@@ -251,12 +314,14 @@ export default {
           :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
+          :require-dirty="false"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
           data-testid="machine-pool-name-input"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
+          v-if="!isAutoscalerFeatureEnabled || !isAutoscalerEnabled"
           v-model:value.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
@@ -265,6 +330,15 @@ export default {
           min="0"
           :required="true"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.QUANTITY)"
+          data-testid="machine-pool-quantity-input"
+        />
+        <LabeledInput
+          v-else
+          :value="t('cluster.machinePool.autoscaler.machineCountValueOverride')"
+          :mode="mode"
+          :label="t('cluster.machinePool.quantity.label')"
+          :disabled="true"
+          :required="true"
           data-testid="machine-pool-quantity-input"
         />
       </div>
@@ -300,12 +374,16 @@ export default {
       :is="configComponent"
       v-if="value.config && configComponent"
       ref="configComponent"
+      v-model:is-ipv6="value.isIpv6"
+      v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
+      :infrastructure-cluster="infrastructureCluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
+      :project-id="projectId"
       :pool-index="idx"
       :pool-id="poolId"
       :pool-create-mode="value.create"
@@ -328,6 +406,7 @@ export default {
     />
 
     <AdvancedSection
+      v-if="!hideAdvanced"
       ref="advanced"
       :mode="mode"
       class="advanced"
@@ -338,15 +417,18 @@ export default {
       />
 
       <div class="spacer" />
+      <h3>
+        {{ t('cluster.machinePool.automation.label') }}
+      </h3>
       <div class="row">
         <div class="col span-4">
-          <h3>
+          <h4>
             {{ t('cluster.machinePool.autoReplace.label') }}
             <i
               v-clean-tooltip="t('cluster.machinePool.autoReplace.toolTip')"
               class="icon icon-info icon-lg"
             />
-          </h3>
+          </h4>
           <UnitInput
             v-model:value="unhealthyNodeTimeoutInteger"
             :hide-arrows="true"
@@ -359,15 +441,64 @@ export default {
           />
         </div>
         <div class="col span-4">
-          <h3>
+          <h4>
             {{ t('cluster.machinePool.drain.header') }}
-          </h3>
+          </h4>
           <Checkbox
             v-model:value="value.pool.drainBeforeDelete"
             :mode="mode"
             :label="t('cluster.machinePool.drain.label')"
             :disabled="busy"
           />
+        </div>
+      </div>
+      <div v-if="isAutoscalerFeatureEnabled">
+        <div class="row mt-10">
+          <div class="col span-12">
+            <h4>
+              {{ t('cluster.machinePool.autoscaler.heading') }}
+            </h4>
+            <Banner
+              v-if="value.pool.etcdRole || value.pool.controlPlaneRole"
+              color="warning"
+              label-key="cluster.machinePool.autoscaler.etcdControlPlaneWarning"
+            />
+            <Checkbox
+              v-model:value="isAutoscalerEnabled"
+              :mode="mode"
+              :label="t('cluster.machinePool.autoscaler.enable', undefined, true)"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+            />
+          </div>
+        </div>
+        <div
+          v-if="isAutoscalerEnabled"
+          class="row"
+        >
+          <div class="col span-4">
+            <UnitInput
+              v-model:value="value.pool.autoscalingMinSize"
+              :label="t('cluster.machinePool.autoscaler.min')"
+              :hide-arrows="true"
+              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+              :mode="mode"
+              :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
+              :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MIN)"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+            />
+          </div>
+          <div class="col span-4">
+            <UnitInput
+              v-model:value="value.pool.autoscalingMaxSize"
+              :label="t('cluster.machinePool.autoscaler.max')"
+              :hide-arrows="true"
+              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+              :mode="mode"
+              :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
+              :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MAX)"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
+            />
+          </div>
         </div>
       </div>
       <div class="spacer" />

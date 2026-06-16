@@ -1,0 +1,303 @@
+#!/usr/bin/env node
+
+/**
+ * This script will process the coverage reports and:
+ *
+ * 1. Regenerate the HTML reports after cleaning the coerage data
+ * 2. Generate an HTML report for the combined coverage
+ */
+
+const libReport = require('istanbul-lib-report');
+const reports = require('istanbul-reports');
+const libCoverage = require('istanbul-lib-coverage');
+const fs = require('fs');
+const path = require('path');
+const rootDir = path.resolve(__dirname, '..');
+
+// Coverage data read in from the reports in the 'coverage' folder
+const inputJSONs = [];
+
+// Ignore these files
+const ignoreFiles = [
+  'babel.config.js',
+  'vue.config.js',
+  'vue-config-helper.js',
+  'svgTransform.js',
+  'jest.setup.js',
+];
+
+// Ignore these folders
+const ignoreFolders = [
+  'node_modules',
+  '__mocks__',
+  '__tests__',
+  'shell/pkg/',
+  'shell/server/',
+];
+
+// Ignore these file extensions
+const ignoreExtensions = ['.yaml', '.md', '.scss'];
+
+console.log('==================================='); // eslint-disable-line no-console
+console.log('Test Report Coverage post-processor'); // eslint-disable-line no-console
+console.log('==================================='); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
+
+if (!fs.existsSync(path.join(rootDir, 'coverage'))) {
+  console.log('Error: coverage folder does not exist'); // eslint-disable-line no-console
+  process.exit(1);
+}
+
+// Delete the combined coverage folder
+const coverageDir = path.join(rootDir, 'coverage');
+const outputDir = path.join(coverageDir, 'output');
+const combinedCoverageDir = path.join(outputDir, 'combined');
+
+if (fs.existsSync(outputDir)) {
+  fs.rmSync(outputDir, { recursive: true } );
+}
+
+fs.mkdirSync(outputDir);
+
+// Normalize a file path - if it starts with 'file:' then remove that prefix
+function removeFileSchemePrefix(p) {
+  const index = p.indexOf('file:');
+
+  if (index >= 0) {
+    return p.substr(index + 5);
+  }
+
+  return p;
+}
+
+// Normalize the file paths in a report
+function normalizeFilePaths(data) {
+  const output = {};
+
+  Object.keys(data).forEach((key) => {
+    const obj = data[key];
+    const coveragePath = removeFileSchemePrefix(key);
+
+    obj.path = coveragePath;
+
+    let ignore = false;
+
+    // Check for files without coverage - remove these from the report
+    if (Object.keys(obj.statementMap).length === 0 && Object.keys(obj.fnMap).length === 0 && Object.keys(obj.branchMap).length === 0) {
+      ignore = true;
+    }
+
+    if (!ignore && !output[coveragePath]) {
+      output[coveragePath] = obj;
+    }
+  });
+
+  return output;
+}
+
+// Ignore certain files based on name, folder or file extensions
+function ignoreFile(fp) {
+  const inFileIgnoreList = !!ignoreFiles.find((f) => fp.endsWith(f));
+  const inFolderIgnoreList = !!ignoreFolders.find((dir) => fp.includes(dir));
+  const inIgnoreExtList = !!ignoreExtensions.find((ext) => fp.endsWith(ext));
+
+  return inFileIgnoreList || inFolderIgnoreList || inIgnoreExtList;
+}
+
+// Read a JSON coverage report from a file
+function readReport(fp) {
+  const raw = fs.readFileSync(fp);
+  const data = JSON.parse(raw);
+
+  console.log(`Reading: ${ fp }`); // eslint-disable-line no-console
+
+  // Clean up the coverage data
+  Object.keys(data).forEach((key) => {
+    if (ignoreFile(key)) {
+      delete data[key];
+    }
+
+    if (!data[key]) {
+      // console.log(`${ key } does not have any data`); // eslint-disable-line no-console
+      delete data[key];
+    } else if (data[key].data) {
+      // console.log(`${ key } has a data field`); // eslint-disable-line no-console
+      data[key] = data[key].data;
+    }
+  });
+
+  return fixFilePaths(normalizeFilePaths(data));
+}
+
+function fixFilePaths(data) {
+  const output = {};
+
+  Object.keys(data).forEach((key) => {
+    const obj = data[key];
+
+    // TODO: This is just for testing
+    let k = key.replace(/rancher\/coverage/, 'rancher/unit-test');
+
+    // webpack replace
+    if (key.includes('/webpack:')) {
+      const p = key.split('/webpack:');
+
+      k = p[1];
+
+      if (k.startsWith('/dashboard')) {
+        k = k.substr(10);
+      }
+
+      k = rootDir + k;
+    }
+
+    if (k.includes('?')) {
+      k = k.split('?')[0];
+    }
+
+    if (!k.includes(' ') && !k.includes('webpack/')) {
+      obj.path = k;
+      output[k] = obj;
+    }
+  });
+
+  return output;
+}
+
+function fixReportData(report) {
+  console.log(`Fixing : ${ report.path }`); // eslint-disable-line no-console
+
+  Object.keys(report.data).forEach((key) => {
+    if (report.data[key]) {
+      if (Object.keys(report.data[key].f).length !== Object.keys(report.data[key].fnMap).length) {
+        console.log(`  Mismatch in function  coverage ${ key }`); // eslint-disable-line no-console
+      }
+
+      const f = {};
+
+      Object.keys(report.data[key].f).forEach((k) => {
+        if (report.data[key].fnMap[k]) {
+          f[k] = report.data[key].f[k];
+        }
+      });
+
+      report.data[key].f = f;
+
+      if (Object.keys(report.data[key].b).length !== Object.keys(report.data[key].branchMap).length) {
+        console.log(`  Mismatch in branch    coverage ${ key }`); // eslint-disable-line no-console
+      }
+
+      const b = {};
+
+      Object.keys(report.data[key].b).forEach((k) => {
+        if (report.data[key].branchMap[k]) {
+          b[k] = report.data[key].b[k];
+        }
+      });
+
+      report.data[key].b = b;
+
+      const s = {};
+
+      if (Object.keys(report.data[key].s).length !== Object.keys(report.data[key].statementMap).length) {
+        console.log(`  Mismatch in statement coverage ${ key }`); // eslint-disable-line no-console
+      }
+
+      Object.keys(report.data[key].s).forEach((k) => {
+        if (report.data[key].statementMap[k]) {
+          s[k] = report.data[key].s[k];
+        }
+      });
+
+      report.data[key].s = s;
+    }
+  });
+}
+
+/**
+ * Generate an HTML report for coverage data
+ *
+ * @param inputs Coverage date
+ * @param outFolder Folder to write the data to
+ */
+function generateHTMLReport(inputs, outFolder) {
+  const map = libCoverage.createCoverageMap();
+  const summary = libCoverage.createCoverageSummary();
+  const coverageJSONs = inputs.map((d) => d.data);
+
+  coverageJSONs.forEach((json) => {
+    const jsonCoverageMap = libCoverage.createCoverageMap(json);
+
+    map.merge(jsonCoverageMap);
+  });
+
+  // inspect and summarize all file coverage objects in the map
+  map.files().forEach((f) => {
+    const fc = map.fileCoverageFor(f);
+    const s = fc.toSummary();
+
+    summary.merge(s);
+  });
+
+  // create a context for report generation
+  const context = libReport.createContext({
+    dir:               outFolder,
+    defaultSummarizer: 'nested',
+    coverageMap:       map,
+  });
+
+  if (!fs.existsSync(outFolder)) {
+
+    fs.mkdirSync(outFolder);
+  }
+
+  // create an instance of the relevant report class, passing the
+  // report name e.g. json/html/html-spa/text
+  const html = reports.create('html');
+
+  // call execute to synchronously create and write the report to disk
+  html.execute(context);
+
+  // Write the json to file to the output folder
+  const outFile = path.join(outFolder, 'coverage-final.json');
+
+  fs.writeFileSync(outFile, JSON.stringify(map));
+}
+
+// -- Process Test Coverage folders ------------------------------------------------------------------------
+
+// Enumerate all test coverage folders
+const fsList = fs.readdirSync(coverageDir);
+
+// Read each report, fix the data in it and write the HTML report out again
+fsList.forEach((name) => {
+  if (name !== 'output' && fs.existsSync(path.join(coverageDir, name, 'coverage-final.json'))) {
+    const fp = path.join(coverageDir, name, 'coverage-final.json');
+
+    const report = {
+      path: fp,
+      name,
+      data: readReport(fp)
+    };
+
+    fixReportData(report);
+
+    inputJSONs.push(report);
+  }
+});
+
+// Update the reports to have the same set of file data
+// and to exclude any files based on the common exclusion rules
+inputJSONs.forEach((report) => {
+  console.log(`Processing ${ report.path }`); // eslint-disable-line no-console
+
+  // Generate the HTML Report after cleaning up the coverage data
+  console.log('  + Generating HTML report'); // eslint-disable-line no-console
+  generateHTMLReport([report], path.join(outputDir, report.name));
+});
+
+console.log('Combining unit and E2E reports'); // eslint-disable-line no-console
+
+fs.mkdirSync(combinedCoverageDir);
+
+generateHTMLReport(inputJSONs, combinedCoverageDir);

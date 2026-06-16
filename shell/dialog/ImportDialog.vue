@@ -28,21 +28,29 @@ export default {
   props: {
     defaultNamespace: {
       type:    String,
-      default: 'default'
+      default: undefined
     },
   },
 
   async fetch() {
-    this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
+    this.allNamespaces = (await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })) || [];
+
+    if (this.selectedNamespace === undefined) {
+      const defaultNamespace = 'default';
+      const hasAccessToDefaultNamespace = this.allNamespaces.some((ns) => ns.name === defaultNamespace);
+
+      this.selectedNamespace = hasAccessToDefaultNamespace ? defaultNamespace : this.allNamespaces[0]?.name;
+    }
   },
 
   data() {
     return {
-      currentYaml:   '',
-      allNamespaces: [],
-      errors:        null,
-      rows:          null,
-      done:          false,
+      currentYaml:       '',
+      allNamespaces:     [],
+      errors:            null,
+      rows:              null,
+      done:              false,
+      selectedNamespace: this.defaultNamespace,
     };
   },
 
@@ -90,7 +98,7 @@ export default {
 
         const res = await this.currentCluster.doAction('apply', {
           yaml:             this.currentYaml,
-          defaultNamespace: this.defaultNamespace,
+          defaultNamespace: this.selectedNamespace,
         });
 
         btnCb(true);
@@ -143,11 +151,10 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledSelect
-                :value="defaultNamespace"
+                v-model:value="selectedNamespace"
                 :options="namespaceOptions"
                 label-key="import.defaultNamespace.label"
                 mode="edit"
-                @update:value="newValue => defaultNamespace = newValue"
               />
             </div>
           </div>

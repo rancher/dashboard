@@ -8,7 +8,7 @@ describe('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adm
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

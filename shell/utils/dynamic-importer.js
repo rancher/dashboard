@@ -68,12 +68,20 @@ export function importDialog(name) {
   return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
 }
 
+export function importDrawer(name) {
+  if ( !name ) {
+    throw new Error('Name required');
+  }
+
+  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+}
+
 export function importWindowComponent(name) {
   if ( !name ) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components/nav" */ `@shell/components/nav/WindowManager/${name}`));
+  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Window/${name}`));
 }
 
 export function loadProduct(name) {
@@ -86,8 +94,9 @@ export function loadProduct(name) {
 }
 
 export function listProducts() {
-  const ctx = require.context('@shell/config/product', true, /.*/);
-  const products = ctx.keys().filter(path => !path.endsWith('.js') && path.startsWith('./')).map(path => path.substr(2));
+  // We just want the .js or .ts files
+  const ctx = require.context('@shell/config/product', true, /\.\/.*\.[js|ts]/);
+  const products = ctx.keys().map(path => path.substr(2)).map(path => path.slice(0, -3));
 
   return products;
 }
@@ -122,7 +131,7 @@ export function resolveDetail(key) {
 }
 
 export function resolveWindowComponent(key) {
-  return require.resolve(`@shell/components/nav/WindowManager/${ key }`);
+  return require.resolve(`@shell/components/Window/${ key }`);
 }
 
 export function resolveMachineConfigComponent(key) {

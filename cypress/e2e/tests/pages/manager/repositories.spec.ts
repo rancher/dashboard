@@ -3,7 +3,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
@@ -11,6 +11,7 @@ const gitRepoUrl = 'https://github.com/rancher/charts';
 
 describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   before(() => {
+    cy.clearAllSessions();
     cy.login();
   });
   it('validating repositories page with percy', () => {
@@ -38,11 +39,13 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   const downloadsFolder = Cypress.config('downloadsFolder');
 
   before(() => {
+    cy.clearAllSessions();
     cy.login();
   });
 
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
+    cy.createE2EResourceName('repo-oci').as('ociRepoName');
   });
 
   it('can create a repository', function() {
@@ -53,7 +56,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
@@ -61,7 +64,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
@@ -118,7 +123,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
+    // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
@@ -155,7 +161,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }basic`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
@@ -174,7 +180,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }ssh`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
+    repositoriesPage.createEditRepositories().selectGitRepoCard();
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
@@ -229,7 +235,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
@@ -237,9 +243,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     const ociMaxWait = '7';
     const refreshInterval = '12';
 
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.ociRepoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.ociRepoName }-description`);
+    repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
     repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
@@ -266,76 +272,96 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
-    repositoriesPage.waitForPage();
-
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
-  });
-
-  it('can disable/enable a repository', function() {
-    // create repo
-    ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-    repositoriesPage.create();
-    repositoriesPage.createEditRepositories().waitForPage();
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
-    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
-    repositoriesPage.waitForPage();
-
-    // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-
-    // refresh should be displayed for an enabled repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
-    // close action menu
-    repositoriesPage.list().closeActionMenu();
-
-    // disable repo
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1500);
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
-    repositoriesPage.list().details(this.repoName, 1).contains('Disabled', { timeout: 10000 }).scrollIntoView()
-      .should('be.visible');
-
-    // refresh should NOT be displayed for a disabled repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
-    // close action menu
-    repositoriesPage.list().closeActionMenu();
-
-    // enable repo
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1500);
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
-    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).scrollIntoView()
-      .should('be.visible');
+    repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
 
     // delete repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName);
+  });
+});
 
-    const promptRemove = new PromptRemove();
+describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+  let repoName: string;
 
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
+  before(() => {
+    cy.clearAllSessions();
+    cy.login();
+    // The context menu can slightly clip at the top of the screen. This ensures it's visible.
+    cy.viewport(1280, 720);
 
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
+    cy.createE2EResourceName('repo').then((name) => {
+      repoName = name;
+      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+        type:     'catalog.cattle.io.clusterrepo',
+        metadata: { name },
+        spec:     {
+          gitRepo:   gitRepoUrl,
+          gitBranch: chartBranch
+        }
+      }).then(() => {
+        // Wait for repository to be downloaded and ready
+        cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+      });
+    });
+  });
+
+  it('can disable a repository', () => {
+    ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already disabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Disabled')) {
+          cy.log(`Repository ${ repoName } is already disabled, skipping disable action`);
 
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Disable').click();
+        repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+      });
+    });
+  });
+
+  it('refresh menu item is not displayed for disabled repository', () => {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+
+    // Open the action menu and verify refresh is not displayed for disabled repo
+    const actionMenu = repositoriesPage.list().actionMenu(repoName);
+
+    actionMenu.self().should('be.visible');
+
+    // Verify refresh is not displayed for disabled repo
+    actionMenu.getMenuItem('Refresh').should('not.exist');
+
+    // Close action menu
+    repositoriesPage.list().actionMenuClose(repoName);
+  });
+
+  it('can enable a repository', () => {
+    // Ensure repository exists before enabling
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already enabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Active')) {
+          cy.log(`Repository ${ repoName } is already enabled, skipping enable action`);
+
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Enable').click();
+        repositoriesPage.list().details(repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      });
+    });
+  });
+
+  after(() => {
+    if (repoName) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName, false);
+    }
   });
 });

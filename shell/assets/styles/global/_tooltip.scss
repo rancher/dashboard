@@ -12,6 +12,12 @@
     color: var(--tooltip-text);
     border-radius: var(--border-radius);
     padding: 8px;
+
+    // Ensure code blocks inside tooltips don't look awful
+    pre {
+      padding: 2px;
+      vertical-align: middle;
+    }
   }
 
   .v-popper__arrow-container {
@@ -113,10 +119,6 @@
     padding: 10px;
     border-radius: var(--border-radius-lg);
     border: none;
-
-    a {
-      color: var(--popover-text);
-    }
   }
 
   .v-popper__arrow-container {
@@ -160,6 +162,12 @@
 }
 
 //icon tooltip
-.icon-info.v-popper--has-tooltip {
+.icon-info.has-clean-tooltip {
   font-size: 14px;
 }
+
+// making sure hovering on the tooltip's arrow part does not cause flickering
+.v-popper__arrow-container {
+  pointer-events: none;
+}
+

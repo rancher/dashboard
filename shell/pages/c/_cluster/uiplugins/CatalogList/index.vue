@@ -3,11 +3,12 @@ import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 
 import ResourceManager from '@shell/mixins/resource-manager';
-import { SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
+import { SERVICE, SERVICE_ACCOUNT, WORKLOAD_TYPES } from '@shell/config/types';
 import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { UI_PLUGIN_CATALOG } from '@shell/config/table-headers';
 
 import ResourceTable from '@shell/components/ResourceTable';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   emits: ['showCatalogUninstallDialog', 'showCatalogLoadDialog'],
@@ -30,6 +31,20 @@ export default {
       ],
       catalogHeaders: UI_PLUGIN_CATALOG,
     };
+  },
+
+  async fetch() {
+    const hash = {};
+
+    if ( this.$store.getters['management/canList'](WORKLOAD_TYPES.DEPLOYMENT) ) {
+      hash.deployments = this.$store.dispatch('management/findAll', { type: WORKLOAD_TYPES.DEPLOYMENT });
+    }
+
+    if ( this.$store.getters['management/canList'](SERVICE_ACCOUNT) ) {
+      hash.services = this.$store.dispatch('management/findAll', { type: SERVICE });
+    }
+
+    await allHash(hash);
   },
 
   computed: {

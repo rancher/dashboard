@@ -8,7 +8,7 @@ export default class Feature extends HybridModel {
 
   get enabled() {
     // If lockedValue is not null, then this is the value that the flag is locked to, so that should be used
-    if (this.status.lockedValue !== null) {
+    if (this.status && this.status.lockedValue !== null) {
       return this.status.lockedValue;
     }
 
@@ -17,7 +17,7 @@ export default class Feature extends HybridModel {
   }
 
   get restartRequired() {
-    return !this.status.dynamic;
+    return !this.status?.dynamic;
   }
 
   get canYaml() {
@@ -43,7 +43,7 @@ export default class Feature extends HybridModel {
     // User can not disable or enable if the feature flag is locked
     // Note: lockedValue is the value that the feature flag is locked to, so it can be true or false
     // It can also be null, which indicates that the feature flag is not locked
-    enableAction.enabled = enableAction.enabled && (this.status.lockedValue === null);
+    enableAction.enabled = enableAction.enabled && (this.status && this.status.lockedValue === null);
 
     out.unshift(enableAction);
 

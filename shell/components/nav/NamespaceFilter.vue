@@ -63,6 +63,9 @@ export default {
       return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
+    /**
+     * Create visible options (filtered version of `options`)
+     */
     filtered() {
       let out = this.options;
 
@@ -142,6 +145,9 @@ export default {
       return createNamespaceFilterKey(this.$store.getters['clusterId'], this.currentProduct);
     },
 
+    /**
+     * Create options (see `filtered` for visible collection)
+     */
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
@@ -341,6 +347,11 @@ export default {
           })
           .filter((x) => !!x);
 
+        if (filters.length !== values.length) {
+          // filter has changed, ensure we persist these to store
+          this.value = filters;
+        }
+
         return filters;
       },
 
@@ -401,7 +412,7 @@ export default {
      *
      * This is caused by churn of the filtered and options computed properties causing multiple renders for each action.
      *
-     * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
+     * To break this multiple-render per cycle behaviour detach `filtered` from the value used in `v-for`.
      *
      */
     filtered(neu) {
@@ -662,9 +673,16 @@ export default {
     },
 
     removeOption(ns, event) {
-      this.selectOption(ns);
       event.preventDefault();
       event.stopPropagation();
+
+      this.selectOption(ns);
+
+      if (event.type !== 'keydown' || this.value.length !== 0) {
+        return;
+      }
+
+      this.$refs.namespaceFilterInput.focus();
     },
 
     defaultOption() {
@@ -700,6 +718,7 @@ export default {
     :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
+    :aria-label="t('generic.namespaceFilter')"
     tabindex="0"
     @mousedown.prevent
     @keydown.self.down.enter.space.prevent="open"
@@ -766,10 +785,11 @@ export default {
           <!-- block user from removing the last selection if ns forced filtering is on -->
           <RcButton
             v-if="!namespaceFilterMode || value.length > 1"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
+            :aria-label="t('namespaceFilter.removeNamespace', { name: ns.label })"
             @click="removeOption(ns, $event)"
             @keydown.enter.space.stop="removeOption(ns, $event)"
             @mousedown="handleValueMouseDown(ns, $event)"
@@ -821,13 +841,14 @@ export default {
             tabindex="0"
             class="ns-filter-input"
             :aria-label="t('namespaceFilter.input')"
+            @mousedown.stop
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <RcButton
             v-if="hasFilter"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-filter-clear"
             :aria-label="t('namespaceFilter.button.clearFilter')"
             @click="clearFilter"
@@ -849,8 +870,8 @@ export default {
         </div>
         <RcButton
           v-else
-          small
-          ghost
+          size="small"
+          variant="ghost"
           class="ns-clear"
           :aria-label="t('namespaceFilter.button.clear')"
           @click="clear"
@@ -939,6 +960,10 @@ export default {
     display: inline-block;
     border-radius: var(--border-radius);
 
+    &:focus, &.focused {
+      @include focus-outline;
+    }
+
     .ns-glass {
       top: 0;
       bottom: 0;
@@ -980,8 +1005,8 @@ export default {
     .ns-filter-clear {
       cursor: pointer;
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: 12px;
+      top: 5px;
       line-height: 24px;
       text-align: center;
       width: 14px;
@@ -1057,7 +1082,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--primary);
+                color: var(--link);
               }
             }
 

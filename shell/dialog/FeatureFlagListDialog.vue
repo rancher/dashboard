@@ -134,7 +134,7 @@ export default {
             this.waiting = false;
             this.close();
 
-            await this.$store.dispatch('management/findAll', { type: this.resource, opt: { force: true } });
+            await this.$store.dispatch('management/findAll', { type: this.update.type, opt: { force: true } });
           }
         } catch (e) {}
 

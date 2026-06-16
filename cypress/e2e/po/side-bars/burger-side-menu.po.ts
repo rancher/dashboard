@@ -34,11 +34,14 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Check if cluster on a top-level side menu entry by entry index has the appropriate key combo icon
+   * Check key combo icon for a cluster by its displayed label (any order, pinned or unpinned).
    * @returns {Cypress.Chainable}
    */
-  static burgerMenuNavClusterKeyComboIconCheck(index: number): Cypress.Chainable {
-    return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] .cluster-icon-menu i`).should('have.class', 'icon-keyboard_tab');
+  static burgerMenuNavClusterKeyComboIconCheckByLabel(label: string): Cypress.Chainable {
+    return this.burgerMenuGetNavClusterByLabel(label)
+      .closest('.cluster.selector')
+      .find('.cluster-icon-menu i')
+      .should('have.class', 'icon-keyboard_tab');
   }
 
   /**
@@ -53,7 +56,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get cluster navigation item by label
    * @returns {Cypress.Chainable}
    */
-  static burgerMenuGetNavClusterbyLabel(label: string): Cypress.Chainable {
+  static burgerMenuGetNavClusterByLabel(label: string): Cypress.Chainable {
     return this.sideMenu().find('.option .cluster-name').contains(label);
   }
 
@@ -63,7 +66,7 @@ export default class BurgerMenuPo extends ComponentPo {
   static checkIfClusterMenuLinkIsHighlighted(name: string, isHighlightedAssertion = true) {
     const assertion = isHighlightedAssertion ? 'have.class' : 'not.have.class';
 
-    return this.burgerMenuGetNavClusterbyLabel(name).parent().parent().should(assertion, 'active-menu-link');
+    return this.burgerMenuGetNavClusterByLabel(name).parent().parent().should(assertion, 'active-menu-link');
   }
 
   /**
@@ -87,12 +90,12 @@ export default class BurgerMenuPo extends ComponentPo {
     this.sideMenu().should('have.class', 'menu-close');
   }
 
-  static checkIconTooltipOn(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'v-popper--has-tooltip');
+  static checkIconTooltipOn(content: string): Cypress.Chainable {
+    return cy.get('.v-popper__popper .v-popper__inner').should('be.visible').and('contain.text', content);
   }
 
   static checkIconTooltipOff(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'v-popper--has-tooltip');
+    return cy.get('body').find('.v-popper__popper').should('not.exist');
   }
 
   /**
@@ -131,7 +134,14 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get all clusters, whether pinned, filtered or not
    */
   allClusters(): Cypress.Chainable {
-    return this.self().find('.body .cluster.selector.option');
+    return this.self().find('.body .clusters .cluster.selector.option');
+  }
+
+  /**
+   * Get the first cluster icon in the side menu to use for hover actions
+   */
+  firstClusterIcon(): Cypress.Chainable {
+    return this.allClusters().first().find('.rancher-provider-icon');
   }
 
   goToCluster(clusterId = 'local', toggleOpen = true) {
@@ -166,12 +176,16 @@ export default class BurgerMenuPo extends ComponentPo {
     return this.clusterPinnedList().first().find('.pin').click();
   }
 
-  getClusterDescription(): Cypress.Chainable {
-    return this.clusterNotPinnedList().first().find('.description').invoke('text');
+  getClusterIcon(clusterName = 'local'): Cypress.Chainable {
+    return this.self().find('.cluster-name').contains(clusterName).parent();
   }
 
-  showClusterDescriptionTooltip(): Cypress.Chainable {
-    return this.clusterNotPinnedList().first().find('.description').trigger('mouseenter');
+  getClusterDescription(clusterName = 'local'): Cypress.Chainable {
+    return this.getClusterIcon(clusterName).find('.description').invoke('text');
+  }
+
+  showClusterDescriptionTooltip(clusterName = 'local'): Cypress.Chainable {
+    return this.getClusterIcon(clusterName).find('.description').trigger('mouseenter');
   }
 
   getClusterDescriptionTooltipContent(): Cypress.Chainable {
@@ -191,7 +205,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   about(): Cypress.Chainable {
-    return this.self().contains('About');
+    return this.self().find('[aria-label="About page link"]');
   }
 
   /**
@@ -199,7 +213,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   support(): Cypress.Chainable {
-    return this.self().contains('Get Support');
+    return this.self().find('[aria-label="Support page link"]');
   }
 
   /**

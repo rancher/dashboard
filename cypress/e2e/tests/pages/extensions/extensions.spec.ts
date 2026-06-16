@@ -25,11 +25,22 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it('should go to the available tab by default', () => {
+  it('should go to the available tab by default and preserve active tab on reload', () => {
     const extensionsPo = new ExtensionsPagePo();
 
+    // With no extensions installed, should default to "Available"
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'available');
+
+    // Preserve active tab on reload
+    cy.setUserPreference({ 'plugin-developer': true });
+    extensionsPo.goTo(); // reload to get pref
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabBuiltinClick();
+    extensionsPo.waitForPage(null, 'builtin');
+    cy.reload();
+    extensionsPo.waitForPage(null, 'builtin');
+    cy.setUserPreference({ 'plugin-developer': false });
   });
 
   it('should show built-in extensions only when configured', () => {
@@ -55,29 +66,29 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
-    extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('aks');
+    extensionsPo.extensionCardVersion('AKS Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('AKS Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'AKS Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // EKS Provisioning
-    extensionsPo.extensionCardVersion('eks').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('eks');
+    extensionsPo.extensionCardVersion('EKS Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('EKS Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'EKS Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // GKE Provisioning
-    extensionsPo.extensionCardVersion('gke').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('gke');
+    extensionsPo.extensionCardVersion('GKE Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('GKE Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'GKE Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // Virtualization Manager
-    extensionsPo.extensionCardVersion('harvester-manager').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('harvester-manager');
+    extensionsPo.extensionCardVersion('Virtualization Manager').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('Virtualization Manager');
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
@@ -91,7 +102,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
-    extensionsPo.extensionTabInstalledClick(); // Avoid nav guard failures that probably auto move user to this tab
+    extensionsPo.extensionTabAvailableClick(); // Avoid nav guard failures that probably auto move user to this tab
 
     // install the rancher plugin examples
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', GIT_REPO_NAME).then(() => {
@@ -99,7 +110,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     });
   });
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
+  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
@@ -130,8 +141,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // in this case, vendor is Rancher because title depends on many different variables such as brand and settings
-    cy.title().should('eq', 'Rancher - Extensions');
+    // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
+
+      cy.title().should('eq', expectedTitle);
+    });
 
     extensionsPo.repoBanner().checkVisible();
   });
@@ -191,7 +206,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // go to repos list page
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
@@ -216,13 +231,18 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
-        appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
+        // Ensure the row exists before opening action menu
+        appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_NAME).should('be.visible');
+
+        const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME);
+
+        actionMenu.getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
 
         return promptRemove.remove();
@@ -292,20 +312,21 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // select version and click install
-    extensionsPo.installModalSelectVersionClick(2);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().selectVersionClick(2);
+    extensionsPo.installModal().installButton().click();
     cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
-    // make sure extension card is in the installed tab
-    extensionsPo.extensionTabInstalledClick();
+    // make sure we land on the installed tab by default
     extensionsPo.waitForPage(null, 'installed');
+
+    // make sure extension card is in the installed tab
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
@@ -319,7 +340,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // check for installed extension in "installed" tab
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(null, 'installed');
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // check for installed extension in "available" tab
     extensionsPo.extensionTabAvailableClick();
@@ -327,7 +348,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
   });
 
-  it('Should update an extension version', () => {
+  it('Should upgrade an extension version', () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
@@ -338,22 +359,22 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'installed');
 
     // click on update button on card
-    extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
+    extensionsPo.installModal().installButton().click();
     cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
-    // make sure extension card is not available anymore on the updates tab
+    // make sure extension card is still on the installed tab
     // since we installed the latest version
-    extensionsPo.extensionTabUpdatesClick();
-    extensionsPo.waitForPage(null, 'updates');
-    cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
   });
 
-  it('Should rollback an extension version', () => {
+  it('Should downgrade an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -362,19 +383,19 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(null, 'installed');
 
-    // click on the rollback button on card
-    // this will rollback to the immediate previous version
-    extensionsPo.extensionCardRollbackClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    // click on the downgrade button on card
+    // this will downgrade to the immediate previous version
+    extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
-    // make sure extension card is on the updates tab
-    extensionsPo.extensionTabUpdatesClick();
-    extensionsPo.waitForPage(null, 'updates');
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    // make sure extension card is on the installed tab and is visible
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
   });
 
   // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
@@ -386,13 +407,17 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
+    extensionsPo.loading().should('not.exist');
+
+    // Wait for the large-extension card to appear before interacting
+    extensionsPo.extensionCard(DISABLED_CACHE_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // click install
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -422,6 +447,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     namespaceFilter.clickOptionByLabel('All Namespaces');
     namespaceFilter.closeDropdown();
 
+    uiPluginsPo.resourceTable().sortableTable().groupByButtons(1).click();
     uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
   });
 
@@ -437,8 +463,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().checkVisible();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');

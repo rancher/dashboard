@@ -12,8 +12,8 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
 import AuthScopes from './AuthScopes.vue';
-import { GKEImageTypes } from '../util/gcp';
-import type { GKEMachineTypeOption } from '../types/index.d.ts';
+import { GKEImageTypes } from '@shell/components/google/util/gcp';
+import type { GKEMachineTypeOption } from '@shell/components/google/types/index.d.ts';
 
 export default defineComponent({
   name: 'GKENodePool',

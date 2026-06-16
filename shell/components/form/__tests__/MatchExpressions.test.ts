@@ -53,19 +53,22 @@ describe('component: MatchExpressions', () => {
   it.each([
     'operator',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(MatchExpressions, {
-      props: {
-        mode:  _CREATE,
-        value: [
-          {
-            id:       '123',
-            key:      '123',
-            operator: 'anything',
-            values:   '123'
-          }
-        ]
-      },
-    });
+    const wrapper = mount(
+      MatchExpressions,
+      {
+        attachTo: document.body,
+        props:    {
+          mode:  _CREATE,
+          value: [
+            {
+              id:       '123',
+              key:      '123',
+              operator: 'anything',
+              values:   '123'
+            }
+          ]
+        },
+      });
 
     const select = wrapper.find(`[data-testid="input-match-expression-${ field }-0"]`);
 

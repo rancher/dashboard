@@ -12,7 +12,7 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.app`;
   }
 
-  static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
+  goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }
 
@@ -29,14 +29,14 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
-      this.appsList().resourceTableDetails(item, 0).should('contain', 'Deployed');
+      this.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
     });
 
     // timeout to give time for everything to be setup, otherwise the extension

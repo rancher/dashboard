@@ -15,7 +15,8 @@ export default class Workspace extends HybridModel {
     const out = {
       clusterGroups: summary[FLEET.CLUSTER_GROUP]?.namespaces?.[name]?.count || 0,
       clusters:      summary[FLEET.CLUSTER]?.namespaces?.[name]?.count || 0,
-      gitRepos:      summary[FLEET.GIT_REPO]?.namespaces?.[name]?.count || 0
+      gitRepos:      summary[FLEET.GIT_REPO]?.namespaces?.[name]?.count || 0,
+      helmOps:       summary[FLEET.HELM_OP]?.namespaces?.[name]?.count || 0
     };
 
     return out;

@@ -5,7 +5,7 @@ imported:
   agentEnv:
     header: Agent Environment Variables
   basics:
-    versionMismatch: The selected version is lower than the actual version of this cluster.
+    versionMismatch: "There is a mismatch between the expected and the current versions of the cluster. This usually happens if the imported cluster was upgraded outside of this Rancher instance. Managing the cluster version via Rancher and external means at the same time is not supported and may cause unexpected behavior and failures. <br>Please consider disabling the version management feature if the cluster has been upgraded externally."
     versionManagement:
       title: K8s version management
       globalEnabled: Global default (enabled)
@@ -54,4 +54,4 @@ imported:
       startEnd: Name must start and end with a lowercase alphanumeric
       length: Name may not exceed 63 characters
     concurrency: '{key} must be an integer greater than 0'
-    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
+    kubernetesVersions: 'An error occurred while fetching the available kubernetes versions: {e}'

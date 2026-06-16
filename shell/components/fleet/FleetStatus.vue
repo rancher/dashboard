@@ -213,6 +213,7 @@ function toPercent(value, min, max) {
   .fleet-status {
     display: flex;
     width: 100%;
+    min-width: fit-content;
     border: 1px solid var(--border);
     border-radius: 10px
   }
@@ -227,6 +228,9 @@ function toPercent(value, min, max) {
     width: 100%;
     padding: 15px;
 
+    .title {
+      margin-right: 16px;
+    }
   }
 
   .count {

@@ -1,6 +1,6 @@
 <script>
 import BackLink from '@shell/components/BackLink';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import Loading from '@shell/components/Loading';
 import Principal from '@shell/components/auth/Principal';
@@ -33,13 +33,26 @@ export default {
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;
+
+    const selfUser = await this.$store.dispatch('auth/getSelfUser');
+
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
+      this.user = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      });
+    } else {
+      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
+    }
   },
   data() {
     return {
       apiHostSetting:    null,
       serverUrlSetting:  null,
       rows:              null,
-      canChangePassword: false
+      canChangePassword: false,
+      user:              null
     };
   },
   computed: {
@@ -124,24 +137,18 @@ export default {
         return !!this.principal.loginName;
       }
 
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
-      });
+      const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      if (users && users.length === 1) {
-        return !!users[0].username;
-      }
-
-      return false;
+      return !!passwordChangeRequest?.canChangePassword;
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {
-        component:   'ChangePasswordDialog',
-        testId:      'change-password__modal',
-        customClass: 'change-password-modal',
-        modalWidth:  '500',
-        height:      '465'
+        component:      'ChangePasswordDialog',
+        componentProps: { user: this.user },
+        testId:         'change-password__modal',
+        customClass:    'change-password-modal',
+        modalWidth:     '500',
+        height:         '465'
       });
     }
   }

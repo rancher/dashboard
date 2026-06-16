@@ -1,3 +1,4 @@
+import { qase } from '@/cypress/support/qase';
 import { isMatch } from 'lodash';
 
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
@@ -20,24 +21,26 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
-import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
-import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
+import {
+  VERY_LONG_TIMEOUT_OPT,
+  EXTRA_LONG_TIMEOUT_OPT,
+  MEDIUM_TIMEOUT_OPT,
+  RESTART_TIMEOUT_OPT
+} from '@/cypress/support/utils/timeouts';
+import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
-const runTimestamp = +new Date();
-const runPrefix = `e2e-test-${ runTimestamp }`;
+const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-create-${ suffix }`;
 
 // File specific consts
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
 const importType = 'cluster';
-const clusterNamePartial = `${ runPrefix }-create`;
-const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
-const importGenericName = `${ clusterNamePartial }-import-generic`;
+let rke2CustomName = createClusterTestName('rke2-custom');
+let importGenericName = createClusterTestName('import-generic');
 let reenableAKS = false;
-let importedClusterName = '';
+let originalSettings = '[{"name":"aks","active":true},{"name":"alibaba","active":true},{"name":"eks","active":true},{"name":"gke","active":true}]';
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -47,36 +50,29 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   before(() => {
     cy.login();
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'kev2-operators', null).then((resp: Cypress.Response<any>) => {
+      const response = resp.body;
+
+      // update original data before sending request
+      originalSettings = response.value;
+    });
   });
 
-  it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
-    cy.intercept('GET', '/v3/kontainerdrivers').as('getKontainerDrivers');
-    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateDriver');
-    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateDriver');
+  qase(16624, it('deactivating a hosted provider should hide its card from the cluster creation page', () => {
+    cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('updateProviders');
 
-    const driversPage = new KontainerDriversPagePo();
+    const providersPage = new HostedProvidersPagePo();
     const clusterCreatePage = new ClusterManagerCreatePagePo();
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
+    HostedProvidersPagePo.navTo();
+    providersPage.waitForPage();
 
     // assert AKS kontainer driver is in Active state
-    cy.wait('@getKontainerDrivers').then(({ response }) => {
-      response.body.data.forEach((item: any) => {
-        if (item.id === 'azurekubernetesservice') {
-          const state = item['active'];
-
-          expect(state).to.eq(true);
-        }
-      });
-    });
+    providersPage.list().details('Azure AKS', 1).should('contain', 'Active');
 
     // deactivate the AKS driver
-    driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
-    const deactivateDialog = new DeactivateDriverDialogPo();
-
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200).then(() => {
+    providersPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
+    cy.wait('@updateProviders').its('response.statusCode').should('eq', 200).then(() => {
       reenableAKS = true;
     });
 
@@ -87,10 +83,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
 
     // re-enable the AKS kontainer driver
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
-    cy.wait('@activateDriver').its('response.statusCode').should('eq', 200).then(() => {
+    HostedProvidersPagePo.navTo();
+    providersPage.waitForPage();
+    providersPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
+    cy.wait('@updateProviders').its('response.statusCode').should('eq', 200).then(() => {
       reenableAKS = false;
     });
 
@@ -99,38 +95,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
     clusterCreatePage.gridElementExistanceByName('Azure AKS', 'exist');
-  });
-
-  it('deleting a kontainer driver should hide its card from the cluster creation page', () => {
-    // intercept get request for kontainer drivers
-    cy.intercept('GET', '/v1/management.cattle.io.kontainerdriver*', (req) => {
-      req.reply( {
-        type:         'collection',
-        resourceType: 'management.cattle.io.kontainerdriver',
-        count:        0,
-        data:         []
-      });
-    } ).as('kontainerDrivers');
-
-    const clusterCreatePage = new ClusterManagerCreatePagePo();
-
-    // verify that the AKS card is not shown
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.createCluster();
-
-    clusterCreatePage.waitForPage();
-    cy.wait('@kontainerDrivers');
-
-    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
-
-    clusterCreatePage.gridElementGroupTitles().should('have.length', 2);
-
-    clusterCreatePage.gridElementGroupTitles().eq(0).should('not.contain.text', 'Create a cluster');
-
-    clusterCreatePage.gridElementGroupTitles().eq(0).should('contain.text', 'Provision new nodes');
-    clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
-  });
+  }));
 
   describe('RKE2 providers', () => {
     providersList.forEach((prov) => {
@@ -149,13 +114,14 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
-    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
+    const detailRKE2ClusterPage = () => new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
-    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
-      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
+    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster', '@provisioning'] }, () => {
+      const editCreatedClusterPage = () => new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
-      it('can create new cluster', () => {
+      qase(1436, it('can create new cluster', { retries: 0 }, () => {
+        rke2CustomName = createClusterTestName('rke2-custom');
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
         const request = {
           type,
@@ -212,16 +178,21 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.wait('@createRequest').then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
           expect(isMatch(intercept.request.body, request)).to.equal(true);
+          expect(['ingress-nginx', 'traefik']).to.include(intercept.request.body.spec?.rkeConfig?.machineGlobalConfig?.['ingress-controller']);
         });
 
-        detailRKE2ClusterPage.waitForPage(undefined, 'registration');
+        detailRKE2ClusterPage().waitForPage(undefined, 'registration');
 
         createRKE2ClusterPage.activateInsecureRegistrationCommandFromUI().click();
         createRKE2ClusterPage.commandFromCustomClusterUI().then(($value) => {
           const registrationCommand = $value.text();
+          const customNodeKey = `${ Cypress.env('customNodeKey') || '' }`;
+          const decodedCustomNodeKey = customNodeKey.includes('BEGIN') ? customNodeKey : Cypress.Buffer.from(customNodeKey, 'base64').toString('utf8');
 
-          cy.exec(`echo ${ Cypress.env('customNodeKey') } | base64 -d > custom_node.key && chmod 600 custom_node.key`).then((result) => {
+          cy.writeFile('custom_node.key', decodedCustomNodeKey).then(() => {
             cy.log('Creating the custom_node.key');
+          });
+          cy.exec('chmod 600 custom_node.key').then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
             expect(result.code).to.eq(0);
@@ -240,13 +211,20 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.list().state(rke2CustomName).should('contain.text', 'Updating');
-        clusterList.list().state(rke2CustomName).contains('Active', { timeout: 300000 }); // super long timeout needed for cluster provisioning to complete
-      });
+        clusterList.list().state(rke2CustomName).contains('Active', VERY_LONG_TIMEOUT_OPT); // super long timeout needed for cluster provisioning to complete
+      }));
 
-      it('can copy config to clipboard', () => {
+      qase(2053, it('can copy config to clipboard', () => {
+        // Stub clipboard methods to avoid permission prompts
+        cy.visit('/', {
+          onBeforeLoad(win) {
+            cy.stub(win.navigator.clipboard, 'writeText').resolves();
+          },
+        });
+
         ClusterManagerListPagePo.navTo();
 
-        cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
         cy.wait('@copyKubeConfig');
 
@@ -260,26 +238,27 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         // read text saved in the browser clipboard
         // cy.window().its('navigator.clipboard')
         //   .invoke('readText').should('include', rke2CustomName);
-      });
+      }));
 
-      it('can edit cluster and see changes afterwards', () => {
+      qase(1437, it('can edit cluster and see changes afterwards', () => {
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
-        editCreatedClusterPage.save();
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().set(rke2CustomName);
+        editCreatedClusterPage().save();
 
         // We should be taken back to the list page if the save was successful
         clusterList.waitForPage();
 
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
-      });
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().self()
+          .should('have.value', rke2CustomName);
+      }));
 
-      it('will disbable saving if an addon config has invalid data', () => {
+      qase(12214, it('will disable saving if an addon config has invalid data', () => {
         clusterList.goTo();
 
         clusterList.checkIsCurrentPage();
@@ -300,21 +279,22 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.calicoAddonConfig().yamlEditor().input().set('goodvalue: yay');
         createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
-      });
+      }));
 
-      it('can view cluster YAML editor', () => {
+      qase(1435, it('can view cluster YAML editor', () => {
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
-        editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
-      });
+        editCreatedClusterPage().waitForPage('mode=edit&as=yaml');
+        editCreatedClusterPage().resourceDetail().resourceYaml().checkVisible();
+      }));
 
-      it('can download KubeConfig', () => {
+      qase(1438, it('can download KubeConfig', () => {
+        cy.deleteDownloadsFolder();
         clusterList.goTo();
-        cy.intercept('POST', '/v3/clusters/**').as('generateKubeconfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeconfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
-        cy.wait('@generateKubeconfig').its('response.statusCode').should('eq', 200);
+        cy.wait('@generateKubeconfig').its('response.statusCode').should('be.oneOf', [200, 201]);
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
@@ -323,14 +303,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           const obj: any = jsyaml.load(buffer);
 
           // Basic checks on the downloaded YAML
-          expect(obj.clusters.length).to.equal(1);
-          expect(obj.clusters[0].name).to.equal(rke2CustomName);
+          expect(obj.clusters.some((cluster: { name: string }) => cluster.name === rke2CustomName)).to.equal(true);
           expect(obj.apiVersion).to.equal('v1');
           expect(obj.kind).to.equal('Config');
         });
-      });
+      }));
 
-      it('can download YAML', () => {
+      qase(2054, it('can download YAML', () => {
         // Delete downloads directory. Need a fresh start to avoid conflicting file names
         cy.deleteDownloadsFolder();
 
@@ -347,40 +326,78 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
           expect(obj.kind).to.equal('Cluster');
         });
+      }));
+
+      qase(48756, it('preserves custom addon config values after saving cluster config', () => {
+        const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
+        const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .set(customAddonConfig);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
+        editCreatedClusterPage().save();
+
+        clusterList.waitForPage();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
+          .value()
+          .should('include', customAddonConfig);
+      }));
+
+      it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+        const detailPage = detailRKE2ClusterPage();
+
+        detailPage.selectTab(tabbedPo, '[data-testid="btn-log"]');
+
+        detailPage.waitForPage(undefined, 'log');
+        detailPage.logsContainer().should('be.visible');
       });
 
-      it('can delete cluster', () => {
+      qase(1434, it('can delete cluster', () => {
         clusterList.goTo();
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
-        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
-          const promptRemove = new PromptRemove();
+        const promptRemove = new PromptRemove();
 
-          promptRemove.confirm(rke2CustomName);
-          promptRemove.remove();
+        promptRemove.confirm(rke2CustomName);
+        promptRemove.remove();
 
-          clusterList.waitForPage();
-          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', rke2CustomName);
-        });
-      });
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist');
+      }));
     });
   });
 
-  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
+  describe('Imported', { tags: ['@jenkins', '@importedCluster', '@provisioning'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
     const fqdn = 'fqdn';
     const cacert = 'cacert';
     const privateRegistry = 'registry.io';
 
     describe('Generic', () => {
-      it('can create new cluster', () => {
-        cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('getUsers');
+      qase(1436, it('can create new cluster', { retries: 0 }, () => {
+        importGenericName = createClusterTestName('import-generic');
+        cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
+        clusterList.list().checkVisible(MEDIUM_TIMEOUT_OPT);
         clusterList.importCluster();
 
         importClusterPage.waitForPage('mode=import');
@@ -405,9 +422,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.create();
 
         cy.wait('@importRequest').then((intercept) => {
-          importedClusterName = intercept.response.body.id;
-          cy.wrap(intercept.response.body.id).as('importedClusterId');
-
+          expect(intercept.response.statusCode).to.eq(201);
           expect(intercept.request.body).to.deep.equal({
             type:           importType,
             agentEnvVars:   [],
@@ -418,16 +433,16 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           });
         });
 
-        cy.get('@importedClusterId').then((importedClusterId) => {
-          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importedClusterId.toString());
+        cy.getClusterIdByName(importGenericName).then((clusterId) => {
+          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, clusterId);
 
-          detailClusterPage.waitForPage(undefined, 'registration');
+          cy.url(EXTRA_LONG_TIMEOUT_OPT).should('include', `${ clusterId }#registration`);
           detailClusterPage.kubectlCommandForImported().contains('--insecure').then(($value) => {
             const kubectlCommand = $value.text();
 
             expect(kubectlCommand).to.contain('--insecure');
             cy.log(kubectlCommand);
-            cy.exec(kubectlCommand, { failOnNonZeroExit: false }).then((result) => {
+            cy.exec(kubectlCommand, { failOnNonZeroExit: false, timeout: RESTART_TIMEOUT_OPT.timeout }).then((result) => {
               cy.log(result.stderr);
               cy.log(result.stdout);
               expect(result.code).to.eq(0);
@@ -437,89 +452,124 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
-        clusterList.list().state(importGenericName).contains('Pending');
-        clusterList.list().state(importGenericName).contains('Waiting', EXTRA_LONG_TIMEOUT_OPT);
+        clusterList.list().state(importGenericName).should('be.visible', EXTRA_LONG_TIMEOUT_OPT)
+          .and(($el) => {
+            const status = $el.text().trim();
+
+            expect(['Pending', 'Provisioning', 'Waiting']).to.include(status);
+          });
         clusterList.list().state(importGenericName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
         // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
         clusterList.list().provider(importGenericName).should('contain.text', 'Imported');
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
+      }));
+
+      it('creation page should include a table of contents containing an entry for each Accordion on the page', () => {
+        cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
+
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.importCluster();
+
+        importClusterPage.waitForPage('mode=import');
+        importClusterPage.selectGeneric(0);
+        importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
+        cy.wait('@getUsers');
+        // verify that the table of contents is shown and contains the same number of entries as there are accordions on the page
+        cy.get('[data-testid="accordion-header"]')
+          .its('length')
+          .then((accordionHeaderCount) => {
+            cy.get('[data-testid^="toc-list-item-"]')
+              .should('have.length', accordionHeaderCount);
+          });
+
+        // verify that clicking an accordion label in the table of contents scrolls the page to the associated accordion and opens it
+        cy.get('[data-testid="toc-list-item-3"] button').click();
+
+        cy.window().its('scrollY').should('be.greaterThan', 0);
+
+        cy.get('[data-testid="registries-accordion"]')
+          .find('[data-testid="accordion-body"]')
+          .should('be.visible');
       });
 
-      it('can edit imported cluster and see changes afterwards', () => {
-        const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', importedClusterName);
+      qase(6978, it('can edit imported cluster and see changes afterwards', () => {
+        cy.getClusterIdByName(importGenericName).then((clusterId) => {
+          const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', clusterId);
 
-        cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+          cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+          clusterList.goTo();
+          clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
+
+          editImportedClusterPage.waitForPage('mode=edit');
+
+          editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName);
+          cy.wait('@pageLoad');
+
+          // check accordions are properly displayed
+          editImportedClusterPage.accordion(2, 'K3S Options').should('be.visible');
+          editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
+          editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+
+          // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
+          editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
+
+          // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
+          editImportedClusterPage.versionManagementBanner().should('not.exist');
+
+          editImportedClusterPage.enableVersionManagement();
+          editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
+          editImportedClusterPage.defaultVersionManagement();
+
+          editImportedClusterPage.toggleAccordion(5, 'Networking');
+          editImportedClusterPage.ace().enable();
+          editImportedClusterPage.ace().enterFdqn(fqdn);
+          editImportedClusterPage.ace().enterCaCerts(cacert);
+
+          editImportedClusterPage.toggleAccordion(6, 'Registries');
+          editImportedClusterPage.enablePrivateRegistryCheckbox();
+          editImportedClusterPage.privateRegistry().set(privateRegistry);
+
+          editImportedClusterPage.save();
+
+          // We should be taken back to the list page if the save was successful
+          clusterList.waitForPage();
+
+          clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
+
+          editImportedClusterPage.waitForPage('mode=edit');
+          editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
+          editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
+
+          // Verify the private registry values
+          editImportedClusterPage.privateRegistryCheckbox().isChecked();
+          editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
+        });
+      }));
+
+      qase(1463, it('can delete cluster by bulk actions', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
-        editImportedClusterPage.waitForPage('mode=edit');
-
-        editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName );
-
-        // check accordions are properly displayed
-        editImportedClusterPage.accordion(2, 'Basics').should('be.visible');
-        editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
-        editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
-
-        // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
-        editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
-
-        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
-        editImportedClusterPage.versionManagementBanner().should('not.exist');
-
-        editImportedClusterPage.enableVersionManagement();
-        editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
-        editImportedClusterPage.defaultVersionManagement();
-
-        editImportedClusterPage.toggleAccordion(5, 'Networking');
-        editImportedClusterPage.ace().enable();
-        editImportedClusterPage.ace().enterFdqn(fqdn);
-        editImportedClusterPage.ace().enterCaCerts(cacert);
-
-        editImportedClusterPage.toggleAccordion(6, 'Registries');
-        editImportedClusterPage.enablePrivateRegistryCheckbox();
-        editImportedClusterPage.privateRegistry().set(privateRegistry);
-
-        editImportedClusterPage.save();
-
-        // We should be taken back to the list page if the save was successful
-        clusterList.waitForPage();
-
-        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
-
-        editImportedClusterPage.waitForPage('mode=edit');
-        editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
-        editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
-
-        // Verify the private registry values
-        editImportedClusterPage.privateRegistryCheckbox().isChecked();
-        editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
-      });
-
-      it('can delete cluster by bulk actions', () => {
-        clusterList.goTo();
+        clusterList.list().checkVisible(MEDIUM_TIMEOUT_OPT);
         clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
-          const promptRemove = new PromptRemove();
+        const promptRemove = new PromptRemove();
 
-          promptRemove.confirm(importGenericName);
-          promptRemove.remove();
+        promptRemove.confirm(importGenericName);
+        promptRemove.remove();
 
-          clusterList.waitForPage();
-          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', importGenericName);
-        });
-      });
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist');
+      }));
     });
   });
 
-  it('can navigate to Cluster Management Page', () => {
+  qase(2224, it('can navigate to Cluster Management Page', () => {
     HomePagePo.goTo();
     const burgerMenu = new BurgerMenuPo();
 
@@ -531,9 +581,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const clusterList = new ClusterManagerListPagePo('_');
 
     clusterList.waitForPage();
-  });
+  }));
 
-  describe('Cluster Details Tabs', () => {
+  describe('Cluster Details Page and Tabs', () => {
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
     const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
 
@@ -542,42 +592,52 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.clickOnClusterName('local');
+      clusterList.list().resourceTable().sortableTable().filter('local', 100);
+      clusterList.waitForPage('q=local');
+      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterDetail.waitForPage();
     });
 
-    it('can navigate to Cluster Conditions Page', () => {
+    qase(3230, it('can navigate to Cluster Conditions Page', () => {
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-conditions"]');
 
       clusterDetail.waitForPage(undefined, 'conditions');
-      clusterDetail.conditionsList().details('Ready', 1).should('include.text', 'True');
-    });
+      clusterDetail.conditionsList().details('Created', 1).should('include.text', 'True');
+    }));
 
-    it('can navigate to Cluster Related Page', () => {
+    qase(3228, it('can navigate to Cluster Related Page', () => {
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-related"]');
 
       clusterDetail.waitForPage(undefined, 'related');
       clusterDetail.referredToList().details('Mgmt', 2).should('include.text', 'local');
-    });
+    }));
 
-    it('can navigate to Cluster Provisioning Log Page', () => {
-      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-log"]');
-
-      clusterDetail.waitForPage(undefined, 'log');
-      clusterDetail.logsContainer().should('be.visible');
-    });
-
-    it('can navigate to Cluster Machines Page', () => {
+    qase(3229, it('can navigate to Cluster Machines Page', () => {
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
 
       clusterDetail.waitForPage(undefined, 'node-pools');
-      clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
-      clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
-      clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
-    });
+      clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
+      clusterDetail.poolsList('node').downloadYamlButton().should('be.disabled');
+    }));
 
-    it('can navigate to namespace from cluster detail view', () => {
-      clusterDetail.waitForPage();
+    qase(12219, it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
+      clusterDetail.openShowConfiguration();
+      const drawer = clusterDetail.detailDrawer();
 
+      drawer.checkExists();
+      drawer.checkVisible();
+      drawer.saveButton().should('be.visible');
+      const tabs = ['Config', 'YAML'];
+
+      drawer.tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      drawer.tabs().clickTabWithName('yaml-tab');
+      drawer.saveButton().should('not.exist');
+    }));
+
+    qase(3348, it('can navigate to namespace from cluster detail view', () => {
       clusterDetail.namespace().should('contain.text', 'fleet-local');
       clusterDetail.namespace().click();
 
@@ -585,43 +645,42 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       nsPage.waitForPage(undefined, 'Resources');
       nsPage.namespace().should('contain.text', 'fleet-local');
-    });
+    }));
   });
 
-  describe('Local', { tags: ['@jenkins', '@localCluster'] }, () => {
-    it(`can open edit for local cluster`, () => {
+  describe('Local', () => {
+    qase(8592, it(`can open edit for local cluster`, () => {
       const editLocalClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-local', 'local');
 
-      cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+      cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
       clusterList.goTo();
       clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
       editLocalClusterPage.waitForPage('mode=edit');
-
+      cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
       // check accordions are properly displayed
-      editLocalClusterPage.accordion(2, 'Basics').should('be.visible');
+      editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
       editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(5, 'Networking').should('not.exist');
+      editLocalClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
 
       // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
       editLocalClusterPage.versionManagementBanner().should('not.exist');
 
       editLocalClusterPage.enableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.disableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.cancel();
 
       // We should be taken back to the list page if the save was successful
       clusterList.waitForPage();
-    });
-    it(`can navigate to local cluster's explore product`, () => {
+    }));
+
+    qase(1404, it(`can navigate to local cluster's explore product`, () => {
       const clusterName = 'local';
       const clusterDashboard = new ClusterDashboardPagePo(clusterName);
 
@@ -629,10 +688,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterList.list().explore(clusterName).click();
 
       clusterDashboard.waitForPage(undefined, 'cluster-events');
-    });
+    }));
   });
 
-  it('can download YAML via bulk actions', () => {
+  qase(2223, it('can download YAML via bulk actions', () => {
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
@@ -651,18 +710,19 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       expect(obj.metadata.name).to.equal('local');
       expect(obj.kind).to.equal('Cluster');
     });
-  });
+  }));
 
-  it('can download KubeConfig via bulk actions', () => {
+  qase(2222, it('can download KubeConfig via bulk actions', () => {
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
     ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
-    cy.intercept('POST', '/v3/clusters/local?action=generateKubeconfig').as('generateKubeConfig');
-    clusterList.list().downloadKubeConfig().click({ force: true });
-    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 200);
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -670,12 +730,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('v1');
-      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.kind).to.equal('Config');
     });
-  });
+  }));
 
-  it('can connect to kubectl shell', () => {
+  qase(1975, it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
 
@@ -683,14 +743,14 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
-  });
+  }));
 
   describe('Credential Step', () => {
     const drivers = ['nutanix', 'oci'];
 
     Cypress._.each(drivers, (driver) => {
       describe(`should always show credentials for ${ driver } driver`, () => {
-        it('should show credential step when `addCloudCredential` is true', () => {
+        qase(2257, it('should show credential step when `addCloudCredential` is true', () => {
           cy.intercept({
             method: 'GET',
             path:   `/v1/management.cattle.io.nodedrivers*`,
@@ -705,9 +765,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           clusterCreate.waitForPage();
 
           clusterCreate.credentialsBanner().checkExists();
-        });
+        }));
 
-        it('should show credential step when `addCloudCredential` is false', () => {
+        qase(5221, it('should show credential step when `addCloudCredential` is false', () => {
           cy.intercept({
             method: 'GET',
             path:   `/v1/management.cattle.io.nodedrivers*`,
@@ -722,14 +782,14 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           clusterCreate.waitForPage();
 
           clusterCreate.credentialsBanner().checkExists();
-        });
+        }));
       });
     });
 
     const driver2 = 'outscale';
 
     describe('should show on condition of addCloudCredential', () => {
-      it('should show credential step when `addCloudCredential` is true', () => {
+      qase(2257, it('should show credential step when `addCloudCredential` is true', () => {
         cy.intercept({
           method: 'GET',
           path:   `/v1/management.cattle.io.nodedrivers*`,
@@ -744,9 +804,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterCreate.waitForPage();
 
         clusterCreate.credentialsBanner().checkExists();
-      });
+      }));
 
-      it('should NOT show credential step when `addCloudCredential` is false', () => {
+      qase(2256, it('should NOT show credential step when `addCloudCredential` is false', () => {
         cy.intercept({
           method: 'GET',
           path:   `/v1/management.cattle.io.nodedrivers*`,
@@ -761,13 +821,97 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterCreate.waitForPage();
 
         clusterCreate.credentialsBanner().checkNotExists();
-      });
+      }));
     });
   });
 
   after(() => {
     if (reenableAKS) {
-      cy.createRancherResource('v3', 'kontainerDrivers/azurekubernetesservice?action=activate', {});
+      cy.setRancherResource('v1', 'management.cattle.io.settings', 'kev2-operators', { value: originalSettings });
     }
+  });
+});
+
+describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  qase(2224, it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  }));
+
+  describe('Cluster Detail Page', () => {
+    const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
+
+    beforeEach( () => {
+      ClusterManagerListPagePo.navTo();
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      clusterList.waitForPage();
+      clusterList.goToDetailsPage('local', '.cluster-link a');
+    });
+
+    qase(12222, it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
+      clusterDetail.waitForPage();
+      clusterDetail.openShowConfiguration();
+      const drawer = clusterDetail.detailDrawer();
+
+      drawer.checkExists();
+      drawer.checkVisible();
+      drawer.saveButton().should('not.exist');
+      const tabs = ['Config', 'YAML'];
+
+      drawer.tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      drawer.tabs().clickTabWithName('yaml-tab');
+      drawer.saveButton().should('not.exist');
+    }));
+
+    qase(12451, it('Shows the explore button and navigates to the cluster explorer when clicked', () => {
+      clusterDetail.waitForPage();
+      clusterDetail.exploreButton().should('exist');
+
+      clusterDetail.exploreButton().click();
+      cy.url().should('include', '/c/local/explorer');
+    }));
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  qase(17812, it('should display cluster manager page', () => {
+    const clusterList = new ClusterManagerListPagePo();
+
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+
+    clusterList.sortableTable().checkVisible();
+    clusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterList.sortableTable().noRowsShouldNotExist();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', 'td.col-live-date span.live-date');
+    // takes percy snapshot.
+    cy.percySnapshot('cluster manager list page');
+  }));
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

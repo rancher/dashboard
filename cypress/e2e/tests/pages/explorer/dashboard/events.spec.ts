@@ -3,6 +3,7 @@ import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const cluster = 'local';
 const clusterDashboard = new ClusterDashboardPagePo(cluster);
@@ -34,9 +35,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
-    const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
 
@@ -48,36 +48,31 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         allNamespaces:   'true',
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createPod = (podName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = podName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create pods
-        let i = 0;
+          return cy.createPod(ns, name, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } });
+        };
+      };
 
-        while (i < podCount) {
-          const podName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createPod(nsName1, podName, 'nginx:latest', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
-            podNamesList.push(resp.body.metadata.name);
-          });
-
-          i++;
-        }
-      });
-
-      cy.createE2EResourceName('ns2').then((ns2) => {
-        nsName2 = ns2;
-
-        // create namespace
-        cy.createNamespace(nsName2);
-
-        // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:latest', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
-          uniquePod = resp.body.metadata.name;
+      cy.createManyNamespacedResources({
+        context:        'events1',
+        createResource: createPod(),
+        count:          podCount,
+      })
+        .then(({ ns }) => {
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResources({
+          context:        'events2',
+          createResource: createPod(uniquePod),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniquePod = workloadNames[0];
+          nsName2 = ns;
         });
-      });
 
       // I'm loathed to do this, but the events created from the pods need to settle before we start
       cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
@@ -344,8 +339,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       });
 
       // delete namespace (this will also delete all pods in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 });

@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export default {
   props: {
@@ -36,9 +37,9 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({ theme: 'prefs/theme' }),
+    ...mapGetters({ theme: 'prefs/theme', brand: 'management/brand' }),
 
-    brand() {
+    brandBase() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
       return setting.value;
@@ -72,25 +73,36 @@ export default {
       const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
       try {
-        return require(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
+        return requireAsset(`~shell/assets/images/pl/${ themePrefix }${ this.fileName }`);
       } catch {
-        return require(`~shell/assets/images/pl/${ this.fileName }`);
+        return requireAsset(`~shell/assets/images/pl/${ this.fileName }`);
       }
+    },
+
+    isDark() {
+      return this.theme === 'dark';
     },
 
     pathToBrandedImage() {
       if (this.fileName === 'rancher-logo.svg' || this.supportCustomLogo) {
-        if (this.theme === 'dark' && this.uiLogoDark) {
+        if (this.isDark && this.uiLogoDark) {
           return this.uiLogoDark;
         }
 
         if (this.uiLogoLight) {
           return this.uiLogoLight;
         }
+
+        // csp, rgs, and federal map to SUSE, but have their own custom logos
+        if (this.brandBase !== this.brand) {
+          try {
+            return requireAsset(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
+          } catch { }
+        }
       }
 
       if (this.fileName === 'banner.svg') {
-        if (this.theme === 'dark' && this.uiBannerDark) {
+        if (this.isDark && this.uiBannerDark) {
           return this.uiBannerDark;
         }
 
@@ -100,7 +112,7 @@ export default {
       }
 
       if (this.fileName === 'login-landscape.svg') {
-        if (this.theme === 'dark' && this.uiLoginBackgroundDark) {
+        if (this.isDark && this.uiLoginBackgroundDark) {
           return this.uiLoginBackgroundDark;
         }
 
@@ -112,13 +124,13 @@ export default {
       if (!this.brand) {
         return this.defaultPathToBrandedImage;
       } else {
-        if (this.theme === 'dark' || this.dark) {
+        if (this.isDark || this.dark) {
           try {
-            return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
+            return requireAsset(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
         }
         try {
-          return require(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
+          return requireAsset(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
         } catch {}
 
         return this.defaultPathToBrandedImage;

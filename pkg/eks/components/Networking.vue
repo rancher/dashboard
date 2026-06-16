@@ -6,15 +6,16 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
 
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
-import { AWS } from '../types';
+import * as AWS from '@shell/types/aws-sdk';
 
 export default defineComponent({
   name: 'EKSNetworking',
 
-  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources'],
+  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources', 'update:ipFamily'],
 
   components: {
     LabeledSelect,
@@ -73,10 +74,23 @@ export default defineComponent({
     rules: {
       type:    Object,
       default: () => {}
+    },
+
+    ipFamily: {
+      type:    String,
+      default: 'ipv4'
+    },
+
+    isNewOrUnprovisioned: {
+      type:    Boolean,
+      default: false
     }
   },
 
   watch: {
+    ipFamily() {
+      this.$emit('update:subnets', []);
+    },
     amazonCredentialSecret: {
       handler(neu) {
         if (neu && !this.isView) {
@@ -117,7 +131,8 @@ export default defineComponent({
       vpcInfo:               [] as AWS.VPC[],
       subnetInfo:            [] as AWS.Subnet[],
       securityGroupInfo:     {} as {SecurityGroups: AWS.SecurityGroup[]},
-      chooseSubnet:          !!this.subnets && !!this.subnets.length
+      chooseSubnet:          !!this.subnets && !!this.subnets.length,
+      ipFamilyOptions:       [{ value: 'ipv4', label: this.t('eks.ipFamily.options.ipv4') }, { value: 'ipv6', label: this.t('eks.ipFamily.options.ipv6') }],
     };
   },
 
@@ -132,6 +147,17 @@ export default defineComponent({
       const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
       subnets.forEach((s) => {
+        const hasIpv4 = isIpv4Network(s);
+        const hasIpv6 = isIpv6Network(s);
+
+        if (this.ipFamily === 'ipv4' && !hasIpv4) {
+          return;
+        }
+
+        if (this.ipFamily === 'ipv6' && (!hasIpv4 || !hasIpv6)) {
+          return;
+        }
+
         if (!mappedSubnets[s.VpcId]) {
           mappedSubnets[s.VpcId] = [s];
         } else {
@@ -139,26 +165,20 @@ export default defineComponent({
         }
       });
       vpcs.forEach((v) => {
-        const { VpcId = '', Tags = [] } = v;
-        const nameTag = Tags.find((t) => {
-          return t.Key === 'Name';
-        })?.Value;
+        const { VpcId = '' } = v;
 
         const formOption = {
-          key: VpcId, label: `${ nameTag } (${ VpcId })`, kind: 'group'
+          key: VpcId, label: getVpcDisplayName(v), kind: 'group'
         };
 
         out.push(formOption);
         if (mappedSubnets[VpcId]) {
           mappedSubnets[VpcId].forEach((s) => {
-            const { SubnetId, Tags = [] } = s;
-            const nameTag = Tags.find((t) => {
-              return t.Key === 'Name';
-            })?.Value;
+            const { SubnetId } = s;
 
             const subnetFormOption = {
               key:       SubnetId,
-              label:     `${ nameTag } (${ SubnetId })`,
+              label:     getSubnetDisplayName(s),
               _isSubnet: true,
               disabled:  !!this.selectedVpc && VpcId !== this.selectedVpc
             };
@@ -296,6 +316,30 @@ export default defineComponent({
         </ArrayList>
       </div>
     </div>
+    <div class="row">
+      <div class="col span-12">
+        <RadioGroup
+          :value="ipFamily"
+          name="ip-family"
+          :mode="mode"
+          :options="ipFamilyOptions"
+          label-key="eks.ipFamily.label"
+          :disabled="!isNewOrUnprovisioned"
+          data-testid="eks-ip-family-radio"
+          :row="true"
+          @update:value="$emit('update:ipFamily', $event)"
+        >
+          <template #label>
+            <h3>{{ t('eks.ipFamily.label') }}</h3>
+            <Banner
+              v-if="isNewOrUnprovisioned"
+              color="info"
+              :label="t('eks.ipFamily.banner')"
+            />
+          </template>
+        </RadioGroup>
+      </div>
+    </div>
     <div class="row mb-10 mt-20">
       <div
         v-if="isNew"
@@ -308,6 +352,7 @@ export default defineComponent({
           :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
           label-key="eks.subnets.title"
           :disabled="!isNew"
+          data-testid="eks-subnets-choose-subnet-radio"
         />
       </div>
     </div>

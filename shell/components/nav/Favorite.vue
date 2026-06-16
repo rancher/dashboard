@@ -34,7 +34,7 @@ export default {
     :aria-pressed="!!isFavorite"
     class="favorite icon"
     :class="{'icon-star-open': !isFavorite, 'icon-star': isFavorite}"
-    aria-role="button"
+    role="button"
     :aria-label="ariaLabel"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
@@ -55,6 +55,10 @@ export default {
 
     &.icon-star-closed {
       color: var(--body-text);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
     }
   }
 </style>

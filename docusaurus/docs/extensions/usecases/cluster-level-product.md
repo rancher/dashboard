@@ -1,4 +1,9 @@
 # Extension as a cluster-level product
+
+## What is a cluster-level product
+If you're not familiar with a cluster-level product is, check it's definition [here](../api/concepts.md#what-is-a-cluster-level-product).
+
+## Cluster-level product full code example
 As a full example of an Extension as cluster-level product, let's start with the definition of `product.ts` config:
 
 ```ts
@@ -30,7 +35,7 @@ The `product.ts` config will then define the product and which "pages/views" we 
 // ./product.ts
 import { IPlugin } from '@shell/core/types';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'clusterLevelProduct';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -40,7 +45,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a cluster-level product
   product({

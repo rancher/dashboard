@@ -68,7 +68,7 @@ export default class Namespace extends SteveModel {
         label:      this.t('namespace.move'),
         bulkable:   true,
         bulkAction: 'move',
-        enabled:    true,
+        enabled:    this.canUpdate,
         icon:       'icon icon-fork',
         weight:     3,
       });
@@ -132,6 +132,10 @@ export default class Namespace extends SteveModel {
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
     return project;
+  }
+
+  get projectNameDisplay() {
+    return this.project?.nameDisplay || '';
   }
 
   get groupById() {
@@ -267,6 +271,38 @@ export default class Namespace extends SteveModel {
   }
 
   get hideDetailLocation() {
-    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
+    const currentProduct = this.$rootGetters['currentProduct'];
+
+    return currentProduct ? !!currentProduct.hideNamespaceLocation : true;
+  }
+
+  get glance() {
+    const glance = [...this._glance];
+
+    const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
+
+    if (namespaceIndex > -1) {
+      glance.splice(namespaceIndex, 1, this.projectGlance);
+    }
+
+    // projectGlance could be undefined
+    return glance.filter(Boolean);
+  }
+
+  get projectGlance() {
+    // Not all namespaces are in a project
+    if (!this.project) {
+      return undefined;
+    }
+
+    return {
+      name:          'project',
+      label:         this.t('component.resource.detail.glance.project'),
+      formatter:     'Link',
+      formatterOpts: {
+        to: this.project.detailLocation, row: {}, options: { internal: true }
+      },
+      content: this.project.nameDisplay
+    };
   }
 }

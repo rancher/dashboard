@@ -18,6 +18,10 @@ export default class BaseResourceList extends ComponentPo {
     return this.resourceTable().sortableTable().rowActionMenuOpen(rowLabel);
   }
 
+  actionMenuClose(rowLabel: string) {
+    return this.resourceTable().sortableTable().rowActionMenuClose(rowLabel);
+  }
+
   rowWithName(rowLabel: string) {
     return this.resourceTable().sortableTable().rowWithName(rowLabel);
   }

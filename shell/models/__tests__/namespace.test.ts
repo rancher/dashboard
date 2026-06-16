@@ -150,6 +150,42 @@ describe('class Namespace', () => {
   it.todo('should disableAutoInjection');
   it.todo('should check if confirmRemove');
 
+  describe('move action availability', () => {
+    const SteveModelProto = Object.getPrototypeOf(Namespace.prototype);
+
+    const makeNamespace = ({ canUpdate }: { canUpdate: boolean }) => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:       true,
+        isSingleProduct: false,
+        'i18n/t':        (key: string) => key,
+      });
+      Object.defineProperty(namespace, 'istioInstalled', { get: () => false, configurable: true });
+      Object.defineProperty(namespace, 'canUpdate', { get: () => canUpdate, configurable: true });
+      jest.spyOn(SteveModelProto, '_availableActions', 'get').mockReturnValue([]);
+
+      return namespace;
+    };
+
+    it('should include the move action when user can update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: true });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeDefined();
+      expect(moveAction.enabled).toBe(true);
+    });
+
+    it('should exclude the move action when user cannot update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: false });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeUndefined();
+    });
+  });
+
   describe('handling listLocation', () => {
     it.each([
       ['c-cluster-product-projectsnamespaces', true],
@@ -186,4 +222,84 @@ describe('class Namespace', () => {
   it.todo('should return the resourceQuota');
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');
+
+  describe('hideDetailLocation', () => {
+    it('should not throw when currentProduct is undefined', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ currentProduct: undefined });
+
+      expect(() => namespace.hideDetailLocation).not.toThrow();
+      expect(namespace.hideDetailLocation).toBe(true);
+    });
+  });
+
+  describe('glance', () => {
+    it('should return projectGlance instead of namespace when namespace is in a project', () => {
+      const t = jest.fn((key) => key);
+      const ctx = { rootGetters: { 'i18n/t': t } };
+      const namespace = new Namespace({}, ctx);
+
+      const project = {
+        detailLocation: 'project-detail',
+        nameDisplay:    'My Project',
+      };
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(project);
+      Object.defineProperty(namespace, '_glance', { get: jest.fn(() => [{ name: 'namespace' }, { name: 'other' }]) });
+
+      const result = namespace.glance;
+
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('project');
+      expect(result[0].label).toBe('component.resource.detail.glance.project');
+      expect(result[0].formatter).toBe('Link');
+      expect(result[0].formatterOpts?.to).toBe('project-detail');
+      expect(result[0].content).toBe('My Project');
+      expect(result[1].name).toBe('other');
+    });
+
+    it('should remove namespace from glance when namespace is not in a project', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      Object.defineProperty(namespace, '_glance', { get: jest.fn(() => [{ name: 'namespace' }, { name: 'other' }]) });
+
+      const result = namespace.glance;
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('other');
+    });
+  });
+
+  describe('projectGlance', () => {
+    it('should return undefined if namespace is not in a project', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+
+      expect(namespace.projectGlance).toBeUndefined();
+    });
+
+    it('should return project glance information if namespace is in a project', () => {
+      const t = jest.fn((key) => key);
+      const ctx = { rootGetters: { 'i18n/t': t } };
+      const namespace = new Namespace({}, ctx);
+
+      const project = {
+        detailLocation: 'project-detail',
+        nameDisplay:    'My Project',
+      };
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(project);
+
+      const result = namespace.projectGlance;
+
+      expect(result?.name).toBe('project');
+      expect(result?.label).toBe('component.resource.detail.glance.project');
+      expect(result?.formatter).toBe('Link');
+      expect(result?.formatterOpts.to).toBe('project-detail');
+      expect(result?.content).toBe('My Project');
+    });
+  });
 });

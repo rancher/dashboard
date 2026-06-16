@@ -22,10 +22,14 @@ defineProps({
       return [];
     }
   },
+  label: {
+    type:    String,
+    default: ''
+  }
 });
 const emits = defineEmits(['click', 'select']);
 
-const { handleKeydown, handleActivate } = useDropdownItem();
+const { handleKeydown, handleActivate, scrollIntoView } = useDropdownItem();
 
 const dropdownMenuItem = ref<HTMLDivElement | null>(null);
 const menuItemSelect = ref<LabeledSelectComponent | null>(null);
@@ -50,11 +54,12 @@ const focusMenuItem = () => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
+    @focusin="scrollIntoView"
   >
     <LabeledSelect
       ref="menuItemSelect"
       :value="modelValue"
-      :label="t('wm.containerLogs.range.label')"
+      :label="label"
       :options="options"
       :clearable="false"
       placement="top"

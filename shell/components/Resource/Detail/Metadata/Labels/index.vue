@@ -8,7 +8,7 @@ export type Label = Row;
 export interface LabelsProps {
     labels: Label[];
 
-    onShowConfiguration?: () => void;
+    onShowConfiguration?: (returnFocusSelector: string, defaultTab: string) => void;
 }
 
 </script>
@@ -26,6 +26,7 @@ const i18n = useI18n(store);
   <KeyValue
     :propertyName="i18n.t('component.resource.detail.metadata.labels.title')"
     :rows="labels"
-    @show-configuration="() => emit('show-configuration')"
+    type="active"
+    @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector, 'labels-and-annotations')"
   />
 </template>

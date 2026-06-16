@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import StateCard from '@shell/components/Resource/Detail/Card/StateCard/index.vue';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import ResourceRow from '@shell/components/Resource/Detail/ResourceRow.vue';
+jest.mock('vuex', () => ({ useStore: () => { } }));
 
 describe('component: StateCard', () => {
   const title = 'TITLE';

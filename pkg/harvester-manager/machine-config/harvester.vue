@@ -18,9 +18,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
 import { uniq, removeObject } from '@shell/utils/array';
-
+import paginationUtils from '@shell/utils/pagination-utils';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-
 import { mapGetters } from 'vuex';
 import {
   HCI,
@@ -31,7 +30,6 @@ import {
   NODE,
   STORAGE_CLASS
 } from '@shell/config/types';
-
 import { SETTING } from '@shell/config/settings';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
@@ -43,6 +41,7 @@ import { isEqual } from 'lodash';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
+const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';
 
 // init qemu guest agent
 export const QGA_JSON = {
@@ -133,13 +132,21 @@ export default {
 
       if (clusterId) {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
+        let harvesterClusterVaiEnabled = false;
 
-        if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
+        try {
+          harvesterClusterVaiEnabled = await paginationUtils.isDownstreamSteveCacheEnabled({ dispatch: this.$store.dispatch }, clusterId);
+        } catch (e) {
+          console.error('Failed to determine if vai is enabled in imported harvester cluster, reverting to non-vai process', e); // eslint-disable-line no-console
+        }
+
+        if (harvesterClusterVaiEnabled && this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
           const pagination = new FilterArgs({
             filters: [
               PaginationParamFilter.createMultipleFields([
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'network' })
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'user' }),
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' }),
+                new PaginationFilterField({ field: 'id', value: HARVESTER_CPU_MODEL })
               ])
             ]
           });
@@ -177,33 +184,12 @@ export default {
           }
         }
 
-        const userDataOptions = [];
-        const networkDataOptions = [];
-
-        (res.configMaps.value?.data || []).map((O) => {
-          const cloudTemplate =
-            O.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
-
-          if (cloudTemplate === 'user') {
-            userDataOptions.push({
-              label: O.metadata.name,
-              value: O.data.cloudInit
-            });
-          }
-
-          if (cloudTemplate === 'network') {
-            networkDataOptions.push({
-              label: O.metadata.name,
-              value: O.data.cloudInit
-            });
-          }
-        });
-
-        this.userDataOptions = userDataOptions;
-        this.networkDataOptions = networkDataOptions;
+        this.userDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'user');
+        this.networkDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'network');
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
+        this.cpuModelConfigMap = this.genCpuModelConfigMap(res.configMaps.value?.data);
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -394,11 +380,57 @@ export default {
       vGpuDevices:        {},
       vGpusInit:          vGpus,
       vGpus,
+      cpuModelConfigMap:  null,
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    cpuModelOptions() {
+      const defaultOption = { label: this.t('generic.default'), value: '' };
+
+      if (!this.cpuModelConfigMap?.cpuModels) {
+        return [defaultOption];
+      }
+
+      let cpuModelsData;
+
+      try {
+        cpuModelsData = YAML.parse(this.cpuModelConfigMap.cpuModels);
+      } catch (e) {
+        return [defaultOption];
+      }
+
+      if (!cpuModelsData || typeof cpuModelsData !== 'object') {
+        return [defaultOption];
+      }
+
+      const options = [defaultOption];
+
+      const globalModels = cpuModelsData.globalModels || [];
+
+      globalModels.sort((a, b) => a[0].localeCompare(b[0]));
+
+      globalModels.forEach((modelName) => {
+        options.push({ label: modelName, value: modelName });
+      });
+
+      const modelEntries = Object.entries(cpuModelsData.models || {});
+
+      modelEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+      modelEntries.forEach(([modelName, modelInfo]) => {
+        const readyCount = modelInfo.readyCount || 0;
+
+        options.push({
+          label: this.t('harvesterManager.cpuModel.optionLabel', { modelName, count: readyCount }),
+          value: modelName
+        });
+      });
+
+      return options;
+    },
 
     disabledEdit() {
       return this.disabled || !!(this.isEdit && this.value.id);
@@ -490,22 +522,39 @@ export default {
     },
 
     vGpuOptions() {
-      const vGpuTypes = uniq([
-        ...this.vGpusInit,
-        ...Object.values(this.vGpuDevices)
-          .filter((vGpu) => vGpu.enabled && !!vGpu.type && (vGpu.allocatable === null || vGpu.allocatable > 0))
-          .map((vGpu) => vGpu.type),
-      ]);
+      const availableDevices = Object.values(this.vGpuDevices)
+        .filter((vGpu) => vGpu.enabled &&
+          vGpu.type &&
+          (vGpu.allocatable === null || vGpu.allocatable > 0)
+        );
 
-      return vGpuTypes;
+      const uniqueTypes = uniq(availableDevices.map((vGpu) => vGpu.type));
+
+      return uniqueTypes.map((type) => ({
+        label: this.vGpuOptionLabel(type),
+        value: type
+      }));
     },
 
     showVGpuAllocationInfo() {
       return this.mode !== _VIEW && !!Object.values(this.vGpuDevices).find((d) => d.allocatable);
-    }
+    },
+
+    enableCpuPinningCheckbox() {
+      return this.allNodeObjects.some((node) => node?.metadata?.labels?.[HCI_ANNOTATIONS.CPU_MANAGER] === 'true'); // any one of nodes has label cpuManager=true
+    },
   },
 
   watch: {
+    'value.enableEfi': {
+      handler(neu) {
+        // clear secureBoot if disable enableEfi
+        if (!!neu === false) {
+          this.value.enableSecureBoot = undefined;
+        }
+      },
+      immediate: true
+    },
     credentialId() {
       if (!this.isEdit) {
         this.imageOptions = [];
@@ -571,7 +620,33 @@ export default {
 
   methods: {
     stringify,
+    genCpuModelConfigMap(configMaps = []) {
+      const cpuModelConfigMap = configMaps.find((cm) => cm.id === HARVESTER_CPU_MODEL);
 
+      return cpuModelConfigMap?.data || null;
+    },
+    genCloudDataOptions(configMaps = [], type = 'user') {
+      const valueMap = new Map();
+
+      for (const configMap of configMaps) {
+        const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
+
+        if (cloudTemplate !== type) continue;
+
+        const value = configMap.data?.cloudInit;
+        const label = configMap.id;
+
+        if (!value) continue;
+
+        if (valueMap.has(value)) {
+          valueMap.set(value, `${ valueMap.get(value) }, ${ label }`);
+        } else {
+          valueMap.set(value, label);
+        }
+      }
+
+      return Array.from(valueMap, ([value, label]) => ({ value, label }));
+    },
     test() {
       const errors = [];
 
@@ -701,7 +776,7 @@ export default {
       const notAllocatable = this.vGpus
         .map((type) => {
           const allocated = this.machinePools.reduce((acc, machinePool) => {
-            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '')?.vGPURequests;
+            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '{}')?.vGPURequests;
 
             const vGpuTypes = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
 
@@ -1252,6 +1327,29 @@ export default {
           />
         </div>
       </div>
+      <div class="row mt-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model:value="value.reservedMemorySize"
+            v-int-number
+            label-key="cluster.credential.harvester.reservedMemory"
+            output-as="string"
+            suffix="MiB"
+            :mode="mode"
+            :disabled="disabled"
+            :placeholder="t('cluster.harvester.machinePool.reservedMemory.placeholder')"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledSelect
+            v-model:value="value.cpuModel"
+            :label="t('harvesterManager.cpuModel.label')"
+            :options="cpuModelOptions"
+            :mode="mode"
+            :disabled="disabled"
+          />
+        </div>
+      </div>
 
       <h2 class="mt-20">
         {{ t('cluster.credential.harvester.volume.title') }}
@@ -1467,7 +1565,6 @@ export default {
             :select-props="{
               mode,
               disabled,
-              getOptionLabel: vGpuOptionLabel
             }"
             :options="vGpuOptions"
             label-key="harvesterManager.vGpu.label"
@@ -1500,12 +1597,51 @@ export default {
 
           <Checkbox
             v-model:value="installAgent"
-            class="check mb-20"
-            type="checkbox"
+            class="check"
+            type="checkbox mb-20"
             label-key="cluster.credential.harvester.installGuestAgent"
             :mode="mode"
             @update:value="updateAgent"
           />
+
+          <Checkbox
+            v-model:value="value.cpuPinning"
+            class="check mb-20"
+            :disabled="!enableCpuPinningCheckbox"
+            type="checkbox"
+            tooltip-key="cluster.credential.harvester.cpuPinningTooltip"
+            label-key="cluster.credential.harvester.enableCpuPinning"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableTpm"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableTpm"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableEfi"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableEfi"
+            :mode="mode"
+          />
+          <Checkbox
+            v-if="!!value.enableEfi"
+            v-model:value="value.enableSecureBoot"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.secureBoot"
+            :mode="mode"
+          />
+          <Banner
+            v-if="!enableCpuPinningCheckbox"
+            color="warning"
+            class="check mb-20 mt-0"
+          >
+            <span> {{ t('cluster.credential.harvester.cpuManagerWarning') }}</span>
+          </Banner>
         </div>
 
         <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>

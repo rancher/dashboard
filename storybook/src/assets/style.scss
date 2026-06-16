@@ -2,3 +2,10 @@
   display: flex;
   gap: 10px
 }
+
+.theme-dark,
+.theme-light {
+  &, .docs-story {
+    background-color: var(--body-bg);
+  }
+}

@@ -1,22 +1,26 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { requireAsset } from '@shell/utils/require-asset';
+import {
+  SECRET_SCOPE, SECRET_QUERY_PARAMS,
+  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
+} from '@shell/config/query-params';
+import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE, VIRTUAL_TYPES } from '@shell/config/types';
+import { CAPI, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
+import { useStore } from 'vuex';
+import { useFormValidation } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
-import {
-  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
-} from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
-import { CAPI } from '@shell/config/labels-annotations';
 import { clear, uniq } from '@shell/utils/array';
-import { NAME as MANAGER } from '@shell/config/product/manager';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -48,9 +52,70 @@ export default {
 
   mixins: [CreateEditView],
 
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const {
+      getRules, isFormValid, validateForm, veeErrors
+    } = useFormValidation(
+      t,
+      [
+        {
+          path:           'metadata.name',
+          rules:          ['required'],
+          translationKey: 'nameNsDescription.name.label',
+        },
+        {
+          path:           'metadata.namespace',
+          rules:          ['required'],
+          translationKey: 'nameNsDescription.namespace.label',
+        },
+        {
+          path:           'secretType',
+          rules:          ['required'],
+          translationKey: 'secret.type',
+        },
+        {
+          path:           'secret._type',
+          rules:          ['required'],
+          translationKey: 'secret.customType',
+        },
+      ]
+    );
+
+    return {
+      getRules,
+      isFormValid,
+      veeValidateForm: validateForm,
+      veeErrors,
+    };
+  },
+
   async fetch() {
     if ( this.isCloud ) {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    }
+
+    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SECRET];
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED);
+
+    this.isProjectScoped = isProjectScoped;
+
+    if (isProjectScoped) {
+      // If ssp is enabled the store not have all projects. ensure we have them all
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+      if (this.isCreate) {
+        // Pick first project as default
+        this.projectName = this.filteredProjects[0].metadata.name;
+
+        this.value.metadata.labels = this.value.metadata.labels || {};
+
+        // Set namespace and project-scoped label
+        this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
+        this.value.metadata.labels[UI_PROJECT_SECRET] = this.filteredProjects[0].metadata.name;
+      } else {
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel)?.metadata.name;
+      }
     }
   },
 
@@ -89,14 +154,40 @@ export default {
 
     return {
       isCloud,
+      isProjectScoped:   false,
       nodeDrivers:       null,
       secretTypes,
       secretType:        this.value._type,
-      initialSecretType: this.value._type
+      initialSecretType: this.value._type,
+      projectName:       null,
     };
   },
 
   computed: {
+    clusterId() {
+      return this.$store.getters['currentCluster'].id;
+    },
+
+    filteredProjects() {
+      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      return allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
+    },
+
+    projectOpts() {
+      let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      // Filter out projects not for the current cluster
+      projects = projects.filter((c) => c.spec?.clusterName === this.clusterId);
+      const out = projects.map((project) => {
+        return {
+          label: project.nameDisplay,
+          value: project.metadata.name,
+        };
+      });
+
+      return out;
+    },
     isCustomSecretCreate() {
       return this.mode === _CREATE && this.$route.query.type === 'custom';
     },
@@ -152,7 +243,7 @@ export default {
           let bannerImage, bannerAbbrv;
 
           try {
-            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+            bannerImage = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
           } catch (e) {
             bannerImage = null;
             bannerAbbrv = this.initialDisplayFor(id);
@@ -201,6 +292,12 @@ export default {
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
+    dataTabHasError() {
+      const topLevelFields = new Set(['metadata.name', 'metadata.namespace', 'secretType', 'secret._type']);
+
+      return Object.keys(this.veeErrors).some((key) => !topLevelFields.has(key));
+    },
+
     dataLabel() {
       switch (this.value._type) {
       case TYPES.TLS:
@@ -214,17 +311,28 @@ export default {
       }
     },
 
-    doneRoute() {
-      if ( this.$store.getters['currentProduct'].name === MANAGER ) {
-        return 'c-cluster-manager-secret';
-      } else {
-        return 'c-cluster-product-resource';
+    doneLocationOverride() {
+      if (this.isProjectScoped) {
+        return {
+          ...this.value.listLocation,
+          params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+        };
       }
+
+      return this.value.listLocation;
     },
   },
 
   methods: {
     async saveSecret(btnCb) {
+      const { valid } = await this.veeValidateForm();
+
+      if (!valid) {
+        btnCb(false);
+
+        return;
+      }
+
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -249,6 +357,13 @@ export default {
 
           return;
         }
+      }
+
+      if (this.isProjectScoped) {
+        // Always create project-scoped secrets in the upstream local cluster
+        const url = this.$store.getters['management/urlFor'](this.value.type, this.value.id);
+
+        return this.save(btnCb, url);
       }
 
       return this.save(btnCb);
@@ -301,8 +416,25 @@ export default {
       if (type !== 'custom') {
         this.value['_type'] = type;
       }
+    },
+
+    redirectAfterCancel() {
+      this.$router.replace(this.doneLocationOverride);
     }
   },
+
+  watch: {
+    projectName(neu) {
+      if (this.isCreate && neu) {
+        this.value.metadata.labels = this.value.metadata.labels || {};
+        this.value.metadata.labels[UI_PROJECT_SECRET] = neu;
+
+        const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
+
+        this.value.metadata.namespace = projectScopedNamespace;
+      }
+    }
+  }
 };
 </script>
 
@@ -312,22 +444,48 @@ export default {
     <CruResource
       v-else
       :mode="mode"
-      :validation-passed="true"
+      :validation-passed="isFormValid"
       :selected-subtype="value._type"
       :resource="value"
       :errors="errors"
-      :done-route="doneRoute"
       :subtypes="secretSubTypes"
+      :cancel-event="true"
+      :done-route="doneLocationOverride"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"
+      @cancel="redirectAfterCancel"
     >
       <NameNsDescription
+        v-if="!isProjectScoped"
         :value="value"
         :mode="mode"
         :namespaced="!isCloud"
+        :name-field-name="'metadata.name'"
+        :namespace-field-name="'metadata.namespace'"
+        :rules="{ name: getRules('metadata.name'), namespace: getRules('metadata.namespace'), description: [] }"
         @update:value="$emit('input', $event)"
       />
+      <NameNsDescription
+        v-else
+        :value="value"
+        :namespaced="false"
+        :mode="mode"
+        :name-field-name="'metadata.name'"
+        :rules="{ name: getRules('metadata.name'), namespace: [], description: [] }"
+      >
+        <template #project-selector>
+          <LabeledSelect
+            v-model:value="projectName"
+            class="mr-20"
+            :disabled="!isCreate"
+            :label="t('namespace.project.label')"
+            :options="projectOpts"
+            required
+            data-testid="secret-project-select"
+          />
+        </template>
+      </NameNsDescription>
 
       <div
         v-if="isCustomSecretCreate"
@@ -336,11 +494,13 @@ export default {
         <div class="col span-3">
           <LabeledSelect
             v-model:value="secretType"
+            name="secretType"
             :options="secretTypes"
             :searchable="false"
             :mode="mode"
             :multiple="false"
             :reduce="(e) => e.value"
+            :rules="getRules('secretType')"
             label-key="secret.type"
             required
             @update:value="selectCustomType"
@@ -353,8 +513,10 @@ export default {
             ref="customType"
             v-model:value="value._type"
             v-focus
+            name="secret._type"
             label-key="secret.customType"
             :mode="mode"
+            :rules="getRules('secret._type')"
             required
           />
         </div>
@@ -373,12 +535,14 @@ export default {
       <Tabbed
         v-else
         :side-tabs="true"
-        default-tab="data"
+        :use-hash="useTabbedHash"
+        :default-tab="defaultTab || 'data'"
       >
         <Tab
           name="data"
           :label="dataLabel"
           :weight="99"
+          :error="dataTabHasError"
         >
           <component
             :is="dataComponent"

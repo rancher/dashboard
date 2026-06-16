@@ -118,7 +118,7 @@ describe('SUSE Application page and link', { testIsolation: 'off' }, () => {
   });
 
   // Note: Existing home page test checks that SUSE Collective link is not present
-  describe('home page links (prime)', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  describe('home page links (prime)', { tags: ['@prime', '@generic', '@adminUser', '@standardUser'] }, () => {
     beforeEach(() => {
       interceptVersionAndSetToPrime();
 

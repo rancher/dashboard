@@ -87,6 +87,48 @@ describe('component: NameNsDescription', () => {
     expect(wrapper.emitted().isNamespaceNew?.[0][0]).toBe(true);
   });
 
+  it('should set the namespace using the namespaceKey prop', () => {
+    const namespaceName = 'custom-namespace';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
+
+    const wrapper = mount(NameNsDescription, {
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      {},
+          value:         { metadata: { namespace: namespaceName } }
+        },
+        mode:         'create',
+        namespaceKey: 'value.metadata.namespace',
+      },
+      global: {
+        provide: { store },
+        mocks:   {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces:                         jest.fn(),
+              'customizations/getPreviewCluster': {
+                ready:   true,
+                isLocal: false,
+                badge:   {},
+              },
+              'i18n/t': jest.fn(),
+            },
+          },
+        },
+      },
+    });
+
+    expect((wrapper.vm as any).namespace).toBe(namespaceName);
+  });
+
   it('renders the name input with the expected value', () => {
     const namespaceName = 'test';
     const store = createStore({

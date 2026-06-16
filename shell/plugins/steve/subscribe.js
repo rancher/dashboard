@@ -3,8 +3,86 @@
  *
  * Covers three use cases
  * 1) Handles subscription within this file
- * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false)
+ * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false) (is this true??)
  * 2) Handles `cluster` subscriptions and optimisations in an advanced worker (SETTING.UI_PERFORMANCE advancedWorker = true)
+ *
+ * Very roughly this does...
+ *
+ * 1. _Subscribes_ to a web socket (v1, v3, v1 cluster)
+ * 2. UI --> Rancher: Sends a _watch_ message for a specific resource type (which can have qualifying filters)
+ * 3. Rancher --> UI: Rancher can send a number of messages back
+ *   - `resource.start`   - watch has started
+ *   - `resource.error`   - watch has errored, usually a result of bad data in the resource.start message
+ *   - `resource.change`  - a resource has changed, this is it's new value
+ *   - `resource.changes` - if in this mode, no resource.change events are sent, instead one debounced message is sent without any resource data
+ *   - `resource.stop`    - either we have requested the watch stops, or there has been a resource.error
+ * 4. UI --> Rancher: Sends an _unwatch_ request for a matching _watch_ request
+ *
+ * Below are some VERY brief steps for common flows. Some will link together
+ *
+ * # Successfully flow
+ * ## watch - standard mode
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
+ *
+ * ## watch - new resource.changes mode
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
+ *
+ * ## watch - unwatch
+ * 1. UI --> Rancher: _unwatch_ request
+ * 2. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ *
+ * ## watch - resource.stop received
+ * 1. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ * 2. UI --> Rancher: _watch_ request
+ *
+ * ## watch - socket disconnected
+ * 1. Socket closes|disconnects (not sure which)
+ * 2. UI: reopens socket
+ * 3. UI --> Rancher: _watch_ request (for every started watch)
+ *
+ * # Error Flow
+ * ## resource.error
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.error`. UI sets watch as errored.
+ *   a) UI: in the event of 'too old' the UI will make a http request to fetch a new revision and re-watch with it. This process is delayed on each call
+ * 4. Rancher --> UI: `resource.stop`. UI sets watch as stop (note the resource.stop flow above is avoided given error state)
+ *
+ * # HA Support for Stale Replicates - https://github.com/rancher/dashboard/issues/14974
+ *
+ * ## Scenario 1 - handle case where watch request is handled by a stale replica
+ * 1. UI --> Rancher: _watch_ request (contains latest revision)
+ * 2. Rancher --> UI: `resource.error` (stale replica does not know new revision)
+ * 3. Rancher --> UI: `resource.stop` (stale replica cannot provide updates for unknown revision)
+ * 4. UI --> Rancher : UI makes a HTTP request to fetch data
+ * 5. Loop back to step 1 (if stale again, backoff retry)
+ *
+ * ## Scenario 2 - handle case where http request is handled by a stale replica (don't fetch stale data)
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.changes` (sent by good replica containing good revision)
+ * 4. UI --> Rancher : UI makes a HTTP request to fetch data. Stale Replica handles request, does not know revision, returns error
+ * 5. Loop back to step 4 (if errors with stale again, backoff retry)
+ *
+ * ## Scenario 3 - handle case where update request was sent by stale replica (don't overwrite good data with stale)
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.changes` (sent by stale replica containing stale revision)
+ * 4. UI compares stale revision with newer store revision
+ * 5. UI does not make new http request, which could be handled by stale replica --> overwrites newer local values
+ *
+ * Additionally
+ * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch request to re-start the watch
+ * - if the web socket is disconnected (for steve based sockets it happens every 30 mins, or when there are permission changes)
+ *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
@@ -17,7 +95,6 @@ import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
-  //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
   EVENT_DISCONNECT_ERROR,
   NO_WATCH,
@@ -35,8 +112,12 @@ import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
-import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
+import backOff from '@shell/utils/back-off';
+import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
+import { SteveRevision } from '@shell/plugins/steve/revision';
+import { STEVE_RESPONSE_CODE } from '@shell/types/rancher/steve.api';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -50,11 +131,17 @@ const isWaitingForDestroy = (storeName, store) => {
 };
 
 const waitForSettingsSchema = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING),
+    'management settings schema to be available'
+  );
 };
 
 const waitForSettings = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE),
+    'UI performance settings to be available'
+  );
 };
 
 const isAdvancedWorker = (ctx) => {
@@ -88,7 +175,7 @@ export async function createWorker(store, ctx) {
       postMessage: (msg) => {
         if (Object.keys(msg)?.[0] === 'destroyWorker') {
           // The worker has been destroyed before it's been set up. Flag this so we stop waiting for mgmt settings and then can destroy worker.
-          // This can occurr when the user is redirected to the log in page
+          // This can occur when the user is redirected to the log in page
           // - workers created (but waiting)
           // - logout is called
           // - <store>/unsubscribe is dispatched
@@ -114,8 +201,20 @@ export async function createWorker(store, ctx) {
     };
   }
 
-  await waitForSettingsSchema(storeName, store);
-  await waitForSettings(storeName, store);
+  try {
+    await waitForSettingsSchema(storeName, store);
+    await waitForSettings(storeName, store);
+  } catch (e) {
+    // Clean up the mock worker and abort so callers are not permanently blocked.
+    if (store.$workers[storeName]?.destroy) {
+      store.$workers[storeName].destroy();
+    } else {
+      delete store.$workers[storeName];
+    }
+
+    return;
+  }
+
   if (store.$workers[storeName].waitingForDestroy()) {
     store.$workers[storeName].destroy();
 
@@ -263,11 +362,14 @@ function growlsDisabled(rootGetters) {
 }
 
 /**
- * Supported events are listed
- *
- * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
+ * clear the provided error, but also ensure any backoff request associated with it is cleared as well
  */
-const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
+const clearInError = ({ getters, commit }, error) => {
+  // for this watch ... get the specific prefix we care about ... reset back-offs related to it
+  backOff.resetPrefix(getters.backOffId(error.obj, ''));
+  // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
+  commit('clearInError', error.obj);
+};
 
 /**
  * Actions that cover all cases (see file description)
@@ -299,12 +401,21 @@ const sharedActions = {
         await createWorker(this, ctx);
       }
 
+      // createWorker cleans up and returns early when schema/settings are unavailable.
+      // Guard against calling postMessage on a non-existent worker.
+      if (!this.$workers[getters.storeName]) {
+        return;
+      }
+
+      const options = { parseJSON: false };
+      const csrf = rootGetters['cookies/get']({ key: CSRF, options });
+
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
         createWatcher: {
           metadata,
-          url:  `${ state.config.baseUrl }/subscribe`,
-          csrf: this.$cookies.get(CSRF, { parseJSON: false }),
+          url: `${ state.config.baseUrl }/subscribe`,
+          csrf,
           maxTries
         }
       });
@@ -347,7 +458,9 @@ const sharedActions = {
     }
   },
 
-  unsubscribe({ commit, getters, state }) {
+  async unsubscribe({
+    commit, getters, state, dispatch
+  }) {
     const socket = state.socket;
 
     commit('setWantSocket', false);
@@ -356,13 +469,17 @@ const sharedActions = {
     const worker = (this.$workers || {})[getters.storeName];
 
     if (worker) {
+      const storeName = getters.storeName;
+
       worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      cleanupTasks.push(waitFor(() => !this.$workers[getters.storeName], 'Worker is destroyed'));
+      cleanupTasks.push(waitFor(() => !this.$workers?.[storeName], 'Worker to be destroyed', 30000, 10, true));
     }
 
     if ( socket ) {
       cleanupTasks.push(socket.disconnect());
     }
+
+    await dispatch('resetWatchBackOff');
 
     return Promise.all(cleanupTasks);
   },
@@ -375,7 +492,7 @@ const sharedActions = {
    * @param {STEVE_WATCH_EVENT_PARAMS} event
    */
   watchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     callback,
     /**
@@ -383,26 +500,27 @@ const sharedActions = {
      */
     params
   }) {
-    if (!listeners[event]) {
-      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(ctx.getters.listenerManager.supportedEventTypes).join(',') } are supported`); // eslint-disable-line no-console
 
       return;
     }
 
-    // STEVE_WATCH_EVENT_LISTENER | undefined
-    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
+    ctx.getters.listenerManager.addEventListenerCallback({
+      callback,
+      args: {
+        event, params, id
+      }
+    });
 
-    if (!listener) {
-      listener = {
-        params,
-        callbacks: { }
-      };
-      listeners[event].push(listener);
-    }
+    const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params });
 
-    if (!listener.callbacks[id]) {
-      listener.callbacks[id] = callback;
-      ctx.dispatch('watch', params);
+    if (!hasStandardWatch) {
+      // If there's nothing to piggy back on... start a watch to do so.
+      ctx.dispatch('watch', {
+        ...params,
+        standardWatch: false // Ensure that we don't treat this as a standard watch
+      });
     }
   },
 
@@ -411,40 +529,57 @@ const sharedActions = {
    * @param {STEVE_UNWATCH_EVENT_PARAMS} event
    */
   unwatchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     /**
      * of type @STEVE_WATCH_PARAMS
      */
     params
   }) {
-    if (!listeners[event]) {
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
       console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
 
       return;
     }
 
-    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
+    ctx.getters.listenerManager.removeEventListenerCallback({
+      event, params, id
+    });
 
-    if (existing) {
-      delete existing.callbacks[id];
-    }
+    // Unwatch the underlying standard watch
+    // Note - If we were piggybacking on a watch that previously existed we won't unwatch it
+    ctx.dispatch('unwatch', params);
   },
 
   /**
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true, registerType = false
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      if (registerType) {
+        commit('registerType', type);
+      } else if (mode !== STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // - If we continue and open up a watch whenever we receive a `resource.` notification we go to queueChanges (bar resource.changes mode).
+        // - queueChanges ignores any change that's for a type that hasn't been registered
+        // - So here we're just exiting early, avoiding the watch --> queueChanges --> ignore loop
+        //
+        // Interestingly this is hit quite a few times (on cluster create screens there's token, cluster, project, projectRoleTemplateBinding, etc)
+        state.debugSocket && console.info('Will not Watch (type is not registered)', JSON.stringify(params)); // eslint-disable-line no-console
+
+        return;
+      }
+    }
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
@@ -485,10 +620,6 @@ const sharedActions = {
       return;
     }
 
-    if (!stop) {
-      dispatch('unwatchIncompatible', messageMeta);
-    }
-
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
     if (typeof revision === 'undefined') {
@@ -506,6 +637,9 @@ const sharedActions = {
         if (debounceMs) {
           msg.debounceMs = debounceMs;
         }
+
+        // Anything in the queue will pollute the result set, so clear (and print to console so we know it's working)
+        commit('clearFromQueue', { type, log: true });
       }
     }
 
@@ -541,6 +675,12 @@ const sharedActions = {
       return;
     }
 
+    if (!stop && standardWatch) {
+      // Track that this watch is just a normal one, not one kicked off by listeners
+      // This helps us keep the watch going (for listeners) instead of in unwatch just stopping it
+      getters.listenerManager.setStandardWatch({ standardWatch: true, args: { event: msg.mode, params: msg } });
+    }
+
     return dispatch('send', msg);
   },
 
@@ -565,6 +705,21 @@ const sharedActions = {
       };
 
       const unwatch = (obj) => {
+        // Has this normal watch got listeners? If so
+        const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params: obj });
+        const watchHasListeners = ctx.getters.listenerManager.hasEventListeners({ params: obj });
+
+        if (hasStandardWatch) {
+          // If we have listeners for this watch... make sure it knows there's now no root standard watch
+          ctx.getters.listenerManager.setStandardWatch({ standardWatch: false, args: { params: obj } });
+        }
+
+        if (watchHasListeners) {
+          // Does this watch have listeners? if so we shouldn't stop it (they still need it)
+
+          return;
+        }
+
         if (getters['watchStarted'](obj)) {
           // Set that we don't want to watch this type
           // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
@@ -576,34 +731,63 @@ const sharedActions = {
         }
       };
 
+      const objKey = keyForSubscribe(obj);
+      const reset = [];
+
       if (isAdvancedWorker(ctx)) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (all) {
-        getters['watchesOfType'](type).forEach((obj) => {
-          unwatch(obj);
-        });
+        reset.push(...getters['watchesOfType'](type));
       } else if (getters['watchStarted'](obj)) {
-        unwatch(obj);
+        reset.push(obj);
       }
+
+      reset.forEach((obj) => {
+        unwatch(obj);
+        // Ensure anything pinging in the background is stopped
+        dispatch('resetWatchBackOff', {
+          type,
+          compareWatches: (entry) => objKey === keyForSubscribe(entry)
+        });
+      });
     }
   },
 
   /**
-   * Unwatch watches that are incompatible with the new type
+   * Ensure there's no back-off process waiting to run for
+   * - resource.changes fetchResources
+   * - resource.error resyncWatch
    */
-  unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
-    const watchesOfType = getters.watchesOfType(messageMeta.type);
-    let unwatch = [];
+  resetWatchBackOff({ state, getters, commit }, {
+    type, compareWatches, resetInError = true, resetStarted = true
+  } = { resetInError: true, resetStarted: true }) {
+    // Step 1 - Reset back-offs related to watches that have STARTED
+    if (resetStarted && state.started?.length) {
+      let entries = state.started;
 
-    if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-      // resource.changes should not be running when other types are, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode !== STEVE_WATCH_EVENT.CHANGES);
-    } else {
-      // all other modes of watches should not be running when resource.changes is, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode === STEVE_WATCH_EVENT.CHANGES);
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
+      }
+
+      entries.forEach((obj) => backOff.resetPrefix(getters.backOffId(obj, '')));
     }
 
-    unwatch.forEach((entry) => dispatch('unwatch', entry));
+    // Step 2 - Reset back-offs related to watches that are in error (and may not be started)
+    if (resetInError && state.inError) {
+      // (it would be nicer if we could store backOff state in `state.started`,
+      // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
+      let entries = Object.values(state.inError || {});
+
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((error) => compareWatches ? compareWatches(error.obj) : error.obj.type === type);
+      }
+
+      entries
+        .filter((error) => error.reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
+        .forEach((error) => clearInError({ getters, commit }, error));
+    }
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -694,6 +878,7 @@ const defaultActions = {
 
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
+        // Delete the cached socket revision, forcing the watch to get latest revision from cached resources instead
         delete entry.revision;
         promises.push(dispatch('watch', entry));
       }
@@ -708,17 +893,117 @@ const defaultActions = {
   async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
+    const { backOffId, ...others } = params;
+
     await dispatch('fetchResources', {
-      ...params,
-      opt: { force: true, forceWatch: true }
+      params: others,
+      backOffId,
+      opt:    { force: true, forceWatch: true }
     });
+  },
+
+  /**
+   * Helper function used by fetchResources
+   *
+   * Integrates the concept of 'back-off' to reduce spam, overwrite stale old requests, etc
+   */
+  async fetchPageResources({ getters, dispatch }, {
+    opt, storePagination, params, backOffId
+  }) {
+    const { resourceType, namespace, revision } = params;
+    const type = resourceType || params.type;
+
+    const safeBackOffId = backOffId || getters.backOffId(params, `fetchPageResources`);
+
+    const activeRevisionSt = backOff.getBackOff(safeBackOffId)?.metadata?.revision;
+    const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
+
+    const targetRevision = new SteveRevision(revision);
+    const activeRevision = new SteveRevision(activeRevisionSt);
+    const cachedRevision = new SteveRevision(cachedRevisionSt);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+
+    // Three cases to support HA scenarios 2 + 3
+    // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // 3. current version is same as target revision - we're retrying
+
+    // There are two places we do this to cover the two cases we make http request following socket changes
+    // shell/utils/pagination-wrapper.ts - request
+    // shell/plugins/steve/subscribe.js - fetchPageResources
+
+    if (currentRevision.isNewerThan(targetRevision)) {
+      // Case 1 - abort/ignore (don't overwrite new with old)
+
+      // eslint-disable-next-line no-console
+      console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (active revision '${ currentRevision.revision } & cached revision '${ cachedRevision.revision }''). ` +
+              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+      return;
+    }
+
+    if (targetRevision.isNewerThan(activeRevision)) {
+      // Case 2 - reset previous (drop older requests with older revision, use new revision)
+
+      console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `); // eslint-disable-line no-console
+
+      backOff.reset(safeBackOffId);
+    }
+
+    try {
+      // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
+      await backOff.recurse({
+        id:          safeBackOffId,
+        metadata:    { revision },
+        description: `Fetching resources for ${ type }. Triggered by web socket`,
+        canFn:       () => {
+          if (!getters.canBackoff(this.$socket)) {
+            console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (socket closed). `); // eslint-disable-line no-console
+
+            return false;
+          }
+
+          if (!getters['watchStarted'](params)) {
+            // No watch has started... but are we in initial state where the watch failed due to a bad revision?
+            const inError = getters.inError(params);
+
+            if (inError !== REVISION_TOO_OLD) {
+              console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (resource not watched). `); // eslint-disable-line no-console
+
+              return false;
+            }
+          }
+
+          return true;
+        },
+        continueOnError: async(err) => {
+          // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
+          return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
+        },
+        delayedFn: async() => {
+          return await dispatch('findPage', {
+            type,
+            opt: {
+              ...opt,
+              namespaced: namespace,
+              revision,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request,
+            }
+          });
+        },
+      });
+    } catch (err) {
+      // Nothing depends on the error higher in the call stack, so prevent dev full screen errors by catching it
+      console.info(`Failed subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (error). `, err); // eslint-disable-line no-console
+    }
   },
 
   async fetchResources({
     state, getters, dispatch, commit
-  }, { opt, ...params }) {
+  }, { opt, params, backOffId }) {
     const {
-      resourceType, namespace, id, selector, mode
+      resourceType, namespace, id, selector, mode, revision
     } = params;
 
     if (!resourceType) {
@@ -728,6 +1013,7 @@ const defaultActions = {
     }
 
     if ( id ) {
+      // Fetch an individual resource
       await dispatch('find', {
         type: resourceType,
         id,
@@ -745,6 +1031,7 @@ const defaultActions = {
     let have = []; let want = [];
 
     if ( selector ) {
+      // Fetch a selection of resources
       have = getters['matching'](resourceType, selector).slice();
       want = await dispatch('findMatching', {
         type: resourceType,
@@ -752,42 +1039,45 @@ const defaultActions = {
         opt,
       });
     } else {
+      // Fetch all or a page of resources
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // Fetch a page of resources
+
         // Other findX use options (id/ns/selector) from the messages received over socket.
-        // However paginated requests have more complex params so grab them from store from the store.
+        // However paginated requests have more complex params so grab them from the store.
+
+        // of type @StorePagination
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
-          have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
-
-          // This could have been kicked off given a resource.changes message
-          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
-          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
-          // (see deferred process - `waiting.push(later);` - in request action).
-          // If this becomes an issue we need to debounce and work around the deferred issue within request
-          want = await dispatch('findPage', {
-            type: resourceType,
-            opt:  {
-              ...opt,
-              // This brings in page, page size, filter, etc
-              ...storePagination.request
-            }
+          await dispatch('fetchPageResources', {
+            params,
+            storePagination,
+            opt,
+            backOffId
           });
+
+          // findPage removes stale entries, so we don't need to rely on below process to remove them
+          have = [];
+          want = [];
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
-
-        if (listener) {
-          Object.values(listener.callbacks).forEach((cb) => cb());
-        }
+        getters.listenerManager.triggerEventListener({
+          event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          params: {
+            ...params,
+            revision,
+            forceWatch: opt.forceWatch,
+          }
+        });
       } else {
+        // Fetch all of a resource
         have = getters['all'](resourceType).slice();
 
         if ( namespace ) {
           have = have.filter((x) => x.metadata?.namespace === namespace);
         }
-
         want = await dispatch('findAll', {
           type:           resourceType,
           watchNamespace: namespace,
@@ -861,15 +1151,20 @@ const defaultActions = {
     }
   },
 
-  closed({ state, getters }) {
+  async closed({ state, getters, dispatch }) {
     state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
-  error({
+  async error({
     getters, state, dispatch, rootGetters
   }, e) {
+    state.debugSocket && console.info(`WebSocket Error [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
 
@@ -956,10 +1251,16 @@ const defaultActions = {
       mode:      msg.mode,
     };
 
+    // Unwatch watches that are incompatible with the new type
+    // This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
+    // For instance if the store/cache for pods contains a namespace X and we watch another namespace Y... we don't want ns X resources added to cache
+
+    // Unwatch incompatible watches
     state.started.filter((entry) => {
       if (
-        entry.type === newWatch.type &&
-        entry.namespace !== newWatch.namespace
+        (entry.type === newWatch.type) &&
+        (entry.namespace !== newWatch.namespace) &&
+        (!entry.mode && !newWatch.mode) // mode watches will be handled when they become an issue
       ) {
         return true;
       }
@@ -984,7 +1285,29 @@ const defaultActions = {
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
-      dispatch('resyncWatch', msg);
+
+      // HA scenario 1 - handle case where stale replica processes watch request
+      // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
+      // So re-retry resyncWatch until it does OR
+      // - we're already re-retrying
+      //   - early exist from `execute`
+      // - we give up (exceed max retries)
+      //   - early exist from `execute`
+      // - we need to stop (socket is disconnected or closed, type is 'forgotten', watch is unwatched)
+      //   - `reset` called asynchronously
+      //   - Note - we won't need to clear the id outside of the above scenarios because `too old` only occurs on fresh watches (covered by above scenarios)
+
+      const backOffId = getters.backOffId(msg, REVISION_TOO_OLD);
+
+      backOff.execute({
+        id:          backOffId,
+        description: `Invalid watch revision, re-syncing`,
+        canFn:       () => getters.canBackoff(this.$socket),
+        delayedFn:   () => dispatch('resyncWatch', {
+          ...msg,
+          backOffId: undefined,
+        }),
+      });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
     }
@@ -1032,11 +1355,45 @@ const defaultActions = {
         commit('setWatchStopped', obj);
       }
 
-      dispatch('watch', obj);
+      // Now re-watch
+      const hasEventListeners = getters.listenerManager.hasEventListeners({ params: obj });
+      const hasStandardWatch = getters.listenerManager.hasStandardWatch({ params: obj });
+
+      dispatch('watch', {
+        ...obj,
+        // hasEventListeners && !hasStandardWatch ? false : true
+        // if this watch isn't associated with a normal watch... (there are no listeners, or there are listeners but also a normal watch)
+        standardWatch: !(hasEventListeners && !hasStandardWatch)
+      });
+
+      if (hasEventListeners) {
+        const inError = getters.inError(obj); // We don't want to force listeners to resync if the socket is in error (handled by resource.error mechanism)
+
+        if (!inError) {
+          // If there's event listeners kick them off
+          // - The re-watch associated with normal watches will watch from a revision from it's own cache
+          // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
+          // - so to work around this whenever we start the watches again trigger off the changes for it
+          // Improvement - we only do one event here (currently the only one supported), could expand to others
+          getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+        }
+      }
     }
   },
 
   'ws.resource.create'(ctx, msg) {
+    const data = msg.data;
+    const type = data?.type;
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.create\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
+    }
+
     ctx.state.debugSocket && console.info(`Resource Create [${ ctx.getters.storeName }]`, msg.resourceType, msg); // eslint-disable-line no-console
     queueChange(ctx, msg, true, 'Create');
   },
@@ -1064,6 +1421,15 @@ const defaultActions = {
       }
     }
 
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
+    }
+
     queueChange(ctx, msg, true, 'Change');
 
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
@@ -1084,10 +1450,10 @@ const defaultActions = {
     }
   },
 
-  'ws.resource.changes'({ dispatch }, msg) {
-    dispatch('fetchResources', {
-      ...msg,
-      opt: { force: true, load: _MERGE }
+  async 'ws.resource.changes'({ dispatch }, msg) {
+    await dispatch('fetchResources', {
+      params: msg,
+      opt:    { force: true, load: _MERGE }
     } );
   },
 
@@ -1103,6 +1469,15 @@ const defaultActions = {
       if (worker) {
         worker.postMessage({ removeSchema: data.id });
       }
+    }
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.remove\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
     }
 
     queueChange(ctx, msg, false, 'Remove');
@@ -1168,30 +1543,53 @@ const defaultMutations = {
   setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
-    state.inError[key] = reason;
+    const { data, resourceType, ...obj } = msg;
+
+    obj.type = msg.resourceType || msg.type;
+
+    state.inError[key] = { obj, reason };
   },
 
   clearInError(state, msg) {
+    // Callers of this should consider using local clearInError instead
+
     const key = keyForSubscribe(msg);
 
     delete state.inError[key];
   },
 
+  /**
+   * Clear out socket state
+   */
   resetSubscriptions(state) {
-    // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
-    // This could probably be folded in to there
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
+    // Note - we clear async operations here (like queueTimer) and we should also do so for backoff requests via
+    // resetWatchBackOff, however can't because this is a mutation and it's an action
+    // We shouldn't need to though given resetSubscription is called from store reset, which includes forgetType
+    // on everything in the store, which resets backoff requests.
+    // Additionally this is probably called on a cluster store, so we also call resetWatchBackOff when the socket disconnects
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
+    state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
-  clearFromQueue(state, type) {
+  clearFromQueue(state, args) {
+    const safeArgs = typeof args === 'object' ? args : { type: args };
+    const { type, log } = safeArgs;
+
     // Remove anything in the queue that is a resource update for the given type
     state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
+      const keep = item.body?.type !== type;
+
+      if (!keep && log) {
+        // eslint-disable-next-line no-console
+        console.info(`Clearing queued item of type \`${ type }\` from queue`, item);
+      }
+
+      return keep;
     });
   },
 };
@@ -1200,8 +1598,27 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
+  /**
+   * Get a unique id that can be used to track a process that can be backed-off
+   *
+   * @param obj - the usual id/namespace/selector, etc,
+   * @param postFix - something else to uniquely id this back-off
+   */
+  backOffId: () => (obj, postFix) => {
+    return `${ keyForSubscribe(obj) }${ postFix ? `:detail=${ postFix }` : '' }`;
+  },
+
+  /**
+   * Can the back off process run?
+   *
+   * If we're not connected no.
+   */
+  canBackoff: () => ($socket) => {
+    return $socket.state === EVENT_CONNECTED;
+  },
+
   inError: (state) => (obj) => {
-    return state.inError[keyForSubscribe(obj)];
+    return state.inError[keyForSubscribe(obj)]?.reason;
   },
 
   watchesOfType: (state) => (type) => {
@@ -1229,15 +1646,15 @@ const defaultGetters = {
    */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
-    let revision = 0;
+    let nextRevision = 0;
 
     if ( id ) {
       const existing = getters['byId'](type, id);
 
-      revision = existing?.metadata?.resourceVersion;
+      nextRevision = existing?.metadata?.resourceVersion;
     }
 
-    if ( !revision ) {
+    if ( !nextRevision ) {
       const cache = state.types[type];
 
       // No Cache, nothing to compare to, return early
@@ -1245,27 +1662,38 @@ const defaultGetters = {
         return null;
       }
 
-      revision = Number(cache.revision);
+      const cacheRevision = new SteveRevision(cache.revision);
 
       // Cached LIST revision isn't a number, cannot compare to, return early
-      if (Number.isNaN(revision)) {
+      if (!cacheRevision.isNumber) {
         return cache.revision || null;
       }
 
+      nextRevision = cacheRevision;
+
       for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
-          const neu = Number(obj.metadata.resourceVersion);
+          const candidateRevision = new SteveRevision(obj.metadata.resourceVersion);
 
-          if (Number.isNaN(neu)) {
-            continue;
+          if (candidateRevision.isNewerThan(nextRevision)) {
+            nextRevision = candidateRevision;
           }
-
-          revision = Math.max(revision, neu);
         }
       }
+
+      nextRevision = nextRevision.asNumber;
     }
 
-    return revision || null;
+    return nextRevision || null;
+  },
+
+  /**
+   * Get the watch listener manager for this store
+   *
+   * Instance of @SteveWatchEventListenerManager . See it's description for more info
+   */
+  listenerManager: (state) => {
+    return state.socketListenerManager;
   },
 };
 

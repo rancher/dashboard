@@ -51,7 +51,6 @@ export default {
       </div>
     </div>
     <div class="row mb-10">
-      {{ value.namespace }}
       <div class="col span-6">
         <SecretSelector
           v-model:value="value.endpoint.access_key_id"

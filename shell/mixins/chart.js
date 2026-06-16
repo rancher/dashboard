@@ -1,6 +1,5 @@
 
 import { mapGetters } from 'vuex';
-
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
 } from '@shell/config/query-params';
@@ -9,12 +8,12 @@ import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
-
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
+import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
-import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
 
@@ -29,6 +28,17 @@ export default {
       ignoreWarning: false,
 
       chart: null,
+
+      // Whether installing a new instance is allowed.
+      // This is false when the chart is targeted (has fixed namespace/name annotations)
+      // or when the URL query specifies a specific app to edit.
+      canInstallNew: true,
+
+      // Installed instances of this chart that can be selected for edit/upgrade
+      // on the chart detail page. When instances exist, `existing` is set to the
+      // first one by default, but the user can select a different instance or
+      // choose to install a new one.
+      installedInstances: [],
     };
   },
 
@@ -53,7 +63,12 @@ export default {
     },
 
     mappedVersions() {
-      const versions = this.chart?.versions || [];
+      const versions = (this.chart?.versions || []).slice();
+
+      versions.sort((a, b) => {
+        return compareChartVersions(b.version, a.version);
+      });
+
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
       const out = [];
@@ -63,14 +78,14 @@ export default {
           label:           version.version,
           version:         version.version,
           originalVersion: version.version,
-          shortLabel:      version.version.length > 16 ? `${ version.version.slice(0, 15) }...` : version.version,
           id:              version.version,
           created:         version.created,
           disabled:        false,
           keywords:        version.keywords
         };
 
-        const permittedSystems = (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+        const isRancher = isRancherRepo(this.repo, this.chart);
+        const permittedSystems = getPermittedOSs(version?.annotations, isRancher);
 
         if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
           nue.disabled = true;
@@ -93,7 +108,6 @@ export default {
         out.unshift({
           label:           selectedVersion,
           originalVersion: selectedVersion,
-          shortLabel:      selectedVersion.length > 16 ? `${ selectedVersion.slice(0, 15) }...` : selectedVersion,
           id:              selectedVersion,
           created:         null,
           disabled:        false,
@@ -224,7 +238,7 @@ export default {
     },
 
     currentVersion() {
-      return this.existing?.spec.chart.metadata.version;
+      return this.existing?.spec?.chart?.metadata?.version;
     },
 
     targetVersion() {
@@ -232,15 +246,33 @@ export default {
     },
 
     action() {
-      if (this.existing) {
-        return this.currentVersion === this.targetVersion ? 'update' : 'upgrade';
+      if (!this.existing) {
+        return {
+          name: 'install', tKey: 'install', icon: 'icon-plus'
+        };
       }
 
-      return 'install';
+      if (this.currentVersion === this.targetVersion) {
+        return {
+          name: 'editVersion', tKey: 'edit', icon: 'icon-edit'
+        };
+      }
+
+      const diff = compareChartVersions(this.currentVersion, this.targetVersion);
+
+      if (diff < 0) {
+        return {
+          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+        };
+      }
+
+      return {
+        name: 'downgrade', tKey: 'downgrade', icon: 'icon-downgrade-alt'
+      };
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
@@ -278,51 +310,12 @@ export default {
     async fetchChart() {
       this.versionInfoError = null;
 
-      await this.$store.dispatch('catalog/load'); // not the problem
+      await Promise.all([
+        this.$store.dispatch('catalog/load'),
+        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      ]);
 
       this.fetchStoreChart();
-
-      if ( this.query.appNamespace && this.query.appName ) {
-        // First check the URL query for an app name and namespace.
-        // Use those values to check for a catalog app resource.
-        // If found, set the form to edit mode. If not, set the
-        // form to create mode.
-
-        try {
-          this.existing = await this.$store.dispatch('cluster/find', {
-            type: CATALOG.APP,
-            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
-          });
-
-          await this.existing?.fetchValues(true);
-
-          this.mode = _EDIT;
-        } catch (e) {
-          this.mode = _CREATE;
-          this.existing = null;
-        }
-      } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
-        // If the app name and namespace values are not provided in the
-        // query, fall back on target values defined in the Helm chart itself.
-
-        // Ask to install a special chart with fixed namespace/name
-        // or edit it if there's an existing install.
-
-        try {
-          this.existing = await this.$store.dispatch('cluster/find', {
-            type: CATALOG.APP,
-            id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
-          });
-          this.mode = _EDIT;
-        } catch (e) {
-          this.mode = _CREATE;
-          this.existing = null;
-        }
-      } else {
-        // Regular create
-
-        this.mode = _CREATE;
-      }
 
       if ( !this.chart ) {
         return;
@@ -347,10 +340,11 @@ export default {
 
       try {
         this.version = this.$store.getters['catalog/version']({
-          repoType:    this.query.repoType,
-          repoName:    this.query.repoName,
-          chartName:   this.query.chartName,
-          versionName: this.query.versionName
+          repoType:       this.query.repoType,
+          repoName:       this.query.repoName,
+          chartName:      this.query.chartName,
+          versionName:    this.query.versionName,
+          showDeprecated: this.showDeprecated
         });
       } catch (e) {
         console.error('Unable to fetch Version: ', e); // eslint-disable-line no-console
@@ -386,6 +380,85 @@ export default {
         this.versionInfoError = e;
 
         console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
+      }
+
+      if ( this.query.appNamespace && this.query.appName ) {
+        // First check the URL query for an app name and namespace.
+        // Use those values to check for a catalog app resource.
+        // If found, set the form to edit mode. If not, set the
+        // form to create mode.
+
+        // This is a hard blocker - installing a new instance is NOT allowed.
+        this.canInstallNew = false;
+
+        try {
+          this.existing = await this.$store.dispatch('cluster/find', {
+            type: CATALOG.APP,
+            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
+          });
+
+          await this.existing?.fetchValues(true);
+
+          this.mode = _EDIT;
+        } catch (e) {
+          this.mode = _CREATE;
+          this.existing = null;
+        }
+      } else {
+        const targetNamespace = this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE];
+        const targetName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+        if ( targetNamespace && targetName ) {
+          // If the app name and namespace values are not provided in the
+          // query, fall back on target values defined in the Helm chart itself.
+          // Ask to install a special chart with fixed namespace/name
+          // or edit it if there's an existing install.
+
+          // This is a hard blocker - installing a new instance is NOT allowed.
+          this.canInstallNew = false;
+
+          try {
+            this.existing = await this.$store.dispatch('cluster/find', {
+              type: CATALOG.APP,
+              id:   `${ targetNamespace }/${ targetName }`,
+            });
+            this.mode = _EDIT;
+          } catch (e) {
+            // Version targets a different namespace than where the app is installed.
+            // Fall back to matching installed apps (e.g. chart detail page).
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            this.existing = matching[0] || null;
+            this.mode = this.existing ? _EDIT : _CREATE;
+          }
+        } else {
+          // Regular chart (not targeted) - check if there are installed instances.
+          // Installing new instances IS allowed (canInstallNew remains true).
+          const isChartDetailPage = this.$route.name === 'c-cluster-apps-charts-chart';
+
+          if (isChartDetailPage) {
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            // Always refresh the available instances so stale values are removed.
+            this.installedInstances = [];
+
+            if (matching.length >= 1) {
+              // Populate the instance selector and preserve the current selection
+              // when it is still one of the matching installed apps.
+              this.installedInstances = matching;
+              const hasExistingMatch = this.existing?.id && matching.some((instance) => instance.id === this.existing.id);
+
+              if (!hasExistingMatch) {
+                this.existing = matching[0];
+              }
+            } else {
+              this.existing = null;
+            }
+          } else {
+            // Regular create
+            this.mode = _CREATE;
+          }
+        }
       }
     }, // End of fetchChart
 
@@ -505,18 +578,24 @@ export default {
         version:  this.query.versionName,
       };
 
+      const query = {
+        [REPO_TYPE]: provider.repoType,
+        [REPO]:      provider.repoName,
+        [CHART]:     provider.name,
+        [VERSION]:   provider.version,
+      };
+
+      if (this.showDeprecated) {
+        query[DEPRECATED_QUERY] = this.query.deprecated;
+      }
+
       return {
         name:   install ? 'c-cluster-apps-charts-install' : 'c-cluster-apps-charts-chart',
         params: {
           cluster: this.$route.params.cluster,
           product: this.$store.getters['productId'],
         },
-        query: {
-          [REPO_TYPE]: provider.repoType,
-          [REPO]:      provider.repoName,
-          [CHART]:     provider.name,
-          [VERSION]:   provider.version,
-        }
+        query
       };
     },
 
@@ -532,13 +611,20 @@ export default {
     },
 
     clusterToolsLocation() {
+      const query = {};
+
+      if (this.showDeprecated) {
+        query[DEPRECATED_QUERY] = this.query.deprecated;
+      }
+
       return {
         name:   `c-cluster-explorer-tools`,
         params: {
           product:  EXPLORER,
           cluster:  this.$store.getters['clusterId'],
           resource: CATALOG.APP,
-        }
+        },
+        query
       };
     },
 

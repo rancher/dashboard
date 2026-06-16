@@ -133,10 +133,10 @@ export default {
       } = this;
       let { maxSurge, maxUnavailable } = this;
 
-      if (this.surgeUnits === '%' && !maxSurge.includes('%')) {
+      if (this.surgeUnits === '%' && !`${ maxSurge }`.includes('%')) {
         maxSurge = `${ maxSurge }%`;
       }
-      if (this.unavailableUnits === '%' && !maxUnavailable.includes('%')) {
+      if (this.unavailableUnits === '%' && !`${ maxUnavailable }`.includes('%')) {
         maxUnavailable = `${ maxUnavailable }%`;
       }
 
@@ -204,7 +204,7 @@ export default {
       if (units === 'Pods') {
         this[target] = parseInt(value);
       } else {
-        this[target] = `${ value }%`;
+        this[target] = value;
       }
       if (target === 'maxSurge') {
         this.surgeUnits = units;

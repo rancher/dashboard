@@ -3,6 +3,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -26,6 +27,11 @@ export default {
     depth: {
       type:    Number,
       default: 0,
+    },
+
+    highlightRoute: {
+      type:    Boolean,
+      default: true,
     },
   },
 
@@ -52,13 +58,19 @@ export default {
       }
 
       const inStore = this.$store.getters['currentStore'](this.type.name);
+      const typeOptions = this.$store.getters[`type-map/optionsFor`](this.type.name);
+
+      if (typeOptions?.custom?.countGetter && typeof typeOptions.custom?.countGetter === 'function') {
+        return typeOptions.custom.countGetter(this.$store.getters);
+      }
 
       return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
-      const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
+      // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+      const typePath = this.$router.resolve(this.typeRoute)?.path.toLowerCase();
+      const pagePath = this.$route.path?.toLowerCase();
       const routeMetaNav = this.$route.meta?.nav;
 
       // If the route explicitly declares the nav path that should be highlighted, then use that
@@ -69,14 +81,14 @@ export default {
           .replace(':cluster', cluster)
           .replace(':product', product);
 
-        if (navPath === typeFullPath) {
+        if (navPath === typePath) {
           return true;
         }
       }
 
       if ( !this.type.exact) {
-        const typeSplit = typeFullPath.split('/');
-        const pageSplit = pageFullPath.split('/');
+        const typeSplit = typePath.split('/');
+        const pageSplit = pagePath.split('/');
 
         for (let index = 0; index < typeSplit.length; ++index) {
           if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
@@ -87,7 +99,11 @@ export default {
         return true;
       }
 
-      return typeFullPath === pageFullPath;
+      return typePath === pagePath;
+    },
+
+    typeRoute() {
+      return filterLocationValidParams(this.$router, this.type.route);
     }
 
   },
@@ -100,7 +116,8 @@ export default {
     selectType() {
       // Prevent issues if custom NavLink is used #5047
       if (this.type?.route) {
-        const typePath = this.$router.resolve(this.type.route)?.fullPath;
+        const validRoute = filterLocationValidParams(this.$router, this.type.route);
+        const typePath = this.$router.resolve(validRoute)?.fullPath;
 
         if (typePath !== this.$route.fullPath) {
           this.$emit('selected');
@@ -115,18 +132,18 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate,isExactActive }"
+    v-slot="{ href, navigate, isExactActive }"
     custom
-    :to="type.route"
+    :to="typeRoute"
   >
     <li
       class="child nav-type"
-      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isActive, 'router-link-exact-active': isExactActive}"
+      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': highlightRoute && isActive, 'router-link-exact-active': highlightRoute && isExactActive}"
       @click="navigate"
       @keypress.enter="navigate"
     >
       <TabTitle
-        v-if="isExactActive"
+        v-if="highlightRoute && isExactActive"
         :show-child="false"
       >
         {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
@@ -136,7 +153,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
-        :aria-current="isActive ? 'page' : undefined"
+        :aria-current="highlightRoute && isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"
@@ -249,12 +266,7 @@ export default {
       height: 33px;
 
       &:hover {
-        background: var(--nav-hover);
         text-decoration: none;
-
-        :deep() .icon {
-          color: var(--body-text);
-        }
       }
     }
 

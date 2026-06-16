@@ -10,7 +10,7 @@ import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
   LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
-  IS_SLO
+  IS_SLO, IS_SESSION_IDLE
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
@@ -18,8 +18,7 @@ import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
-import { _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import {
@@ -32,6 +31,7 @@ import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   name:       'Login',
@@ -47,6 +47,7 @@ export default {
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut:          this.$route.query[LOGGED_OUT] === _FLAGGED,
+      isSessionIdle:      this.$route.query[IS_SESSION_IDLE] === _FLAGGED,
       isSsoLogout:        this.$route.query[IS_SSO] === _FLAGGED,
       isSlo:              this.$route.query[IS_SLO] === _FLAGGED,
       err:                this.$route.query.err,
@@ -67,7 +68,9 @@ export default {
     ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
 
     loggedOutSuccessMsg() {
-      if (this.isSlo) {
+      if (this.isSessionIdle) {
+        return this.t('login.loggedOutSessionIdle');
+      } else if (this.isSlo) {
         return this.t('login.loggedOutFromSlo');
       } else if (this.isSsoLogout) {
         return this.t('login.loggedOutFromSso');
@@ -131,10 +134,30 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
+
+    customizations() {
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
+      const login = brandMeta?.login || {};
+
+      return {
+        welcomeLabelKey: 'login.welcome',
+        logoClass:       'login-logo',
+        ...login,
+      };
+    },
+
+    bannerClass() {
+      return this.customizations.bannerClass;
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
+    }
   },
 
   async fetch() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+    const cookie = this.$store.getters['cookies/get']({ key: USERNAME, options: { parseJSON: false } });
+    const username = cookie || '';
 
     this.username = username;
     this.remember = !!username;
@@ -262,37 +285,49 @@ export default {
           }
         });
 
-        const user = await this.$store.dispatch('rancher/findAll', {
-          type: NORMAN.USER,
-          opt:  { url: '/v3/users?me=true', load: _MULTI }
+        // we have to do the XHR requests because we don't have schemas loaded yet...
+        let mgmtUser;
+        const selfUser = await this.$store.dispatch('management/request', {
+          url:    `/v1/${ EXT.SELFUSER }`,
+          method: 'POST',
+          data:   {}
         });
 
-        if (!!user?.[0]) {
-          this.$store.dispatch('auth/gotUser', user[0]);
+        if (selfUser) {
+          await this.$store.dispatch('auth/updateSelfUser', selfUser);
+          mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` });
+        }
+
+        if (!!mgmtUser) {
+          this.$store.dispatch('auth/gotUser', mgmtUser);
         }
 
         if ( this.remember ) {
-          this.$cookies.set(USERNAME, this.username, {
+          const options = {
             encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,
             secure:   true,
+          };
+
+          this.$store.commit('cookies/set', {
+            key: USERNAME, value: this.username, options
           });
         } else {
-          this.$cookies.remove(USERNAME);
+          this.$store.commit('cookies/remove', { key: USERNAME });
         }
 
         // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
         // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
         // the plugins will load via the boot-time plugin
         await loadPlugins({
-          app:     this.$store.app,
-          store:   this.$store,
-          $plugin: this.$store.$plugin
+          app:        this.$store.app,
+          store:      this.$store,
+          $extension: this.$store.$extension,
         });
 
-        if (this.firstLogin || user[0]?.mustChangePassword) {
+        if (this.firstLogin || mgmtUser?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
@@ -327,11 +362,20 @@ export default {
     </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
-        <p class="text-center">
+        <p
+          v-if="!brandLogo"
+          class="text-center"
+        >
           {{ t('login.howdy') }}
         </p>
+        <BrandImage
+          v-else
+          :class="{[customizations.logoClass]: !!customizations.logoClass}"
+          :file-name="brandLogo"
+          :alt="t('login.landscapeAlt')"
+        />
         <h1 class="text-center login-welcome">
-          {{ t('login.welcome', {vendor}) }}
+          {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
         <div
           class="login-messages"
@@ -452,7 +496,7 @@ export default {
                   v-model:value="password"
                   data-testid="local-login-password"
                   :label="t('login.password')"
-                  autocomplete="password"
+                  autocomplete="current-password"
                 />
               </div>
             </div>
@@ -516,6 +560,7 @@ export default {
         </div>
       </div>
       <BrandImage
+        :class="bannerClass"
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
@@ -542,6 +587,12 @@ export default {
 
     .login-welcome {
       margin: 0
+    }
+
+    .login-logo {
+      align-self: center;
+      max-width: 260px;
+      margin-bottom: 20px;
     }
 
     .login-messages {

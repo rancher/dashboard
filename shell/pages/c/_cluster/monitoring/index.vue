@@ -9,6 +9,8 @@ import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
+import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
+import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
 
 export default {
   components: {
@@ -23,8 +25,6 @@ export default {
   },
 
   data() {
-    const grafanaSrc = require('~shell/assets/images/vendor/grafana.svg');
-    const prometheusSrc = require('~shell/assets/images/vendor/prometheus.svg');
     const currentCluster = this.$store.getters['currentCluster'];
 
     return {

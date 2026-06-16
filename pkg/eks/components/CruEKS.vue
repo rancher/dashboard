@@ -18,6 +18,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Loading from '@shell/components/Loading.vue';
 
@@ -30,7 +31,9 @@ import AccountAccess from './AccountAccess.vue';
 import Import from './Import.vue';
 
 import EKSValidators from '../util/validators';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
+import { formatAWSError } from '@shell/utils/error';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -52,6 +55,7 @@ const DEFAULT__IMPORT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {},
+  importedConfig:                      { privateRegistryURL: null },
   eksConfig:                           {
     amazonCredentialSecret: '',
     displayName:            '',
@@ -82,6 +86,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   type:                 'nodeGroup',
   userData:             '',
   _isNew:               true,
+  arm:                  false,
 };
 
 export const DEFAULT_EKS_CONFIG = {
@@ -93,6 +98,7 @@ export const DEFAULT_EKS_CONFIG = {
   tags:                {},
   subnets:             [],
   loggingTypes:        [],
+  ipFamily:            'ipv4',
 };
 
 export default defineComponent({
@@ -106,6 +112,7 @@ export default defineComponent({
     Config,
     Networking,
     LabeledInput,
+    PrivateRegistry,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -159,6 +166,11 @@ export default defineComponent({
       }
     }
 
+    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
+    }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
+
     if (!this.isImport) {
       if (!this.normanCluster.eksConfig) {
         this.normanCluster['eksConfig'] = { ...DEFAULT_EKS_CONFIG } as any as EKSConfig;
@@ -180,8 +192,11 @@ export default defineComponent({
         this.config['nodeGroups'] = this.nodeGroups;
       }
     }
+
+    // We need to fetch instance types in all modes to determine the architecture (x86 vs arm) of the selected instance type
+    this.fetchInstanceTypes();
+
     if (this.mode !== _VIEW) {
-      this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
       this.fetchSshKeys();
@@ -194,13 +209,14 @@ export default defineComponent({
 
     return {
       isImport,
-      cloudCredentialId: '',
-      normanCluster:     { name: '' } as unknown as NormanCluster,
-      nodeGroups:        [] as EKSNodeGroup[],
-      config:            { } as EKSConfig,
-      membershipUpdate:  {} as {newBindings: any[], removedBindings: any[], save: Function},
-      originalVersion:   '',
-      fvFormRuleSets:    isImport ? [{
+      cloudCredentialId:      '',
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
+      nodeGroups:             [] as EKSNodeGroup[],
+      config:                 { } as EKSConfig,
+      membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
+      originalVersion:        '',
+      privateRegistryEnabled: false,
+      fvFormRuleSets:         isImport ? [{
         path:  'name',
         rules: ['nameRequired'],
       },
@@ -208,6 +224,10 @@ export default defineComponent({
       {
         path:  'displayName',
         rules: ['displayNameRequired'],
+      },
+      {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ] : [{
         path:  'name',
@@ -253,6 +273,10 @@ export default defineComponent({
       {
         path:  'nodeGroupsRequired',
         rules: ['nodeGroupsRequired']
+      },
+      {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ],
 
@@ -314,7 +338,8 @@ export default defineComponent({
           group['version'] = neu;
         }
       });
-    }
+    },
+
   },
 
   computed: {
@@ -322,6 +347,10 @@ export default defineComponent({
 
     fetchState(): {pending: boolean} {
       return this.$fetchState;
+    },
+
+    isImportedCluster(): boolean {
+      return this.isImport || this.value.isImported;
     },
 
     fvExtraRules(): {[key:string]: Function} {
@@ -346,6 +375,7 @@ export default defineComponent({
         if (!this.config?.imported) {
           out.nodeGroupsRequired = EKSValidators.nodeGroupsRequired(this);
         }
+        out.privateRegistryRequired = privateRegistryRequired(this as any);
       }
 
       return out;
@@ -412,9 +442,10 @@ export default defineComponent({
         const groupOption = { label: groupLabel, kind: 'group' };
         const instanceTypeOptions = instances.map((instance: AWS.InstanceType) => {
           return {
-            value: instance.apiName,
-            label: instance.label,
-            group: instance.groupLabel
+            value:                  instance.apiName,
+            label:                  instance.label,
+            group:                  instance.groupLabel,
+            supportedArchitectures: instance.supportedArchitectures
           };
         });
 
@@ -436,9 +467,10 @@ export default defineComponent({
             return spotInstances;
           }
           const opt = {
-            value: instance.apiName,
-            label: instance.label,
-            group: instance.groupLabel
+            value:                  instance.apiName,
+            label:                  instance.label,
+            group:                  instance.groupLabel,
+            supportedArchitectures: instance.supportedArchitectures
           };
 
           spotInstances.push(opt);
@@ -575,9 +607,10 @@ export default defineComponent({
       }
       this.loadingIam = true;
       const store = this.$store as Store<any>;
-      const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
+        const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
+
         const res = await store.dispatch('aws/depaginateList', { client: iamClient, cmd: 'listRoles' });
 
         this.iamInfo = res;
@@ -608,7 +641,7 @@ export default defineComponent({
       } catch (err: any) {
         const errors = this.errors as any[];
 
-        errors.push(err);
+        errors.push(formatAWSError(err));
       }
       this.loadingSshKeyPairs = false;
     },
@@ -629,6 +662,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="hasCredential"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"
@@ -691,6 +725,7 @@ export default defineComponent({
       <template v-else>
         <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
         <Tabbed
+          :title="t('eks.nodeGroups.title')"
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"
@@ -701,6 +736,7 @@ export default defineComponent({
           <Tab
             v-for="(node, i) in nodeGroups"
             :key="i"
+            :weight="-1 * i"
             :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
             :name="`${node.nodegroupName} ${i}`"
           >
@@ -724,6 +760,7 @@ export default defineComponent({
               v-model:labels="node.labels"
               v-model:version="node.version"
               v-model:pool-is-upgrading="node._isUpgrading"
+              v-model:arm="node.arm"
               :rules="{
                 nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
                 maxSize: fvGetAndReportPathRules('maxSize'),
@@ -788,10 +825,12 @@ export default defineComponent({
             v-model:public-access-sources="config.publicAccessSources"
             v-model:subnets="config.subnets"
             v-model:security-groups="config.securityGroups"
+            v-model:ip-family="config.ipFamily"
             :mode="mode"
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :status-subnets="statusSubnets"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
             :rules="{subnets:fvGetAndReportPathRules('subnets')}"
           />
         </Accordion>
@@ -852,6 +891,19 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isImportedCluster"
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:enabled="privateRegistryEnabled"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
         />
       </Accordion>
     </div>

@@ -1,6 +1,6 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import CardPo from '@/cypress/e2e/po/components/card.po';
+// import CardPo from '@/cypress/e2e/po/components/card.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
@@ -42,7 +42,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterList.goTo();
     clusterList.waitForPage();
 
-    // check if burguer menu nav is highlighted correctly for cluster manager
+    // check if burger menu nav is highlighted correctly for cluster manager
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
     clusterList.list().explore('local').click();
@@ -56,7 +56,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('shows fleet controller status', () => {
@@ -101,76 +105,77 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
-    cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');
   });
 
-  it('can add cluster badge', () => {
-    const settings = {
-      description: {
-        original: '',
-        new:      'E2E Test'
-      },
-      iconText:        'E2E',
-      backgroundColor: {
-        original: '#ff0000',
-        new:      '#f80dd8',
-        newRGB:   'rgb(248, 13, 216)'
-      }
-    };
+  // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/15697
+  // it('can add cluster badge', () => {
+  //   const settings = {
+  //     description: {
+  //       original: '',
+  //       new:      'E2E Test'
+  //     },
+  //     iconText:        'E2E',
+  //     backgroundColor: {
+  //       original: '#ff0000',
+  //       new:      '#f80dd8',
+  //       newRGB:   'rgb(248, 13, 216)'
+  //     }
+  //   };
 
-    ClusterDashboardPagePo.navTo();
+  //   ClusterDashboardPagePo.navTo();
 
-    // Add Badge
-    clusterDashboard.customizeAppearanceButton().click();
+  //   // Add Badge
+  //   clusterDashboard.customizeAppearanceButton().click();
 
-    const customClusterCard = new CardPo();
+  //   const customClusterCard = new CardPo();
 
-    customClusterCard.getTitle().contains('Cluster Appearance');
+  //   customClusterCard.getTitle().contains('Cluster Appearance');
 
-    // update badge
-    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
-    clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
+  //   // update badge
+  //   clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
+  //   clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
 
-    // update color
-    clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
-    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
-    clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
-    clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
+  //   // update color
+  //   clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+  //   clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
+  //   clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
+  //   clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
-    // update icon
-    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
-    clusterDashboard.customBadge().iconText().set(settings.iconText);
-    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
+  //   // update icon
+  //   clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+  //   clusterDashboard.customBadge().iconText().set(settings.iconText);
+  //   clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
 
-    // Apply Changes
-    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
+  //   // Apply Changes
+  //   clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
-    // check header and side nav for update
-    header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
-    header.clusterName().should('contain', 'local');
-    header.customBadge().should('contain', settings.description.new);
-    const burgerMenu = new BurgerMenuPo();
+  //   // check header and side nav for update
+  //   header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
+  //   header.clusterName().should('contain', 'local');
+  //   header.customBadge().should('contain', settings.description.new);
+  //   const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
+  //   burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
 
-    // Reset
-    clusterDashboard.customizeAppearanceButton().click();
-    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
-    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
-    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
+  //   // Reset
+  //   clusterDashboard.customizeAppearanceButton().click();
+  //   clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+  //   clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
+  //   clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
-    // Apply Changes
-    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
+  //   // Apply Changes
+  //   clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
-    // check header and side nav for update
-    header.clusterIcon().children().should('have.class', 'cluster-local-logo');
-    header.clusterName().should('contain', 'local');
-    header.customBadge().should('not.exist');
-    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
-  });
+  //   // check header and side nav for update
+  //   header.clusterIcon().children().should('have.class', 'cluster-local-logo');
+  //   header.clusterName().should('contain', 'local');
+  //   header.customBadge().should('not.exist');
+  //   burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
+  // });
 
   it('can view deployments', () => {
     clusterDashboard.goTo();
@@ -182,7 +187,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     }).then((el: any) => {
       el.click();
 
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment');
+      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
 
       workloadDeployments.waitForPage();
     });
@@ -211,17 +216,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  let removePod = false;
-  let podName = `e2e-test`;
+  let removePods = false;
+  const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
-  it('can view events', () => {
+  it('can view events and change events list count in cluster dashboard', () => {
     // Create a pod to trigger events
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -232,11 +237,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
           cy.createNamespaceInProject(nsName, projId);
         });
 
-        // create pod
+        // create various pods to generate 12 events in total
         // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
-          podName = resp.body.metadata.name;
-          removePod = true;
+        podNames.forEach((podName, i) => {
+          cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
+            podNames[i] = resp.body.metadata.name;
+            removePods = true;
+          });
         });
       });
     });
@@ -245,8 +252,15 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
+    clusterDashboard.eventsList().sortableTable().self().scrollIntoView();
     clusterDashboard.eventsList().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+      .should('have.length.gte', 10); // default is now 10 events. user can configure in gear icon
+
+    // change events list row count
+    clusterDashboard.eventsRowCountMenuToggle();
+    clusterDashboard.eventsRowCountMenu().getMenuItem('Show 25 events').click();
+    clusterDashboard.eventsList().sortableTable().rowElements()
+      .should('have.length.gte', 12); // minimum is 12, as per the pods generated above
 
     clusterDashboard.fullEventsLink().click();
 
@@ -254,10 +268,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     events.waitForPage();
     events.list().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+      .should('have.length.gte', 12);
   });
 
-  it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
+  it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 
@@ -301,7 +315,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard with limited permissions', () => {
+  describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;
@@ -314,8 +328,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // log in as admin
       cy.login();
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        const adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.status.userID;
 
         // create project
         return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
@@ -362,17 +376,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
-      cy.login();
+      cy.login(); // bypass cy.session
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
       cy.get<string>('@standardUserProject').then((projectId) => {
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
-      cy.get('@createUserRequest').then((req) => {
+      cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
-        cy.deleteRancherResource('v3', 'users', userId);
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', userId);
       });
     });
   });
@@ -391,7 +405,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     status:  403,
   };
 
-  describe('Cluster dashboard - Fleet agent', () => {
+  describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
+    // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
+    // which log in as a standard user and may leave session cookies in an inconsistent state
+    beforeEach(() => {
+      cy.login();
+    });
+
     it('does not show fleet controller status if a 403 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
@@ -424,8 +444,14 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   after(function() {
-    if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
+    // Ensure admin auth is restored before cleanup, as previous tests may have
+    // logged in as a different user or left the session in an inconsistent state
+    cy.login();
+
+    if (removePods) {
+      podNames.forEach((podName) => {
+        cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
+      });
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }

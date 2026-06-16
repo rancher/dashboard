@@ -9,7 +9,7 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { Banner } from '@components/Banner';
 
-export default ({
+export default {
   name: 'BannerSettings',
 
   props: {
@@ -112,7 +112,7 @@ export default ({
       return this.bannerType === 'bannerConsent';
     }
   }
-});
+};
 </script>
 
 <template>

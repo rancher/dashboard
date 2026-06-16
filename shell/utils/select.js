@@ -1,27 +1,3 @@
-export function onClickOption(option, e) {
-  if (!this.$attrs.multiple) {
-    return;
-  }
-
-  const getValue = (opt) => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
-  const optionValue = getValue(option);
-  const value = this.value || [];
-  const optionIndex = value.findIndex((option) => getValue(option) === optionValue);
-
-  if (optionIndex < 0) {
-    return;
-  }
-
-  this.value.splice(optionIndex, 1);
-
-  this.$emit('update:value', this.value);
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (this.closeOnSelect) {
-    this.$refs['select-input'].closeSearchOptions();
-  }
-}
 
 // This is a simpler positionner for the dropdown for a select control
 // We used to use popper for these, but it does not suppotr fractional pixel placements which

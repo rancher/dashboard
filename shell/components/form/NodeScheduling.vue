@@ -1,17 +1,26 @@
-<script>
+<script lang="ts">
 import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import NodeAffinity from '@shell/components/form/NodeAffinity';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import NodeAffinity from '@shell/components/form/NodeAffinity.vue';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
+import { ResourceLabeledSelectPaginateSettings, ResourceLabeledSelectSettings } from '@shell/types/components/resourceLabeledSelect';
+import { NODE } from '@shell/config/types';
+import { LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
+import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { KubeNode, KubeNodeTaint } from '@shell/types/resources/node';
+
+const parseNode = (node: string | KubeNode) => typeof node === 'string' ? node : node.id;
 
 export default {
   components: {
     RadioGroup,
     LabeledSelect,
+    ResourceLabeledSelect,
     NodeAffinity,
   },
 
@@ -23,9 +32,12 @@ export default {
       }
     },
 
+    /**
+     * HARVESTER ONLY PROPERTY
+     */
     nodes: {
       type:    Array,
-      default: () => []
+      default: () => null
     },
 
     mode: {
@@ -39,12 +51,71 @@ export default {
     },
   },
 
-  data() {
+  data(): {
+    selectNode: string | null;
+    nodeName: string;
+    nodeAffinity: any;
+    nodeSelector: any;
+    nodeSchedulingAllSettings: ResourceLabeledSelectSettings;
+    nodeSchedulingPaginationSettings: ResourceLabeledSelectPaginateSettings;
+    NODE: string;
+    } {
+    const keys = [
+      `node-role.kubernetes.io/control-plane`,
+      `node-role.kubernetes.io/etcd`
+    ];
+
+    // Settings used by ResourceLabeledSelect when node pagination disabled
+    const nodeSchedulingAllSettings: ResourceLabeledSelectSettings = {
+      updateResources(nodes: (string | KubeNode)[]) {
+        return nodes
+          .filter((node) => {
+            if (typeof node === 'string') {
+              // Already passed check
+              return true;
+            }
+
+            const taints = node.spec?.taints || [];
+
+            return taints.every((taint: KubeNodeTaint) => !keys.includes(taint.key));
+          })
+          .map(parseNode);
+      },
+    };
+
+    // Settings used by ResourceLabeledSelect when node pagination enabled
+    const nodeSchedulingPaginationSettings: ResourceLabeledSelectPaginateSettings = {
+      updateResources(nodes: (string | KubeNode)[]) {
+        return nodes.map(parseNode);
+      },
+      requestSettings: (opts: LabelSelectPaginationFunctionOptions) => {
+        const { filter } = opts.opts;
+        const filters = !!filter ? [
+          PaginationParamFilter.createSingleField({
+            field: 'metadata.name', value: filter, exact: false
+          })
+        ] : [];
+
+        filters.push(...keys.map((k) => PaginationParamFilter.createSingleField( ({
+          field: 'spec.taints.key', value: k, equality: PaginationFilterEquality.NOT_CONTAINS
+        }))));
+
+        opts.filters = filters;
+        opts.groupByNamespace = false;
+        opts.sort = [{ asc: true, field: 'metadata.name' }];
+
+        return opts;
+      }
+    };
+
     return {
       selectNode:   null,
       nodeName:     '',
       nodeAffinity: {},
       nodeSelector: {},
+      nodeSchedulingAllSettings,
+      nodeSchedulingPaginationSettings,
+      NODE
     };
   },
 
@@ -147,13 +218,16 @@ export default {
   watch: {
     'value.nodeSelector': {
       handler(nodeSelector) {
+        // Harvester specific code should not live in rancher/dashboard components
+        // This was brought into harvester/dashboard via https://github.com/harvester/dashboard/pull/342
+        // and then rancher/dashboard via https://github.com/rancher/dashboard/pull/6310
         if (this.isHarvester && nodeSelector?.[HOSTNAME]) {
           this.selectNode = 'nodeSelector';
           const nodeName = nodeSelector[HOSTNAME];
 
           this.nodeName = nodeName;
 
-          const array = this.nodes.map((n) => n.value);
+          const array = this.nodes?.map((n) => n.value) || [];
 
           if (nodeName && !array.includes(nodeName)) {
             this.$store.dispatch('growl/error', {
@@ -181,13 +255,14 @@ export default {
         :options="selectNodeOptions"
         :mode="mode"
         :data-testid="'node-scheduling-selectNode'"
-        @input="update"
+        @update:value="update"
       />
     </div>
     <template v-if="selectNode === 'nodeSelector'">
       <div class="row">
         <div class="col span-6">
           <LabeledSelect
+            v-if="nodes"
             v-model:value="nodeName"
             :label="t('workload.scheduling.affinity.nodeName')"
             :options="nodes || []"
@@ -195,6 +270,19 @@ export default {
             :multiple="false"
             :loading="loading"
             :data-testid="'node-scheduling-nodeSelector'"
+            @update:value="update"
+          />
+          <ResourceLabeledSelect
+            v-else
+            v-model:value="nodeName"
+            :label="t('workload.scheduling.affinity.nodeName')"
+            :resource-type="NODE"
+            :mode="mode"
+            :multiple="false"
+            :loading="loading"
+            :data-testid="'node-scheduling-nodeSelector'"
+            :allResourcesSettings="nodeSchedulingAllSettings"
+            :paginatedResourceSettings="nodeSchedulingPaginationSettings"
             @update:value="update"
           />
         </div>
@@ -205,7 +293,7 @@ export default {
         v-model:value="nodeAffinity"
         :mode="mode"
         :data-testid="'node-scheduling-nodeAffinity'"
-        @input="update"
+        @update:value="update"
       />
     </template>
   </div>

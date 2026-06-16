@@ -31,6 +31,7 @@ export default class PagePo extends ComponentPo {
       // If an intercept for the url already exists... use the same wait (it'll fire on that one)
       const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
 
+      cy.log('Waiting for: ', getUrls[i]);
       cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout });
     }
   }
@@ -45,6 +46,18 @@ export default class PagePo extends ComponentPo {
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {
     return cy.url().should('equal', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  }
+
+  // This method provides partial URL matching when cluster context differences cause test failures.
+  // For more flexible testing, use waitForUrlPathWithoutContext() which strips cluster context.
+  // Workaround for issue: https://github.com/rancher/dashboard/issues/12077
+  waitForUrlPathWithoutContext(params?: string, fragment?: string) {
+    // Remove cluster context (/c/[cluster-id]/) from the path for comparison
+    const pathWithoutContext = this.path.replace(/\/c\/[^\/]+\//, '/');
+
+    expect(pathWithoutContext).to.not.contain('/c/');
+
+    return cy.url().should('include', `${ pathWithoutContext }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   waitForPageWithSpecificUrl(path?: string, params?: string, fragment?: string) {
@@ -66,7 +79,7 @@ export default class PagePo extends ComponentPo {
   }
 
   mastheadTitle() {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   waitForMastheadTitle(title: string) {

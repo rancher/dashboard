@@ -237,7 +237,11 @@ export default {
         :provisioner="provisionerLabel(value.provisioner)"
       />
     </Banner>
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
+    >
       <Tab
         name="parameters"
         :label="t('storageClass.parameters.label')"

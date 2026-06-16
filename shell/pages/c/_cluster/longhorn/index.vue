@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { SERVICE } from '@shell/config/types';
 import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
+import longhornSvg from '~shell/assets/images/vendor/longhorn.svg';
 import Loading from '@shell/components/Loading';
 
 export default {
@@ -12,16 +13,19 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      this.uiServices = await this.$store.dispatch('cluster/findLabelSelector', {
+      const response = await this.$store.dispatch('cluster/findLabelSelector', {
         type:     SERVICE,
-        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } }
+        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } },
+        opt:      { transient: true }
       });
+
+      this.uiServices = response.data;
     }
   },
 
   data() {
     return {
-      longhornImgSrc: require('~shell/assets/images/vendor/longhorn.svg'),
+      longhornImgSrc: longhornSvg,
       uiServices:     null
     };
   },

@@ -5,11 +5,11 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
 let ingressName = '';
-const secretsNamesList = [];
-const servicesNamesList = [];
+let secretsNamesList = [];
+let servicesNamesList = [];
 const secretsCount = 4;
 const servicesCount = 4;
-const namespace = 'default';
+let namespace;
 
 describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -29,7 +29,12 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     // testing https://github.com/rancher/dashboard/issues/11086
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
 
-    cy.title().should('eq', 'Rancher - local - Ingresses');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+
+      cy.log(`Expected title is: ${ expectedTitle }`);
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('can open "Edit as YAML"', () => {
@@ -42,56 +47,63 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
   });
 
-  describe('Create/Edit', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('Create/Edit', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.createE2EResourceName('ingress').then((name) => {
         ingressName = name;
       });
 
-      // Create secrets
-      cy.wrap(Array.from({ length: secretsCount }))
-        .each(() => {
-          const secretName = Cypress._.uniqueId(`e2e-${ Date.now().toString() }-secret`);
+      cy.createManyNamespacedResources({
+        context:        'ingress',
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`secret-${ Date.now().toString() }-${ i }`);
 
-          cy.createSecret(namespace, secretName).then((name) => {
-            secretsNamesList.push(name);
-          });
-        })
-        .then(() => {
-          // Create services
-          cy.wrap(Array.from({ length: servicesCount }))
-            .each(() => {
-              const serviceName = Cypress._.uniqueId(`e2e-${ Date.now().toString() }-service`);
+          return cy.createSecret(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
+        },
+        count: secretsCount
+      }).then(({ ns, workloadNames }) => {
+        secretsNamesList = workloadNames;
+        namespace = ns;
+      }).then(() => cy.createManyNamespacedResources({
+        namespace,
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`service-${ Date.now().toString() }-${ i }`);
 
-              cy.createService(namespace, serviceName).then((name) => {
-                servicesNamesList.push(name);
-              });
-            });
-        });
+          return cy.createService(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
+        },
+        count: servicesCount
+      })).then(({ workloadNames }) => {
+        servicesNamesList = workloadNames;
+      });
     });
 
     it('can select rules and certificates in Create mode', () => {
       cy.viewport(1440, 900);
 
-      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
-      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
-
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
       ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
       ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
       ingressListPagePo.baseResourceList().masthead().create();
 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
-      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
-      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
+      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
+      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
 
       ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
+
+      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
+      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
 
       // Add two rules
       ingressCreatePagePo.setRuleRequestHostValue(0, 'example1.com');
@@ -204,9 +216,81 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
     });
+
+    it('can create an Ingress targeting a headless service and wait for Active state', () => {
+      const headlessServiceName = Cypress._.uniqueId(`headless-svc-${ Date.now().toString() }`);
+      const ingressHeadlessName = Cypress._.uniqueId(`ingress-headless-${ Date.now().toString() }`);
+
+      cy.createService(namespace, headlessServiceName, {
+        spec: {
+          clusterIP: 'None',
+          ports:     [{
+            name:       'myport',
+            port:       8080,
+            protocol:   'TCP',
+            targetPort: 80
+          }],
+          type: 'ClusterIP'
+        }
+      });
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressHeadlessName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .clickOptionWithLabel(namespace);
+
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
+      ingressCreatePagePo.setPortValueByLabel(0, '8080');
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
+
+          const rule = response?.body?.spec?.rules?.[0];
+
+          expect(rule).to.have.property('host', 'example-headless.com');
+          expect(rule).to.have.property('http');
+          expect(rule.http.paths).to.be.an('array').with.length.greaterThan(0);
+
+          const path = rule.http.paths[0];
+
+          expect(path).to.have.property('pathType', 'ImplementationSpecific');
+          expect(path.backend.service).to.deep.include({
+            name: headlessServiceName,
+            port: { number: 8080 }
+          });
+        });
+
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .column(1)
+        .should('contain.text', 'Active');
+    });
+
+    after('clean up namespaced resources', () => {
+      if (namespace) {
+        cy.deleteNamespace([namespace]);
+      }
+    });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });
@@ -277,20 +361,9 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         .should('be.visible');
       ingressListPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
     });
+  });
 
-    after('clean up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
-
-      // clean up secrets, services and ingress
-      secretsNamesList.forEach((secretName) => {
-        cy.deleteRancherResource('v1', 'secrets', `${ namespace }/${ secretName }`);
-      });
-
-      servicesNamesList.forEach((serviceName) => {
-        cy.deleteRancherResource('v1', 'services', `${ namespace }/${ serviceName }`);
-      });
-
-      cy.deleteRancherResource('v1', 'networking.k8s.io.ingresses', `${ namespace }/${ ingressName }`);
-    });
+  after('clean up', () => {
+    cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
   });
 });

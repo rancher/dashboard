@@ -10,12 +10,12 @@ import {
   DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone,
   getGKEVersions, getGKEClusters,
 
-} from '../util/gcp';
+} from '@shell/components/google/util/gcp';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
 
 import semver from 'semver';
 
-import type { getGKEVersionsResponse, getGKEClustersResponse } from '../types/gcp.d.ts';
+import type { getGKEVersionsResponse, getGKEClustersResponse } from '@shell/components/google/types/gcp.d.ts';
 import debounce from 'lodash/debounce';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -504,6 +504,7 @@ export default defineComponent({
           :key="i"
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
+          :mode="mode"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
           :disabled="isView"
           class="extra-zone-checkbox"

@@ -3,6 +3,11 @@ import { isEmpty } from '@shell/utils/object';
 import { MONITORING } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import slackLogo from '~shell/assets/images/vendor/slack.svg';
+import emailLogo from '~shell/assets/images/vendor/email.svg';
+import pagerdutyLogo from '~shell/assets/images/vendor/pagerduty.svg';
+import webhookLogo from '~shell/assets/images/vendor/webhook.svg';
+import customLogo from '~shell/assets/images/vendor/custom.svg';
 
 // i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
 // i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
@@ -13,14 +18,14 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.slack.title',
     info:  'monitoringReceiver.slack.info',
     key:   'slack_configs',
-    logo:  require(`~shell/assets/images/vendor/slack.svg`)
+    logo:  slackLogo
   },
   {
     name:  'email',
     label: 'monitoringReceiver.email.label',
     title: 'monitoringReceiver.email.title',
     key:   'email_configs',
-    logo:  require(`~shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:  'pagerduty',
@@ -28,21 +33,21 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.pagerduty.title',
     info:  'monitoringReceiver.pagerduty.info',
     key:   'pagerduty_configs',
-    logo:  require(`~shell/assets/images/vendor/pagerduty.svg`)
+    logo:  pagerdutyLogo
   },
   {
     name:  'opsgenie',
     label: 'monitoringReceiver.opsgenie.label',
     title: 'monitoringReceiver.opsgenie.title',
     key:   'opsgenie_configs',
-    logo:  require(`~shell/assets/images/vendor/email.svg`)
+    logo:  emailLogo
   },
   {
     name:      'webhook',
     label:     'monitoringReceiver.webhook.label',
     title:     'monitoringReceiver.webhook.title',
     key:       'webhook_configs',
-    logo:      require(`~shell/assets/images/vendor/webhook.svg`),
+    logo:      webhookLogo,
     banner:    'webhook.banner',
     addButton: 'webhook.add'
   },
@@ -52,7 +57,7 @@ export const RECEIVERS_TYPES = [
     title: 'monitoringReceiver.custom.title',
     info:  'monitoringReceiver.custom.info',
     key:   'webhook_configs',
-    logo:  require(`~shell/assets/images/vendor/custom.svg`)
+    logo:  customLogo
   },
 ];
 

@@ -1,3 +1,4 @@
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
 
 export const createDeploymentBlueprint = {
@@ -6,7 +7,7 @@ export const createDeploymentBlueprint = {
   metadata:   {
     name:      'test-deployment-kubectl',
     namespace: 'default',
-    labels:    { 'e2e-test': 'true' },
+    labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },
   },
   spec: {
     replicas: 1,
@@ -15,7 +16,7 @@ export const createDeploymentBlueprint = {
         containers: [
           {
             name:      'nginx',
-            image:     'nginx:alpine',
+            image:     SMALL_CONTAINER.image,
             resources: {
               requests: {
                 cpu:    '200m',
@@ -60,11 +61,11 @@ export const createDeploymentBlueprint = {
         ]
       },
       metadata: {
-        labels:    { 'e2e-test': 'true' },
+        labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },
         namespace: 'default'
       }
     },
-    selector: { matchLabels: { 'e2e-test': 'true' } }
+    selector: { matchLabels: { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' } }
   }
 };
 
@@ -96,7 +97,8 @@ export const deploymentCreateRequest = {
         initContainers:   [],
         imagePullSecrets: [],
         volumes:          [],
-        affinity:         {}
+        affinity:         {},
+        securityContext:  { seccompProfile: { type: 'RuntimeDefault' } }
       },
       metadata: {
         labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },

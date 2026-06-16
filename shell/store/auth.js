@@ -1,15 +1,21 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
-import { NORMAN } from '@shell/config/types';
-import { _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { MANAGEMENT, EXT } from '@shell/config/types';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
-import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
 
+// configuration for Single Logout/SLO
+// admissable auth providers compatible with SLO, based on shell/models/management.cattle.io.authconfig "configType"
+export const SLO_AUTH_PROVIDERS = ['oidc', 'saml', 'oauth'];
+
+// this is connected to the redirect url, for which the logic can be found in "shell/store/auth"
+const SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE = ['authConfigLogoutOutput'];
+
 export const BASE_SCOPES = {
   github:       ['read:org'],
+  githubapp:    ['read:org'],
   googleoauth:  ['openid profile email'],
   azuread:      [],
   keycloakoidc: ['openid profile email'],
@@ -33,8 +39,9 @@ export const state = function() {
     hasAuth:     null,
     loggedIn:    false,
     principalId: null,
-    v3User:      null,
+    user:        null,
     initialPass: null,
+    selfUser:    null,
   };
 };
 
@@ -55,8 +62,8 @@ export const getters = {
     return state.principalId;
   },
 
-  v3User(state) {
-    return state.v3User;
+  user(state) {
+    return state.user;
   },
 
   initialPass(state) {
@@ -65,6 +72,10 @@ export const getters = {
 
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
+  },
+
+  selfUser(state) {
+    return state.selfUser;
   }
 };
 
@@ -73,9 +84,13 @@ export const mutations = {
     state.fromHeader = fromHeader;
   },
 
-  gotUser(state, v3User) {
+  gotUser(state, user) {
     // Always deference to avoid race condition when setting `mustChangePassword`
-    state.v3User = { ...v3User };
+    state.user = { ...user };
+  },
+
+  gotSelfUser(state, selfUser) {
+    state.selfUser = selfUser;
   },
 
   hasAuth(state, hasAuth) {
@@ -85,8 +100,6 @@ export const mutations = {
   loggedInAs(state, principalId) {
     state.loggedIn = true;
     state.principalId = principalId;
-
-    this.$cookies.remove(KEY);
   },
 
   loggedOut(state) {
@@ -95,7 +108,8 @@ export const mutations = {
 
     state.loggedIn = false;
     state.principalId = null;
-    state.v3User = null;
+    state.user = null;
+    state.selfUser = null;
     state.initialPass = null;
   },
 
@@ -109,22 +123,42 @@ export const actions = {
     commit('gotHeader', fromHeader);
   },
 
+  async updateSelfUser({ dispatch, commit }, selfUser) {
+    const classifiedSelfUser = await dispatch('management/create', selfUser, { root: true });
+
+    commit('gotSelfUser', classifiedSelfUser);
+  },
+
+  async getSelfUser({ commit, dispatch, getters }) {
+    if (getters.selfUser) {
+      return Promise.resolve(getters.selfUser);
+    }
+
+    const selfUser = await dispatch('management/request', {
+      url:    `/v1/${ EXT.SELFUSER }`,
+      method: 'POST',
+      data:   {},
+    }, { root: true });
+
+    await dispatch('updateSelfUser', selfUser);
+  },
+
   async getUser({ dispatch, commit, getters }) {
-    if (getters.v3User) {
+    if (getters.user) {
       return;
     }
 
     try {
-      const user = await dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  {
-          url:    '/v3/users',
-          filter: { me: true },
-          load:   _MULTI
-        }
-      }, { root: true });
+      let mgmtUser;
 
-      commit('gotUser', user?.[0]);
+      await dispatch('getSelfUser');
+      const selfUser = getters.selfUser;
+
+      if (selfUser) {
+        mgmtUser = await dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` }, { root: true });
+      }
+
+      commit('gotUser', mgmtUser);
     } catch { }
   },
 
@@ -136,11 +170,23 @@ export const actions = {
     commit('initialPass', pass);
   },
 
-  getAuthProviders({ dispatch }) {
-    return dispatch('rancher/findAll', {
+  getAuthProviders({ dispatch }, opt) {
+    let force = false;
+
+    if (opt?.force) {
+      force = true;
+    }
+
+    const providers = dispatch('rancher/findAll', {
       type: 'authProvider',
-      opt:  { url: `/v3-public/authProviders`, watch: false }
+      opt:  {
+        url:   `/v1-public/authproviders`,
+        watch: false,
+        force
+      }
     }, { root: true });
+
+    return providers;
   },
 
   getAuthConfigs({ dispatch }) {
@@ -183,14 +229,18 @@ export const actions = {
    * Save nonce details. Information it contains will be used to validate auth requests/responses
    * Note - this may be structurally different than the nonce we encode and send
    */
-  saveNonce(ctx, opt) {
+  saveNonce({ commit }, opt) {
     const strung = JSON.stringify(opt);
 
-    this.$cookies.set(KEY, strung, {
+    const options = {
       path:     '/',
       sameSite: true,
       secure:   true,
-    });
+    };
+
+    commit('cookies/set', {
+      key: KEY, value: strung, options
+    }, { root: true });
 
     return strung;
   },
@@ -206,12 +256,11 @@ export const actions = {
 
   async redirectTo({ state, commit, dispatch }, opt = {}) {
     const provider = opt.provider;
+    const driver = await dispatch('getAuthProvider', provider);
     let redirectUrl = opt.redirectUrl;
 
     if ( !redirectUrl ) {
-      const driver = await dispatch('getAuthProvider', provider);
-
-      redirectUrl = driver.redirectUrl;
+      redirectUrl = driver?.redirectUrl;
     }
     let returnToUrl = `${ window.location.origin }/verify-auth`;
 
@@ -244,6 +293,19 @@ export const actions = {
       scopes = [joinStringList(scopes[0], opt.scopes)];
     }
 
+    if (driver?.scopes) {
+      // In some cases, driver scopes can be an array. We need to convert this
+      // to a string that can be parsed by `joinStringList()`
+      try {
+        const driverScopes = Array.isArray(driver.scopes) ? driver.scopes.join(' ') : driver.scopes;
+
+        scopes = [joinStringList(scopes[0], driverScopes)];
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to join driver scopes', error);
+      }
+    }
+
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
 
     // TODO: #13457 - Verify use case of scopesJoinChar anywhere outside this repository
@@ -265,8 +327,8 @@ export const actions = {
     }
   },
 
-  verifyOAuth({ dispatch }, { nonce, code, provider }) {
-    const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
+  verifyOAuth({ dispatch, rootGetters }, { nonce, code, provider }) {
+    const expectJSON = rootGetters['cookies/get']({ key: KEY, options: { parseJSON: false } });
     let parsed;
 
     try {
@@ -331,13 +393,21 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await driver.doAction('login', {
-        description:  'UI session',
-        responseType: 'cookie',
-        ...body
-      }, { redirectUnauthorized: false });
-
-      return res;
+      return await dispatch(
+        'management/request',
+        {
+          url:    `/v1-public/login`,
+          method: 'post',
+          data:   {
+            type:         driver.type,
+            description:  'UI session',
+            responseType: 'cookie',
+            ...body
+          },
+          redirectUnauthorized: false,
+        },
+        { root: true }
+      );
     } catch (err) {
       if (err._status === 401) {
         return Promise.reject(LOGIN_ERRORS.CLIENT_UNAUTHORIZED);
@@ -351,11 +421,17 @@ export const actions = {
     }
   },
 
-  uiLogout({ commit, dispatch }) {
-    removeEmberPage();
+  loggedInAs({ commit }, principalId) {
+    commit('loggedInAs', principalId);
 
+    commit('cookies/remove', { key: KEY }, { root: true });
+  },
+
+  uiLogout({ commit, dispatch }, options = {}) {
     commit('loggedOut');
-    dispatch('onLogout', null, { root: true });
+    dispatch('onLogout', options, { root: true });
+
+    dispatch('uiplugins/setReady', false, { root: true });
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {
@@ -376,28 +452,28 @@ export const actions = {
     }
 
     // Unload plugins - we will load again on login
-    await rootState.$plugin.logout();
+    await rootState.$extension.logout();
 
-    let logoutAction = 'logout';
+    let logoutAction = '';
     const data = {};
 
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
     if (options.slo) {
-      logoutAction = 'logoutAll';
+      logoutAction = '?all';
       data.finalRedirectUrl = returnTo({ isSlo: true }, this);
     }
 
     try {
       const res = await dispatch('rancher/request', {
-        url:                  `/v3/tokens?action=${ logoutAction }`,
+        url:                  `/v1/logout${ logoutAction }`,
         method:               'post',
         data,
         headers:              { 'Content-Type': 'application/json' },
         redirectUnauthorized: false,
       }, { root: true });
 
-      // Single-sign logout for SAML providers that allow for it
-      if (res.baseType === 'samlConfigLogoutOutput' && res.idpRedirectUrl) {
+      // Single-sign logout redirect for SLO compatible auth providers
+      if (SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE.includes(res.baseType) && res.idpRedirectUrl) {
         window.location.href = res.idpRedirectUrl;
 
         return;
@@ -405,6 +481,10 @@ export const actions = {
     } catch (e) {
     }
 
-    dispatch('uiLogout');
+    const propagateOptions = {};
+
+    propagateOptions.sessionIdle = options.sessionIdle;
+
+    dispatch('uiLogout', propagateOptions);
   }
 };

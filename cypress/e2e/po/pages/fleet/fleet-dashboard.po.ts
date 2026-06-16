@@ -41,7 +41,7 @@ export class FleetDashboardListPagePo extends BaseListPagePo {
     }
 
     slideInPanel() {
-      return cy.get('[data-testid="slide-in-panel-component"] [data-testid="fleet-dashboard-resource-details-header"]');
+      return cy.get('[data-testid="slide-in-panel-component"]');
     }
 
     fleetDashboardEmptyState() {

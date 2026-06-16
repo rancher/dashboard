@@ -1,5 +1,5 @@
 <script>
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable';
 import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 
 function stateDisplayProperties(state) {
@@ -16,7 +16,7 @@ function stateDisplayProperties(state) {
 export default {
   name: 'FleetResources',
 
-  components: { SortableTable },
+  components: { ResourceTable },
 
   props: {
     rows: {
@@ -35,6 +35,19 @@ export default {
   },
 
   computed: {
+    groupOptions() {
+      return [{
+        tooltipKey: 'resourceTable.groupBy.none',
+        icon:       'icon-list-flat',
+        value:      'none',
+      }, {
+        tooltipKey: 'resourceTable.groupBy.cluster',
+        hideColumn: 'provider',
+        icon:       'icon-folder',
+        value:      'clusterId',
+        field:      'clusterId',
+      }];
+    },
     computedResources() {
       const resources = (this.rows || []).map((r) => ({
         tableKey: r.key,
@@ -101,15 +114,15 @@ export default {
 </script>
 
 <template>
-  <SortableTable
+  <ResourceTable
     :rows="computedResources"
     :headers="resourceHeaders"
     :table-actions="false"
     :row-actions="false"
     :search="search"
+    :group-options="groupOptions"
     key-field="tableKey"
     default-sort-by="state"
-    :paged="true"
   >
     <!-- Pass down templates provided by the caller -->
     <template
@@ -122,5 +135,5 @@ export default {
         v-bind="scope"
       />
     </template>
-  </SortableTable>
+  </ResourceTable>
 </template>

@@ -6,6 +6,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 
+const NONE_VALUE = ' ';
+
 export default {
   emits: ['close'],
 
@@ -48,8 +50,12 @@ export default {
       return this.toMove.filter((namespace) => !!namespace.project).map((namespace) => namespace.project.shortId);
     },
 
+    isAllInProject() {
+      return this.toMove.every((namespace) => !!namespace.project);
+    },
+
     projectOptions() {
-      return this.projects.reduce((inCluster, project) => {
+      const options = this.projects.reduce((inCluster, project) => {
         if (!this.excludedProjects.includes(project.shortId) && project.spec?.clusterName === this.currentCluster.id) {
           inCluster.push({
             value: project.shortId,
@@ -59,6 +65,16 @@ export default {
 
         return inCluster;
       }, []);
+
+      // To be consistent with listed projects we should only provide the option if it applies too all of the namespaces
+      if (this.isAllInProject) {
+        options.unshift({
+          value: NONE_VALUE,
+          label: this.t('moveModal.noProject')
+        });
+      }
+
+      return options;
     }
   },
 
@@ -69,10 +85,10 @@ export default {
 
     async move(finish) {
       const cluster = this.$store.getters['currentCluster'];
-      const clusterWithProjectId = `${ cluster.id }:${ this.targetProject }`;
+      const clusterWithProjectId = this.targetProject && this.targetProject !== NONE_VALUE ? `${ cluster.id }:${ this.targetProject }` : null;
 
       const promises = this.toMove.map((namespace) => {
-        namespace.setLabel(PROJECT, this.targetProject);
+        namespace.setLabel(PROJECT, this.targetProject && this.targetProject !== NONE_VALUE ? this.targetProject : null);
         namespace.setAnnotation(PROJECT, clusterWithProjectId);
 
         return namespace.save();
@@ -128,7 +144,7 @@ export default {
       <AsyncButton
         :action-label="t('moveModal.moveButtonLabel')"
         class="btn bg-primary ml-10"
-        :disabled="!targetProject"
+        :disabled="targetProject === null"
         @click="move"
       />
     </template>

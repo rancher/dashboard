@@ -47,6 +47,10 @@ export default class ArrayListPo extends ComponentPo {
     return this.self().find(`[data-testid="array-list-button"]`).contains(label).click();
   }
 
+  clearListItem(index: number) {
+    return this.self().find(`[data-testid="array-list-box${ index }"]`).find('input').clear();
+  }
+
   /**
    * Sets a value at the specified index
    * @param value The value to set
@@ -55,8 +59,10 @@ export default class ArrayListPo extends ComponentPo {
    * @param parentIndex Optional parent index for nested array lists
    * @returns
    */
-  setValueAtIndex(value: string, index: number, label: string, parentIndex?: number): Cypress.Chainable {
-    this.clickAdd(label, parentIndex);
+  setValueAtIndex(value: string, index: number, label: string, parentIndex?: number, clickAdd = true): Cypress.Chainable {
+    if (clickAdd) {
+      this.clickAdd(label, parentIndex);
+    }
 
     return this.arrayListItem(index, parentIndex).find('input').type(value);
   }

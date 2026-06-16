@@ -4,9 +4,9 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import 'cypress-real-events/support';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -20,7 +20,6 @@ const repoInfo = {
 
 const workspace = 'fleet-default';
 let editRepoName = null;
-let adminUsername = '';
 let adminUserId = '';
 
 const reposToDelete = [];
@@ -45,9 +44,8 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
     beforeEach(() => {
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        adminUserId = resp.body.data[0].id.trim();
-        adminUsername = resp.body.data[0].username.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        adminUserId = resp.body.status.userID;
       });
 
       cy.createE2EResourceName('git-repo').as('gitRepo');
@@ -55,11 +53,17 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
     it('Can create a GitRepo', () => {
       // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -68,8 +72,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const {
         repo, branch, paths, helmRepoURLRegex
       } = gitRepoCreateRequest.spec;
-
-      headerPo.selectWorkspace(workspace);
 
       // Metadata step
       gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
@@ -91,6 +93,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Wait for secrets fetch to initialize Secret selectors
+      cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
 
       // Advanced info step
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
@@ -140,7 +145,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.wait('@interceptGitRepo').then(({ request, response }) => {
         gitRepoCreateRequest.metadata.namespace = workspace;
-        gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-display-name'] = adminUsername;
         gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-user-id'] = adminUserId;
         gitRepoCreateRequest.spec.helmSecretName = helmSecretName;
         gitRepoCreateRequest.spec.clientSecretName = gitSecretName; // Git SSH credentials
@@ -202,7 +206,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, function() {
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();
@@ -250,7 +254,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
 
       gitRepoDetails.gitRepoTabs().tabNames().each((el, i) => {
-        expect(el).to.eq(tabs[i]);
+        expect(el).to.include(tabs[i]);
       });
     });
 
@@ -303,19 +307,20 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   gitRepoDetails.bundlesCount().should('contain', '1');
     // });
 
-    it('check if graph is visible', function() {
-      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+    // We no longer have the button group on the detail pages but we still need to discuss where it's moving to
+    // it('check if graph is visible', function() {
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-      listPage.goTo();
-      listPage.waitForPage();
-      headerPo.selectWorkspace(workspace);
-      listPage.goToDetailsPage(this.gitRepo);
+    //   listPage.goTo();
+    //   listPage.waitForPage();
+    //   headerPo.selectWorkspace(workspace);
+    //   listPage.goToDetailsPage(this.gitRepo);
 
-      gitRepoDetails.waitForPage(null, 'bundles');
+    //   gitRepoDetails.waitForPage(null, 'bundles');
 
-      gitRepoDetails.showGraph();
-      gitRepoDetails.graph().should('contain', this.gitRepo);
-    });
+    //   gitRepoDetails.showGraph();
+    //   gitRepoDetails.graph().should('contain', this.gitRepo);
+    // });
   });
 
   describe('Edit', () => {
@@ -409,5 +414,28 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
   after(() => {
     reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  it('should display continuous delivery page git repo', () => {
+    const gitRepoList = new FleetGitRepoListPagePo();
+
+    gitRepoList.goTo();
+    gitRepoList.checkIsCurrentPage();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
+    // takes percy snapshot.
+    cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

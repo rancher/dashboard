@@ -41,7 +41,7 @@ export default class PVC extends SteveModel {
     insertAt(out, 0, {
       action:  'goToEditVolumeSize',
       enabled: this.expandable && this.bound,
-      icon:    'icon icon-fw icon-plus',
+      icon:    'icon icon-plus',
       label:   this.t('persistentVolumeClaim.expand.label'),
     });
 

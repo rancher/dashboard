@@ -126,4 +126,39 @@ describe('component: CustomCommand', () => {
       expect(element.exists()).toBe(true);
     });
   });
+
+  describe('advanced options', () => {
+    it('should show advanced options if the cluster uses ipv6', () => {
+      const config = clone(customCommandConfig);
+
+      config.props.cluster = { spec: { rkeConfig: { networking: { stackPreference: 'dual' } } } };
+      const wrapper = mount(CustomCommand, config);
+
+      const element = wrapper.find('[data-testid="rke2-custom-command-node-name"]');
+
+      expect(element.exists()).toBe(true);
+    });
+  });
+
+  it('should not show advanced options if the does not use ipv6', () => {
+    const config = clone(customCommandConfig);
+
+    config.props.cluster = { spec: { rkeConfig: { networking: { stackPreference: 'ipv4' } } } };
+    const wrapper = mount(CustomCommand, config);
+
+    const element = wrapper.find('[data-testid="rke2-custom-command-node-name"]');
+
+    expect(element.exists()).toBe(false);
+  });
+
+  it('should show a banner in advanced options if the cluster uses ipv6', () => {
+    const config = clone(customCommandConfig);
+
+    config.props.cluster = { spec: { rkeConfig: { networking: { stackPreference: 'dual' } } } };
+    const wrapper = mount(CustomCommand, config);
+
+    const element = wrapper.find('[data-testid="rke2-custom-command-ipv6-banner"]');
+
+    expect(element.exists()).toBe(true);
+  });
 });

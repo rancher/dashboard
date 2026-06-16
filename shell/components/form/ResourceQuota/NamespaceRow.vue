@@ -61,17 +61,35 @@ export default {
     // We want to update the value first so that the value will be rounded to the project limit.
     // This is relevant when switching projects. If the value is 1200 and the project that it was
     // switched to only has capacity for 800 more this will force the value to be set to 800.
-    if (this.value?.limit?.[this.type]) {
-      this.update(this.value.limit[this.type]);
+    if (this.currentLimit) {
+      this.update(this.currentLimit);
     }
 
-    if (!this.value?.limit?.[this.type]) {
+    if (!this.currentLimit) {
       this.update(this.defaultResourceQuotaLimits[this.type]);
     }
   },
 
   computed: {
     ...ROW_COMPUTED,
+    currentLimit() {
+      const limit = this.value.limit || {};
+
+      if (this.type.startsWith('extended.')) {
+        const resourceIdentifier = this.type.slice('extended.'.length);
+
+        return (limit.extended || {})[resourceIdentifier];
+      }
+
+      return limit[this.type];
+    },
+    displayType() {
+      if (this.type.startsWith('extended.')) {
+        return this.type.slice('extended.'.length);
+      }
+
+      return this.type;
+    },
     limitValue() {
       return parseSi(this.projectResourceQuotaLimits[this.type]);
     },
@@ -92,7 +110,7 @@ export default {
       return this.namespaceLimits.reduce((sum, limit) => sum + limit, 0);
     },
     totalContribution() {
-      return this.namespaceContribution + parseSi(this.value.limit[this.type] || '0', this.siOptions);
+      return this.namespaceContribution + parseSi(this.currentLimit || '0', this.siOptions);
     },
     percentageUsed() {
       return Math.min(this.totalContribution * 100 / this.projectLimit, 100);
@@ -127,7 +145,7 @@ export default {
         },
         {
           label: t('resourceQuota.tooltip.namespace'),
-          value: this.value.limit[this.type]
+          value: this.currentLimit
         },
         {
           label: t('resourceQuota.tooltip.available'),
@@ -178,7 +196,7 @@ export default {
     <Select
       class="mr-10"
       :mode="mode"
-      :value="type"
+      :value="displayType"
       :disabled="true"
       :options="types"
     />
@@ -192,7 +210,7 @@ export default {
       />
     </div>
     <UnitInput
-      :value="value.limit[type]"
+      :value="currentLimit"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"

@@ -1,5 +1,8 @@
 
-import { SCHEMA, COUNT, POD } from '@shell/config/types';
+import {
+  SCHEMA, COUNT, POD, MANAGEMENT, BRAND
+} from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -141,8 +144,7 @@ export default {
       page?.namespace === namespace &&
       page?.pagination?.filters?.length === 0 &&
       page?.pagination.labelSelector &&
-      selector === labelSelectorToSelector(page?.pagination.labelSelector
-      )
+      selector === labelSelectorToSelector(page?.pagination.labelSelector)
     ) {
       return getters.all(type);
     }
@@ -152,7 +154,14 @@ export default {
       return getters.all(type);
     }
 
-    // Does the store have all and we can pretend like it contains a result of a labelSelector?
+    // Does the store contain a page, assume it's a subset of all resources still covering applicable resources, and
+    // apply labelSelector to get actual result
+    if (getters['havePage'](type)) {
+      return getters.matching( type, selector, namespace );
+    }
+
+    // Does the store contain all resources, if so
+    // apply labelSelector to get actual result
     if (getters['haveAll'](type)) {
       return getters.matching( type, selector, namespace );
     }
@@ -170,7 +179,7 @@ export default {
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace && typeof namespace === 'string') {
-      matching = type === POD ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
+      matching = type === POD && !selector ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
@@ -198,6 +207,20 @@ export default {
 
       return entry.map.get(id);
     }
+  },
+
+  brand: (state, getters) => {
+    const brand = getters['byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+
+    if (!brand?.value) {
+      return undefined;
+    }
+
+    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand.value)) {
+      return BRAND.SUSE;
+    }
+
+    return brand.value;
   },
 
   /**
@@ -330,10 +353,22 @@ export default {
     return out;
   },
 
+  /**
+   * Can the user GET a resource of the given type
+   */
+  canGet: (state, getters) => (type) => {
+    const schema = getters.schemaFor(type);
+
+    return schema?.canGet;
+  },
+
+  /**
+   * Can the user LIST a resource of the given type
+   */
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    return schema && schema.hasLink('collection');
+    return schema?.canList;
   },
 
   typeRegistered: (state, getters) => (type) => {
@@ -522,7 +557,7 @@ export default {
     const store = state.config.namespace;
     const resource = id || context ? { id, context } : null;
 
-    return paginationUtils.isEnabled({ rootGetters }, { store, resource });
+    return paginationUtils.isEnabled({ rootGetters, $extension: rootState.$extension }, { store, resource });
   },
 
   /**
@@ -538,4 +573,14 @@ export default {
    * Can be used to change behaviour given steve cache api functionality
    */
   isSteveCacheUrl: (state) => () => false,
+
+  /**
+   * Get the saved count for the given name
+   *
+   * @param {string} name Name of the saved count
+   * @returns {number|undefined} The saved count or undefined if not found
+   */
+  getSavedCount: (state) => (name) => {
+    return state.savedCounts[name];
+  }
 };

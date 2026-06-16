@@ -1,5 +1,5 @@
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { NODE as NODE_TYPE } from '@shell/config/types';
+import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -53,6 +53,11 @@ export const NAME = {
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
+};
+
+export const PROJECT_NAMESPACES_NAME = {
+  ...NAME,
+  search: ['nameDisplay', 'projectNameDisplay'],
 };
 
 export const LOGGING_OUTPUT_PROVIDERS = {
@@ -158,12 +163,14 @@ export const NAME_UNLINKED = {
 };
 
 export const NAMESPACE = {
-  name:        'namespace',
-  labelKey:    'tableHeaders.namespace',
-  value:       'namespace',
-  getValue:    (row) => row.namespace,
-  sort:        'namespace',
-  dashIfEmpty: true,
+  name:          'namespace',
+  labelKey:      'tableHeaders.namespace',
+  value:         'namespace',
+  getValue:      (row) => row.namespace,
+  sort:          'namespace',
+  dashIfEmpty:   true,
+  formatter:     'LinkName',
+  formatterOpts: { type: NAMESPACE_TYPE },
 };
 
 export const NODE = {
@@ -383,6 +390,19 @@ export const SECRET_DATA = {
   formatter: 'SecretData'
 };
 
+export const SECRET_ORIGIN = {
+  name:      'secret-origin',
+  labelKey:  'tableHeaders.secret.origin',
+  tooltip:   'tableHeaders.secret.originTooltip',
+  formatter: 'SecretOrigin',
+  // Cannot _sort_ upstream secrets by if they are cluster scoped
+  // https://github.com/rancher/rancher/issues/51001
+  // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
+  // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
+  // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
+  search:    false,
+};
+
 export const TARGET_KIND = {
   name:     'target-kind',
   labelKey: 'tableHeaders.targetKind',
@@ -516,6 +536,15 @@ export const LAST_SEEN_TIME = {
   value:    'lastSeen',
   sort:     'lastTimestamp:desc',
   tooltip:  'tableHeaders.lastSeenTooltip'
+};
+
+export const EVENT_FIRST_SEEN_TIME = {
+  name:     'firstSeen',
+  labelKey: 'tableHeaders.firstSeen',
+  tooltip:  'tableHeaders.firstSeenTooltip',
+
+  value: 'firstSeen',
+  sort:  'firstSeen:desc',
 };
 
 export const EVENT_LAST_SEEN_TIME = {
@@ -1145,3 +1174,36 @@ export const UI_PLUGIN_CATALOG = [
     value:    'repo.metadata.name'
   }
 ];
+
+// SECRETS
+export const PROJECT = {
+  name:     'project',
+  labelKey: 'tableHeaders.project',
+};
+
+export const AUTOSCALER_ENABLED = {
+  name:      'autoscaler',
+  labelKey:  'tableHeaders.autoscaler',
+  value:     'isAutoscalerEnabled',
+  sort:      ['isAutoscalerEnabled'],
+  formatter: 'Autoscaler',
+};
+
+export const MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'statusInfo.machineProvider',
+  sort:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const MGMT_CLUSTER_KUBE_VERSION = {
+  name:      'kubernetesVersion',
+  labelKey:  'tableHeaders.version',
+  subLabel:  'Architecture',
+  sort:      'statusInfo.kubernetesVersion',
+  search:    'statusInfo.kubernetesVersion',
+  formatter: 'ClusterKubeVersion',
+};

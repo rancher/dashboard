@@ -22,7 +22,7 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   rke2PageTitle(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   gridElementExistanceByName(name: string, assertion: string) {
@@ -54,7 +54,9 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   customClusterRegistrationCmd(cmd: string) {
-    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
+    const sshUser = Cypress.env('customNodeUser');
+
+    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ${ sshUser }@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
   }
 
   credentialsBanner() {

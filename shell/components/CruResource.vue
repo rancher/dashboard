@@ -1,5 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import throttle from 'lodash/throttle';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -9,9 +10,14 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
+
+import { useFormSummary } from '@shell/components/TableOfContents/composables';
+import { useTemplateRef } from 'vue';
+import TableOfContents from '@shell/components/TableOfContents/TableOfContents.vue';
 
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
@@ -30,7 +36,8 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    Wizard
+    Wizard,
+    TableOfContents
   },
 
   props: {
@@ -161,35 +168,57 @@ export default {
     yamlModifiers: {
       type:    Object,
       default: undefined
+    },
+
+    showToc: {
+      type:    Boolean,
+      default: false
     }
+  },
+
+  setup() {
+    const cruFormRef = useTemplateRef('cru-form');
+    const { locatedComponents } = useFormSummary(cruFormRef);
+    const accordions = locatedComponents;
+
+    return { accordions };
   },
 
   data(props) {
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
+    if (this.mode === _CREATE) {
+      useResourceCreatePageProvider();
+    } else if (this.mode === _EDIT) {
+      useResourceEditPageProvider();
+    }
+
     return {
-      isCancelModal:   false,
-      showAsForm:      this.$route.query[AS] !== _YAML,
+      isCancelModal:                      false,
+      showAsForm:                         this.$route.query[AS] !== _YAML,
+      tocContainerHeight:                 0,
+      mainLayoutEl:                       null,
+      throttledComputeTocContainerHeight: null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      resourceYaml:    null,
+      resourceYaml:                       null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      initialYaml:     null,
+      initialYaml:                        null,
       /**
        * Save a copy of the initial resource. This is used to calc the initial yaml later on
        */
-      initialResource: clone(this.resource),
-      abbrSizes:       {
+      initialResource:                    clone(this.resource),
+      abbrSizes:                          {
         3: '24px',
         4: '18px',
         5: '16px',
         6: '14px'
       },
-      schema
+      schema,
     };
   },
 
@@ -269,10 +298,11 @@ export default {
           icon:    null
         }
       }), {});
-    },
+    }
   },
 
   created() {
+    this.throttledComputeTocContainerHeight = throttle(this.computeTocContainerHeight, 20);
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
@@ -283,11 +313,41 @@ export default {
   },
 
   beforeUnmount() {
+    this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+    window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+    this.throttledComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
   methods: {
     stringify,
+
+    // as the user scrolls past the CruResource Masthead, the amount of vertical space available to the table of contents changes
+    computeTocContainerHeight() {
+      const root = this.$el;
+
+      if (!root) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocEl = root.querySelector('.cru__toc');
+      const footerEl = root.querySelector('.cru__footer');
+
+      if (!tocEl || !footerEl) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocTop = tocEl.getBoundingClientRect().top;
+      const footerTop = footerEl.getBoundingClientRect().top;
+      const gapLgValue = getComputedStyle(root).getPropertyValue('--gap-lg').trim();
+      const gapLg = Number.parseFloat(gapLgValue) || 0;
+
+      this.tocContainerHeight = Math.max(0, Math.round((footerTop - tocTop) - gapLg));
+    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {
@@ -412,7 +472,6 @@ export default {
           newNamespace.applyDefaults();
           await newNamespace.save();
         } catch (e) {
-          // this.errors = exceptionToErrorsArray(e);
           this.$emit('error', exceptionToErrorsArray(e));
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
@@ -526,13 +585,38 @@ export default {
           this.initialYaml = await this.createResourceYaml(undefined, this.initialResource);
         }
       }
+    },
+
+    showToc: {
+      handler(neu, old) {
+        if (neu) {
+          // Compute height on first render
+          this.$nextTick(() => {
+            this.throttledComputeTocContainerHeight?.();
+          });
+          // Add event listeners for computeTocContainerHeight on scroll
+          this.mainLayoutEl = document.querySelector('.main-layout');
+          this.mainLayoutEl?.addEventListener('scroll', this.throttledComputeTocContainerHeight, { passive: true });
+          // Add event listener for computeTocContainerHeight on window resize
+          window.addEventListener('resize', this.throttledComputeTocContainerHeight, { passive: true });
+        } else if (old) {
+          // Remove event listeners for computeTocContainerHeight when TOC is hidden
+          this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+          window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+        }
+      },
+      immediate: true
     }
   }
 };
 </script>
 
 <template>
-  <section class="cru">
+  <section
+    ref="cru-form"
+    :class="{'show-toc':showToc}"
+    class="cru"
+  >
     <slot name="noticeBanner" />
     <p
       v-if="description"
@@ -542,6 +626,7 @@ export default {
     </p>
     <component
       :is="(isView? 'div' : 'form')"
+
       :value="resource"
       data-testid="cru-form"
       class="create-resource-container cru__form"
@@ -765,15 +850,26 @@ export default {
       </template>
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
+        <TableOfContents
+          v-if="showToc"
+          class="cru__toc"
+          :style="tocContainerHeight ? { '--toc-container-height': `${tocContainerHeight}px` } : {}"
+          :accordions="accordions"
+        />
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content"
+          class="cru__content resource-container"
+
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <slot />
+          <slot name="single">
+            <slot />
+          </slot>
         </div>
+
         <slot name="form-footer">
           <CruResourceFooter
+            v-if="!isView"
             class="cru__footer"
             :mode="mode"
             :is-form="showAsForm"
@@ -836,7 +932,7 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
-          :errors="errors"
+          :show-errors="false"
           :apply-hooks="applyHooks"
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"
@@ -903,6 +999,11 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+$logo: 60px;
+$logo-space: 100px;
+
+$table-contents-width: 250px;
+
 .cru-resource-yaml-container {
   .resource-yaml {
     .yaml-editor {
@@ -927,9 +1028,6 @@ export default {
     }
   }
 }
-
-$logo: 60px;
-$logo-space: 100px;
 
 .title {
   margin-top: 20px;
@@ -983,10 +1081,26 @@ form.create-resource-container .cru {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+
+  }
+
+  &__toc {
+    width: $table-contents-width;
+    margin: 20px var(--gap-lg) 20px var(--gap-lg);
+    min-width: $table-contents-width;
+    max-width: $table-contents-width;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+    max-height: var(--toc-container-height, calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px));
+    transition: max-height 50ms ease-in-out;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &__content {
     flex-grow: 1;
+
     &-wizard {
       display: flex;
     }
@@ -1013,6 +1127,48 @@ form.create-resource-container .cru {
     z-index: 1;
     background-color: var(--header-bg);
     margin: 10px 0;
+  }
+}
+
+.show-toc.cru{
+   &>.cru__form{
+        display: grid;
+        grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));
+        grid-template-rows: [errors] auto [content] 1fr [footer] min-content;
+
+      &>.cru__errors {
+        grid-column: content;
+        grid-row: errors;
+      }
+
+      &>.cru__toc {
+        grid-column: toc;
+        grid-row: errors / footer;
+      }
+
+      &>.cru__content {
+          grid-column: content;
+          grid-row: content;
+      }
+
+      &>.cru__footer {
+        grid-column: content / 3;
+        grid-row: footer;
+      }
+    }
+}
+
+@media (max-width: map-get($breakpoints, '--viewport-9')) {
+  .show-toc.cru {
+    & > .cru__form {
+      display: flex;
+      grid-template-columns: none;
+      grid-template-rows: none;
+
+      & > .cru__toc {
+        display: none;
+      }
+    }
   }
 }
 

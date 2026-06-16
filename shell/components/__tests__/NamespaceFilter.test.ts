@@ -244,4 +244,53 @@ describe('component: NamespaceFilter', () => {
 
     it.todo('should generate the options based on the Rancher resources');
   });
+
+  describe('given filter input text selection', () => {
+    it('should allow text selection by stopping mousedown propagation', async() => {
+      const wrapper = mount(NamespaceFilter, {
+        computed: {
+          filtered: () => [],
+          options:  () => [],
+          value:    () => [],
+        },
+        global: {
+          mocks: {
+            t:           (key: string) => key,
+            $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
+          directives: {
+            'clean-tooltip': () => {},
+            shortkey:        () => {},
+          },
+          stubs: { RcButton: { template: '<button><slot /></button>' } },
+        }
+      });
+
+      // Open the dropdown to reveal the filter input
+      const dropdown = wrapper.find('[data-testid="namespaces-dropdown"]');
+
+      await dropdown.trigger('click');
+
+      // Find the filter input
+      const filterInput = wrapper.find('.ns-filter-input');
+
+      expect(filterInput.exists()).toBe(true);
+
+      // Trigger mousedown on the filter input and capture the event
+      const mousedownEvent = new MouseEvent('mousedown', {
+        bubbles:    true,
+        cancelable: true
+      });
+      const stopPropagationSpy = jest.spyOn(mousedownEvent, 'stopPropagation');
+
+      filterInput.element.dispatchEvent(mousedownEvent);
+
+      // Verify stopPropagation was called (which allows text selection)
+      expect(stopPropagationSpy).toHaveBeenCalledWith();
+
+      // Verify the default was NOT prevented (text selection should work)
+      expect(mousedownEvent.defaultPrevented).toBe(false);
+    });
+  });
 });

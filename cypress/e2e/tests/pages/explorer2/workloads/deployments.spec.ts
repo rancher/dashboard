@@ -5,10 +5,11 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDeploymentsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployments-get';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
+describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -20,6 +21,17 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
     const { namespace } = createDeploymentBlueprint.metadata;
     let deploymentId;
     let volumeDeploymentId;
+    let scaleTestDeploymentId;
+    let scaleTestDeploymentName;
+    let scaleTestNamespace; // Dynamic namespace for scale test
+
+    const createTestDeployment = (baseName: string) => {
+      const deployment = structuredClone(createDeploymentBlueprint);
+
+      deployment.metadata.name = `${ baseName }-${ Date.now() }`;
+
+      return deployment;
+    };
 
     before(() => {
       cy.createE2EResourceName('deployment').then((name) => {
@@ -28,11 +40,39 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
 
       cy.createE2EResourceName('volume-deployment').then((name) => {
         volumeDeploymentId = name;
+
         // Create a deployment with volumes for the volume-related tests
-        const volumeDeployment = { ...createDeploymentBlueprint };
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
 
         volumeDeployment.metadata.name = volumeDeploymentId;
         cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
+      });
+
+      cy.createE2EResourceName('scale-deployment').then((name) => {
+        scaleTestDeploymentId = name;
+
+        // Create dynamic namespace for scale test
+        cy.createE2EResourceName('scale-test-ns').then((nsName) => {
+          scaleTestNamespace = nsName;
+
+          // Create the namespace first
+          cy.createRancherResource('v1', 'namespaces', JSON.stringify({
+            apiVersion: 'v1',
+            kind:       'Namespace',
+            metadata:   { name: scaleTestNamespace }
+          }));
+
+          const scaleDeployment: any = createTestDeployment(scaleTestDeploymentId);
+
+          // Use the dynamic namespace
+          scaleDeployment.metadata.namespace = scaleTestNamespace;
+          scaleDeployment.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
+          scaleDeployment.spec.template.spec.terminationGracePeriodSeconds = 0;
+
+          scaleTestDeploymentName = scaleDeployment.metadata.name;
+
+          cy.createRancherResource('v1', 'apps.deployments', JSON.stringify(scaleDeployment), false);
+        });
       });
 
       cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
@@ -57,19 +97,78 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
       });
     });
 
-    it('Should be able to scale the number of pods', () => {
-      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(deploymentId);
+    it('Should show configuration drawer with the labels/annotations tab open', () => {
+      cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
+      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
       workloadDetailsPage.goTo();
-      workloadDetailsPage.waitForPage();
-      workloadDetailsPage.mastheadTitle().should('contain', deploymentId);
-      workloadDetailsPage.podsRunningTotal().should('contain', '1');
-      workloadDetailsPage.podScaleUp().click();
-      workloadDetailsPage.gaugesPods().should('contain', 'Containercreating');
-      workloadDetailsPage.gaugesPods().should('contain', 'Running');
-      workloadDetailsPage.podsRunningTotal().should('contain', '2', MEDIUM_TIMEOUT_OPT);
-      workloadDetailsPage.podScaleDown().click();
-      workloadDetailsPage.podsRunningTotal().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+      workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
+
+      workloadDetailsPage.openEmptyShowConfigurationLabelsLink();
+      workloadDetailsPage.labelsAndAnnotationsTab().should('be.visible');
+    });
+
+    it('Should be able to scale the number of pods', () => {
+      cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
+      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
+
+      // Intercept scaling calls and alias them based on the desired replica count in the request body
+      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`, (req) => {
+        if (req.body.spec?.replicas === 2) {
+          req.alias = 'scaleUp';
+        } else if (req.body.spec?.replicas === 1) {
+          req.alias = 'scaleDown';
+        }
+      });
+
+      workloadDetailsPage.goTo();
+      workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
+
+      // Reset replicas to 1 to handle test retries with testIsolation off
+      workloadDetailsPage.replicaCount().then(($el) => {
+        const count = parseInt($el.text().trim());
+
+        if (count > 1) {
+          workloadDetailsPage.podScaleDown().should('be.enabled').click({ force: true });
+          workloadDetailsPage.title().click();
+          cy.wait('@scaleDown');
+          workloadDetailsPage.waitForScaleButtonsEnabled();
+          workloadDetailsPage.waitForPendingOperationsToComplete();
+        }
+      });
+
+      workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+
+      // Scale Up
+      workloadDetailsPage.podScaleUp().should('be.enabled').click({ force: true });
+      workloadDetailsPage.title().click();
+      cy.wait('@scaleUp').its('response.statusCode').should('eq', 200);
+
+      workloadDetailsPage.waitForScaleButtonsEnabled();
+      cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
+      workloadDetailsPage.waitForPendingOperationsToComplete();
+      workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
+
+      // Verify pod status shows healthy scaling state
+      workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
+        .should('contain.text', 'Running');
+
+      // Wait until there's only one pods status count element
+      workloadDetailsPage.waitForSinglePodsStatusCount();
+
+      workloadDetailsPage.podsStatusCount().should('be.visible', MEDIUM_TIMEOUT_OPT)
+        .should('contain', '2');
+
+      workloadDetailsPage.waitForScaleOperationComplete();
+
+      // Scale Down
+      workloadDetailsPage.podScaleDown().click({ force: true });
+      workloadDetailsPage.title().click();
+      cy.wait('@scaleDown').its('response.statusCode').should('eq', 200);
+
+      workloadDetailsPage.waitForPendingOperationsToComplete();
+
+      workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
     });
 
     it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
@@ -204,15 +303,20 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
     });
 
     after(() => {
-      cy.deleteRancherResource('v1', 'apps.deployment', `${ namespace }/${ volumeDeploymentId }`);
+      cy.deleteRancherResource('v1', 'apps.deployment', `${ namespace }/${ volumeDeploymentId }`, false);
+
+      // Clean up the namespace, kubernetes will handle the deployment cleanup
+      if (scaleTestNamespace) {
+        cy.deleteRancherResource('v1', 'namespaces', scaleTestNamespace, false);
+      }
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
-    const deploymentNamesList = [];
+    let deploymentNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -222,78 +326,48 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createDeployment = (deploymentName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = deploymentName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create deployments
-        let i = 0;
-
-        while (i < 25) {
-          const deploymentName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createRancherResource('v1', 'apps.deployment', JSON.stringify({
+          return cy.createRancherResource('v1', 'apps.deployment', JSON.stringify({
             apiVersion: 'apps/v1',
             kind:       'Deployment',
             metadata:   {
-              name:      deploymentName,
-              namespace: nsName1
+              name,
+              namespace: ns
             },
             spec: {
               replicas: 1,
-              selector: { matchLabels: { app: deploymentName } },
+              selector: { matchLabels: { app: name } },
               template: {
-                metadata: { labels: { app: deploymentName } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                metadata: { labels: { app: name } },
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
-          })).then((resp) => {
-            deploymentNamesList.push(resp.body.metadata.name);
-          });
+          }));
+        };
+      };
 
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique deployment for filtering/sorting test
-          cy.createRancherResource('v1', 'apps.deployment', JSON.stringify({
-            apiVersion: 'apps/v1',
-            kind:       'Deployment',
-            metadata:   {
-              name:      uniqueDeployment,
-              namespace: nsName2
-            },
-            spec: {
-              replicas: 1,
-              selector: { matchLabels: { app: uniqueDeployment } },
-              template: {
-                metadata: { labels: { app: uniqueDeployment } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
-              }
-            }
-          })).then((resp) => {
-            uniqueDeployment = resp.body.metadata.name;
-          });
+      cy.createManyNamespacedResources({
+        context:        'deployments1',
+        createResource: createDeployment(),
+      })
+        .then(({ ns, workloadNames }) => {
+          deploymentNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResources({
+          context:        'deployments2',
+          createResource: createDeployment(uniqueDeployment),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueDeployment = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through deployments data', () => {
@@ -436,8 +510,70 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all deployments in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
+    });
+  });
+
+  describe('Redeploy Dialog', () => {
+    let volumeDeploymentId: string;
+    const { namespace } = createDeploymentBlueprint.metadata;
+    const apiResource = 'apps.deployments';
+    const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+
+    const getRedeployEndpoint = () => `/v1/${ apiResource }/${ namespace }/${ volumeDeploymentId }`;
+    const openRedeployDialog = () => {
+      deploymentsListPage.goTo();
+      deploymentsListPage.waitForPage();
+
+      deploymentsListPage
+        .list()
+        .actionMenu(volumeDeploymentId)
+        .getMenuItem('Redeploy')
+        .click();
+
+      return deploymentsListPage
+        .redeployDialog()
+        .shouldBeVisible()
+        .expectCancelButtonLabel('Cancel')
+        .expectApplyButtonLabel('Redeploy');
+    };
+
+    before(() => {
+      cy.createE2EResourceName('volume-deployment-2').then((name) => {
+        volumeDeploymentId = name;
+
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
+
+        volumeDeployment.metadata.name = volumeDeploymentId;
+
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
+      });
+    });
+
+    it('redeploys successfully after confirmation', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.confirmRedeploy(getRedeployEndpoint());
+      dialog.shouldBeClosed();
+    });
+
+    it('does not send a request when cancelled', () => {
+      cy.intercept('PUT', getRedeployEndpoint()).as('redeployCancelled');
+
+      const dialog = openRedeployDialog();
+
+      dialog.cancel().shouldBeClosed();
+      cy.get('@redeployCancelled.all').should('have.length', 0);
+    });
+
+    it('displays error banner on failure', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.simulateRedeployError(getRedeployEndpoint());
+    });
+
+    after(() => {
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
     });
   });
 });

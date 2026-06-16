@@ -29,6 +29,7 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
+import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {
 
@@ -66,18 +67,19 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      authInfo:               {},
-      show:                   false,
-      showTooltip:            false,
-      isUserMenuOpen:         false,
-      isPageActionMenuOpen:   false,
-      kubeConfigCopying:      false,
+      authInfo:                {},
+      show:                    false,
+      showTooltip:             false,
+      isUserMenuOpen:          false,
+      isPageActionMenuOpen:    false,
+      kubeConfigCopying:       false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this
+      navHeaderRight:          null,
+      extensionHeaderActions:  getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      extensionActionsEnabled: {},
+      ctx:                     this
     };
   },
 
@@ -95,14 +97,13 @@ export default {
       'isSingleProduct',
       'isRancherInHarvester',
       'showTopLevelMenu',
-      'isMultiCluster',
       'showWorkspaceSwitcher'
     ]),
 
-    samlAuthProviderEnabled() {
+    sloAuthProviderEnabled() {
       const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
-      return publicAuthProviders.find((authProvider) => configType[authProvider.id] === 'saml') || {};
+      return publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configType[authProvider?.id])) || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -111,7 +112,7 @@ export default {
         return false;
       }
 
-      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.samlAuthProviderEnabled;
+      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.sloAuthProviderEnabled;
 
       return logoutAllSupported && logoutAllEnabled && !logoutAllForced;
     },
@@ -188,10 +189,28 @@ export default {
                  (this.currentProduct && this.currentProduct.showWorkspaceSwitcher);
       // Don't show if the header is in 'simple' mode
       const notSimple = !this.simple;
-      // One of these must be enabled, otherwise t here's no component to show
-      const validFilterSettings = this.currentProduct?.showNamespaceFilter || this.currentProduct?.showWorkspaceSwitcher;
+      // One of these must be enabled, otherwise there's no component to show
+      const validFilterSettings = this.currentProduct?.showNamespaceFilter || this.showWorkspaceSwitcher;
 
       return validClusterOrProduct && notSimple && validFilterSettings;
+    },
+
+    /**
+     * The workspace switcher should be disabled on detail, edit and create pages.
+     * Only list pages should allow changing the workspace.
+     */
+    disableWorkspaceSwitcher() {
+      // Disable on detail/edit pages (route has an id param)
+      if (this.$route?.params?.id) {
+        return true;
+      }
+
+      // Disable on create pages (route names end with '-create')
+      if (this.$route?.name?.endsWith('-create')) {
+        return true;
+      }
+
+      return false;
     },
 
     featureRancherDesktop() {
@@ -200,12 +219,6 @@ export default {
 
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
-    },
-
-    prod() {
-      const name = this.rootProduct.name;
-
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
@@ -238,6 +251,30 @@ export default {
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
+
+    productLabel() {
+      const name = this.rootProduct.name;
+
+      // single products do their own thing, which is the previous default behavior as per next line
+      if (this.isSingleProduct) {
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      } else {
+        if (this.rootProduct?.label) {
+          return this.rootProduct.label;
+        }
+        if (this.rootProduct?.labelKey) {
+          return this.$store.getters['i18n/t'](this.rootProduct.labelKey);
+        }
+
+        return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+      }
+    },
+
+    // Determine if we are on a route that shows the logo instead of the product label
+    // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
+    isLogoRoute() {
+      return !this.$route.name.includes('c-cluster');
+    }
   },
 
   watch: {
@@ -251,8 +288,9 @@ export default {
       handler(neu) {
         if (neu) {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
+          this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
+          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
         }
       },
       immediate: true,
@@ -276,8 +314,8 @@ export default {
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
-        componentProps: { authProvider: this.samlAuthProviderEnabled },
-        modalWidth:     '500px'
+        componentProps: { authProvider: this.sloAuthProviderEnabled },
+        modalWidth:     '600px'
       });
     },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
@@ -367,7 +405,7 @@ export default {
       });
     },
 
-    handleExtensionAction(action, event) {
+    async handleExtensionAction(action, event) {
       const fn = action.invoke;
       const opts = {
         event,
@@ -376,7 +414,7 @@ export default {
         product: this.currentProduct.name,
         cluster: this.currentCluster,
       };
-      const enabled = action.enabled ? action.enabled.apply(this, [this.ctx]) : true;
+      const enabled = await this.isActionEnabled(action);
 
       if (fn && enabled) {
         fn.apply(this, [opts, [], { $route: this.$route }]);
@@ -392,7 +430,25 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    async updateExtensionActionsEnabled() {
+      for (const [i, action] of this.extensionHeaderActions.entries()) {
+        this.extensionActionsEnabled[i] = await this.isActionEnabled(action);
+      }
+    },
+
+    async isActionEnabled(action) {
+      if (action.enabled === undefined) {
+        return true;
+      }
+
+      if (typeof action.enabled === 'function') {
+        return await action.enabled(this.ctx);
+      }
+
+      return action.enabled;
+    },
   }
 };
 </script>
@@ -403,7 +459,7 @@ export default {
     data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="showTopLevelMenu" />
     </div>
 
     <div
@@ -474,7 +530,7 @@ export default {
             :alt="t('branding.logos.label')"
           />
           <div
-            v-if="!currentCluster"
+            v-if="!currentCluster && !$route.path.startsWith('/c/')"
             class="simple-title"
           >
             <BrandImage
@@ -498,7 +554,7 @@ export default {
           :alt="t('branding.logos.label')"
         >
         <div class="product-name">
-          {{ prod }}
+          {{ productLabel }}
         </div>
       </div>
     </div>
@@ -512,6 +568,13 @@ export default {
         class="product-name"
       >
         {{ t(isSingleProduct.productNameKey) }}
+      </div>
+
+      <div
+        v-else-if="productLabel && !isLogoRoute"
+        class="product-name"
+      >
+        {{ productLabel }}
       </div>
 
       <div
@@ -536,7 +599,10 @@ export default {
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher && showWorkspaceSwitcher" />
+        <WorkspaceSwitcher
+          v-else-if="clusterReady && showWorkspaceSwitcher"
+          :disabled="disableWorkspaceSwitcher"
+        />
       </div>
       <div
         v-if="currentCluster && !simple"
@@ -641,13 +707,13 @@ export default {
           :key="`${action.label}${i}`"
           v-clean-tooltip="handleExtensionTooltip(action)"
           v-shortkey="action.shortcutKey"
-          :disabled="action.enabled ? !action.enabled(ctx) : false"
+          :disabled="!extensionActionsEnabled[i]"
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           role="button"
           tabindex="0"
-          :aria-label="action.label"
+          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -655,6 +721,7 @@ export default {
             class="icon icon-lg"
             :icon="action.icon"
             :src="action.svg"
+            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
             color="header"
           />
         </button>
@@ -668,8 +735,8 @@ export default {
           :aria-label="t('nav.userMenu.label')"
         >
           <rc-dropdown-trigger
-            ghost
-            small
+            variant="ghost"
+            size="small"
             data-testid="nav_header_showUserMenu"
             :aria-label="t('nav.userMenu.button.label')"
           >
@@ -835,22 +902,22 @@ export default {
 
     .product-name {
       font-size: 16px;
+      font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
     }
 
     .side-menu-logo {
       align-items: center;
       display: flex;
-      margin-right: 8px;
       height: 55px;
-      margin-left: 5px;
+      margin-right: 8px;
       max-width: 200px;
       padding: 12px 0;
     }
 
     .side-menu-logo-img {
       object-fit: contain;
-      height: 21px;
       max-width: 200px;
+      height: 36px;
     }
 
     > * {
@@ -928,11 +995,11 @@ export default {
         width: 40px;
       }
 
-      :deep() div .btn.role-tertiary {
+      :deep() div .btn.role-tertiary, :deep() div .rc-button.btn.variant-tertiary  {
         border: 1px solid var(--header-btn-bg);
         border: none;
-        background: var(--header-btn-bg);
-        color: var(--header-btn-text);
+        background: var(--tertiary-header, var(--header-btn-bg));
+        color: var(--on-tertiary-header, var(--header-btn-text));
         padding: 0 10px;
         line-height: 32px;
         min-height: 32px;
@@ -943,8 +1010,8 @@ export default {
         }
 
         &:hover {
-          background: var(--primary);
-          color: #fff;
+          background: var(--tertiary-header-hover, var(--primary));
+          color: var(--on-tertiary-header-hover, #fff);
         }
 
         &[disabled=disabled] {
@@ -1077,7 +1144,7 @@ export default {
   .user-name {
     display: flex;
     align-items: center;
-    color: var(--secondary);
+    color: var(--body-text, var(--secondary));
   }
 
   .user-menu {

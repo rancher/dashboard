@@ -7,11 +7,12 @@ import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
-import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
+import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
 
 export default {
 
@@ -21,19 +22,21 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    AzureWarning,
     AwsComplianceBanner,
     Inactivity,
-    PromptModal
+    PromptModal,
+    RcButton
   },
 
   mixins: [Brand, BrowserTabVisibility],
+
+  inject: ['notifyWmContainerReady'],
 
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name:             this.$route.name,
-      noLocaleShortcut: process.env.dev || false
+      noLocaleShortcut: process.env.dev || false,
     };
   },
 
@@ -41,6 +44,10 @@ export default {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapState(['managementReady']),
     ...mapGetters(['showTopLevelMenu']),
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.home);
   },
 
   methods: {
@@ -57,10 +64,16 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <Inactivity />
     <AwsComplianceBanner />
-    <AzureWarning />
     <PromptModal />
     <ModalManager />
     <div
@@ -73,14 +86,22 @@ export default {
       />
 
       <main
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.home')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
           class="outlet"
         />
       </main>
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-home"
+        style="display: contents;"
+      />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
@@ -112,10 +133,10 @@ export default {
     flex-grow:1;
 
     grid-template-areas:
-      "header"
-      "main";
+      "header header header"
+      "wm-vl  main    wm-vr";
 
-    grid-template-columns: auto;
+    grid-template-columns: var(--wm-vl-width, 0px) auto var(--wm-vr-width, 0px);
     grid-template-rows:    var(--header-height) auto;
 
     > HEADER {
@@ -130,6 +151,18 @@ export default {
     .outlet {
       min-height: 100%;
       padding: 0;
+    }
+  }
+
+  .skip-to-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transform: translateY(-100%);
+
+    &:focus {
+      transform: translate(1rem, 1rem);
     }
   }
 </style>

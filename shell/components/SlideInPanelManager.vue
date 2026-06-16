@@ -1,12 +1,17 @@
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, onBeforeUnmount, watch, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
+import { isEqual } from 'lodash';
+import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
+
+const slideInPanelManager = useTemplateRef('SlideInPanelManager');
+const slideInPanelManagerClose = useTemplateRef('SlideInPanelManagerClose');
 
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
@@ -34,26 +39,40 @@ const panelTop = computed(() => {
 const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
-const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.value?.zIndex ?? 1000) }`);
 
 const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
+const closeOnRouteChange = computed(() => {
+  const propsCloseOnRouteChange = currentProps?.value.closeOnRouteChange;
+
+  if (!propsCloseOnRouteChange) {
+    return ['name', 'params', 'hash', 'query'];
+  }
+
+  return propsCloseOnRouteChange;
+});
+const router = useRouter();
 
 watch(
   /**
    * trigger focus trap
    */
-  () => currentProps?.value?.triggerFocusTrap,
-  (neu) => {
-    if (neu) {
-      const opts = {
+  () => isOpen?.value,
+  (neu, old) => {
+    if (neu && neu !== old) {
+      const opts:any = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
+        // putting the initial focus on the first element that is not conditionally displayed
+        initialFocus: slideInPanelManagerClose.value
+      };
+
+      const returnFocusSelector = currentProps?.value?.returnFocusSelector;
+
+      if (returnFocusSelector) {
         /**
          * will return focus to the first iterable node of this container select
          */
-        setReturnFocus: () => {
-          const returnFocusSelector = currentProps?.value?.returnFocusSelector;
-
+        opts.setReturnFocus = () => {
           if (returnFocusSelector && !document.querySelector(returnFocusSelector)) {
             console.warn('SlideInPanelManager: cannot find elem with "returnFocusSelector", returning focus to main view'); // eslint-disable-line no-console
 
@@ -61,8 +80,8 @@ watch(
           }
 
           return returnFocusSelector || '.dashboard-root';
-        }
-      };
+        };
+      }
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
         () => {
@@ -72,7 +91,7 @@ watch(
 
           return isOpen?.value && !isClosing?.value;
         },
-        '#slide-in-panel-manager',
+        slideInPanelManager.value as HTMLElement,
         opts,
         false
       );
@@ -81,14 +100,32 @@ watch(
 );
 
 watch(
-  () => (store as any).$router?.currentRoute,
-  () => {
-    if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
+  () => router?.currentRoute?.value,
+  (newValue, oldValue) => {
+    if (!isOpen?.value) {
+      return;
+    }
+
+    if (closeOnRouteChange.value.includes('name') && !isEqual(newValue?.name, oldValue?.name)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('params') && !isEqual(newValue?.params, oldValue?.params)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('hash') && !isEqual(newValue?.hash, oldValue?.hash)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('query') && !isEqual(newValue?.query, oldValue?.query)) {
       closePanel();
     }
   },
   { deep: true }
 );
+
+onBeforeUnmount(closePanel);
 
 function closePanel() {
   store.commit('slideInPanel/close');
@@ -99,6 +136,7 @@ function closePanel() {
   <Teleport to="#slides">
     <div
       id="slide-in-panel-manager"
+      ref="SlideInPanelManager"
       @keydown.escape="closePanel"
     >
       <div
@@ -106,12 +144,9 @@ function closePanel() {
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
-        :style="{
-          ['z-index']: panelZIndex
-        }"
         @click="closePanel"
       />
-      <div
+      <aside
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
         :style="{
@@ -119,7 +154,6 @@ function closePanel() {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
-          ['z-index']: panelZIndex
         }"
       >
         <div
@@ -130,10 +164,13 @@ function closePanel() {
             {{ panelTitle }}
           </div>
           <i
+            ref="SlideInPanelManagerClose"
             class="icon icon-close"
             data-testid="slide-in-close"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
+            @keypress.enter="closePanel"
+            @keyup.space="closePanel"
           />
         </div>
         <div class="main-panel">
@@ -145,7 +182,7 @@ function closePanel() {
             class="dynamic-panel-content"
           />
         </div>
-      </div>
+      </aside>
     </div>
   </Teleport>
 </template>
@@ -158,11 +195,11 @@ function closePanel() {
   left: 0;
   height: 100vh;
   width: 100vw;
+  z-index: z-index('slide-in');
 }
 .slide-in-glass-open {
-  background-color: var(--body-bg);
+  background: var(--overlay-bg);
   display: block;
-  opacity: 0.5;
 }
 
 .slide-in {
@@ -173,6 +210,7 @@ function closePanel() {
   transition: right 0.5s ease;
   border-left: 1px solid var(--border);
   background-color: var(--body-bg);
+  z-index: calc(z-index('slide-in') + 1);
 }
 
 .slide-in-open {

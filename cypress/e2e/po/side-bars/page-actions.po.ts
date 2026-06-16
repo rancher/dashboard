@@ -46,18 +46,10 @@ export default class PageActionsPo extends ComponentPo {
   }
 
   /**
-   * Get restore button link
-   * @returns {Cypress.Chainable}
-   */
-  restoreLink(): Cypress.Chainable {
-    return this.links().last();
-  }
-
-  /**
    * Get show/hide banner button link
    * @returns {Cypress.Chainable}
    */
-  toggleBanner(): Cypress.Chainable {
-    return this.links().contains('Show/Hide Banner');
+  bannerLink(): Cypress.Chainable {
+    return this.links().contains('Show/Hide Banner').should('be.visible');
   }
 }

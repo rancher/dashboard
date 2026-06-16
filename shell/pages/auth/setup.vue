@@ -4,8 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
+import { NORMAN, MANAGEMENT, EXT } from '@shell/config/types';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
@@ -18,9 +17,10 @@ import BrandImage from '@shell/components/BrandImage';
 import { waitFor } from '@shell/utils/async';
 import { Banner } from '@components/Banner';
 import FormValidation from '@shell/mixins/form-validation';
-import isUrl from 'is-url';
-import { isLocalhost } from '@shell/utils/validators/setting';
+import { isLocalhost, isValidUrl } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
+import { getBrandMeta } from '@shell/utils/brand';
+import { findMe } from '@shell/utils/auth';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -31,7 +31,7 @@ const calcIsFirstLogin = (store) => {
 const calcMustChangePassword = async(store) => {
   await store.dispatch('auth/getUser');
 
-  const out = store.getters['auth/v3User']?.mustChangePassword;
+  const out = store.getters['auth/user']?.mustChangePassword;
 
   return out;
 };
@@ -62,11 +62,10 @@ export default {
       current:            null,
       password:           randomStr(),
       confirm:            null,
-      v3User:             null,
+      user:               null,
       serverUrl:          null,
       mcmEnabled:         null,
       eula:               false,
-      principals:         null,
       errors:             []
     };
   },
@@ -79,6 +78,16 @@ export default {
       // Always show setup if this is the first log in
       return;
     } else if (mustChangePassword) {
+      // Skip password change for non-local sessions
+      try {
+        const me = await findMe(this.$store);
+
+        if (me && me.provider !== 'local') {
+          return this.$router.replace('/');
+        }
+      } catch (e) {
+      }
+
       // If the password needs changing and this isn't the first log in ensure we have the password
       if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
@@ -120,11 +129,7 @@ export default {
 
     const productName = plSetting.default;
 
-    const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
-    const me = findBy(principals, 'me', true);
-
     const current = this.$route.query[SETUP] || this.$store.getters['auth/initialPass'];
-    const v3User = this.$store.getters['auth/v3User'] ?? {};
 
     const mcmFeature = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
@@ -143,16 +148,19 @@ export default {
     const isFirstLogin = await calcIsFirstLogin(this.$store);
     const mustChangePassword = await calcMustChangePassword(this.$store);
 
+    // user getter must be after "calcMustChangePassword" where all the user info is loaded
+    // via the "auth/getUser" action
+    const user = this.$store.getters['auth/user'] ?? {};
+
     this['productName'] = productName;
     this['haveCurrent'] = !!current;
-    this['username'] = me?.loginName || 'admin';
+    this['username'] = user?.username || 'admin';
     this['isFirstLogin'] = isFirstLogin;
     this['mustChangePassword'] = mustChangePassword;
     this['current'] = current;
-    this['v3User'] = v3User;
+    this['user'] = user;
     this['serverUrl'] = serverUrl;
     this['mcmEnabled'] = mcmEnabled;
-    this['principals'] = principals;
   },
 
   computed: {
@@ -173,21 +181,30 @@ export default {
         }
       }
 
-      if (!isUrl(this.serverUrl) || this.fvGetPathErrors(['serverUrl']).length > 0) {
+      if (!isValidUrl(this.serverUrl) || this.fvGetPathErrors(['serverUrl']).length > 0) {
         return false;
       }
 
       return true;
     },
 
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
-    },
-
     showLocalhostWarning() {
       return isLocalhost(this.serverUrl);
+    },
+
+    customizations() {
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
+      const login = brandMeta?.login || {};
+
+      return {
+        setupLabelKey: 'setup.welcome',
+        logoClass:     'login-logo',
+        ...login,
+      };
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
     }
   },
 
@@ -209,23 +226,29 @@ export default {
       const promises = [];
 
       try {
-        await applyProducts(this.$store, this.$plugin);
+        await applyProducts(this.$store, this.$extension);
         await this.$store.dispatch('loadManagement');
 
         if ( this.mustChangePassword ) {
-          await this.$store.dispatch('rancher/request', {
-            url:    '/v3/users?action=changepassword',
-            method: 'post',
-            data:   {
-              currentPassword: this.current,
-              newPassword:     this.password
-            },
-          });
+          const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
+
+          if (!passwordChangeRequest?.canChangePassword) {
+            this.errors = exceptionToErrorsArray(this.t('changePassword.errors.cannotChange'));
+            throw new Error(this.t('changePassword.errors.cannotChange'));
+          }
+
+          passwordChangeRequest.spec = {
+            currentPassword: this.current,
+            newPassword:     this.password,
+            userID:          this.user?.id
+          };
+
+          await passwordChangeRequest.save();
         } else {
           promises.push(setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'));
         }
 
-        const user = this.v3User;
+        const user = this.user;
 
         user.mustChangePassword = false;
         this.$store.dispatch('auth/gotUser', user);
@@ -278,8 +301,18 @@ export default {
           &nbsp;
         </div>
         <div>
+          <div
+            v-if="brandLogo"
+            class="brand-logo"
+          >
+            <BrandImage
+              :class="{[customizations.logoClass]: !!customizations.logoClass}"
+              :file-name="brandLogo"
+              :alt="t('setup.setup')"
+            />
+          </div>
           <h1 class="text-center">
-            {{ t('setup.welcome', {product}) }}
+            {{ t(customizations.setupLabelKey, {product}) }}
           </h1>
 
           <template v-if="mustChangePassword">
@@ -466,6 +499,11 @@ export default {
 
   .setup {
     overflow: hidden;
+
+    .brand-logo {
+      display: flex;
+      justify-content: center;
+    }
 
     .row {
       & .checkbox {

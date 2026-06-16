@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+DIR=$(cd $(dirname $0)/..; pwd)
+DASHBOARD_DIST=${DIR}/dist
+EMBER_DIST=${DIR}/dist_ember
+COVERAGE_DIR=${DIR}/coverage
+OUTPUT_DIR=${DIR}/coverage/output
+
+CYAN="\033[96m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+echo -e "${CYAN}${BOLD}====================================${RESET}"
+echo -e "${CYAN}${BOLD}Run e2e and unit tests with coverage${RESET}"
+echo -e "${CYAN}${BOLD}====================================${RESET}"
+
+BUILD=1
+SHOW_BROWSER=""
+RUNNING=0
+
+while getopts ":nsr" opt; do
+  case $opt in
+    n)
+      # -n will skip the build step
+      BUILD=0
+      ;;
+    r)
+      # -r will skip the build step and assume docker is already running
+      RUNNING=1
+      BUILD=0
+      ;;
+    s)
+      # -s will open the browser window when running tests (useful for debugging)
+      SHOW_BROWSER="--headed"
+      ;;
+  esac
+done
+
+shift "$((OPTIND-1))"
+
+if [ $BUILD -eq 1 ]; then
+  rm -rf ${DASHBOARD_DIST}
+  rm -rf ${EMBER_DIST}
+fi
+
+# Remove previous coverage data (also cleans out the output folder)
+rm -rf ${COVERAGE_DIR}
+
+export TEST_USERNAME=admin
+export TEST_PASSWORD=password
+export CATTLE_BOOTSTRAP_PASSWORD=password
+export TEST_BASE_URL=https://127.0.0.1/dashboard
+export TEST_INSTRUMENT=true
+export TEST_NO_SCREENSHOTS=true
+export TEST_NO_VIDEOS=true
+
+echo "Start time: $(date)"TEST_SKIP=setup GREP_TAGS='@adminUser' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e.log
+
+if [ $BUILD -eq 1 ]; then
+  # Build the dashboard with instrumentation
+  echo -e "${CYAN}${BOLD}++ Building dashboard UI ...${RESET}"
+
+  mkdir -p ${DASHBOARD_DIST}
+  TEST_INSTRUMENT=true ${DIR}/scripts/build-e2e
+else
+  echo -e "${CYAN}${BOLD}-- Skipping build${RESET}"
+fi
+
+if [ $RUNNING -eq 0 ]; then
+  # Start the backend with the built dashboard UI
+  echo -e "${CYAN}${BOLD}++ Starting Rancher ...${RESET}"
+  yarn run docker:local:stop
+  ${DIR}/scripts/e2e-docker-start
+fi
+
+# Run e2e tests
+echo -e "${CYAN}${BOLD}++ Running end-to-end tests ...${RESET}"
+
+CYPRESS_coverage=true
+
+if [ $RUNNING -eq 0 ]; then
+  echo -e "${CYAN}${BOLD}++ Running setup tests ...${RESET}"
+  TEST_ONLY=setup GREP_TAGS='@adminUserSetup --@createStandardUser' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e-setup.log
+
+  pushd ${COVERAGE_DIR}
+  mv e2e e2e-setup
+  popd
+
+  # Copy the unit test log into the top-level folder
+  cp ${DIR}/e2e-setup.log ${DIR}
+fi
+
+# Run test suites (now that Rancher is setup)
+echo -e "${CYAN}${BOLD}++ Running tests ...${RESET}"
+
+#TEST_SKIP=setup GREP_TAGS='@adminUser --@vai --@accessibility' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e.log
+#TEST_SKIP=setup GREP_TAGS='@adminUser+@charts --@vai --@accessibility --@virtualizationMgmt --@manager' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e.log
+TEST_SKIP=setup GREP_TAGS='@adminUser --@accessibility' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e.log
+
+# Copy the unit test log into the top-level folder
+cp ${DIR}/e2e.log ${DIR}
+
+echo -e "${CYAN}${BOLD}++ Running unit tests ...${RESET}"
+yarn test:ci | tee ${DIR}/unit.log
+
+# Copy the unit test log into the top-level folder
+cp ${DIR}/unit.log ${DIR}
+
+# This will clean the output folder, so we move the log files after we've processed the coverage reports
+${DIR}/scripts/process-coverage ${COVERAGE_DIR} ${OUTPUT_DIR}
+
+# Move the log files into the output folder, so they are there to be uploaded with the coverage reports
+mv ${DIR}/*.log ${OUTPUT_DIR}
+
+echo "Finished"
+echo "End time: $(date)"

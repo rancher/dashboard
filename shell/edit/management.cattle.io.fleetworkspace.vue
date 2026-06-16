@@ -199,7 +199,8 @@ export default {
 
     <Tabbed
       :side-tabs="true"
-      default-tab="members"
+      :default-tab="defaultTab || 'members'"
+      :use-hash="useTabbedHash"
     >
       <!-- <Tab name="members" label-key="generic.members" :weight="2">
         <RoleBindings

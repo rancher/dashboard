@@ -11,6 +11,7 @@ import positiveIntNumberDirective from '@shell/directives/positive-int-number.js
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 import intNumberDirective from '@shell/directives/int-number';
 import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
+import uiContextDirective from '@shell/directives/ui-context';
 
 /**
  * Prevent extensions from overriding existing directives
@@ -49,6 +50,7 @@ function addDirectives(vueApp) {
   vueApp.directive('intNumber', intNumberDirective);
   vueApp.directive('positiveIntNumber', positiveIntNumberDirective);
   vueApp.directive('stripped-aria-label', htmlStrippedAriaLabelDirective);
+  vueApp.directive('ui-context', uiContextDirective);
 }
 
 /**

@@ -10,11 +10,12 @@ import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
-import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
+import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
 
 export default {
 
@@ -29,23 +30,29 @@ export default {
     ModalManager,
     SlideInPanelManager,
     AwsComplianceBanner,
-    AzureWarning,
-    Inactivity
+    Inactivity,
+    RcButton
   },
 
   mixins: [Brand, BrowserTabVisibility],
+
+  inject: ['notifyWmContainerReady'],
 
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name:             this.$route.name,
-      noLocaleShortcut: process.env.dev || false,
+      noLocaleShortcut: process.env.dev || false
     };
   },
 
   computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapGetters(['showTopLevelMenu']),
+  },
+
+  mounted() {
+    this.notifyWmContainerReady(Layout.plain);
   },
 
   methods: {
@@ -61,9 +68,15 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <AwsComplianceBanner />
-    <AzureWarning />
 
     <div
       class="dashboard-content"
@@ -71,8 +84,10 @@ export default {
     >
       <Header :simple="true" />
       <main
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.plain')"
+        tabindex="-1"
       >
         <IndentedPanel class="pt-20">
           <router-view
@@ -97,6 +112,12 @@ export default {
           @shortkey="toggleNoneLocale()"
         />
       </main>
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
+      <div
+        id="wm-container-plain"
+        style="display: contents;"
+      />
     </div>
 
     <FixedBanner :footer="true" />
@@ -117,10 +138,10 @@ export default {
     flex-grow: 1;
 
     grid-template-areas:
-      "header"
-      "main";
+      "header header header"
+      "wm-vl  main   wm-vr";
 
-    grid-template-columns: auto;
+    grid-template-columns: var(--wm-vl-width, 0px) auto var(--wm-vr-width, 0px);
     grid-template-rows:    var(--header-height) auto;
 
     > HEADER {
@@ -135,6 +156,18 @@ export default {
     .outlet {
       min-height: 100%;
       padding: 0;
+    }
+  }
+
+  .skip-to-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transform: translateY(-100%);
+
+    &:focus {
+      transform: translate(1rem, 1rem);
     }
   }
 </style>

@@ -3,7 +3,6 @@ import difference from 'lodash/difference';
 import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-
 import { set, get } from '@shell/utils/object';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -11,18 +10,20 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
-
-const HARVESTER = 'harvester';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
+import {
+  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX, INGRESS_NONE
+} from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
-  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'cis-changed', 'psa-default-changed'],
+  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'compliance-changed', 'psa-default-changed', 'update-values', 'error', 'yaml-validation-changed', 'config-validation-changed'],
 
   components: {
     Banner,
     Checkbox,
     LabeledSelect,
     YamlEditor,
+    Ingress
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -48,12 +49,15 @@ export default {
       default:  null,
       required: false
     },
-
     userChartValues: {
       type:     Object,
       required: true
     },
-    cisOverride: {
+    versionInfo: {
+      type:     Object,
+      required: true
+    },
+    complianceOverride: {
       type:     Boolean,
       required: true
     },
@@ -116,15 +120,24 @@ export default {
     canAzureMigrateOnEdit: {
       type:     Boolean,
       required: true
+    },
+    originalIngressController: {
+      type:     [String, Array],
+      required: false,
+      default:  INGRESS_NONE
     }
   },
 
+  data() {
+    return {
+      showEnablingComplianceWarning: false,
+      initialAgentProfile:           this.value.agentConfig?.profile || ''
+    };
+  },
+
   watch: {
-    selectedVersion(neu, old) {
-      if (neu?.value !== old?.value && this.ciliumIpv6) {
-        // Re-assign so that the setter updates the structure for the new k8s version if needed
-        this.ciliumIpv6 = !!this.ciliumIpv6;
-      }
+    'agentConfig.profile'(newValue) {
+      this.showEnablingComplianceWarning = this.provider === 'custom' && this.isEdit && !!newValue && newValue !== this.initialAgentProfile;
     }
   },
 
@@ -139,7 +152,7 @@ export default {
       return this.serverConfig?.cni === 'none';
     },
 
-    showCiliumIpv6Controls() {
+    showBandwidthManagerControl() {
       return this.serverConfig?.cni === 'cilium' || this.serverConfig?.cni === 'multus,cilium';
     },
 
@@ -157,29 +170,48 @@ export default {
       });
 
       out.unshift({
-        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        label: this.$store.getters['i18n/t']('cluster.rke2.complianceProfile.option'),
         value: ''
       });
 
       return out;
     },
+    ingressController: {
+      get() {
+        if (this.serverConfig) {
+          if (this.serverConfig[INGRESS_CONTROLLER]) {
+            return this.serverConfig[INGRESS_CONTROLLER];
+          } else {
+            if (this.serverConfig.disable && this.serverConfig.disable.includes(RKE2_INGRESS_NGINX)) {
+              return INGRESS_NONE;
+            }
+          }
+        }
+
+        return INGRESS_NGINX;
+      },
+
+      set(neu) {
+        this.serverConfig[INGRESS_CONTROLLER] = neu;
+      },
+    },
 
     /**
      * Allow to display override if PSA is needed and profile is set
      */
-    hasCisOverride() {
+    hasComplianceOverride() {
       return (this.serverConfig?.profile || this.agentConfig?.profile) &&
         // Also check other cases on when to display the override
-        this.showCisProfile && this.isCisSupported;
+        this.showComplianceProfile && this.isComplianceSupported;
     },
 
     /**
-     * Disable PSA if CIS hardening is enabled, except override
+     * Disable PSA if Compliance hardening is enabled, except override
      */
     isPsaDisabled() {
-      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+      const complianceValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.isCisSupported;
+      return !(!complianceValue || this.complianceOverride) && this.isComplianceSupported;
     },
 
     /**
@@ -218,21 +250,33 @@ export default {
     },
 
     /**
-     * Check if current CIS profile is required and listed in the options
+     * Check if current compliance profile is required and listed in the options
      */
-    isCisSupported() {
-      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
+    isComplianceSupported() {
+      const complianceProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
-      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
+      return !complianceProfile || this.profileOptions.map((option) => option.value).includes(complianceProfile);
     },
 
     disableOptions() {
-      return (this.serverArgs.disable.options || []).map((value) => {
+      // For RKE2 clusters Ingress is configured separately, so we should not allow disabling it here
+      return (this.serverArgs.disable.options || []).filter((value) => value !== RKE2_INGRESS_NGINX && value !== RKE2_TRAEFIK).map((value) => {
         return {
           label: this.$store.getters['i18n/withFallback'](`cluster.${ this.value.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
+    },
+    nginxSupported() {
+      if (Object.keys(this.serverArgs).length === 0 || this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
+        return true;
+      }
+
+      return false;
+    },
+    // If version is too old and we couldn't get serverArgs, it has to be NGINX
+    traefikSupported() {
+      return Object.keys(this.serverArgs).length > 0;
     },
 
     serverArgs() {
@@ -252,7 +296,7 @@ export default {
       return this.selectedVersion?.charts || {};
     },
 
-    showCisProfile() {
+    showComplianceProfile() {
       return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
@@ -311,54 +355,6 @@ export default {
       return semver.satisfies(selectedVersion, '>=1.21.0');
     },
 
-    ciliumIpv6: {
-      get() {
-        // eslint-disable-next-line no-unused-vars
-        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
-
-        const chart = this.userChartValues[this.chartVersionKey('rke2-cilium')];
-
-        return chart?.cilium?.ipv6?.enabled || chart?.ipv6?.enabled || false;
-      },
-      set(neu) {
-        const name = this.chartVersionKey('rke2-cilium');
-        const values = this.userChartValues[name];
-
-        // RKE2 older than 1.23.5 uses different Helm chart values structure - need to take that into account
-        const version = this.selectedVersion.value;
-        let ciliumValues = {};
-
-        if (semver.gt(version, '1.23.5')) {
-          // New style
-          ciliumValues = {
-            ...values,
-            ipv6: {
-              ...values?.ipv6,
-              enabled: neu
-            }
-          };
-
-          delete ciliumValues.cilium;
-        } else {
-          // Old style
-          ciliumValues = {
-            ...values,
-            cilium: {
-              ...values?.cilium,
-              ipv6: {
-                ...values?.cilium?.ipv6,
-                enabled: neu
-              }
-            }
-          };
-
-          delete ciliumValues.ipv6;
-        }
-
-        this.$emit('cilium-values-changed', ciliumValues);
-      }
-    },
-
     ciliumBandwidthManager: {
       get() {
         // eslint-disable-next-line no-unused-vars
@@ -382,8 +378,11 @@ export default {
       }
     },
 
-    isEdit() {
-      return this.mode === _EDIT;
+    nginxChart() {
+      return this.chartVersionKey(RKE2_INGRESS_NGINX);
+    },
+    traefikChart() {
+      return this.chartVersionKey(RKE2_TRAEFIK);
     },
 
     canNotEditCloudProvider() {
@@ -405,14 +404,17 @@ export default {
      * Display warning about unsupported Azure provider if k8s >= 1.30
      */
     showCloudProviderUnsupportedAzureWarning() {
-      return this.showCloudProvider && this.mode === _CREATE && this.isAzureProviderUnsupported;
+      return this.showCloudProvider && this.isCreate && this.isAzureProviderUnsupported;
     },
 
     /**
      * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
      */
     showCloudProviderMigrateAzureWarning() {
-      return this.showCloudProvider && this.mode === _EDIT && this.canAzureMigrateOnEdit;
+      return this.showCloudProvider && this.isEdit && this.canAzureMigrateOnEdit;
+    },
+    showIngress() {
+      return !this.value?.isK3s;
     }
   },
 
@@ -432,7 +434,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="!haveArgInfo"
+      v-if="!haveArgInfo || ((!nginxChart || !traefikChart) && showIngress)"
       color="warning"
       :label="t('cluster.banner.haveArgInfo')"
     />
@@ -488,6 +490,7 @@ export default {
         />
         <Checkbox
           :value="showDeprecatedPatchVersions"
+          :mode="mode"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
@@ -509,6 +512,7 @@ export default {
         />
       </div>
     </div>
+
     <div
       v-if="showCni"
       :style="{'align-items':'center'}"
@@ -525,15 +529,9 @@ export default {
         />
       </div>
       <div
-        v-if="showCiliumIpv6Controls"
+        v-if="showBandwidthManagerControl"
         class="col"
       >
-        <Checkbox
-          v-model:value="ciliumIpv6"
-          data-testid="cluster-rke2-cni-ipv6-checkbox"
-          :mode="mode"
-          :label="t('cluster.rke2.address.ipv6.enable')"
-        />
         <Checkbox
           v-model:value="ciliumBandwidthManager"
           data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"
@@ -573,52 +571,56 @@ export default {
     </h3>
 
     <Banner
-      v-if="showCisProfile && !isCisSupported && isEdit"
+      v-if="showComplianceProfile && !isComplianceSupported && isEdit"
       color="info"
     >
-      <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+      <p v-clean-html="t('cluster.rke2.banner.complianceUnsupported', {profile: serverConfig.profile || agentConfig.profile}, true)" />
     </Banner>
 
-    <div class="row mb-10">
-      <div
-        v-if="showCisProfile"
-        class="col span-6"
-      >
+    <div v-if="showComplianceProfile">
+      <div class="col span-6">
         <LabeledSelect
           v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model:value="serverConfig.profile"
           :mode="mode"
           :options="profileOptions"
-          :label="t('cluster.rke2.cis.sever')"
-          @update:value="$emit('cis-changed')"
+          :label="t('cluster.rke2.compliance.sever')"
+          @update:value="$emit('compliance-changed')"
         />
         <LabeledSelect
           v-else-if="agentArgs && agentArgs.profile && agentConfig"
           v-model:value="agentConfig.profile"
-          data-testid="rke2-custom-edit-cis-agent"
+          data-testid="rke2-custom-edit-compliance-agent"
           :mode="mode"
           :options="profileOptions"
-          :label="t('cluster.rke2.cis.agent')"
-          @update:value="$emit('cis-changed')"
+          :label="t('cluster.rke2.compliance.agent')"
+          @update:value="$emit('compliance-changed')"
+        />
+      </div>
+      <div class="row mb-10">
+        <Banner
+          v-if="showEnablingComplianceWarning"
+          color="warning"
+          label-key="cluster.rke2.compliance.warning"
         />
       </div>
     </div>
 
-    <template v-if="hasCisOverride">
+    <template v-if="hasComplianceOverride">
       <Checkbox
-        :value="cisOverride"
+        :value="complianceOverride"
         :mode="mode"
-        :label="t('cluster.rke2.cis.override')"
+        :label="t('cluster.rke2.compliance.override')"
         @update:value="$emit('psa-default-changed')"
       />
 
       <Banner
-        v-if="cisOverride"
+        v-if="complianceOverride"
         color="warning"
-        :label="t('cluster.rke2.banner.cisOverride')"
+        :label="t('cluster.rke2.banner.complianceOverride')"
       />
       <Banner
-        v-if="!cisOverride"
+        v-if="!complianceOverride"
         color="info"
         :label="t('cluster.rke2.banner.psaChange')"
       />
@@ -630,6 +632,7 @@ export default {
       <div class="col span-6">
         <!-- PSA template selector -->
         <LabeledSelect
+          :key="value.isK3s"
           v-model:value="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
           :mode="mode"
           data-testid="rke2-custom-edit-psa"
@@ -672,7 +675,7 @@ export default {
 
     <div
       v-if="serverArgs.disable"
-      class="row"
+      class="row mb-30"
     >
       <div class="col span-12">
         <div>
@@ -690,6 +693,23 @@ export default {
         />
       </div>
     </div>
+    <!-- Ingress -->
+    <Ingress
+      v-if="showIngress"
+      v-model:value="ingressController"
+      :mode="mode"
+      :nginx-supported="nginxSupported"
+      :traefik-supported="traefikSupported"
+      :nginx-chart="nginxChart"
+      :traefik-chart="traefikChart"
+      :user-chart-values="userChartValues"
+      :version-info="versionInfo"
+      :original-ingress-controller="originalIngressController"
+      @update-values="(name, val) => $emit('update-values', name, val)"
+      @error="$emit('error', $event)"
+      @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"
+      @config-validation-changed="e => $emit('config-validation-changed', e)"
+    />
   </div>
 </template>
 

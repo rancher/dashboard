@@ -7,11 +7,11 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { isBase64 } from '@shell/utils/string';
+import { isBase64EncodedCert } from '@shell/utils/string';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
-  emits: ['updateConfigs'],
+  emits: ['updateConfigs', 'validation-changed'],
 
   components: {
     ArrayListGrouped,
@@ -44,35 +44,16 @@ export default {
   },
 
   data() {
-    const configMap = clone(this.value.spec.rkeConfig?.registries?.configs) || {};
-    const entries = [];
-
-    const defaultAddValue = {
-      hostname:             '',
-      authConfigSecretName: null,
-      caBundle:             '',
-      insecureSkipVerify:   false,
-      tlsSecretName:        null,
-    };
-
-    for ( const hostname in configMap ) {
-      if (configMap[hostname]) {
-        configMap[hostname].insecureSkipVerify = configMap[hostname].insecureSkipVerify ?? defaultAddValue.insecureSkipVerify;
-        configMap[hostname].authConfigSecretName = configMap[hostname].authConfigSecretName ?? defaultAddValue.authConfigSecretName;
-
-        const caBundle = configMap[hostname].caBundle ?? defaultAddValue.caBundle;
-
-        configMap[hostname].caBundle = isBase64(caBundle) ? base64Decode(caBundle) : caBundle;
-
-        configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? defaultAddValue.tlsSecretName;
+    return {
+      entries:         [],
+      defaultAddValue: {
+        hostname:             '',
+        authConfigSecretName: null,
+        caBundle:             '',
+        insecureSkipVerify:   false,
+        tlsSecretName:        null,
       }
-      entries.push({
-        hostname,
-        ...configMap[hostname],
-      });
-    }
-
-    return { entries, defaultAddValue };
+    };
   },
 
   computed: {
@@ -81,15 +62,62 @@ export default {
         return TYPES.TLS;
       },
     },
+
+    caBundleRules() {
+      return [
+        (value) => {
+          if (!value) {
+            return undefined;
+          }
+
+          const isPem = value.trimStart().startsWith('-----BEGIN ');
+          const isValidBase64 = isBase64EncodedCert(value);
+
+          return (!isPem && !isValidBase64) ? this.t('registryConfig.caBundle.validationError') : undefined;
+        }
+      ];
+    },
+
+    // Derives validation state from entries directly, so it auto-updates when entries are added or removed
+    allCaBundlesValid() {
+      return this.entries.every((entry) => {
+        return this.caBundleRules.every((rule) => !rule(entry.caBundle));
+      });
+    },
+  },
+
+  watch: {
+    allCaBundlesValid(valid) {
+      this.$emit('validation-changed', valid);
+    },
   },
 
   mounted() {
     window.z = this;
   },
 
-  // created() {
-  //   set(this.value, 'spec.rkeConfig.registries.configs', {});
-  // },
+  created() {
+    const configMap = clone(this.value.spec.rkeConfig?.registries?.configs) || {};
+
+    for ( const hostname in configMap ) {
+      if (configMap[hostname]) {
+        configMap[hostname].insecureSkipVerify = configMap[hostname].insecureSkipVerify ?? this.defaultAddValue.insecureSkipVerify;
+        configMap[hostname].authConfigSecretName = configMap[hostname].authConfigSecretName ?? this.defaultAddValue.authConfigSecretName;
+
+        const caBundle = configMap[hostname].caBundle ?? this.defaultAddValue.caBundle;
+
+        // Decode base64 for display so the user sees readable PEM text
+        configMap[hostname].caBundle = isBase64EncodedCert(caBundle) ? base64Decode(caBundle) : caBundle;
+
+        configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? this.defaultAddValue.tlsSecretName;
+      }
+
+      this.entries.push({
+        hostname,
+        ...configMap[hostname],
+      });
+    }
+  },
 
   methods: {
     update() {
@@ -104,7 +132,8 @@ export default {
 
         configs[h] = {
           ...entry,
-          caBundle: base64Encode(entry.caBundle)
+          // If the value is already base64, use as-is to avoid double-encoding
+          caBundle: entry.caBundle ? (isBase64EncodedCert(entry.caBundle) ? entry.caBundle : base64Encode(entry.caBundle)) : null
         };
 
         delete configs[h].hostname;
@@ -172,7 +201,7 @@ export default {
               :mode="mode"
               generate-name="registryconfig-auth-"
               :data-testid="`registry-auth-select-or-create-${i}`"
-              :cache-secrets="true"
+              :cache-secrets="false"
               @update:value="update"
             />
           </div>
@@ -193,6 +222,9 @@ export default {
               type="multiline"
               label="CA Cert Bundle"
               :mode="mode"
+              :rules="caBundleRules"
+              :require-dirty="false"
+              :tooltip="t('registryConfig.caBundle.tooltip')"
             />
 
             <div>

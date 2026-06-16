@@ -55,6 +55,6 @@ describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off
     // Simple test to assert we haven't broken Node detail page
     // https://github.com/rancher/dashboard/issues/10490
     nodeList.sortableTable().rowElementLink(0, 2).click();
-    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
+    cy.get('.title-bar h1.title, .primaryheader h1').invoke('text').should('contain', 'Node:');
   });
 });

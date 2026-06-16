@@ -164,6 +164,14 @@ export default {
       }),
       type: Object,
     },
+    nameFieldName: {
+      type:    String,
+      default: null,
+    },
+    namespaceFieldName: {
+      type:    String,
+      default: null,
+    },
 
     /**
      * Inherited global identifier prefix for tests
@@ -305,7 +313,7 @@ export default {
         namespace.value = toRef(props.forceNamespace);
         updateNamespace(namespace);
       } else if (props.namespaceKey) {
-        namespace.value = get(v, props.namespaceKey);
+        namespace.value = get(v.value, props.namespaceKey);
       } else {
         namespace.value = metadata?.namespace;
       }
@@ -319,7 +327,7 @@ export default {
     }
 
     if (props.descriptionKey) {
-      description.value = get(v, props.descriptionKey);
+      description.value = get(v.value, props.descriptionKey);
     } else {
       description.value = metadata?.annotations?.[DESCRIPTION];
     }
@@ -429,6 +437,7 @@ export default {
 
 <template>
   <div class="row mb-20">
+    <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
       :data-testid="componentTestid + '-namespace-create'"
@@ -437,6 +446,7 @@ export default {
       <LabeledInput
         ref="namespaceInput"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
@@ -463,6 +473,7 @@ export default {
       <LabeledSelect
         v-show="!createNamespace"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :clearable="true"
         :options="options"
         :disabled="namespaceReallyDisabled"
@@ -486,6 +497,7 @@ export default {
         ref="nameInput"
         key="name"
         v-model:value="name"
+        :name="nameFieldName"
         data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"

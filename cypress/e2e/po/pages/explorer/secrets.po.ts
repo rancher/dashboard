@@ -2,6 +2,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 export class SecretsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -24,7 +25,24 @@ export class SecretsListPagePo extends BaseListPagePo {
     sideNav.navToSideMenuGroupByLabel('Storage');
     sideNav.navToSideMenuEntryByLabel('Secrets');
   }
+
+  title() {
+    return this.self().get('.title h1').invoke('text');
+  }
+
+  createButton() {
+    return this.self().get('[data-testid="secrets-list-create"]');
+  }
+
+  createButtonTitle() {
+    return this.createButton().invoke('text').invoke('trim');
+  }
+
+  list() {
+    return new BaseResourceList('[data-testid="sortable-table-list-container"]');
+  }
 }
+
 export class SecretsCreateEditPo extends BaseDetailPagePo {
   private static createPath(clusterId: string, namespace?: string, id?: string ) {
     const root = `/c/${ clusterId }/explorer/secret`;

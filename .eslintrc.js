@@ -63,9 +63,15 @@ module.exports = {
     'vue/one-component-per-file':                 'off',
     'vue/no-deprecated-slot-attribute':           'off',
     'vue/v-on-event-hyphenation':                 'off',
-    'jest/no-hooks':                              'off',
   },
   overrides: [
+    {
+      files: ['*.d.ts'],
+      rules: {
+        'no-unused-vars':                    'off',
+        '@typescript-eslint/no-unused-vars': 'warn',
+      },
+    },
     {
       files: [
         '*.js'

@@ -34,11 +34,18 @@ export default {
     }
   },
   data() {
+    return {
+      serviceName: '',
+      servicePort: '',
+    };
+  },
+  created() {
     const backend = get(this.value.spec, this.value.defaultBackendPath);
-    const serviceName = get(backend, this.value.serviceNamePath) || '';
-    const servicePort = get(backend, this.value.servicePortPath) || '';
 
-    return { serviceName, servicePort };
+    this.serviceName = get(backend, this.value.serviceNamePath) || '';
+    this.servicePort = get(backend, this.value.servicePortPath) ||
+      get(backend, this.value.servicePortNamePath) ||
+      '';
   },
   computed: {
     isView() {
@@ -70,10 +77,14 @@ export default {
   },
   methods: {
     update() {
-      const backend = get(this.value.spec, this.value.defaultBackendPath) || {};
+      // Fresh object so the old port path (name vs number) doesn't linger.
+      const backend = {};
+      const parsed = Number.parseInt(this.servicePort);
+      const servicePort = Number.isNaN(parsed) ? this.servicePort : parsed;
+      const portPath = typeof servicePort === 'number' ? this.value.servicePortPath : this.value.servicePortNamePath;
 
       set(backend, this.value.serviceNamePath, this.serviceName);
-      set(backend, this.value.servicePortPath, this.servicePort);
+      set(backend, portPath, servicePort);
       set(this.value.spec, this.value.defaultBackendPath, backend);
 
       this.$emit('update:value', this.value);
@@ -114,10 +125,12 @@ export default {
         class="col span-3"
         :style="{'margin-right': '0px'}"
       >
+        <!-- :required drives the asterisk; portRequired doesn't have .name === 'required' -->
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
-          v-model:value.number="servicePort"
+          v-model:value="servicePort"
           :mode="mode"
+          :required="true"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
@@ -127,6 +140,7 @@ export default {
           v-else
           v-model:value="servicePort"
           :mode="mode"
+          :required="true"
           :options="portOptions"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"

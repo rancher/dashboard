@@ -7,6 +7,11 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
+import { computed, ref, useTemplateRef } from 'vue';
+import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
+import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default {
   name: 'Tabbed',
@@ -66,6 +71,41 @@ export default {
     resource: {
       type:    Object,
       default: () => {}
+    },
+
+    showExtensionTabs: {
+      type:    Boolean,
+      default: true,
+    },
+
+    extensionParams: {
+      type:    Object,
+      default: null,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'tabbed'
+    },
+
+    removeBorders: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * title is NOT displayed within the Tabbed component itself
+     * this prop is used to determine a label to use for the set of tabs in the table of contents component
+     * if a title is not provided a random string will be used
+     * components using the table of contents may exclude tabbed and only show tab components, too
+     */
+    title: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -73,6 +113,8 @@ export default {
     const tabs = this.tabs;
 
     return {
+      select: this.select,
+
       sideTabs: this.sideTabs,
 
       addTab(tab) {
@@ -92,7 +134,14 @@ export default {
   },
 
   data() {
-    const extensionTabs = getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [];
+    const location = this.getInitialTabLocation();
+    let extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
+    const legacyExtensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
+
+    if (!extensionTabs.length) {
+      // Support legacy tabs for RESOURCE_DETAIL location
+      extensionTabs = legacyExtensionTabs;
+    }
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
@@ -104,7 +153,8 @@ export default {
     return {
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
-      activeTabName: null
+      activeTabName: null,
+      tabRefs:       {}
     };
   },
 
@@ -117,7 +167,24 @@ export default {
     // hide tabs based on tab count IF flag is active
     hideTabs() {
       return this.hideSingleTab && this.sortedTabs.length === 1;
-    }
+    },
+  },
+
+  setup(props) {
+    const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
+    const isInResourceDetailPage = ref(useIsInResourceDetailPage());
+    const isInResourceEditPage = ref(useIsInResourceEditPage());
+    const isInResourceCreatePage = ref(useIsInResourceCreatePage());
+    const tabbedSummarizedContainer = useTemplateRef('tabbed-summarized-container');
+    const { summary } = useInSummary({
+      label:      computed(() => props.title ?? ''),
+      scrollTo:   () => tabbedSummarizedContainer.value?.scrollIntoView(true),
+      elementRef: tabbedSummarizedContainer,
+    });
+
+    return {
+      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
+    };
   },
 
   watch: {
@@ -145,26 +212,32 @@ export default {
         this.select(activeTab.name);
       }
     },
-  },
-
-  mounted() {
-    if ( this.useHash ) {
-      window.addEventListener('hashchange', this.hashChange);
-    }
-  },
-
-  unmounted() {
-    if ( this.useHash ) {
-      window.removeEventListener('hashchange', this.hashChange);
+    '$route.hash'() {
+      if ( this.useHash ) {
+        this.hashChange();
+      }
     }
   },
 
   methods: {
-    hasIcon(tab) {
+    getInitialTabLocation() {
+      if (this.isInResourceEditPage) {
+        return TabLocation.RESOURCE_EDIT_PAGE;
+      } else if (this.isInResourceDetailDrawer) {
+        return TabLocation.RESOURCE_SHOW_CONFIGURATION;
+      } else if (this.isInResourceDetailPage) {
+        return TabLocation.RESOURCE_DETAIL_PAGE;
+      } else if (this.isInResourceCreatePage) {
+        return TabLocation.RESOURCE_CREATE_PAGE;
+      } else {
+        return TabLocation.OTHER;
+      }
+    },
+    hasErrorIcon(tab) {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
     hashChange() {
-      if (!this.scrollOnChange) {
+      if (this.scrollOnChange) {
         const scrollable = document.getElementsByTagName('main')[0];
 
         if (scrollable) {
@@ -182,8 +255,9 @@ export default {
     select(name/* , event */) {
       const { sortedTabs } = this;
 
-      const selected = this.find(name);
-      const hashName = `#${ name }`;
+      const cleanName = name.replace('#', '');
+      const selected = this.find(cleanName);
+      const hashName = `#${ cleanName }`;
 
       if ( !selected || selected.disabled) {
         return;
@@ -221,7 +295,10 @@ export default {
       this.select(nextName);
 
       this.$nextTick(() => {
-        this.$refs.tablist.focus();
+        this.$refs.tablist.removeAttribute('tabindex');
+        if (this.tabRefs[nextName]) {
+          this.tabRefs[nextName].focus();
+        }
       });
 
       function getCyclicalIdx(currentIdx, direction, tabsLength) {
@@ -254,16 +331,22 @@ export default {
 
 <template>
   <div
-    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
-    data-testid="tabbed"
+    ref="tabbed-summarized-container"
+    class="tabbed-container"
+    :class="{
+      'side-tabs': !!sideTabs,
+      'tabs-only': tabsOnly,
+      'remove-borders': removeBorders
+    }"
+    :data-testid="componentTestid"
   >
     <ul
       v-if="!hideTabs"
       ref="tablist"
       role="tablist"
       class="tabs"
-      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
-      data-testid="tabbed-block"
+      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs, 'remove-borders': removeBorders}"
+      :data-testid="`${componentTestid}-block`"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -277,25 +360,33 @@ export default {
         :key="tab.name"
         :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
-        role="presentation"
       >
         <a
+          :id="`tab-${tab.name}`"
+          :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
           :data-testid="`btn-${tab.name}`"
-          :aria-controls="'#' + tab.name"
+          :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
+          :tabindex="tab.active ? '0' : '-1'"
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
-          <span>{{ tab.labelDisplay }}</span>
+          <i
+            v-if="tab.labelIcon"
+            :class="`tab-label-icon icon ${tab.labelIcon}`"
+          />
+          <span>
+            {{ tab.labelDisplay }}
+          </span>
           <span
             v-if="tab.badge"
             class="tab-badge"
           >{{ tab.badge }}</span>
           <i
-            v-if="hasIcon(tab)"
-            v-clean-tooltip="t('validation.tab')"
+            v-if="hasErrorIcon(tab)"
+            v-clean-tooltip="tab.errorIconTooltip || t('validation.tab')"
             class="conditions-alert-icon icon-error"
           />
         </a>
@@ -318,6 +409,7 @@ export default {
             type="button"
             class="btn bg-transparent"
             data-testid="tab-list-add"
+            :aria-label="t('tabs.addItem')"
             @click="tabAddClicked"
           >
             <i class="icon icon-plus" />
@@ -327,6 +419,7 @@ export default {
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
             data-testid="tab-list-remove"
+            :aria-label="t('tabs.removeItem')"
             @click="tabRemoveClicked"
           >
             <i class="icon icon-minus" />
@@ -351,16 +444,19 @@ export default {
         :name="tab.name"
         :label="tab.label"
         :label-key="tab.labelKey"
+        :label-icon="tab.labelIcon"
         :weight="tab.weight"
         :tooltip="tab.tooltip"
         :show-header="tab.showHeader"
         :display-alert-icon="tab.displayAlertIcon"
         :error="tab.error"
+        :error-icon-tooltip="tab.errorIconTooltip"
         :badge="tab.badge"
       >
         <component
           :is="tab.component"
           :resource="resource"
+          @select="select(tab.name)"
         />
       </Tab>
     </div>
@@ -368,6 +464,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tabbed-container {
+  min-width: fit-content;
+}
+
 .tabs {
   list-style-type: none;
   margin: 0;
@@ -388,12 +488,23 @@ export default {
     display: flex;
     flex-direction: row;
 
+    &.remove-borders {
+      border: none;
+
+      + .tab-container {
+        border: none;
+        border-top: 1px solid var(--border);
+        padding: 0;
+        padding-top: 24px;
+      }
+    }
+
     + .tab-container {
       border: solid thin var(--border);
     }
 
     .tab.active {
-      border-bottom: solid 2px var(--primary);
+      border-bottom: solid 2px var(--active, var(--primary));
     }
   }
 
@@ -404,7 +515,7 @@ export default {
   .tab {
     position: relative;
     float: left;
-    padding: 0 8px 0 0;
+    padding: 0 4px 0 4px;
     cursor: pointer;
 
     A {
@@ -423,6 +534,7 @@ export default {
     .conditions-alert-icon {
       color: var(--error);
       padding-left: 4px;
+      margin-left: auto;
     }
 
     &:last-child {
@@ -431,15 +543,19 @@ export default {
 
     &.active {
       > A {
-        color: var(--primary);
+        color: var(--active, var(--primary));
         text-decoration: none;
       }
     }
 
     &.error {
-      & A > i {
+      & A > .icon-error {
         color: var(--error);
       }
+    }
+
+    .tab-label-icon {
+      margin-right: 8px;
     }
 
     .tab-badge {
@@ -511,16 +627,16 @@ export default {
       border-left: solid 5px transparent;
 
       &.toggle A {
-        color: var(--primary);
+        color: var(--active, var(--primary));
       }
 
       A {
-        color: var(--primary);
+        color: var(--link, var(--primary));
       }
 
       &.active {
         background-color: var(--body-bg);
-        border-left: solid 5px var(--primary);
+        border-left: solid 5px var(--active, var(--primary));
 
         & A {
           color: var(--input-label);
@@ -540,6 +656,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
+      z-index: z-index('default');
 
       li {
         display: flex;
@@ -549,16 +666,25 @@ export default {
           flex: 1 1;
           display: flex;
           justify-content: center;
+
+          &:focus-visible {
+            @include focus-outline;
+          }
         }
 
         button:first-of-type {
           border-top: solid 1px var(--border);
           border-right: solid 1px var(--border);
+          border-top-left-radius: 0;
           border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
         }
         button:last-of-type {
           border-top: solid 1px var(--border);
+          border-top-right-radius: 0;
           border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
     }

@@ -3,6 +3,7 @@ import { Store } from 'vuex';
 import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/settings';
 import { pluralize } from '@shell/utils/string';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { ClusterProvisionerContext } from '@shell/core/types';
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
@@ -108,4 +109,18 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
   const safeDefaults = Object.assign({}, DEFAULT_PERF_SETTING);
 
   return Object.assign(safeDefaults, perfSetting || {});
+};
+
+export const isProviderEnabled = (context: ClusterProvisionerContext, provider: string): boolean => {
+  const providerTypesJSON = context.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS )?.value;
+  const providerTypes = providerTypesJSON ? JSON.parse(providerTypesJSON) : [];
+
+  for ( let i = 0; i < providerTypes.length; i++) {
+    if ( providerTypes[i].name === provider) {
+      return providerTypes[i].active;
+    }
+  }
+
+  // We want to have providers enabled by default unless they are turned off by a setting
+  return true;
 };

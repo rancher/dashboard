@@ -137,7 +137,7 @@ function parseLinks(str) {
           if (link.startsWith('http')) {
             links.push(link);
           } else if (!(link.startsWith('{') && link.endsWith('}'))) {
-            console.log(`${ yellow }${bold}Skipping link: ${ link }${ reset }`); // eslint-disable-line no-console
+            console.log(`${ yellow }${ bold }Skipping link: ${ link }${ reset }`); // eslint-disable-line no-console
           }
         }
       });
@@ -183,7 +183,6 @@ console.log(''); // eslint-disable-line no-console
 
 console.log(`Using documentation base URL: ${ cyan }${ docsBaseUrl }${ reset }`); // eslint-disable-line no-console
 console.log(''); // eslint-disable-line no-console
-
 
 console.log('Reading translation files:'); // eslint-disable-line no-console
 
@@ -257,7 +256,7 @@ async function check(links) {
 
     try {
       const headers = {
-        'User-Agent':      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'User-Agent':      'Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0',
         Accept:            'text/html',
         'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
       };
@@ -271,7 +270,7 @@ async function check(links) {
       statusMessage = e.response ? e.response.statusText : e.statusText;
     }
 
-    if (statusCode !== 200) {
+    if (statusCode !== 200 && statusCode !== 202) {
       const sc = `${ statusCode }`.padEnd(5);
 
       console.log(`  ${ link } : ${ sc } ${ statusMessage || '' }`); // eslint-disable-line no-console

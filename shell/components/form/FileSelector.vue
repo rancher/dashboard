@@ -67,12 +67,21 @@ export default {
       default: '*'
     },
 
+    class: {
+      type:    [String, Array],
+      default: () => [],
+    }
+
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
+    customClass() {
+      return ['file-selector', 'btn', ...(Array.isArray(this.class) ? this.class : [this.class])];
+    },
   },
 
   methods: {
@@ -151,7 +160,7 @@ export default {
     :aria-label="label"
     type="button"
     role="button"
-    class="file-selector btn"
+    :class="customClass"
     data-testid="file-selector__uploader-button"
     @click="selectFile"
   >
