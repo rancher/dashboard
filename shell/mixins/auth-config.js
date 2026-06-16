@@ -201,6 +201,9 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
+            if (this.model.id === 'github' || this.model.id === 'githubapp') {
+              this.model.accessMode = 'restricted';
+            }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
 
@@ -240,6 +243,10 @@ export default {
             this.$store.dispatch('auth/loggedInAs', this.principal.id);
           } else {
             console.warn(`Unable to find principal marked as 'me'`); // eslint-disable-line no-console
+          }
+
+          if (!wasEnabled) {
+            this.model.accessMode = 'required';
           }
         }
         if (wasEnabled && configType === 'oauth') {
