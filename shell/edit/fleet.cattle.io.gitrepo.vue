@@ -283,10 +283,13 @@ export default {
         selected,
         publicKey,
         privateKey,
-        sshKnownHosts
+        sshKnownHosts,
+        githubAppId,
+        githubAppInstallationId,
+        githubAppPrivateKey,
       } = credentials;
 
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._GITHUB_APP, AUTH_TYPE._S3].includes(selected) ) {
         return;
       }
 
@@ -323,15 +326,25 @@ export default {
           publicField = 'username';
           privateField = 'password';
           break;
+        case AUTH_TYPE._GITHUB_APP:
+          type = SECRET_TYPES.OPAQUE;
+          secret.data = {
+            github_app_id:              base64Encode(githubAppId || ''),
+            github_app_installation_id: base64Encode(githubAppInstallationId || ''),
+            github_app_private_key:     base64Encode(githubAppPrivateKey || ''),
+          };
+          break;
         default:
           throw new Error('Unknown type');
         }
 
         secret._type = type;
-        secret.data = {
-          [publicField]:  base64Encode(publicKey),
-          [privateField]: base64Encode(privateKey),
-        };
+        if (!secret.data) {
+          secret.data = {
+            [publicField]:  base64Encode(publicKey),
+            [privateField]: base64Encode(privateKey),
+          };
+        }
 
         // Add ssh known hosts
         if (selected === AUTH_TYPE._SSH && sshKnownHosts) {

@@ -91,6 +91,11 @@ export default {
       default: true,
     },
 
+    allowGithubApp: {
+      type:    Boolean,
+      default: false,
+    },
+
     allowS3: {
       type:    Boolean,
       default: false,
@@ -226,6 +231,9 @@ export default {
       this.publicKey = this.preSelect?.publicKey || '';
       this.privateKey = this.preSelect?.privateKey || '';
       this.sshKnownHosts = this.preSelect?.sshKnownHosts || '';
+      this.githubAppId = this.preSelect?.githubAppId || '';
+      this.githubAppInstallationId = this.preSelect?.githubAppInstallationId || '';
+      this.githubAppPrivateKey = this.preSelect?.githubAppPrivateKey || '';
     }
 
     this.updateSelectedFromValue();
@@ -245,13 +253,17 @@ export default {
 
       filterByNamespace: this.namespace && this.limitToNamespace,
 
-      publicKey:     '',
-      privateKey:    '',
-      sshKnownHosts: '',
-      uniqueId:      new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
+      publicKey:               '',
+      privateKey:              '',
+      sshKnownHosts:           '',
+      githubAppId:             '',
+      githubAppInstallationId: '',
+      githubAppPrivateKey:     '',
+      uniqueId:                new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
 
       SSH:               AUTH_TYPE._SSH,
       BASIC:             AUTH_TYPE._BASIC,
+      GITHUB_APP:        AUTH_TYPE._GITHUB_APP,
       IMAGE_PULL_SECRET: AUTH_TYPE._IMAGE_PULL_SECRET,
       S3:                AUTH_TYPE._S3,
       RKE:               AUTH_TYPE._RKE,
@@ -274,6 +286,10 @@ export default {
 
       if ( this.allowBasic ) {
         types.push(SECRET_TYPES.BASIC);
+      }
+
+      if ( this.allowGithubApp ) {
+        types.push(SECRET_TYPES.OPAQUE);
       }
 
       if ( this.allowRke ) {
@@ -375,7 +391,7 @@ export default {
         });
       }
 
-      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke || this.fixedImagePullSecret) {
+      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowGithubApp || this.allowRke || this.fixedImagePullSecret) {
         out.unshift({
           label:    'divider',
           disabled: true,
@@ -403,6 +419,14 @@ export default {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createBasic'),
           value: AUTH_TYPE._BASIC,
+          kind:  'highlighted'
+        });
+      }
+
+      if ( this.allowGithubApp ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createGithubApp'),
+          value: AUTH_TYPE._GITHUB_APP,
           kind:  'highlighted'
         });
       }
@@ -436,7 +460,17 @@ export default {
         return '';
       }
 
-      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 || this.selected === AUTH_TYPE._IMAGE_PULL_SECRET ) {
+      if (this.selected === AUTH_TYPE._GITHUB_APP) {
+        return 'col span-3';
+      }
+
+      if (
+        this.selected === AUTH_TYPE._SSH ||
+        this.selected === AUTH_TYPE._BASIC ||
+        this.selected === AUTH_TYPE._RKE ||
+        this.selected === AUTH_TYPE._S3 ||
+        this.selected === AUTH_TYPE._IMAGE_PULL_SECRET
+      ) {
         return 'col span-4';
       }
 
@@ -448,17 +482,24 @@ export default {
         return 'mt-20';
       }
 
+      if (this.selected === AUTH_TYPE._GITHUB_APP) {
+        return 'col span-3';
+      }
+
       return (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts ? 'col span-3' : 'col span-4';
     }
   },
 
   watch: {
-    selected:      'update',
-    publicKey:     'updateKeyVal',
-    privateKey:    'updateKeyVal',
-    sshKnownHosts: 'updateKeyVal',
-    preSelect:     'updateSelectedFromValue',
-    value:         'updateSelectedFromValue',
+    selected:                'update',
+    publicKey:               'updateKeyVal',
+    privateKey:              'updateKeyVal',
+    sshKnownHosts:           'updateKeyVal',
+    githubAppId:             'updateKeyVal',
+    githubAppInstallationId: 'updateKeyVal',
+    githubAppPrivateKey:     'updateKeyVal',
+    preSelect:               'updateSelectedFromValue',
+    value:                   'updateSelectedFromValue',
 
     async namespace(ns) {
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
@@ -547,6 +588,12 @@ export default {
         this.sshKnownHosts = '';
       }
 
+      if (this.selected !== AUTH_TYPE._GITHUB_APP) {
+        this.githubAppId = '';
+        this.githubAppInstallationId = '';
+        this.githubAppPrivateKey = '';
+      }
+
       const value = {
         selected:   this.selected,
         privateKey: this.privateKey,
@@ -557,11 +604,17 @@ export default {
         value.sshKnownHosts = this.sshKnownHosts;
       }
 
+      if (this.selected === AUTH_TYPE._GITHUB_APP) {
+        value.githubAppId = this.githubAppId;
+        value.githubAppInstallationId = this.githubAppInstallationId;
+        value.githubAppPrivateKey = this.githubAppPrivateKey;
+      }
+
       this.$emit('inputauthval', value);
     },
 
     update() {
-      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected))) {
+      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._GITHUB_APP, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected))) {
         this.$emit('update:value', null);
       } else if ( this.selected.includes(':')) {
         // Cloud creds
@@ -585,7 +638,7 @@ export default {
     },
 
     async doCreate() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) || this.delegateCreateToParent ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._GITHUB_APP, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
@@ -625,6 +678,14 @@ export default {
           type = SECRET_TYPES.BASIC;
           publicField = 'username';
           privateField = 'password';
+          break;
+        case AUTH_TYPE._GITHUB_APP:
+          type = SECRET_TYPES.OPAQUE;
+          secret.data = {
+            github_app_id:              base64Encode(this.githubAppId || ''),
+            github_app_installation_id: base64Encode(this.githubAppInstallationId || ''),
+            github_app_private_key:     base64Encode(this.githubAppPrivateKey || ''),
+          };
           break;
         case AUTH_TYPE._IMAGE_PULL_SECRET:
           type = SECRET_TYPES.DOCKER_JSON;
@@ -757,6 +818,33 @@ export default {
             :mode="mode"
             type="password"
             :label-key="isGithubDotComRepository ? 'selectOrCreateAuthSecret.basic.passwordPersonalAccessToken' : 'selectOrCreateAuthSecret.basic.password'"
+          />
+        </div>
+      </template>
+      <template v-else-if="selected === GITHUB_APP">
+        <div :class="moreCols">
+          <LabeledInput
+            v-model:value="githubAppId"
+            data-testid="auth-secret-github-app-id"
+            :mode="mode"
+            label-key="selectOrCreateAuthSecret.githubApp.appId"
+          />
+        </div>
+        <div :class="moreCols">
+          <LabeledInput
+            v-model:value="githubAppInstallationId"
+            data-testid="auth-secret-github-app-installation-id"
+            :mode="mode"
+            label-key="selectOrCreateAuthSecret.githubApp.installationId"
+          />
+        </div>
+        <div :class="moreCols">
+          <LabeledInput
+            v-model:value="githubAppPrivateKey"
+            data-testid="auth-secret-github-app-private-key"
+            :mode="mode"
+            type="multiline"
+            label-key="selectOrCreateAuthSecret.githubApp.privateKey"
           />
         </div>
       </template>
