@@ -158,6 +158,14 @@ describe('CruCatalogRepo - refresh interval', () => {
       expect(wrapper.vm.value.spec.refreshInterval).toStrictEqual(undefined);
     });
 
+    it('deletes spec.refreshInterval when input is 0', () => {
+      const wrapper = createWrapper({ refreshInterval: 3600 });
+
+      wrapper.vm.onRefreshValueChange('0');
+
+      expect(wrapper.vm.value.spec.refreshInterval).toStrictEqual(undefined);
+    });
+
     it('converts display value and unit to seconds on spec', () => {
       const wrapper = createWrapper();
 
