@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -e
+
+DIR=$(cd $(dirname $0)/..; pwd)
+
+# Container Image Defaults
+RANCHER_IMG_TAG=head
+RANCHER_IMG_REGISTRY=
+RANCHER_IMG_NAMESPACE=rancher
+RANCHER_IMG_NAME=rancher
+
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
+if [ $# -eq 1 ]; then
+  RANCHER_IMG_TAG=$1
+else
+  # Get container image from branch-metadata
+  BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}} > /dev/null 2>&1)
+
+  if [ -n "$BRANCH_DATA" ]; then
+    REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
+    RANCHER_IMG_NAMESPACE=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].namespace')
+    RANCHER_IMG_NAME=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].name')
+    RANCHER_IMG_TAG=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].tag')
+
+    if [ -n "$REGISTRY" ]; then
+      RANCHER_IMG_REGISTRY="${REGISTRY}/"
+    fi
+  fi
+fi
+
+RANCHER_IMG=${RANCHER_IMG_REGISTRY}${RANCHER_IMG_NAMESPACE}/${RANCHER_IMG_NAME}:${RANCHER_IMG_TAG}
+
+docker pull ${RANCHER_IMG}> /dev/null 2>&1 &
+echo $!
