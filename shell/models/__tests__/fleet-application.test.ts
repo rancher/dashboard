@@ -5,6 +5,14 @@ describe('class FleetApplication', () => {
     jest.restoreAllMocks();
   });
 
+  describe('applicationType', () => {
+    it('should return the kind property', () => {
+      const instance = new FleetApplication({ kind: 'GitRepo' });
+
+      expect(instance.applicationType).toStrictEqual('GitRepo');
+    });
+  });
+
   describe('targetClusters', () => {
     function createFleetApplication(targets: any[] | undefined, clusters: any[], workspaceId = 'fleet-default', groups: any[] = []) {
       const workspace = {

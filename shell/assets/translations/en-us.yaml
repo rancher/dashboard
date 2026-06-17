@@ -40,6 +40,7 @@ generic:
   descending: descending
   disabled: Disabled
   done: Done
+  download: Download
   enabled: Enabled
   error: Error
   here: here
@@ -54,6 +55,7 @@ generic:
   labels: Labels
   labelsAndAnnotations: Labels & Annotations
   podSecurityAdmission: Pod Security Admission
+  learnMoreAbout: 'Learn more about '
   links: Links
   loading: Loading&hellip;
   members: Members
@@ -3150,19 +3152,27 @@ fleet:
       waitApplied: Wait Applied
   clusterTargets:
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
+    targetMode:
+      local: local cluster
+      all: All Clusters in the workspace
+      allCompact: 'All Clusters in the <b>{namespace}</b> workspace ({count})'
+      none: No clusters
+      clusters: Manually selected clusters
     clusters:
-      title: Clusters
+      title: Cluster selection
       byName:
+        title: Select by cluster name
         placeholder: Select Multiple Clusters
-        label: Select by cluster name
+        label: Cluster names
       byLabel:
         title: Select by labels
         addSelector: Add cluster selector
+        removeSelector: Remove cluster selector
         labelKey: Label
     clusterGroups:
-      title: Cluster Groups
+      title: Select by cluster groups
       byName:
-        label: Select by cluster group name
+        label: Cluster groups
         placeholder: Select Multiple Cluster Groups
     rules:
       matching:
@@ -3172,6 +3182,7 @@ fleet:
             =1 {1 cluster selected}
             other {{n, number} clusters selected}
             }
+        selectedClusters: Selected clusters
         placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
         plusMore: |-
@@ -3193,6 +3204,9 @@ fleet:
         description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
+      suse-application-collection:
+        label: SUSE Application Collection
+        description: Explore our maintained and secure Application Collection, select a Helm chart and deploy it to your clusters.
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
@@ -3340,6 +3354,24 @@ fleet:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+  appCo:
+    credentials:
+      title: Create an App Bundle from SUSE Application Collection
+      subtitle: Set up your credentials
+      infoText: An Application Collection access token is required to connect to the Helm Charts catalog.
+      accessTokensLink: SUSE Application Collection access tokens
+      accessTokenLabel: Access token
+      editCredentials: Edit credentials
+      addNewToken: Add a new access token...
+      noTokensYet: "You haven't added an access token yet."
+      chooseExisting: 'Choose an existing token:'
+      username: Username
+      usernamePlaceholder: user@domain.org
+      accessTokenField: Access Token
+      accessTokenPlaceholder: Your SUSE Application Collection access token
+    chart:
+      title: Charts
+      loadError: Chart not found or has no available versions.
   helmOp:
     intro:
       add: Create Helm Op
@@ -3392,6 +3424,35 @@ fleet:
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
+        selection:
+          searchPlaceholder: Search the catalog...
+          authBanner: 'Two different resources will be created: a Continuous Delivery secret, and an imagePullSecret that will be copied into every downstream cluster selected in the next step.'
+          emptyState:
+            connectionError:
+              title: Connection error
+              descriptionPre: 'There was an error fetching SUSE Application Collection catalog.'
+              please: 'Please, '
+              tryAgain: try again
+              descriptionPost: ' or contact your system administrator.'
+            noMatch:
+              title: No charts to show
+              descriptionPre: 'Tips: use a different search criteria or '
+              clearSearch: clear the search bar
+              descriptionPost: ' and explore the catalog.'
+          repoLoading:
+            title: Creating SUSE Application Collection repository...
+            description: Please, wait while the repository is created
+          repoError:
+            description: 'Please, check your credentials or the repository in the upstream cluster:'
+            link: SUSE App Collection
+    appCoConfig:
+      chartVersion: Chart version
+      name: App Bundle name
+      advanced: Advanced
+    appCoView:
+      chartConfig: Chart config
+      targetDetails: Target details
+      advanced: Advanced
     source:
       title: Source
       selectLabel: Type
@@ -3420,10 +3481,13 @@ fleet:
         title: Release
         label: Name
         placeholder: The Helm release name
+        fullLabel: Release Name
     values:
       title: Values
       selectLabel: Values
       description: Configure Values used by Helm that help define the App.
+      descriptionCompact: Values defined in this section will be applied to the chart in every selected cluster.
+      appCoDescription: The predefined global imagePullSecret should not be modified, otherwise the connection with SUSE Application Collection will fail.
       types:
         values: Values
         valuesFiles: Values Files
@@ -3450,17 +3514,25 @@ fleet:
     serviceAccount:
       label: Service Account Name
       placeholder: "Optional: Use a service account in the target clusters"
+      compactPlaceholder: "Use a service account in the selected clusters"
+      compactDescription: "When provided, this ServiceAccount will be used to perform the deployment."
     targetNamespace:
       label: Target Namespace
       placeholder: "Optional: Require all resources to be in this namespace"
+      compactPlaceholder: "Require all resources to be in this namespace"
+      compactDescription: "This will assign all resources to the specified namespace. If any cluster scoped resource exists, the deployment will fail."
     target:
       selectLabel: Target
       advanced: Advanced
       cluster: Cluster
       clusterGroup: Cluster Group
       label: Deploy To
+      title: Deploy chart to
       labelLocal: Deploy With
       additionalOptions: Additional Options
+      clusterDeploymentSettings: Cluster deployment settings
+      clusterDeploymentDescription: "Here you can set a ServiceAccount or force a target Namespace for the deployments."
+      clusterDeploymentLink: Bundle Deployment Options
     targetDisplay:
       advanced: Advanced
       clusters: Clusters
@@ -3469,10 +3541,17 @@ fleet:
       local: Local
     resources:
       label: 'Resources'
+      lockedSecretBanner: The previously selected Image Pull Secret is required to connect with SUSE Application Collection.
       keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the HelmOp. All resource changes made on the cluster will be lost.
+    appCoResources:
+      helmChartSettings: Helm chart resources settings
+      additionalResources: Additional resources to sync
+      additionalResourcesDescription: You can add Secrets and ConfigMaps to copy those resources to each targeted downstream cluster before deploying the Helm chart.
+      additionalResourcesLinkDescription: Learn more about
+      additionalResourcesLink: Automated propagation of resources to downstream clusters
     polling:
       label: Polling
       enable: Enable Polling
@@ -3487,6 +3566,7 @@ fleet:
       title: Authentication
       label: Authentication
       helm: Helm Authentication
+      appco: SUSE App Collection Authentication
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"

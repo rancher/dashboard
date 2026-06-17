@@ -24,7 +24,8 @@ const SUSE_EXTENSIONS = [
   'neuvector-ui-ext',
   'observability',
   'supportability-review-app',
-  'virtual-clusters'
+  'virtual-clusters',
+  'rancher-ai-ui'
 ];
 
 type FeatureFlagInfos = {
