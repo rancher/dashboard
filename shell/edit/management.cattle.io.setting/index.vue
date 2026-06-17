@@ -32,13 +32,14 @@ export default {
     const t = this.$store.getters['i18n/t'];
 
     return {
-      setting:        ALLOWED_SETTINGS[this.value.id],
-      description:    t(`advancedSettings.descriptions.${ this.value.id }`),
-      editHelp:       t(`advancedSettings.editHelp.${ this.value.id }`),
-      enumOptions:    [],
-      canReset:       false,
-      errors:         [],
-      fvFormRuleSets: [],
+      setting:             ALLOWED_SETTINGS[this.value.id],
+      description:         t(`advancedSettings.descriptions.${ this.value.id }`),
+      editHelp:            t(`advancedSettings.editHelp.${ this.value.id }`),
+      enumOptions:         [],
+      canReset:            false,
+      errors:              [],
+      fvFormRuleSets:      [],
+      customEditComponent: null
     };
   },
 
@@ -60,6 +61,14 @@ export default {
     if (isServerUrl(this.value.id) && !this.value.default) {
       this.canReset = false;
     }
+
+    let component;
+
+    try {
+      component = require(`@shell/edit/management.cattle.io.setting/${ this.value.id }.vue`).default;
+    } catch {}
+
+    this.customEditComponent = component;
   },
 
   computed: {
@@ -87,17 +96,7 @@ export default {
 
     validationPassed() {
       return this.fvFormIsValid && this.fvGetPathErrors(['value']).length === 0;
-    },
-
-    customEditComponent() {
-      let component;
-
-      try {
-        component = require(`@shell/edit/management.cattle.io.setting/${ this.value.id }.vue`).default;
-      } catch {}
-
-      return component;
-    },
+    }
   },
 
   methods: {
@@ -157,118 +156,124 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
-    <template v-if="customEditComponent">
+    <Banner
+      v-if="showWarningBanner"
+      color="warning"
+      :label="t(`advancedSettings.warnings.${ setting.warning }`)"
+      data-testid="advanced_settings_warning_banner"
+    />
+
+    <h4>{{ description }}</h4>
+
+    <h5
+      v-if="editHelp"
+      v-clean-html="editHelp"
+      class="edit-help"
+    />
+
+    <Banner
+      v-if="setting.agent"
+      color="info"
+      :label="t('advancedSettings.edit.agentConfigBanner.text', { agent: t('advancedSettings.edit.agentConfigBanner.' + setting.agent) })"
+      data-testid="setting-agent-config-banner"
+    />
+    <div class="edit-change mt-20">
+      <h5 v-t="'advancedSettings.edit.changeSetting'" />
+      <button
+        data-testid="advanced_settings_use_default"
+        :disabled="!canReset"
+        type="button"
+        class="btn role-primary"
+        @click="useDefault"
+      >
+        {{ t('advancedSettings.edit.useDefault') }}
+      </button>
+    </div>
+
+    <Banner
+      v-if="showLocalhostWarning"
+      color="warning"
+      :label="t('validation.setting.serverUrl.localhost')"
+      data-testid="setting-serverurl-localhost-warning"
+    />
+
+    <Banner
+      v-for="(err, i) in fvGetPathErrors(['value'])"
+      :key="i"
+      color="error"
+      :label="err"
+      data-testid="setting-error-banner"
+    />
+    <div
+      v-if="customEditComponent"
+      class="mt-20"
+    >
       <component
         :is="customEditComponent"
-        v-bind="$attrs"
+        :setting-value="value.value"
+        :default-value="value.default"
+        :rules="fvGetAndReportPathRules('value')"
+        @update:setting-value="value.value=$event"
       />
-    </template>
-    <template v-else>
-      <Banner
-        v-if="showWarningBanner"
-        color="warning"
-        :label="t(`advancedSettings.warnings.${ setting.warning }`)"
-        data-testid="advanced_settings_warning_banner"
-      />
-
-      <h4>{{ description }}</h4>
-
-      <h5
-        v-if="editHelp"
-        v-clean-html="editHelp"
-        class="edit-help"
-      />
-
-      <Banner
-        v-if="setting.agent"
-        color="info"
-        :label="t('advancedSettings.edit.agentConfigBanner.text', { agent: t('advancedSettings.edit.agentConfigBanner.' + setting.agent) })"
-        data-testid="setting-agent-config-banner"
-      />
-      <div class="edit-change mt-20">
-        <h5 v-t="'advancedSettings.edit.changeSetting'" />
-        <button
-          data-testid="advanced_settings_use_default"
-          :disabled="!canReset"
-          type="button"
-          class="btn role-primary"
-          @click="useDefault"
-        >
-          {{ t('advancedSettings.edit.useDefault') }}
-        </button>
+    </div>
+    <div
+      v-else
+      class="mt-20"
+    >
+      <div v-if="setting.kind === 'enum'">
+        <LabeledSelect
+          v-model:value="value.value"
+          data-testid="input-setting-enum"
+          :label="t('advancedSettings.edit.value')"
+          :rules="fvGetAndReportPathRules('value')"
+          :localized-label="true"
+          :mode="mode"
+          :required="true"
+          :options="enumOptions"
+        />
       </div>
-
-      <Banner
-        v-if="showLocalhostWarning"
-        color="warning"
-        :label="t('validation.setting.serverUrl.localhost')"
-        data-testid="setting-serverurl-localhost-warning"
-      />
-
-      <Banner
-        v-for="(err, i) in fvGetPathErrors(['value'])"
-        :key="i"
-        color="error"
-        :label="err"
-        data-testid="setting-error-banner"
-      />
-
-      <div class="mt-20">
-        <div v-if="setting.kind === 'enum'">
-          <LabeledSelect
-            v-model:value="value.value"
-            data-testid="input-setting-enum"
-            :label="t('advancedSettings.edit.value')"
-            :rules="fvGetAndReportPathRules('value')"
-            :localized-label="true"
-            :mode="mode"
-            :required="true"
-            :options="enumOptions"
-          />
-        </div>
-        <div v-else-if="setting.kind === 'boolean'">
-          <RadioGroup
-            v-model:value="value.value"
-            data-testid="input-setting-boolean"
-            name="settings_value"
-            :rules="fvGetAndReportPathRules('value')"
-            :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
-            :options="['true', 'false']"
-          />
-        </div>
-        <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
-          <TextAreaAutoGrow
-            v-model:value="value.value"
-            data-testid="input-setting-json"
-            :required="true"
-            :rules="fvGetAndReportPathRules('value')"
-            :min-height="254"
-          />
-        </div>
-        <div v-else-if="setting.kind === 'integer'">
-          <LabeledInput
-            v-model:value="value.value"
-            data-testid="input-setting-integer"
-            :label="t('advancedSettings.edit.value')"
-            :mode="mode"
-            type="number"
-            :rules="fvGetAndReportPathRules('value')"
-            :required="true"
-          />
-        </div>
-        <div v-else>
-          <LabeledInput
-            v-model:value="value.value"
-            data-testid="input-setting-generic"
-            :localized-label="true"
-            :required="true"
-            :mode="mode"
-            :rules="fvGetAndReportPathRules('value')"
-            :label="t('advancedSettings.edit.value')"
-          />
-        </div>
+      <div v-else-if="setting.kind === 'boolean'">
+        <RadioGroup
+          v-model:value="value.value"
+          data-testid="input-setting-boolean"
+          name="settings_value"
+          :rules="fvGetAndReportPathRules('value')"
+          :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
+          :options="['true', 'false']"
+        />
       </div>
-    </template>
+      <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
+        <TextAreaAutoGrow
+          v-model:value="value.value"
+          data-testid="input-setting-json"
+          :required="true"
+          :rules="fvGetAndReportPathRules('value')"
+          :min-height="254"
+        />
+      </div>
+      <div v-else-if="setting.kind === 'integer'">
+        <LabeledInput
+          v-model:value="value.value"
+          data-testid="input-setting-integer"
+          :label="t('advancedSettings.edit.value')"
+          :mode="mode"
+          type="number"
+          :rules="fvGetAndReportPathRules('value')"
+          :required="true"
+        />
+      </div>
+      <div v-else>
+        <LabeledInput
+          v-model:value="value.value"
+          data-testid="input-setting-generic"
+          :localized-label="true"
+          :required="true"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('value')"
+          :label="t('advancedSettings.edit.value')"
+        />
+      </div>
+    </div>
   </CruResource>
 </template>
 

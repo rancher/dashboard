@@ -18,7 +18,7 @@ import {
 export default {
   name: 'SelectOrCreateAuthSecret',
 
-  emits: ['inputauthval', 'update:value', 'update:willCreateSecret'],
+  emits: ['inputauthval', 'update:value'],
 
   components: {
     Banner,
@@ -455,10 +455,6 @@ export default {
       }
 
       return (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts ? 'col span-3' : 'col span-4';
-    },
-
-    willCreateSecret() {
-      return [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected);
     }
   },
 
@@ -480,10 +476,6 @@ export default {
         this.filteredSecrets = await this.filterSecretsByApi();
       }
     },
-
-    willCreateSecret(neu) {
-      this.$emit('update:willCreateSecret', neu);
-    }
   },
 
   created() {
@@ -555,7 +547,7 @@ export default {
     },
 
     updateKeyVal() {
-      if ( !this.willCreateSecret ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
         this.sshKnownHosts = '';
@@ -599,7 +591,7 @@ export default {
     },
 
     async doCreate() {
-      if ( !this.willCreateSecret || this.delegateCreateToParent ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._IMAGE_PULL_SECRET].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
