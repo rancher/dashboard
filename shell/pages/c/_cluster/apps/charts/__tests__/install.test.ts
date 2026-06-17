@@ -242,19 +242,5 @@ describe('page: Install', () => {
 
       expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
     });
-
-    it('showUninstallMonitoringBanner should return translation key if releaseName matches rancher-monitoring-dashboards and rancher-monitoring is installed', () => {
-      const wrapper1 = setupComponent(false, 'rancher-monitoring-dashboards', '', '', [{ id: 'cattle-monitoring-system/rancher-monitoring' }]);
-
-      expect((wrapper1.vm as any).showUninstallMonitoringBanner).toBe('catalog.install.steps.basics.uninstallMonitoringChartWarning');
-
-      const wrapper2 = setupComponent(false, 'rancher-monitoring-dashboards', '', '', []);
-
-      expect((wrapper2.vm as any).showUninstallMonitoringBanner).toBeNull();
-
-      const wrapper3 = setupComponent(false, 'other-chart', '', '', [{ id: 'cattle-monitoring-system/rancher-monitoring' }]);
-
-      expect((wrapper3.vm as any).showUninstallMonitoringBanner).toBeNull();
-    });
   });
 });

@@ -1357,7 +1357,6 @@ catalog:
         usePreviouslyGeneratedImagePullSecretBanner: "Image Pull Secret <b>{ imagePullSecretName }</b> was already created previously from the Repository secret <b>{ repoAuthenticationName }</b> and will be used."
         oldMonitoringChartWarning: "You should migrate to the new monitoring chart."
         newMonitoringChartWarning: "The prometheus stack should be installed."
-        uninstallMonitoringChartWarning: "You should uninstall rancher-monitoring."
       clusterTplVersion:
         label: Version
         subtext: Select a version of the template
