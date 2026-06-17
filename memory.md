@@ -41,18 +41,20 @@
 - router.js: existing test file is .js not .ts; INSTALL_REDIRECT_META_KEY='installRedirect'
 - router.js: `findMeta` handles both plain-object and array meta; getProductFromRoute uses regex `/^c-cluster-([^-]+)/`
 - notification-handler.ts: store.getters['notifications/all'] is array (direct value); store.getters['prefs/get'] is function-getter; filter bug `!announcements.includes(v)` always passes through (comparing objects with strings)
+- dynamic-importer.js: mock `vue` with `{ defineAsyncComponent: jest.fn(() => 'mockAsyncComponent') }`; resolve*/listProducts not testable in Jest (webpack APIs)
 
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
-3. `shell/utils/dynamic-importer.js` — error-throws for all 10 import functions when name is falsy (medium value)
-4. `shell/utils/scroll.js` — trivial DOM utility (low priority)
+3. `shell/store/notifications.ts` — critical store with encrypt/decrypt, localStorage, BroadcastChannel (complex but high value)
+4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
 
 ## Completed Work (Summary)
 
-- 2026-06-16: PR (branch test-assist/notification-handler-tests): 17 tests for notification-handler.ts (createHandler, onReadUpdated); 100% coverage
-- 2026-06-15: PR #18060 (branch test-assist/auth-utils-tests): 24 tests for auth.js (parseAuthProvidersInfo, checkPermissions, returnTo); 92.85% branches — merged ✅
+- 2026-06-17: PR (branch test-assist/dynamic-importer-tests): 46 tests for dynamic-importer.js (name-guard throws + defineAsyncComponent delegation); 0%→82% stmts
+- 2026-06-16: PR #18071 (branch test-assist/notification-handler-tests): 17 tests for notification-handler.ts; 100% coverage — merged ✅
+- 2026-06-15: PR #18060 (branch test-assist/auth-utils-tests): 24 tests for auth.js; 92.85% branches — merged ✅
 - 2026-06-14: PR #18054 (branch test-assist/router-utils-tests): 32 tests for router.js — merged ✅
 - 2026-06-13: PR #18053 (branch test-assist/validator-tests-container-flow-logdna-monitoring): 38 tests for 4 validator files — merged ✅
 - 2026-06-12: PR #18041: 35 tests for crypto/browserHashUtils.js + crypto/index.js — merged ✅
@@ -67,6 +69,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-17: Task 3 (dynamic-importer.js, 46 tests) + Task 7
 - 2026-06-16: Task 3 (notification-handler.ts, 17 tests) + Task 7
 - 2026-06-15: Task 2+3 (auth.js, 24 tests: parseAuthProvidersInfo/checkPermissions/returnTo) + Task 7
 - 2026-06-14: Task 3 (router.js, 32 tests) + Task 7
