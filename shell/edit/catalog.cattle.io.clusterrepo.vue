@@ -118,7 +118,7 @@ export default {
       const tryNames = ['cattle-system', 'default'];
 
       for ( const name of tryNames ) {
-        if ( this.$store.getters['cluster/byId'](NAMESPACE, name) ) {
+        if ( this.$store.getters[`${ this.inStore }/byId`](NAMESPACE, name) ) {
           return name;
         }
       }
