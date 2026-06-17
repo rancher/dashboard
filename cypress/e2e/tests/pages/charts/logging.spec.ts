@@ -28,6 +28,8 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     cy.login();
     cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { followingLogIn: true });
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
+    cy.setUserPreference({ 'all-namespaces': true }, true);
+
     HomePagePo.goTo();
 
     cy.createE2EResourceName('logging-flow').then((name) => {
@@ -180,6 +182,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
   });
 
   after('clean up', () => {
+    cy.setUserPreference({ 'all-namespaces': false }, true);
     cy.setUserPreference({ 'show-pre-release': false });
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
