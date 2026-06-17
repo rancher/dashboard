@@ -1,6 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
-import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
@@ -1031,27 +1030,38 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
   return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.status.userID;
 
-    const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
+    cy.getRancherResource('v1', 'userpreferences', userId).then((resp: Cypress.Response<any>) => {
+      const payload = {
+        id:   userId,
+        type: 'userpreference',
+        data: {
+          ...resp.body.data,
+          cluster:         clusterName,
+          'group-by':      groupBy,
+          'ns-by-cluster': namespaceFilter,
+        }
+      };
 
-    cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+      cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
 
-    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload), 5)
-        .then((res) => {
-          if (res) {
-            cy.log(`updateNamespaceFilter: Success!`);
-          } else {
-            if (iteration < 3) {
-              cy.log(`updateNamespaceFilter: Failed! Going to retry...`);
+      cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
+        return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload), 5)
+          .then((res) => {
+            if (res) {
+              cy.log(`updateNamespaceFilter: Success!`);
+            } else {
+              if (iteration < 3) {
+                cy.log(`updateNamespaceFilter: Failed! Going to retry...`);
 
-              return cy.updateNamespaceFilter(clusterName, groupBy, namespaceFilter, iteration + 1);
+                return cy.updateNamespaceFilter(clusterName, groupBy, namespaceFilter, iteration + 1);
+              }
+
+              cy.log(`updateNamespaceFilter: Failed! Giving up...`);
+
+              return Promise.reject(new Error('updateNamespaceFilter failed'));
             }
-
-            cy.log(`updateNamespaceFilter: Failed! Giving up...`);
-
-            return Promise.reject(new Error('updateNamespaceFilter failed'));
-          }
-        });
+          });
+      });
     });
   });
 });
