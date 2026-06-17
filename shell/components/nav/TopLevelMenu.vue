@@ -956,19 +956,6 @@ export default {
           class="footer"
         >
           <div
-            v-if="canEditSettings"
-            class="support"
-            @click="hide()"
-          >
-            <router-link
-              :to="{name: 'support'}"
-              role="link"
-              :aria-label="t('nav.ariaLabel.support')"
-            >
-              {{ t('nav.support', {hasSupport}) }}
-            </router-link>
-          </div>
-          <div
             class="version"
             :class="{'version-small': largeAboutText}"
             @click="hide()"
@@ -1573,10 +1560,6 @@ export default {
       .footer {
         margin: 20px 10px;
         width: 50px;
-
-        .support {
-          display: none;
-        }
 
         .version{
           text-align: center;
