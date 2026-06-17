@@ -6,6 +6,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { _CREATE } from '@shell/config/query-params';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { SUSE_APPCO_DISPLAY_NAME } from '@shell/utils/fleet-appco';
 
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {
@@ -183,7 +184,7 @@ export default class ClusterRepo extends SteveModel {
 
   get typeDisplay() {
     if (this.isSuseAppCollectionFromUI) {
-      return 'SUSE AppCo';
+      return SUSE_APPCO_DISPLAY_NAME;
     }
     if ( this.spec.gitRepo ) {
       return 'git';

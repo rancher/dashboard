@@ -156,6 +156,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    noBottomMargin: {
+      type:    Boolean,
+      default: false,
+    },
     rules: {
       default: () => ({
         namespace:   [],
@@ -310,8 +314,8 @@ export default {
 
     if (props.namespaced) {
       if (props.forceNamespace) {
-        namespace.value = toRef(props.forceNamespace);
-        updateNamespace(namespace);
+        namespace.value = props.forceNamespace;
+        updateNamespace(namespace.value);
       } else if (props.namespaceKey) {
         namespace.value = get(v.value, props.namespaceKey);
       } else {
@@ -321,7 +325,7 @@ export default {
       if (!namespace.value && !props.noDefaultNamespace) {
         namespace.value = store.getters['defaultNamespace'];
         if (metadata) {
-          metadata.namespace = namespace;
+          metadata.namespace = namespace.value;
         }
       }
     }
@@ -436,7 +440,7 @@ export default {
 </script>
 
 <template>
-  <div class="row mb-20">
+  <div :class="['row', { 'mb-20': !noBottomMargin }]">
     <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
