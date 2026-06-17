@@ -80,7 +80,7 @@ echo "Waiting for dashboard UI to be reachable ..."
 okay=0
 
 # 60 * 5 seconds should be around 5 minutes that we wait in total 
-while [ $okay -lt 48 ]; do
+while [ $okay -lt 60 ]; do
   if [ "$RANCHER_HOST_HTTPS_PORT" == "443" ]; then
     HEALTH_URL="https://127.0.0.1/dashboard/"
   else
