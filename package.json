@@ -219,6 +219,7 @@
   },
   "resolutions": {
     "html-webpack-plugin": "5.0.0",
-    "form-data": "2.5.5"
+    "form-data": "2.5.5",
+    "qs": "6.15.2"
   }
 }
