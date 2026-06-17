@@ -10,7 +10,7 @@ describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { validate: true });
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { followingLogIn: true });
     });
 
     it('validate role bindings table in empty state', () => {

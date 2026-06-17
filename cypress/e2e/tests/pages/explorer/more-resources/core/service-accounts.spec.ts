@@ -12,7 +12,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { validate: true });
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { followingLogIn: true });
     });
 
     it('validate services table in empty state', () => {

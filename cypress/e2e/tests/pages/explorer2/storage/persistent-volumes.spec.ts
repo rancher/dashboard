@@ -10,7 +10,7 @@ describe('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adm
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { validate: true });
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { followingLogIn: true });
     });
 
     it('validate persistent volumes table in empty state', () => {

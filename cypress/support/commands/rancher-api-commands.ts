@@ -1034,7 +1034,8 @@ const updateUserPreferences = ({
   iteration = 0,
   verify = true,
   retries = 3,
-  waits = 5
+  waits = 5,
+  followingLogIn = false,
 }: {
    preferences: Partial<UserPreferences>,
    logName: string,
@@ -1051,7 +1052,19 @@ const updateUserPreferences = ({
     * how many iterations should we wait for desired result to be true
     */
    waits?: number,
+   /**
+    * Is this command immediately following cy.login?
+    */
+   followingLogIn?: boolean,
 }): Cypress.Chainable<any> => {
+  if (followingLogIn) {
+    // There's some kind of strangeness with k3s --> login --> changing a preference
+    // In theory updateUserPreferences should wait for an API response containing the required changes
+    // However afterwards when loading a page it doesn't apply
+    // There's a better solution than this, but not in the timeframe
+    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
   return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
     const payload = resp.body.data[0];
 
@@ -1079,9 +1092,11 @@ const updateUserPreferences = ({
           return String(actual) === String(value);
         });
 
-        if (!res) {
-          cy.log(`Compare Failed: Result: Actual State ${ JSON.stringify(actual) }`);
-          cy.log(`Compare Failed: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
+        if (res) {
+          cy.log(`${ logName }: Compare Failed: Result: Actual State ${ JSON.stringify(actual) }`);
+          cy.log(`${ logName }: Compare Failed: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
+        } else {
+          cy.log(`${ logName }: Compare Succeeded: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
         }
 
         return res;
@@ -1098,10 +1113,11 @@ const updateUserPreferences = ({
               return updateUserPreferences({
                 preferences,
                 logName,
-                iteration: iteration + 1,
+                iteration:      iteration + 1,
                 retries,
                 waits,
-                verify
+                verify,
+                followingLogIn: false,
               });
             }
 
@@ -1117,22 +1133,15 @@ const updateUserPreferences = ({
 /**
  * update resource list view preference
  */
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, { validate } = { validate: false }): Cypress.Chainable<any> => {
-  if (validate) {
-    // There's some kind of strangeness with k3s --> login --> changing a preference
-    // In theory updateUserPreferences should wait for an API response containing the required changes
-    // However afterwards when loading a page it doesn't apply
-    // There's a better solution than this, but not in the timeframe
-    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
-  }
-
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, config = { followingLogIn: false }): Cypress.Chainable<any> => {
   return updateUserPreferences({
     logName:     'updateNamespaceFilter',
     preferences: {
       cluster:         clusterName,
       'group-by':      groupBy,
       'ns-by-cluster': namespaceFilter,
-    }
+    },
+    followingLogIn: config?.followingLogIn || false
   });
 });
 
@@ -1258,7 +1267,7 @@ Cypress.Commands.add('isVaiCacheEnabled', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}) => {
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { followingLogIn: boolean }) => {
   const {
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
@@ -1271,14 +1280,15 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
       'group-by':       groupBy,
       'ns-by-cluster':  namespaceFilter,
       'all-namespaces': allNamespaces,
-    }
+    },
+    followingLogIn: config?.followingLogIn || false
   });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, config?: { followingLogIn: boolean }) => {
   return cy.tableRowsPerPageAndPreferences(rows, {
     clusterName, groupBy, namespaceFilter
-  });
+  }, { followingLogIn: config?.followingLogIn || false });
 });
 
 /**

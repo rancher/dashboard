@@ -170,8 +170,8 @@ declare global {
         wait?: number
       }): Chainable;
 
-      tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string): Chainable
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}): Chainable
+      tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string, config?: { followingLogIn: boolean }): Chainable
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { followingLogIn: boolean }): Chainable
 
       setUserPreference(prefs: any, verify?: boolean, retries?: number): Chainable;
 
@@ -181,7 +181,7 @@ declare global {
        * @param groupBy to update list view to 'flat list', 'group by namespaces', or 'group by node' ('none', 'metadata.namespace', or 'role')
        * @param namespaceFilter to filter by 'only user namespaces', 'all namespace', etc. ('{"local":["all://user"]}', '{\"local\":[]}', etc.)
        */
-      updateNamespaceFilter(clusterName: string, groupBy:string, namespaceFilter: string, config: { validate: boolean }): Chainable;
+      updateNamespaceFilter(clusterName: string, groupBy:string, namespaceFilter: string, config?: { followingLogIn: boolean }): Chainable;
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
