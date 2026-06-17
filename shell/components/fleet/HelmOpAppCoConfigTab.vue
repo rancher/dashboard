@@ -5,7 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { set } from '@shell/utils/object';
 import { isPrerelease } from '@shell/utils/version';
 import { ZERO_TIME } from '@shell/config/types';
-import { FLEET_APPCO_AUTH_GENERATE_NAME } from '@shell/utils/fleet-appco';
+import { FLEET_APPCO_AUTH_GENERATE_NAME, IMAGE_PULL_SECRET_SUFFIX } from '@shell/utils/fleet-appco';
 import dayjs from 'dayjs';
 import LazyImage from '@shell/components/LazyImage';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -168,7 +168,7 @@ const onVersionSelect = (val: string) => {
 };
 
 const appCoLockedSecrets = computed(() => {
-  return props.downstreamSecretsList.filter((name) => name.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME));
+  return props.downstreamSecretsList.filter((name) => name.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME) && name.endsWith(IMAGE_PULL_SECRET_SUFFIX));
 });
 
 const isStandaloneAdvanced = computed(() => props.hideChartConfig && props.hideTarget && !props.hideAdvanced);

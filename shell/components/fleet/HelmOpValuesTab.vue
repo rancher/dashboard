@@ -24,7 +24,7 @@ const refreshYaml = () => {
 
 defineExpose({ refreshYaml });
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   value: HelmOpResource;
   mode: string;
   realMode: string;
@@ -69,6 +69,10 @@ const updateChartValues = (value: string) => {
 
 const updateDiffMode = (value: string) => {
   emit('update:diff-mode', value);
+};
+
+const updateValuesFrom = (valuesFrom: unknown) => {
+  props.value.spec.helm.valuesFrom = valuesFrom;
 };
 </script>
 
@@ -138,6 +142,7 @@ const updateDiffMode = (value: string) => {
           :mode="realMode"
           :compact="compact"
           data-testid="helmop-values-from"
+          @update:value="updateValuesFrom"
         />
       </div>
     </div>
