@@ -89,8 +89,8 @@ export default {
     const storedInterval = this.value.spec.refreshInterval;
     const refreshEnabled = storedInterval === undefined || storedInterval >= 0;
 
-    let refreshDisplayValue = null;
-    let refreshUnit = SECONDS_PER.h;
+    let refreshDisplayValue: number | null = null;
+    let refreshUnit: number = SECONDS_PER.h;
 
     if (storedInterval && storedInterval > 0) {
       const parsed = secondsToLargestUnit(storedInterval);
