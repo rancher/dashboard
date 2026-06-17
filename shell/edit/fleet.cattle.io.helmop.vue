@@ -5,9 +5,12 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
+import {
+  AUTH_TYPE, CONFIG_MAP, FLEET, AUTH_GENERATE_NAME, NORMAN, SECRET
+} from '@shell/config/types';
+import { FLEET_APPCO_AUTH_GENERATE_NAME, IMAGE_PULL_SECRET_SUFFIX, SUSE_APP_COLLECTION_REPO_URL, deriveRepoName } from '@shell/utils/fleet-appco';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -27,6 +30,7 @@ import HelmOpChartTab from '@shell/components/fleet/HelmOpChartTab.vue';
 import HelmOpValuesTab from '@shell/components/fleet/HelmOpValuesTab.vue';
 import HelmOpTargetTab from '@shell/components/fleet/HelmOpTargetTab.vue';
 import HelmOpAdvancedTab from '@shell/components/fleet/HelmOpAdvancedTab.vue';
+import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -34,6 +38,22 @@ const VALUES_STATE = {
   YAML: 'YAML',
   DIFF: 'DIFF'
 };
+
+function checkIsSuseAppCollection(route, value) {
+  // CREATE: route query param set by the subtype selector
+  // EDIT: annotation set on the resource during create, or URL fallback for older resources
+  return route.query[SUB_TYPE] === FLEET.SUSE_APP_COLLECTION ||
+    value.isSuseAppCollectionFromUI;
+}
+
+function getInitialSourceType(route, value, modelSourceType) {
+  if (checkIsSuseAppCollection(route, value)) {
+    return SOURCE_TYPE.OCI;
+  }
+
+  // REPO is the default value
+  return modelSourceType || SOURCE_TYPE.REPO;
+}
 
 export default {
   name: 'CruHelmOp',
@@ -53,6 +73,7 @@ export default {
     HelmOpValuesTab,
     HelmOpTargetTab,
     HelmOpAdvancedTab,
+    HelmOpAppCoConfigTab,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -61,12 +82,12 @@ export default {
     // Fetch Secrets and ConfigMaps to mask the loading phase in FleetValuesFrom.vue
     checkSchemasForFindAllHash({
       allSecrets: {
-        inStoreType: 'management',
+        inStoreType: CATALOG._MANAGEMENT,
         type:        SECRET
       },
 
       allConfigMaps: {
-        inStoreType: 'management',
+        inStoreType: CATALOG._MANAGEMENT,
         type:        CONFIG_MAP
       }
     }, this.$store);
@@ -81,10 +102,10 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
-      allWorkspaces:    [],
+      currentUser:      null,
       pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
-      sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
+      sourceType:       getInitialSourceType(this.$route, this.value, this.value.sourceType),
       helmSpecInit:     clone(this.value.spec.helm),
       yamlForm:         VALUES_STATE.YAML,
       chartValues,
@@ -95,6 +116,11 @@ export default {
       isRealModeEdit:   this.realMode === _EDIT,
       targetsCreated:   '',
       fvFormRuleSets:   [],
+
+      // Raw chart index entries from the ClusterRepo, keyed by chart name
+      appCoChartEntries:  {},
+      // True while fetching the chart index from the ClusterRepo
+      appCoChartsLoading: false,
     };
   },
 
@@ -110,12 +136,59 @@ export default {
   mounted() {
     this.value.applyDefaults();
     this.updateValidationRules(this.sourceType);
+
+    if (this.isSuseAppCollection) {
+      const repo = this.value.spec?.helm?.repo || '';
+
+      if (!repo) {
+        set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
+      } else if (repo.startsWith(SUSE_APP_COLLECTION_REPO_URL) && repo.length > SUSE_APP_COLLECTION_REPO_URL.length) {
+        const chart = repo.slice(SUSE_APP_COLLECTION_REPO_URL.length).replace(/^\//, '');
+
+        set(this.value, 'spec.helm.repo', SUSE_APP_COLLECTION_REPO_URL);
+        set(this.value, 'spec.helm.chart', chart);
+      }
+
+      if (this.realMode === _CREATE) {
+        const queryChart = this.$route.query.chart;
+        const querySecret = this.$route.query.secret;
+        const queryVersion = this.$route.query.version;
+
+        if (queryChart) {
+          set(this.value, 'spec.helm.chart', queryChart);
+        }
+
+        if (queryVersion) {
+          set(this.value, 'spec.helm.version', queryVersion);
+        }
+
+        if (querySecret) {
+          const ns = this.value.metadata.namespace;
+
+          this.updateAuth(`${ ns }/${ querySecret }`, 'helmSecretName');
+          this.addAppCoImagePullSecretToSpec(`${ querySecret }${ IMAGE_PULL_SECRET_SUFFIX }`);
+
+          this.fetchAppCoCharts(deriveRepoName(querySecret));
+        }
+      } else {
+        const rawSecret = this.value.spec?.helmSecretName || '';
+        const secretName = rawSecret.includes('/') ? rawSecret.split('/')[1] : rawSecret;
+
+        if (secretName) {
+          this.fetchAppCoCharts(deriveRepoName(secretName));
+        }
+      }
+    }
   },
 
   computed: {
     ...mapGetters(['workspace']),
 
     steps() {
+      if (this.isSuseAppCollection) {
+        return [];
+      }
+
       return [
         {
           name:           'basics',
@@ -163,6 +236,10 @@ export default {
           weight:         1,
         },
       ];
+    },
+
+    isSuseAppCollection() {
+      return checkIsSuseAppCollection(this.$route, this.value);
     },
 
     sourceTypeOptions() {
@@ -234,6 +311,71 @@ export default {
     downstreamConfigMapsList() {
       return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
     },
+
+    appCoConfigProps() {
+      return {
+        value:                    this.value,
+        mode:                     this.mode,
+        realMode:                 this.realMode,
+        appCoChartEntries:        this.appCoChartEntries,
+        appCoChartsLoading:       this.appCoChartsLoading,
+        chartValues:              this.chartValues,
+        chartValuesInit:          this.chartValuesInit,
+        yamlForm:                 this.yamlForm,
+        yamlFormOptions:          this.yamlFormOptions,
+        yamlDiffModeOptions:      this.yamlDiffModeOptions,
+        isYamlDiff:               this.isYamlDiff,
+        editorMode:               this.editorMode,
+        diffMode:                 this.diffMode,
+        isRealModeEdit:           this.isRealModeEdit,
+        targetsCreated:           this.targetsCreated,
+        correctDriftEnabled:      this.correctDriftEnabled,
+        downstreamSecretsList:    this.downstreamSecretsList,
+        downstreamConfigMapsList: this.downstreamConfigMapsList,
+        registerBeforeHook:       this.registerBeforeHook,
+      };
+    },
+
+    appCoConfigListeners() {
+      return {
+        'update:value':        this.emitInput,
+        'update:yaml-form':    this.updateYamlForm,
+        'update:chart-values': this.updateChartValues,
+        'update:diff-mode':    (e) => {
+          this.diffMode = e;
+        },
+        'update:targets':  this.updateTargets,
+        'targets-created': (e) => {
+          this.targetsCreated = e;
+        },
+        'update:auth':          (e) => this.updateAuth(e.value, e.key),
+        'update:cached-auth':   (e) => this.updateCachedAuthVal(e.value, e.key),
+        'update:correct-drift': (e) => {
+          this.correctDriftEnabled = e;
+        },
+        'update:downstream-resources': (e) => this.updateDownstreamResources(e.kind, e.list),
+      };
+    },
+
+    appCoViewTabs() {
+      return [
+        {
+          name:   'chartConfig',
+          label:  this.t('fleet.helmOp.appCoView.chartConfig'),
+          weight: 3
+        },
+        {
+          name:   'targetDetails',
+          label:  this.t('fleet.helmOp.appCoView.targetDetails'),
+          weight: 2
+        },
+        {
+          name:   'advanced',
+          label:  this.t('fleet.helmOp.appCoView.advanced'),
+          weight: 1
+        },
+      ];
+    },
   },
 
   watch: {
@@ -245,7 +387,66 @@ export default {
   },
 
   methods: {
+    emitInput(e) {
+      this.$emit('input', e);
+    },
+
+    async handleSave(btnCb) {
+      if (!this.isSuseAppCollection) {
+        return this.save(btnCb);
+      }
+
+      const origRepo = this.value.spec?.helm?.repo;
+      const origChart = this.value.spec?.helm?.chart;
+
+      if (this.sourceType === SOURCE_TYPE.OCI && origChart) {
+        const repo = (origRepo || '').replace(/\/$/, '');
+
+        set(this.value, 'spec.helm.repo', `${ repo }/${ origChart }`);
+        delete this.value.spec.helm.chart;
+      }
+
+      await this.save((success) => {
+        if (!success && origChart) {
+          set(this.value, 'spec.helm.repo', origRepo);
+          set(this.value, 'spec.helm.chart', origChart);
+        }
+        btnCb(success);
+      });
+    },
+
+    refreshAppCoAdvancedYaml() {
+      this.$refs.appCoAdvancedRef?.refreshYamlEditor?.();
+    },
+
+    onCancel() {
+      if (this.isSuseAppCollection && this.realMode === _CREATE) {
+        const querySecret = this.$route.query.secret;
+        const queryChart = this.$route.query.chart;
+        const repoName = deriveRepoName(querySecret || '');
+
+        this.$router.push({
+          name:   'c-cluster-fleet-application-appco-chart',
+          params: { cluster: this.$route.params.cluster },
+          query:  {
+            'repo-type': 'cluster',
+            repo:        repoName,
+            chart:       queryChart,
+            version:     this.$route.query.version,
+            secret:      querySecret,
+          },
+        });
+
+        return;
+      }
+
+      this.done();
+    },
+
     onSourceTypeSelect(type) {
+      if (this.isSuseAppCollection) {
+        return;
+      }
       this.sourceType = type;
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
@@ -302,8 +503,6 @@ export default {
       } else {
         delete spec[key];
       }
-
-      this.updateCachedAuthVal(val, key);
     },
 
     async doCreateSecrets() {
@@ -311,7 +510,7 @@ export default {
         await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
       }
 
-      if (this.tempCachedValues.helmSecretName) {
+      if (!this.isSuseAppCollection && this.tempCachedValues.helmSecretName) {
         await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
       }
     },
@@ -343,7 +542,7 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: 'auth-',
+            generateName: AUTH_GENERATE_NAME,
             labels:       { [FLEET_LABELS.MANAGED]: 'true' }
           }
         });
@@ -386,6 +585,36 @@ export default {
       return secret;
     },
 
+    /**
+     * Adds the image-pull-secret to downstreamResources (Secret kind) and
+     * to spec.helm.values.global.imagePullSecrets.
+     */
+    addAppCoImagePullSecretToSpec(imagePullSecretName) {
+      // Replace downstream resources: remove stale fleet-appco-auth-* image-pull-secrets, add the current one
+      const existingSecrets = (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'Secret');
+      const nonAppcoSecrets = existingSecrets.filter((r) => !r.name.startsWith(FLEET_APPCO_AUTH_GENERATE_NAME));
+
+      this.updateDownstreamResources('Secret', [
+        ...nonAppcoSecrets.map((r) => r.name),
+        imagePullSecretName,
+      ]);
+
+      // Replace spec.helm.values.global.imagePullSecrets: remove stale fleet-appco-auth-* entries, add the current one
+      const currentValues = this.value.spec.helm.values || {};
+
+      const newValues = {
+        ...currentValues,
+        global: {
+          ...(currentValues.global || {}),
+          imagePullSecrets: [imagePullSecretName],
+        },
+      };
+
+      set(this.value, 'spec.helm.values', newValues);
+      this.chartValuesInit = saferDump(clone(newValues));
+      this.chartValues = saferDump(clone(newValues));
+    },
+
     updateYamlForm() {
       if (this.$refs.yaml) {
         this.$refs.yaml.updateValue(this.chartValues);
@@ -393,6 +622,8 @@ export default {
     },
 
     updateChartValues(value) {
+      this.chartValues = value;
+
       try {
         const chartValues = jsyaml.load(value);
 
@@ -406,6 +637,20 @@ export default {
 
       if (this.mode === _CREATE) {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
+
+        if (this.isSuseAppCollection) {
+          if (!this.value.metadata.annotations) {
+            this.value.metadata.annotations = {};
+          }
+
+          this.value.metadata.annotations[CATALOG.SUSE_APP_COLLECTION] = 'true';
+        }
+      }
+
+      const helmSecret = this.value.spec?.helmSecretName || '';
+
+      if (helmSecret.includes('/')) {
+        this.value.spec.helmSecretName = helmSecret.split('/').pop();
       }
     },
 
@@ -431,9 +676,14 @@ export default {
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
           rules: ['ociRegistry'],
-        }, {
+        },
+        ...(this.isSuseAppCollection ? [{
+          path:  'spec.helm.chart',
+          rules: ['required'],
+        }] : []),
+        {
           path:  'spec.helm.version',
-          rules: ['semanticVersion'],
+          rules: this.isSuseAppCollection ? ['required', 'semanticVersion'] : ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
@@ -442,6 +692,34 @@ export default {
           rules: ['urlRepository'],
         }];
         break;
+      }
+    },
+
+    async fetchAppCoCharts(repoName) {
+      if (!repoName) {
+        return;
+      }
+
+      this.appCoChartsLoading = true;
+
+      try {
+        await this.$store.dispatch('catalog/loadRepo', { repoName });
+
+        const chartName = this.value.spec.helm.chart;
+        const catalogChart = chartName ? this.$store.getters['catalog/chart']({
+          repoType:      'cluster',
+          repoName,
+          chartName,
+          includeHidden: true,
+        }) : null;
+
+        if (catalogChart?.versions?.length) {
+          this.appCoChartEntries = { [chartName]: catalogChart.versions };
+        }
+      } catch (e) {
+        console.error('Failed to fetch AppCo chart list:', e); // eslint-disable-line no-console
+      } finally {
+        this.appCoChartsLoading = false;
       }
     },
 
@@ -470,6 +748,7 @@ export default {
 
   <CruResource
     v-else
+    ref="cruResource"
     :done-route="doneRouteList"
     :mode="mode"
     :resource="value"
@@ -478,21 +757,30 @@ export default {
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
+    :cancel-event="true"
     class="wizard"
-    @cancel="done"
+    data-testid="helmop-cru-resource"
+    @cancel="onCancel"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="handleSave"
   >
-    <template #basics>
+    <template
+      v-if="!isSuseAppCollection"
+      #basics
+    >
       <HelmOpMetadataTab
         :value="value"
         :mode="mode"
         :is-view="isView"
+        data-testid="helmop-metadata-tab"
         @update:value="$emit('input', $event)"
       />
     </template>
 
-    <template #chart>
+    <template
+      v-if="!isSuseAppCollection"
+      #chart
+    >
       <HelmOpChartTab
         :value="value"
         :mode="mode"
@@ -500,16 +788,19 @@ export default {
         :source-type="sourceType"
         :source-type-options="sourceTypeOptions"
         :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+        data-testid="helmop-chart-tab"
         @update:source-type="onSourceTypeSelect"
       />
     </template>
 
-    <template #values>
+    <template
+      v-if="!isSuseAppCollection"
+      #values
+    >
       <HelmOpValuesTab
         :value="value"
         :mode="mode"
         :real-mode="realMode"
-        :is-view="isView"
         :chart-values="chartValues"
         :chart-values-init="chartValuesInit"
         :yaml-form="yamlForm"
@@ -519,30 +810,38 @@ export default {
         :editor-mode="editorMode"
         :diff-mode="diffMode"
         :is-real-mode-edit="isRealModeEdit"
+        data-testid="helmop-values-tab"
         @update:yaml-form="updateYamlForm"
         @update:chart-values="updateChartValues"
         @update:diff-mode="diffMode = $event"
       />
     </template>
 
-    <template #target>
+    <template
+      v-if="!isSuseAppCollection"
+      #target
+    >
       <HelmOpTargetTab
         :value="value"
         :mode="mode"
         :real-mode="realMode"
-        :is-view="isView"
         :targets-created="targetsCreated"
+        data-testid="helmop-target-tab"
         @update:targets="updateTargets"
         @targets-created="targetsCreated=$event"
       />
     </template>
 
-    <template #advanced>
+    <template
+      v-if="!isSuseAppCollection"
+      #advanced
+    >
       <HelmOpAdvancedTab
         :value="value"
         :mode="mode"
         :is-view="isView"
         :source-type="sourceType"
+        :is-suse-app-collection="isSuseAppCollection"
         :temp-cached-values="tempCachedValues"
         :correct-drift-enabled="correctDriftEnabled"
         :polling-interval="pollingInterval"
@@ -553,6 +852,7 @@ export default {
         :downstream-secrets-list="downstreamSecretsList"
         :downstream-config-maps-list="downstreamConfigMapsList"
         :register-before-hook="registerBeforeHook"
+        data-testid="helmop-advanced-tab"
         @update:auth="updateAuth($event.value, $event.key)"
         @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
         @update:correct-drift="correctDriftEnabled = $event"
@@ -564,143 +864,198 @@ export default {
     </template>
 
     <template
-      v-if="isView && steps.length === 5"
+      v-if="isView || isSuseAppCollection"
       #single
     >
-      <NameNsDescription
-        :value="value"
-        :namespaced="false"
-        :mode="mode"
-        @update:value="$emit('input', $event)"
-      />
+      <!-- Non-AppCo view -->
+      <div v-if="!isSuseAppCollection">
+        <NameNsDescription
+          :value="value"
+          :namespaced="false"
+          :mode="mode"
+          data-testid="helmop-view-name-ns-description"
+          @update:value="$emit('input', $event)"
+        />
 
+        <Tabbed
+          v-if="isView"
+          :side-tabs="true"
+          :use-hash="true"
+        >
+          <Tab
+            v-if="steps[1]"
+            :name="steps[1].name"
+            :label="steps[1].label"
+            :weight="4"
+          >
+            <HelmOpChartTab
+              :value="value"
+              :mode="mode"
+              :is-view="isView"
+              :source-type="sourceType"
+              :source-type-options="sourceTypeOptions"
+              :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+              data-testid="helmop-view-chart-tab"
+              @update:source-type="onSourceTypeSelect"
+            />
+          </Tab>
+          <Tab
+            v-if="steps[2]"
+            :name="steps[2].name"
+            :label="steps[2].label"
+            :weight="3"
+          >
+            <HelmOpValuesTab
+              :value="value"
+              :mode="mode"
+              :real-mode="realMode"
+              :is-view="isView"
+              :chart-values="chartValues"
+              :chart-values-init="chartValuesInit"
+              :yaml-form="yamlForm"
+              :yaml-form-options="yamlFormOptions"
+              :yaml-diff-mode-options="yamlDiffModeOptions"
+              :is-yaml-diff="isYamlDiff"
+              :editor-mode="editorMode"
+              :diff-mode="diffMode"
+              :is-real-mode-edit="isRealModeEdit"
+              data-testid="helmop-view-values-tab"
+              @update:yaml-form="updateYamlForm"
+              @update:chart-values="updateChartValues"
+              @update:diff-mode="diffMode = $event"
+            />
+          </Tab>
+          <Tab
+            v-if="steps[3]"
+            :name="steps[3].name"
+            :label="steps[3].label"
+            :weight="2"
+          >
+            <HelmOpTargetTab
+              :value="value"
+              :mode="mode"
+              :real-mode="realMode"
+              :targets-created="targetsCreated"
+              data-testid="helmop-view-target-tab"
+              @update:targets="updateTargets"
+              @targets-created="targetsCreated=$event"
+            />
+          </Tab>
+          <Tab
+            v-if="steps[4]"
+            :name="steps[4].name"
+            :label="steps[4].label"
+            :weight="1"
+          >
+            <HelmOpAdvancedTab
+              :value="value"
+              :mode="mode"
+              :is-view="isView"
+              :source-type="sourceType"
+              :is-suse-app-collection="isSuseAppCollection"
+              :temp-cached-values="tempCachedValues"
+              :correct-drift-enabled="correctDriftEnabled"
+              :polling-interval="pollingInterval"
+              :is-polling-enabled="isPollingEnabled"
+              :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
+              :enable-polling-tooltip="enablePollingTooltip"
+              :is-null-or-static-version="isNullOrStaticVersion"
+              :downstream-secrets-list="downstreamSecretsList"
+              :downstream-config-maps-list="downstreamConfigMapsList"
+              :register-before-hook="registerBeforeHook"
+              data-testid="helmop-view-advanced-tab"
+              @update:auth="updateAuth($event.value, $event.key)"
+              @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+              @update:correct-drift="correctDriftEnabled = $event"
+              @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
+              @toggle-polling="togglePolling"
+              @update:polling-interval="updatePollingInterval"
+              @update:validate-polling-interval="validatePollingInterval"
+            />
+          </Tab>
+          <Tab
+            name="labels"
+            label-key="generic.labelsAndAnnotations"
+            :weight="5"
+          >
+            <HelmOpMetadataTab
+              :value="value"
+              :mode="mode"
+              :is-view="isView"
+              data-testid="helmop-view-metadata-tab"
+              @update:value="$emit('input', $event)"
+            />
+          </Tab>
+        </Tabbed>
+      </div>
+
+      <!-- AppCo view -->
       <Tabbed
-        v-if="isView"
+        v-else-if="isSuseAppCollection && isView"
         :side-tabs="true"
         :use-hash="true"
+        data-testid="helmop-appco-view-tabbed"
       >
         <Tab
-          v-if="steps[1]"
-          :name="steps[1].name"
-          :label="steps[1].label"
-          :weight="4"
+          :name="appCoViewTabs[0].name"
+          :label="appCoViewTabs[0].label"
+          :weight="appCoViewTabs[0].weight"
+          :show-header="false"
         >
-          <HelmOpChartTab
-            :value="value"
-            :mode="mode"
-            :is-view="isView"
-            :source-type="sourceType"
-            :source-type-options="sourceTypeOptions"
-            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
-            @update:source-type="onSourceTypeSelect"
+          <HelmOpAppCoConfigTab
+            v-bind="appCoConfigProps"
+            :hide-target="true"
+            :hide-advanced="true"
+            :hide-chart-config="false"
+            data-testid="helmop-appco-view-chart-config"
+            v-on="appCoConfigListeners"
           />
         </Tab>
+
         <Tab
-          v-if="steps[2]"
-          :name="steps[2].name"
-          :label="steps[2].label"
-          :weight="3"
+          :name="appCoViewTabs[1].name"
+          :label="appCoViewTabs[1].label"
+          :weight="appCoViewTabs[1].weight"
+          :show-header="false"
         >
-          <HelmOpValuesTab
-            :value="value"
-            :mode="mode"
-            :real-mode="realMode"
-            :is-view="isView"
-            :chart-values="chartValues"
-            :chart-values-init="chartValuesInit"
-            :yaml-form="yamlForm"
-            :yaml-form-options="yamlFormOptions"
-            :yaml-diff-mode-options="yamlDiffModeOptions"
-            :is-yaml-diff="isYamlDiff"
-            :editor-mode="editorMode"
-            :diff-mode="diffMode"
-            :is-real-mode-edit="isRealModeEdit"
-            @update:yaml-form="updateYamlForm"
-            @update:chart-values="updateChartValues"
-            @update:diff-mode="diffMode = $event"
+          <HelmOpAppCoConfigTab
+            v-bind="appCoConfigProps"
+            :hide-chart-config="true"
+            :hide-advanced="true"
+            data-testid="helmop-appco-view-target-details"
+            v-on="appCoConfigListeners"
           />
         </Tab>
+
         <Tab
-          v-if="steps[3]"
-          :name="steps[3].name"
-          :label="steps[3].label"
-          :weight="2"
+          :name="appCoViewTabs[2].name"
+          :label="appCoViewTabs[2].label"
+          :weight="appCoViewTabs[2].weight"
+          @active="refreshAppCoAdvancedYaml"
         >
-          <HelmOpTargetTab
-            :value="value"
-            :mode="mode"
-            :real-mode="realMode"
-            :is-view="isView"
-            :targets-created="targetsCreated"
-            @update:targets="updateTargets"
-            @targets-created="targetsCreated=$event"
-          />
-        </Tab>
-        <Tab
-          v-if="steps[4]"
-          :name="steps[4].name"
-          :label="steps[4].label"
-          :weight="1"
-        >
-          <HelmOpAdvancedTab
-            :value="value"
-            :mode="mode"
-            :is-view="isView"
-            :source-type="sourceType"
-            :temp-cached-values="tempCachedValues"
-            :correct-drift-enabled="correctDriftEnabled"
-            :polling-interval="pollingInterval"
-            :is-polling-enabled="isPollingEnabled"
-            :show-polling-interval-min-value-warning="showPollingIntervalMinValueWarning"
-            :enable-polling-tooltip="enablePollingTooltip"
-            :is-null-or-static-version="isNullOrStaticVersion"
-            :downstream-secrets-list="downstreamSecretsList"
-            :downstream-config-maps-list="downstreamConfigMapsList"
-            :register-before-hook="registerBeforeHook"
-            @update:auth="updateAuth($event.value, $event.key)"
-            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
-            @update:correct-drift="correctDriftEnabled = $event"
-            @update:downstream-resources="updateDownstreamResources($event.kind, $event.list)"
-            @toggle-polling="togglePolling"
-            @update:polling-interval="updatePollingInterval"
-            @update:validate-polling-interval="validatePollingInterval"
-          />
-        </Tab>
-        <Tab
-          name="labels"
-          label-key="generic.labelsAndAnnotations"
-          :weight="5"
-        >
-          <HelmOpMetadataTab
-            :value="value"
-            :mode="mode"
-            :is-view="isView"
-            @update:value="$emit('input', $event)"
+          <HelmOpAppCoConfigTab
+            ref="appCoAdvancedRef"
+            v-bind="appCoConfigProps"
+            :hide-chart-config="true"
+            :hide-target="true"
+            data-testid="helmop-appco-view-advanced"
+            v-on="appCoConfigListeners"
           />
         </Tab>
       </Tabbed>
+      <div
+        v-else-if="isSuseAppCollection && (isEdit || isCreate)"
+        data-testid="helmop-appco-edit"
+      >
+        <HelmOpAppCoConfigTab
+          v-bind="appCoConfigProps"
+          data-testid="helmop-appco-edit-config-tab"
+          v-on="appCoConfigListeners"
+        />
+      </div>
     </template>
   </CruResource>
 </template>
 
 <style lang="scss" scoped>
-  .yaml-form-controls {
-    display: flex;
-    margin-bottom: 15px;
-  }
-  :deep() .yaml-editor {
-    .root {
-      height: auto !important;
-    }
-  }
-  .resource-handling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .polling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
 </style>

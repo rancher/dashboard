@@ -1,12 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import UnitInput from '@shell/components/form/UnitInput';
-import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
-import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import HelmOpResourcesSection from '@shell/components/fleet/HelmOpResourcesSection.vue';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 
 defineProps({
@@ -82,27 +81,27 @@ const emit = defineEmits([
 const store = useStore();
 const { t } = useI18n(store);
 
-const updateAuth = (value, key) => {
+const updateAuth = (value: string, key: string) => {
   emit('update:auth', { value, key });
 };
 
-const updateCachedAuthVal = (value, key) => {
+const updateCachedAuthVal = (value: string, key: string) => {
   emit('update:cached-auth', { value, key });
 };
 
-const updateCorrectDrift = (value) => {
+const updateCorrectDrift = (value: boolean) => {
   emit('update:correct-drift', value);
 };
 
-const updateDownstreamResources = (kind, list) => {
-  emit('update:downstream-resources', { kind, list });
+const updateDownstreamResources = (event: { kind: string; list: string[] }) => {
+  emit('update:downstream-resources', event);
 };
 
-const togglePolling = (value) => {
+const togglePolling = (value: boolean) => {
   emit('toggle-polling', value);
 };
 
-const updatePollingInterval = (value) => {
+const updatePollingInterval = (value: number) => {
   emit('update:polling-interval', value);
 };
 
@@ -151,43 +150,16 @@ const validatePollingInterval = () => {
 
     <h2>{{ t('fleet.helmOp.resources.label') }}</h2>
 
-    <div class="row mt-20 mb-20">
-      <div class="col span-6">
-        <FleetSecretSelector
-          :value="downstreamSecretsList"
-          :namespace="value.metadata.namespace"
-          :mode="mode"
-          @update:value="updateDownstreamResources('Secret', $event)"
-        />
-      </div>
-    </div>
-    <div class="row mt-20 mb-20">
-      <div class="col span-6">
-        <FleetConfigMapSelector
-          :value="downstreamConfigMapsList"
-          :namespace="value.metadata.namespace"
-          :mode="mode"
-          @update:value="updateDownstreamResources('ConfigMap', $event)"
-        />
-      </div>
-    </div>
-    <div class="resource-handling mb-30">
-      <Checkbox
-        :value="correctDriftEnabled"
-        :tooltip="t('fleet.helmOp.resources.correctDriftTooltip')"
-        type="checkbox"
-        label-key="fleet.helmOp.resources.correctDrift"
-        :mode="mode"
-        @update:value="updateCorrectDrift"
-      />
-      <Checkbox
-        v-model:value="value.spec.keepResources"
-        :tooltip="t('fleet.helmOp.resources.keepResourcesTooltip')"
-        type="checkbox"
-        label-key="fleet.helmOp.resources.keepResources"
-        :mode="mode"
-      />
-    </div>
+    <HelmOpResourcesSection
+      :value="value"
+      :mode="mode"
+      :correct-drift-enabled="correctDriftEnabled"
+      :downstream-secrets-list="downstreamSecretsList"
+      :downstream-config-maps-list="downstreamConfigMapsList"
+      class="mb-30"
+      @update:correct-drift="updateCorrectDrift"
+      @update:downstream-resources="updateDownstreamResources"
+    />
 
     <template v-if="sourceType === SOURCE_TYPE.REPO">
       <h2>{{ t('fleet.helmOp.polling.label') }}</h2>
@@ -233,12 +205,6 @@ const validatePollingInterval = () => {
 </template>
 
 <style lang="scss" scoped>
-.resource-handling {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
 .polling {
   display: flex;
   flex-direction: column;
