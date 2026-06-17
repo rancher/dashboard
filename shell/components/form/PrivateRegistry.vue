@@ -31,7 +31,6 @@ const store = useStore();
 
 const showInput = ref(!!props.value);
 const globalRegistry = ref('');
-// const defaultPullSecret = ref<string | null>(null);
 const defaultPullSecrets = ref<string[]>([]);
 
 onMounted(() => {
@@ -41,7 +40,6 @@ onMounted(() => {
   globalRegistry.value = registrySetting?.value || registrySetting?.defaultValue;
 
   // TODO nb first one oooor?
-  // defaultPullSecret.value = (pullSecretsSetting?.value || '').split(',')[0].trim() || null;
   if (pullSecretsSetting?.value ) {
     defaultPullSecrets.value = pullSecretsSetting?.value.split(',').map((s: string) => s.trim());
   }
@@ -107,7 +105,6 @@ watch(() => props.value, (neu) => {
   <template v-if="showInput">
     <div class="row">
       <div class="col span-6">
-        <!-- //TODO nb validate as required only if no global registry?? technically users can add auth secret to the global default registry but it doesn't really make sense to do so -->
         <LabeledInput
           :value="value"
           :mode="mode"
