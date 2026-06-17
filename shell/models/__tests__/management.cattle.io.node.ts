@@ -94,6 +94,28 @@ describe('class MgmtNode', () => {
     });
   });
 
+  describe('pool', () => {
+    it('should return undefined if nodePoolName is not set', () => {
+      const mgmtNode = new MgmtNode({ spec: {} });
+
+      expect(mgmtNode.pool).toBeUndefined();
+    });
+
+    it('should return the node pool when nodePoolName is set', () => {
+      const nodePool = { id: 'fleet-local/np1' };
+      const mgmtNodeCtx = {
+        rootGetters: {
+          'i18n/t':          t,
+          'management/byId': jest.fn(() => nodePool)
+        }
+      };
+      const mgmtNode = new MgmtNode({ spec: { nodePoolName: 'fleet-local:np1' } }, mgmtNodeCtx);
+
+      expect(mgmtNode.pool).toStrictEqual(nodePool);
+      expect(mgmtNodeCtx.rootGetters['management/byId']).toHaveBeenCalledWith('management.cattle.io.nodepool', 'fleet-local/np1');
+    });
+  });
+
   describe('canScaleDown', () => {
     const mgmtClusterId = 'test';
     const nodeId = 'test/id';

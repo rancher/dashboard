@@ -81,6 +81,7 @@ export const RBAC = {
 };
 
 export const WORKLOAD = 'workload';
+export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 
 /**
  * Rancher Workload types
