@@ -20,6 +20,7 @@ import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params.js';
 import { RcIconType } from '@components/RcIcon/types';
 import { requireAsset } from '@shell/utils/require-asset';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 export default {
   name: 'CruCatalogRepo',
@@ -142,9 +143,9 @@ export default {
       ];
     },
     refreshIntervalRules() {
-      return [
-        (val: string | number) => Number(val) < 0 ? this.t('validation.number.isPositive', { key: this.t('catalog.repo.refreshInterval.label') }) : undefined,
-      ];
+      const { isPositive } = formRulesGenerator(this.$store.getters['i18n/t'], {});
+
+      return [isPositive];
     },
     refreshIntervalPlaceholder() {
       const defaultHours = (this.clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL || this.clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION) ? 24 : 1;
@@ -573,7 +574,7 @@ export default {
 .refresh-interval-controls {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .refresh-interval-value {
