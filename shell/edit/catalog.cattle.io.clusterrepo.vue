@@ -222,7 +222,7 @@ export default {
         return;
       }
 
-      if (this.refreshDisplayValue === null) {
+      if (this.refreshDisplayValue === null || this.refreshDisplayValue === 0) {
         delete this.value.spec.refreshInterval;
 
         return;
