@@ -44,7 +44,8 @@ const DEFAULT_CLUSTER = {
   annotations:                         {},
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
-  clusterAgentDeploymentCustomization: {}
+  clusterAgentDeploymentCustomization: {},
+  importedConfig:                      { privateRegistryURL: null },
 };
 
 const DEFAULT__IMPORT_CLUSTER = {
@@ -166,7 +167,7 @@ export default defineComponent({
       }
     }
 
-    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+    if (this.value?.id && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
     this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
@@ -894,7 +895,6 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isImportedCluster"
         class="mb-20"
         title-key="cluster.tabs.registry"
         data-testid="registries-accordion"
@@ -904,6 +904,7 @@ export default defineComponent({
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          description-key="cluster.privateRegistry.importedDescription"
         />
       </Accordion>
     </div>

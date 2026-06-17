@@ -661,9 +661,15 @@ export default {
             secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
           }
 
-          // TODO nb this forces users to provide a full url but actually just providing hostname should be fine
+          // Components passing imagePullSecretDockerJsonUrlConfig are responsible for validating that a valid hostname or URL is provided
           if (this.selected === AUTH_TYPE._IMAGE_PULL_SECRET && this.imagePullSecretDockerJsonUrlConfig) {
-            const registryHost = this.imagePullSecretDockerJsonUrlConfig ? new URL(this.imagePullSecretDockerJsonUrlConfig).host : '';
+            let registryHost;
+
+            try {
+              registryHost = new URL(this.imagePullSecretDockerJsonUrlConfig).host;
+            } catch {
+              registryHost = this.imagePullSecretDockerJsonUrlConfig;
+            }
 
             const config = {
               auths: {

@@ -611,6 +611,7 @@ export default defineComponent({
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
           :register-before-hook="registerBeforeHook"
+          description-key="cluster.privateRegistry.importedDescription"
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />

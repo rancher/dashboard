@@ -940,7 +940,6 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isImportedCluster"
         class="mb-20"
         title-key="cluster.tabs.registry"
         data-testid="registries-accordion"
@@ -951,6 +950,7 @@ export default defineComponent({
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
           :register-before-hook="registerBeforeHook"
+          description-key="cluster.privateRegistry.importedDescription"
         />
       </Accordion>
     </div>

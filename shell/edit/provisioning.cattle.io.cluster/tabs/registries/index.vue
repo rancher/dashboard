@@ -1,8 +1,6 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs';
 import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
@@ -10,10 +8,8 @@ import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/reg
 export default {
   emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed', 'registry-validation-changed'],
   components: {
-    LabeledInput,
     Banner,
-    Checkbox,
-    SelectOrCreateAuthSecret,
+    PrivateRegistry,
     AdvancedSection,
     RegistryConfigs,
     RegistryMirrors
@@ -65,55 +61,16 @@ export default {
     <div class="row">
       <h3>{{ t('cluster.privateRegistry.label') }}</h3>
     </div>
-    <div class="row">
-      <div class="col span-12">
-        <Banner
-          :closable="false"
-          class="cluster-tools-tip"
-          color="info"
-          label-key="cluster.privateRegistry.description"
-        />
-      </div>
-    </div>
-    <div class="row">
-      <Checkbox
-        :value="showCustomRegistryInput"
-        :mode="mode"
-        :label="t('cluster.privateRegistry.label')"
-        data-testid="registries-enable-checkbox"
-        @update:value="$emit('custom-registry-changed', $event)"
-      />
-    </div>
-    <div
-      v-if="showCustomRegistryInput"
-      class="row mt-20"
-    >
-      <div class="col span-6">
-        <LabeledInput
-          :value="registryHost"
-          :mode="mode"
-          label-key="catalog.chart.registry.custom.inputLabel"
-          placeholder-key="catalog.chart.registry.custom.placeholder"
-          :min-height="30"
-          data-testid="registry-host-input"
-          @update:value="$emit('registry-host-changed', $event)"
-        />
-        <SelectOrCreateAuthSecret
-          :value="registrySecret"
-          :register-before-hook="registerBeforeHook"
-          :hook-priority="1"
-          :mode="mode"
-          in-store="management"
-          :allow-ssh="false"
-          :allow-rke="true"
-          :vertical="true"
-          :namespace="value.metadata.namespace"
-          generate-name="registryconfig-auth-"
-          :cache-secrets="true"
-          @update:value="$emit('registry-secret-changed', $event)"
-        />
-      </div>
-    </div>
+    <PrivateRegistry
+      :value="registryHost"
+      :enabled="showCustomRegistryInput"
+      :mode="mode"
+      :pull-secret="registrySecret"
+      :register-before-hook="registerBeforeHook"
+      @update:value="$emit('registry-host-changed', $event)"
+      @update:enabled="$emit('custom-registry-changed', $event)"
+      @update:pull-secret="$emit('registry-secret-changed', $event)"
+    />
     <div
       class="row"
     >

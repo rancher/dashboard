@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
+import {
+  ref, watch, onMounted, computed, withDefaults
+} from 'vue';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -10,7 +12,7 @@ import { SETTING } from '@shell/config/settings';
 
 const SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS = 'system-default-registry-pull-secrets';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   value?: string | null;
   enabled?: boolean;
   mode?: string;
@@ -19,7 +21,8 @@ const props = defineProps<{
   inputTestId?: string;
   pullSecret?: string;
   registerBeforeHook: Function;
-}>();
+  descriptionKey?: string;
+}>(), { descriptionKey: 'cluster.privateRegistry.description' });
 
 const emit = defineEmits<{
   'update:value': [val: string | null];
@@ -93,7 +96,7 @@ watch(() => props.value, (neu) => {
   <Banner
     color="info"
     class="mt-0"
-    label-key="cluster.privateRegistry.importedDescription"
+    :label-key="descriptionKey"
   />
   <Checkbox
     v-model:value="showInput"
@@ -106,7 +109,7 @@ watch(() => props.value, (neu) => {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          :value="value"
+          :value="value || globalRegistry"
           :mode="mode"
           :rules="rules"
           :required="!globalRegistry"
@@ -121,8 +124,7 @@ watch(() => props.value, (neu) => {
       v-if="hasMultipleDefaultSecrets"
       color="info"
     >
-      Global default image pull secrets have been configured. If an image pull secret is not selected or created here,  the first valid secret from this list will be used:
-
+      <!-- Global default image pull secrets have been configured. If an image pull secret is not selected or created here,  the first valid secret from this list will be used: -->
       <template
         v-for="s in defaultPullSecrets"
         :key="s"
@@ -131,6 +133,7 @@ watch(() => props.value, (neu) => {
           {{ s }}
         </code>
       </template>
+      are configured as global default pull secrets. Select or create an image pull secret here to override the global default.
     </Banner>
     <!-- //TODO nb hardcode fleet-default ns somewhere -->
     <SelectOrCreateAuthSecret
