@@ -172,10 +172,9 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
         installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
         installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
-          .should('not.contain', chartApp);
-        // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
-        installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+        installedAppsPage.appsList().sortableTable().filter(chartApp);
+        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+        installedAppsPage.appsList().sortableTable().checkRowCount(true, 0, undefined, true);
       });
     });
   });
