@@ -124,7 +124,7 @@ export default class ClusterDashboardPagePo extends PagePo {
       for (let i = 0; i < nsProject.values.length; i++) {
         nsfilter.selectedValues().contains(nsProject.values[i]);
       }
-    } else if (all) {
+    } else if (all?.is) {
       nsfilter.allSelected();
     } else {
       throw new Error('Bad Config');

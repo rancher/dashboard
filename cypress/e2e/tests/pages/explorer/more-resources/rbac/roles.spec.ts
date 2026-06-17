@@ -10,7 +10,7 @@ describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, (
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { validate: true });
     });
 
     it('validate roles table in empty state', () => {

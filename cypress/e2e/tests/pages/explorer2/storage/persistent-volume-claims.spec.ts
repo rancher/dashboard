@@ -13,7 +13,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { validate: true });
     });
 
     qase(4102, it('validate persistent volume claims table in empty state', () => {

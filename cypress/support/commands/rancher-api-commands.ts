@@ -1066,14 +1066,13 @@ const updateUserPreferences = ({
 
     return cy.setRancherResource('v1', 'userpreferences', payload.id, payload).then((resp: Cypress.Response<any>) => {
       if (!verify) {
-        return resp;
+        return cy.wrap(resp);
       }
 
       return cy.waitForRancherResource('v1', 'userpreferences', payload.id, (resp: any) => {
         const actual = resp?.body.data;
         const expected = payload.data;
 
-        // return compare(actual, expected);
         const res = Object.entries(actual).every(([key, value]) => {
           const actual = expected[key];
 
@@ -1115,11 +1114,18 @@ const updateUserPreferences = ({
   });
 };
 
-//
 /**
  * update resource list view preference
  */
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, { validate } = { validate: false }): Cypress.Chainable<any> => {
+  if (validate) {
+    // There's some kind of strangeness with k3s --> login --> changing a preference
+    // In theory updateUserPreferences should wait for an API response containing the required changes
+    // However afterwards when loading a page it doesn't apply
+    // There's a better solution than this, but not in the timeframe
+    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
   return updateUserPreferences({
     logName:     'updateNamespaceFilter',
     preferences: {

@@ -21,12 +21,12 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
   const chartNamespace = 'cattle-logging-system';
   const loggingFlowList = new LoggingClusterFlowListPagePo();
   const loggingFlowCreate = new LoggingClusterFlowCreateEditPagePo('local');
-  let flowName;
-  let outputName;
+  let flowName: string;
+  let outputName: string;
 
   before(() => {
     cy.login();
-    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { validate: true });
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     HomePagePo.goTo();
 
@@ -82,14 +82,14 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         .nameNsDescription().name()
         .set(flowName);
       loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
-      loggingFlowCreate.waitForPage(null, 'outputs');
+      loggingFlowCreate.waitForPage(undefined, 'outputs');
       loggingFlowCreate.outputSelector().toggle();
       loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
 
       // Configure namespaces during creation
       // testing https://github.com/rancher/dashboard/issues/13845
       loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-match"]');
-      loggingFlowCreate.waitForPage(null, 'match');
+      loggingFlowCreate.waitForPage(undefined, 'match');
       const namespaces = ['fleet-default', 'cattle-system'];
 
       loggingFlowCreate.setNamespaceValueByLabel(0, namespaces);

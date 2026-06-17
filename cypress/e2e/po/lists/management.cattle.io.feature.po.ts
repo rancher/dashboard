@@ -17,12 +17,11 @@ export default class MgmtFeatureFlagListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
 
-  clickRowActionMenuItem(name: string, itemLabel:string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem(itemLabel)
-      .click();
+  clickRowActionMenuItem(name: string, itemLabel: string) {
+    return this.getRowActionMenuItem(name, itemLabel).click();
   }
 
-  getRowActionMenuItem(name: string, itemLabel:string) {
+  getRowActionMenuItem(name: string, itemLabel: string) {
     return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem(itemLabel);
   }
 
