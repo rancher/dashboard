@@ -82,7 +82,7 @@
     "eslint-plugin-vue": "9.32.0",
     "event-target-shim": "5.0.1",
     "express": "4.17.1",
-    "file-saver": "2.0.2",
+    "file-saver": "2.0.5",
     "floating-vue": "5.2.2",
     "focus-trap": "7.6.5",
     "frontmatter-markdown-loader": "3.7.0",
