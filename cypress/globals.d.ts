@@ -170,10 +170,10 @@ declare global {
         wait?: number
       }): Chainable;
 
-      tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
+      tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string): Chainable
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}): Chainable
 
-      setUserPreference(prefs: any, verify?: boolean, retries?: number);
+      setUserPreference(prefs: any, verify?: boolean, retries?: number): Chainable;
 
       /**
        * update namespace filter
