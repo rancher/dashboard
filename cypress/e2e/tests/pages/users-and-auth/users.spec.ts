@@ -335,8 +335,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
-    const userIdsList = [];
-    let initialCount;
+    const userIdsList: string[] = [];
+    let initialCount: number;
 
     before('set up', () => {
       cy.login();
@@ -350,7 +350,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
         initialCount = filteredUsersNotSystem.length - 1;
       });
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}', { followingLogIn: true });
 
       // create users
       let i = 0;
