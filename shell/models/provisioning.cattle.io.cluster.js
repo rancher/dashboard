@@ -1,7 +1,8 @@
 import {
   CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
-  EVENT, OPERATION
+  EVENT, OPERATION,
+  DEFAULT_WORKSPACE
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
@@ -14,7 +15,6 @@ import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
@@ -168,25 +168,25 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
         icon:    'icon icon-backup',
-        enabled: canDayTwoOps || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
       }, {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
         enabled: canDayTwoOps
       },
-      {
-        action:  'enableDayTwoOps',
-        label:   this.$rootGetters['i18n/t']('nav.enableDayTwoOps'),
-        icon:    'icon icon-checkmark',
-        enabled: isImportedRke2K3s && !this.isDayTwoOpsEnabled && this.canUpdate,
-      },
-      {
-        action:  'disableDayTwoOps',
-        label:   this.$rootGetters['i18n/t']('nav.disableDayTwoOps'),
-        icon:    'icon icon-close',
-        enabled: isImportedRke2K3s && this.isDayTwoOpsEnabled && this.canUpdate,
-      },
+      // {
+      //   action:  'enableDayTwoOps',
+      //   label:   this.$rootGetters['i18n/t']('nav.enableDayTwoOps'),
+      //   icon:    'icon icon-checkmark',
+      //   enabled: isImportedRke2K3s && !this.isDayTwoOpsEnabled && this.canUpdate,
+      // },
+      // {
+      //   action:  'disableDayTwoOps',
+      //   label:   this.$rootGetters['i18n/t']('nav.disableDayTwoOps'),
+      //   icon:    'icon icon-close',
+      //   enabled: isImportedRke2K3s && this.isDayTwoOpsEnabled && this.canUpdate,
+      // },
       {
         action:  'toggleAutoscalerRunner',
         label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
@@ -614,7 +614,7 @@ export default class ProvCluster extends SteveModel {
           apiVersion: 'management.cattle.io/v3',
           kind:       'Cluster',
           name:       this.mgmt?.id,
-        },
+        }
       });
     } else {
       const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
@@ -638,10 +638,10 @@ export default class ProvCluster extends SteveModel {
    * @returns {Promise}
    */
   async _createOperationCR(type, spec) {
-    const namespace = this.mgmt?.metadata?.namespace || this.mgmt?.id;
+    const namespace = this.metadata?.namespace || DEFAULT_WORKSPACE;
     const resource = await this.$dispatch('management/create', {
       type,
-      metadata: { namespace },
+      metadata: { namespace, generateName: `${ this.mgmt?.name || this.mgmt?.id }-` },
       spec,
     }, { root: true });
 
@@ -650,6 +650,11 @@ export default class ProvCluster extends SteveModel {
 
   get etcdSnapshots() {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
+
+    if (this.isImported && this.isDayTwoOpsEnabled) {
+      return allSnapshots
+        .filter((s) => s.metadata.namespace === this.mgmt?.id && s.spec?.clusterName === this.mgmt?.metadata?.name );
+    }
 
     return allSnapshots
       .filter((s) => s.metadata.namespace === this.namespace && s.clusterName === this.name );
@@ -670,20 +675,6 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
       component:      'RotateEncryptionKeyDialog'
-    });
-  }
-
-  enableDayTwoOps(cluster = this) {
-    this.$dispatch('promptModal', {
-      componentProps: { cluster },
-      component:      'EnableDay2OpsDialog'
-    });
-  }
-
-  disableDayTwoOps(cluster = this) {
-    this.$dispatch('promptModal', {
-      componentProps: { cluster },
-      component:      'EnableDay2OpsDialog'
     });
   }
 

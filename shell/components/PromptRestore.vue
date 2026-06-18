@@ -7,7 +7,9 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { CAPI, SNAPSHOT, OPERATION } from '@shell/config/types';
+import {
+  CAPI, SNAPSHOT, OPERATION, DEFAULT_WORKSPACE, MANAGEMENT
+} from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
@@ -67,7 +69,44 @@ export default {
     },
 
     isRke2() {
-      return !!this.snapshot?.rke2;
+      return !!(this.targetCluster?.isRke2 || this.targetMgmtCluster?.isRke2 || this.snapshot?.rke2);
+    },
+
+    targetCluster() {
+      if (this.isCluster) {
+        return this.toRestore?.[0] || null;
+      }
+
+      if (this.snapshot?.cluster) {
+        return this.snapshot.cluster;
+      }
+
+      const snapshotClusterName = this.snapshot?.spec?.clusterName || this.snapshot?.clusterName;
+      const snapshotClusterId = this.snapshot?.clusterId || (snapshotClusterName ? `${ this.snapshot?.metadata?.namespace }/${ snapshotClusterName }` : null);
+
+      if (!snapshotClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, snapshotClusterId);
+    },
+
+    targetMgmtCluster() {
+      if (this.targetCluster?.mgmt) {
+        return this.targetCluster.mgmt;
+      }
+
+      const mgmtClusterId = this.snapshot?.spec?.clusterRef?.name;
+
+      if (!mgmtClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, mgmtClusterId);
+    },
+
+    isImported() {
+      return !!(this.targetCluster?.isImported || this.targetMgmtCluster?.isImported);
     },
 
     clusterSnapshots() {
@@ -143,13 +182,19 @@ export default {
 
     async apply(buttonDone) {
       try {
-        const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
+        const cluster = this.targetCluster;
+        const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || (mgmtCluster?.isImported && mgmtCluster?.isDayTwoOpsEnabled);
+
+        if (!cluster && !isImportedWithDayTwoOps) {
+          throw new Error('Unable to resolve target cluster for snapshot restore');
+        }
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         // For imported clusters with day 2 ops enabled, create an operation CR
-        if (cluster.isImportedWithDayTwoOps) {
-          const namespace = cluster.mgmt?.metadata?.namespace || cluster.mgmt?.id;
+        if (isImportedWithDayTwoOps) {
+          const namespace = mgmtCluster?.metadata?.namespace || cluster.mgmt?.id; // DEFAULT_WORKSPACE;
           const resource = await this.$store.dispatch('management/create', {
             type:     OPERATION.ETCD_SNAPSHOT_RESTORE,
             metadata: { namespace },
@@ -157,12 +202,13 @@ export default {
               clusterRef: {
                 apiVersion: 'management.cattle.io/v3',
                 kind:       'Cluster',
-                name:       cluster.mgmt?.id,
+                name:       mgmtCluster?.id,
               },
-              snapshotRef:    { name: this.snapshot.name },
-              restoreRKEConfig: this.restoreMode,
+              args: { name: `${ this.snapshot.name }.snapshotfile.name` },
             },
           }, { root: true });
+
+          console.log('Created restore operation', resource);
 
           await resource.save();
         } else {
@@ -253,14 +299,17 @@ export default {
                 />
               </p>
             </div>
-            <div class="spacer" />
-            <RadioGroup
-              v-model:value="restoreMode"
-              name="restoreMode"
-              label="Restore Type"
-              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-              :options="restoreModeOptions"
-            />
+            <!-- TODO check bulk -->
+            <div v-if="!isImported">
+              <div class="spacer" />
+              <RadioGroup
+                v-model:value="restoreMode"
+                name="restoreMode"
+                label="Restore Type"
+                :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
+                :options="restoreModeOptions"
+              />
+            </div>
           </form>
         </div>
       </template>

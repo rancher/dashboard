@@ -156,7 +156,7 @@ export default {
       const operationTypes = [
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
-        OPERATION.CERT_ROTATE,
+        // OPERATION.CERT_ROTATE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
       ];
 
@@ -496,9 +496,7 @@ export default {
     showSnapshots() {
       if (this.value.isRke1) {
         return false;
-      } else if (this.value.isRke2) {
-        return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
-      } else if (this.value.isDayTwoOpsEnabled) {
+      } else if (this.value.isRke2 || (this.value.isImported && this.value.isDayTwoOpsEnabled)) {
         return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 

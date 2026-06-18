@@ -115,7 +115,6 @@ export const SETTING = {
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
   SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
-  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day-2-operations-default',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
   FLEET_AGENT_DEFAULT_PRIORITY_CLASS:            'fleet-agent-default-priority-class',
@@ -126,6 +125,7 @@ export const SETTING = {
    */
   DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
+  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled'
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -209,6 +209,7 @@ export const PROVISIONING_SETTINGS = [
   SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
   SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT
 ];
 
 /**

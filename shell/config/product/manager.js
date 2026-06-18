@@ -84,7 +84,6 @@ export function init(store) {
   // Day 2 operation CRDs - read-only, not user-creatable or editable
   configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
-  configureType(OPERATION.CERT_ROTATE, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
 
   configureType(CAPI.RANCHER_CLUSTER, {

@@ -220,10 +220,10 @@ export const LONGHORN_VERSION_V2 = 'LonghornV2';
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
 export const OPERATION = {
-  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshot',
+  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
   ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
-  CERT_ROTATE:           'operation.cattle.io.certrotate',
-  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotate',
+  CERT_ROTATE:           'operation.cattle.io.certrotation',
+  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
 };
 
 // --------------------------------------

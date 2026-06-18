@@ -34,8 +34,7 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@she
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { initializeEtcdSnapshots, isS3BackupConfigured, handleS3BackupChange } from '@shell/edit/provisioning.cattle.io.cluster/utils/etcd-snapshots';
-import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+import { handleS3BackupChange } from '@shell/edit/provisioning.cattle.io.cluster/utils/etcd-snapshots';
 import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
@@ -94,14 +93,6 @@ export default defineComponent({
       this.getVersions();
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
-      console.log('Created norman cluster', this.normanCluster);
-      const defaultDayTwoOps = await store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value;
-
-      if (!defaultDayTwoOps || defaultDayTwoOps === 'false') {
-        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'false';
-      } else {
-        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
-      }
     }
     this.privateRegistryEnabled = !!this.normanCluster?.importedConfig?.privateRegistryURL;
     if (!this.isRKE1) {
@@ -118,15 +109,8 @@ export default defineComponent({
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      await this.initDayTwoOps();
     }
-    // Initialize etcd snapshot configuration
-    this.config.etcd = initializeEtcdSnapshots(this.config.etcd, {
-      retentionDefault: RETENTION_DEFAULT,
-      scheduleCron:     '0 */5 * * *'
-    });
-
-    // Check if S3 backup is already configured
-    this.s3Backup = isS3BackupConfigured(this.config.etcd);
   },
 
   data() {
@@ -151,6 +135,8 @@ export default defineComponent({
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
       s3Backup:                                 false,
+      dayTwoOpsGlobalSetting:                   false,
+      dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -202,10 +188,14 @@ export default defineComponent({
     },
     dayTwoOpsEnabled: {
       get() {
-        return this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+        if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
+          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+        }
+
+        return this.dayTwoOpsGlobalSetting;
       },
       set(newValue) {
-        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue ? 'true' : 'false';
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
       }
     },
 
@@ -433,6 +423,21 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
+    async initDayTwoOps() {
+      try {
+        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.FEATURE,
+          id:   'imported-day-2-ops'
+        }))?.enabled || false;
+      } catch {
+        this.dayTwoOpsFlagEnabled = false;
+      }
+
+      this.dayTwoOpsGlobalSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+      if (this.isCreate && this.dayTwoOpsFlagEnabled) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = this.dayTwoOpsGlobalSetting;
+      }
+    },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
         switch (agentType) {
@@ -526,8 +531,11 @@ export default defineComponent({
           :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
+          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
+          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
+          :day-two-ops-enabled="dayTwoOpsEnabled"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
@@ -535,6 +543,7 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
+          @enable-day-two-ops-changed="(val)=>dayTwoOpsEnabled=val"
         />
       </Accordion>
       <Accordion
@@ -604,7 +613,7 @@ export default defineComponent({
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
-      <Accordion
+      <!-- <Accordion
         class="mb-20 accordion"
         title-key="cluster.tabs.etcd"
         :open-initially="false"
@@ -621,7 +630,7 @@ export default defineComponent({
           @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
           @etcd-validation-changed="(val)=>etcdConfigValid = val"
         />
-      </Accordion>
+      </Accordion> -->
       <Accordion
         class="mb-20 accordion"
         title-key="imported.accordions.labels"

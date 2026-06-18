@@ -66,6 +66,10 @@ export default {
     async getEtcdBackups() {
       let etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
 
+      if (this.cluster.isImportedWithDayTwoOps) {
+        return etcdBackups
+          .filter((backup) => backup.metadata.namespace === this.cluster.mgmt?.id && backup.spec?.clusterName === this.cluster.mgmt?.metadata?.name );
+      }
       etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.id);
 
       return etcdBackups;
