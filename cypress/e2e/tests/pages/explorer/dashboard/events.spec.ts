@@ -20,7 +20,7 @@ const countHelper = {
       cy.wrap(initialCount).as('count');
     }
   },
-  handleCount: (vaiCacheEnabled) => {
+  handleCount: (vaiCacheEnabled: boolean) => {
     if (vaiCacheEnabled) {
       cy.wait('@getCount').then((interception) => {
         cy.wrap(interception.response.body.count).as('count');
@@ -46,7 +46,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         groupBy:         'none',
         namespaceFilter: '{\"local\":[]}',
         allNamespaces:   'true',
-      });
+      }, { followingLogIn: true });
 
       const createPod = (podName?: string) => {
         return ({ ns, i }: {ns: string, i: number}) => {
