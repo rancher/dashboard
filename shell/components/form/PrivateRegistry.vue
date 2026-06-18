@@ -11,8 +11,6 @@ import { SETTING } from '@shell/config/settings';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import type { PrivateRegistryContext } from '@shell/components/form/PrivateRegistry.constants';
 
-const SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS = 'system-default-registry-pull-secrets';
-
 const props = withDefaults(defineProps<{
   value?: string | null;
   enabled?: boolean;
@@ -105,7 +103,7 @@ onMounted(() => {
     globalRegistry.value = registrySetting?.value || registrySetting?.defaultValue;
   }
 
-  const pullSecretsSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS);
+  const pullSecretsSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS);
 
   if (props.repoDefaultPullSecrets?.length) {
     defaultPullSecrets.value = props.repoDefaultPullSecrets;
