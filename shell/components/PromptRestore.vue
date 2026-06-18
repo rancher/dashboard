@@ -149,6 +149,7 @@ export default {
 
       const cluster = this.toRestore?.[0];
       const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
+        console.log('Fetched snapshots', snapshots);
         const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
         return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
@@ -204,7 +205,7 @@ export default {
                 kind:       'Cluster',
                 name:       mgmtCluster?.id,
               },
-              args: { name: `${ this.snapshot.name }.snapshotfile.name` },
+              args: { name: this.snapshot.snapshotFile.name },
             },
           }, { root: true });
 

@@ -189,6 +189,8 @@ export default defineComponent({
     dayTwoOpsEnabled: {
       get() {
         if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
+          console.log(this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] );
+
           return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
         }
 
@@ -196,6 +198,7 @@ export default defineComponent({
       },
       set(newValue) {
         this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
+        console.log(this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED]);
       }
     },
 

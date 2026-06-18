@@ -638,7 +638,7 @@ export default class ProvCluster extends SteveModel {
    * @returns {Promise}
    */
   async _createOperationCR(type, spec) {
-    const namespace = this.metadata?.namespace || DEFAULT_WORKSPACE;
+    const namespace = this.mgmt.id;
     const resource = await this.$dispatch('management/create', {
       type,
       metadata: { namespace, generateName: `${ this.mgmt?.name || this.mgmt?.id }-` },
@@ -650,6 +650,8 @@ export default class ProvCluster extends SteveModel {
 
   get etcdSnapshots() {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
+
+    console.log(allSnapshots);
 
     if (this.isImported && this.isDayTwoOpsEnabled) {
       return allSnapshots

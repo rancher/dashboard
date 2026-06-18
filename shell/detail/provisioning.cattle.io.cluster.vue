@@ -516,7 +516,6 @@ export default {
       const operationTypes = [
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
-        OPERATION.CERT_ROTATE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
       ];
 
