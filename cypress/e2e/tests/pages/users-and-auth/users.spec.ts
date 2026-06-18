@@ -343,7 +343,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
         const filteredUsersNotSystem = resp.body.data.filter((item) => {
-          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+          const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
         });
@@ -385,7 +385,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
         const filteredUsersNotSystem = resp.body.data.filter((item) => {
-          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+          const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
         });

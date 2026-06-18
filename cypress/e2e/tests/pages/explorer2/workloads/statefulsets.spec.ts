@@ -15,7 +15,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
-    let statefulSetNamesList = [];
+    let statefulSetNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -68,7 +68,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
           uniqueStatefulSet = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { followingLogIn: true });
         });
     });
 
