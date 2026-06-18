@@ -215,7 +215,7 @@ describe('page: Install', () => {
       });
     };
 
-    it('showMonitoringBanner should return translation key if existing is true and releaseName matches rancher-monitoring', () => {
+    it('showMonitoringBanner should return translation key if releaseName matches rancher-monitoring (install or edit)', () => {
       const wrapper1 = setupComponent(true, 'rancher-monitoring', '', '');
 
       expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
@@ -226,7 +226,7 @@ describe('page: Install', () => {
 
       const wrapper3 = setupComponent(false, 'rancher-monitoring', '', '');
 
-      expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+      expect((wrapper3.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
     });
 
     it('showMonitoringBanner should return translation key if existing is false and releaseName matches rancher-monitoring-dashboards', () => {

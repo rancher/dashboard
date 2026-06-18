@@ -504,7 +504,7 @@ export default {
     showMonitoringBanner() {
       const releaseName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
 
-      if (!!this.existing && releaseName === 'rancher-monitoring') {
+      if (releaseName === 'rancher-monitoring') {
         return this.t('catalog.install.steps.basics.oldMonitoringChartWarning');
       }
 
