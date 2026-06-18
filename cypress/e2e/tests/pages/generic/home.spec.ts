@@ -2,14 +2,10 @@ import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-cent
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
-import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
-import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 import { qase } from '@/cypress/support/qase';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
-const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
-const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
 // Reset the home page card prefs, go the home page and ensure the page is fully loaded
 function goToHomePageAndSettle() {
@@ -45,370 +41,150 @@ function assertHomeNotificationCount(nc: NotificationsCenterPo) {
   });
 }
 
-describe('Home Page', () => {
-  qase(3002, it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe('Home Page', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
+  });
 
-    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+  qase(9690, it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.setUserPreference({ 'read-whatsnew': '' });
 
-    homePage.goTo();
+    goToHomePageAndSettle();
 
-    cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
-    });
-    // Yes this is bad, but want to ensure no other settings requests are made.
-    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
-    cy.get('@settingsReq.all').should('have.length', 1);
+    // Notification centre should have one unread notification for the release notes
+    const nc = homePage.notificationsCenter();
+
+    // Open the notification centre
+    nc.toggle();
+
+    nc.checkOpen();
+
+    nc.checkExists();
+    nc.checkVisible();
+    nc.checkHasUnread();
+
+    assertHomeNotificationCount(nc);
+
+    // Get the release notes notification - this is the first one on Community builds, second on Prime builds
+    let item = nc.getNotificationByName('release-notes');
+
+    item.checkExists();
+
+    cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
+
+    // Mark all as read
+    nc.markAllRead();
+
+    nc.checkAllRead();
+
+    // Close
+    nc.toggle();
+
+    cy.wait(['@markReleaseNotesRead']);
+
+    nc.checkClosed();
+
+    // Open again
+    nc.toggle();
+
+    nc.checkOpen();
+
+    nc.checkExists();
+    nc.checkVisible();
+    assertHomeNotificationCount(nc);
+    nc.checkAllRead();
+
+    // Now mark the notification as unread
+    item = nc.getNotificationByName('release-notes');
+
+    item.title().should('contain', `Welcome to Rancher v`);
+    item.primaryActionButton().should('exist');
+
+    item.checkRead();
+    item.toggleRead();
+    item.checkUnread();
+    nc.checkHasUnread();
   }));
 
-  describe('List', { testIsolation: 'off' }, () => {
-    before(() => {
-      cy.login();
-    });
+  qase(7009, it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    goToHomePageAndSettle();
 
-    qase(8563, it('Validate home page with percy', { tags: ['@generic', '@adminUser'] }, () => {
-      // Navigate to home page and wait for page to be fully loaded.
-      HomePagePo.goToAndWaitForGet();
+    // Banner graphic should be visible
+    homePage.bannerGraphic().graphicBanner().should('exist');
+    homePage.bannerGraphic().graphicBanner().should('be.visible');
 
-      // #takes percy snapshot.
-      cy.percySnapshot('Home Page');
-    }));
+    // Hide the main banner graphic
+    homePage.toggleBanner();
 
-    qase(14900, it('Can see that cluster details match those in Cluster Management page', { tags: ['@generic', '@adminUser'] }, () => {
-      /**
-       * Get cluster details from the Home page
-       * Verify that the cluster details match those on the Cluster Management page
-       */
-      const clusterName = 'local';
+    // Banner graphic should be hidden
+    homePage.bannerGraphic().graphicBanner().should('not.exist');
 
-      HomePagePo.navTo();
-      homePage.waitForPage();
+    // Show the banner graphic
+    homePage.toggleBanner();
+    homePage.bannerGraphic().graphicBanner().should('exist');
+  }));
 
-      homeClusterList.version(clusterName).invoke('text').should('not.contain', '—');
-      homeClusterList.state(clusterName).invoke('text').as('stateText');
-      homeClusterList.name(clusterName).invoke('text').as('nameText');
-      homeClusterList.version(clusterName).invoke('text').as('versionText');
-      homeClusterList.provider(clusterName).invoke('text').as('providerText');
+  qase(8910, it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    HomePagePo.navTo();
+    homePage.waitForPage();
+  }));
 
-      clusterMgmtClusterList.goTo();
-      clusterMgmtClusterList.waitForPage();
-
-      cy.get('@stateText').then((state) => {
-        clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
-      });
-
-      cy.get('@nameText').then((nameElm) => {
-        const name = (nameElm as unknown as string).trim(); // nameElm is text...
-
-        clusterMgmtClusterList.list().details(clusterName, 2).should('contain.text', name);
-      });
-
-      cy.get('@versionText').then((version) => {
-        clusterMgmtClusterList.list().details(clusterName, 4).should('contain.text', version);
-      });
-
-      cy.get('@providerText').then((provider) => {
-        clusterMgmtClusterList.list().details(clusterName, 3).should('contain.text', provider);
-      });
-    }));
-
-    qase(4109, it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
-      /**
-       * Filter rows in the cluster list
-       */
-      HomePagePo.navTo();
-      homePage.waitForPage();
-
-      homeClusterList.resourceTable().sortableTable().filter('random text');
-      homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
-        expect(el).to.contain.text('There are no rows which match your search query.');
-      });
-
-      homeClusterList.resourceTable().sortableTable().filter('local');
-      homeClusterList.name('local').should((el) => {
-        expect(el).to.contain.text('local');
-      });
-    }));
-
-    qase(4108, it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
-      // since I wasn't able to fully mock a list of clusters
-      // the next best thing is to add a description to the current local cluster
-      // testing https://github.com/rancher/dashboard/issues/10441
-
-      const homePageWithLocalPagination = '/v1/management.cattle.io.clusters?*';
-
-      // Why the long intercept url?
-      // There are two requests to fetch clusters (side nav + cluster list). In theory "cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`" should intercept them both
-      // how is not, only the first one for the side nav, and not the second for the list.
-      // const homePageWithSSP = `/v1/provisioning.cattle.io.clusters?page=1&pagesize=100&sort=metadata.annotations[provisioning.cattle.io/management-cluster-display-name]&filter=metadata.labels[provider.cattle.io]!=harvester&filter=status.provider!=harvester&exclude=metadata.managedFields`;
-
-      cy.intercept('GET', homePageWithLocalPagination, (req) => {
-        req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item: any) => item.id === 'local');
-
-          if (localIndex >= 0) {
-            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
-          }
-
-          res.send(res.body);
-        });
-      }).as('provClusters');
-
-      homePage.goTo();
-      homePage.waitForPage();
-
-      const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
-        .get('.cluster-description');
-
-      desc.contains(longClusterDescription);
-    }));
-
-    qase(4107, it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
-      homePage.goTo();
-      homePage.waitForPage();
-
-      // check table headers
-      const expectedHeaders = ['State', 'Name', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
-
-      homePage.list().resourceTable().sortableTable().tableHeaderRow()
-        .get('.table-header-container .content')
-        .each((el, i) => {
-          const text = el.text().trim().split('\n').map((r) => r.trim())
-            .join(' ');
-
-          expect(text).to.eq(expectedHeaders[i]);
-        });
-    }));
-  });
-
-  describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    // Click the support links and verify user lands on the correct page
-    beforeEach(() => {
-      cy.login();
-      HomePagePo.goTo();
-    });
-
-    qase(1477, it('can click on Docs link', () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
-
-      homePage.supportLinks().should('have.length.at.least', 6);
-      homePage.clickSupportLink(0, true);
-
-      // Doc link differs between Rancher Prime and Community
-      cy.getRancherVersion().then((version) => {
-        const expectedOrigin = version.RancherPrime === 'true' ? 'https://documentation.suse.com' : 'https://ranchermanager.docs.rancher.com';
-        const expectedUrl = version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'ranchermanager.docs.rancher.com';
-
-        cy.origin(expectedOrigin, { args: { expectedUrl } }, ({ expectedUrl }) => {
-          cy.url().should('include', expectedUrl);
-        });
-      });
-    }));
-
-    qase(1475, it('can click on Forums link', () => {
-      catchTargetPageException('TenantFeatures', 'https://forums.suse.com');
-
-      // click Forums link
-      homePage.clickSupportLink(1, true);
-
-      cy.origin('https://forums.suse.com', () => {
-        cy.url().should('include', 'forums.suse.com/');
-      });
-    }));
-
-    qase(1474, it('can click on Slack link', () => {
-      // click Slack link
-      homePage.clickSupportLink(2, true);
-
-      cy.origin('https://slack.rancher.io', () => {
-        cy.url().should('include', 'slack.rancher.io/');
-      });
-    }));
-
-    qase(1478, it('can click on File an Issue link', () => {
-      // click File an Issue link
-      homePage.clickSupportLink(3, true);
-
-      cy.origin('https://github.com', () => {
-        cy.url().should('include', 'github.com/login');
-      });
-    }));
-
-    qase(1473, it('can click on Get Started link', () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
-
-      // click Get Started link
-      homePage.clickSupportLink(4, true);
-
-      cy.url().should('include', 'getting-started/overview');
-    }));
-
-    qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
-      catchTargetPageException();
-
-      // click Rancher Prime link (replaces old Commercial Support link)
-      homePage.clickSupportLink(5, true);
-      cy.origin('https://www.suse.com', () => {
-        cy.url().should('include', 'suse.com/products/rancher');
-      });
-    }));
-
-    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime', '@scc'] }, () => {
-      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
-
-      // click SUSE Application Collection link
-      homePage.clickSupportLink(5, true);
-      cy.origin('https://apps.rancher.io/', () => {
-        cy.url().should('include', 'apps.rancher.io/');
-      });
-    });
-  });
-
-  describe('Home Page', { testIsolation: 'off' }, () => {
-    before(() => {
-      cy.login();
-    });
-
-    qase(9690, it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      cy.setUserPreference({ 'read-whatsnew': '' });
-
-      goToHomePageAndSettle();
-
-      // Notification centre should have one unread notification for the release notes
-      const nc = homePage.notificationsCenter();
-
-      // Open the notification centre
-      nc.toggle();
-
-      nc.checkOpen();
-
-      nc.checkExists();
-      nc.checkVisible();
-      nc.checkHasUnread();
-
-      assertHomeNotificationCount(nc);
-
-      // Get the release notes notification - this is the first one on Community builds, second on Prime builds
-      let item = nc.getNotificationByName('release-notes');
-
-      item.checkExists();
-
-      cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
-
-      // Mark all as read
-      nc.markAllRead();
-
-      nc.checkAllRead();
-
-      // Close
-      nc.toggle();
-
-      cy.wait(['@markReleaseNotesRead']);
-
-      nc.checkClosed();
-
-      // Open again
-      nc.toggle();
-
-      nc.checkOpen();
-
-      nc.checkExists();
-      nc.checkVisible();
-      assertHomeNotificationCount(nc);
-      nc.checkAllRead();
-
-      // Now mark the notification as unread
-      item = nc.getNotificationByName('release-notes');
-
-      item.title().should('contain', `Welcome to Rancher v`);
-      item.primaryActionButton().should('exist');
-
-      item.checkRead();
-      item.toggleRead();
-      item.checkUnread();
-      nc.checkHasUnread();
-    }));
-
-    qase(7009, it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      goToHomePageAndSettle();
-
-      // Banner graphic should be visible
-      homePage.bannerGraphic().graphicBanner().should('exist');
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
-
-      // Hide the main banner graphic
-      homePage.toggleBanner();
-
-      // Banner graphic should be hidden
-      homePage.bannerGraphic().graphicBanner().should('not.exist');
-
-      // Show the banner graphic
-      homePage.toggleBanner();
-      homePage.bannerGraphic().graphicBanner().should('exist');
-    }));
-
-    qase(8910, it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      HomePagePo.navTo();
-      homePage.waitForPage();
-    }));
-
-    qase(1427, it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  qase(1427, it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click 'Manage' button and verify user lands on the Cluster Management page
      * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
      * Click on the Create button and verify user lands on the cluster creation page
      */
-      const clusterManagerPage = new ClusterManagerListPagePo('_');
-      const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
+    const clusterManagerPage = new ClusterManagerListPagePo('_');
+    const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
 
-      HomePagePo.navTo();
-      homePage.manageButton().click();
-      clusterManagerPage.waitForPage();
+    HomePagePo.navTo();
+    homePage.manageButton().click();
+    clusterManagerPage.waitForPage();
 
-      HomePagePo.goToAndWaitForGet();
-      homePage.importExistingButton().click();
-      genericCreateClusterPage.waitForPage('mode=import');
+    HomePagePo.goToAndWaitForGet();
+    homePage.importExistingButton().click();
+    genericCreateClusterPage.waitForPage('mode=import');
 
-      HomePagePo.goToAndWaitForGet();
-      homePage.createButton().click();
-      genericCreateClusterPage.waitForPage();
-    }));
+    HomePagePo.goToAndWaitForGet();
+    homePage.createButton().click();
+    genericCreateClusterPage.waitForPage();
+  }));
 
-    qase(2059, it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      cy.setUserPreference({ 'read-whatsnew': '' });
-      HomePagePo.navTo();
-      homePage.waitForPage();
+  qase(2059, it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.setUserPreference({ 'read-whatsnew': '' });
+    HomePagePo.navTo();
+    homePage.waitForPage();
 
-      const nc = homePage.notificationsCenter();
+    const nc = homePage.notificationsCenter();
 
-      // Open the notification centre
-      nc.toggle();
+    // Open the notification centre
+    nc.toggle();
 
-      nc.checkOpen();
-      nc.checkExists();
-      nc.checkVisible();
-      assertHomeNotificationCount(nc);
+    nc.checkOpen();
+    nc.checkExists();
+    nc.checkVisible();
+    assertHomeNotificationCount(nc);
 
-      const item = nc.getNotificationByName('release-notes');
+    const item = nc.getNotificationByName('release-notes');
 
-      item.checkExists();
+    item.checkExists();
 
-      cy.getRancherVersion().then((version) => {
-        cy.window().then((win) => {
-          cy.stub(win, 'open', () => {}).as('openReleaseNotes');
-        });
-
-        item.primaryActionButton().click();
-
-        cy.get('@openReleaseNotes').should((stub: any) => {
-          const [url, target] = stub.getCall(0).args;
-
-          expect(url).to.contain(version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'github.com/rancher/rancher/releases');
-          expect(target).to.eq('_blank');
-        });
+    cy.getRancherVersion().then((version) => {
+      cy.window().then((win) => {
+        cy.stub(win, 'open', () => {}).as('openReleaseNotes');
       });
-    }));
-  });
+
+      item.primaryActionButton().click();
+
+      cy.get('@openReleaseNotes').should((stub: any) => {
+        const [url, target] = stub.getCall(0).args;
+
+        expect(url).to.contain(version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'github.com/rancher/rancher/releases');
+        expect(target).to.eq('_blank');
+      });
+    });
+  }));
 
   after(() => {
     // Clear any banner hiding preferences - needed incase of 'Can toggle banner graphic' test failure
