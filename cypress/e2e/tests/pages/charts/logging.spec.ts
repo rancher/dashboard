@@ -134,6 +134,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         const hasCrdChart = rowNames.includes(chartCrd);
 
         if (!hasLoggingChart || !hasCrdChart) {
+          // If this is a retry this step will always be hit (because the previous run uninstalled the charts.....)
           throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
         }
 
@@ -176,7 +177,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
         installedAppsPage.appsList().sortableTable().filter(chartApp);
         installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        installedAppsPage.appsList().sortableTable().checkRowCount(true, 0, undefined, true);
+        installedAppsPage.appsList().sortableTable().checkRowCount(true, 1, undefined, true);
       });
     });
   });
