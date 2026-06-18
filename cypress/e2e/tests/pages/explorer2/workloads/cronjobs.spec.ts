@@ -17,8 +17,6 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
   describe('Details', () => {
     let cronJobName: string;
-    let jobName: string;
-    let podName: string;
     const defaultNamespace = 'default';
 
     beforeEach('set up', () => {
@@ -71,7 +69,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
         return resp.body.data.find((job: any) => job.metadata.name.startsWith(cronJobName));
       };
 
-      cy.waitForRancherResource('v1', 'batch.job', `${ defaultNamespace }`, findJob).then((resp) => {
+      cy.waitForRancherResource<any>('v1', 'batch.job', `${ defaultNamespace }`, findJob, 20, { returnResource: true }).then((resp) => {
         const jod = findJob(resp);
         const jobName = jod.metadata.name;
 
@@ -79,7 +77,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
         };
 
-        cy.waitForRancherResource('v1', 'pods', `${ defaultNamespace }`, findPod).then((resp) => {
+        cy.waitForRancherResource<any>('v1', 'pods', `${ defaultNamespace }`, findPod, 20, { returnResource: true }).then((resp) => {
           const pod = findPod(resp);
           const podName = pod.metadata.name;
 

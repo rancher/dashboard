@@ -610,7 +610,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           return retry();
         }
 
-        return Promise.resolve(resp);
+        return Promise.resolve(config?.returnResource ? resp : true);
       });
   };
 
