@@ -28,6 +28,7 @@ import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
@@ -110,6 +111,7 @@ export default defineComponent({
   data() {
     return {
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
+      PRIVATE_REGISTRY_CONTEXT,
       loadingVersions:                          false,
       membershipUpdate:                         {},
       config:                                   null,
@@ -622,10 +624,10 @@ export default defineComponent({
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
           :register-before-hook="registerBeforeHook"
-          description-key="cluster.privateRegistry.importedDescription"
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />

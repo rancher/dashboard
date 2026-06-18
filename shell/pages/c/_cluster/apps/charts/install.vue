@@ -43,6 +43,8 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { generateRandomAlphaString } from '@shell/utils/string';
 
 const VALUES_STATE = {
@@ -95,7 +97,9 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    SelectOrCreateAuthSecret
+    TypeDescription,
+    SelectOrCreateAuthSecret,
+    PrivateRegistry
   },
 
   mixins: [
@@ -453,6 +457,9 @@ export default {
       appCoDataFetched:                       false,
       AUTH_TYPE,
       CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
+      PRIVATE_REGISTRY_CONTEXT,
+      skipPullSecrets:                        false,
+      registryPullSecret:                     null,
       stepBasic:                              {
         name:           'basics',
         label:          this.t('catalog.install.steps.basics.label'),
@@ -783,6 +790,16 @@ export default {
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
     },
 
+    showRegistryPullSecrets() {
+      return !!this.repo?.spec?.defaultImagePullSecrets?.length;
+    },
+
+    defaultPullSecretNoneLabel() {
+      const name = this.repo?.spec?.defaultImagePullSecrets?.[0]?.name;
+
+      return name ? `Use default (${ name })` : null;
+    },
+
     setImagePullSecretDataTrigger() {
       return `
         ${ this.defaultImagePullSecret?.name }
@@ -793,7 +810,6 @@ export default {
   },
 
   watch: {
-    // TODO nb need to NOT trigger this when adding skip image pull secret param
     '$route.query'(neu, old) {
       // If the query changes, refetch the chart
       // When going back to app list, the query is empty and we don't want to refetch
@@ -976,12 +992,29 @@ export default {
       }
     },
 
-    // TODO nb get cluster registry for local and imported clusters using mgmt cluster importConfig
     async getClusterRegistry() {
+      const mgmCluster = this.$store.getters['currentCluster'];
+
+      // For local, imported, and hosted (AKS, EKS, GKE, ALI) clusters,
+      // the cluster-scoped private registry is on the norman cluster's importedConfig.
+      if (mgmCluster?.isLocal || mgmCluster?.isImported || mgmCluster?.isHostedKubernetesProvider) {
+        try {
+          const normanCluster = await mgmCluster.findNormanCluster();
+          const importedRegistryURL = normanCluster?.importedConfig?.privateRegistryURL;
+
+          if (importedRegistryURL) {
+            return importedRegistryURL;
+          }
+        } catch (e) {
+          console.warn('Unable to fetch norman cluster for registry lookup: ', e); // eslint-disable-line no-console
+        }
+
+        return;
+      }
+
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
       if (hasPermissionToSeeProvCluster) {
-        const mgmCluster = this.$store.getters['currentCluster'];
         const provClusterId = mgmCluster?.provClusterId;
         let provCluster;
 
@@ -1122,7 +1155,6 @@ export default {
       }
     },
 
-    // TODO nb need this to run before any namespaces
     async createNamespaceIfNeeded() {
       const namespace = this.targetNamespace;
 
@@ -1152,15 +1184,22 @@ export default {
         const isUpgrade = !!this.existing;
 
         this.errors = [];
+        // Create namespace if it doesn't exist
+        // this is done before save hooks so that image pull secrets can be created in the target namespace
+        await this.createNamespaceIfNeeded();
 
-        // Create namespace if it doesn't exist (before the beforeSaveHooks run)
-        // And only if it is SUSE APP Collection, overall should just do the same flow
-        // TODO nb need to do this for Rancher charts as well, if user is creating a new secret
-        if (!isUpgrade && this.isNamespaceNew && this.repo?.isSuseAppCollection) {
-          await this.createNamespaceIfNeeded();
+        const hookResults = await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // When a new pull secret is created by SelectOrCreateAuthSecret inside
+        // PrivateRegistry, the emit chain does not propagate the secret name
+        // back to registryPullSecret in time.  Read it from the hook result.
+        if (this.showRegistryPullSecrets && !this.skipPullSecrets && !this.registryPullSecret) {
+          const createdSecret = hookResults?.registerAuthSecret;
+
+          if (createdSecret?.metadata?.name) {
+            this.registryPullSecret = createdSecret.metadata.name;
+          }
         }
-
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         const { errors, input } = this.actionInput(isUpgrade);
 
@@ -1227,10 +1266,13 @@ export default {
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
 
-      // TODO nb also img pull secrets if non-default and non-skip
       if (this.showCustomRegistry) {
         set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
         set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
+
+      if (this.showRegistryPullSecrets && !this.skipPullSecrets && this.registryPullSecret) {
+        set(global, 'imagePullSecrets', [this.registryPullSecret]);
       }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
@@ -1335,7 +1377,6 @@ export default {
       */
 
       this.addGlobalValuesTo(values);
-
       const form = JSON.parse(JSON.stringify(this.value));
 
       /*
@@ -1386,6 +1427,10 @@ export default {
       } else {
         out.disableOpenAPIValidation = this.cmdOptions.openApi === false;
         out.skipCRDs = this.cmdOptions.crds === false;
+      }
+
+      if (this.skipPullSecrets) {
+        out.skipPullSecrets = true;
       }
 
       const more = [];
@@ -1759,26 +1804,26 @@ export default {
             :label="t('catalog.install.steps.helmCli.checkbox', { action: action.name, existing: !!existing })"
           />
 
-          <Checkbox
+          <PrivateRegistry
             v-if="showCustomRegistry"
-            v-model:value="showCustomRegistryInput"
-            class="mb-20"
-            data-testid="custom-registry-checkbox"
-            :label="t('catalog.chart.registry.custom.checkBoxLabel')"
-            :tooltip="t('catalog.chart.registry.tooltip')"
+            :context="PRIVATE_REGISTRY_CONTEXT.CHARTS"
+            :value="customRegistrySetting"
+            :enabled="showCustomRegistryInput"
+            :default-registry="defaultRegistrySetting"
+            :namespace="targetNamespace"
+            in-store="cluster"
+            :register-before-hook="registerBeforeHook"
+            :show-pull-secrets="showRegistryPullSecrets"
+            :none-label="defaultPullSecretNoneLabel"
+            :pull-secret="registryPullSecret"
+            :skip-pull-secrets="skipPullSecrets"
+            checkbox-test-id="custom-registry-checkbox"
+            input-test-id="custom-registry-input"
+            @update:value="(val) => customRegistrySetting = val"
+            @update:enabled="(val) => showCustomRegistryInput = val"
+            @update:pull-secret="(val) => registryPullSecret = val"
+            @update:skip-pull-secrets="(val) => skipPullSecrets = val"
           />
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput
-                v-if="showCustomRegistryInput"
-                v-model:value="customRegistrySetting"
-                data-testid="custom-registry-input"
-                label-key="catalog.chart.registry.custom.inputLabel"
-                placeholder-key="catalog.chart.registry.custom.placeholder"
-                :min-height="30"
-              />
-            </div>
-          </div>
           <div
             class="step__values__controls--spacer"
             style="flex:1"

@@ -1142,6 +1142,8 @@ catalog:
         checkBoxLabel: Override the Default Container Registry
         inputLabel: Container Registry
         placeholder: Registry domain and ports, ex. registry.io:5000
+      pullSecret:
+        skipOption: Do not use image pull secrets
     header:
       charts: Charts
     info:
@@ -8967,7 +8969,7 @@ advancedSettings:
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
     'system-default-registry': 'Private registry to be used for all Rancher System Container Images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
-    'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
+    'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. By default, these secrets will be copied into each Rancher chart namespace. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'

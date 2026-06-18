@@ -691,6 +691,8 @@ export default {
         this.selected = secret.id;
       });
 
+      this.update();
+
       return secret;
     },
   },

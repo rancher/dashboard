@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {
-  ref, watch, onMounted, computed
-} from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -9,6 +7,8 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
+import type { PrivateRegistryContext } from '@shell/components/form/PrivateRegistry.constants';
 
 const SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS = 'system-default-registry-pull-secrets';
 
@@ -20,23 +20,37 @@ const props = withDefaults(defineProps<{
   checkboxTestId?: string;
   inputTestId?: string;
   pullSecret?: string;
-  registerBeforeHook: Function;
-  descriptionKey?: string;
+  registerBeforeHook?: Function;
+  context?: PrivateRegistryContext;
+  defaultRegistry?: string;
+  namespace?: string;
+  inStore?: string;
+  showPullSecrets?: boolean;
+  noneLabel?: string | null;
+  skipPullSecrets?: boolean;
 }>(), {
-  value:          undefined,
-  enabled:        false,
-  mode:           'edit',
-  rules:          () => [],
-  checkboxTestId: undefined,
-  inputTestId:    undefined,
-  pullSecret:     undefined,
-  descriptionKey: 'cluster.privateRegistry.description',
+  value:              undefined,
+  enabled:            false,
+  mode:               'edit',
+  rules:              () => [],
+  checkboxTestId:     undefined,
+  inputTestId:        undefined,
+  pullSecret:         undefined,
+  registerBeforeHook: undefined,
+  context:            PRIVATE_REGISTRY_CONTEXT.PROVISIONING,
+  defaultRegistry:    undefined,
+  namespace:          'fleet-default',
+  inStore:            'management',
+  showPullSecrets:    true,
+  noneLabel:          undefined,
+  skipPullSecrets:    false,
 });
 
 const emit = defineEmits<{
   'update:value': [val: string | undefined];
   'update:enabled': [val: boolean];
   'update:pullSecret': [val: string | undefined];
+  'update:skipPullSecrets': [val: boolean];
 }>();
 
 const store = useStore();
@@ -44,12 +58,48 @@ const store = useStore();
 const showInput = ref(!!props.value);
 const globalRegistry = ref('');
 const defaultPullSecrets = ref<string[]>([]);
+const localSkipPullSecrets = ref(props.skipPullSecrets);
+
+const isCharts = computed(() => props.context === PRIVATE_REGISTRY_CONTEXT.CHARTS);
+const isImporting = computed(() => props.context === PRIVATE_REGISTRY_CONTEXT.IMPORTING);
+
+const descriptionKey = computed(() => {
+  if (isCharts.value) {
+    return 'catalog.chart.registry.tooltip';
+  }
+  if (isImporting.value) {
+    return 'cluster.privateRegistry.importedDescription';
+  }
+
+  return 'cluster.privateRegistry.description';
+});
+
+const checkboxLabelKey = computed(() => {
+  if (isCharts.value) {
+    return 'catalog.chart.registry.custom.checkBoxLabel';
+  }
+
+  return 'cluster.privateRegistry.label';
+});
+
+const checkboxTooltipKey = computed(() => {
+  if (isCharts.value) {
+    return 'catalog.chart.registry.tooltip';
+  }
+
+  return undefined;
+});
 
 onMounted(() => {
-  const registrySetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_DEFAULT_REGISTRY);
-  const pullSecretsSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS);
+  if (props.defaultRegistry) {
+    globalRegistry.value = props.defaultRegistry;
+  } else {
+    const registrySetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_DEFAULT_REGISTRY);
 
-  globalRegistry.value = registrySetting?.value || registrySetting?.defaultValue;
+    globalRegistry.value = registrySetting?.value || registrySetting?.defaultValue;
+  }
+
+  const pullSecretsSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS);
 
   if (pullSecretsSetting?.value ) {
     defaultPullSecrets.value = pullSecretsSetting?.value.split(',').map((s: string) => s.trim());
@@ -66,6 +116,9 @@ const hasMultipleDefaultSecrets = computed(() => {
  * So a banner listing all secrets is shown instead
  */
 const defaultPullSecretLabel = computed(() => {
+  if (props.noneLabel) {
+    return props.noneLabel;
+  }
   if (!defaultPullSecrets.value?.length) {
     return null;
   }
@@ -107,6 +160,19 @@ watch(() => props.pullSecret, (neu, old) => {
   }
 });
 
+watch(localSkipPullSecrets, (neu) => {
+  emit('update:skipPullSecrets', neu);
+  if (neu) {
+    emit('update:pullSecret', undefined);
+  }
+});
+
+watch(() => props.skipPullSecrets, (neu) => {
+  if (neu !== localSkipPullSecrets.value) {
+    localSkipPullSecrets.value = neu;
+  }
+});
+
 </script>
 
 <template>
@@ -119,7 +185,8 @@ watch(() => props.pullSecret, (neu, old) => {
     v-model:value="showInput"
     class="mb-20"
     :mode="mode"
-    :label="t('cluster.privateRegistry.label')"
+    :label="t(checkboxLabelKey)"
+    :tooltip="checkboxTooltipKey ? t(checkboxTooltipKey) : undefined"
     :data-testid="checkboxTestId"
   />
   <template v-if="showInput">
@@ -137,32 +204,42 @@ watch(() => props.pullSecret, (neu, old) => {
         />
       </div>
     </div>
-    <Banner
-      v-if="hasMultipleDefaultSecrets"
-      color="info"
-    >
-      <!-- Global default image pull secrets have been configured. If an image pull secret is not selected or created here,  the first valid secret from this list will be used: -->
-      <template
-        v-for="s in defaultPullSecrets"
-        :key="s"
+    <template v-if="showPullSecrets">
+      <Checkbox
+        v-if="isCharts"
+        v-model:value="localSkipPullSecrets"
+        class="mb-10"
+        :mode="mode"
+        :label="t('catalog.chart.registry.pullSecret.skipOption')"
+      />
+      <Banner
+        v-if="hasMultipleDefaultSecrets && !localSkipPullSecrets"
+        color="info"
       >
-        <code>
-          {{ s }}
-        </code>
-      </template>
-      are configured as global default pull secrets. Select or create an image pull secret here to override the global default.
-    </Banner>
-    <SelectOrCreateAuthSecret
-      :value="pullSecret"
-      namespace="fleet-default"
-      in-store="management"
-      limit-to-namespace
-      fixed-image-pull-secret
-      :none-label="defaultPullSecretLabel"
-      :image-pull-secret-docker-json-url-config="value || globalRegistry"
-      :register-before-hook="registerBeforeHook"
-      @update:value="(val) => emit('update:pullSecret', val)"
-    />
+        <!-- Global default image pull secrets have been configured. If an image pull secret is not selected or created here,  the first valid secret from this list will be used: -->
+        <template
+          v-for="s in defaultPullSecrets"
+          :key="s"
+        >
+          <code>
+            {{ s }}
+          </code>
+        </template>
+        are configured as global default pull secrets. Select or create an image pull secret here to override the global default.
+      </Banner>
+      <SelectOrCreateAuthSecret
+        v-if="!localSkipPullSecrets"
+        :value="pullSecret"
+        :namespace="namespace"
+        :in-store="inStore"
+        limit-to-namespace
+        fixed-image-pull-secret
+        :none-label="defaultPullSecretLabel"
+        :image-pull-secret-docker-json-url-config="value || globalRegistry"
+        :register-before-hook="registerBeforeHook"
+        @update:value="(val) => emit('update:pullSecret', val)"
+      />
+    </template>
   </template>
 </template>
 

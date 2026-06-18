@@ -20,6 +20,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
@@ -255,6 +256,7 @@ export default defineComponent({
     return {
       isImport,
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
+      PRIVATE_REGISTRY_CONTEXT,
       nodePools:              [] as GKENodePool[],
       config:                 { } as GKEConfig,
       membershipUpdate:       {} as any,
@@ -963,10 +965,10 @@ export default defineComponent({
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
           :register-before-hook="registerBeforeHook"
-          description-key="cluster.privateRegistry.importedDescription"
         />
       </Accordion>
     </div>

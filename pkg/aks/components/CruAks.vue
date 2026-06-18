@@ -23,6 +23,7 @@ import Config from './Config.vue';
 import Import from './Import.vue';
 
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
@@ -212,6 +213,7 @@ export default defineComponent({
 
     return {
       NETWORKING_AUTH_MODES,
+      PRIVATE_REGISTRY_CONTEXT,
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
       nodePools:              [] as AKSNodePool[],
       config:                 { } as AKSConfig,
@@ -573,10 +575,10 @@ export default defineComponent({
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
           :register-before-hook="registerBeforeHook"
-          description-key="cluster.privateRegistry.importedDescription"
         />
       </Accordion>
     </div>

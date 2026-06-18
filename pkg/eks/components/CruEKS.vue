@@ -19,6 +19,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Loading from '@shell/components/Loading.vue';
 
@@ -212,6 +213,7 @@ export default defineComponent({
       isImport,
       cloudCredentialId:      '',
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
+      PRIVATE_REGISTRY_CONTEXT,
       nodeGroups:             [] as EKSNodeGroup[],
       config:                 { } as EKSConfig,
       membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
@@ -918,9 +920,9 @@ export default defineComponent({
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
-          description-key="cluster.privateRegistry.importedDescription"
         />
       </Accordion>
     </div>
