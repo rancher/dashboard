@@ -1580,19 +1580,7 @@ export default {
       > * {
         flex: 1;
         color: var(--link);
-
-        &:first-child {
-          text-align: left;
-        }
-        &:last-child {
-          text-align: right;
-        }
-        text-align: center;
-      }
-
-      .support a:focus-visible {
-        @include focus-outline;
-        outline-offset: 4px;
+        text-align: left;
       }
 
       .version {
