@@ -511,7 +511,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
     // let's check the extension reload banner and reload the page
@@ -539,7 +539,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
     // let's check the extension reload banner and reload the page
@@ -567,7 +567,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
-    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.uninstallModalUninstallClick();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');

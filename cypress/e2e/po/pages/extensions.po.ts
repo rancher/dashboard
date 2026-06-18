@@ -150,7 +150,6 @@ export default class ExtensionsPagePo extends PagePo {
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
    * @param branch - The git branch to target
    * @param name - A name for the repository
-   * @returns {Cypress.Chainable}
    */
   addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true) {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
@@ -232,7 +231,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-cancel-btn').click();
   }
 
-  uninstallModaluninstallClick(): Cypress.Chainable {
+  uninstallModalUninstallClick(): Cypress.Chainable {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-uninstall-btn').click();
   }
 
@@ -263,6 +262,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
+    this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
     return this.extensionTabs.clickTabWithName('available');
   }
 
