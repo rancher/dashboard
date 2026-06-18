@@ -1228,6 +1228,7 @@ catalog:
       lastUpdatedDesc: Last updated
       alphaAscending: Chart name, A → Z
       alphaDescending: Chart name, Z → A
+    loadingMore: Loading more…
     refreshButton:
       label: Refresh all repositories
     findSimilar:
