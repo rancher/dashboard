@@ -10,7 +10,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
 
 const defaultWorkspace = 'fleet-default';
-const workspaceNameList = [];
+const workspaceNameList: string[] = [];
 let customWorkspace = '';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -54,7 +54,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
       const fleetWorkspaceDetailsPage = new FleetWorkspaceDetailsPo(defaultWorkspace);
 
-      fleetWorkspaceDetailsPage.waitForPage(null, 'events');
+      fleetWorkspaceDetailsPage.waitForPage(undefined, 'events');
 
       // check table headers
       const expectedHeadersDetailsViewEvents = ['Type', 'Reason', 'Updated', 'Message'];
@@ -67,7 +67,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
 
       fleetWorkspaceDetailsPage.workspaceTabs().clickTabWithSelector('[data-testid="related"]');
-      fleetWorkspaceDetailsPage.waitForPage(null, 'related');
+      fleetWorkspaceDetailsPage.waitForPage(undefined, 'related');
 
       // check table headers
       const expectedHeadersDetailsViewResources = ['State', 'Type', 'Name', 'Namespace'];
@@ -398,7 +398,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspaceCreateEditPage.allowTargetNsTabList().setValueAtIndex('test', 0, 'Add');
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
         .clickTabWithSelector('[data-testid="btn-labels"]');
-      fleetWorkspaceCreateEditPage.waitForPage(null, 'labels');
+      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'labels');
       fleetWorkspaceCreateEditPage.lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Label', 'label-key1', 'label-value1', 0, 'div.row:nth-of-type(2)');
 
       // Adding Annotations doesn't work via test automation
@@ -420,7 +420,9 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
       appBundleListPage.goTo();
       appBundleListPage.waitForPage();
-      headerPo.checkCurrentWorkspace(customWorkspace);
+
+      headerPo.workspaceSwitcher().toggle();
+      headerPo.workspaceSwitcher().getOptions().should('contain', customWorkspace);
     });
 
     it('can Edit Config', () => {
