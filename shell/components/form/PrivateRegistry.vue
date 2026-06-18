@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -28,22 +29,26 @@ const props = withDefaults(defineProps<{
   showPullSecrets?: boolean;
   noneLabel?: string | null;
   skipPullSecrets?: boolean;
+  repoDefaultPullSecrets?: string[];
+  existingValuesPullSecrets?: string[];
 }>(), {
-  value:              undefined,
-  enabled:            false,
-  mode:               'edit',
-  rules:              () => [],
-  checkboxTestId:     undefined,
-  inputTestId:        undefined,
-  pullSecret:         undefined,
-  registerBeforeHook: undefined,
-  context:            PRIVATE_REGISTRY_CONTEXT.PROVISIONING,
-  defaultRegistry:    undefined,
-  namespace:          'fleet-default',
-  inStore:            'management',
-  showPullSecrets:    true,
-  noneLabel:          undefined,
-  skipPullSecrets:    false,
+  value:                     undefined,
+  enabled:                   false,
+  mode:                      'edit',
+  rules:                     () => [],
+  checkboxTestId:            undefined,
+  inputTestId:               undefined,
+  pullSecret:                undefined,
+  registerBeforeHook:        undefined,
+  context:                   PRIVATE_REGISTRY_CONTEXT.PROVISIONING,
+  defaultRegistry:           undefined,
+  namespace:                 'fleet-default',
+  inStore:                   'management',
+  showPullSecrets:           true,
+  noneLabel:                 undefined,
+  skipPullSecrets:           false,
+  repoDefaultPullSecrets:    () => [],
+  existingValuesPullSecrets: () => [],
 });
 
 const emit = defineEmits<{
@@ -54,6 +59,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
+const { t } = useI18n(store);
 
 const showInput = ref(!!props.value);
 const globalRegistry = ref('');
@@ -101,7 +107,9 @@ onMounted(() => {
 
   const pullSecretsSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS);
 
-  if (pullSecretsSetting?.value ) {
+  if (props.repoDefaultPullSecrets?.length) {
+    defaultPullSecrets.value = props.repoDefaultPullSecrets;
+  } else if (pullSecretsSetting?.value ) {
     defaultPullSecrets.value = pullSecretsSetting?.value.split(',').map((s: string) => s.trim());
   }
 });
@@ -111,9 +119,39 @@ const hasMultipleDefaultSecrets = computed(() => {
 });
 
 /**
- * If there is exactly one global default pull secret configured, we can show that it is the default in the secret dropdown
- * If there is more than one, UI can't be certain which secret will be used (std users by default can't read arbitrary secrets from local cluster cattle-system)
- * So a banner listing all secrets is shown instead
+ * On upgrade, if the chart values already contain multiple imagePullSecrets,
+ * the dropdown cannot represent them.  Show a banner instead and let the
+ * user edit the values YAML directly.
+ */
+const hasMultipleExistingPullSecrets = computed(() => {
+  return (props.existingValuesPullSecrets?.length ?? 0) > 1;
+});
+
+/**
+ * Format a list of names with commas and "and" before the last item.
+ * e.g. ["a"] => "<code>a</code>"
+ *      ["a", "b"] => "<code>a</code> and <code>b</code>"
+ *      ["a", "b", "c"] => "<code>a</code>, <code>b</code>, and <code>c</code>"
+ */
+function formatSecretList(names: string[]): string {
+  const wrapped = names.map((n) => `<code>${ n }</code>`);
+
+  const and = t('generic.and');
+
+  if (wrapped.length <= 1) {
+    return wrapped[0] || '';
+  }
+  if (wrapped.length === 2) {
+    return `${ wrapped[0] }${ and }${ wrapped[1] }`;
+  }
+
+  return `${ wrapped.slice(0, -1).join(', ') },${ and }${ wrapped[wrapped.length - 1] }`;
+}
+
+/**
+ * If there is exactly one default pull secret configured, we can show that it is the default in the secret dropdown.
+ * If there is more than one, UI can't be certain which secret will be used
+ * so a banner listing all secrets is shown instead.
  */
 const defaultPullSecretLabel = computed(() => {
   if (props.noneLabel) {
@@ -123,10 +161,26 @@ const defaultPullSecretLabel = computed(() => {
     return null;
   }
   if (defaultPullSecrets.value?.length === 1) {
-    return `Use global default pull secret (${ defaultPullSecrets.value[0] })`;
+    return t('catalog.chart.registry.pullSecret.defaultLabel', { name: defaultPullSecrets.value[0] });
   }
 
-  return 'Use global default pull secret';
+  return t('catalog.chart.registry.pullSecret.defaultLabelGeneric');
+});
+
+const existingValuesBannerHtml = computed(() => {
+  if (!props.existingValuesPullSecrets?.length) {
+    return '';
+  }
+
+  return t('catalog.chart.registry.pullSecret.existingValuesBanner', { secrets: formatSecretList(props.existingValuesPullSecrets) }, true);
+});
+
+const defaultSecretsBannerHtml = computed(() => {
+  if (!defaultPullSecrets.value?.length) {
+    return '';
+  }
+
+  return t('catalog.chart.registry.pullSecret.defaultSecretsBanner', { secrets: formatSecretList(defaultPullSecrets.value) }, true);
 });
 
 watch(() => props.enabled, (neu) => {
@@ -213,22 +267,19 @@ watch(() => props.skipPullSecrets, (neu) => {
         :label="t('catalog.chart.registry.pullSecret.skipOption')"
       />
       <Banner
-        v-if="hasMultipleDefaultSecrets && !localSkipPullSecrets"
+        v-if="hasMultipleExistingPullSecrets && !localSkipPullSecrets"
         color="info"
       >
-        <!-- Global default image pull secrets have been configured. If an image pull secret is not selected or created here,  the first valid secret from this list will be used: -->
-        <template
-          v-for="s in defaultPullSecrets"
-          :key="s"
-        >
-          <code>
-            {{ s }}
-          </code>
-        </template>
-        are configured as global default pull secrets. Select or create an image pull secret here to override the global default.
+        <span v-clean-html="existingValuesBannerHtml" />
+      </Banner>
+      <Banner
+        v-if="!hasMultipleExistingPullSecrets && hasMultipleDefaultSecrets && !localSkipPullSecrets"
+        color="info"
+      >
+        <span v-clean-html="defaultSecretsBannerHtml" />
       </Banner>
       <SelectOrCreateAuthSecret
-        v-if="!localSkipPullSecrets"
+        v-if="!localSkipPullSecrets && !hasMultipleExistingPullSecrets"
         :value="pullSecret"
         :namespace="namespace"
         :in-store="inStore"

@@ -1144,6 +1144,10 @@ catalog:
         placeholder: Registry domain and ports, ex. registry.io:5000
       pullSecret:
         skipOption: Do not use image pull secrets
+        defaultLabel: 'Use default pull secret ({name})'
+        defaultLabelGeneric: Use default pull secrets
+        existingValuesBanner: '{secrets} are configured as image pull secrets in the chart values. To modify them, edit the values YAML directly.'
+        defaultSecretsBanner: '{secrets} are configured as default pull secrets. Select or create an image pull secret here to override the default.'
     header:
       charts: Charts
     info:

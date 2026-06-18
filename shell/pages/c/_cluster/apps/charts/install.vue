@@ -40,7 +40,8 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS } from '@shell/store/catalog';
+import { addParam } from '@shell/utils/url';
+import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
@@ -359,6 +360,15 @@ export default {
 
         this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
         this.showCustomRegistryInput = !!this.customRegistrySetting;
+      }
+
+      // On upgrade, pre-select a single existing image pull secret in the dropdown
+      if (this.existing && this.showRegistryPullSecrets) {
+        const existingPullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+        if (Array.isArray(existingPullSecrets) && existingPullSecrets.length === 1) {
+          this.registryPullSecret = existingPullSecrets[0];
+        }
       }
 
       /* Serializes an object as a YAML document */
@@ -794,10 +804,23 @@ export default {
       return !!this.repo?.spec?.defaultImagePullSecrets?.length;
     },
 
-    defaultPullSecretNoneLabel() {
-      const name = this.repo?.spec?.defaultImagePullSecrets?.[0]?.name;
+    existingValuesPullSecrets() {
+      if (!this.existing) {
+        return [];
+      }
 
-      return name ? `Use default (${ name })` : null;
+      const pullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+      return Array.isArray(pullSecrets) ? pullSecrets.filter(Boolean) : [];
+    },
+
+    /**
+     * if the system-default-pull-image-secrets global setting is set OR the current cluster has system default registry pull secrets configured
+     * the Rancher cluster repo will automatically be populated with
+     * copies of the secrets referenced in the global setting
+     */
+    repoDefaultPullSecretNames() {
+      return (this.repo?.spec?.defaultImagePullSecrets || []).map((s) => s.name).filter(Boolean);
     },
 
     setImagePullSecretDataTrigger() {
@@ -1210,7 +1233,16 @@ export default {
           return;
         }
 
-        const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+        const actionName = isUpgrade ? 'upgrade' : 'install';
+        const actionOpt = {};
+
+        if (this.skipPullSecrets) {
+          const baseUrl = this.repo.actionLinkFor(actionName);
+
+          actionOpt.url = addParam(baseUrl, 'skipPullSecrets', 'true');
+        }
+
+        const res = await this.repo.doAction(actionName, input, actionOpt);
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
@@ -1271,8 +1303,13 @@ export default {
         set(global, 'systemDefaultRegistry', this.customRegistrySetting);
       }
 
-      if (this.showRegistryPullSecrets && !this.skipPullSecrets && this.registryPullSecret) {
+      if (this.showRegistryPullSecrets && this.registryPullSecret) {
+        // User explicitly selected or created a pull secret
         set(global, 'imagePullSecrets', [this.registryPullSecret]);
+      } else if (this.showRegistryPullSecrets) {
+        // User chose "skip" or "use default" — remove explicit imagePullSecrets
+        // so the backend falls back to the repo/global defaults
+        delete global.imagePullSecrets;
       }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
@@ -1429,10 +1466,6 @@ export default {
         out.skipCRDs = this.cmdOptions.crds === false;
       }
 
-      if (this.skipPullSecrets) {
-        out.skipPullSecrets = true;
-      }
-
       const more = [];
 
       const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter((x) => !!x).reverse();
@@ -1539,6 +1572,8 @@ export default {
       }
     },
 
+    // not the same as PrivateRegistry pull secrets which are created based off the global/cluster system default registry hostname value not the repo url directly
+    // those secrets will be created in a beforeSaveHook managed by SelectOrCreateAuthSecret
     async createImagePullSecret() {
       if (!this.repo?.isSuseAppCollection) {
         return;
@@ -1814,7 +1849,8 @@ export default {
             in-store="cluster"
             :register-before-hook="registerBeforeHook"
             :show-pull-secrets="showRegistryPullSecrets"
-            :none-label="defaultPullSecretNoneLabel"
+            :repo-default-pull-secrets="repoDefaultPullSecretNames"
+            :existing-values-pull-secrets="existingValuesPullSecrets"
             :pull-secret="registryPullSecret"
             :skip-pull-secrets="skipPullSecrets"
             checkbox-test-id="custom-registry-checkbox"
