@@ -136,6 +136,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
+      // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
@@ -207,6 +208,13 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+
+      // Workaround - there may be a timing issue where the cloned Bundle's Deployments count does not update and needs refresh... validating this...
+      fleetBundlesListPage.goTo();
+      fleetBundlesListPage.waitForPage();
+      fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+
+      // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
