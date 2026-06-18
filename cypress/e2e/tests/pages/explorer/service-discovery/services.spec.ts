@@ -10,7 +10,7 @@ const cluster = 'local';
 let serviceExternalName = '';
 const namespace = 'default';
 let removeServices = false;
-const servicesToDelete = [];
+const servicesToDelete: string[] = [];
 
 describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -146,7 +146,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { followingLogIn: true });
     });
 
     it('validate services table in empty state', () => {
