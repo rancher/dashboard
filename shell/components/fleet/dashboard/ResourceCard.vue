@@ -6,6 +6,8 @@ import { RcItemCard } from '@components/RcItemCard';
 import ResourceCardSummary from '@shell/components/fleet/dashboard/ResourceCardSummary.vue';
 import FleetUtils from '@shell/utils/fleet';
 import { FleetDashboardState, FleetResourceState } from '@shell/types/fleet';
+import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
+import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
 export default {
 
@@ -107,6 +109,18 @@ export default {
       return !this.value.status?.desiredReadyClusters;
     },
 
+    /**
+     * SUSE Application Collection bundles use the SUSE AppCo logo instead of the
+     * default resource icon font glyph.
+     */
+    isSuseAppCollection() {
+      return !!this.value.isSuseAppCollectionFromUI;
+    },
+
+    suseAppCoIcon() {
+      return this.$store.getters['prefs/theme'] === 'dark' ? suseAppCoLogoDark : suseAppCoLogo;
+    },
+
     nameTooltip() {
       if (this.value.nameDisplay?.length >= 15) {
         return this.value.nameDisplay;
@@ -146,7 +160,14 @@ export default {
     @keydown.self.space.stop.prevent="$router.push(value.detailLocation)"
   >
     <template #item-card-image>
+      <img
+        v-if="isSuseAppCollection"
+        class="suse-appco-icon"
+        :src="suseAppCoIcon"
+        :alt="value.nameDisplay"
+      >
       <i
+        v-else
         class="icon-lg"
         :class="value.dashboardIcon"
       />
@@ -176,6 +197,13 @@ export default {
   .icon-lg {
     font-size: 25px;
     margin-right: 8px;
+  }
+
+  .suse-appco-icon {
+    height: 30px;
+    width: 30px;
+    margin-right: 8px;
+    object-fit: contain;
   }
 
   // .item-card-body {

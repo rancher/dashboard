@@ -210,6 +210,10 @@ export default {
         return true;
       }
 
+      if (this.$route?.meta?.disableWorkspaceSwitcher) {
+        return true;
+      }
+
       return false;
     },
 

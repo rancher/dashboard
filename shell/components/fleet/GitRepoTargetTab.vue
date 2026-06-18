@@ -68,8 +68,6 @@ const onCreated = (value) => {
           :mode="mode"
           label-key="fleet.gitRepo.targetNamespace.label"
           placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-          label="Target Namespace"
-          placeholder="Optional: Require all resources to be in this namespace"
         />
       </div>
     </div>

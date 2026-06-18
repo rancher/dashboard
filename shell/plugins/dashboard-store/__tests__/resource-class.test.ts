@@ -403,6 +403,99 @@ describe('class: Resource', () => {
 
       expect(cards).toHaveLength(0);
     });
+
+    it('should include the resources card when relationships exist', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 'a'
+            },
+            {
+              rel: 'uses', fromType: 'pod', fromId: 'b'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(1);
+      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+    });
+  });
+
+  describe('getter: resourcesCard', () => {
+    it('should return null when there are no relationships', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      expect(resource.resourcesCard).toBeNull();
+    });
+
+    it('should return rows for both referredToBy and refersTo when relationships exist in both directions', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'owner', fromType: 'rs', fromId: 'r-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-2'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(2);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
+      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+      expect(rows[1].counts[0].count).toBe(2);
+    });
+
+    it('should omit a direction with no relationships', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+    });
   });
 
   describe('getter: insightCardProps', () => {

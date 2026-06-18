@@ -28,11 +28,16 @@ const mocks = {
   $fetchState: { pending: false },
   $route:      {
     query: { AS: '' },
+    hash:  '',
     name:  {
       endsWith: () => {
         return false;
       }
     }
+  },
+  $router: {
+    currentRoute: { _value: { hash: '' } },
+    replace:      jest.fn(),
   },
 };
 
@@ -149,6 +154,106 @@ describe('helmOp component lifecycle', () => {
 
     // Verify doCreateSecrets method exists
     expect(typeof wrapper.vm.doCreateSecrets).toBe('function');
+  });
+});
+
+describe('onCancel', () => {
+  it('should navigate back to the AppCo chart page with version when isSuseAppCollection is true and mode is CREATE', () => {
+    const routerPush = jest.fn();
+    const appCoMocks = {
+      ...mocks,
+      $route: {
+        ...mocks.$route,
+        query: {
+          AS:      '',
+          type:    'suse-application-collection',
+          chart:   'alertmanager',
+          version: '1.37.0',
+          secret:  'fleet-appco-auth-2n9px',
+        },
+        params: { cluster: 'local' },
+      },
+      $router: {
+        ...mocks.$router,
+        push: routerPush,
+      },
+    };
+
+    const wrapper = mount(HelmOpComponent, {
+      ...initHelmOp({ mode: _CREATE, realMode: _CREATE }),
+      computed: {
+        ...mockComputed,
+        isSuseAppCollection: () => true,
+      },
+      global: { mocks: appCoMocks },
+    });
+
+    wrapper.vm.onCancel();
+
+    expect(routerPush).toHaveBeenCalledWith({
+      name:   'c-cluster-fleet-application-appco-chart',
+      params: { cluster: 'local' },
+      query:  {
+        'repo-type': 'cluster',
+        repo:        'fleet-appco-repo-2n9px',
+        chart:       'alertmanager',
+        version:     '1.37.0',
+        secret:      'fleet-appco-auth-2n9px',
+      },
+    });
+  });
+
+  it('should navigate back to the AppCo chart page without version when version is not in query', () => {
+    const routerPush = jest.fn();
+    const appCoMocks = {
+      ...mocks,
+      $route: {
+        ...mocks.$route,
+        query: {
+          AS:     '',
+          type:   'suse-application-collection',
+          chart:  'alertmanager',
+          secret: 'fleet-appco-auth-2n9px',
+        },
+        params: { cluster: 'local' },
+      },
+      $router: {
+        ...mocks.$router,
+        push: routerPush,
+      },
+    };
+
+    const wrapper = mount(HelmOpComponent, {
+      ...initHelmOp({ mode: _CREATE, realMode: _CREATE }),
+      computed: {
+        ...mockComputed,
+        isSuseAppCollection: () => true,
+      },
+      global: { mocks: appCoMocks },
+    });
+
+    wrapper.vm.onCancel();
+
+    expect(routerPush).toHaveBeenCalledWith({
+      name:   'c-cluster-fleet-application-appco-chart',
+      params: { cluster: 'local' },
+      query:  {
+        'repo-type': 'cluster',
+        repo:        'fleet-appco-repo-2n9px',
+        chart:       'alertmanager',
+        version:     undefined,
+        secret:      'fleet-appco-auth-2n9px',
+      },
+    });
+  });
+
+  it('should call done() when not a SuseAppCollection', () => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode: _CREATE, realMode: _CREATE }));
+
+    jest.spyOn(wrapper.vm, 'done').mockImplementation(jest.fn());
+    wrapper.vm.onCancel();
+
+    expect(wrapper.vm.done).toHaveBeenCalledWith();
   });
 });
 

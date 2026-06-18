@@ -21,6 +21,7 @@ exports[`component: General rendering & initial state should render with default
           labelkey="auditPolicy.general.enabled.checkbox"
           mode="create"
           primary="false"
+          usebodytextcolor="false"
           value="false"
           valuewhentrue="true"
         />
@@ -71,6 +72,7 @@ exports[`component: General rendering & initial state should render with default
               label="auditPolicy.general.verbosity.level.label"
               loading="false"
               localizedlabel="false"
+              lockedoptions=""
               mode="create"
               nooptionslabelkey="labelSelect.noOptions.empty"
               optionlabel="label"
@@ -112,6 +114,7 @@ exports[`component: General rendering & initial state should render with default
                 label="auditPolicy.general.verbosity.request.requestHeaders"
                 mode="create"
                 primary="false"
+                usebodytextcolor="false"
                 value="false"
                 valuewhentrue="true"
               />
@@ -127,6 +130,7 @@ exports[`component: General rendering & initial state should render with default
                 label="auditPolicy.general.verbosity.request.requestBody"
                 mode="create"
                 primary="false"
+                usebodytextcolor="false"
                 value="false"
                 valuewhentrue="true"
               />
@@ -152,6 +156,7 @@ exports[`component: General rendering & initial state should render with default
                 label="auditPolicy.general.verbosity.response.responseHeaders"
                 mode="create"
                 primary="false"
+                usebodytextcolor="false"
                 value="false"
                 valuewhentrue="true"
               />
@@ -167,6 +172,7 @@ exports[`component: General rendering & initial state should render with default
                 label="auditPolicy.general.verbosity.response.responseBody"
                 mode="create"
                 primary="false"
+                usebodytextcolor="false"
                 value="false"
                 valuewhentrue="true"
               />

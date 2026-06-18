@@ -793,11 +793,10 @@ export const FLEET_SUMMARY = {
 export const FLEET_APPLICATION_TYPE = {
   name:     'applicationType',
   labelKey: 'fleet.tableHeaders.applicationType',
-  value:    'kind',
-  sort:     'kind',
+  value:    'applicationType',
+  sort:     'applicationType',
   search:   false,
-  align:    'center',
-  width:    100,
+  width:    200,
 };
 
 export const FLEET_APPLICATION_SOURCE = {

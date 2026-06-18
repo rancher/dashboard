@@ -3,7 +3,7 @@ import { reactive } from 'vue';
 import { RcItemCardAction } from '@components/RcItemCard';
 import { RcButton } from '@components/RcButton';
 import { isTruncated } from '@shell/utils/style';
-import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { RcIcon } from '@components/RcIcon';
 import type { RcIconType } from '@components/RcIcon/types';
 
 interface FooterItem {

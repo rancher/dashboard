@@ -9,12 +9,16 @@ interface SubHeaderItem {
 
 defineProps<{
   items: SubHeaderItem[];
+  removeMarginBottom?: boolean;
 }>();
 
 </script>
 
 <template>
-  <div class="app-chart-card-sub-header">
+  <div
+    class="app-chart-card-sub-header"
+    :class="{ 'no-margin-bottom': removeMarginBottom }"
+  >
     <div
       v-for="(subHeaderItem, i) in items"
       :key="i"
@@ -38,7 +42,12 @@ defineProps<{
   flex-wrap: wrap;
   gap: var(--gap) var(--gap-md);
   color: var(--link-text-secondary);
+  height: 22px;
   margin-bottom: 8px;
+
+  &.no-margin-bottom {
+    margin-bottom: 0;
+  }
 
   &-item {
     display: flex;
