@@ -871,7 +871,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--gap-sm);
+    gap: var(--gap);
     padding: 16px;
     font-size: 14px;
     color: var(--muted);
