@@ -156,6 +156,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    nameColSpan: {
+      type:    Number,
+      default: 3,
+    },
     noBottomMargin: {
       type:    Boolean,
       default: false,
@@ -495,7 +499,7 @@ export default {
     <div
       v-if="!nameHidden && !nameNsHidden"
       :data-testid="componentTestid + '-name'"
-      class="col span-3"
+      :class="['col', `span-${nameColSpan}`]"
     >
       <LabeledInput
         ref="nameInput"
