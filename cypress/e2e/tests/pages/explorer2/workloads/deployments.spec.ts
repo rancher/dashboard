@@ -19,11 +19,11 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo(localCluster);
     const deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
     const { namespace } = createDeploymentBlueprint.metadata;
-    let deploymentId;
-    let volumeDeploymentId;
-    let scaleTestDeploymentId;
-    let scaleTestDeploymentName;
-    let scaleTestNamespace; // Dynamic namespace for scale test
+    let deploymentId: string;
+    let volumeDeploymentId: string;
+    let scaleTestDeploymentId: string;
+    let scaleTestDeploymentName: string;
+    let scaleTestNamespace: string; // Dynamic namespace for scale test
 
     const createTestDeployment = (baseName: string) => {
       const deployment = structuredClone(createDeploymentBlueprint);
@@ -316,7 +316,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
-    let deploymentNamesList = [];
+    let deploymentNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;

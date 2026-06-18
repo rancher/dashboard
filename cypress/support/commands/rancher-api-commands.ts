@@ -514,7 +514,7 @@ Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, e
         expect(resp.status).to.eq(expectedStatusCode);
       }
 
-      return resp;
+      return cy.wrap(resp);
     });
 });
 

@@ -56,6 +56,8 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
       workloadsJobsListPage.goTo();
+      workloadsJobsListPage.waitForPage();
+      workloadsJobsListPage.baseResourceList().checkVisible();
       workloadsJobsListPage.baseResourceList().masthead().create();
 
       // create view jobs
@@ -96,7 +98,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
     let uniqueJob = SortableTablePo.firstByDefaultName('job');
-    let jobNamesList = [];
+    let jobNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;

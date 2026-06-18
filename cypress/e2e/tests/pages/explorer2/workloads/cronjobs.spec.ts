@@ -56,7 +56,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
     it('Jobs list updates automatically in CronJob details page', () => {
       // Set namespace filter to include the test cronjob namespace
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`);
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`, { followingLogIn: true });
 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
@@ -87,7 +87,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
             .should('contain', 'Active');
 
           // Pod status should be Running
-          jobDetailsPage.resourceDetail().resourceGauges().should('contain', 'Running');
+          jobDetailsPage.resourceDetail().resourceGauges().should('contain', 'Running', MEDIUM_TIMEOUT_OPT);
           jobDetailsPage.resourceDetail().tabbedList('pods').resourceTableDetails(podName, 1).contains('Running', MEDIUM_TIMEOUT_OPT);
         });
 
@@ -127,7 +127,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
     let detailsPageCronJob = SortableTablePo.firstByDefaultName('detailscron');
-    let cronJobNamesList = [];
+    let cronJobNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let nsName3: string;
