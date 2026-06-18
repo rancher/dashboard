@@ -75,7 +75,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 let runTimestamp: number;
 let runPrefix: string;
 let globalRoleName: string;
-const roleTemplatesToDelete = [];
+const roleTemplatesToDelete: string[] = [];
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -578,6 +578,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // create global role
       roles.goTo();
+      roles.waitForPage(undefined, 'GLOBAL');
+
       roles.listCreate('Create Global Role');
 
       const createGlobal = roles.createGlobal();
@@ -606,11 +608,17 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // logout admin
       cy.logout();
 
+      // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
+      // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
+      // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+
       // login as standard user
       cy.login(standardUsername, standardPassword);
 
       // navigate to the roles page and make sure user can see it
       roles.goTo();
+      roles.waitForPage(undefined, 'GLOBAL');
       roles.list('GLOBAL').masthead().title().should('contain', 'Role Templates');
       roles.list('GLOBAL').elements().should('have.length.of.at.least', 1);
 
