@@ -1139,7 +1139,7 @@ catalog:
       label: Container Registry
       tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
       custom:
-        checkBoxLabel: Container Registry for Rancher System Container Images
+        checkBoxLabel: Override the Default Container Registry
         inputLabel: Container Registry
         placeholder: Registry domain and ports, ex. registry.io:5000
     header:

@@ -45,7 +45,7 @@ const DEFAULT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {},
-  importedConfig:                      { privateRegistryURL: null },
+  importedConfig:                      {},
 };
 
 const DEFAULT__IMPORT_CLUSTER = {
@@ -56,7 +56,7 @@ const DEFAULT__IMPORT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {},
-  importedConfig:                      { privateRegistryURL: null },
+  importedConfig:                      {},
   eksConfig:                           {
     amazonCredentialSecret: '',
     displayName:            '',
@@ -352,6 +352,21 @@ export default defineComponent({
 
     isImportedCluster(): boolean {
       return this.isImport || this.value.isImported;
+    },
+
+    pullSecrets: {
+      get(): string | undefined {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val: string | undefined) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
     },
 
     fvExtraRules(): {[key:string]: Function} {
@@ -901,6 +916,7 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"

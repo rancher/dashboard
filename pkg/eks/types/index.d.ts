@@ -70,6 +70,11 @@ export interface NormanCluster extends NormanModel {
   clusterAgentDeploymentCustomization?: any,
   id?: string,
   enableNetworkPolicy?: boolean,
+  importedConfig?: {
+    privateRegistryURL?: string | null,
+    privateRegistryPullSecrets?: string[],
+    [key: string]: any,
+  },
   status? : {[key:string]: any},
   eksStatus?: {[key:string]:any},
   waitForCondition(name: any, withStatus?: string | undefined, timeoutMs?: number | undefined, intervalMs?: number | undefined): Promise<void>

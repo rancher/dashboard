@@ -3,7 +3,7 @@ import { privateRegistryRequired } from '@shell/utils/validators/private-registr
 const makeCtx = (overrides: any = {}) => ({
   t:                      jest.fn((key: string, params?: any) => (params ? `${ key }:${ JSON.stringify(params) }` : key)),
   privateRegistryEnabled: false,
-  normanCluster:          { importedConfig: { privateRegistryURL: null } },
+  normanCluster:          { importedConfig: {} },
   isImportedCluster:      true,
   ...overrides,
 });
@@ -20,7 +20,7 @@ describe('privateRegistryRequired', () => {
     const ctx: any = {
       t:                      jest.fn((key: string, params?: any) => (params ? `${ key }:${ JSON.stringify(params) }` : key)),
       privateRegistryEnabled: true,
-      normanCluster:          { importedConfig: { privateRegistryURL: null } },
+      normanCluster:          { importedConfig: {} },
     };
     const rule = privateRegistryRequired(ctx);
 

@@ -39,7 +39,7 @@ const defaultCluster = {
   agentEnvVars:   [],
   labels:         {},
   annotations:    {},
-  importedConfig: { privateRegistryURL: null }
+  importedConfig: {}
 };
 
 export default defineComponent({
@@ -151,6 +151,20 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
+    },
     fvExtraRules() {
       return {
         clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
@@ -606,7 +620,7 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
-          v-model:pull-secret="normanCluster.importedConfig.imagePullSecret"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"

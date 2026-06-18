@@ -8,15 +8,11 @@ interface PrivateRegistryRuleContext {
   t: Translation;
   privateRegistryEnabled: boolean;
   normanCluster: { importedConfig?: { privateRegistryURL?: string | null } } | null;
-  isImportedCluster?: boolean;
   $store: VuexStore
 }
 
-// TODO nb update this? private registry is not required if a global default system registry is defined
 export function privateRegistryRequired(ctx: PrivateRegistryRuleContext) {
   return () => {
-    // Check existence using `in` rather than direct access to avoid Vue's render-time warning
-    const isImported = 'isImportedCluster' in ctx ? !!ctx.isImportedCluster : true;
     let hasGlobalDefault = false;
 
     try {
@@ -25,10 +21,10 @@ export function privateRegistryRequired(ctx: PrivateRegistryRuleContext) {
 
       hasGlobalDefault = !!globalRegistrySetting?.value;
     } catch {
-      // no global default to be found
+      // if no setting proceed like there's no global default
     }
 
-    if (!isImported || !ctx.privateRegistryEnabled || hasGlobalDefault) {
+    if (!ctx.privateRegistryEnabled || hasGlobalDefault) {
       return undefined;
     }
     const url = ctx.normanCluster?.importedConfig?.privateRegistryURL;

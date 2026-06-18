@@ -135,7 +135,7 @@ const defaultImportedCluster = {
   enableNetworkPolicy:    false,
   windowsPreferedCluster: false,
   name:                   '',
-  importedConfig:         { privateRegistryURL: null },
+  importedConfig:         {},
   gkeConfig:              {
     imported:               true,
     clusterName:            '',
@@ -356,6 +356,21 @@ export default defineComponent({
 
     isImportedCluster() {
       return this.isImport || this.value.isImported;
+    },
+
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
     },
 
     /**
@@ -946,6 +961,7 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"

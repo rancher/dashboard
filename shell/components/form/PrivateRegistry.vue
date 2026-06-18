@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  ref, watch, onMounted, computed, withDefaults
+  ref, watch, onMounted, computed
 } from 'vue';
 import { useStore } from 'vuex';
 import Banner from '@components/Banner/Banner.vue';
@@ -22,12 +22,21 @@ const props = withDefaults(defineProps<{
   pullSecret?: string;
   registerBeforeHook: Function;
   descriptionKey?: string;
-}>(), { descriptionKey: 'cluster.privateRegistry.description' });
+}>(), {
+  value:          undefined,
+  enabled:        false,
+  mode:           'edit',
+  rules:          () => [],
+  checkboxTestId: undefined,
+  inputTestId:    undefined,
+  pullSecret:     undefined,
+  descriptionKey: 'cluster.privateRegistry.description',
+});
 
 const emit = defineEmits<{
-  'update:value': [val: string | null];
+  'update:value': [val: string | undefined];
   'update:enabled': [val: boolean];
-  'update:pullSecret': [val: string | null];
+  'update:pullSecret': [val: string | undefined];
 }>();
 
 const store = useStore();
@@ -42,7 +51,6 @@ onMounted(() => {
 
   globalRegistry.value = registrySetting?.value || registrySetting?.defaultValue;
 
-  // TODO nb first one oooor?
   if (pullSecretsSetting?.value ) {
     defaultPullSecrets.value = pullSecretsSetting?.value.split(',').map((s: string) => s.trim());
   }
@@ -55,7 +63,7 @@ const hasMultipleDefaultSecrets = computed(() => {
 /**
  * If there is exactly one global default pull secret configured, we can show that it is the default in the secret dropdown
  * If there is more than one, UI can't be certain which secret will be used (std users by default can't read arbitrary secrets from local cluster cattle-system)
- * So a banner listing all secrets is shown instead // TODO nb ?? need ux feedback
+ * So a banner listing all secrets is shown instead
  */
 const defaultPullSecretLabel = computed(() => {
   if (!defaultPullSecrets.value?.length) {
@@ -79,14 +87,23 @@ watch(showInput, (neu, old) => {
     emit('update:enabled', neu);
   }
   if (!neu && old && props.value) {
-    emit('update:value', null);
-    emit('update:pullSecret', null);
+    emit('update:value', undefined);
+    emit('update:pullSecret', undefined);
   }
 });
 
 watch(() => props.value, (neu) => {
   if (!!neu && !showInput.value) {
     showInput.value = true;
+  }
+});
+
+watch(() => props.pullSecret, (neu, old) => {
+  if (neu && !props.value) {
+    emit('update:value', globalRegistry.value);
+  }
+  if (!neu && old && props.value === globalRegistry.value) {
+    emit('update:value', undefined);
   }
 });
 
@@ -115,7 +132,7 @@ watch(() => props.value, (neu) => {
           :required="!globalRegistry"
           label-key="catalog.chart.registry.custom.inputLabel"
           :data-testid="inputTestId"
-          :placeholder="globalRegistry ? 'Default: ' + globalRegistry : t('catalog.chart.registry.custom.placeholder')"
+          :placeholder="t('catalog.chart.registry.custom.placeholder')"
           @update:value="(val) => emit('update:value', val)"
         />
       </div>
@@ -135,7 +152,6 @@ watch(() => props.value, (neu) => {
       </template>
       are configured as global default pull secrets. Select or create an image pull secret here to override the global default.
     </Banner>
-    <!-- //TODO nb hardcode fleet-default ns somewhere -->
     <SelectOrCreateAuthSecret
       :value="pullSecret"
       namespace="fleet-default"

@@ -793,6 +793,7 @@ export default {
   },
 
   watch: {
+    // TODO nb need to NOT trigger this when adding skip image pull secret param
     '$route.query'(neu, old) {
       // If the query changes, refetch the chart
       // When going back to app list, the query is empty and we don't want to refetch
@@ -974,6 +975,8 @@ export default {
         }
       }
     },
+
+    // TODO nb get cluster registry for local and imported clusters using mgmt cluster importConfig
     async getClusterRegistry() {
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
@@ -1119,6 +1122,7 @@ export default {
       }
     },
 
+    // TODO nb need this to run before any namespaces
     async createNamespaceIfNeeded() {
       const namespace = this.targetNamespace;
 
@@ -1149,8 +1153,9 @@ export default {
 
         this.errors = [];
 
-        // Create namespace if it doesn't exist (before hooks run)
+        // Create namespace if it doesn't exist (before the beforeSaveHooks run)
         // And only if it is SUSE APP Collection, overall should just do the same flow
+        // TODO nb need to do this for Rancher charts as well, if user is creating a new secret
         if (!isUpgrade && this.isNamespaceNew && this.repo?.isSuseAppCollection) {
           await this.createNamespaceIfNeeded();
         }
@@ -1222,6 +1227,7 @@ export default {
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
 
+      // TODO nb also img pull secrets if non-default and non-skip
       if (this.showCustomRegistry) {
         set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
         set(global, 'systemDefaultRegistry', this.customRegistrySetting);
