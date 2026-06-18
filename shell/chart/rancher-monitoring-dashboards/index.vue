@@ -5,6 +5,11 @@ import sortBy from 'lodash/sortBy';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { findBy } from '@shell/utils/array';
 
+// Survives Form → YAML → Form tab switches (which unmount/remount this
+// component) because the module is loaded once. Keyed by chart name so a
+// different chart's install doesn't restore a stale selection.
+const cachedSelections = new Map();
+
 const CLUSTER_TYPES = [
   {
     group: 'managed',
@@ -77,6 +82,9 @@ export default {
     provider() {
       return this.currentCluster.status.provider.toLowerCase();
     },
+    cacheKey() {
+      return this.chart?.chartName || this.chart?.name || '__default__';
+    },
   },
 
   watch: {
@@ -85,11 +93,21 @@ export default {
         return;
       }
 
+      cachedSelections.set(this.cacheKey, clusterType.id);
       this.applyClusterTypeValues(clusterType);
     },
   },
 
   created() {
+    const cachedId = cachedSelections.get(this.cacheKey);
+    const cached = cachedId ? findBy(this.clusterTypes, 'id', cachedId) : null;
+
+    if (cached) {
+      this.clusterType = cached;
+
+      return;
+    }
+
     const matched = findBy(this.clusterTypes, 'id', this.provider);
 
     this.clusterType = matched || findBy(this.clusterTypes, 'id', 'other');
