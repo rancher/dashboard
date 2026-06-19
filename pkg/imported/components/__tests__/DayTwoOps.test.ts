@@ -6,7 +6,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
-    const store = createStore({ getters: { 'i18n/t': (key: string) => key } });
+    const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
     return { global: { plugins: [store] } };
   };
