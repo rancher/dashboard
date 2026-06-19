@@ -4,6 +4,9 @@ import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, OPERATION } from '@shell/config/types';
+import { createOperationCR } from '@shell/utils/operation-cr';
+
+jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
@@ -449,8 +452,10 @@ describe('class ProvCluster', () => {
     const createContext = ({
       byId = jest.fn(),
       all = jest.fn(() => []),
+      schemaFor = jest.fn(() => ({})),
     } = {}) => {
       return {
+        getters:     { schemaFor },
         rootGetters: {
           'management/byId': byId,
           'management/all':  all,
@@ -520,7 +525,28 @@ describe('class ProvCluster', () => {
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
       jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
 
-      expect(cluster.isImportedWithDayTwoOps).toBe(false);
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
+    });
+
+    it('should return false for imported RKE2 day 2 operations when operation schema is missing', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const schemaFor = jest.fn().mockReturnValue(undefined);
+      const cluster = new ProvCluster({}, createContext({ byId, schemaFor }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
     });
 
     it('should filter etcd snapshots by management cluster fields for imported day 2 operations clusters', () => {
@@ -548,23 +574,27 @@ describe('class ProvCluster', () => {
     });
 
     it('should create an operation CR when taking a snapshot on an imported RKE2 or K3s cluster', () => {
-      const cluster = new ProvCluster({});
-      const createOperationCR = jest.fn();
+      const cluster = new ProvCluster({}, createContext());
+
+      (createOperationCR as jest.Mock).mockResolvedValue(undefined);
 
       jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(false);
-      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
-      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1' });
-      jest.spyOn(cluster, '_createOperationCR').mockImplementation(createOperationCR);
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(true);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1', metadata: { name: 'imported-cluster' } });
 
       cluster.takeSnapshot();
 
-      expect(createOperationCR).toHaveBeenCalledWith(OPERATION.ETCD_SNAPSHOT, {
+      expect(createOperationCR).toHaveBeenCalledTimes(1);
+      expect((createOperationCR as jest.Mock).mock.calls[0][1]).toBe(OPERATION.ETCD_SNAPSHOT);
+      expect((createOperationCR as jest.Mock).mock.calls[0][2]).toStrictEqual({
         clusterRef: {
           apiVersion: 'management.cattle.io/v3',
           kind:       'Cluster',
           name:       'c-m-1',
         }
       });
+      expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-1');
+      expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('imported-cluster');
     });
   });
 });

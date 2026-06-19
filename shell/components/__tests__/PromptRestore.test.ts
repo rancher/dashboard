@@ -6,6 +6,9 @@ import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 import { CAPI, MANAGEMENT, OPERATION, SNAPSHOT } from '@shell/config/types';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { createOperationCR } from '@shell/utils/operation-cr';
+
+jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
 
 const RKE2_CLUSTER_NAME = 'rke2_cluster_name';
 const RKE2_SUCCESSFUL_SNAPSHOT_1 = {
@@ -37,6 +40,10 @@ const RKE2_FAILED_SNAPSHOT = {
 };
 
 describe('component: PromptRestore', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const rke2TestCases = [
     [[], 0],
     [[RKE2_FAILED_SNAPSHOT], 0],
@@ -77,7 +84,7 @@ describe('component: PromptRestore', () => {
   });
 
   it('should restore imported cluster via operation CR', async() => {
-    const createOperationCR = jest.fn().mockResolvedValue(undefined);
+    (createOperationCR as jest.Mock).mockResolvedValue(undefined);
     const clusterSave = jest.fn();
     const buttonDone = jest.fn();
 
@@ -87,7 +94,6 @@ describe('component: PromptRestore', () => {
       type:                    CAPI.RANCHER_CLUSTER,
       metadata:                { name: 'imported-cluster' },
       mgmt:                    { id: 'c-m-imported' },
-      _createOperationCR:      createOperationCR,
       save:                    clusterSave,
     };
 
@@ -128,7 +134,9 @@ describe('component: PromptRestore', () => {
 
     await wrapper.vm.apply(buttonDone);
 
-    expect(createOperationCR).toHaveBeenCalledWith(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+    expect(createOperationCR).toHaveBeenCalledTimes(1);
+    expect((createOperationCR as jest.Mock).mock.calls[0][1]).toBe(OPERATION.ETCD_SNAPSHOT_RESTORE);
+    expect((createOperationCR as jest.Mock).mock.calls[0][2]).toStrictEqual({
       clusterRef: {
         apiVersion: 'management.cattle.io/v3',
         kind:       'Cluster',
@@ -136,19 +144,20 @@ describe('component: PromptRestore', () => {
       },
       args: { name: 'snapshot-file-1' },
     });
+    expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-imported');
+    expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('c-m-imported');
     expect(clusterSave).not.toHaveBeenCalled();
     expect(buttonDone).toHaveBeenCalledWith(true);
   });
 
   it('should restore imported snapshot by resolving target cluster from store', async() => {
-    const createOperationCR = jest.fn().mockResolvedValue(undefined);
+    (createOperationCR as jest.Mock).mockResolvedValue(undefined);
     const buttonDone = jest.fn();
     const byId = jest.fn();
 
     const importedCluster = {
       id:                      'fleet-default/imported-cluster',
       isImportedWithDayTwoOps: true,
-      _createOperationCR:      createOperationCR,
       mgmt:                    { id: 'c-m-imported' },
       isImported:              true,
     };
@@ -198,7 +207,9 @@ describe('component: PromptRestore', () => {
 
     await wrapper.vm.apply(buttonDone);
 
-    expect(createOperationCR).toHaveBeenCalledWith(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+    expect(createOperationCR).toHaveBeenCalledTimes(1);
+    expect((createOperationCR as jest.Mock).mock.calls[0][1]).toBe(OPERATION.ETCD_SNAPSHOT_RESTORE);
+    expect((createOperationCR as jest.Mock).mock.calls[0][2]).toStrictEqual({
       clusterRef: {
         apiVersion: 'management.cattle.io/v3',
         kind:       'Cluster',
@@ -206,6 +217,8 @@ describe('component: PromptRestore', () => {
       },
       args: { name: 'snapshot-file-2' },
     });
+    expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-imported');
+    expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('c-m-imported');
     expect(buttonDone).toHaveBeenCalledWith(true);
     expect(byId).toHaveBeenCalledWith(CAPI.RANCHER_CLUSTER, 'fleet-default/imported-cluster');
   });
