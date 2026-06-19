@@ -213,12 +213,6 @@ export default {
         }
       }
 
-      if ( this.newCredential.metadata.name ) {
-        delete this.newCredential.metadata.generateName;
-      } else {
-        this.newCredential.metadata.generateName = 'cloud-credential-';
-      }
-
       try {
         const res = await this.newCredential.save();
 
