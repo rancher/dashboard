@@ -98,7 +98,6 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription,
     SelectOrCreateAuthSecret,
     PrivateRegistry
   },
