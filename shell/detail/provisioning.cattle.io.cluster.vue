@@ -625,7 +625,10 @@ export default {
         {
           ...STATE_NORMAN, value: 'snapshotFile.status', formatterOpts: { arbitrary: true }
         },
-        NAME,
+        {
+          ...NAME,
+          formatter: 'EtcdSnapshotName',
+        },
         {
           name:      'size',
           labelKey:  'tableHeaders.size',

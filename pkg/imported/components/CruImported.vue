@@ -424,7 +424,7 @@ export default defineComponent({
     },
     async initDayTwoOps() {
       try {
-        this.dayTwoOpsFlagEnabled = this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
           type: MANAGEMENT.FEATURE,
           id:   IMPORTED_DAY_2_OPS
         }))?.enabled || false;
@@ -432,9 +432,9 @@ export default defineComponent({
         this.dayTwoOpsFlagEnabled = false;
       }
 
-      this.dayTwoOpsGlobalSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+      this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
       if (this.isCreate && this.dayTwoOpsFlagEnabled) {
-        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = this.dayTwoOpsGlobalSetting;
+        this.dayTwoOpsEnabled = this.dayTwoOpsGlobalSetting;
       }
     },
     setSchedulingCustomization({ event, agentType }) {

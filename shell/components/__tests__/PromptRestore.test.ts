@@ -4,33 +4,36 @@ import PromptRestore from '@shell/components/PromptRestore.vue';
 import { createStore } from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
-import { CAPI } from '@shell/config/types';
+import { CAPI, MANAGEMENT, OPERATION, SNAPSHOT } from '@shell/config/types';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 const RKE2_CLUSTER_NAME = 'rke2_cluster_name';
 const RKE2_SUCCESSFUL_SNAPSHOT_1 = {
-  clusterName:  RKE2_CLUSTER_NAME,
-  type:         CAPI.RANCHER_CLUSTER,
-  created:      'Thu Jul 20 2023 11:11:39',
-  snapshotFile: { status: STATES_ENUM.SUCCESSFUL },
-  id:           'rke2_id_1',
-  name:         'rke2_name_1'
+  clusterName:    RKE2_CLUSTER_NAME,
+  type:           CAPI.RANCHER_CLUSTER,
+  created:        'Thu Jul 20 2023 11:11:39',
+  restoreEnabled: true,
+  snapshotFile:   { status: STATES_ENUM.SUCCESSFUL },
+  id:             'rke2_id_1',
+  name:           'rke2_name_1'
 };
 const RKE2_SUCCESSFUL_SNAPSHOT_2 = {
-  clusterName:  RKE2_CLUSTER_NAME,
-  type:         CAPI.RANCHER_CLUSTER,
-  created:      'Thu Jul 20 2022 11:11:39',
-  snapshotFile: { status: STATES_ENUM.SUCCESSFUL },
-  id:           'rke2_id_2',
-  name:         'rke2_name_2'
+  clusterName:    RKE2_CLUSTER_NAME,
+  type:           CAPI.RANCHER_CLUSTER,
+  created:        'Thu Jul 20 2022 11:11:39',
+  restoreEnabled: true,
+  snapshotFile:   { status: STATES_ENUM.SUCCESSFUL },
+  id:             'rke2_id_2',
+  name:           'rke2_name_2'
 };
 const RKE2_FAILED_SNAPSHOT = {
-  clusterName:  RKE2_CLUSTER_NAME,
-  type:         CAPI.RANCHER_CLUSTER,
-  created:      'Thu Jul 20 2021 11:11:39',
-  snapshotFile: { status: STATES_ENUM.FAILED },
-  id:           'rke2_id_3',
-  name:         'rke2_name_3'
+  clusterName:    RKE2_CLUSTER_NAME,
+  type:           CAPI.RANCHER_CLUSTER,
+  created:        'Thu Jul 20 2021 11:11:39',
+  restoreEnabled: false,
+  snapshotFile:   { status: STATES_ENUM.FAILED },
+  id:             'rke2_id_3',
+  name:           'rke2_name_3'
 };
 
 describe('component: PromptRestore', () => {
@@ -71,5 +74,139 @@ describe('component: PromptRestore', () => {
     await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
+  });
+
+  it('should restore imported cluster via operation CR', async() => {
+    const createOperationCR = jest.fn().mockResolvedValue(undefined);
+    const clusterSave = jest.fn();
+    const buttonDone = jest.fn();
+
+    const importedCluster = {
+      isImported:              true,
+      isImportedWithDayTwoOps: true,
+      type:                    CAPI.RANCHER_CLUSTER,
+      metadata:                { name: 'imported-cluster' },
+      mgmt:                    { id: 'c-m-imported' },
+      _createOperationCR:      createOperationCR,
+      save:                    clusterSave,
+    };
+
+    const getters: any = {};
+
+    getters['i18n/t'] = () => (key: string) => key;
+
+    const store = createStore({
+      modules: {
+        'action-menu': {
+          namespaced: true,
+          state:      {
+            showPromptRestore: true,
+            toRestore:         [importedCluster]
+          },
+          mutations: { togglePromptRestore: jest.fn() }
+        },
+      },
+      getters,
+      actions: {
+        'management/findAll': jest.fn().mockResolvedValue([]),
+        'growl/success':      jest.fn(),
+      }
+    });
+
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
+
+    wrapper.vm.allSnapshots = {
+      'snapshot-1': {
+        name:         'snapshot-1',
+        snapshotFile: { name: 'snapshot-file-1' }
+      }
+    };
+    wrapper.vm.selectedSnapshot = 'snapshot-1';
+
+    await wrapper.vm.apply(buttonDone);
+
+    expect(createOperationCR).toHaveBeenCalledWith(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+      clusterRef: {
+        apiVersion: 'management.cattle.io/v3',
+        kind:       'Cluster',
+        name:       'c-m-imported',
+      },
+      args: { name: 'snapshot-file-1' },
+    });
+    expect(clusterSave).not.toHaveBeenCalled();
+    expect(buttonDone).toHaveBeenCalledWith(true);
+  });
+
+  it('should restore imported snapshot by resolving target cluster from store', async() => {
+    const createOperationCR = jest.fn().mockResolvedValue(undefined);
+    const buttonDone = jest.fn();
+    const byId = jest.fn();
+
+    const importedCluster = {
+      id:                      'fleet-default/imported-cluster',
+      isImportedWithDayTwoOps: true,
+      _createOperationCR:      createOperationCR,
+      mgmt:                    { id: 'c-m-imported' },
+      isImported:              true,
+    };
+
+    byId.mockImplementation((type: string, id: string) => {
+      if (type === CAPI.RANCHER_CLUSTER && id === 'fleet-default/imported-cluster') {
+        return importedCluster;
+      }
+
+      if (type === MANAGEMENT.CLUSTER && id === 'c-m-imported') {
+        return importedCluster.mgmt;
+      }
+
+      return null;
+    });
+
+    const getters: any = {};
+
+    getters['i18n/t'] = () => (key: string) => key;
+    getters['management/byId'] = () => byId;
+
+    const store = createStore({
+      modules: {
+        'action-menu': {
+          namespaced: true,
+          state:      {
+            showPromptRestore: true,
+            toRestore:         [{
+              type:         SNAPSHOT,
+              metadata:     { namespace: 'fleet-default' },
+              spec:         { clusterName: 'imported-cluster', clusterRef: { name: 'c-m-imported' } },
+              snapshotFile: { name: 'snapshot-file-2' },
+              nameDisplay:  'snapshot-2',
+            }]
+          },
+          mutations: { togglePromptRestore: jest.fn() }
+        },
+      },
+      getters,
+      actions: { 'growl/success': jest.fn() }
+    });
+
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
+
+    await wrapper.vm.apply(buttonDone);
+
+    expect(createOperationCR).toHaveBeenCalledWith(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+      clusterRef: {
+        apiVersion: 'management.cattle.io/v3',
+        kind:       'Cluster',
+        name:       'c-m-imported',
+      },
+      args: { name: 'snapshot-file-2' },
+    });
+    expect(buttonDone).toHaveBeenCalledWith(true);
+    expect(byId).toHaveBeenCalledWith(CAPI.RANCHER_CLUSTER, 'fleet-default/imported-cluster');
   });
 });

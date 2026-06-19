@@ -11,13 +11,11 @@ export default class EtcdBackup extends NormanModel {
    * Restrict actions for snapshots to restore only
    */
   get _availableActions() {
-    const enabled = this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL;
-
     return [{
-      action: 'promptRestore',
-      enabled,
-      icon:   'icon icon-backup-restore',
-      label:  'Restore'
+      action:  'promptRestore',
+      enabled: this.restoreEnabled,
+      icon:    'icon icon-backup-restore',
+      label:   'Restore'
     }];
   }
 
@@ -38,7 +36,9 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ DEFAULT_WORKSPACE }/${ this.clusterName }`);
+    const ns = this.metadata?.namespace || DEFAULT_WORKSPACE;
+
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ ns }/${ this.clusterName }`);
   }
 
   get rke2() {
@@ -47,6 +47,14 @@ export default class EtcdBackup extends NormanModel {
 
   get nameDisplay() {
     return this.snapshotFile?.name || this.name;
+  }
+
+  get restoreEnabled() {
+    return this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && !this.isSnapshotTooOld;
+  }
+
+  get isSnapshotTooOld() {
+    return this.snapshotFile?.createdAt <= this.cluster?.metadata?.creationTimestamp;
   }
 
   get errorMessage() {

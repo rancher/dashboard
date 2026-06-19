@@ -50,7 +50,7 @@ export default {
       return !!this.selectedVersion?.serverArgs?.['etcd-expose-metrics'];
     },
     configEtcdExposeMetrics() {
-      return !!this.value.spec.rkeConfig.etcd['etcd-expose-metrics'];
+      return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
   },
   methods: {
@@ -70,7 +70,6 @@ export default {
 
 <template>
   <div>
-    <div />
     <div class="row">
       <div class="col span-6">
         <RadioGroup

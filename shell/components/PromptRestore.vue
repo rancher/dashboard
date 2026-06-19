@@ -152,7 +152,7 @@ export default {
       const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
         const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-        return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
+        return snapshots.filter((s) => s?.restoreEnabled && s.clusterName === toRestoreClusterName
         );
       });
 
@@ -187,7 +187,7 @@ export default {
         const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
         const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
-        if (!cluster && !isImportedWithDayTwoOps) {
+        if (!cluster) {
           throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
         }
 
@@ -201,7 +201,7 @@ export default {
               kind:       'Cluster',
               name:       mgmtCluster?.id,
             },
-            args: { name: this.snapshot.snapshotFile.name },
+            args: { name: this.snapshot?.snapshotFile?.name },
           });
         } else {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;

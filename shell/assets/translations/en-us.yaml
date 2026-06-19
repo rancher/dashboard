@@ -2687,6 +2687,7 @@ cluster:
         other {A snapshot has been requested for {count} clusters}
       }
     groupLabel: Location
+    predatesImportTooltip: Restore action is not currently supported for this snapshot as it predates the import into Rancher.
     failed: "Snapshot from {time} failed"
     rke1:
       local: local
