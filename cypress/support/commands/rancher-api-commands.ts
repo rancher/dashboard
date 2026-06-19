@@ -31,8 +31,11 @@ Cypress.Commands.add('login', (
     }
     const loginPage = new LoginPagePo();
 
-    loginPage
-      .checkIsCurrentPage(!skipNavigation);
+    loginPage.checkIsCurrentPage(!skipNavigation);
+
+    if (!skipNavigation) {
+      loginPage.isWelcomeMessage();
+    }
 
     if (!!acceptConfirmation) {
       loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
