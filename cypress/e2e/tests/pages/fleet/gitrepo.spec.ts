@@ -225,7 +225,10 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
 
-      cy.get<string>('@gitRepo').then((name) => {
+      // Use a unique name for this create: the shared '@gitRepo' name is already
+      // created by the `before()` hook, and the new dryRunCreate step validation
+      // would reject it with a 409 (name already exists), blocking navigation.
+      cy.createE2EResourceName('git-repo-github-app').then((name) => {
         // Metadata step
         gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
           .name()

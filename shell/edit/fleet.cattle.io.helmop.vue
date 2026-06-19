@@ -796,7 +796,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="fvFormIsValid"
     :errors="errors"
     :steps="!isView ? steps : undefined"
     :finish-mode="'finish'"
@@ -1094,6 +1094,7 @@ export default {
       >
         <HelmOpAppCoConfigTab
           v-bind="appCoConfigProps"
+          :name-rules="fvGetAndReportPathRules('metadata.name')"
           data-testid="helmop-appco-edit-config-tab"
           v-on="appCoConfigListeners"
         />
