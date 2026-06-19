@@ -277,19 +277,22 @@ watch(() => props.skipPullSecrets, (neu) => {
       >
         <span v-clean-html="defaultSecretsBannerHtml" />
       </Banner>
-      <SelectOrCreateAuthSecret
-        v-if="!localSkipPullSecrets && !hasMultipleExistingPullSecrets"
-        :value="pullSecret"
-        :namespace="namespace"
-        allow-rke
-        :in-store="inStore"
-        limit-to-namespace
-        fixed-image-pull-secret
-        :none-label="defaultPullSecretLabel"
-        :image-pull-secret-docker-json-url-config="value || globalRegistry"
-        :register-before-hook="registerBeforeHook"
-        @update:value="(val) => emit('update:pullSecret', val)"
-      />
+      <div :class="{'col span-6': !isCharts}">
+        <SelectOrCreateAuthSecret
+          v-if="!localSkipPullSecrets && !hasMultipleExistingPullSecrets"
+          :value="pullSecret"
+          :namespace="namespace"
+          :allow-rke="!isCharts"
+          :vertical="!isCharts"
+          :in-store="inStore"
+          limit-to-namespace
+          fixed-image-pull-secret
+          :none-label="defaultPullSecretLabel"
+          :image-pull-secret-docker-json-url-config="value || globalRegistry"
+          :register-before-hook="registerBeforeHook"
+          @update:value="(val) => emit('update:pullSecret', val)"
+        />
+      </div>
     </template>
   </template>
 </template>
