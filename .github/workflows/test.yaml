@@ -81,7 +81,8 @@ jobs:
           ['@components'],
           ['@noVai']
         ]
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: runs-on,runner=16cpu-linux-x64,ram=32,run-id=${{ github.run_id }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
