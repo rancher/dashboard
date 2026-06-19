@@ -159,7 +159,9 @@ describe('rancher-monitoring-dashboards: index', () => {
     it('restores the last user selection when the same chart remounts', async() => {
       const chart = { chartName: uniqueChartName('same-chart') };
 
-      const first = createWrapper({ provider: 'rke2', value: {}, chart });
+      const first = createWrapper({
+        provider: 'rke2', value: {}, chart
+      });
 
       await flushPromises();
       expect((first.vm as any).clusterType.id).toBe('rke2');
@@ -183,7 +185,9 @@ describe('rancher-monitoring-dashboards: index', () => {
     it('preserves a non-k3s selection across remounts (the case value-derivation alone cannot recover)', async() => {
       const chart = { chartName: uniqueChartName('non-k3s-pick') };
 
-      const first = createWrapper({ provider: 'k3s', value: {}, chart });
+      const first = createWrapper({
+        provider: 'k3s', value: {}, chart
+      });
 
       await flushPromises();
       expect((first.vm as any).clusterType.id).toBe('k3s');
@@ -234,7 +238,9 @@ describe('rancher-monitoring-dashboards: index', () => {
     it('uses chart.name as the cache key when chartName is absent', async() => {
       const chart = { name: uniqueChartName('fallback-name') };
 
-      const first = createWrapper({ provider: 'rke2', value: {}, chart });
+      const first = createWrapper({
+        provider: 'rke2', value: {}, chart
+      });
 
       await flushPromises();
 
@@ -244,7 +250,9 @@ describe('rancher-monitoring-dashboards: index', () => {
       await flushPromises();
       first.unmount();
 
-      const second = createWrapper({ provider: 'rke2', value: {}, chart });
+      const second = createWrapper({
+        provider: 'rke2', value: {}, chart
+      });
 
       expect((second.vm as any).clusterType.id).toBe('k3s');
     });
