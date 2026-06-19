@@ -101,9 +101,14 @@ export default class Pod extends WorkloadService {
 
   get containerActions() {
     const out = [];
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+
+    // Only add the menu item for the container shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
