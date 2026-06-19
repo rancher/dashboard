@@ -79,6 +79,7 @@ export const STATES_ENUM = {
   BUILDING:         'building',
   COMPLETED:        'completed',
   CORDONED:         'cordoned',
+  CANCELLED:        'cancelled',
   COUNT:            'count',
   CREATED:          'created',
   CREATING:         'creating',
@@ -206,6 +207,9 @@ export const STATES = {
   },
   [STATES_ENUM.CORDONED]: {
     color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CANCELLED]: {
+    color: 'warning', icon: 'error', label: 'Cancelled', compoundIcon: 'warning'
   },
   [STATES_ENUM.COUNT]: {
     color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'

@@ -152,11 +152,10 @@ export default {
     }
 
     // Fetch operation CRDs for clusters with day 2 ops enabled
-    if ( this.value.isDayTwoOpsEnabled ) {
+    if ( this.value.isImportedWithDayTwoOps ) {
       const operationTypes = [
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
-        // OPERATION.CERT_ROTATE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
       ];
 
@@ -504,11 +503,11 @@ export default {
     },
 
     showOperations() {
-      return this.value.isDayTwoOpsEnabled && this.extDetailTabs.operations;
+      return this.value.isImportedWithDayTwoOps && this.extDetailTabs.operations;
     },
 
     clusterOperations() {
-      if (!this.value.isDayTwoOpsEnabled) {
+      if (!this.value.isImportedWithDayTwoOps) {
         return [];
       }
 

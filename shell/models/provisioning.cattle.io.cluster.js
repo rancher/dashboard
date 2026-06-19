@@ -1,20 +1,20 @@
 import {
   CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
-  EVENT, OPERATION,
-  DEFAULT_WORKSPACE
+  EVENT, OPERATION
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
 import { compare } from '@shell/utils/version';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { SETTING } from '@shell/config/settings';
 import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
@@ -129,7 +129,6 @@ export default class ProvCluster extends SteveModel {
     const canSnapshot = ready && (this.isRke2 || this.isDayTwoOpsEnabled) && this.canUpdate;
 
     const canDayTwoOps = canEditRKE2cluster || (this.isImportedWithDayTwoOps && ready);
-    const isImportedRke2K3s = this.isImportedRke2 || this.isImportedK3s;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -175,18 +174,6 @@ export default class ProvCluster extends SteveModel {
         icon:    'icon icon-refresh',
         enabled: canDayTwoOps
       },
-      // {
-      //   action:  'enableDayTwoOps',
-      //   label:   this.$rootGetters['i18n/t']('nav.enableDayTwoOps'),
-      //   icon:    'icon icon-checkmark',
-      //   enabled: isImportedRke2K3s && !this.isDayTwoOpsEnabled && this.canUpdate,
-      // },
-      // {
-      //   action:  'disableDayTwoOps',
-      //   label:   this.$rootGetters['i18n/t']('nav.disableDayTwoOps'),
-      //   icon:    'icon icon-close',
-      //   enabled: isImportedRke2K3s && this.isDayTwoOpsEnabled && this.canUpdate,
-      // },
       {
         action:  'toggleAutoscalerRunner',
         label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
@@ -318,29 +305,30 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.isImportedRke2;
   }
 
+  get isImportedRke2K3s() {
+    return this.isImportedRke2 || this.isImportedK3s;
+  }
+
   /**
    * Whether day 2 operations (snapshot, restore, cert rotation, encryption key rotation)
-   * are enabled for this cluster. Provisioning v2 clusters have day 2 ops enabled by default.
-   * Imported RKE2/K3s clusters require the `operation.cattle.io/enabled` annotation on the
-   * management cluster object.
+   * are enabled for this cluster.
    */
   get isDayTwoOpsEnabled() {
-    if (this.isRke2) {
-      return true;
-    }
+    return !!(this.isRke2 || this.isImportedWithDayTwoOps);
+  }
 
-    if (this.isImportedRke2 || this.isImportedK3s) {
-      return this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
-    }
-
-    return false;
+  get isDayTwoOpsFeatureEnabled() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.FEATURE, IMPORTED_DAY_2_OPS)?.enabled || false;
   }
 
   /**
    * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
    */
   get isImportedWithDayTwoOps() {
-    return (this.isImportedRke2 || this.isImportedK3s) && this.isDayTwoOpsEnabled;
+    const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+    const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+
+    return this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && (annotationEnabled || globalDefaultIsTrue);
   }
 
   get isK3s() {
@@ -607,7 +595,7 @@ export default class ProvCluster extends SteveModel {
         url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
         method: 'post',
       }, { root: true });
-    } else if ( this.isImportedWithDayTwoOps ) {
+    } else if ( this.isImportedRke2K3s ) {
       // For imported clusters with day 2 ops, create an operation CRD
       return this._createOperationCR(OPERATION.ETCD_SNAPSHOT, {
         clusterRef: {
@@ -651,9 +639,7 @@ export default class ProvCluster extends SteveModel {
   get etcdSnapshots() {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
 
-    console.log(allSnapshots);
-
-    if (this.isImported && this.isDayTwoOpsEnabled) {
+    if (this.isImportedWithDayTwoOps) {
       return allSnapshots
         .filter((s) => s.metadata.namespace === this.mgmt?.id && s.spec?.clusterName === this.mgmt?.metadata?.name );
     }

@@ -34,8 +34,7 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@she
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { handleS3BackupChange } from '@shell/edit/provisioning.cattle.io.cluster/utils/etcd-snapshots';
-import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -51,7 +50,7 @@ export default defineComponent({
   emits: ['input'],
 
   components: {
-    Basics, ACE, Loading, CruResource, Etcd, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -189,8 +188,6 @@ export default defineComponent({
     dayTwoOpsEnabled: {
       get() {
         if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
-          console.log(this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] );
-
           return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
         }
 
@@ -198,7 +195,6 @@ export default defineComponent({
       },
       set(newValue) {
         this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
-        console.log(this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED]);
       }
     },
 
@@ -428,9 +424,9 @@ export default defineComponent({
     },
     async initDayTwoOps() {
       try {
-        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+        this.dayTwoOpsFlagEnabled = this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
           type: MANAGEMENT.FEATURE,
-          id:   'imported-day-2-ops'
+          id:   IMPORTED_DAY_2_OPS
         }))?.enabled || false;
       } catch {
         this.dayTwoOpsFlagEnabled = false;
@@ -465,10 +461,6 @@ export default defineComponent({
         default:
         }
       }
-    },
-    handleS3BackupChanged(neu) {
-      this.s3Backup = neu;
-      handleS3BackupChange(this.config.etcd, neu);
     },
   }
 });
@@ -616,24 +608,6 @@ export default defineComponent({
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
-      <!-- <Accordion
-        class="mb-20 accordion"
-        title-key="cluster.tabs.etcd"
-        :open-initially="false"
-      >
-        <Etcd
-          v-model:value="config"
-          v-model:dayTwoOpsEnabled="dayTwoOpsEnabled"
-          :mode="mode"
-          :s3-backup="s3Backup"
-          :register-before-hook="registerBeforeHook"
-          :selected-version="selectedVersion"
-          @update:value="$emit('input', $event)"
-          @s3-backup-changed="handleS3BackupChanged"
-          @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
-          @etcd-validation-changed="(val)=>etcdConfigValid = val"
-        />
-      </Accordion> -->
       <Accordion
         class="mb-20 accordion"
         title-key="imported.accordions.labels"

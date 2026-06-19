@@ -7,9 +7,7 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import {
-  CAPI, SNAPSHOT, OPERATION, DEFAULT_WORKSPACE, MANAGEMENT
-} from '@shell/config/types';
+import { CAPI, SNAPSHOT, OPERATION, MANAGEMENT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
@@ -68,10 +66,6 @@ export default {
       return !!this.snapshot;
     },
 
-    isRke2() {
-      return !!(this.targetCluster?.isRke2 || this.targetMgmtCluster?.isRke2 || this.snapshot?.rke2);
-    },
-
     targetCluster() {
       if (this.isCluster) {
         return this.toRestore?.[0] || null;
@@ -116,6 +110,13 @@ export default {
         return [];
       }
     },
+    restoreModeLabels() {
+      return [
+        this.t('promptRestore.restoreMode.onlyEtcd'),
+        this.t('promptRestore.restoreMode.kubernetesVersionAndEtcd'),
+        this.t('promptRestore.restoreMode.clusterConfigKubernetesVersionAndEtcd')
+      ];
+    },
     restoreModeOptions() {
       return ['none', 'kubernetesVersion', 'all'];
     }
@@ -149,7 +150,6 @@ export default {
 
       const cluster = this.toRestore?.[0];
       const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
-        console.log('Fetched snapshots', snapshots);
         const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
         return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
@@ -185,33 +185,24 @@ export default {
       try {
         const cluster = this.targetCluster;
         const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
-        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || (mgmtCluster?.isImported && mgmtCluster?.isDayTwoOpsEnabled);
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
         if (!cluster && !isImportedWithDayTwoOps) {
-          throw new Error('Unable to resolve target cluster for snapshot restore');
+          throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
         }
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         // For imported clusters with day 2 ops enabled, create an operation CR
         if (isImportedWithDayTwoOps) {
-          const namespace = mgmtCluster?.metadata?.namespace || cluster.mgmt?.id; // DEFAULT_WORKSPACE;
-          const resource = await this.$store.dispatch('management/create', {
-            type:     OPERATION.ETCD_SNAPSHOT_RESTORE,
-            metadata: { namespace },
-            spec:     {
-              clusterRef: {
-                apiVersion: 'management.cattle.io/v3',
-                kind:       'Cluster',
-                name:       mgmtCluster?.id,
-              },
-              args: { name: this.snapshot.snapshotFile.name },
+          await cluster._createOperationCR(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       mgmtCluster?.id,
             },
-          }, { root: true });
-
-          console.log('Created restore operation', resource);
-
-          await resource.save();
+            args: { name: this.snapshot.snapshotFile.name },
+          });
         } else {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
@@ -300,14 +291,13 @@ export default {
                 />
               </p>
             </div>
-            <!-- TODO check bulk -->
             <div v-if="!isImported">
               <div class="spacer" />
               <RadioGroup
                 v-model:value="restoreMode"
                 name="restoreMode"
-                label="Restore Type"
-                :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
+                :label="t('promptRestore.restoreMode.label')"
+                :labels="restoreModeLabels"
                 :options="restoreModeOptions"
               />
             </div>

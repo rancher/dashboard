@@ -222,7 +222,6 @@ export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 export const OPERATION = {
   ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
   ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
-  CERT_ROTATE:           'operation.cattle.io.certrotation',
   ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
 };
 

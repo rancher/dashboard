@@ -9,7 +9,7 @@ import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
 import { isEmpty, isEqual } from '@shell/utils/object';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { HARVESTER_NAME as HARVESTER, IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -20,7 +20,7 @@ import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
-
+import { SETTING } from '@shell/config/settings';
 const DEFAULT_BADGE_COLOR = '#707070';
 
 // See translation file cluster.providers for list of providers
@@ -389,48 +389,20 @@ export default class MgmtCluster extends SteveModel {
     return this.spec?.internal === true;
   }
 
+  get isDayTwoOpsFeatureEnabled() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.FEATURE, IMPORTED_DAY_2_OPS)?.enabled || false;
+  }
+
   /**
    * Whether day 2 operations are enabled for this cluster.
    * Reads the `operation.cattle.io/enabled` annotation.
    */
   get isDayTwoOpsEnabled() {
-    return this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
-  }
+    const isImportedRke2K3s = this.isImportedK3s || this.isImportedRke2;
+    const annotationEnabled = this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+    const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
 
-  /**
-   * Enable day 2 operations by setting the `operation.cattle.io/enabled` annotation to 'true'.
-   */
-  async enableDayTwoOps() {
-    this.metadata = this.metadata || {};
-    this.metadata.annotations = this.metadata.annotations || {};
-    this.metadata.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'true';
-
-    return this.save();
-  }
-
-  /**
-   * Disable day 2 operations by setting the `operation.cattle.io/enabled` annotation to 'false'.
-   */
-  async disableDayTwoOps() {
-    this.metadata = this.metadata || {};
-    this.metadata.annotations = this.metadata.annotations || {};
-    this.metadata.annotations[OPERATION_ANNOTATIONS.ENABLED] = 'false';
-
-    return this.save();
-  }
-
-  /**
-   * Get the ETCD config from the Rke2Config subresource (for imported RKE2 clusters).
-   */
-  get rke2EtcdConfig() {
-    return this.spec?.rke2Config?.etcd;
-  }
-
-  /**
-   * Get the ETCD config from the K3sConfig subresource (for imported K3s clusters).
-   */
-  get k3sEtcdConfig() {
-    return this.spec?.k3sConfig?.etcd;
+    return this.isDayTwoOpsFeatureEnabled && isImportedRke2K3s && (annotationEnabled || globalDefaultIsTrue);
   }
 
   get isHarvester() {

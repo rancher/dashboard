@@ -26,14 +26,10 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get clusterName() {
-    // console.log(this, this.metadata.labels[SNAPSHOT.CLUSTER_NAME]);
-
     return this.metadata.labels[SNAPSHOT.CLUSTER_NAME];
   }
 
   get clusterId() {
-    console.log(this.cluster);
-
     return this.cluster?.id;
   }
 
@@ -42,8 +38,6 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    console.log(this, `${ this.metadata.namespace }/${ this.clusterName }`, this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ this.metadata.namespace }/${ this.clusterName }` ));
-
     return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ DEFAULT_WORKSPACE }/${ this.clusterName }`);
   }
 

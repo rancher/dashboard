@@ -232,8 +232,6 @@ nav:
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
   takeSnapshot: Take Snapshot
-  enableDayTwoOps: Enable Day 2 Operations
-  disableDayTwoOps: Disable Day 2 Operations
   seeAllClusters: See all clusters
   seeAllClustersCollapsed: See all
   keyComboTooltip: Switch clusters and keep location
@@ -2625,9 +2623,6 @@ cluster:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
     etcd:
-      dayTwoOpsEnabled:
-        label: Enable Day 2 Operations
-        tooltip: This allows you to configure automatic snapshots, snapshot retention, and S3 backup options. Disabling this will disable all Day 2 etcd operations and features.
       disableSnapshots:
         label: Automatic Backups
       snapshotScheduleCron:
@@ -6038,6 +6033,13 @@ promptRestore:
   fromS3: Restore from S3
   label: Snapshot
   placeholder: Select a snapshot to restore
+  error:
+    unableToResolveTargetCluster: Unable to resolve target cluster for snapshot restore
+  restoreMode:
+    label: Restore Type
+    onlyEtcd: Only etcd
+    kubernetesVersionAndEtcd: Kubernetes version and etcd
+    clusterConfigKubernetesVersionAndEtcd: Cluster config, Kubernetes version and etcd
   notification:
     title: Restore Snapshot
     message: Restoring snapshot { selectedSnapshot } has started...
@@ -6061,23 +6063,9 @@ promptRotateEncryptionKey:
   title: Rotate Encryption Keys
   description: The last backup {name} was performed on {date}
   warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
-  error: No backup found
-
-day2Ops:
-  enable:
-    title: Enable Day 2 Operations
-    description: Enabling day 2 operations will install the system-upgrade-controller and system-agent-upgrader plan on this cluster, allowing you to perform etcd snapshots, restores, certificate rotations, and encryption key rotations.
-    warning: Day 2 operations can only be enabled on imported RKE2 or K3s clusters.
-  disable:
-    title: Disable Day 2 Operations
-    description: Disabling day 2 operations will uninstall the system-agent from downstream nodes and remove all associated scaffolding (machine-plan secrets, service accounts, RBAC) and the system-agent-upgrader plan.
-    warning: Day 2 operations cannot be disabled while an operation is currently in progress.
-  phase:
-    Pending: Pending
-    InProgress: In Progress
-    Succeeded: Succeeded
-    Failed: Failed
-    Cancelled: Cancelled
+  error:
+    noBackup: No backup found
+    unableToResolveTargetCluster: Unable to resolve target cluster for encryption key rotation
 
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
@@ -9025,7 +9013,7 @@ advancedSettings:
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
-    'imported-cluster-day-2-operations-default': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, certificate rotations, encryption key rotations) enabled by default. This does not affect previously imported clusters.
+    'imported-cluster-day-2-operations-default': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This does not affect previously imported clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:

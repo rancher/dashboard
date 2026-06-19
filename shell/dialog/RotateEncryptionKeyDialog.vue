@@ -86,22 +86,20 @@ export default {
 
     async apply(buttonDone) {
       try {
-        if (this.cluster.isImportedWithDayTwoOps) {
-          // For imported clusters with day 2 ops, create an encryption key rotation operation CR
-          const namespace = this.cluster.mgmt?.metadata?.namespace || this.cluster.mgmt?.id;
-          const resource = await this.$store.dispatch('management/create', {
-            type:     OPERATION.ENCRYPTION_KEY_ROTATE,
-            metadata: { namespace },
-            spec:     {
-              clusterRef: {
-                apiVersion: 'management.cattle.io/v3',
-                kind:       'Cluster',
-                name:       this.cluster.mgmt?.id,
-              },
-            },
-          }, { root: true });
+        const isImportedWithDayTwoOps = this.cluster?.isImportedWithDayTwoOps || this.cluster?.mgmt?.isDayTwoOpsEnabled;
 
-          await resource.save();
+        if (!this.cluster && !isImportedWithDayTwoOps) {
+          throw new Error(this.t('promptRotateEncryptionKey.error.unableToResolveTargetCluster'));
+        }
+        if (isImportedWithDayTwoOps) {
+          // For imported clusters with day 2 ops, create an encryption key rotation operation CR
+          await this.cluster._createOperationCR(OPERATION.ENCRYPTION_KEY_ROTATE, {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       this.cluster.mgmt?.id,
+            },
+          });
         } else {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
 
@@ -150,7 +148,7 @@ export default {
           <Banner
             v-else
             color="error"
-            label-key="promptRotateEncryptionKey.error"
+            label-key="promptRotateEncryptionKey.error.noBackup"
           />
         </div>
       </div>
