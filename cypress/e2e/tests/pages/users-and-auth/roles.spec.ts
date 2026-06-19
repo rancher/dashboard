@@ -361,7 +361,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
-    const globalRolesIdsList = [];
+    const globalRolesIdsList: string[] = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');
     let initialCount: number;
@@ -605,13 +605,13 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForPage();
       usersPo.list().elementWithName(standardUsername).should('exist');
 
-      // logout admin
-      cy.logout();
-
       // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
       // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
       // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
       cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+      // logout admin
+      cy.logout();
 
       // login as standard user
       cy.login(standardUsername, standardPassword);
