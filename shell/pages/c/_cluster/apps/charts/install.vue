@@ -502,7 +502,16 @@ export default {
     mcm: mapFeature(MULTI_CLUSTER),
 
     showMonitoringBanner() {
-      const releaseName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const annotations = this.version?.annotations || {};
+      const releaseName = annotations[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const certified = annotations[CATALOG_ANNOTATIONS.CERTIFIED];
+
+      // Only show monitoring banners for the Rancher-certified charts —
+      // a third-party chart that happens to reuse the release name should not
+      // trigger our migration prompts.
+      if (certified !== 'rancher') {
+        return null;
+      }
 
       if (releaseName === 'rancher-monitoring') {
         return this.t('catalog.install.steps.basics.oldMonitoringChartWarning');

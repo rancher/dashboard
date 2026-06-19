@@ -146,7 +146,7 @@ describe('page: Install', () => {
   });
 
   describe('computed properties: monitoring banners', () => {
-    const setupComponent = (existing: any, releaseName: string, componentName: string, chartName: string, installedApps: any[] = []) => {
+    const setupComponent = (existing: any, releaseName: string, componentName: string, chartName: string, installedApps: any[] = [], certified = 'rancher') => {
       const mockStore = {
         getters: {
           'i18n/withFallback':       () => '',
@@ -203,6 +203,7 @@ describe('page: Install', () => {
               annotations: {
                 [CATALOG_ANNOTATIONS.RELEASE_NAME]: releaseName,
                 [CATALOG_ANNOTATIONS.COMPONENT]:    componentName,
+                [CATALOG_ANNOTATIONS.CERTIFIED]:    certified,
               }
             },
             chart: {
@@ -241,6 +242,16 @@ describe('page: Install', () => {
       const wrapper3 = setupComponent(true, 'rancher-monitoring-dashboards', '', '');
 
       expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+    });
+
+    it('showMonitoringBanner should return null when the chart is not Rancher-certified, even if the release name matches', () => {
+      const oldChartThirdParty = setupComponent(false, 'rancher-monitoring', '', '', [], 'partner');
+
+      expect((oldChartThirdParty.vm as any).showMonitoringBanner).toBeNull();
+
+      const newChartThirdParty = setupComponent(false, 'rancher-monitoring-dashboards', '', '', [], '');
+
+      expect((newChartThirdParty.vm as any).showMonitoringBanner).toBeNull();
     });
   });
 });

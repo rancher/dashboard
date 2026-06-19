@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { computeDashboardUrl } from '@shell/utils/grafana';
-import { CATALOG } from '@shell/config/types';
+import { fetchMonitoringVersion } from '@shell/utils/monitoring';
 
 export default {
   components: { Banner, Loading },
@@ -41,19 +41,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    if (this.$store.getters[`${ inStore }/canList`](CATALOG.APP)) {
-      try {
-        let res;
-
-        try {
-          res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring-dashboards' });
-        } catch (err) {
-          res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
-        }
-
-        this.monitoringVersion = res?.currentVersion;
-      } catch (err) {}
-    }
+    this.monitoringVersion = await fetchMonitoringVersion(this.$store, inStore);
   },
   data() {
     return {
