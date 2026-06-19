@@ -14,7 +14,6 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {

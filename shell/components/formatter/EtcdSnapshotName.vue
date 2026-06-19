@@ -13,7 +13,7 @@ export default {
     },
     col: {
       type:    Object,
-      default: () => {}
+      default: () => ({})
     },
     reference: {
       type:    String,

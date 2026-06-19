@@ -595,7 +595,7 @@ export default class ProvCluster extends SteveModel {
         url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
         method: 'post',
       }, { root: true });
-    } else if ( this.isImportedRke2K3s ) {
+    } else if ( this.isImportedWithDayTwoOps ) {
       // For imported clusters with day 2 ops, create an operation CRD
       return this._createOperationCR(OPERATION.ETCD_SNAPSHOT, {
         clusterRef: {
@@ -604,6 +604,8 @@ export default class ProvCluster extends SteveModel {
           name:       this.mgmt?.id,
         }
       });
+    } else if (this.isImportedRke2K3s && !this.isDayTwoOpsFeatureEnabled) {
+      throw new Error(this.$rootGetters['i18n/t']('cluster.snapshot.day2OpsNotEnabled'));
     } else {
       const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
       const args = { generation: now + 1 };
@@ -626,10 +628,11 @@ export default class ProvCluster extends SteveModel {
    * @returns {Promise}
    */
   async _createOperationCR(type, spec) {
-    const namespace = this.mgmt.id;
+    const namespace = this.mgmt?.id;
+    const safePrefix = this.mgmt?.metadata?.name || this.mgmt?.id;
     const resource = await this.$dispatch('management/create', {
       type,
-      metadata: { namespace, generateName: `${ this.mgmt?.name || this.mgmt?.id }-` },
+      metadata: { namespace, generateName: `${ safePrefix }-` },
       spec,
     }, { root: true });
 

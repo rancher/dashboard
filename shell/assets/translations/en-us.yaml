@@ -1008,6 +1008,7 @@ asyncButton:
     action: Snapshot Now
     waiting: Snapshot Initiated&hellip;
     success: Snapshot Creating
+    day2OpsNotEnabled: Day 2 Operations are not enabled for this cluster
   timing:
     action: Generate Response Times
     waiting: Generating&hellip;
@@ -9014,7 +9015,7 @@ advancedSettings:
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
-    'imported-cluster-day-2-operations-default': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This does not affect previously imported clusters.
+    'imported-cluster-day2-ops-enabled': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This does not affect previously imported clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
