@@ -21,7 +21,10 @@ Cypress.Commands.add('login', (
   acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
-    cy.intercept('POST', '/v1-public/login*').as('loginReq');
+    // Note - `loginReq` has been used outside here....
+    const loginReqAlias = cacheSession ? `loginReq_${ Date.now() }` : 'loginReq';
+
+    cy.intercept('POST', '/v1-public/login*').as(loginReqAlias);
 
     if (!skipNavigation) {
       LoginPagePo.goTo(); // Needs to happen before the page element is created/located
@@ -51,7 +54,7 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq').its('request.body')
+    cy.wait(`@${ loginReqAlias }`).its('request.body')
       .should(
         'deep.equal',
         {

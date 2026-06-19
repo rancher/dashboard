@@ -568,13 +568,20 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('Global Roles', () => {
-    before(() => {
+    let customRoleName: string | undefined;
+    let standardUsername: string | undefined;
+
+    beforeEach(() => {
+      cy.clearAllSessions(); // clear any previous standard user session from a previous run
       cy.login();
     });
 
     it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
-      const customRoleName = `${ runPrefix }-my-custom-role`;
-      const standardUsername = `${ runPrefix }-standard-user-e2e`;
+      runTimestamp = +new Date();
+      runPrefix = `e2e-test-${ runTimestamp }`;
+
+      customRoleName = `${ runPrefix }-my-custom-role`;
+      standardUsername = `${ runPrefix }-standard-user-e2e`;
       const standardPassword = 'standard-password';
 
       // create global role
@@ -635,6 +642,32 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForRequests();
       usersPo.list().masthead().title().should('contain', 'Users');
       usersPo.list().elements().should('have.length', 1);
+    });
+
+    afterEach(() => {
+      // Log in as someone with permission to delete things
+      cy.clearAllSessions();
+      cy.login();
+
+      if (customRoleName) {
+        cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
+          const newRole = resp.body.data.find((r: any) => r.displayName === customRoleName);
+
+          if (newRole) {
+            cy.deleteRancherResource('v1', 'management.cattle.io.globalroles', newRole.id, false);
+          }
+        });
+      }
+
+      if (standardUsername) {
+        cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+          const newUser = resp.body.data.find((r: any) => r.displayName === standardUsername);
+
+          if (newUser) {
+            cy.deleteRancherResource('v1', 'management.cattle.io.users', newUser.id, false);
+          }
+        });
+      }
     });
   });
 });

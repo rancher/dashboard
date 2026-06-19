@@ -58,6 +58,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     cy.login(Cypress.env('username'), Cypress.env('password'), false);
 
+    // using @loginReq outside of where it's defined is brittle....
     cy.wait('@loginReq').then((login) => {
       if (login.response?.statusCode !== successStatusCode) {
         cy.log(
@@ -79,6 +80,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     cy.login(Cypress.env('username'), `${ Cypress.env('password') }abc`, false);
 
+    // using @loginReq outside of where it's defined is brittle....
     cy.wait('@loginReq').then((login) => {
       if (login.response?.statusCode === successStatusCode) {
         cy.log(
