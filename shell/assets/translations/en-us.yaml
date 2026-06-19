@@ -6333,6 +6333,8 @@ resourceYaml:
 
 secret:
   authentication: Authentication
+  githubApp:
+    label: GitHub App
   certificate:
     certificate: Certificate
     certificates: Certificates
@@ -6469,12 +6471,17 @@ selectOrCreateAuthSecret:
     passwordPersonalAccessToken: Password/Personal Access Token
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
+  githubApp:
+    appId: GitHub App ID
+    installationId: GitHub App Installation ID
+    privateKey: GitHub App Private Key
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create an SSH Key Secret
   createBasic: Create an HTTP Basic Auth Secret
   createS3: Create an S3-Compatible Auth Secret
   createRKE: Create an RKE Auth Config Secret
+  createGithubApp: Create a GitHub App Auth Secret
   createImagePullSecretBasedOnAuth: Create an Image Pull Secret based on Authentication Secret
   createImagePullSecret: Create a new Image Pull Secret with new Username/Password
 
