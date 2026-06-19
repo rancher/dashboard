@@ -70,7 +70,7 @@ export interface NormanCluster extends NormanModel {
   clusterAgentDeploymentCustomization?: any,
   id?: string,
   enableNetworkPolicy?: boolean,
-  importedConfig?: {
+  importedConfig: {
     privateRegistryURL?: string | null,
     privateRegistryPullSecrets?: string[],
     [key: string]: any,
