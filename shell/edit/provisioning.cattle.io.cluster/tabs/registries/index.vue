@@ -67,6 +67,8 @@ export default {
       :mode="mode"
       :pull-secret="registrySecret"
       :register-before-hook="registerBeforeHook"
+      checkbox-test-id="registries-enable-checkbox"
+      input-test-id="registry-host-input"
       @update:value="$emit('registry-host-changed', $event)"
       @update:enabled="$emit('custom-registry-changed', $event)"
       @update:pull-secret="$emit('registry-secret-changed', $event)"
