@@ -278,7 +278,6 @@ export default {
     const schemas = state.types[SCHEMA];
 
     type = getters.normalizeType(type);
-
     if ( !schemas ) {
       if ( allowThrow ) {
         throw new Error("Schemas aren't loaded yet");

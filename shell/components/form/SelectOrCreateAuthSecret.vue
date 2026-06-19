@@ -212,6 +212,12 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    // Overwrite the default label for "None" option ('generic.none')
+    noneLabel: {
+      type:    [String, null],
+      default: null
+    }
   },
 
   async fetch() {
@@ -405,7 +411,7 @@ export default {
       }
       if ( this.allowNone ) {
         out.unshift({
-          label: this.t('generic.none'),
+          label: this.noneLabel || this.t('generic.none'),
           value: AUTH_TYPE._NONE,
         });
       }
@@ -718,8 +724,15 @@ export default {
             secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
           }
 
+          // Components passing imagePullSecretDockerJsonUrlConfig are responsible for validating that a valid hostname or URL is provided
           if (this.selected === AUTH_TYPE._IMAGE_PULL_SECRET && this.imagePullSecretDockerJsonUrlConfig) {
-            const registryHost = this.imagePullSecretDockerJsonUrlConfig ? new URL(this.imagePullSecretDockerJsonUrlConfig).host : '';
+            let registryHost;
+
+            try {
+              registryHost = new URL(this.imagePullSecretDockerJsonUrlConfig).host;
+            } catch {
+              registryHost = this.imagePullSecretDockerJsonUrlConfig;
+            }
 
             const config = {
               auths: {
@@ -735,12 +748,13 @@ export default {
           }
         }
       }
-
       await secret.save();
 
       await this.$nextTick(() => {
         this.selected = secret.id;
       });
+
+      this.update();
 
       return secret;
     },

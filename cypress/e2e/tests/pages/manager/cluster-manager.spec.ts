@@ -427,7 +427,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             type:           importType,
             agentEnvVars:   [],
             annotations:    { 'rancher.io/imported-cluster-version-management': 'system-default' },
-            importedConfig: { privateRegistryURL: null },
+            importedConfig: {},
             labels:         {},
             name:           importGenericName
           });
