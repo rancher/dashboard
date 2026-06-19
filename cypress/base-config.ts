@@ -2,6 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
+import * as os from 'os';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
 const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
@@ -27,6 +28,28 @@ const getSpecPattern = (dirs: string[], envs: NodeJS.ProcessEnv): string[] => {
   }
 
   return paths;
+};
+
+// Helper function to calculate CPU usage
+const getCpuUsage = (): Promise<number> => {
+  return new Promise((resolve) => {
+    const startUsage = process.cpuUsage();
+    const startTime = Date.now();
+
+    setTimeout(() => {
+      const endUsage = process.cpuUsage();
+      const endTime = Date.now();
+      const elapsedTime = (endTime - startTime) * 1000; // microseconds
+
+      const userTime = endUsage.user - startUsage.user;
+      const systemTime = endUsage.system - startUsage.system;
+
+      const totalCpuTime = (userTime + systemTime) / elapsedTime;
+      const cpuPercentage = totalCpuTime * 100;
+
+      resolve(cpuPercentage);
+    }, 100); // Sample over 100ms
+  });
 };
 
 /**
@@ -144,7 +167,21 @@ const baseConfig = defineConfig({
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
-      on('task', { removeDirectory });
+      on('task', {
+        removeDirectory,
+        getHostStats: async() => {
+          const totalMem = os.totalmem();
+          const freeMem = os.freemem();
+          const usedMem = totalMem - freeMem;
+          const memUsagePercent = (usedMem / totalMem) * 100;
+          const cpuUsage = await getCpuUsage();
+
+          return {
+            memory: `${ (usedMem / 1024 / 1024).toFixed(2) }MB (${ memUsagePercent.toFixed(2) }%)`,
+            cpu:    `${ cpuUsage.toFixed(2) }%`,
+          };
+        },
+      });
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {

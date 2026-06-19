@@ -28,3 +28,19 @@ require('cypress-terminal-report/src/installLogsCollector')({
   // Enable logging of before and after all
   enableExtendedCollector: true
 });
+
+/**
+ * if the test failed, print host cpu and memory to cy.log
+ */
+afterEach(function() {
+  // We use a regular function to have access to `this.currentTest`.
+  if (this.currentTest.state === 'failed') {
+    cy.task<{ cpu: string; memory: string }>('getHostStats').then((stats) => {
+      cy.log('**Host Stats on Failure**');
+      cy.log(`CPU Usage: ${ stats.cpu }`);
+      cy.log(`Memory Usage: ${ stats.memory }`);
+      // Pause so the video has time to catch up and show this...
+      cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+    });
+  }
+});
