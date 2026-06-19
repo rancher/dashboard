@@ -55,11 +55,11 @@ export class LoginPagePo extends PagePo {
   }
 
   welcomeMessage() {
-    return this.self().find('.login-welcome');
+    return this.self(MEDIUM_TIMEOUT_OPT).find('.login-welcome');
   }
 
   isWelcomeMessage(vendor = 'Rancher') {
-    return this.welcomeMessage().contains(`Welcome to ${ vendor }`, MEDIUM_TIMEOUT_OPT).should('be.visible');
+    return this.welcomeMessage().contains(`Welcome to ${ vendor }`).should('be.visible');
   }
 
   /**
