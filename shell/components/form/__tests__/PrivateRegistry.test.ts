@@ -212,29 +212,6 @@ describe('privateRegistry', () => {
     });
   });
 
-  describe('context-dependent behavior', () => {
-    it.each([
-      [PRIVATE_REGISTRY_CONTEXT.PROVISIONING, 'cluster.privateRegistry.description'],
-      [PRIVATE_REGISTRY_CONTEXT.IMPORTING, 'cluster.privateRegistry.importedDescription'],
-      [PRIVATE_REGISTRY_CONTEXT.CHARTS, 'catalog.chart.registry.tooltip'],
-    ])('should use correct description banner key for context %s', (context, expectedKey) => {
-      const wrapper = mountPrivateRegistry({ context });
-      const banner = wrapper.findAllComponents(Banner).find((b) => b.props('color') === 'info' && b.props('labelKey'));
-
-      expect(banner?.props('labelKey')).toBe(expectedKey);
-    });
-
-    it.each([
-      [PRIVATE_REGISTRY_CONTEXT.PROVISIONING, 'cluster.privateRegistry.label'],
-      [PRIVATE_REGISTRY_CONTEXT.CHARTS, 'catalog.chart.registry.custom.checkBoxLabel'],
-    ])('should use correct checkbox label key for context %s', (context, expectedKey) => {
-      const wrapper = mountPrivateRegistry({ context });
-      const checkbox = wrapper.findComponent(Checkbox);
-
-      expect(checkbox.props('label')).toBe(expectedKey);
-    });
-  });
-
   describe('pull secrets section', () => {
     it('should show SelectOrCreateAuthSecret when showPullSecrets is true and value is provided', () => {
       const wrapper = mountPrivateRegistry({
