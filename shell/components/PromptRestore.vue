@@ -15,7 +15,7 @@ import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
 import AppModal from '@shell/components/AppModal.vue';
-
+import { createOperationCR } from '@shell/utils/operation-cr';
 export default {
   components: {
     Card,
@@ -89,7 +89,7 @@ export default {
         return this.targetCluster.mgmt;
       }
 
-      const mgmtClusterId = this.snapshot?.spec?.clusterRef?.name;
+      const mgmtClusterId = this.snapshot?.spec?.clusterName;
 
       if (!mgmtClusterId) {
         return null;
@@ -184,24 +184,28 @@ export default {
       try {
         const cluster = this.targetCluster;
         const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
-        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
-        if (!cluster) {
-          throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
-        }
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         // For imported clusters with day 2 ops enabled, create an operation CR
         if (isImportedWithDayTwoOps) {
-          await cluster._createOperationCR(OPERATION.ETCD_SNAPSHOT_RESTORE, {
+          if (!mgmtCluster) {
+            throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
+          }
+          const namespace = mgmtCluster?.id;
+          const safePrefix = mgmtCluster?.id;
+          const spec = {
             clusterRef: {
               apiVersion: 'management.cattle.io/v3',
               kind:       'Cluster',
               name:       mgmtCluster?.id,
             },
             args: { name: this.snapshot?.snapshotFile?.name },
-          });
+          };
+
+          createOperationCR(this.$dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
         } else {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
@@ -303,7 +307,12 @@ export default {
           </form>
         </div>
       </template>
-
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
       <template #actions>
         <div class="dialog-actions">
           <button
@@ -317,13 +326,6 @@ export default {
             mode="restore"
             :disabled="!hasSnapshot"
             @click="apply"
-          />
-
-          <Banner
-            v-for="(err, i) in errors"
-            :key="i"
-            color="error"
-            :label="err"
           />
         </div>
       </template>

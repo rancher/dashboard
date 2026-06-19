@@ -1197,6 +1197,12 @@ export default class Resource {
 
   _collectionUrl() {
     const schema = this.$getters['schemaFor'](this.type);
+
+    if ( !schema ) {
+      // Schema not found - likely due to lack of permissions to view this resource type
+      return Promise.reject(new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`));
+    }
+
     let url = schema.linkFor('collection');
 
     if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {

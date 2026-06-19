@@ -10,6 +10,7 @@ import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SETTING } from '@shell/config/settings';
+import { createOperationCR } from '@shell/utils/operation-cr';
 import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -124,11 +125,8 @@ export default class ProvCluster extends SteveModel {
     }
     const ready = this.mgmt?.isReady;
 
+    const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
-
-    const canSnapshot = ready && (this.isRke2 || this.isDayTwoOpsEnabled) && this.canUpdate;
-
-    const canDayTwoOps = canEditRKE2cluster || (this.isImportedWithDayTwoOps && ready);
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -157,12 +155,12 @@ export default class ProvCluster extends SteveModel {
         icon:       'icon icon-snapshot',
         bulkAction: 'snapshotBulk',
         bulkable:   true,
-        enabled:    canSnapshot,
+        enabled:    canDayTwoOps,
       }, {
         action:  'restoreSnapshotAction',
         label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
         icon:    'icon icon-backup-restore',
-        enabled: canSnapshot,
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
@@ -325,10 +323,13 @@ export default class ProvCluster extends SteveModel {
    * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
    */
   get isImportedWithDayTwoOps() {
+    const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
     const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
     const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+    const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
+    const canGetOpSchema = this.$getters['schemaFor'](OPERATION.ETCD_SNAPSHOT);
 
-    return this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && (annotationEnabled || globalDefaultIsTrue);
+    return canGetOpSchema && this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && annotationOrGlobalEnabled;
   }
 
   get isK3s() {
@@ -597,13 +598,17 @@ export default class ProvCluster extends SteveModel {
       }, { root: true });
     } else if ( this.isImportedWithDayTwoOps ) {
       // For imported clusters with day 2 ops, create an operation CRD
-      return this._createOperationCR(OPERATION.ETCD_SNAPSHOT, {
+      const namespace = this.mgmt?.id;
+      const safePrefix = this.mgmt?.metadata?.name || this.mgmt?.id;
+      const spec = {
         clusterRef: {
           apiVersion: 'management.cattle.io/v3',
           kind:       'Cluster',
           name:       this.mgmt?.id,
         }
-      });
+      };
+
+      return createOperationCR(this.$dispatch, OPERATION.ETCD_SNAPSHOT, spec, namespace, safePrefix);
     } else if (this.isImportedRke2K3s && !this.isDayTwoOpsFeatureEnabled) {
       throw new Error(this.$rootGetters['i18n/t']('cluster.snapshot.day2OpsNotEnabled'));
     } else {
@@ -618,25 +623,6 @@ export default class ProvCluster extends SteveModel {
 
       return this.save();
     }
-  }
-
-  /**
-   * Create a day 2 operation CR for imported clusters.
-   *
-   * @param {string} type - The operation CRD type
-   * @param {object} spec - The operation spec
-   * @returns {Promise}
-   */
-  async _createOperationCR(type, spec) {
-    const namespace = this.mgmt?.id;
-    const safePrefix = this.mgmt?.metadata?.name || this.mgmt?.id;
-    const resource = await this.$dispatch('management/create', {
-      type,
-      metadata: { namespace, generateName: `${ safePrefix }-` },
-      spec,
-    }, { root: true });
-
-    return resource.save();
   }
 
   get etcdSnapshots() {

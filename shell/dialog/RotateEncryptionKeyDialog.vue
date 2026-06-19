@@ -10,7 +10,7 @@ import day from 'dayjs';
 import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
-
+import { createOperationCR } from '@shell/utils/operation-cr';
 export default {
   emits: ['close'],
 
@@ -88,18 +88,22 @@ export default {
       try {
         const isImportedWithDayTwoOps = this.cluster?.isImportedWithDayTwoOps || this.cluster?.mgmt?.isDayTwoOpsEnabled;
 
-        if (!this.cluster && !isImportedWithDayTwoOps) {
-          throw new Error(this.t('promptRotateEncryptionKey.error.unableToResolveTargetCluster'));
-        }
         if (isImportedWithDayTwoOps) {
+          if (!isImportedWithDayTwoOps) {
+            throw new Error(this.t('promptRotateEncryptionKey.error.unableToResolveTargetCluster'));
+          }
           // For imported clusters with day 2 ops, create an encryption key rotation operation CR
-          await this.cluster._createOperationCR(OPERATION.ENCRYPTION_KEY_ROTATE, {
+          const namespace = this.cluster.mgmt?.id;
+          const safePrefix = this.cluster.mgmt?.id;
+          const spec = {
             clusterRef: {
               apiVersion: 'management.cattle.io/v3',
               kind:       'Cluster',
               name:       this.cluster.mgmt?.id,
-            },
-          });
+            }
+          };
+
+          createOperationCR(this.$store.dispatch, OPERATION.ENCRYPTION_KEY_ROTATE, spec, namespace, safePrefix);
         } else {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
 
