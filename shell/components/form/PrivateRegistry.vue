@@ -260,7 +260,7 @@ watch(() => props.skipPullSecrets, (neu) => {
       <Checkbox
         v-if="isCharts"
         v-model:value="localSkipPullSecrets"
-        class="mb-10"
+        class="mb-10 mt-10"
         :mode="mode"
         :label="t('catalog.chart.registry.pullSecret.skipOption')"
       />
