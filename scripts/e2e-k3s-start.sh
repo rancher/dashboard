@@ -6,8 +6,8 @@
 # ---------------------------------
 
 USE_LOCAL_BRANCH_METADATA=true # we use an updated branch_metadata. once that's in master we can toggle this to false
-USE_K3S=${USE_K3S:-true} # use k3s, or k3d
-OVERRIDE_UIS=${USE_K3S:-false} # use provided UIs (built externally, used in github CI) or not
+KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
+OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 
 # --------------------------------------
@@ -31,8 +31,9 @@ if [ -n "$BRANCH_DATA" ]; then
   # - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
   RANCHER_HELM_REPO_URL=$(echo "$BRANCH_DATA" | jq -r '.e2e["helm"]["repo-url"]')
 
-  ## {registry}/{repo namespace}/{repo name}:{tag}
-  ## stgregistry.suse.com/rancher/rancher:v2-13-head
+  # Format of container image references are...
+  # i.e  {registry}          /{repo namespace}/{repo name}:{tag}
+  # e.g. stgregistry.suse.com/rancher         /rancher    :v2-13-head
 
   # Helm Image version
   RANCHER_IMG_REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
@@ -62,7 +63,7 @@ echo "RANCHER_IMG_REPO: ${RANCHER_IMG_REPO}"
 echo "RANCHER_IMG_TAG: ${RANCHER_IMG_TAG}"
 echo "RANCHER_AGENT_IMG: ${RANCHER_AGENT_IMG}"
 echo
-echo "USE_K3S: ${USE_K3S}"
+echo "KUBE_TYPE: ${KUBE_TYPE}"
 echo "OVERRIDE_UIS: ${OVERRIDE_UIS}"
 echo "TEST_BASE_URL: ${TEST_BASE_URL}"
 echo "--------------------------------------"
@@ -86,7 +87,7 @@ RANCHER_AUDIT_LOG_LEVEL=3
 # ----------------------- Setup Env
 # ---------------------------------
 
-if [ "$USE_K3S" = "true" ]; then
+if [ "$KUBE_TYPE" = "K3S" ]; then
   echo "Installing k3s (with kubectl).........."
   export K3S_CHECKSUM=8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
   curl -sfL -o k3s-script https://raw.githubusercontent.com/k3s-io/k3s/v1.35.3%2Bk3s1/install.sh
@@ -115,10 +116,15 @@ if [ "$USE_K3S" = "true" ]; then
 
   chmod 700 get_helm.sh
   ./get_helm.sh
-else
+elif [ "$KUBE_TYPE" = "K3D" ]; then
+  # This is more for internal dev purposes, requires further testing
+  # To use in CI install of k3d + kubectl + helm is required (could be optional if using dev machine)
   K3D_VERSION=${KUBE_VERSION/+/-}
   k3d cluster delete e2e 
   k3d cluster create e2e --image rancher/k3s:$K3D_VERSION -p 80:80@loadbalancer -p 443:443@loadbalancer --agents 1
+else
+  echo "Error: Unknown KUBE_TYPE '$KUBE_TYPE' (expected K3S or K3D)"
+  exit 1
 fi
 
 echo "Installing cert-manager.........."
