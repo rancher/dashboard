@@ -181,7 +181,7 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
-    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+    if (this.value?.id && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
     this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
