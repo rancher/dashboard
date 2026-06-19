@@ -30,7 +30,7 @@ const countHelper = {
   getCount: () => cy.get('@count').then((count) => count as any as number),
 };
 
-describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

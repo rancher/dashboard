@@ -31,7 +31,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -315,7 +315,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
+  describe('Cluster dashboard with limited permissions', { testIsolation: true }, () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;
@@ -405,7 +405,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     status:  403,
   };
 
-  describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
+  describe('Cluster dashboard - Fleet agent', { testIsolation: true }, () => {
     // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
     // which log in as a standard user and may leave session cookies in an inconsistent state
     beforeEach(() => {

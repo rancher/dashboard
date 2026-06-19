@@ -359,7 +359,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: false, tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');

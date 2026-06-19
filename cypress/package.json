@@ -37,7 +37,7 @@
     "axe-core": "4.10.2",
     "axe-html-reporter": "2.2.11",
     "cy2": "4.0.9",
-    "cypress": "11.1.0",
+    "cypress": "12.17.4",
     "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",

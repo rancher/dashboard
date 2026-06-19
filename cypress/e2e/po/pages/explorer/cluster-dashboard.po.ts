@@ -135,6 +135,7 @@ export default class ClusterDashboardPagePo extends PagePo {
     const instance = new ClusterDashboardPagePo(cluster);
 
     instance.goTo();
+    instance.waitForPage();
     instance.clusterActionsHeader().checkVisible();
   }
 }

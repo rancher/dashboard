@@ -38,43 +38,53 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
-    cy.get('@closedGroup').should('be.visible').click();
-    cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
+    productNavPo.groups().then(($groups) => {
+      const closedIdx = $groups.toArray().findIndex((el) => !el.classList.contains('expanded'));
+
+      productNavPo.groups().eq(closedIdx).should('be.visible').click();
+      productNavPo.groups().eq(closedIdx).find('ul').should('have.length.gt', 0);
+    });
     productNavPo.groups().get('expanded').should('not.be.instanceOf', Array);
   });
 
   it('Can close first menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-    productNavPo.groups().not('.expanded').eq(0).should('be.visible')
-      .click();
-    cy.get('@openGroup').find('ul').should('have.length', 0);
+    productNavPo.groups().then(($groups) => {
+      const expandedIdx = $groups.toArray().findIndex((el) => el.classList.contains('expanded'));
+      const closedIdx = $groups.toArray().findIndex((el) => !el.classList.contains('expanded'));
+
+      productNavPo.groups().eq(closedIdx).should('be.visible').click();
+      productNavPo.groups().eq(expandedIdx).find('ul').should('have.length', 0);
+    });
   });
 
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
-    cy.get('@closedGroup').should('be.visible').click();
-    cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
+    productNavPo.groups().then(($groups) => {
+      const closedIdx = $groups.toArray().findIndex((el) => !el.classList.contains('expanded'));
+
+      productNavPo.groups().eq(closedIdx).should('be.visible').click();
+      productNavPo.groups().eq(closedIdx)
+        .find('.router-link-active').should('have.length.gt', 0);
+    });
   });
 
   it('Going into resource detail should keep relevant group active', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-
-    productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
-
     deploymentsListPage.goTo();
     deploymentsListPage.waitForPage();
-    deploymentsListPage.goToDetailsPage(workloadName);
-    cy.get('@openGroup').should('be.visible');
-    cy.get('@openGroup').find('.router-link-active').should('have.length.gt', 0);
+
+    productNavPo.groups().then(($groups) => {
+      const expandedIdx = $groups.toArray().findIndex((el) => el.classList.contains('expanded'));
+
+      deploymentsListPage.goToDetailsPage(workloadName);
+      productNavPo.groups().eq(expandedIdx).should('be.visible');
+      productNavPo.groups().eq(expandedIdx)
+        .find('.router-link-active').should('have.length.gt', 0);
+    });
   });
 
   it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {

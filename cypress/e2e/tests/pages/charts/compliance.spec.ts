@@ -8,7 +8,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
-describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
+describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page

@@ -5,7 +5,11 @@ const namespace = 'default';
 const shortName = `a`;
 const longName = `e2e-test-long-configmap-name-that-should-truncate-with-ellipsis`;
 
-describe('ConfigMap Detail Title Bar', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+<<<<<<< HEAD
+describe('ConfigMap Detail Title Bar', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+=======
+describe('ConfigMap Detail Title Bar', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+>>>>>>> origin/nwm-test
   before(() => {
     cy.login();
     cy.createConfigMap(namespace, shortName);
