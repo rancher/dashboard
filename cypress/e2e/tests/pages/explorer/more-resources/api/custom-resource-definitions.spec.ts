@@ -16,7 +16,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before(() => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { followingLogIn: true });
+      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('can create a crd and see it in list view', () => {

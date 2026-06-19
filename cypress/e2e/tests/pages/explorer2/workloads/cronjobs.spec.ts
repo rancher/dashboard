@@ -54,7 +54,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
     it('Jobs list updates automatically in CronJob details page', () => {
       // Set namespace filter to include the test cronjob namespace
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`, { followingLogIn: true });
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`, { delay: true });
 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
@@ -192,7 +192,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           uniqueCronJob = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { followingLogIn: true });
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         })
         .then(() => cy.createManyNamespacedResources({
           context:        'cronjobs3',

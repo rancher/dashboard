@@ -46,7 +46,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         groupBy:         'none',
         namespaceFilter: '{\"local\":[]}',
         allNamespaces:   'true',
-      }, { followingLogIn: true });
+      }, { delay: true });
 
       const createPod = (podName?: string) => {
         return ({ ns, i }: {ns: string, i: number}) => {

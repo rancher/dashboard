@@ -350,7 +350,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
         initialCount = filteredUsersNotSystem.length - 1;
       });
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}', { followingLogIn: true });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}', { delay: true });
 
       // create users
       let i = 0;

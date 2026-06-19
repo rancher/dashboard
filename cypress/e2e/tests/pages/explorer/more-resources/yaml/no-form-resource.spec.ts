@@ -9,7 +9,7 @@ describe('No Custom Form Resource', { testIsolation: 'off', tags: ['@explorer', 
 
   describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { followingLogIn: true });
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { delay: true });
     });
 
     it(`can create a resource using the 'Create from YAML' button`, () => {

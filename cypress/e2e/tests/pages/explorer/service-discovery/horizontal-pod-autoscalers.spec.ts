@@ -11,7 +11,7 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { followingLogIn: true });
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     qase(4117, it('validate HorizontalPodAutoscalers table in empty state', () => {

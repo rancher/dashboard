@@ -26,7 +26,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
   before(() => {
     cy.login();
-    cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { followingLogIn: true });
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { delay: true });
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     cy.setUserPreference({ 'all-namespaces': true }, true);
 

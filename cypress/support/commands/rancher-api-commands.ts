@@ -1038,7 +1038,7 @@ const updateUserPreferences = ({
   verify = true,
   retries = 3,
   waits = 5,
-  followingLogIn = false,
+  delay = false,
 }: {
    preferences: Partial<UserPreferences>,
    logName: string,
@@ -1058,9 +1058,9 @@ const updateUserPreferences = ({
    /**
     * Is this command immediately following cy.login?
     */
-   followingLogIn?: boolean,
+   delay?: boolean,
 }): Cypress.Chainable<any> => {
-  if (followingLogIn) {
+  if (delay) {
     // There's some kind of strangeness with k3s --> login --> changing a preference
     // In theory updateUserPreferences should wait for an API response containing the required changes
     // However afterwards when loading a page it doesn't apply
@@ -1116,11 +1116,11 @@ const updateUserPreferences = ({
               return updateUserPreferences({
                 preferences,
                 logName,
-                iteration:      iteration + 1,
+                iteration: iteration + 1,
                 retries,
                 waits,
                 verify,
-                followingLogIn: false,
+                delay:     false,
               });
             }
 
@@ -1136,7 +1136,7 @@ const updateUserPreferences = ({
 /**
  * update resource list view preference
  */
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, config = { followingLogIn: false }): Cypress.Chainable<any> => {
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, config = { delay: false }): Cypress.Chainable<any> => {
   return updateUserPreferences({
     logName:     'updateNamespaceFilter',
     preferences: {
@@ -1144,7 +1144,7 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
       'group-by':      groupBy,
       'ns-by-cluster': namespaceFilter,
     },
-    followingLogIn: config?.followingLogIn || false
+    delay: config?.delay || false
   });
 });
 
@@ -1270,7 +1270,7 @@ Cypress.Commands.add('isVaiCacheEnabled', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { followingLogIn: boolean }) => {
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { delay: boolean }) => {
   const {
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
@@ -1284,14 +1284,14 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
       'ns-by-cluster':  namespaceFilter,
       'all-namespaces': allNamespaces,
     },
-    followingLogIn: config?.followingLogIn || false
+    delay: config?.delay || false
   });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, config?: { followingLogIn: boolean }) => {
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, config?: { delay: boolean }) => {
   return cy.tableRowsPerPageAndPreferences(rows, {
     clusterName, groupBy, namespaceFilter
-  }, { followingLogIn: config?.followingLogIn || false });
+  }, { delay: config?.delay || false });
 });
 
 /**
