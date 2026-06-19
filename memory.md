@@ -43,16 +43,25 @@
 - notification-handler.ts: store.getters['notifications/all'] is array (direct value); store.getters['prefs/get'] is function-getter; filter bug `!announcements.includes(v)` always passes through (comparing objects with strings)
 - notifications store: spy on `Storage.prototype` (not `window.localStorage`) — jsdom localStorage methods are not spyable directly
 
+## Testing Notes (type-map.utils.ts)
+
+- `rowValueGetter`: fields matching `$.metadata.fields[N]` → fast path; dot-prefixed fields → prepend `$`; escaped dots → `rewriteJsonPath`
+- `rewriteJsonPath`: private function; rewrites `$.a.b\.c\.d` → `$.a.["b.c.d"]` for JSONPath library compat
+- `configureConditionalDepaginate`: Norman types need `management.cattle.io.` prefix; uses `rootGetters['currentStore'](type)` then `all(COUNT)[0]?.counts[type]?.summary?.count`
+- `headerFromSchemaCol`: age shortcut requires `ageColumn` to be truthy; label key lowercases first char; tooltip strips trailing `.`
+
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
 3. `shell/store/notifications.ts` actions — `add`, `fromGrowl`, `markRead`, `markUnread`, `markAllRead`, `remove`, `clearAll`, `init` (need BroadcastChannel + crypto mocking)
 4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
+5. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
 
 ## Completed Work (Summary)
 
-- 2026-06-18: PR (branch test-assist/notifications-store-tests): 49 tests for notifications store getters+mutations; 0%→57% stmts, 96% branches
+- 2026-06-19: PR (branch test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts; 0%→61% stmts, 96% branches, 71% fns
+- 2026-06-18: PR #18092 (branch test-assist/notifications-store-tests): 49 tests for notifications store getters+mutations; 0%→57% stmts, 96% branches — merged ✅
 - 2026-06-17: dynamic-importer.test.ts merged to master (46 tests for dynamic-importer.js; 0%→82% stmts)
 - 2026-06-16: PR #18071 (branch test-assist/notification-handler-tests): 17 tests for notification-handler.ts; 100% coverage — merged ✅
 - 2026-06-14: PR #18054 (branch test-assist/router-utils-tests): 32 tests for router.js — merged ✅
@@ -69,6 +78,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-19: Task 3 (type-map.utils.ts, 41 tests: rowValueGetter/conditionalDepaginate/configureConditionalDepaginate/headerFromSchemaCol) + Task 7
 - 2026-06-18: Task 3 (notifications store, 49 tests: getters+mutations) + Task 7
 - 2026-06-17: Task 3 (dynamic-importer.js, 46 tests) + Task 7
 - 2026-06-16: Task 3 (notification-handler.ts, 17 tests) + Task 7
