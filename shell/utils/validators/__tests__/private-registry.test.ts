@@ -8,9 +8,7 @@ const makeCtx = (overrides: any = {}) => ({
   ...overrides,
 });
 
-const storeWithGlobalRegistry = {
-  getters: { 'management/byId': () => ({ value: 'registry.global.io' }) }
-};
+const storeWithGlobalRegistry = { getters: { 'management/byId': () => ({ value: 'registry.global.io' }) } };
 
 describe('privateRegistryRequired', () => {
   it('should return undefined when a global default registry is configured', () => {
