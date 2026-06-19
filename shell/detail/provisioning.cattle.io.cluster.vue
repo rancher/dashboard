@@ -539,12 +539,6 @@ export default {
           value:    'type',
           sort:     'type',
         },
-        {
-          name:     'phase',
-          labelKey: 'tableHeaders.phase',
-          value:    'phase',
-          sort:     'phase',
-        },
         AGE,
       ];
     },
