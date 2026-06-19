@@ -79,9 +79,3 @@ onMounted(async() => {
     :multiple="true"
   />
 </template>
-
-<style lang="scss" scoped>
-//  :deep(.vs__selected) {
-//     width: auto !important;
-//   }
-</style>
