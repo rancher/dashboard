@@ -50,11 +50,8 @@ export default {
     const field = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
 
     this.newCredential = await this.$store.dispatch('rancher/create', {
-      type:     NORMAN.CLOUD_CREDENTIAL,
-      metadata: {
-        namespace:   DEFAULT_WORKSPACE,
-        annotations: { [CAPI.CREDENTIAL_DRIVER]: this.driverName }
-      },
+      type:                           NORMAN.CLOUD_CREDENTIAL,
+      annotations:                    { [CAPI.CREDENTIAL_DRIVER]: this.driverName },
       [`${ field }credentialConfig`]: {}
     });
 
