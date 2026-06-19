@@ -281,6 +281,7 @@ watch(() => props.skipPullSecrets, (neu) => {
         v-if="!localSkipPullSecrets && !hasMultipleExistingPullSecrets"
         :value="pullSecret"
         :namespace="namespace"
+        allow-rke
         :in-store="inStore"
         limit-to-namespace
         fixed-image-pull-secret
