@@ -1873,7 +1873,7 @@ export default {
   }
 
   .search-box {
-    height: 40px;
+    height: 32px;
     margin-left: 10px;
     min-width: 180px;
   }
