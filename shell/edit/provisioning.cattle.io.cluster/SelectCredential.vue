@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
