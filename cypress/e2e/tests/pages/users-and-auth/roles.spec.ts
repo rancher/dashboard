@@ -10,6 +10,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3
@@ -605,16 +606,24 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForPage();
       usersPo.list().elementWithName(standardUsername).should('exist');
 
-      // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
-      // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
-      // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
-      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
-
       // logout admin
       cy.logout();
 
+      // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
+
+      // attempt 2 (remove if attempt 2 resolves)
+      // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
+      // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
+      cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+
       // login as standard user
       cy.login(standardUsername, standardPassword);
+
+      const homePage = new HomePagePo();
+
+      // attempt 3
+      homePage.goTo();
+      homePage.waitForPage();
 
       // navigate to the roles page and make sure user can see it
       roles.goTo();
