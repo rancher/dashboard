@@ -247,7 +247,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.ociRepoName }-description`);
     repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
@@ -265,8 +265,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
-      // check refreshInterval
-      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval));
+      // check refreshInterval (input value × hours unit = seconds)
+      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval) * 3600);
     });
 
     repositoriesPage.waitForPage();

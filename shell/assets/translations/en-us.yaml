@@ -1228,6 +1228,7 @@ catalog:
       lastUpdatedDesc: Last updated
       alphaAscending: Chart name, A → Z
       alphaDescending: Chart name, Z → A
+    loadingMore: Loading more…
     refreshButton:
       label: Refresh all repositories
     findSimilar:
@@ -1431,7 +1432,7 @@ catalog:
     oci:
       urlLabel: OCI Repository Host URL
       placeholder: 'e.g. oci://<registry-host>/<namespace>/<chart-name>:<tag>'
-      warning: OCI URLs must ONLY target helm chart/s.
+      warning: OCI URLs must ONLY target helm charts.
       info: For large repositories containing many charts consider targeting a specific namespace or chart to improve performance, for example with oci://<registry-host>/<namespace> or oci://<registry-host>/<namespace>/<chart-name>.
       skipTlsVerifications: Skip TLS Verifications
       insecurePlainHttp: Insecure Plain Http
@@ -1448,7 +1449,11 @@ catalog:
           placeholder: 'default: 5'
     refreshInterval:
       label: Refresh Interval
-      placeholder: 'default: {hours}'
+      placeholder: 'default: {value}{unit}'
+      unitLabel: Unit
+      enableLabel: Enable Refresh Interval
+    downloaded:
+      label: Downloaded
     error:
       refresh: Error refreshing repository
   tools:
