@@ -263,6 +263,7 @@ watch(() => props.skipPullSecrets, (neu) => {
         class="mb-10 mt-10"
         :mode="mode"
         :label="t('catalog.chart.registry.pullSecret.skipOption')"
+        data-testid="registry-skip-pull-secrets-checkbox"
       />
       <Banner
         v-if="hasMultipleExistingPullSecrets && !localSkipPullSecrets"

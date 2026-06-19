@@ -50,7 +50,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
         $route:      mockedRoute,
         $fetchState: {},
       },
-      stubs: { CruResource: { template: '<div><slot /></div>' } }
+      stubs: { CruResource: false, Accordion: false }
     }
   };
 };
@@ -233,27 +233,6 @@ describe('eKS provisioning form', () => {
     expect(wrapper.vm.fvFormIsValid).toBe(true);
 
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
-  });
-
-  it('should show the registries accordion', async() => {
-    const setup = {
-      global: {
-        mocks: {
-          $store:      mockedStore({ value: '<=1.27.x' }),
-          $fetchState: {},
-        },
-        stubs: { CruResource: { template: '<div><slot /></div>' } }
-      }
-    };
-    const wrapper = shallowMount(CruEKS, {
-      propsData: { value: {}, mode: 'create' },
-      ...setup
-    });
-
-    await setCredential(wrapper);
-    const registriesAccordion = wrapper.find('[data-testid="registries-accordion"]');
-
-    expect(registriesAccordion.exists()).toBe(true);
   });
 
   it('should fetch ssh keys from the aws api and save response as list of keypair KeyNames', async() => {

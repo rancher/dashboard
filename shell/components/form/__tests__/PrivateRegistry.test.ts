@@ -392,10 +392,9 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.find('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      expect(skipCheckbox?.exists()).toBe(true);
+      expect(skipCheckbox.exists()).toBe(true);
     });
 
     it('should not show skip checkbox for provisioning context', () => {
@@ -403,10 +402,9 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.PROVISIONING
       });
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.find('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      expect(skipCheckbox).toBeUndefined();
+      expect(skipCheckbox.exists()).toBe(false);
     });
 
     it('should hide SelectOrCreateAuthSecret when skip is enabled', async() => {
@@ -414,10 +412,9 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      await skipCheckbox!.vm.$emit('update:value', true);
+      await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.findComponent(SelectOrCreateAuthSecret).exists()).toBe(false);
@@ -428,10 +425,9 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      await skipCheckbox!.vm.$emit('update:value', true);
+      await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:skipPullSecrets')).toHaveLength(1);
@@ -443,10 +439,9 @@ describe('privateRegistry', () => {
         value:   'registry.example.com',
         context: PRIVATE_REGISTRY_CONTEXT.CHARTS
       });
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      await skipCheckbox!.vm.$emit('update:value', true);
+      await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:pullSecret')).toHaveLength(1);
@@ -480,10 +475,9 @@ describe('privateRegistry', () => {
 
       expect(bannersBefore.length).toBeGreaterThanOrEqual(2);
 
-      const checkboxes = wrapper.findAllComponents(Checkbox);
-      const skipCheckbox = checkboxes.find((c) => c.props('label') === 'catalog.chart.registry.pullSecret.skipOption');
+      const skipCheckbox = wrapper.findComponent('[data-testid="registry-skip-pull-secrets-checkbox"]');
 
-      await skipCheckbox!.vm.$emit('update:value', true);
+      await skipCheckbox.vm.$emit('update:value', true);
       await wrapper.vm.$nextTick();
 
       const bannersAfter = wrapper.findAllComponents(Banner).filter((b) => b.props('color') === 'info');
