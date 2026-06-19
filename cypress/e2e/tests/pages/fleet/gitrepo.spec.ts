@@ -88,6 +88,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       // Target selection step
       gitRepoCreatePage.targetClusterOptions().set(1);
+      // The "Manually selected clusters" option only renders once the async fleet-cluster
+      // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
       gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
@@ -243,6 +246,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
         // Target selection step
         gitRepoCreatePage.targetClusterOptions().set(1);
+        // The "Manually selected clusters" option only renders once the async fleet-cluster
+        // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+        gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
         gitRepoCreatePage.targetClusterOptions().set(2);
         gitRepoCreatePage.targetCluster().toggle();
         gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
