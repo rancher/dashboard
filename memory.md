@@ -60,7 +60,8 @@
 
 ## Completed Work (Summary)
 
-- 2026-06-19: PR (branch test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts; 0%→61% stmts, 96% branches, 71% fns
+- 2026-06-20: PR (branch test-assist/growl-store-tests): 29 tests for growl.js store; 0%→100% stmts/branches/fns
+- 2026-06-19: PR #18103 (branch test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts; 0%→61% stmts, 96% branches, 71% fns
 - 2026-06-18: PR #18092 (branch test-assist/notifications-store-tests): 49 tests for notifications store getters+mutations; 0%→57% stmts, 96% branches — merged ✅
 - 2026-06-17: dynamic-importer.test.ts merged to master (46 tests for dynamic-importer.js; 0%→82% stmts)
 - 2026-06-16: PR #18071 (branch test-assist/notification-handler-tests): 17 tests for notification-handler.ts; 100% coverage — merged ✅
@@ -78,6 +79,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-20: Task 3 (growl.js store, 29 tests: state/getters/mutations/actions) + Task 7
 - 2026-06-19: Task 3 (type-map.utils.ts, 41 tests: rowValueGetter/conditionalDepaginate/configureConditionalDepaginate/headerFromSchemaCol) + Task 7
 - 2026-06-18: Task 3 (notifications store, 49 tests: getters+mutations) + Task 7
 - 2026-06-17: Task 3 (dynamic-importer.js, 46 tests) + Task 7
