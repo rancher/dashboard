@@ -14,13 +14,7 @@ describe('class VmwarevsphereMachineTemplate', () => {
       [null, null],
       [undefined, null],
     ])('returns %p for pool %p', (pool: string | null | undefined, expected: string | null) => {
-      const machineTemplate = new VmwarevsphereMachineTemplate({
-        spec: {
-          template: {
-            spec: { pool }
-          }
-        }
-      });
+      const machineTemplate = new VmwarevsphereMachineTemplate({ spec: { template: { spec: { pool } } } });
 
       expect(machineTemplate.providerLocation).toStrictEqual(expected);
     });
