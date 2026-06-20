@@ -309,8 +309,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       .set();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
       .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
+    driversPage.list().resourceTable().sortableTable().bulkActionButton('Deactivate')
       .click();
 
     cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate' ).as('deactivateTelecomDriver');
