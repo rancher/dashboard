@@ -3,28 +3,22 @@ import { privateRegistryRequired } from '@shell/utils/validators/private-registr
 const makeCtx = (overrides: any = {}) => ({
   t:                      jest.fn((key: string, params?: any) => (params ? `${ key }:${ JSON.stringify(params) }` : key)),
   privateRegistryEnabled: false,
-  normanCluster:          { importedConfig: { privateRegistryURL: null } },
-  isImportedCluster:      true,
+  normanCluster:          { importedConfig: {} },
+  $store:                 { getters: { 'management/byId': () => null } },
   ...overrides,
 });
 
+const storeWithGlobalRegistry = { getters: { 'management/byId': () => ({ value: 'registry.global.io' }) } };
+
 describe('privateRegistryRequired', () => {
-  it('should return undefined when the cluster is not imported', () => {
-    const ctx = makeCtx({ isImportedCluster: false, privateRegistryEnabled: true });
+  it('should return undefined when a global default registry is configured', () => {
+    const ctx = makeCtx({
+      privateRegistryEnabled: true,
+      $store:                 storeWithGlobalRegistry,
+    });
     const rule = privateRegistryRequired(ctx);
 
     expect(rule()).toBeUndefined();
-  });
-
-  it('should default isImportedCluster to true when the property is absent from the context', () => {
-    const ctx: any = {
-      t:                      jest.fn((key: string, params?: any) => (params ? `${ key }:${ JSON.stringify(params) }` : key)),
-      privateRegistryEnabled: true,
-      normanCluster:          { importedConfig: { privateRegistryURL: null } },
-    };
-    const rule = privateRegistryRequired(ctx);
-
-    expect(rule()).toStrictEqual('validation.required:{"key":"cluster.privateRegistry.label"}');
   });
 
   it('should return undefined when the registry toggle is off', () => {
@@ -72,5 +66,23 @@ describe('privateRegistryRequired', () => {
     const rule = privateRegistryRequired(ctx);
 
     expect(rule()).toBeUndefined();
+  });
+
+  it('should handle $store getter throwing gracefully', () => {
+    const ctx = makeCtx({
+      privateRegistryEnabled: true,
+      normanCluster:          { importedConfig: {} },
+      $store:                 {
+        getters: {
+          get 'management/byId'() {
+            throw new Error('no store');
+          }
+        }
+      },
+    });
+    const rule = privateRegistryRequired(ctx);
+
+    // Falls through to validation since no global default detected
+    expect(rule()).toStrictEqual('validation.required:{"key":"cluster.privateRegistry.label"}');
   });
 });

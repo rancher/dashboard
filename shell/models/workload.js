@@ -10,6 +10,7 @@ import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { POD_SHELL } from '@shell/store/features';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -28,6 +29,7 @@ export default class Workload extends WorkloadService {
   get _availableActions() {
     let out = super._availableActions;
     const type = this._type ? this._type : this.type;
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
     const index = editYaml ? out.indexOf(editYaml) : 0;
@@ -76,13 +78,16 @@ export default class Workload extends WorkloadService {
 
     insertAt(out, 0, { divider: true }) ;
 
-    insertAt(out, 0, {
-      action:  'openShell',
-      enabled: !!this.links.view,
-      icon:    'icon icon-chevron-right',
-      label:   this.t('action.openShell'),
-      total:   1,
-    });
+    // Only add the menu item for the pod shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, {
+        action:  'openShell',
+        enabled: !!this.links.view,
+        icon:    'icon icon-chevron-right',
+        label:   this.t('action.openShell'),
+        total:   1,
+      });
+    }
 
     const toFilter = ['cloneYaml'];
 

@@ -400,6 +400,7 @@ export const AUTH_TYPE = {
   _S3:                '_S3',
   _RKE:               '_RKE',
   _IMAGE_PULL_SECRET: '_IPS',
+  _GITHUB_APP:        '_GITHUB_APP',
 };
 
 export const LOCAL_CLUSTER = 'local';

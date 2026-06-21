@@ -72,6 +72,7 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  or: or
   other: |-
     {count, plural,
     one  {other}
@@ -1138,9 +1139,15 @@ catalog:
       label: Container Registry
       tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
       custom:
-        checkBoxLabel: Container Registry for Rancher System Container Images
+        checkBoxLabel: Override the Default Container Registry
         inputLabel: Container Registry
         placeholder: Registry domain and ports, ex. registry.io:5000
+      pullSecret:
+        skipOption: Do not use image pull secrets
+        defaultLabel: 'Use default pull secret ({name})'
+        defaultLabelGeneric: Use default pull secrets
+        existingValuesBanner: '{secrets} are configured as image pull secrets in the chart values. To modify them, edit the values YAML directly.'
+        defaultSecretsBanner: '{secrets} are configured as default pull secrets. Select or create an image pull secret here to override the default.'
     header:
       charts: Charts
     info:
@@ -1383,6 +1390,8 @@ catalog:
     version: Version
     versions:
       current: '{ver} (Current)'
+      current_linux: '{ver} (Current, Linux-only)'
+      current_windows: '{ver} (Current, Windows-only)'
       linux: '{ver} (Linux-only)'
       windows: '{ver} (Windows-only)'
   delete:
@@ -2984,10 +2993,10 @@ fleet:
     title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
-    noPermissions: You have no permissions to modify Fleet Settings
+    noPermissions: You have no permissions to modify Continuous Delivery Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
-      ariaLabel: Fleet {name} setting
+      ariaLabel: Continuous Delivery {name} setting
     agentTLSMode:
       label: TLS Mode
       description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
@@ -3064,13 +3073,13 @@ fleet:
       description: 'Agent deployment settings.'
     replicas:
       label: Replicas
-      description: 'Number of replicas of Fleet pods.'
+      description: 'Number of replicas of pods.'
     annotations:
       label: Extra Annotations
-      description: 'Extra annotations passed to the Fleet pods.'
+      description: 'Extra annotations passed to the pods.'
     developer:
       label: Developer
-      description: 'Enable debug info from Fleet.'
+      description: 'Enable debug info.'
 
   tableHeaders:
     applicationType: Type
@@ -3081,7 +3090,7 @@ fleet:
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
-    welcome: Welcome to Fleet Continuous Delivery
+    welcome: Welcome to Continuous Delivery
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
     learnMoreLink: https://fleet.rancher.io
@@ -3204,7 +3213,7 @@ fleet:
     groupBy: Group By Type
     subTypes:
       fleet.cattle.io.gitrepo:
-        description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
+        description: GitRepo describes a git repository that is watched. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
       suse-application-collection:
@@ -6333,6 +6342,8 @@ resourceYaml:
 
 secret:
   authentication: Authentication
+  githubApp:
+    label: GitHub App
   certificate:
     certificate: Certificate
     certificates: Certificates
@@ -6469,14 +6480,19 @@ selectOrCreateAuthSecret:
     passwordPersonalAccessToken: Password/Personal Access Token
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
+  githubApp:
+    appId: GitHub App ID
+    installationId: GitHub App Installation ID
+    privateKey: GitHub App Private Key
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create an SSH Key Secret
   createBasic: Create an HTTP Basic Auth Secret
   createS3: Create an S3-Compatible Auth Secret
   createRKE: Create an RKE Auth Config Secret
+  createGithubApp: Create a GitHub App Auth Secret
   createImagePullSecretBasedOnAuth: Create an Image Pull Secret based on Authentication Secret
-  createImagePullSecret: Create a new Image Pull Secret with new Username/Password
+  createImagePullSecret: Create an Image Pull Secret with a Username and Password
 
 serviceAccount:
   automount: Automount Service Account Token
@@ -8172,7 +8188,6 @@ typeDescription:
   #       target="_blank" rel="noopener noreferrer nofollow"
   jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
-  chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   compliance.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   compliance.cattle.io.clusterscanprofile: A profile is the configuration for the compliance scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   compliance.cattle.io.clusterscan: A scan is created to trigger a compliance scan on the cluster based on the defined profile. A report is created after the scan is completed.
@@ -8967,6 +8982,7 @@ advancedSettings:
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
     'system-default-registry': 'Private registry to be used for all Rancher System Container Images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
+    'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. By default, these secrets will be copied into each Rancher chart namespace. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'

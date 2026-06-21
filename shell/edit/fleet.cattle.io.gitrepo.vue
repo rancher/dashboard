@@ -8,7 +8,7 @@ import Loading from '@shell/components/Loading';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import { SECRET_TYPES } from '@shell/config/secret';
+import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import FormValidation from '@shell/mixins/form-validation';
 import { toSeconds } from '@shell/utils/duration';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -283,10 +283,13 @@ export default {
         selected,
         publicKey,
         privateKey,
-        sshKnownHosts
+        sshKnownHosts,
+        githubAppId,
+        githubAppInstallationId,
+        githubAppPrivateKey,
       } = credentials;
 
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._GITHUB_APP].includes(selected) ) {
         return;
       }
 
@@ -323,19 +326,31 @@ export default {
           publicField = 'username';
           privateField = 'password';
           break;
+        case AUTH_TYPE._GITHUB_APP:
+          type = SECRET_TYPES.OPAQUE;
+          break;
         default:
           throw new Error('Unknown type');
         }
 
         secret._type = type;
-        secret.data = {
-          [publicField]:  base64Encode(publicKey),
-          [privateField]: base64Encode(privateKey),
-        };
 
-        // Add ssh known hosts
-        if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
-          secret.data.known_hosts = base64Encode(sshKnownHosts);
+        if (selected === AUTH_TYPE._GITHUB_APP) {
+          secret.data = {
+            [GITHUB_APP_SECRET_KEYS.APP_ID]:          base64Encode(githubAppId),
+            [GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]: base64Encode(githubAppInstallationId),
+            [GITHUB_APP_SECRET_KEYS.PRIVATE_KEY]:     base64Encode(githubAppPrivateKey),
+          };
+        } else {
+          secret.data = {
+            [publicField]:  base64Encode(publicKey),
+            [privateField]: base64Encode(privateKey),
+          };
+
+          // Add ssh known hosts
+          if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
+            secret.data.known_hosts = base64Encode(sshKnownHosts);
+          }
         }
       }
 
