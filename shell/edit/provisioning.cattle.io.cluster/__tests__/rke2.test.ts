@@ -806,4 +806,22 @@ describe('component: rke2', () => {
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
   });
+
+  describe('computed: canEditAsYaml', () => {
+    it('should return false when isUpstreamCAPIProvider is true', () => {
+      const vm = { isUpstreamCAPIProvider: true } as any;
+
+      const canEditAsYaml = rke2.computed!.canEditAsYaml.call(vm);
+
+      expect(canEditAsYaml).toBe(false);
+    });
+
+    it('should return true when isUpstreamCAPIProvider is false', () => {
+      const vm = { isUpstreamCAPIProvider: false } as any;
+
+      const canEditAsYaml = rke2.computed!.canEditAsYaml.call(vm);
+
+      expect(canEditAsYaml).toBe(true);
+    });
+  });
 });
