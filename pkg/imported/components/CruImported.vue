@@ -47,8 +47,6 @@ const defaultCluster = {
 export default defineComponent({
   name: 'CruImported',
 
-  emits: ['input'],
-
   components: {
     Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
   },

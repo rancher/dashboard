@@ -32,7 +32,7 @@ const globalConfigurationText = computed(() => {
 
 <template>
   <div class="mt-10">
-    <h3 v-t="'imported.basics.dayTwoOpsEnabled.title'" />
+    <h3>{{ t('imported.basics.dayTwoOpsEnabled.title') }}</h3>
     <div class="col">
       <Checkbox
         :value="value"

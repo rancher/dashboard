@@ -205,7 +205,7 @@ export default {
             args: { name: this.snapshot?.snapshotFile?.name },
           };
 
-          createOperationCR(this.$dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
+          createOperationCR(this.$store.dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
         } else {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 

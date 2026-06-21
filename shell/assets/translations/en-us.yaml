@@ -2688,7 +2688,7 @@ cluster:
         other {A snapshot has been requested for {count} clusters}
       }
     groupLabel: Location
-    predatesImportTooltip: Restore action is not currently supported for this snapshot as it predates the import into Rancher.
+    predatesImportTooltip: The restore action is not currently supported for this snapshot as it predates the import into Rancher.
     failed: "Snapshot from {time} failed"
     rke1:
       local: local
@@ -7389,7 +7389,7 @@ validation:
   betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
   noType: No type to validate
-  createResourceFailed: Failed to create resource - insufficient permissions or resource type not found
+  createResourceFailed: 'Failed to create resource: insufficient permissions or resource type not found'
   number:
     requiredInt: '"{key}" must be integer'
     isPositive: '"{key}" must be positive'
