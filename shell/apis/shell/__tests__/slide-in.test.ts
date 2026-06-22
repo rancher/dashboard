@@ -87,4 +87,101 @@ describe('slideInApiImpl', () => {
       },
     });
   });
+
+  it('should open with new preset properties', () => {
+    const config = {
+      title:       'Preset Panel',
+      panelWidth:  'wide' as const,
+      panelHeight: 'full' as const,
+    };
+
+    slideInApi.open(MockComponent, config);
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
+      component:      MockComponent,
+      componentProps: {
+        title:       'Preset Panel',
+        panelWidth:  'wide',
+        panelHeight: 'full',
+      },
+    });
+  });
+
+  it('should open with disableFocusTrap option', () => {
+    const config = {
+      panelWidth:       'wide' as const,
+      panelHeight:      'full' as const,
+      disableFocusTrap: true,
+    };
+
+    slideInApi.open(MockComponent, config);
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
+      component:      MockComponent,
+      componentProps: {
+        panelWidth:       'wide',
+        panelHeight:      'full',
+        disableFocusTrap: true,
+      },
+    });
+  });
+
+  describe('deprecation warnings', () => {
+    const originalEnv = process.env.dev;
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      process.env.dev = 'true';
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      process.env.dev = originalEnv;
+      warnSpy.mockRestore();
+    });
+
+    it('warns when deprecated "width" is used', () => {
+      slideInApi.open(MockComponent, { width: '50%' });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"width" is deprecated')
+      );
+    });
+
+    it('warns when deprecated "height" is used', () => {
+      slideInApi.open(MockComponent, { height: '100vh' });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"height" is deprecated')
+      );
+    });
+
+    it('warns when deprecated "top" is used', () => {
+      slideInApi.open(MockComponent, { top: '0' });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"top" is deprecated')
+      );
+    });
+
+    it('warns when deprecated "showHeader" is used', () => {
+      slideInApi.open(MockComponent, { showHeader: false });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"showHeader" is deprecated')
+      );
+    });
+
+    it('does not warn when using new preset properties', () => {
+      slideInApi.open(MockComponent, {
+        title:       'Test',
+        panelWidth:  'wide' as const,
+        panelHeight: 'full' as const,
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
 });

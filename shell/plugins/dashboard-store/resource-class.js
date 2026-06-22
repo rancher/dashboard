@@ -928,12 +928,9 @@ export default class Resource {
       componentProps: {
         resource:           this,
         onClose,
-        width:              '73%',
-        // We want this to be full viewport height top to bottom
-        height:             '100vh',
-        top:                '0',
-        'z-index':          101, // We want this to be above the main side menu
-        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        panelWidth:         'wide',
+        panelHeight:        'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
         triggerFocusTrap:   true,
         returnFocusSelector,
         defaultTab

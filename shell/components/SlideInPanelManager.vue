@@ -10,6 +10,13 @@ import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
 
+const WIDTH_MAP = {
+  default: '33%',
+  wide:    '73%'
+};
+
+const HEIGHT_FULL = 'full';
+
 const slideInPanelManager = useTemplateRef('SlideInPanelManager');
 const slideInPanelManagerClose = useTemplateRef('SlideInPanelManagerClose');
 
@@ -19,12 +26,22 @@ const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
-const panelTop = computed(() => {
-  // Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the top.
-  if (currentProps?.value?.top) {
-    return currentProps?.value?.top;
+const resolvedHeightMode = computed(() => {
+  if (currentProps.value?.panelHeight) {
+    return currentProps.value.panelHeight;
   }
 
+  // Deprecated: infer from raw height/top values
+  if (currentProps.value?.height === '100vh' || currentProps.value?.top === '0') {
+    return 'full';
+  }
+
+  return 'default';
+});
+
+const isFullHeight = computed(() => resolvedHeightMode.value === HEIGHT_FULL);
+
+const defaultTop = computed(() => {
   const banner = document.getElementById('banner-header');
   let height = HEADER_HEIGHT;
 
@@ -35,15 +52,59 @@ const panelTop = computed(() => {
   return `${ height }px`;
 });
 
-// Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the height.
-const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
-const panelWidth = computed(() => currentProps?.value?.width || '33%');
-const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
+const panelTop = computed(() => {
+  if (isFullHeight.value) {
+    return '0';
+  }
 
-const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
-const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
+  // Deprecated: explicit top value
+  if (currentProps.value?.top) {
+    return currentProps.value.top;
+  }
+
+  return defaultTop.value;
+});
+
+const panelHeight = computed(() => {
+  if (isFullHeight.value) {
+    return '100vh';
+  }
+
+  // Deprecated: explicit height value
+  if (currentProps.value?.height) {
+    return currentProps.value.height;
+  }
+
+  return `calc(100vh - ${ panelTop.value })`;
+});
+
+const panelWidth = computed(() => {
+  if (currentProps.value?.panelWidth) {
+    return WIDTH_MAP[currentProps.value.panelWidth] || WIDTH_MAP.default;
+  }
+
+  // Deprecated: raw CSS width string
+  return currentProps.value?.width || WIDTH_MAP.default;
+});
+
+const panelRight = computed(() => (isOpen.value ? '0' : `-${ panelWidth.value }`));
+
+const glassZIndex = computed(() => (isFullHeight.value ? 101 : undefined));
+const panelZIndex = computed(() => (isFullHeight.value ? 102 : undefined));
+
+const showHeader = computed(() => {
+  // Deprecated: explicit showHeader takes precedence for backwards compat
+  if (currentProps.value?.showHeader !== undefined) {
+    return currentProps.value.showHeader;
+  }
+
+  return !!currentProps.value?.title;
+});
+
+const panelTitle = computed(() => currentProps.value?.title || '');
+
 const closeOnRouteChange = computed(() => {
-  const propsCloseOnRouteChange = currentProps?.value.closeOnRouteChange;
+  const propsCloseOnRouteChange = currentProps.value?.closeOnRouteChange;
 
   if (!propsCloseOnRouteChange) {
     return ['name', 'params', 'hash', 'query'];
@@ -51,27 +112,32 @@ const closeOnRouteChange = computed(() => {
 
   return propsCloseOnRouteChange;
 });
+
 const router = useRouter();
 
 watch(
   /**
-   * trigger focus trap
+   * Focus trap logic
    */
-  () => isOpen?.value,
+  () => isOpen.value,
   (neu, old) => {
     if (neu && neu !== old) {
-      const opts:any = {
+      if (currentProps.value?.disableFocusTrap) {
+        return;
+      }
+
+      const panelEl = slideInPanelManager.value as HTMLElement;
+      const closeEl = slideInPanelManagerClose.value;
+
+      const opts: any = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
-        // putting the initial focus on the first element that is not conditionally displayed
-        initialFocus: slideInPanelManagerClose.value
+        initialFocus:  closeEl || panelEl,
+        fallbackFocus: panelEl
       };
 
-      const returnFocusSelector = currentProps?.value?.returnFocusSelector;
+      const returnFocusSelector = currentProps.value?.returnFocusSelector;
 
       if (returnFocusSelector) {
-        /**
-         * will return focus to the first iterable node of this container select
-         */
         opts.setReturnFocus = () => {
           if (returnFocusSelector && !document.querySelector(returnFocusSelector)) {
             console.warn('SlideInPanelManager: cannot find elem with "returnFocusSelector", returning focus to main view'); // eslint-disable-line no-console
@@ -85,13 +151,13 @@ watch(
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
         () => {
-          if (currentProps?.value?.focusTrapWatcherBasedVariable) {
+          if (currentProps.value?.focusTrapWatcherBasedVariable) {
             return currentProps.value.focusTrapWatcherBasedVariable;
           }
 
-          return isOpen?.value && !isClosing?.value;
+          return isOpen.value && !isClosing.value;
         },
-        slideInPanelManager.value as HTMLElement,
+        panelEl,
         opts,
         false
       );
@@ -102,7 +168,7 @@ watch(
 watch(
   () => router?.currentRoute?.value,
   (newValue, oldValue) => {
-    if (!isOpen?.value) {
+    if (!isOpen.value) {
       return;
     }
 
@@ -137,6 +203,7 @@ function closePanel() {
     <div
       id="slide-in-panel-manager"
       ref="SlideInPanelManager"
+      tabindex="-1"
       @keydown.escape="closePanel"
     >
       <div
@@ -144,6 +211,7 @@ function closePanel() {
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
+        :style="{ zIndex: glassZIndex }"
         @click="closePanel"
       />
       <aside
@@ -154,6 +222,7 @@ function closePanel() {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
+          zIndex: panelZIndex,
         }"
       >
         <div
@@ -167,6 +236,8 @@ function closePanel() {
             ref="SlideInPanelManagerClose"
             class="icon icon-close"
             data-testid="slide-in-close"
+            role="button"
+            :aria-label="'Close'"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
             @keypress.enter="closePanel"
@@ -220,7 +291,7 @@ function closePanel() {
 .header {
   display: flex;
   align-items: center;
-  padding: 4px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--border);
 
   .title {
@@ -229,11 +300,26 @@ function closePanel() {
   }
 
   .icon-close {
+    padding: 8px;
+    border-radius: 4px;
+    opacity: 0.7;
     cursor: pointer;
+
+    &:hover {
+      background-color: var(--primary);
+      color: var(--primary-text);
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
   }
 }
 
 .main-panel {
+  flex: 1;
   padding: 10px;
   overflow: auto;
 }
