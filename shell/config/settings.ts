@@ -125,6 +125,7 @@ export const SETTING = {
    */
   DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
+  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled'
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -186,6 +187,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
+  [SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT]:             { kind: 'boolean' },
   // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
   [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
@@ -207,6 +209,7 @@ export const PROVISIONING_SETTINGS = [
   SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
   SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT
 ];
 
 /**

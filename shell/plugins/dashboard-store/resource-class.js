@@ -79,6 +79,7 @@ export const STATES_ENUM = {
   BUILDING:         'building',
   COMPLETED:        'completed',
   CORDONED:         'cordoned',
+  CANCELLED:        'cancelled',
   COUNT:            'count',
   CREATED:          'created',
   CREATING:         'creating',
@@ -206,6 +207,9 @@ export const STATES = {
   },
   [STATES_ENUM.CORDONED]: {
     color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CANCELLED]: {
+    color: 'warning', icon: 'error', label: 'Cancelled', compoundIcon: 'warning'
   },
   [STATES_ENUM.COUNT]: {
     color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
@@ -1193,6 +1197,12 @@ export default class Resource {
 
   _collectionUrl() {
     const schema = this.$getters['schemaFor'](this.type);
+
+    if ( !schema ) {
+      // Schema not found - likely due to lack of permissions to view this resource type
+      throw new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`);
+    }
+
     let url = schema.linkFor('collection');
 
     if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
@@ -1203,22 +1213,26 @@ export default class Resource {
   }
 
   async dryRunCreate(data) {
-    const url = this._collectionUrl();
-    const separator = url.includes('?') ? '&' : '?';
-    const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+    try {
+      const url = this._collectionUrl();
+      const separator = url.includes('?') ? '&' : '?';
+      const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
 
-    return this.$dispatch('request', {
-      opt: {
-        method:  'post',
-        url:     `${ url }${ separator }dryRun=All`,
-        data:    body,
-        headers: {
-          'content-type': 'application/json',
-          accept:         'application/json'
-        }
-      },
-      type: this.type
-    });
+      return this.$dispatch('request', {
+        opt: {
+          method:  'post',
+          url:     `${ url }${ separator }dryRun=All`,
+          data:    body,
+          headers: {
+            'content-type': 'application/json',
+            accept:         'application/json'
+          }
+        },
+        type: this.type
+      });
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   /**
@@ -1249,13 +1263,16 @@ export default class Resource {
     if ( this.metadata?.resourceVersion ) {
       this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
     }
-
-    if ( !opt.url ) {
-      if ( forNew ) {
-        opt.url = this._collectionUrl();
-      } else {
-        opt.url = this.linkFor('update') || this.linkFor('self');
+    try {
+      if ( !opt.url ) {
+        if ( forNew ) {
+          opt.url = this._collectionUrl();
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
+        }
       }
+    } catch (e) {
+      return Promise.reject(e);
     }
 
     if ( !opt.method ) {
