@@ -43,6 +43,7 @@
 - notification-handler.ts: store.getters['notifications/all'] is array (direct value); store.getters['prefs/get'] is function-getter; filter bug `!announcements.includes(v)` always passes through (comparing objects with strings)
 - notifications store: spy on `Storage.prototype` (not `window.localStorage`) — jsdom localStorage methods are not spyable directly
 - modal.ts + slideInPanel.ts: `markRaw` from vue returns same reference; no need to mock; use `jest.useFakeTimers()` for close() 500ms setTimeout
+- features.js: `definitions` is module-level singleton; populated by top-level `create()` calls on import; `rootGetters['management/canList']` is a getter that returns a function (call with type arg)
 
 ## Testing Notes (type-map.utils.ts)
 
@@ -58,12 +59,12 @@
 3. `shell/store/notifications.ts` actions — `add`, `fromGrowl`, `markRead`, `markUnread`, `markAllRead`, `remove`, `clearAll`, `init` (need BroadcastChannel + crypto mocking)
 4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
 5. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
-6. `shell/store/features.js` — getter `get` (unknown feature error, management/byId lookup, default fallback) + `loadServer` action
 
 ## Completed Work (Summary)
 
-- 2026-06-21: PR (branch test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts; 0%→100% stmts/branches/lines
-- 2026-06-20: PR #18110 (branch test-assist/growl-store-tests): 29 tests for growl.js store; 0%→100% stmts/branches/fns
+- 2026-06-22: PR (branch test-assist/features-store-tests): 12 tests for features.js; 0%→100% all metrics
+- 2026-06-21: PR #18112 (branch test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts; 0%→100% stmts/branches/lines — merged ✅
+- 2026-06-20: PR #18110 (branch test-assist/growl-store-tests): 29 tests for growl.js store; 0%→100% stmts/branches/fns — merged ✅
 - 2026-06-19: PR #18103 (branch test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts; 0%→61% stmts, 96% branches, 71% fns
 - 2026-06-18: PR #18092 (branch test-assist/notifications-store-tests): 49 tests for notifications store getters+mutations; 0%→57% stmts, 96% branches — merged ✅
 - 2026-06-17: dynamic-importer.test.ts merged to master (46 tests for dynamic-importer.js; 0%→82% stmts)
@@ -82,6 +83,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-22: Task 3 (features.js, 12 tests: getters/actions/mapFeature/create) + Task 7
 - 2026-06-21: Task 3+4 (modal.ts + slideInPanel.ts, 24 tests; PR CI check — infra-only E2E failures) + Task 7
 - 2026-06-20: Task 3 (growl.js store, 29 tests: state/getters/mutations/actions) + Task 7
 - 2026-06-19: Task 3 (type-map.utils.ts, 41 tests: rowValueGetter/conditionalDepaginate/configureConditionalDepaginate/headerFromSchemaCol) + Task 7
