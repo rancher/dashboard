@@ -186,7 +186,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     // delete original MachineSet
     machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.machineDeploymentsName }`)
       .set();
-    machineDeploymentsPage.list().openBulkActionDropdown();
 
     const machineName = `${ nsName }/${ this.machineDeploymentsName }`;
 

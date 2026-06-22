@@ -720,8 +720,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
-    clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    clusterList.list().downloadKubeConfig().click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 

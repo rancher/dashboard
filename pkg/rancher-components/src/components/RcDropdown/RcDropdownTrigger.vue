@@ -3,8 +3,12 @@
  * A button that opens a menu. Used in conjunction with `RcDropdown.vue`.
  */
 import { inject, onMounted, ref } from 'vue';
-import { RcButton, RcButtonType } from '@components/RcButton';
+import { RcButton, RcButtonType, ButtonSize } from '@components/RcButton';
 import { DropdownContext, defaultContext } from './types';
+
+defineProps<{
+  size?: ButtonSize,
+}>();
 
 const {
   showMenu,
@@ -32,6 +36,7 @@ defineExpose({ focus });
     role="button"
     aria-haspopup="menu"
     :aria-expanded="isMenuOpen"
+    :size="size"
     @keydown.enter.space="handleKeydown"
     @click="showMenu(true)"
   >

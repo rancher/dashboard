@@ -184,7 +184,6 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     // delete original MachineSet
     machineSetsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.machineSetName)
       .set();
-    machineSetsPage.list().openBulkActionDropdown();
 
     const name = `${ nsName }/${ this.machineSetName }`;
 
