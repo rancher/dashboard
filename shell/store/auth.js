@@ -86,6 +86,14 @@ export const getters = {
       return true; // Feature flag not enabled, allow local user creation
     }
 
+    // Check if auth configs are loaded
+    const authConfigsLoaded = rootGetters['management/haveAll']('management.cattle.io.authconfig');
+
+    if (!authConfigsLoaded) {
+      // Auth configs not loaded yet, prevent creation until we know
+      return false;
+    }
+
     // Check if there's at least one non-local auth provider enabled
     const authConfigs = rootGetters['management/all']('management.cattle.io.authconfig') || [];
     const hasEnabledNonLocalProvider = authConfigs.some((config) => config.enabled && config.id !== 'local');
