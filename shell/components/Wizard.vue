@@ -361,7 +361,7 @@ export default {
 
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                    role="presentation"
+                    role="listitem"
                   >
                     <span
                       :aria-controls="'step-container-' + step.name"

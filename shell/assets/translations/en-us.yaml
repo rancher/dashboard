@@ -1428,6 +1428,7 @@ catalog:
         description: HTTP(S) URL pointing to a Helm chart repository index
       oci: 
         title: OCI Repository
+        logo: OCI Repository Logo
         description: OCI-compliant registry hosting Helm charts as artifacts
       suseAppCollection: 
         title: SUSE App Collection
@@ -6006,6 +6007,7 @@ promptSlo:
     waiting: Logging Out
 
 promptRemove:
+  dialogAriaLabel: "Delete confirmation dialog"
   title: Are you sure?
   andOthers: |-
     {count, plural,
@@ -6682,6 +6684,7 @@ sortableTable:
   resetFilters: Reset
   add: Add
   tableHeader:
+    actions: Actions
     noFilter: This column cannot be filtered by
     groupBy: Group by
     show: Show
