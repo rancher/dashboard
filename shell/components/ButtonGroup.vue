@@ -31,11 +31,25 @@ export default {
     disabled: {
       type:    Boolean,
       default: false,
-    }
+    },
+
+    size: {
+      type:      String,
+      default:   'large',
+      validator: (value) => ['small', 'medium', 'large'].includes(value),
+    },
 
   },
 
   computed: {
+    sizeClass() {
+      return {
+        small:  'btn-sm',
+        medium: 'btn-md',
+        large:  null,
+      }[this.size];
+    },
+
     optionObjects() {
       const value = this.value;
 
@@ -52,6 +66,7 @@ export default {
 
         out.class = {
           btn:                  true,
+          [this.sizeClass]:     !!this.sizeClass,
           [this.inactiveClass]: !active,
           [this.activeClass]:   active,
         };
@@ -122,3 +137,13 @@ export default {
     </button>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.btn-group {
+  .btn-md {
+    padding: 0 12px;
+    min-height: 32px;
+    line-height: 32px;
+  }
+}
+</style>

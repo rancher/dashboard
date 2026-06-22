@@ -421,6 +421,12 @@ describe.each([
     expect(wrapper.vm.value.spec.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
 
+  it('should have a beforeNext method', () => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode }));
+
+    expect(typeof wrapper.vm.beforeNext).toBe('function');
+  });
+
   if (mode === _CREATE) {
     it('should set created-by-user-id label when updateBeforeSave is called in CREATE mode', () => {
       const mockCurrentUser = { id: 'user-123' };
@@ -474,4 +480,99 @@ describe.each([
       expect(wrapper.vm.value.metadata.labels['fleet.cattle.io/created-by-user-id']).toBeUndefined();
     });
   }
+});
+
+describe('view: fleet.cattle.io.helmop, beforeNext dryRun validation', () => {
+  const initHelmOpWithMetadata = (props: any) => {
+    const value = new HelmOp({
+      ...mockHelmOp,
+      metadata: {
+        name:      'test-helmop',
+        namespace: 'fleet-default',
+      },
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    value.applyDefaults = () => {};
+
+    return {
+      props: {
+        value,
+        ...props
+      },
+      provide: {
+        store: createStore({
+          getters: {
+            currentStore:                   () => 'current_store',
+            'management/paginationEnabled': () => () => false
+          }
+        })
+      },
+      computed: mockComputed,
+      global:   { mocks },
+    };
+  };
+
+  it('should call dryRunCreate when leaving basics step in create mode', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockResolvedValue({});
+
+    await vm.beforeNext({ name: 'basics' });
+
+    expect(vm.value.dryRunCreate).toHaveBeenCalledWith(expect.objectContaining({
+      type:     'fleet.cattle.io.helmop',
+      metadata: expect.objectContaining({
+        name:      'test-helmop',
+        namespace: 'fleet-default',
+      }),
+      spec: expect.objectContaining({
+        helm: expect.objectContaining({
+          chart: 'placeholder',
+          repo:  'https://example.com',
+        }),
+      }),
+    }));
+  });
+
+  it('should not call dryRunCreate for non-basics steps', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'chart' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should not call dryRunCreate in edit mode', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _EDIT }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'basics' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject with API errors when dryRunCreate fails', async() => {
+    const apiError = {
+      _status:    409,
+      message:    'helmops.fleet.cattle.io "test-helmop" already exists',
+      statusText: 'Conflict',
+    };
+
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+
+    await expect(vm.beforeNext({ name: 'basics' })).rejects.toStrictEqual(apiError);
+  });
 });
