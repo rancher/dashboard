@@ -150,6 +150,7 @@ export default {
             tabbed="multiple"
             :target-namespace="value.metadata.namespace"
             :source="selectedNamespaceQuestions"
+            :mode="mode"
           />
         </Tabbed>
       </div>
