@@ -1,6 +1,9 @@
-/**
- * Store version data retrieved from the backend /rancherversion API
- */
+// Backwards-compatibility shim for extensions and Cypress that import the .js path.
+// Type declarations are in version.d.ts. The reactive implementation is in version.ts.
+// Extensions importing this file directly still have webpack module isolation (same
+// behaviour as before this PR), so isRancherPrime() reflects only their local state.
+// New code should use useVersion() from @shell/apis instead.
+
 let _versionData = {
   Version:      '',
   RancherPrime: 'false',
@@ -9,7 +12,7 @@ let _versionData = {
 let _kubeVersionData = {};
 
 export function isRancherPrime() {
-  return _versionData.RancherPrime?.toLowerCase() === 'true';
+  return _versionData?.RancherPrime?.toLowerCase() === 'true';
 }
 
 export function getVersionData() {
@@ -17,8 +20,7 @@ export function getVersionData() {
 }
 
 export function setVersionData(v) {
-  // Remove any properties on 'v' we don't want
-  _versionData = JSON.parse(JSON.stringify(v));
+  _versionData = v;
 }
 
 export function getKubeVersionData() {
@@ -26,8 +28,7 @@ export function getKubeVersionData() {
 }
 
 export function setKubeVersionData(v) {
-  // Remove any properties on 'v' we don't want
-  _kubeVersionData = JSON.parse(JSON.stringify(v));
+  _kubeVersionData = v;
 }
 
-export const CURRENT_RANCHER_VERSION = '2.13';
+export const CURRENT_RANCHER_VERSION = '2.14';

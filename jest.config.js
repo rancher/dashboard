@@ -17,6 +17,7 @@ module.exports = {
     '^~/(.*)$':                                                                      '<rootDir>/$1',
     '^~~/(.*)$':                                                                     '<rootDir>/$1',
     '^@/(.*)$':                                                                      '<rootDir>/$1',
+    '@shell/config/version$':                                                        '<rootDir>/shell/config/version.ts',
     '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
     '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
     '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',
