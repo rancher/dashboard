@@ -1200,7 +1200,7 @@ export default class Resource {
 
     if ( !schema ) {
       // Schema not found - likely due to lack of permissions to view this resource type
-      return Promise.reject(new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`));
+      throw new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`);
     }
 
     let url = schema.linkFor('collection');
@@ -1213,22 +1213,26 @@ export default class Resource {
   }
 
   async dryRunCreate(data) {
-    const url = this._collectionUrl();
-    const separator = url.includes('?') ? '&' : '?';
-    const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+    try {
+      const url = this._collectionUrl();
+      const separator = url.includes('?') ? '&' : '?';
+      const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
 
-    return this.$dispatch('request', {
-      opt: {
-        method:  'post',
-        url:     `${ url }${ separator }dryRun=All`,
-        data:    body,
-        headers: {
-          'content-type': 'application/json',
-          accept:         'application/json'
-        }
-      },
-      type: this.type
-    });
+      return this.$dispatch('request', {
+        opt: {
+          method:  'post',
+          url:     `${ url }${ separator }dryRun=All`,
+          data:    body,
+          headers: {
+            'content-type': 'application/json',
+            accept:         'application/json'
+          }
+        },
+        type: this.type
+      });
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   /**
@@ -1259,13 +1263,16 @@ export default class Resource {
     if ( this.metadata?.resourceVersion ) {
       this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
     }
-
-    if ( !opt.url ) {
-      if ( forNew ) {
-        opt.url = this._collectionUrl();
-      } else {
-        opt.url = this.linkFor('update') || this.linkFor('self');
+    try {
+      if ( !opt.url ) {
+        if ( forNew ) {
+          opt.url = this._collectionUrl();
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
+        }
       }
+    } catch (e) {
+      return Promise.reject(e);
     }
 
     if ( !opt.method ) {
