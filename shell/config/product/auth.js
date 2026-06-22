@@ -64,7 +64,14 @@ export function init(store) {
     }
   });
 
-  configureType(MANAGEMENT.USER, { showListMasthead: false });
+  configureType(MANAGEMENT.USER, {
+    showListMasthead: false,
+    isCreatable:      () => {
+      // Prevent local user creation when hide-local-auth-provider feature is enabled
+      // AND there's at least one non-local auth provider enabled
+      return store.getters['auth/canCreateLocalUsers'];
+    }
+  });
 
   configureType(MANAGEMENT.OIDC_CLIENT, {
     listCreateButtonLabelKey: 'oidcclient.listViewCreate',

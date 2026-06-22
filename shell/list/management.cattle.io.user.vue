@@ -87,6 +87,12 @@ export default {
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
+    },
+
+    canCreateUsers() {
+      // Prevent local user creation when hide-local-auth-provider feature is enabled
+      // AND there's at least one non-local auth provider enabled
+      return this.$store.getters['auth/canCreateLocalUsers'];
     }
   },
 
@@ -114,6 +120,7 @@ export default {
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+      :is-creatable="canCreateUsers"
     >
       <template #extraActions>
         <AsyncButton

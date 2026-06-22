@@ -76,6 +76,22 @@ export const getters = {
 
   selfUser(state) {
     return state.selfUser;
+  },
+
+  canCreateLocalUsers(_state, _getters, _rootState, rootGetters) {
+    // Check if the feature flag is enabled
+    const featureEnabled = rootGetters['features/get']('hide-local-auth-provider');
+
+    if (!featureEnabled) {
+      return true; // Feature flag not enabled, allow local user creation
+    }
+
+    // Check if there's at least one non-local auth provider enabled
+    const authConfigs = rootGetters['management/all']('management.cattle.io.authconfig') || [];
+    const hasEnabledNonLocalProvider = authConfigs.some((config) => config.enabled && config.id !== 'local');
+
+    // Allow local user creation only if no other provider is enabled
+    return !hasEnabledNonLocalProvider;
   }
 };
 
