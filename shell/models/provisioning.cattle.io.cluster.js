@@ -329,7 +329,7 @@ export default class ProvCluster extends SteveModel {
     const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
     const canGetOpSchema = this.$getters['schemaFor'](OPERATION.ETCD_SNAPSHOT);
 
-    return canGetOpSchema && this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && annotationOrGlobalEnabled;
+    return !this.isLocal && canGetOpSchema && this.isDayTwoOpsFeatureEnabled && this.isImportedRke2K3s && annotationOrGlobalEnabled;
   }
 
   get isK3s() {

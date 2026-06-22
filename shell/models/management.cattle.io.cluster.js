@@ -398,7 +398,7 @@ export default class MgmtCluster extends SteveModel {
    * Reads the `operations.cattle.io/ops-enabled` annotation.
    */
   get isDayTwoOpsEnabled() {
-    const isImportedRke2K3s = this.isImportedK3s || this.isImportedRke2;
+    const isImportedRke2K3s = !this.isLocal && (this.isImportedK3s || this.isImportedRke2);
     const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
     const annotationEnabled = this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
     const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
