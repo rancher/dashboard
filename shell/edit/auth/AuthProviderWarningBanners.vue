@@ -12,6 +12,10 @@ export default defineComponent({
       type:     Object,
       required: true,
       default:  () => { },
+    },
+    disableLocalAuth: {
+      type:    Boolean,
+      default: false,
     }
   }
 });
@@ -24,6 +28,13 @@ export default defineComponent({
       color="warning"
       data-testid="auth-provider-disabled-warning-banner"
     />
+    <Banner
+      v-if="disableLocalAuth"
+      color="warning"
+      data-testid="auth-provider-disable-local-auth-banner"
+    >
+      <span v-clean-html="t('bannerEnableAuthProvider', {}, true)" />
+    </Banner>
     <Banner
       color="warning"
       data-testid="auth-provider-admin-permissions-warning-banner"

@@ -5,6 +5,7 @@ import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 export const SLO_OPTION_VALUES = {
   /**
@@ -88,6 +89,10 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
+    },
+
+    disableLocalAuth() {
+      return this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER);
     }
   },
 

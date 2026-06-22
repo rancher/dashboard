@@ -469,6 +469,7 @@ export default {
         <AuthProviderWarningBanners
           v-if="!model.enabled"
           :t-args="tArgs"
+          :disable-local-auth="disableLocalAuth"
         />
 
         <InfoBox

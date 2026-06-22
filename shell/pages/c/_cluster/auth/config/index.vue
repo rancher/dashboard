@@ -1,12 +1,12 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { authProvidersInfo } from '@shell/utils/auth';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -29,9 +29,8 @@ export default {
   data() {
     return {
       // Provided by fetch later
-      enabled:          false,
-      nonLocal:         null,
-      disableLocalAuth: false,
+      enabled:  false,
+      nonLocal: null,
     };
   },
 
@@ -59,6 +58,10 @@ export default {
 
     schema() {
       return this.$store.getters[`${ this.inStore }/schemaFor`](resource);
+    },
+
+    disableLocalAuth() {
+      return this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER);
     }
   },
 

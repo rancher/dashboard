@@ -6005,6 +6005,8 @@ promptSlo:
     active: Log out of {name}
     waiting: Logging Out
 
+bannerEnableAuthProvider: "The 'Disable Local Authentication' setting is enabled. Enabling this authentication provider will prevent users from logging in with local credentials. Ensure you have access via this provider before continuing."
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
