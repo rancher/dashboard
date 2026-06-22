@@ -50,6 +50,7 @@ const props = withDefaults(defineProps<{
   hideTarget?: boolean;
   hideAdvanced?: boolean;
   hideChartConfig?: boolean;
+  nameRules?: ((val: any) => string | undefined)[];
 }>(), {
   appCoChartEntries:        () => ({} as Record<string, ChartEntry[]>),
   appCoChartsLoading:       false,
@@ -69,6 +70,7 @@ const props = withDefaults(defineProps<{
   hideTarget:               false,
   hideAdvanced:             false,
   hideChartConfig:          false,
+  nameRules:                () => [],
 });
 
 // eslint-disable-next-line func-call-spacing
@@ -309,6 +311,7 @@ defineExpose({ refreshYamlEditor });
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
           :no-bottom-margin="true"
+          :rules="{ name: nameRules }"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
@@ -354,6 +357,7 @@ defineExpose({ refreshYamlEditor });
           :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
+          :rules="{ name: nameRules }"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
