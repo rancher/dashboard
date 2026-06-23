@@ -1366,8 +1366,8 @@ catalog:
         generatedNewImagePullSecret: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated"
         generatedImagePullSecretBannerFromPreviousAuth: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated from the Repository secret <b>{ repoAuthenticationName }</b>."
         usePreviouslyGeneratedImagePullSecretBanner: "Image Pull Secret <b>{ imagePullSecretName }</b> was already created previously from the Repository secret <b>{ repoAuthenticationName }</b> and will be used."
-        oldMonitoringChartWarning: "From 2.15.0 the Rancher V2 Monitoring chart will be deprecated, instead please use the new Rancher Monitoring Dashboard chart. For more information please see <link to docs>."
-        newMonitoringChartWarning: "Before installing the new Rancher Monitoring Dashboard chart please make sure any applications using the old Rancher Monitoring Chart have been uninstalled and dependencies such as Prometheus have been installed. For more information please see <link to docs>."
+        oldMonitoringChartWarning: "From v2.15.0 this chart is deprecated, instead please use the new Rancher Monitoring Dashboard chart."
+        newMonitoringChartWarning: "Before installing the new Rancher Monitoring Dashboard chart please make sure any applications using the old Rancher Monitoring Chart have been uninstalled and dependencies such as Prometheus have been installed."
       clusterTplVersion:
         label: Version
         subtext: Select a version of the template
