@@ -15,7 +15,7 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "build:lib": "vue-cli-service build --skip-plugins eslint --target lib --name @rancher/components src/main.ts",
-    "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint --max-warnings 0 --ext .js,.ts,.vue ."
+    "lint": "eslint --max-warnings 0 ."
   },
   "engines": {
     "node": ">=24.0.0"
