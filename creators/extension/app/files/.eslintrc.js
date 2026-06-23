@@ -215,17 +215,18 @@ module.exports = {
         nonwords: false
       }
     ],
-    'vue/order-in-components':           'off',
-    'vue/no-lone-template':              'off',
-    'vue/v-slot-style':                  'off',
-    'vue/component-tags-order':          'off',
-    'vue/no-mutating-props':             'off',
-    '@typescript-eslint/no-unused-vars': 'off',
-    'array-callback-return':             'off',
-    'vue/one-component-per-file':        'off',
-    'vue/no-deprecated-slot-attribute':  'off',
-    'vue/require-explicit-emits':        'off',
-    'vue/v-on-event-hyphenation':        'off'
+    'vue/order-in-components':               'off',
+    'vue/no-lone-template':                  'off',
+    'vue/v-slot-style':                      'off',
+    'vue/component-tags-order':              'off',
+    'vue/no-mutating-props':                 'off',
+    '@typescript-eslint/no-unused-vars':     'off',
+    '@typescript-eslint/no-require-imports': 'off', // replaces removed no-var-requires (eslint 9 / ts-eslint v8)
+    'array-callback-return':                 'off',
+    'vue/one-component-per-file':            'off',
+    'vue/no-deprecated-slot-attribute':      'off',
+    'vue/require-explicit-emits':            'off',
+    'vue/v-on-event-hyphenation':            'off'
   },
   overrides: [
     {
