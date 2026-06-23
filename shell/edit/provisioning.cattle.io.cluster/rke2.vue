@@ -919,6 +919,10 @@ export default {
       return this.needCredential && !this.credentialId;
     },
 
+    canEditAsYaml() {
+      return !(this.isUpstreamCAPIProvider);
+    },
+
     overallFormValidationPassed() {
       return this.validationPassed &&
             this.fvFormIsValid &&
@@ -1118,7 +1122,6 @@ export default {
 
         this.rkeConfig.etcd.disableSnapshots = disableSnapshots;
       }
-
       // Namespaces if required - this is mainly for custom provisioners via extensions that want
       // to allow creating their resources in a different namespace
       if (this.needsNamespace) {
@@ -2459,6 +2462,7 @@ export default {
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
+    :can-yaml="canEditAsYaml"
     class="rke2"
     component-testid="rke2-custom-create"
     @done="done"

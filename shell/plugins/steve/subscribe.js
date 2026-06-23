@@ -834,6 +834,17 @@ const defaultActions = {
     state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
 
     for ( const { action, event, body } of queue ) {
+      const havePage = getters['havePage'](body?.type);
+
+      if (havePage) {
+        // eslint-disable-next-line no-console
+        console.warn(`Prevented watch \`flush\` data from polluting the cache for type "${ body?.type }" (currently represents a page)`, {
+          action, event, body
+        });
+
+        continue;
+      }
+
       if ( action === 'dispatch' && event === 'load' ) {
         // Group loads into one loadMulti when possible
         toLoad.push(body);

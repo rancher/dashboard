@@ -219,6 +219,12 @@ export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
+export const OPERATION = {
+  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
+  ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
+  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+};
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
