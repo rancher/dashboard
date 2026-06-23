@@ -26,6 +26,9 @@ module.exports = {
       {
         argsIgnorePattern:         '^_',
         varsIgnorePattern:         '^_',
+        // typescript-eslint v8 changed the default caughtErrors to 'all'; keep the
+        // pre-upgrade behaviour of not reporting unused caught errors (config-only).
+        caughtErrors:              'none',
         caughtErrorsIgnorePattern: '^_'
       }
     ],
