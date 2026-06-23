@@ -20,7 +20,8 @@
 
 ## Testing Notes
 
-- validators mock: `{ 'i18n/t': (key, args) => args ? key+':'+JSON.stringify(args) : key, 'i18n/exists': () => false }`
+- notifications actions: `bc` is module-level var; use `.call({ $extension: mock })` for handler tests; `getters` are static in mock context (don't auto-update after commits)
+- notifications actions: BroadcastChannel must be mocked globally in `init` tests: `(global as any).BroadcastChannel = jest.fn(() => mockBcInstance)` in `beforeEach`
 - gc singletons: `jest.resetModules()` + `jest.mock('../gc')` in `beforeEach`
 - gc-route-changed.ts bug: `match[2]` but regex only has 1 capture group
 - parse-externalid.js: EXTERNAL_ID.KIND_CATALOG is undefined → kind=undefined (bug)
@@ -56,13 +57,13 @@
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
-3. `shell/store/notifications.ts` actions — `add`, `fromGrowl`, `markRead`, `markUnread`, `markAllRead`, `remove`, `clearAll`, `init` (need BroadcastChannel + crypto mocking)
+3. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
 4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
-5. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
 
 ## Completed Work (Summary)
 
-- 2026-06-22: PR (branch test-assist/features-store-tests): 12 tests for features.js; 0%→100% all metrics
+- 2026-06-23: PR (branch test-assist/notifications-actions-tests): 31 tests for notifications.ts actions; 57%→96.42% stmts, 64%→100% fns
+- 2026-06-22: PR #18117 (branch test-assist/features-store-tests): 12 tests for features.js; 0%→100% all metrics — merged ✅
 - 2026-06-21: PR #18112 (branch test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts; 0%→100% stmts/branches/lines — merged ✅
 - 2026-06-20: PR #18110 (branch test-assist/growl-store-tests): 29 tests for growl.js store; 0%→100% stmts/branches/fns — merged ✅
 - 2026-06-19: PR #18103 (branch test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts; 0%→61% stmts, 96% branches, 71% fns
@@ -83,6 +84,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-23: Task 3 (notifications.ts actions, 31 tests: add/fromGrowl/update/markRead/markUnread/markAllRead/remove/clearAll/init) + Task 7
 - 2026-06-22: Task 3 (features.js, 12 tests: getters/actions/mapFeature/create) + Task 7
 - 2026-06-21: Task 3+4 (modal.ts + slideInPanel.ts, 24 tests; PR CI check — infra-only E2E failures) + Task 7
 - 2026-06-20: Task 3 (growl.js store, 29 tests: state/getters/mutations/actions) + Task 7
