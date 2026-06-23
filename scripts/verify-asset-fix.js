@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * Verification script for the require-asset extension build fix.
@@ -12,7 +13,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 
 const ROOT = path.resolve(__dirname, '..');
 const SHELL = path.join(ROOT, 'shell');
@@ -25,14 +25,14 @@ let failed = 0;
 
 function check(label, condition, detail) {
   if (condition) {
-    console.log(`  \x1b[32mPASS\x1b[0m  ${label}`);
-    passed++;
+    console.log(`  \x1b[32mPASS\x1b[0m  ${ label }`);
+    passed += 1;
   } else {
-    console.log(`  \x1b[31mFAIL\x1b[0m  ${label}`);
+    console.log(`  \x1b[31mFAIL\x1b[0m  ${ label }`);
     if (detail) {
-      console.log(`        ${detail}`);
+      console.log(`        ${ detail }`);
     }
-    failed++;
+    failed += 1;
   }
 }
 
@@ -67,7 +67,9 @@ check(
   stubContent.includes('export function _setContexts(')
 );
 
-const stubCodeLines = stubContent.split('\n').filter((line) => !line.trimStart().startsWith('//'));
+const stubCodeLines = stubContent
+  .split('\n')
+  .filter((line) => !line.trimStart().startsWith('//'));
 const stubCodeOnly = stubCodeLines.join('\n');
 
 check(
@@ -94,15 +96,15 @@ const realContent = fs.readFileSync(REAL_FILE, 'utf8');
 
 check(
   'require-asset.ts exposes requireAsset on window.__shell_requireAsset',
-  realContent.includes('__shell_requireAsset')
-    && realContent.includes('requireAsset'),
+  realContent.includes('__shell_requireAsset') &&
+    realContent.includes('requireAsset'),
   'The host dashboard must expose its requireAsset on window for extensions to delegate to'
 );
 
 check(
   'require-asset.ts exposes requireJson on window.__shell_requireJson',
-  realContent.includes('__shell_requireJson')
-    && realContent.includes('requireJson'),
+  realContent.includes('__shell_requireJson') &&
+    realContent.includes('requireJson'),
   'The host dashboard must expose its requireJson on window for extensions to delegate to'
 );
 
@@ -120,15 +122,15 @@ const configContent = fs.readFileSync(PKG_CONFIG, 'utf8');
 
 check(
   'vue.config.js has NormalModuleReplacementPlugin for require-asset',
-  configContent.includes('require-asset')
-    && configContent.includes('NormalModuleReplacementPlugin')
-    && configContent.includes('require-asset.lib.js')
+  configContent.includes('require-asset') &&
+    configContent.includes('NormalModuleReplacementPlugin') &&
+    configContent.includes('require-asset.lib.js')
 );
 
 check(
   'Follows the same pattern as dynamic-importer override',
-  configContent.includes("NormalModuleReplacementPlugin(/dynamic-importer$/")
-    && configContent.includes("NormalModuleReplacementPlugin(/require-asset$/"),
+  configContent.includes('NormalModuleReplacementPlugin(/dynamic-importer$/') &&
+    configContent.includes('NormalModuleReplacementPlugin(/require-asset$/'),
   'The require-asset override should follow the same pattern as dynamic-importer'
 );
 
@@ -150,7 +152,7 @@ testPaths.forEach((importPath) => {
   const matches = /require-asset$/.test(importPath);
 
   check(
-    `Regex /require-asset$/ matches "${importPath}"`,
+    `Regex /require-asset$/ matches '${ importPath }'`,
     matches,
     'All import paths ending in require-asset should be caught by the plugin'
   );
@@ -166,7 +168,7 @@ falsePaths.forEach((importPath) => {
   const matches = /require-asset$/.test(importPath);
 
   check(
-    `Regex /require-asset$/ does NOT match "${importPath}"`,
+    `Regex /require-asset$/ does NOT match '${ importPath }'`,
     !matches
   );
 });
@@ -202,14 +204,14 @@ const assetsDir = path.join(SHELL, 'assets');
 const { count: imageCount, totalSize } = countImages(assetsDir);
 const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
 
-console.log(`  \x1b[36mINFO\x1b[0m  shell/assets/ contains ${imageCount} images (${sizeMB} MB)`);
-console.log(`  \x1b[36mINFO\x1b[0m  Without this fix, ALL ${imageCount} images are bundled into every extension`);
+console.log(`  \x1b[36mINFO\x1b[0m  shell/assets/ contains ${ imageCount } images (${ sizeMB } MB)`);
+console.log(`  \x1b[36mINFO\x1b[0m  Without this fix, ALL ${ imageCount } images are bundled into every extension`);
 console.log(`  \x1b[36mINFO\x1b[0m  With this fix, 0 shell images are bundled (extensions delegate to the host)\n`);
 
 check(
-  `At least 100 images would be prevented from bundling (found ${imageCount})`,
+  `At least 100 images would be prevented from bundling (found ${ imageCount })`,
   imageCount >= 100,
-  `Expected 100+ images in shell/assets, found ${imageCount}`
+  `Expected 100+ images in shell/assets, found ${ imageCount }`
 );
 
 // ── 6. Existing pattern consistency ───────────────────────────────────
@@ -239,15 +241,15 @@ const overrides = ['dynamic-importer', 'model-loader-require', 'require-asset'];
 
 overrides.forEach((name) => {
   check(
-    `vue.config.js registers NormalModuleReplacementPlugin for ${name}`,
-    configContent.includes(`/${name}$/`) || configContent.includes(`/${name}$`)
+    `vue.config.js registers NormalModuleReplacementPlugin for ${ name }`,
+    configContent.includes(`/${ name }$/`) || configContent.includes(`/${ name }$`)
   );
 });
 
 // ── Summary ───────────────────────────────────────────────────────────
 
-console.log('\n' + '─'.repeat(60));
-console.log(`\n  ${passed} passed, ${failed} failed\n`);
+console.log(`\n${ '─'.repeat(60) }`);
+console.log(`\n  ${ passed } passed, ${ failed } failed\n`);
 
 if (failed > 0) {
   process.exit(1);
