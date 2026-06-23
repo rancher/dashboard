@@ -29,7 +29,11 @@ export default defineComponent({
     ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
-     * @values text, cron, multiline, multiline-password, number, integer (custom: renders as text with inputmode="numeric", blocks non-integer input)
+     *
+     * Any native HTML input type is passed through to the underlying input
+     * (e.g. text, password, number, email). A few custom values change the
+     * rendering or behaviour:
+     * @values cron (renders as text), multiline, multiline-password, integer (renders as text with inputmode="numeric", blocks non-integer input)
      */
     type: {
       type:    String,
@@ -390,7 +394,7 @@ export default defineComponent({
         return;
       }
 
-      const paste = event.clipboardData?.getData('text') ?? '';
+      const paste = event.clipboardData?.getData('text/plain') ?? '';
       const next = this.prospectiveValue(event.target as HTMLInputElement, paste);
 
       if (!this.isValidIntegerInput(next)) {
