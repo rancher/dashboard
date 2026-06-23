@@ -5,8 +5,13 @@ import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class WorkloadService extends SteveModel {
+  get stateDisplay() {
+    return stateDisplay(this.state, true);
+  }
+
   async getPortsWithServiceType() {
     const ports = [];
 

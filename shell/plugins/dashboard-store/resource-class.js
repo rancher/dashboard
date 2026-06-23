@@ -12,6 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
+import { EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -39,8 +40,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { EVENT } from '@shell/config/types';
-import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -79,6 +79,7 @@ export const STATES_ENUM = {
   BUILDING:         'building',
   COMPLETED:        'completed',
   CORDONED:         'cordoned',
+  CANCELLED:        'cancelled',
   COUNT:            'count',
   CREATED:          'created',
   CREATING:         'creating',
@@ -206,6 +207,9 @@ export const STATES = {
   },
   [STATES_ENUM.CORDONED]: {
     color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CANCELLED]: {
+    color: 'warning', icon: 'error', label: 'Cancelled', compoundIcon: 'warning'
   },
   [STATES_ENUM.COUNT]: {
     color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
@@ -507,12 +511,21 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state) {
+export function simpleColorForState(state, isError = false, isTransitioning = false) {
+  return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
+}
+
+export function stateDisplay(state, preserveOriginal = false) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
   if ( REMAP_STATE[key] ) {
     return REMAP_STATE[key];
+  }
+
+  // Preserves the original state name returned by the
+  if ( preserveOriginal ) {
+    return ucFirst(state);
   }
 
   return key.split(/-/).map(ucFirst).join('-');
@@ -754,7 +767,7 @@ export default class Resource {
   }
 
   get stateSimpleColor() {
-    return this.stateColor.replace('text-', '');
+    return simpleColorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning);
   }
 
   get stateBackground() {
@@ -1182,6 +1195,46 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  _collectionUrl() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    if ( !schema ) {
+      // Schema not found - likely due to lack of permissions to view this resource type
+      throw new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`);
+    }
+
+    let url = schema.linkFor('collection');
+
+    if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
+      url += `/${ this.metadata.namespace }`;
+    }
+
+    return url;
+  }
+
+  async dryRunCreate(data) {
+    try {
+      const url = this._collectionUrl();
+      const separator = url.includes('?') ? '&' : '?';
+      const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+
+      return this.$dispatch('request', {
+        opt: {
+          method:  'post',
+          url:     `${ url }${ separator }dryRun=All`,
+          data:    body,
+          headers: {
+            'content-type': 'application/json',
+            accept:         'application/json'
+          }
+        },
+        type: this.type
+      });
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
   /**
    * Remove any unwanted properties from the object that will be saved
    */
@@ -1210,20 +1263,16 @@ export default class Resource {
     if ( this.metadata?.resourceVersion ) {
       this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
     }
-
-    if ( !opt.url ) {
-      if ( forNew ) {
-        const schema = this.$getters['schemaFor'](this.type);
-        let url = schema.linkFor('collection');
-
-        if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
-          url += `/${ this.metadata.namespace }`;
+    try {
+      if ( !opt.url ) {
+        if ( forNew ) {
+          opt.url = this._collectionUrl();
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
         }
-
-        opt.url = url;
-      } else {
-        opt.url = this.linkFor('update') || this.linkFor('self');
       }
+    } catch (e) {
+      return Promise.reject(e);
     }
 
     if ( !opt.method ) {
@@ -2073,7 +2122,7 @@ export default class Resource {
 
       if ( r.selector ) {
         // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
-        addObjects(out.selectors, {
+        addObject(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
           selector:  r.selector
@@ -2083,7 +2132,7 @@ export default class Resource {
         let namespace = r[`${ direction }Namespace`];
         let name = r[`${ direction }Id`];
 
-        if ( !namespace && name.includes('/') ) {
+        if ( !namespace && name?.includes('/') ) {
           const idx = name.indexOf('/');
 
           namespace = name.substr(0, idx);
@@ -2245,12 +2294,58 @@ export default class Resource {
     };
   }
 
+  get _resourcesCardRows() {
+    const rows = [];
+    const relationships = this.metadata?.relationships || [];
+
+    const referredToByRels = relationships.filter((r) => r.fromType && r.fromId && !r.selector);
+    const refersToRels = relationships.filter((r) => r.toType && r.toId && !r.selector && !r.fromType);
+
+    if (referredToByRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.referredToBy'),
+        referredToByRels,
+        { hash: '#related' }
+      ));
+    }
+
+    if (refersToRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.refersTo'),
+        refersToRels,
+        { hash: '#related' }
+      ));
+    }
+
+    return rows;
+  }
+
+  get resourcesCardRows() {
+    return this._resourcesCardRows;
+  }
+
+  get resourcesCard() {
+    const rows = this.resourcesCardRows;
+
+    if (!rows.length) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     {
+        title: this.t('component.resource.detail.card.resourcesCard.title'),
+        rows
+      }
+    };
+  }
+
   get _cards() {
     // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
     return [];
   }
 
   get cards() {
-    return this._cards;
+    return [this.resourcesCard, ...this._cards].filter((c) => c);
   }
 }

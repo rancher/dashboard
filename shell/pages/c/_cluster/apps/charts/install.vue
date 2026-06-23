@@ -22,7 +22,6 @@ import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Wizard from '@shell/components/Wizard';
-import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import {
@@ -41,9 +40,12 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { WINDOWS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
+import { addParam } from '@shell/utils/url';
+import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { generateRandomAlphaString } from '@shell/utils/string';
 
 const VALUES_STATE = {
@@ -96,8 +98,8 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription,
-    SelectOrCreateAuthSecret
+    SelectOrCreateAuthSecret,
+    PrivateRegistry
   },
 
   mixins: [
@@ -359,6 +361,15 @@ export default {
         this.showCustomRegistryInput = !!this.customRegistrySetting;
       }
 
+      // On upgrade, pre-select a single existing image pull secret in the dropdown
+      if (this.existing && this.showRegistryPullSecrets) {
+        const existingPullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+        if (Array.isArray(existingPullSecrets) && existingPullSecrets.length === 1) {
+          this.registryPullSecret = existingPullSecrets[0];
+        }
+      }
+
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
 
@@ -455,6 +466,9 @@ export default {
       appCoDataFetched:                       false,
       AUTH_TYPE,
       CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
+      PRIVATE_REGISTRY_CONTEXT,
+      skipPullSecrets:                        false,
+      registryPullSecret:                     null,
       stepBasic:                              {
         name:           'basics',
         label:          this.t('catalog.install.steps.basics.label'),
@@ -601,6 +615,10 @@ export default {
       return out;
     },
 
+    selectedVersionOption() {
+      return this.filteredVersions?.find((v) => v.id === this.query.versionName) || this.query.versionName;
+    },
+
     showSelectVersionOrChart() {
       // Allow the user to choose a version if:
       // - the app exists (editing/upgrading)
@@ -680,7 +698,7 @@ export default {
     },
 
     stepperSubtext() {
-      return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
+      return this.mappedVersions?.find((v) => v.id === this.targetVersion)?.label || this.targetVersion;
     },
 
     readmeWindowName() {
@@ -765,24 +783,6 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
-    windowsIncompatible() {
-      if (this.versionInfo) {
-        const isRancher = isRancherRepo(this.repo, this.chart);
-        const permittedSystems = getPermittedOSs(this.versionInfo?.chart?.annotations, isRancher);
-        const incompatibleVersion = permittedSystems.length > 0 && !permittedSystems.includes('windows');
-
-        if (incompatibleVersion) {
-          if (!this.chart?.windowsIncompatible) {
-            return this.t('catalog.charts.versionWindowsIncompatible');
-          }
-
-          return this.t('catalog.charts.windowsIncompatible');
-        }
-      }
-
-      return null;
-    },
-
     /**
      * Check if the chart contains `systemDefaultRegistry` properties.
      * If not we shouldn't apply the setting, because if the option
@@ -797,6 +797,29 @@ export default {
       const global = this.versionInfo?.values?.global || {};
 
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
+    },
+
+    showRegistryPullSecrets() {
+      return !!this.repo?.spec?.defaultImagePullSecrets?.length;
+    },
+
+    existingValuesPullSecrets() {
+      if (!this.existing) {
+        return [];
+      }
+
+      const pullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+      return Array.isArray(pullSecrets) ? pullSecrets.filter(Boolean) : [];
+    },
+
+    /**
+     * if the system-default-pull-image-secrets global setting is set OR the current cluster has system default registry pull secrets configured
+     * the Rancher cluster repo will automatically be populated with
+     * copies of the secrets referenced in the global setting
+     */
+    repoDefaultPullSecretNames() {
+      return (this.repo?.spec?.defaultImagePullSecrets || []).map((s) => s.name).filter(Boolean);
     },
 
     setImagePullSecretDataTrigger() {
@@ -990,11 +1013,30 @@ export default {
         }
       }
     },
+
     async getClusterRegistry() {
+      const mgmCluster = this.$store.getters['currentCluster'];
+
+      // For local, imported, and hosted (AKS, EKS, GKE, ALI) clusters,
+      // the cluster-scoped private registry is on the norman cluster's importedConfig.
+      if (mgmCluster?.isLocal || mgmCluster?.isImported || mgmCluster?.isHostedKubernetesProvider) {
+        try {
+          const normanCluster = await mgmCluster.findNormanCluster();
+          const importedRegistryURL = normanCluster?.importedConfig?.privateRegistryURL;
+
+          if (importedRegistryURL) {
+            return importedRegistryURL;
+          }
+        } catch (e) {
+          console.warn('Unable to fetch norman cluster for registry lookup: ', e); // eslint-disable-line no-console
+        }
+
+        return;
+      }
+
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
       if (hasPermissionToSeeProvCluster) {
-        const mgmCluster = this.$store.getters['currentCluster'];
         const provClusterId = mgmCluster?.provClusterId;
         let provCluster;
 
@@ -1164,14 +1206,22 @@ export default {
         const isUpgrade = !!this.existing;
 
         this.errors = [];
+        // Create namespace if it doesn't exist
+        // this is done before save hooks so that image pull secrets can be created in the target namespace
+        await this.createNamespaceIfNeeded();
 
-        // Create namespace if it doesn't exist (before hooks run)
-        // And only if it is SUSE APP Collection, overall should just do the same flow
-        if (!isUpgrade && this.isNamespaceNew && this.repo?.isSuseAppCollection) {
-          await this.createNamespaceIfNeeded();
+        const hookResults = await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // When a new pull secret is created by SelectOrCreateAuthSecret inside
+        // PrivateRegistry, the emit chain does not propagate the secret name
+        // back to registryPullSecret in time.  Read it from the hook result.
+        if (this.showRegistryPullSecrets && !this.skipPullSecrets && !this.registryPullSecret) {
+          const createdSecret = hookResults?.registerAuthSecret;
+
+          if (createdSecret?.metadata?.name) {
+            this.registryPullSecret = createdSecret.metadata.name;
+          }
         }
-
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
 
         const { errors, input } = this.actionInput(isUpgrade);
 
@@ -1182,7 +1232,16 @@ export default {
           return;
         }
 
-        const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+        const actionName = isUpgrade ? 'upgrade' : 'install';
+        const actionOpt = {};
+
+        if (this.skipPullSecrets) {
+          const baseUrl = this.repo.actionLinkFor(actionName);
+
+          actionOpt.url = addParam(baseUrl, 'skipPullSecrets', 'true');
+        }
+
+        const res = await this.repo.doAction(actionName, input, actionOpt);
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
@@ -1241,6 +1300,15 @@ export default {
       if (this.showCustomRegistry) {
         set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
         set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
+
+      if (this.showRegistryPullSecrets && this.registryPullSecret) {
+        // User explicitly selected or created a pull secret
+        set(global, 'imagePullSecrets', [this.registryPullSecret]);
+      } else if (this.showRegistryPullSecrets) {
+        // User chose "skip" or "use default" — remove explicit imagePullSecrets
+        // so the backend falls back to the repo/global defaults
+        delete global.imagePullSecrets;
       }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
@@ -1345,7 +1413,6 @@ export default {
       */
 
       this.addGlobalValuesTo(values);
-
       const form = JSON.parse(JSON.stringify(this.value));
 
       /*
@@ -1504,6 +1571,8 @@ export default {
       }
     },
 
+    // not the same as PrivateRegistry pull secrets which are created based off the global/cluster system default registry hostname value not the repo url directly
+    // those secrets will be created in a beforeSaveHook managed by SelectOrCreateAuthSecret
     async createImagePullSecret() {
       if (!this.repo?.isSuseAppCollection) {
         return;
@@ -1554,10 +1623,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps pt-20"
+    class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
-    <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1567,25 +1635,45 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
       :header-mode="action.tKey"
+      :show-step-header="false"
       class="wizard"
-      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
-      <template #bannerTitleImage>
-        <div>
-          <div class="logo-bg">
-            <LazyImage
-              :src="chart ? chart.icon : ''"
-              class="logo"
-            />
+      <template #bannerTitle>
+        <div class="chart-title-container">
+          <div class="logo-container">
+            <div class="logo-box">
+              <LazyImage
+                :src="chart ? chart.icon : ''"
+                class="logo"
+              />
+            </div>
           </div>
-          <label
-            v-if="windowsIncompatible"
-            class="os-label"
-          >
-            {{ windowsIncompatible }}
-          </label>
+          <div class="chart-title">
+            <h1>
+              <router-link
+                v-if="chart"
+                :to="chartLocation()"
+                data-testid="chart-install-name-link"
+              >
+                {{ stepperName }}
+              </router-link>
+              <span v-else>
+                {{ stepperName }}
+              </span>: {{ t(`wizard.${action.tKey}`) }}
+            </h1>
+            <span
+              v-if="stepperSubtext"
+              class="subtext"
+            >
+              <i
+                v-clean-tooltip="t('tableHeaders.version')"
+                class="icon icon-version-alt"
+              />
+              {{ stepperSubtext }}
+            </span>
+          </div>
         </div>
       </template>
       <template #basics>
@@ -1629,20 +1717,26 @@ export default {
             v-if="showSelectVersionOrChart"
             class="row mb-20"
           >
-            <div class="col span-4">
-              <!-- We have a chart for the app, let the user select a new version -->
+            <!-- We have a chart for the app, let the user select a new version -->
+            <div
+              v-if="chart"
+              class="col span-4"
+            >
               <LabeledSelect
-                v-if="chart"
                 data-testid="chart-version-selector"
                 :label="t('catalog.install.version')"
-                :value="query.versionName"
+                :value="selectedVersionOption"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
                 @update:value="selectVersion"
               />
-              <!-- Can't find the chart for the app, let the user try to select one -->
+            </div>
+            <!-- Can't find the chart for the app, let the user try to select one -->
+            <div
+              v-else
+              class="col span-4"
+            >
               <LabeledSelect
-                v-else
                 :label="t('catalog.install.chart')"
                 :value="chart"
                 :options="charts"
@@ -1744,26 +1838,27 @@ export default {
             :label="t('catalog.install.steps.helmCli.checkbox', { action: action.name, existing: !!existing })"
           />
 
-          <Checkbox
+          <PrivateRegistry
             v-if="showCustomRegistry"
-            v-model:value="showCustomRegistryInput"
-            class="mb-20"
-            data-testid="custom-registry-checkbox"
-            :label="t('catalog.chart.registry.custom.checkBoxLabel')"
-            :tooltip="t('catalog.chart.registry.tooltip')"
+            :context="PRIVATE_REGISTRY_CONTEXT.CHARTS"
+            :value="customRegistrySetting"
+            :enabled="showCustomRegistryInput"
+            :default-registry="defaultRegistrySetting"
+            :namespace="targetNamespace"
+            in-store="cluster"
+            :register-before-hook="registerBeforeHook"
+            :show-pull-secrets="showRegistryPullSecrets"
+            :repo-default-pull-secrets="repoDefaultPullSecretNames"
+            :existing-values-pull-secrets="existingValuesPullSecrets"
+            :pull-secret="registryPullSecret"
+            :skip-pull-secrets="skipPullSecrets"
+            checkbox-test-id="custom-registry-checkbox"
+            input-test-id="custom-registry-input"
+            @update:value="(val) => customRegistrySetting = val"
+            @update:enabled="(val) => showCustomRegistryInput = val"
+            @update:pull-secret="(val) => registryPullSecret = val"
+            @update:skip-pull-secrets="(val) => skipPullSecrets = val"
           />
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput
-                v-if="showCustomRegistryInput"
-                v-model:value="customRegistrySetting"
-                data-testid="custom-registry-input"
-                label-key="catalog.chart.registry.custom.inputLabel"
-                placeholder-key="catalog.chart.registry.custom.placeholder"
-                :min-height="30"
-              />
-            </div>
-          </div>
           <div
             class="step__values__controls--spacer"
             style="flex:1"
@@ -1791,7 +1886,7 @@ export default {
             <LabeledSelect
               v-if="chart"
               :label="t('catalog.install.version')"
-              :value="query.versionName"
+              :value="selectedVersionOption"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
               @update:value="selectVersion"
@@ -2046,29 +2141,36 @@ export default {
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <div class="outer-container">
-      <div class="header mb-20">
-        <div class="title">
-          <div class="top choice-banner">
-            <div class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div class="round-image">
-                  <LazyImage
-                    :src="chart ? chart.icon : ''"
-                    class="logo"
-                  />
-                </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="stepperName">
-                  {{ stepperName }}
-                </h2>
-                <span
-                  v-if="stepperSubtext"
-                  class="subtext"
-                >{{ stepperSubtext }}</span>
+      <div class="header mmt-6 mmb-6">
+        <div class="top choice-banner">
+          <div class="chart-title-container mmb-6">
+            <div class="logo-container">
+              <div class="logo-box">
+                <LazyImage
+                  :src="chart ? chart.icon : ''"
+                  class="logo"
+                />
               </div>
+            </div>
+            <div class="chart-title">
+              <h2 v-if="stepperName">
+                <router-link
+                  :to="chartLocation()"
+                  data-testid="chart-install-name-link"
+                >
+                  {{ stepperName }}
+                </router-link>
+              </h2>
+              <span
+                v-if="stepperSubtext"
+                class="subtext"
+              >
+                <i
+                  v-clean-tooltip="t('tableHeaders.version')"
+                  class="icon icon-version-alt"
+                />
+                {{ stepperSubtext }}
+              </span>
             </div>
           </div>
         </div>
@@ -2100,12 +2202,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .chart-version-footnote {
+    margin-top: 8px;
+    color: var(--input-label);
+  }
+
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
 
   .install-steps {
-    padding-top: 0;
     height: 0;
     position: relative;
     overflow: hidden;
@@ -2121,37 +2227,29 @@ export default {
     }
   }
 
-  .wizard {
-    .logo-bg {
-      margin-right: 10px;
-      height: $title-height;
-      width: $title-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .logo {
-      max-height: $title-height - 2 * $padding;
-      max-width: $title-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
-    }
+    .logo-box {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      border-radius: var(--border-radius);
 
-    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
-    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
-    &.windowsIncompatible {
-      :deep() .header {
-        padding-bottom: 15px;
+      .logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
       }
     }
+  }
+
+  .wizard {
 
     .os-label {
       position: absolute;
@@ -2300,38 +2398,43 @@ export default {
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
-  & > .title {
+  & > .chart-title-container {
     flex: 1;
     min-height: 75px;
   }
 
   .choice-banner {
 
-    flex-basis: 40%;
+    flex-basis: 100%;
     display: flex;
     align-items: center;
 
     &.top {
 
-      H2 {
+      H1, H2 {
         margin: 0px;
       }
 
-      .title{
+      .chart-title-container {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-evenly;
-
-        & > .subtitle {
-          margin: 0 20px;
-        }
+        gap: 24px;
       }
 
-      .subtitle{
+      .chart-title {
         display: flex;
         flex-direction: column;
         & .subtext {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           color: var(--input-label);
+          margin-top: 8px;
+
+          .icon-version-alt {
+            font-size: 19px;
+          }
         }
       }
 
@@ -2348,17 +2451,6 @@ export default {
       }
     }
 
-    & .round-image {
-      min-width: 50px;
-      height: 50px;
-      margin: 10px 10px 10px 0;
-      border-radius: 50%;
-      overflow: hidden;
-      .logo {
-        min-width: 50px;
-        height: 50px;
-      }
-    }
   }
 }
 

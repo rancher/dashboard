@@ -10,6 +10,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions } from '@shell/utils/cluster';
 import { mapGetters } from 'vuex';
 import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
+import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
@@ -21,7 +22,8 @@ export default defineComponent({
     Checkbox,
     LabeledInput,
     VersionManagement,
-    Banner
+    Banner,
+    DayTwoOps
   },
   props: {
     mode: {
@@ -66,6 +68,14 @@ export default defineComponent({
       type:    Boolean,
       default: true
     },
+    dayTwoOpsGlobalSetting: {
+      type:     Boolean,
+      required: true,
+    },
+    dayTwoOpsFlag: {
+      type:     Boolean,
+      required: true,
+    },
     versionManagementGlobalSetting: {
       type:     Boolean,
       required: true,
@@ -82,6 +92,10 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+    dayTwoOpsEnabled: {
+      type:    Boolean,
+      default: false
+    },
     rules: {
       default: () => ({
         workerConcurrency:       [],
@@ -92,7 +106,7 @@ export default defineComponent({
 
   },
   emits: ['kubernetes-version-changed', 'drain-server-nodes-changed', 'server-concurrency-changed',
-    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-authorized-endpoint', 'version-management-changed', 'input'],
+    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'input'],
   data() {
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
@@ -185,7 +199,7 @@ export default defineComponent({
   />
   <div
     v-if="showVersionInformation"
-    class="mt-10"
+    class="mt-10 mb-10"
   >
     <h3 v-t="'imported.upgradeStrategy.header'" />
     <div class="col mt-10 mb-10">
@@ -235,6 +249,13 @@ export default defineComponent({
       </div>
     </div>
   </div>
+  <DayTwoOps
+    v-if="!isLocal && dayTwoOpsFlag"
+    :value="dayTwoOpsEnabled"
+    :global-setting="dayTwoOpsGlobalSetting"
+    :mode="mode"
+    @update:value="$emit('enable-day-two-ops-changed', $event)"
+  />
 </template>
 <style>
 @media screen and (max-width: 996px) {

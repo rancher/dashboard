@@ -44,7 +44,7 @@ const APP_COLLECTION_LINK = {
 
 const SUPPORT_LINK = {
   key:      'commercialSupport',
-  value:    '/support',
+  value:    'https://www.suse.com/products/rancher/',
   enabled:  true,
   readonly: true
 };

@@ -427,7 +427,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             type:           importType,
             agentEnvVars:   [],
             annotations:    { 'rancher.io/imported-cluster-version-management': 'system-default' },
-            importedConfig: { privateRegistryURL: null },
+            importedConfig: {},
             labels:         {},
             name:           importGenericName
           });
@@ -463,6 +463,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().provider(importGenericName).should('contain.text', 'Imported');
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
       }));
+
+      it('creation page should include a table of contents containing an entry for each Accordion on the page', () => {
+        cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
+
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.importCluster();
+
+        importClusterPage.waitForPage('mode=import');
+        importClusterPage.selectGeneric(0);
+        importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
+        cy.wait('@getUsers');
+        // verify that the table of contents is shown and contains the same number of entries as there are accordions on the page
+        cy.get('[data-testid="accordion-header"]')
+          .its('length')
+          .then((accordionHeaderCount) => {
+            cy.get('[data-testid^="toc-list-item-"]')
+              .should('have.length', accordionHeaderCount);
+          });
+
+        // verify that clicking an accordion label in the table of contents scrolls the page to the associated accordion and opens it
+        cy.get('[data-testid="toc-list-item-3"] button').click();
+
+        cy.window().its('scrollY').should('be.greaterThan', 0);
+
+        cy.get('[data-testid="registries-accordion"]')
+          .find('[data-testid="accordion-body"]')
+          .should('be.visible');
+      });
 
       qase(6978, it('can edit imported cluster and see changes afterwards', () => {
         cy.getClusterIdByName(importGenericName).then((clusterId) => {
@@ -691,8 +720,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
-    clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    clusterList.list().downloadKubeConfig().click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 

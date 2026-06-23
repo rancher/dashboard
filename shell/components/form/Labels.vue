@@ -126,6 +126,16 @@ export default {
       type:    String,
       default: '',
     },
+
+    compact: {
+      type:    Boolean,
+      default: false
+    },
+
+    useRcButton: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data(): DataType {
@@ -162,9 +172,12 @@ export default {
     <div :class="defaultSectionClass">
       <div class="labels">
         <div class="labels__header">
-          <h3 v-if="showLabelTitle">
+          <component
+            :is="!compact ? 'h3' : 'h4'"
+            v-if="showLabelTitle"
+          >
             <t k="labels.labels.title" />
-          </h3>
+          </component>
           <ToggleSwitch
             v-if="showToggler"
             v-model:value="toggler"
@@ -186,13 +199,14 @@ export default {
               :read-allowed="false"
               :value-can-be-empty="true"
               :key-errors="labels.keyErrors"
+              :use-rc-button="useRcButton"
               @update:value="labels.update($event, (x) => value.setLabels(x))"
             />
           </slot>
         </div>
       </div>
     </div>
-    <div class="spacer" />
+    <div :class="compact ? 'compact-spacer' : 'spacer'" />
     <div
       v-if="showAnnotations"
       :class="sectionClass"
@@ -208,6 +222,7 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
         :key-errors="annotations.keyErrors"
+        :use-rc-button="useRcButton"
         @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
       />
     </div>
@@ -220,5 +235,9 @@ export default {
     display: flex;
     justify-content: space-between;
   }
+}
+
+.compact-spacer {
+  height: 24px;
 }
 </style>

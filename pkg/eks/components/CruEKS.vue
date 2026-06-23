@@ -19,6 +19,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Loading from '@shell/components/Loading.vue';
 
@@ -44,7 +45,8 @@ const DEFAULT_CLUSTER = {
   annotations:                         {},
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
-  clusterAgentDeploymentCustomization: {}
+  clusterAgentDeploymentCustomization: {},
+  importedConfig:                      {},
 };
 
 const DEFAULT__IMPORT_CLUSTER = {
@@ -55,7 +57,7 @@ const DEFAULT__IMPORT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {},
-  importedConfig:                      { privateRegistryURL: null },
+  importedConfig:                      {},
   eksConfig:                           {
     amazonCredentialSecret: '',
     displayName:            '',
@@ -166,7 +168,7 @@ export default defineComponent({
       }
     }
 
-    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+    if (this.value?.id && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
     this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
@@ -211,6 +213,7 @@ export default defineComponent({
       isImport,
       cloudCredentialId:      '',
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as unknown as NormanCluster,
+      PRIVATE_REGISTRY_CONTEXT,
       nodeGroups:             [] as EKSNodeGroup[],
       config:                 { } as EKSConfig,
       membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
@@ -351,6 +354,21 @@ export default defineComponent({
 
     isImportedCluster(): boolean {
       return this.isImport || this.value.isImported;
+    },
+
+    pullSecrets: {
+      get(): string | undefined {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val: string | undefined) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
     },
 
     fvExtraRules(): {[key:string]: Function} {
@@ -662,6 +680,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="hasCredential"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"
@@ -724,6 +743,7 @@ export default defineComponent({
       <template v-else>
         <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
         <Tabbed
+          :title="t('eks.nodeGroups.title')"
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"
@@ -892,16 +912,18 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isImportedCluster"
         class="mb-20"
         title-key="cluster.tabs.registry"
         data-testid="registries-accordion"
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
         />
       </Accordion>
     </div>

@@ -64,6 +64,10 @@ export default class MgmtNode extends HybridModel {
   }
 
   get pool() {
+    if (!this.spec?.nodePoolName) {
+      return undefined;
+    }
+
     const nodePoolID = this.spec.nodePoolName.replace(':', '/');
 
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);

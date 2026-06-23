@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -50,11 +50,8 @@ export default {
     const field = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
 
     this.newCredential = await this.$store.dispatch('rancher/create', {
-      type:     NORMAN.CLOUD_CREDENTIAL,
-      metadata: {
-        namespace:   DEFAULT_WORKSPACE,
-        annotations: { [CAPI.CREDENTIAL_DRIVER]: this.driverName }
-      },
+      type:                           NORMAN.CLOUD_CREDENTIAL,
+      annotations:                    { [CAPI.CREDENTIAL_DRIVER]: this.driverName },
       [`${ field }credentialConfig`]: {}
     });
 
@@ -214,12 +211,6 @@ export default {
 
           return;
         }
-      }
-
-      if ( this.newCredential.metadata.name ) {
-        delete this.newCredential.metadata.generateName;
-      } else {
-        this.newCredential.metadata.generateName = 'cloud-credential-';
       }
 
       try {

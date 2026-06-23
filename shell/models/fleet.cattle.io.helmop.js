@@ -4,10 +4,29 @@ import { set } from '@shell/utils/object';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import FleetUtils from '@shell/utils/fleet';
 import { FLEET } from '@shell/config/types';
-import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG, FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
+import { SUSE_APP_COLLECTION_REPO_URL, SUSE_APPCO_DISPLAY_NAME } from '@shell/utils/fleet-appco';
 
 export default class HelmOp extends FleetApplication {
+  get isSuseAppCollectionFromUI() {
+    return !!this.metadata?.annotations?.[CATALOG.SUSE_APP_COLLECTION];
+  }
+
+  get isSuseAppCollection() {
+    // Annotation set by the UI on create, or fallback to URL check for older resources
+    return this.isSuseAppCollectionFromUI ||
+      (this.spec?.helm?.repo || '').startsWith(SUSE_APP_COLLECTION_REPO_URL);
+  }
+
+  get applicationType() {
+    if (this.isSuseAppCollectionFromUI) {
+      return SUSE_APPCO_DISPLAY_NAME;
+    }
+
+    return this.kind;
+  }
+
   applyDefaults() {
     const spec = this.spec || {};
     const meta = this.metadata || {};

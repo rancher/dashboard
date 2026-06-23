@@ -403,6 +403,99 @@ describe('class: Resource', () => {
 
       expect(cards).toHaveLength(0);
     });
+
+    it('should include the resources card when relationships exist', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 'a'
+            },
+            {
+              rel: 'uses', fromType: 'pod', fromId: 'b'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(1);
+      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+    });
+  });
+
+  describe('getter: resourcesCard', () => {
+    it('should return null when there are no relationships', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      expect(resource.resourcesCard).toBeNull();
+    });
+
+    it('should return rows for both referredToBy and refersTo when relationships exist in both directions', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'owner', fromType: 'rs', fromId: 'r-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+            {
+              rel: 'uses', toType: 'svc', toId: 's-2'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(2);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
+      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+      expect(rows[1].counts[0].count).toBe(2);
+    });
+
+    it('should omit a direction with no relationships', () => {
+      const resource = new Resource({
+        type:     'test',
+        metadata: {
+          relationships: [
+            {
+              rel: 'uses', toType: 'svc', toId: 's-1'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      const rows = resource.resourcesCardRows;
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
+    });
   });
 
   describe('getter: insightCardProps', () => {
@@ -583,6 +676,90 @@ describe('class: Resource', () => {
 
       expect(showConfig.enabled).toBe(false);
       expect(viewYaml.enabled).toBe(true);
+    });
+  });
+
+  describe('method: dryRunCreate', () => {
+    const collectionUrl = '/v1/test.resources';
+
+    it('should dispatch a request with dryRun=All query param', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: {
+          name:      'my-resource',
+          namespace: 'my-ns',
+        },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    (link: string) => (link === 'collection' ? collectionUrl : ''),
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await resource.dryRunCreate();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: expect.objectContaining({
+          method: 'post',
+          url:    `${ collectionUrl }/my-ns?dryRun=All`,
+        }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should use provided data instead of resource state when given', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'original', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const customData = {
+        type:     'test.resource',
+        metadata: { name: 'custom' },
+        spec:     {}
+      };
+
+      await resource.dryRunCreate(customData);
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt:  expect.objectContaining({ data: customData }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should propagate API errors', async() => {
+      const apiError = { _status: 409, message: 'already exists' };
+      const dispatch = jest.fn().mockRejectedValue(apiError);
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'dup', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await expect(resource.dryRunCreate()).rejects.toStrictEqual(apiError);
     });
   });
 });

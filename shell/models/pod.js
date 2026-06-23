@@ -1,10 +1,12 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, simpleColorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { POD_SHELL } from '@shell/store/features';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -63,11 +65,16 @@ export default class Pod extends WorkloadService {
 
   get _availableActions() {
     const out = super._availableActions;
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     // Add backwards, each one to the top
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+
+    // Only add the menu item for the pod shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
@@ -94,9 +101,14 @@ export default class Pod extends WorkloadService {
 
   get containerActions() {
     const out = [];
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+
+    // Only add the menu item for the container shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
@@ -154,6 +166,37 @@ export default class Pod extends WorkloadService {
     const { initContainers = [] } = this.spec;
 
     return initContainers.includes(container);
+  }
+
+  get resourceContainers() {
+    const statuses = [...(this.status?.containerStatuses || []), ...(this.status?.initContainerStatuses || [])];
+
+    return statuses.map((s) => {
+      const state = Object.keys(s.state || {})[0] || 'unknown';
+
+      return {
+        stateDisplay:     stateDisplay(state),
+        stateSimpleColor: simpleColorForState(state),
+      };
+    });
+  }
+
+  get resourcesCardRows() {
+    const rows = [...this._resourcesCardRows];
+
+    if (this.resourceContainers.length) {
+      rows.unshift(useResourceCardRow(this.t('workload.container.titles.containers'), this.resourceContainers, 'stateSimpleColor', 'stateDisplay', '#containers'));
+    }
+
+    return rows;
+  }
+
+  get cards() {
+    return [
+      this.resourcesCard,
+      this.insightCard,
+      ...this._cards
+    ].filter((c) => c);
   }
 
   get imageNames() {

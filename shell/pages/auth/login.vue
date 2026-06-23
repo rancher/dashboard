@@ -410,41 +410,6 @@ export default {
             k="setup.defaultPassword.intro"
             :raw="true"
           />
-
-          <div>
-            <t
-              k="setup.defaultPassword.dockerPrefix"
-              :raw="true"
-            />
-          </div>
-          <ul>
-            <li>
-              <t
-                k="setup.defaultPassword.dockerPs"
-                :raw="true"
-              />
-            </li>
-            <li>
-              <CopyCode>
-                docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
-              </CopyCode>
-            </li>
-          </ul>
-          <div>
-            <t
-              k="setup.defaultPassword.dockerSuffix"
-              :raw="true"
-            />
-          </div>
-
-          <br>
-          <div>
-            <t
-              k="setup.defaultPassword.helmPrefix"
-              :raw="true"
-            />
-          </div>
-          <br>
           <CopyCode>
             {{ kubectlCmd }}
           </CopyCode>

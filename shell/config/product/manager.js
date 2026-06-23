@@ -10,6 +10,7 @@ import {
   HCI,
   MANAGEMENT,
   SNAPSHOT,
+  OPERATION,
   VIRTUAL_TYPES,
   HOSTED_PROVIDER,
   SAVED_COUNTS
@@ -80,6 +81,11 @@ export function init(store) {
   configureType(SNAPSHOT, { depaginate: true });
   configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
+  // Day 2 operation CRDs - read-only, not user-creatable or editable
+  configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
+
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
   });
@@ -130,10 +136,12 @@ export function init(store) {
 
   basicType([
     HOSTED_PROVIDER,
+    CAPI.CAPI_PROVIDER,
     'rke-kontainer-providers',
     'rke-node-providers',
   ], 'providers');
 
+  weightType(CAPI.CAPI_PROVIDER, 4, true);
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);

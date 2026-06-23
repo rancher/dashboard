@@ -33,9 +33,12 @@
  *   <p>Section content here</p>
  * </RcSection>
  */
-import { computed, inject, provide, type Ref } from 'vue';
+import {
+  computed, inject, provide, useTemplateRef, type Ref
+} from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';
@@ -57,6 +60,24 @@ const resolvedBackground = computed<SectionBackground>(() => {
 provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
+
+// Expose summary, name, and a display label on the component public instance so
+// TOC discovery can access component
+const displayTitle = computed(() => props.title);
+
+const name = 'RcSection';
+
+// Register this section in form summary/table-of-contents context (if provided)
+const sectionRef = useTemplateRef<HTMLElement>('rc-section-summarized-container');
+const { summary } = useInSummary({
+  label:      displayTitle,
+  scrollTo:   () => sectionRef.value?.scrollIntoView(true),
+  elementRef: sectionRef,
+});
+
+defineExpose({
+  summary, displayTitle, name
+});
 
 const hasHeader = computed(() => {
   return props.mode === 'with-header';
@@ -84,7 +105,10 @@ function toggle() {
 </script>
 
 <template>
-  <div :class="sectionClass">
+  <div
+    ref="rc-section-summarized-container"
+    :class="sectionClass"
+  >
     <div
       v-if="hasHeader"
       class="section-header"
@@ -203,7 +227,8 @@ function toggle() {
   color: var(--body-text, inherit);
 }
 
-button.btn-medium.toggle-button {
+// TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)
+.left-wrapper :deep(button.toggle-button.btn-medium:not(.btn-sm)) {
   flex-shrink: 0;
   font-size: 16px;
   color: var(--body-text, inherit);

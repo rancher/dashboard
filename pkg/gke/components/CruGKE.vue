@@ -20,6 +20,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
@@ -135,7 +136,7 @@ const defaultImportedCluster = {
   enableNetworkPolicy:    false,
   windowsPreferedCluster: false,
   name:                   '',
-  importedConfig:         { privateRegistryURL: null },
+  importedConfig:         {},
   gkeConfig:              {
     imported:               true,
     clusterName:            '',
@@ -203,7 +204,7 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
-    if (this.value?.id && this.isImportedCluster && !this.normanCluster.importedConfig) {
+    if (this.value?.id && !this.normanCluster.importedConfig) {
       this.normanCluster.importedConfig = {};
     }
     this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
@@ -255,6 +256,7 @@ export default defineComponent({
     return {
       isImport,
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
+      PRIVATE_REGISTRY_CONTEXT,
       nodePools:              [] as GKENodePool[],
       config:                 { } as GKEConfig,
       membershipUpdate:       {} as any,
@@ -356,6 +358,21 @@ export default defineComponent({
 
     isImportedCluster() {
       return this.isImport || this.value.isImported;
+    },
+
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
     },
 
     /**
@@ -940,16 +957,18 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isImportedCluster"
         class="mb-20"
         title-key="cluster.tabs.registry"
         data-testid="registries-accordion"
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
         />
       </Accordion>
     </div>

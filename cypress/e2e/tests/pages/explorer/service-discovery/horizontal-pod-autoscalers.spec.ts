@@ -1,9 +1,10 @@
 import { HorizontalPodAutoscalersPagePo } from '@/cypress/e2e/po/pages/explorer/horizontal-pod-autoscalers.po';
 import { generateHorizontalPodAutoscalersDataSmall, horizontalPodAutoScalersNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/horizontal-pod-autoscalers-get';
+import { qase } from '@/cypress/support/qase';
 
 const horizontalPodAutoscalersPage = new HorizontalPodAutoscalersPagePo();
 
-describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -13,7 +14,7 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });
 
-    it('validate HorizontalPodAutoscalers table in empty state', () => {
+    qase(4117, it('validate HorizontalPodAutoscalers table in empty state', () => {
       horizontalPodAutoScalersNoData();
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
@@ -31,9 +32,9 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
         });
 
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().checkRowCount(true, 1);
-    });
+    }));
 
-    it('flat list: validate HorizontalPodAutoscalers table', () => {
+    qase(4119, it('flat list: validate HorizontalPodAutoscalers table', () => {
       generateHorizontalPodAutoscalersDataSmall();
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
@@ -54,9 +55,9 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-    });
+    }));
 
-    it('group by namespace: validate HorizontalPodAutoscalers table', () => {
+    qase(4118, it('group by namespace: validate HorizontalPodAutoscalers table', () => {
       generateHorizontalPodAutoscalersDataSmall();
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
@@ -83,7 +84,7 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupElementWithName('Namespace: cattle-system')
         .should('be.visible');
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
-    });
+    }));
 
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');

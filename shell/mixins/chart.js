@@ -71,6 +71,8 @@ export default {
 
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
+      const isRancher = isRancherRepo(this.repo, this.chart);
+      const permittedSystemsByVersion = new Map();
       const out = [];
 
       versions.forEach((version) => {
@@ -84,8 +86,9 @@ export default {
           keywords:        version.keywords
         };
 
-        const isRancher = isRancherRepo(this.repo, this.chart);
         const permittedSystems = getPermittedOSs(version?.annotations, isRancher);
+
+        permittedSystemsByVersion.set(version.version, permittedSystems);
 
         if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
           nue.disabled = true;
@@ -118,7 +121,13 @@ export default {
       const currentVersion = out.find((v) => v.originalVersion === this.currentVersion);
 
       if (currentVersion) {
-        currentVersion.label = this.t('catalog.install.versions.current', { ver: this.currentVersion });
+        const permittedSystems = permittedSystemsByVersion.get(currentVersion.originalVersion) || [];
+
+        if (permittedSystems.length === 1) {
+          currentVersion.label = this.t(`catalog.install.versions.current_${ permittedSystems[0] }`, { ver: this.currentVersion });
+        } else {
+          currentVersion.label = this.t('catalog.install.versions.current', { ver: this.currentVersion });
+        }
       }
 
       return out;

@@ -7,16 +7,15 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { CAPI, SNAPSHOT } from '@shell/config/types';
+import { CAPI, SNAPSHOT, OPERATION, MANAGEMENT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import AppModal from '@shell/components/AppModal.vue';
-
+import { createOperationCR } from '@shell/utils/operation-cr';
 export default {
   components: {
     Card,
@@ -66,8 +65,41 @@ export default {
       return !!this.snapshot;
     },
 
-    isRke2() {
-      return !!this.snapshot?.rke2;
+    targetCluster() {
+      if (this.isCluster) {
+        return this.toRestore?.[0] || null;
+      }
+
+      if (this.snapshot?.cluster) {
+        return this.snapshot.cluster;
+      }
+
+      const snapshotClusterName = this.snapshot?.spec?.clusterName || this.snapshot?.clusterName;
+      const snapshotClusterId = this.snapshot?.clusterId || (snapshotClusterName ? `${ this.snapshot?.metadata?.namespace }/${ snapshotClusterName }` : null);
+
+      if (!snapshotClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, snapshotClusterId);
+    },
+
+    targetMgmtCluster() {
+      if (this.targetCluster?.mgmt) {
+        return this.targetCluster.mgmt;
+      }
+
+      const mgmtClusterId = this.snapshot?.spec?.clusterName;
+
+      if (!mgmtClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, mgmtClusterId);
+    },
+
+    isImported() {
+      return !!(this.targetCluster?.isImported || this.targetMgmtCluster?.isImported);
     },
 
     clusterSnapshots() {
@@ -76,6 +108,13 @@ export default {
       } else {
         return [];
       }
+    },
+    restoreModeLabels() {
+      return [
+        this.t('promptRestore.restoreMode.onlyEtcd'),
+        this.t('promptRestore.restoreMode.kubernetesVersionAndEtcd'),
+        this.t('promptRestore.restoreMode.clusterConfigKubernetesVersionAndEtcd')
+      ];
     },
     restoreModeOptions() {
       return ['none', 'kubernetesVersion', 'all'];
@@ -112,7 +151,7 @@ export default {
       const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
         const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-        return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
+        return snapshots.filter((s) => s?.restoreEnabled && s.clusterName === toRestoreClusterName
         );
       });
 
@@ -143,19 +182,41 @@ export default {
 
     async apply(buttonDone) {
       try {
-        const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
+        const cluster = this.targetCluster;
+        const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
+
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
-        const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
+        // For imported clusters with day 2 ops enabled, create an operation CR
+        if (isImportedWithDayTwoOps) {
+          if (!mgmtCluster) {
+            throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
+          }
+          const namespace = mgmtCluster?.id;
+          const safePrefix = mgmtCluster?.id;
+          const spec = {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       mgmtCluster?.id,
+            },
+            args: { name: this.snapshot?.snapshotFile?.name },
+          };
 
-        set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-          generation:       now + 1,
-          name:             this.snapshot.name,
-          restoreRKEConfig: this.restoreMode,
-        });
+          createOperationCR(this.$store.dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
+        } else {
+          const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
-        await cluster.save();
+          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
+            generation:       now + 1,
+            name:             this.snapshot.name,
+            restoreRKEConfig: this.restoreMode,
+          });
+
+          await cluster.save();
+        }
 
         this.$store.dispatch('growl/success', {
           title:   this.t('promptRestore.notification.title'),
@@ -233,18 +294,25 @@ export default {
                 />
               </p>
             </div>
-            <div class="spacer" />
-            <RadioGroup
-              v-model:value="restoreMode"
-              name="restoreMode"
-              label="Restore Type"
-              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-              :options="restoreModeOptions"
-            />
+            <div v-if="!isImported">
+              <div class="spacer" />
+              <RadioGroup
+                v-model:value="restoreMode"
+                name="restoreMode"
+                :label="t('promptRestore.restoreMode.label')"
+                :labels="restoreModeLabels"
+                :options="restoreModeOptions"
+              />
+            </div>
           </form>
         </div>
       </template>
-
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
       <template #actions>
         <div class="dialog-actions">
           <button
@@ -258,13 +326,6 @@ export default {
             mode="restore"
             :disabled="!hasSnapshot"
             @click="apply"
-          />
-
-          <Banner
-            v-for="(err, i) in errors"
-            :key="i"
-            color="error"
-            :label="err"
           />
         </div>
       </template>
