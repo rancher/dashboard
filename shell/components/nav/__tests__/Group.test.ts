@@ -73,7 +73,7 @@ describe('component: Group', () => {
       global: {
         stubs: { 'router-link': { template: '<a><slot /></a>' } },
         mocks: {
-          $route:  {
+          $route: {
             params: {}, path: '/test/route', fullPath: '/test/route', matched: []
           },
           $router: {
