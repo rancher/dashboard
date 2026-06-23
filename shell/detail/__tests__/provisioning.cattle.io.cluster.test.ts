@@ -241,4 +241,56 @@ describe('view: provisioning.cattle.io.cluster', () => {
       expect(wrapper.vm.fakeMachines).toHaveLength(0);
     });
   });
+
+  describe('computed: showLog', () => {
+    it('returns true when mgmt has a log link and extDetailTabs.logs is enabled', async() => {
+      const value = { mgmt: { hasLink: (link: string) => link === 'log' } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: true } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(true);
+    });
+
+    it('returns false when mgmt does not have a log link', async() => {
+      const value = { mgmt: { hasLink: () => false } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: true } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(false);
+    });
+
+    it('returns false when mgmt has a log link but extDetailTabs.logs is disabled', async() => {
+      const value = { mgmt: { hasLink: (link: string) => link === 'log' } };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ extDetailTabs: { logs: false } });
+
+      expect(wrapper.vm.showLog).toStrictEqual(false);
+    });
+
+    it('returns false when mgmt is undefined', async() => {
+      const value = {};
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      expect(wrapper.vm.showLog).toBeFalsy();
+    });
+  });
 });
