@@ -11,7 +11,7 @@ export interface TableColumn {
   formatterOpts?: any,
   width?: number,
   tooltip?: string,
-  search?: string | boolean,
+  search?: string | string[] | boolean,
 }
 
 export const COLUMN_BREAKPOINTS = {
