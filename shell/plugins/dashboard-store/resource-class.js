@@ -1416,15 +1416,21 @@ export default class Resource {
     // this is for the new extension product registration model
     let currPluginName = '';
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$rootGetters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // Both flags are tracked per-product so that a single plugin registering multiple
+    // products (some top-level, some extending) gets the correct answer for whichever
+    // product is currently active.
+    const isTopLevel = plugins[currPluginName]?.topLevelProducts?.has(currentProductId);
+    const startsWithProduct = plugins[currPluginName]?.startRouteWithProductByProduct?.[currentProductId];
+
+    return Boolean(isTopLevel && startsWithProduct);
   }
 
   get listLocation() {
