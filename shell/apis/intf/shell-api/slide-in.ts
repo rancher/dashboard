@@ -34,16 +34,22 @@ export interface SlideInConfig {
    *
    * Width preset for the Slide-In panel. Defaults to `'default'` (33%).
    *
+   * - `'default'` — 33% of the viewport width
+   * - `'wide'` — 73% of the viewport width
+   *
    */
-  panelWidth?: SlideInWidth;
+  width?: SlideInWidth;
   /**
    *
    * Height preset for the Slide-In panel. Defaults to `'default'` (below header).
    * When set to `'full'`, the panel covers the full viewport height and the z-index
    * is automatically elevated above the side menu.
    *
+   * - `'default'` — positioned below the header bar, filling the remaining viewport height
+   * - `'full'` — full viewport height (100vh), covering the header and side menu
+   *
    */
-  panelHeight?: SlideInHeight;
+  height?: SlideInHeight;
   /**
    *
    * When `true`, disables the focus trap on the Slide-In panel.
@@ -83,14 +89,6 @@ export interface SlideInConfig {
   props?: {
     [key: string]: any;
   };
-  /**
-   * @deprecated Use `panelWidth` with a preset value (`'default'` or `'wide'`) instead of a raw CSS string. Full deprecation expected in Rancher 2.17.
-   */
-  width?: string;
-  /**
-   * @deprecated Use `panelHeight` with a preset value (`'default'` or `'full'`) instead of a raw CSS string. Full deprecation expected in Rancher 2.17.
-   */
-  height?: string;
   /**
    * @deprecated No longer needed — automatically managed based on `panelHeight`. Full deprecation expected in Rancher 2.17.
    */

@@ -138,6 +138,27 @@ describe('slideInPanel store', () => {
     });
 
     describe('close-then-open race condition', () => {
+      it('does not leave an untracked timer when close is called twice before open', () => {
+        const state = createState({
+          isOpen:    true,
+          component: MockComponentA as any
+        });
+
+        mutations.close(state);
+        mutations.close(state);
+        mutations.open(state, { component: MockComponentB, componentProps: { title: 'Panel B' } });
+
+        expect(state.isOpen).toStrictEqual(true);
+        expect(state.isClosing).toStrictEqual(false);
+        expect(state.component).toStrictEqual(MockComponentB);
+
+        jest.advanceTimersByTime(500);
+
+        // Neither of the two stale close timers should fire and clear the newly opened panel
+        expect(state.component).toStrictEqual(MockComponentB);
+        expect(state.isClosing).toStrictEqual(false);
+      });
+
       it('cancels pending close timer when open is called', () => {
         const state = createState({
           isOpen:    true,

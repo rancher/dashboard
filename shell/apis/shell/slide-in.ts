@@ -16,14 +16,6 @@ export class SlideInApiImpl implements SlideInApi {
       return;
     }
 
-    if (config.width !== undefined) {
-      console.warn(`${ DEPRECATION_PREFIX } "width" is deprecated. Use "panelWidth" with a preset value ('default' or 'wide') instead. Full deprecation expected in Rancher 2.17.`); // eslint-disable-line no-console
-    }
-
-    if (config.height !== undefined) {
-      console.warn(`${ DEPRECATION_PREFIX } "height" is deprecated. Use "panelHeight" with a preset value ('default' or 'full') instead. Full deprecation expected in Rancher 2.17.`); // eslint-disable-line no-console
-    }
-
     if (config.top !== undefined) {
       console.warn(`${ DEPRECATION_PREFIX } "top" is deprecated. It is now automatically managed based on "panelHeight". Full deprecation expected in Rancher 2.17.`); // eslint-disable-line no-console
     }

@@ -27,12 +27,12 @@ const currentComponent = computed(() => store.getters['slideInPanel/component'])
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
 const resolvedHeightMode = computed(() => {
-  if (currentProps.value?.panelHeight) {
-    return currentProps.value.panelHeight;
+  if (currentProps.value?.height) {
+    return currentProps.value.height;
   }
 
-  // Deprecated: infer from raw height/top values
-  if (currentProps.value?.height === '100vh' || currentProps.value?.top === '0') {
+  // Deprecated: infer from raw top value
+  if (currentProps.value?.top === '0') {
     return 'full';
   }
 
@@ -70,21 +70,13 @@ const panelHeight = computed(() => {
     return '100vh';
   }
 
-  // Deprecated: explicit height value
-  if (currentProps.value?.height) {
-    return currentProps.value.height;
-  }
-
   return `calc(100vh - ${ panelTop.value })`;
 });
 
 const panelWidth = computed(() => {
-  if (currentProps.value?.panelWidth) {
-    return WIDTH_MAP[currentProps.value.panelWidth] || WIDTH_MAP.default;
-  }
+  const width = currentProps.value?.width as keyof typeof WIDTH_MAP | undefined;
 
-  // Deprecated: raw CSS width string
-  return currentProps.value?.width || WIDTH_MAP.default;
+  return (width && WIDTH_MAP[width]) || WIDTH_MAP.default;
 });
 
 const panelRight = computed(() => (isOpen.value ? '0' : `-${ panelWidth.value }`));
@@ -101,7 +93,7 @@ const showHeader = computed(() => {
   return !!currentProps.value?.title;
 });
 
-const panelTitle = computed(() => currentProps.value?.title || '');
+const panelTitle = computed(() => currentProps.value?.title || (showHeader.value ? 'Details' : ''));
 
 const closeOnRouteChange = computed(() => {
   const propsCloseOnRouteChange = currentProps.value?.closeOnRouteChange;
@@ -237,7 +229,7 @@ function closePanel() {
             class="icon icon-close"
             data-testid="slide-in-close"
             role="button"
-            :aria-label="'Close'"
+            :aria-label="t('generic.close')"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
             @keypress.enter="closePanel"

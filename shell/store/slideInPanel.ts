@@ -37,6 +37,11 @@ const mutations: MutationTree<SlideInPanelState> = {
     state.componentProps = payload.componentProps || {};
   },
   close(state) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
     state.isClosing = true;
     state.isOpen = false;
 

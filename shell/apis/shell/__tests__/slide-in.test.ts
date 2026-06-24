@@ -38,7 +38,7 @@ describe('slideInApiImpl', () => {
   it('should open a slide-in panel with a config', () => {
     const config = {
       title: 'Test Panel',
-      width: '50%',
+      width: 'default' as const,
     };
 
     // 3. Act
@@ -48,7 +48,7 @@ describe('slideInApiImpl', () => {
     expect(mockCommit).toHaveBeenCalledTimes(1);
     expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
       component:      MockComponent,
-      componentProps: { ...config }, // The implementation spreads the config
+      componentProps: { title: 'Test Panel', width: 'default' },
     });
   });
 
@@ -88,11 +88,11 @@ describe('slideInApiImpl', () => {
     });
   });
 
-  it('should open with new preset properties', () => {
+  it('should open with preset properties', () => {
     const config = {
-      title:       'Preset Panel',
-      panelWidth:  'wide' as const,
-      panelHeight: 'full' as const,
+      title:  'Preset Panel',
+      width:  'wide' as const,
+      height: 'full' as const,
     };
 
     slideInApi.open(MockComponent, config);
@@ -101,17 +101,17 @@ describe('slideInApiImpl', () => {
     expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
       component:      MockComponent,
       componentProps: {
-        title:       'Preset Panel',
-        panelWidth:  'wide',
-        panelHeight: 'full',
+        title:  'Preset Panel',
+        width:  'wide',
+        height: 'full',
       },
     });
   });
 
   it('should open with disableFocusTrap option', () => {
     const config = {
-      panelWidth:       'wide' as const,
-      panelHeight:      'full' as const,
+      width:            'wide' as const,
+      height:           'full' as const,
       disableFocusTrap: true,
     };
 
@@ -121,8 +121,8 @@ describe('slideInApiImpl', () => {
     expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
       component:      MockComponent,
       componentProps: {
-        panelWidth:       'wide',
-        panelHeight:      'full',
+        width:            'wide',
+        height:           'full',
         disableFocusTrap: true,
       },
     });
@@ -142,22 +142,6 @@ describe('slideInApiImpl', () => {
       warnSpy.mockRestore();
     });
 
-    it('warns when deprecated "width" is used', () => {
-      slideInApi.open(MockComponent, { width: '50%' });
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"width" is deprecated')
-      );
-    });
-
-    it('warns when deprecated "height" is used', () => {
-      slideInApi.open(MockComponent, { height: '100vh' });
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"height" is deprecated')
-      );
-    });
-
     it('warns when deprecated "top" is used', () => {
       slideInApi.open(MockComponent, { top: '0' });
 
@@ -174,11 +158,11 @@ describe('slideInApiImpl', () => {
       );
     });
 
-    it('does not warn when using new preset properties', () => {
+    it('does not warn when using preset properties', () => {
       slideInApi.open(MockComponent, {
-        title:       'Test',
-        panelWidth:  'wide' as const,
-        panelHeight: 'full' as const,
+        title:  'Test',
+        width:  'wide' as const,
+        height: 'full' as const,
       });
 
       expect(warnSpy).not.toHaveBeenCalled();

@@ -928,8 +928,8 @@ export default class Resource {
       componentProps: {
         resource:           this,
         onClose,
-        panelWidth:         'wide',
-        panelHeight:        'full',
+        width:              'wide',
+        height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
         triggerFocusTrap:   true,
         returnFocusSelector,

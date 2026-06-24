@@ -327,8 +327,8 @@ export default {
           statePanel,
           workspace
         },
-        panelWidth:         'wide',
-        panelHeight:        'full',
+        width:              'wide',
+        height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
         disableFocusTrap:   true,
       });
