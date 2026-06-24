@@ -76,17 +76,19 @@ describe('component: EC2Networking', () => {
   });
 
   it.each([
-    [[{ isIpv6: true }, { isIpv6: false }], true],
-    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: false }], true],
-    [[{ isIpv6: true, isDualStack: false }, { isIpv6: false, isDualStack: true }], true],
-    [[{ isIpv6: false, isDualStack: false }, { isIpv6: false, isDualStack: false }], false],
-    [[{ isIpv6: true, isDualStack: false }, { isIpv6: true, isDualStack: false }], false],
-    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: true }], false],
-  ])('should show an error banner when machine pools mix network modes', (pools, shouldShowError) => {
+    [[{ isIpv6: true }, { isIpv6: false }], true, true],
+    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: false }], true, false],
+    [[{ isIpv6: true, isDualStack: false }, { isIpv6: false, isDualStack: true }], false, true],
+    [[{ isIpv6: false, isDualStack: false }, { isIpv6: false, isDualStack: false }], false, false],
+    [[{ isIpv6: true, isDualStack: false }, { isIpv6: true, isDualStack: false }], false, false],
+    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: true }], false, false],
+  ])('should show the correct warning banner based on mixed machine pool network modes', (pools, shouldShowDualStackWarning, shouldShowIpv6Warning) => {
     const wrapper = shallowMount(EC2Networking, { ...defaultCreateSetup, propsData: { ...defaultCreateSetup.propsData, machinePools: pools } });
+    const dualStackWarning = wrapper.findComponent('[data-testid="amazonEc2__dualStackWarning"]');
     const ipv6Warning = wrapper.findComponent('[data-testid="amazonEc2__ipv6Warning"]');
 
-    expect(ipv6Warning.exists()).toBe(shouldShowError);
+    expect(dualStackWarning.exists()).toBe(shouldShowDualStackWarning);
+    expect(ipv6Warning.exists()).toBe(shouldShowIpv6Warning);
   });
 
   it('should show ipv6 inputs and automatically check the enable ipv6 checkbox when adding a new pool if some other pool in the cluster is using ipv6 or dual stack', () => {

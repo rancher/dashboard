@@ -298,17 +298,24 @@ export default {
       return this.mode === _CREATE || (this.isNew && this.somePoolisIpv6OrDual) || this.enableIpv6;
     },
 
-    poolsInvalid() {
+    dualStackModeInvalid() {
       const poolNetworkModes = new Set(this.machinePools.map((p) => {
-        if (p.isDualStack) {
+        if (p.isDualStack || p.isIpv6) {
           return STACK_PREFS.DUAL;
         }
 
+        return STACK_PREFS.IPV4;
+      }));
+
+      return poolNetworkModes.size > 1;
+    },
+    ipv6ModeInvalid() {
+      const poolNetworkModes = new Set(this.machinePools.map((p) => {
         if (p.isIpv6) {
           return STACK_PREFS.IPV6;
         }
 
-        return STACK_PREFS.IPV4;
+        return 'other';
       }));
 
       return poolNetworkModes.size > 1;
@@ -319,7 +326,7 @@ export default {
     },
 
     allValid() {
-      return !this.poolsInvalid && !this.addressCountInvalid;
+      return !this.dualStackModeInvalid && !this.addressCountInvalid && !this.ipv6ModeInvalid;
     }
   },
 
@@ -367,10 +374,10 @@ export default {
 
 <template>
   <Banner
-    v-if="poolsInvalid"
+    v-if="dualStackModeInvalid"
     color="error"
-    :label="t('cluster.machineConfig.amazonEc2.ipv6ValidationWarning')"
-    data-testid="amazonEc2__ipv6Warning"
+    :label="t('cluster.machineConfig.amazonEc2.dualStackValidationWarning')"
+    data-testid="amazonEc2__dualStackWarning"
   />
   <div
     v-if="showIpv6Options"
@@ -421,6 +428,12 @@ export default {
       </LabeledSelect>
     </div>
   </div>
+  <Banner
+    v-if="enableIpv6 && ipv6ModeInvalid"
+    color="error"
+    :label="t('cluster.machineConfig.amazonEc2.ipv6ValidationWarning')"
+    data-testid="amazonEc2__ipv6Warning"
+  />
   <div
     v-if="enableIpv6"
     class="row mb-10 ipv6-row"
