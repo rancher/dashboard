@@ -1,4 +1,8 @@
-const vueUtils = require('eslint-plugin-vue/lib/utils');
+// eslint-plugin-vue v10 ships its internals under `dist/` (was `lib/`) and wraps the
+// CommonJS export in a `.default`. `defineTemplateBodyVisitor` has no public entry point,
+// so reach into `dist/utils` — the v10 successor to the old `lib/utils` path.
+const vueUtilsModule = require('eslint-plugin-vue/dist/utils');
+const vueUtils = vueUtilsModule.default || vueUtilsModule;
 
 module.exports = {
   meta: {
