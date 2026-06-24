@@ -134,6 +134,15 @@ export const eslintConfigBase = [
       camelcase:                                    'off',
       // --- end upgrade compatibility block ---
 
+      // --- ESLint 10 / eslint-plugin-vue 10 ruleset churn ---
+      // Rules newly added to recommended by the eslint 9->10 + vue 9->10 bump. Disabled
+      // (config-only, no source changes) to preserve the green state, same as the block above.
+      'no-useless-assignment':             'off', // new in eslint 10 recommended
+      'preserve-caught-error':             'off', // new in eslint 10 recommended
+      'vue/no-required-prop-with-default':  'off', // new in eslint-plugin-vue 10 recommended
+      'vue/require-default-prop':           'off', // re-fires under eslint-plugin-vue 10
+      // --- end eslint 10 / vue 10 churn block ---
+
       // Core formatting rules — values captured verbatim from the pre-migration
       // (`eslint-config-standard` + legacy overrides) resolved config. Core rules are
       // JS-only, exactly matching the previous behaviour (see `noStyle` note above).
