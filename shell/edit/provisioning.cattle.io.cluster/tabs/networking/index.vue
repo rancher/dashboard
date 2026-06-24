@@ -120,7 +120,7 @@ export default {
 
     stackPreference: {
       get() {
-        return this.localValue.spec?.networking?.stackPreference || STACK_PREFS.IPV4;
+        return this.localValue.spec?.networking?.stackPreference || STACK_PREFS.DUAL;
       },
       set(neu) {
         if (!this.localValue.spec.networking) {

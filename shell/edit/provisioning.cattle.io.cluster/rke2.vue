@@ -1627,10 +1627,9 @@ export default {
 
       const isDualStack = this.hasDualStackPools;
       const isIpv6 = this.hasOnlyIpv6Pools;
-      const isIpv4 = !isIpv6 && !isDualStack;
 
       const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
-      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL_STACK) || (isIpv4 && stackPreference !== STACK_PREFS.IPV4);
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
 
       const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
       const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');
