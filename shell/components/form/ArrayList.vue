@@ -1,18 +1,22 @@
 <script>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, toRef } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import Banner from '@components/Banner/Banner.vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   emits: ['add', 'remove', 'update:value'],
 
-  components: { TextAreaAutoGrow, LabeledInput },
-  props:      {
+  components: {
+    TextAreaAutoGrow, LabeledInput, Banner
+  },
+  props: {
     value: {
       type:    Array,
       default: null,
@@ -106,7 +110,17 @@ export default {
     componentTestid: {
       type:    String,
       default: 'array-list',
-    }
+    },
+
+    /**
+     * Field name for vee-validate integration. When provided, the component
+     * registers with a parent form context for schema-level validation.
+     */
+    name: {
+      type:    String,
+      default: null,
+    },
+
   },
 
   setup(props, { emit }) {
@@ -126,6 +140,26 @@ export default {
       return props.mode === _VIEW;
     });
 
+    // vee-validate integration: array-level validation via a parent form schema.
+    // Per-item validation continues to use the existing `rules` prop on
+    // LabeledInput.
+    const arrayValue = computed(() => props.value || []);
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:              toRef(props, 'name'),
+      rules:             ref([]),
+      value:             arrayValue,
+      validationMessage: ref(null),
+    });
+
+    // Only structural changes (add, delete, paste) mark trigger validation
+    // when invoking update()
+    const isStructuralChange = ref(false);
+
+    const validate = () => {
+      veeHandleBlur(undefined, false);
+      veeValidate();
+    };
+
     /**
      * Cleanup rows and emit input
      */
@@ -144,6 +178,10 @@ export default {
         }
       }
       emit('update:value', out);
+      if (isStructuralChange.value) {
+        validate();
+        isStructuralChange.value = false;
+      }
     };
 
     const lastUpdateWasFromValue = ref(false);
@@ -177,6 +215,9 @@ export default {
       queueUpdate,
       isView,
       update,
+      effectiveValidationMessage,
+      isStructuralChange,
+      validate,
     };
   },
 
@@ -211,6 +252,7 @@ export default {
   },
   methods: {
     add() {
+      this.isStructuralChange = true;
       this.rows.push({ value: clone(this.defaultAddValue) });
       if (this.defaultAddValue) {
         this.queueUpdate();
@@ -229,6 +271,7 @@ export default {
      */
     remove(row, index) {
       this.$emit('remove', { row, index });
+      this.isStructuralChange = true;
       removeAt(this.rows, index);
       this.queueUpdate();
     },
@@ -240,6 +283,7 @@ export default {
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
 
+      this.isStructuralChange = true;
       if (this.valueMultiline) {
         // Allow to paste multiple lines
         this.rows[index].value = text;
@@ -285,6 +329,12 @@ export default {
         </h3>
       </slot>
     </div>
+    <Banner
+      v-if="effectiveValidationMessage"
+      class="validation-banner"
+      color="error"
+      :label="effectiveValidationMessage"
+    />
 
     <div>
       <template v-if="rows.length">
@@ -335,6 +385,7 @@ export default {
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
+                  @blur="validate"
                 />
                 <LabeledInput
                   v-else-if="rules.length > 0"
@@ -348,6 +399,7 @@ export default {
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
+                  @blur="validate"
                 />
                 <input
                   v-else
@@ -358,6 +410,7 @@ export default {
                   :disabled="isView || disabled"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
+                  @blur="validate"
                 >
               </slot>
             </div>
@@ -441,6 +494,10 @@ export default {
 
   .required {
     color: var(--error);
+  }
+
+  .validation-banner {
+    margin-top: 0;
   }
 
   .box {

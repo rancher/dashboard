@@ -4,8 +4,10 @@ import { insertAt } from '@shell/utils/array';
 import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { _CREATE } from '@shell/config/query-params';
+import { formatDuration } from '@shell/utils/duration';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { SUSE_APPCO_DISPLAY_NAME } from '@shell/utils/fleet-appco';
 
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {
@@ -183,7 +185,7 @@ export default class ClusterRepo extends SteveModel {
 
   get typeDisplay() {
     if (this.isSuseAppCollectionFromUI) {
-      return 'SUSE AppCo';
+      return SUSE_APPCO_DISPLAY_NAME;
     }
     if ( this.spec.gitRepo ) {
       return 'git';
@@ -218,15 +220,37 @@ export default class ClusterRepo extends SteveModel {
     return this.spec?.gitBranch || '(default)';
   }
 
+  get defaultRefreshIntervalHours() {
+    return this.isOciType ? 24 : 1;
+  }
+
+  get defaultRefreshInterval() {
+    return 60 * 60 * this.defaultRefreshIntervalHours;
+  }
+
+  get refreshIntervalDisplay() {
+    const val = this.spec?.refreshInterval;
+
+    if (val < 0) {
+      return this.t('generic.disabled');
+    }
+
+    return formatDuration(val ?? this.defaultRefreshInterval);
+  }
+
   get details() {
     return [
       {
-        label:   'Type',
+        label:   this.t('generic.type'),
         content: this.typeDisplay,
       },
       {
-        label:         'Downloaded',
-        content:       this.status.downloadTime,
+        label:   this.t('catalog.repo.refreshInterval.label'),
+        content: this.refreshIntervalDisplay,
+      },
+      {
+        label:         this.t('catalog.repo.downloaded.label'),
+        content:       this.status?.downloadTime,
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
       },

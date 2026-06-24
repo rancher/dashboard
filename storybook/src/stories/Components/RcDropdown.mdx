@@ -1,0 +1,85 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDropdownStories from './RcDropdown.stories';
+
+# RcDropdown
+
+Use RcDropdown to offer a list of choices to the user, such as a set of actions or
+filters, without permanently occupying space in the UI. The menu opens by activating
+an `RcDropdownTrigger` and closes on selection, escape, tab, or clicking outside.
+
+<Canvas of={RcDropdownStories.Default} layout="centered" />
+
+<Controls of={RcDropdownStories.Default} />
+
+## Usage Pattern
+
+`RcDropdown` is a composition of building blocks:
+
+- **`RcDropdown`** &mdash; the root component. Place the trigger in its default slot
+  and the menu content in its `dropdownCollection` slot.
+- **`RcDropdownTrigger`** &mdash; a button (built on `RcButton`) that opens the menu.
+  Accepts the same props as `RcButton` (`variant`, `size`, icons, etc.) and the
+  `before`/`default`/`after` slots.
+- **`RcDropdownItem`** &mdash; a clickable menu item. Supports a `disabled` prop and
+  a `before` slot for icons.
+- **`RcDropdownItemCheckbox`** &mdash; a menu item with an embedded checkbox, for
+  toggleable options.
+- **`RcDropdownItemSelect`** &mdash; a menu item with an embedded `LabeledSelect`,
+  for choosing one of several values without leaving the menu.
+- **`RcDropdownSeparator`** &mdash; a visual divider between groups of items.
+
+```html
+<RcDropdown aria-label="Row actions">
+  <RcDropdownTrigger>
+    Actions
+  </RcDropdownTrigger>
+  <template #dropdownCollection>
+    <RcDropdownItem @click="performAction()">
+      Action 1
+    </RcDropdownItem>
+    <RcDropdownSeparator />
+    <RcDropdownItem @click="performAction()">
+      Action 2
+    </RcDropdownItem>
+  </template>
+</RcDropdown>
+```
+
+## Icon-Only Trigger
+
+A common pattern is an icon-only trigger (e.g. a kebab menu) used as a row or card
+action menu. Always provide an `aria-label` on the trigger in this case, since it
+has no visible text for assistive technology to announce.
+
+<Canvas of={RcDropdownStories.IconOnlyTrigger} />
+
+## Checkbox and Select Items
+
+`RcDropdownItemCheckbox` and `RcDropdownItemSelect` let menu items carry interactive
+form controls while still participating in the dropdown's keyboard navigation and
+focus management.
+
+<Canvas of={RcDropdownStories.WithCheckboxAndSelectItems} />
+
+## Placement
+
+The `placement` prop controls where the menu appears relative to its trigger.
+
+<Canvas of={RcDropdownStories.Placements} />
+
+## RcDropdownMenu
+
+For data-driven action menus, `RcDropdownMenu` composes `RcDropdown`,
+`RcDropdownTrigger`, `RcDropdownItem`, and `RcDropdownSeparator` from a declarative
+`options` array, so you don't need to write out the trigger/menu markup by hand.
+
+<Canvas of={RcDropdownStories.RcDropdownMenuComposed} />
+
+## Accessibility
+
+- The dropdown menu container has `role="menu"`; items rendered via `RcDropdownItem`
+  have `role="menuitem"`, and `RcDropdownItemCheckbox` has `role="menuitemcheckbox"`.
+- Arrow keys move focus between items, `Escape` closes the menu and returns focus to
+  the trigger, and `Tab` closes the menu.
+- Always set `aria-label` on `RcDropdown` (and on `RcDropdownTrigger` when it has no
+  visible text) to describe the menu's purpose to screen reader users.

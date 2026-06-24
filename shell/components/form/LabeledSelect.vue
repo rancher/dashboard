@@ -117,6 +117,10 @@ export default {
       type:    String,
       default: 'labelSelect.noOptions.empty'
     },
+    lockedOptions: {
+      type:    Array,
+      default: () => []
+    },
 
     name: {
       type:    String,
@@ -382,7 +386,17 @@ export default {
       }
 
       return this.getOptionLabel(opt);
-    }
+    },
+
+    isOptionLocked(option) {
+      if (!this.lockedOptions.length) {
+        return false;
+      }
+
+      const label = this.getOptionLabel(option);
+
+      return this.lockedOptions.includes(typeof label === 'string' ? label.trim() : String(label));
+    },
   },
 };
 </script>
@@ -512,6 +526,14 @@ export default {
             style="font-size: 20px;"
           />
         </div>
+      </template>
+      <template
+        v-if="lockedOptions.length"
+        #selected-option="option"
+      >
+        <span :data-locked="isOptionLocked(option) || undefined">
+          {{ getOptionLabel(option) }}
+        </span>
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
@@ -676,6 +698,14 @@ export default {
         min-height: unset !important;
         padding: 0 0 0 7px !important;
 
+        &:has([data-locked]) {
+          padding: 0 7px 0 7px !important;
+
+          .vs__deselect {
+            display: none;
+          }
+        }
+
         > button {
           height: 20px;
           line-height: 14px;
@@ -689,6 +719,14 @@ export default {
             color: #fff;
           }
         }
+      }
+    }
+
+    :deep() .vs--disabled .vs__selected-options .vs__selected {
+      padding: 0 7px 0 7px !important;
+
+      .vs__deselect {
+        display: none;
       }
     }
   }

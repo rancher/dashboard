@@ -19,6 +19,7 @@ exports[`component: CRUAuditPolicy (index) rendering & initial state should rend
     prevententersubmit="false"
     resource="[object Object]"
     showcancel="true"
+    showtoc="false"
     steps=""
     stepsoptions="[object Object]"
     subtypes=""

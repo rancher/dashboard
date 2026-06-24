@@ -1,86 +1,143 @@
-<script>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from '@shell/composables/useI18n';
 import { FLEET } from '@shell/config/types';
 import { SUB_TYPE } from '@shell/config/query-params';
+import { isRancherPrime } from '@shell/config/version';
 import FleetUtils from '@shell/utils/fleet';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
+import suseLogo from '@shell/assets/images/content/suse.svg';
+import suseLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
-export default {
-  name: 'FleetApplicationCreatePage',
+interface Subtype {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  bannerImage?: string;
+  bannerAbbrv?: string;
+  docLink?: string;
+  disabled: boolean;
+  tooltip: string | null;
+  isSuseAppCollection?: boolean;
+}
 
-  components: { Masthead },
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n(store);
 
-  data() {
-    return {
-      resource:    FLEET.APPLICATION,
-      application: { parentNameOverride: this.$store.getters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim() },
-      abbrSizes:   {
-        3: '24px',
-        4: '18px',
-        5: '16px',
-        6: '14px'
-      },
-    };
-  },
+const resource = FLEET.APPLICATION;
+const application = computed(() => ({ parentNameOverride: store.getters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim() }));
+const abbrSizes: Record<number, string> = {
+  3: '24px',
+  4: '18px',
+  5: '16px',
+  6: '14px'
+};
 
-  computed: {
-    types() {
-      return [
-        FLEET.GIT_REPO,
-        FLEET.HELM_OP
-      ].reduce((acc, type) => {
-        const schema = this.$store.getters['management/schemaFor'](type);
+const i18nExists = (key: string): boolean => store.getters['i18n/exists'](key);
 
-        if (schema) {
-          const label = this.$store.getters['type-map/labelFor'](schema, 2) || '';
+const isDarkMode = computed(() => store.getters['prefs/theme'] === 'dark');
 
-          const canCreate = !!schema.resourceMethods?.includes('PUT');
+const selectedSubtype = computed(() => route.query[SUB_TYPE] as string);
 
-          return [
-            ...acc,
-            {
-              id:          type,
-              label,
-              description: `fleet.application.subTypes.'${ type }'.description`,
-              icon:        FleetUtils.dashboardIcons[type],
-              disabled:    !canCreate,
-              tooltip:     canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
-            }
-          ];
-        }
-
+const types = computed<Subtype[]>(() => {
+  return [
+    FLEET.GIT_REPO,
+    FLEET.HELM_OP,
+    FLEET.SUSE_APP_COLLECTION,
+  ].reduce((acc: Subtype[], type: string) => {
+    if (type === FLEET.SUSE_APP_COLLECTION) {
+      if (!isRancherPrime()) {
         return acc;
-      }, []);
-    },
-
-    selectedSubtype() {
-      return this.$route.query[SUB_TYPE];
-    },
-  },
-
-  methods: {
-    selectType(subtype, event) {
-      if (subtype.disabled) {
-        return;
       }
 
-      if (event?.srcElement?.tagName === 'A') {
-        return;
+      const helmOpSchema = store.getters['management/schemaFor'](FLEET.HELM_OP);
+
+      if (!helmOpSchema) {
+        return acc;
       }
 
-      this.$router.push({
-        name:   'c-cluster-fleet-application-resource-create',
-        params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
-          resource: subtype.id,
-        },
-      });
-    },
+      const label = store.getters['type-map/labelFor'](helmOpSchema, 2) || '';
+      const canCreate = !!helmOpSchema.resourceMethods?.includes('PUT');
 
-    cancel() {
-      this.$router.back();
-    },
+      return [
+        ...acc,
+        {
+          id:                  type,
+          label:               `fleet.application.subTypes.'${ type }'.label`,
+          description:         `fleet.application.subTypes.'${ type }'.description`,
+          bannerImage:         isDarkMode.value ? suseLogoDark : suseLogo,
+          disabled:            !canCreate,
+          tooltip:             canCreate ? null : t('fleet.application.noPermissions', { label }, true),
+          isSuseAppCollection: true,
+        }
+      ];
+    }
+
+    const schema = store.getters['management/schemaFor'](type);
+
+    if (schema) {
+      const label = store.getters['type-map/labelFor'](schema, 2) || '';
+      const canCreate = !!schema.resourceMethods?.includes('PUT');
+
+      return [
+        ...acc,
+        {
+          id:          type,
+          label,
+          description: `fleet.application.subTypes.'${ type }'.description`,
+          icon:        FleetUtils.dashboardIcons[type],
+          disabled:    !canCreate,
+          tooltip:     canCreate ? null : t('fleet.application.noPermissions', { label }, true),
+        }
+      ];
+    }
+
+    return acc;
+  }, []);
+});
+
+const subtypeAriaLabel = (subtype: Subtype): string => {
+  const label = i18nExists(subtype.label) ? t(subtype.label) : subtype.label;
+  const desc = subtype.description && i18nExists(subtype.description) ? t(subtype.description) : subtype.description;
+
+  return desc ? `${ label } - ${ desc }` : label;
+};
+
+const selectType = (subtype: Subtype, event?: Event) => {
+  if (subtype.disabled) {
+    return;
   }
+
+  if ((event?.target as HTMLElement)?.tagName === 'A') {
+    return;
+  }
+
+  if (subtype.isSuseAppCollection) {
+    router.push({
+      name:   'c-cluster-fleet-application-appco-credentials',
+      params: { cluster: route.params.cluster as string },
+    });
+
+    return;
+  }
+
+  router.push({
+    name:   'c-cluster-fleet-application-resource-create',
+    params: {
+      cluster:  route.params.cluster as string,
+      product:  store.getters.productId,
+      resource: subtype.id,
+    },
+  });
+};
+
+const cancel = () => {
+  router.back();
 };
 </script>
 
@@ -105,78 +162,76 @@ export default {
           disabled: subtype.disabled
         }"
         :data-testid="`subtype-banner-item-${subtype.id}`"
-        :aria-disabled="false"
-        :aria-label="subtype.description ? `${subtype.label} - ${subtype.description}` : subtype.label"
+        :aria-disabled="subtype.disabled || undefined"
+        :aria-label="subtypeAriaLabel(subtype)"
         @click="selectType(subtype, $event)"
         @keyup.enter.space="selectType(subtype, $event)"
       >
-        <slot name="subtype-content">
-          <div class="subtype-container">
-            <div class="subtype-logo">
-              <img
-                v-if="subtype.bannerImage"
-                :src="subtype.bannerImage"
-                :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
-              >
-              <div v-else-if="subtype.icon">
-                <i
-                  class="icon icon-image"
-                  :class="subtype.icon"
-                />
-              </div>
-              <div
-                v-else
-                class="round-image"
-              >
-                <div
-                  v-if="subtype.bannerAbbrv"
-                  class="banner-abbrv"
-                >
-                  <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                  <span
-                    v-else
-                    :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
-                  >{{ subtype.bannerAbbrv }}</span>
-                </div>
-                <div v-else>
-                  {{ subtype.id.slice(0, 1).toUpperCase() }}
-                </div>
-              </div>
+        <div class="subtype-container">
+          <div class="subtype-logo">
+            <img
+              v-if="subtype.bannerImage"
+              :src="subtype.bannerImage"
+              :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
+            >
+            <div v-else-if="subtype.icon">
+              <i
+                class="icon icon-image"
+                :class="subtype.icon"
+              />
             </div>
-            <div class="subtype-body">
+            <div
+              v-else
+              class="round-image"
+            >
               <div
-                class="title"
-                :class="{'with-description': !!subtype.description}"
+                v-if="subtype.bannerAbbrv"
+                class="banner-abbrv"
               >
-                <h5>
-                  <span
-                    v-if="$store.getters['i18n/exists'](subtype.label)"
-                    v-clean-html="t(subtype.label)"
-                  />
-                  <span v-else>{{ subtype.label }}</span>
-                </h5>
-                <a
-                  v-if="subtype.docLink"
-                  :href="subtype.docLink"
-                  target="_blank"
-                  rel="noopener nofollow"
-                  class="flex-right"
-                >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
-              </div>
-              <hr v-if="subtype.description">
-              <div
-                v-if="subtype.description"
-                class="description"
-              >
+                <span v-if="i18nExists(subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
                 <span
-                  v-if="$store.getters['i18n/exists'](subtype.description)"
-                  v-clean-html="t(subtype.description, {}, true)"
-                />
-                <span v-else>{{ subtype.description }}</span>
+                  v-else
+                  :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
+                >{{ subtype.bannerAbbrv }}</span>
+              </div>
+              <div v-else>
+                {{ subtype.id.slice(0, 1).toUpperCase() }}
               </div>
             </div>
           </div>
-        </slot>
+          <div class="subtype-body">
+            <div
+              class="title"
+              :class="{'with-description': !!subtype.description}"
+            >
+              <h5>
+                <span
+                  v-if="i18nExists(subtype.label)"
+                  v-clean-html="t(subtype.label)"
+                />
+                <span v-else>{{ subtype.label }}</span>
+              </h5>
+              <a
+                v-if="subtype.docLink"
+                :href="subtype.docLink"
+                target="_blank"
+                rel="noopener nofollow"
+                class="flex-right"
+              >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
+            </div>
+            <hr v-if="subtype.description">
+            <div
+              v-if="subtype.description"
+              class="description"
+            >
+              <span
+                v-if="i18nExists(subtype.description)"
+                v-clean-html="t(subtype.description, {}, true)"
+              />
+              <span v-else>{{ subtype.description }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="footer">
@@ -185,7 +240,7 @@ export default {
         class="btn role-secondary"
         @click="cancel"
       >
-        <t k="generic.cancel" />
+        {{ t('generic.cancel') }}
       </button>
     </div>
   </div>
@@ -207,10 +262,6 @@ export default {
     align-content: baseline;
     justify-content: space-between;
   }
-  .subtype-content {
-    width: 100%;
-  }
-
   .subtype-banner {
     border: 1px solid var(--border);
     border-radius: 0;
@@ -292,7 +343,7 @@ export default {
     position: relative;
     display: flex;
     height: 100%;
-  };
+  }
 
   .subtype-body {
     flex: 1;

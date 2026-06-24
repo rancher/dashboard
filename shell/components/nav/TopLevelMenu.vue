@@ -12,6 +12,7 @@ import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
@@ -99,7 +100,7 @@ export default {
     },
 
     routeComboActive() {
-      if (!this.routeCombo) {
+      if (!this.routeCombo || !this.isCurrRouteClusterExplorer) {
         return false;
       }
 
@@ -237,7 +238,7 @@ export default {
     },
 
     isCurrRouteClusterExplorer() {
-      return this.$route?.name?.startsWith('c-cluster');
+      return this.$route?.name?.startsWith('c-cluster') && this.productFromRoute === EXPLORER;
     },
 
     productFromRoute() {
@@ -393,6 +394,10 @@ export default {
     },
 
     handleKeyComboClick() {
+      if (!this.isCurrRouteClusterExplorer) {
+        return;
+      }
+
       this.routeCombo = !this.routeCombo;
     },
 
@@ -950,19 +955,6 @@ export default {
         <div
           class="footer"
         >
-          <div
-            v-if="canEditSettings"
-            class="support"
-            @click="hide()"
-          >
-            <router-link
-              :to="{name: 'support'}"
-              role="link"
-              :aria-label="t('nav.ariaLabel.support')"
-            >
-              {{ t('nav.support', {hasSupport}) }}
-            </router-link>
-          </div>
           <div
             class="version"
             :class="{'version-small': largeAboutText}"
@@ -1569,10 +1561,6 @@ export default {
         margin: 20px 10px;
         width: 50px;
 
-        .support {
-          display: none;
-        }
-
         .version{
           text-align: center;
 
@@ -1592,19 +1580,7 @@ export default {
       > * {
         flex: 1;
         color: var(--link);
-
-        &:first-child {
-          text-align: left;
-        }
-        &:last-child {
-          text-align: right;
-        }
-        text-align: center;
-      }
-
-      .support a:focus-visible {
-        @include focus-outline;
-        outline-offset: 4px;
+        text-align: left;
       }
 
       .version {

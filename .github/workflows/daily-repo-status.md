@@ -9,7 +9,7 @@ on:
   schedule: daily
   workflow_dispatch:
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_REPO_STATUS != 'true'
 
 permissions:
   contents: read

@@ -1,9 +1,19 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { SETTING } from '@shell/config/settings';
+import { MANAGEMENT, OPERATION } from '@shell/config/types';
+import { createOperationCR } from '@shell/utils/operation-cr';
+
+jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
     return ['GKE', 'EKS', 'AKS'].includes(provider);
+  }),
+  isCAPIProvider: jest.fn().mockImplementation((context, provider) => {
+    return ['capa', 'capv'].includes(provider.toLowerCase());
   })
 }));
 
@@ -390,6 +400,201 @@ describe('class ProvCluster', () => {
 
       expect(cluster.supportsWindows).toBe(expected);
       jest.clearAllMocks();
+    });
+  });
+
+  describe('isCapiWithoutExtension', () => {
+    const testCases = [
+      {
+        description:    'should return undefined when mgmt is undefined',
+        isCapiHybrid:   undefined,
+        isCAPIProvider: undefined,
+        expected:       undefined,
+      },
+      {
+        description:    'should return false when not a CAPI cluster',
+        isCapiHybrid:   false,
+        isCAPIProvider: false,
+        expected:       false,
+      },
+      {
+        description:    'should return false when CAPI cluster and a registered CAPI provider extension exists',
+        isCapiHybrid:   true,
+        isCAPIProvider: true,
+        expected:       false,
+      },
+      {
+        description:    'should return true when CAPI cluster but no registered CAPI provider extension',
+        isCapiHybrid:   true,
+        isCAPIProvider: false,
+        expected:       true,
+      },
+    ];
+
+    it.each(testCases)('$description', ({ isCapiHybrid, isCAPIProvider, expected }) => {
+      const cluster = new ProvCluster({});
+
+      if (isCapiHybrid === undefined) {
+        jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(undefined);
+      } else {
+        const mgmtCluster = new MgmtCluster({});
+
+        jest.spyOn(mgmtCluster, 'isCapiHybrid', 'get').mockReturnValue(isCapiHybrid);
+        jest.spyOn(mgmtCluster, 'isCAPIProvider', 'get').mockReturnValue(isCAPIProvider);
+        jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+      }
+
+      expect(cluster.isCapiWithoutExtension).toStrictEqual(expected);
+      jest.clearAllMocks();
+    });
+  });
+  describe('day 2 operations', () => {
+    const createContext = ({
+      byId = jest.fn(),
+      all = jest.fn(() => []),
+      schemaFor = jest.fn(() => ({})),
+    } = {}) => {
+      return {
+        getters:     { schemaFor },
+        rootGetters: {
+          'management/byId': byId,
+          'management/all':  all,
+        }
+      };
+    };
+
+    it('should return true when the day 2 operations feature is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      expect(cluster.isDayTwoOpsFeatureEnabled).toBe(true);
+    });
+
+    it('should return true for imported RKE2 day 2 operations when the annotation is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBe(true);
+    });
+
+    it('should return true for imported RKE2 day 2 operations when the global setting is enabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: {} } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBe(true);
+    });
+
+    it('should return false for imported RKE2 day 2 operations when the feature is disabled', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const cluster = new ProvCluster({}, createContext({ byId }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
+    });
+
+    it('should return false for imported RKE2 day 2 operations when operation schema is missing', () => {
+      const byId = jest.fn().mockImplementation((type, id) => {
+        if (type === MANAGEMENT.FEATURE && id === IMPORTED_DAY_2_OPS) {
+          return { enabled: true };
+        }
+
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT) {
+          return { value: 'true' };
+        }
+
+        return undefined;
+      });
+      const schemaFor = jest.fn().mockReturnValue(undefined);
+      const cluster = new ProvCluster({}, createContext({ byId, schemaFor }));
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ metadata: { annotations: { [OPERATION_ANNOTATIONS.ENABLED]: 'true' } } });
+      jest.spyOn(cluster, 'isImportedRke2K3s', 'get').mockReturnValue(true);
+
+      expect(cluster.isImportedWithDayTwoOps).toBeFalsy();
+    });
+
+    it('should filter etcd snapshots by management cluster fields for imported day 2 operations clusters', () => {
+      const snapshots = [
+        {
+          metadata: { namespace: 'c-m-1' },
+          spec:     { clusterName: 'imported-cluster' }
+        },
+        {
+          metadata: { namespace: 'c-m-1' },
+          spec:     { clusterName: 'other-cluster' }
+        },
+        {
+          metadata: { namespace: 'c-m-2' },
+          spec:     { clusterName: 'imported-cluster' }
+        }
+      ];
+      const all = jest.fn().mockReturnValue(snapshots);
+      const cluster = new ProvCluster({}, createContext({ all }));
+
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(true);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1', metadata: { name: 'imported-cluster' } });
+
+      expect(cluster.etcdSnapshots).toStrictEqual([snapshots[0]]);
+    });
+
+    it('should create an operation CR when taking a snapshot on an imported RKE2 or K3s cluster', () => {
+      const cluster = new ProvCluster({}, createContext());
+
+      (createOperationCR as jest.Mock).mockResolvedValue(undefined);
+
+      jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(false);
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(true);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({ id: 'c-m-1', metadata: { name: 'imported-cluster' } });
+
+      cluster.takeSnapshot();
+
+      expect(createOperationCR).toHaveBeenCalledTimes(1);
+      expect((createOperationCR as jest.Mock).mock.calls[0][1]).toBe(OPERATION.ETCD_SNAPSHOT);
+      expect((createOperationCR as jest.Mock).mock.calls[0][2]).toStrictEqual({
+        clusterRef: {
+          apiVersion: 'management.cattle.io/v3',
+          kind:       'Cluster',
+          name:       'c-m-1',
+        }
+      });
+      expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-1');
+      expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('imported-cluster');
     });
   });
 });

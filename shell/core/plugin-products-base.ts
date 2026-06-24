@@ -1,10 +1,4 @@
 import { IExtension } from '@shell/core/types';
-import {
-  ProductChild, ProductMetadata,
-  ConfigureTypeConfiguration, VirtualTypeConfiguration,
-  ProductChildCustomPage, VueRouteComponent,
-  OverviewPageRoutingMetadata
-} from '@shell/core/plugin-types';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
 import {
@@ -13,7 +7,36 @@ import {
   isProductChildWithType,
   hasNameProperty,
   hasTypeProperty,
+  isProductConfigInternal,
 } from '@shell/core/plugin-products-type-guards';
+import {
+  ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
+} from '@shell/core/plugin-products-external';
+import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
+import { ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { RouteRecordRaw } from 'vue-router';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
+
+/**
+ * What's the point of this?
+ *
+ * Example
+ * `applyIfDefined(this.product?.label, () => typeMapProduct.label = this.product?.label); `
+ *
+ * If the property is defined we apply it to the object
+ * - this avoids verbose objects filled with `: undefined` (which fail unit tests)
+ *   - { a: undefined, b: undefined, c: true} vs { c: true}
+ *
+ * Caller supplied direct object.property values
+ * - this ensure any further refactoring can happen automatically
+ * - type failures are very visible
+ * - both above would be lost if we had this as a cleaner but generic function(obj, targetPathString, targetValue)
+ */
+const applyIfDefined = function(value: any, apply: () => void) {
+  if (value !== undefined) {
+    apply();
+  }
+};
 
 /**
  * Base class for product registration in extensions
@@ -22,7 +45,7 @@ import {
 export abstract class BasePluginProduct {
   protected name!: string;
 
-  protected product?: ProductMetadata;
+  protected product?: ProductMetadata | ProductMetadataSinglePage;
 
   protected addedResourceRoutes = false;
 
@@ -87,13 +110,6 @@ export abstract class BasePluginProduct {
   }
 
   /**
-   * Generates data for group overview page routing
-   */
-  protected generateMetadataForGroupOverviewPageRouting(name: string, component: VueRouteComponent): OverviewPageRoutingMetadata {
-    return { name, component };
-  }
-
-  /**
    * This is where we register the product and its children via the DSL
    */
   apply(plugin: IExtension, store: any): void {
@@ -143,20 +159,18 @@ export abstract class BasePluginProduct {
       return;
     }
 
-    const itemGroup = item;
+    const itemGroup = item as ProductChildGroup;
     const groupName = parentGroupName ? `${ productName }-${ parentGroupName }-${ itemGroup.name }` : `${ productName }-${ itemGroup.name }`;
 
     // Map the user's friendly group name to the resolved internal name
     // so that moveToGroup can translate friendly names automatically
     this.groupNameMap.set(itemGroup.name, groupName);
 
-    if (!Array.isArray(itemGroup.children)) {
+    if (!Array.isArray(itemGroup.sideMenu.children)) {
       this.surfaceError('Children defined for group are not in an array format');
-
-      return;
     }
 
-    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.children);
+    const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.sideMenu.children);
 
     // Build the full hierarchical path with :: separators for the store's _ensureGroup function
     // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
@@ -175,7 +189,7 @@ export abstract class BasePluginProduct {
     basicType(navNames, hierarchicalPath);
 
     // register virtualTypes/configureTypes for each child item
-    itemGroup.children.forEach((subItem: ProductChild) => {
+    itemGroup.sideMenu.children.forEach((subItem: ProductChild) => {
       const currentGroupName = parentGroupName ? `${ parentGroupName }-${ itemGroup.name }` : itemGroup.name;
 
       this.configurePageItem(productName, subItem, currentGroupName);
@@ -196,8 +210,8 @@ export abstract class BasePluginProduct {
     }
 
     // group weight
-    if (itemGroup.weight) {
-      weightGroup(groupName, itemGroup.weight, true);
+    if (itemGroup.sideMenu?.weight) {
+      weightGroup(groupName, itemGroup.sideMenu?.weight, true);
     }
 
     // group label
@@ -221,31 +235,50 @@ export abstract class BasePluginProduct {
       const firstConfig = this.config[0];
 
       if (isProductChildGroup(firstConfig)) {
-        // First config item is a group
-        if (firstConfig.children.length > 0) {
-          const entryChild = firstConfig.children[0];
+        const config = firstConfig as ProductChildGroup;
 
-          if (!firstConfig.component) {
+        // First config item is a group
+        if (config.sideMenu.children.length > 0) {
+          const entryChild = config.sideMenu.children[0];
+
+          if (!config.component) {
             // Group without component - route to first child
             if (isProductChildWithType(entryChild)) {
-              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
+              const entry = entryChild as ProductChildResourcePage;
+
+              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entry, { omitPath: true, extendProduct: !this.isNewProduct });
             } else if (isProductChildWithComponent(entryChild)) {
-              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entryChild, { omitPath: true, extendProduct: !this.isNewProduct });
+              const entry = entryChild as ProductChildCustomPage;
+
+              defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, {
+                omitPath: true, extendProduct: !this.isNewProduct, component: entry.component
+              });
             }
           } else {
+            // generateMetadataForGroupOverviewPageRouting
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
-            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
+            defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
+              omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+            });
           }
         } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
-          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, this.generateMetadataForGroupOverviewPageRouting(firstConfig.name, firstConfig.component), { omitPath: true, extendProduct: !this.isNewProduct });
+          defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
+            omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+          });
         }
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
-        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
+        const config = firstConfig as ProductChildResourcePage;
+
+        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, config, { omitPath: true, extendProduct: !this.isNewProduct });
       } else if (isProductChildWithComponent(firstConfig)) {
         // Simple virtual type page (custom page)
-        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig, { omitPath: true, extendProduct: !this.isNewProduct });
+        const config = firstConfig as ProductChildCustomPage;
+
+        defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, config.name, {
+          omitPath: true, extendProduct: !this.isNewProduct, component: config.component
+        });
       }
     } else if (this.isNewProduct) {
       // this is the "to" route for a simple page product (no config items)
@@ -253,18 +286,63 @@ export abstract class BasePluginProduct {
       basicType(names);
     }
 
-    // register the product via DSL
-    product({
+    const typeMapProduct: TypeMapProduct = {
       showClusterSwitcher: false,
       extendable:          false,
-      ...this.product,
+      // ...this.product,
       category:            'global',
       to:                  defaultRoute,
-      icon:                this.product?.icon || 'extension',
+      icon:                'extension',
       version:             2,
       inStore:             'management',
       name:                this.name,
-    });
+    };
+
+    if (this.product) {
+      // ProductMetadata
+
+      applyIfDefined(this.product?.label, () => typeMapProduct.label = this.product?.label); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.labelKey, () => typeMapProduct.labelKey = this.product?.labelKey); // eslint-disable-line no-return-assign
+
+      applyIfDefined(this.product?.enable?.ifFeature, () => typeMapProduct.ifFeature = this.product?.enable?.ifFeature); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHave, () => typeMapProduct.ifHave = this.product?.enable?.ifHave); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHaveGroup, () => typeMapProduct.ifHaveGroup = this.product?.enable?.ifHaveGroup); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifHaveType, () => typeMapProduct.ifHaveType = this.product?.enable?.ifHaveType); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.enable?.ifNotHaveType, () => typeMapProduct.ifNotHaveType = this.product?.enable?.ifNotHaveType); // eslint-disable-line no-return-assign
+
+      applyIfDefined(this.product?.resources?.hideSystemResources, () => typeMapProduct.hideSystemResources = this.product?.resources?.hideSystemResources); // eslint-disable-line no-return-assign
+      typeMapProduct.inStore = this.product.resources?.store ?? 'management';
+
+      applyIfDefined(this.product?.extendable, () => typeMapProduct.extendable = this.product?.extendable); // eslint-disable-line no-return-assign
+
+      applyIfDefined(this.product?.appHeader?.hideCopyConfig, () => typeMapProduct.hideCopyConfig = this.product?.appHeader?.hideCopyConfig); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.hideKubeConfig, () => typeMapProduct.hideKubeConfig = this.product?.appHeader?.hideKubeConfig); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.hideKubeShell, () => typeMapProduct.hideKubeShell = this.product?.appHeader?.hideKubeShell); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.showClusterInfo, () => typeMapProduct.showClusterSwitcher = this.product?.appHeader?.showClusterInfo); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.showNamespaceFilter, () => typeMapProduct.showNamespaceFilter = this.product?.appHeader?.showNamespaceFilter); // eslint-disable-line no-return-assign
+      applyIfDefined(this.product?.appHeader?.icon, () => typeMapProduct.iconHeader = this.product?.appHeader?.icon); // eslint-disable-line no-return-assign
+
+      applyIfDefined(this.product?.sideBar?.weight, () => typeMapProduct.weight = this.product?.sideBar?.weight); // eslint-disable-line no-return-assign
+      typeMapProduct.icon = this.product?.sideBar?.icon?.name ?? 'extension';
+      applyIfDefined(this.product?.sideBar?.icon?.svg, () => typeMapProduct.svg = this.product?.sideBar?.icon?.svg); // eslint-disable-line no-return-assign
+
+      // ProductMetadataAddInternal
+      if (isProductConfigInternal(this.product)) {
+        const poI = this.product as ProductMetadataInternal;
+
+        applyIfDefined(poI.category, () => typeMapProduct.category = poI.category); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.appHeader?.hideNamespaceLocation, () => typeMapProduct.hideNamespaceLocation = poI?.appHeader?.hideNamespaceLocation); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.renameGroups, () => typeMapProduct.renameGroups = poI?.sideMenu?.renameGroups); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.ignoreGroups, () => typeMapProduct.ignoreGroups = poI?.sideMenu?.ignoreGroups); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.sideMenu?.moveToGroup, () => typeMapProduct.moveToGroup = poI?.sideMenu?.moveToGroup); // eslint-disable-line no-return-assign
+
+        applyIfDefined(poI?.appHeader?.showWorkspaceSwitcher, () => typeMapProduct.showWorkspaceSwitcher = poI?.appHeader?.showWorkspaceSwitcher); // eslint-disable-line no-return-assign
+        applyIfDefined(poI?.removable, () => typeMapProduct.removable = poI?.removable); // eslint-disable-line no-return-assign
+      }
+    }
+
+    // register the product via DSL
+    product(typeMapProduct);
   }
 
   /**
@@ -276,47 +354,51 @@ export abstract class BasePluginProduct {
       mapGroup, ignoreGroup, moveType, basicType
     } = this.DSLMethods;
 
-    if (this.product?.renameGroups?.length) {
-      this.product.renameGroups.forEach((mapping) => {
-        mapGroup(mapping.groupSelector, mapping.newName);
-      });
-    }
+    if (this.product && isProductConfigInternal(this.product)) {
+      const productConfigInternal = this.product as ProductMetadataInternal;
 
-    if (this.product?.ignoreGroups?.length) {
-      this.product.ignoreGroups.forEach((ignore) => {
-        if (ignore.condition) {
-          ignoreGroup(ignore.groupSelector, ignore.condition);
-        } else {
-          ignoreGroup(ignore.groupSelector);
-        }
-      });
-    }
+      if (productConfigInternal?.sideMenu?.renameGroups?.length) {
+        productConfigInternal?.sideMenu?.renameGroups.forEach((mapping) => {
+          mapGroup(mapping.groupSelector, mapping.newName);
+        });
+      }
 
-    if (this.product?.moveToGroup?.length) {
-      this.product.moveToGroup.forEach((move) => {
-        const resolvedGroup = this.groupNameMap.get(move.groupName);
+      if (productConfigInternal?.sideMenu?.ignoreGroups?.length) {
+        productConfigInternal?.sideMenu?.ignoreGroups.forEach((ignore) => {
+          if (ignore.condition) {
+            ignoreGroup(ignore.groupSelector, ignore.condition);
+          } else {
+            ignoreGroup(ignore.groupSelector);
+          }
+        });
+      }
 
-        if (!resolvedGroup) {
-          this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
-        }
+      if (productConfigInternal?.sideMenu?.moveToGroup?.length) {
+        productConfigInternal?.sideMenu?.moveToGroup.forEach((move) => {
+          const resolvedGroup = this.groupNameMap.get(move.groupName);
 
-        const resolvedPageId = this.pageIdMap.get(move.entryId);
+          if (!resolvedGroup) {
+            this.surfaceError(`moveToGroup target group "${ move.groupName }" not found. Available groups: ${ Array.from(this.groupNameMap.keys()).join(', ') }`);
+          }
 
-        if (!resolvedPageId) {
-          this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
-        }
+          const resolvedPageId = this.pageIdMap.get(move.entryId);
 
-        // Re-register via basicType to move the page in the nav tree (basic view mode)
-        basicType([resolvedPageId], resolvedGroup);
+          if (!resolvedPageId) {
+            this.surfaceError(`moveToGroup entryId "${ move.entryId }" not found. Available pages: ${ Array.from(this.pageIdMap.keys()).join(', ') }`);
+          }
 
-        // Also register via moveType for non-basic view modes (e.g. "in use" mode).
-        // moveType uses regex matching against schema IDs, so it only works for resource types.
-        const isResourceType = resolvedPageId === move.entryId;
+          // Re-register via basicType to move the page in the nav tree (basic view mode)
+          basicType([resolvedPageId], resolvedGroup);
 
-        if (isResourceType) {
-          moveType(move.entryId, resolvedGroup, move.weight);
-        }
-      });
+          // Also register via moveType for non-basic view modes (e.g. "in use" mode).
+          // moveType uses regex matching against schema IDs, so it only works for resource types.
+          const isResourceType = resolvedPageId === move.entryId;
+
+          if (isResourceType) {
+            moveType(move.entryId, resolvedGroup, move.weight);
+          }
+        });
+      }
     }
   }
 
@@ -343,12 +425,12 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
-      const virtualTypeConfig: VirtualTypeConfiguration = {
+      const virtualTypeConfig: TypeMapVirtualType = {
         label:      item.label,
         labelKey:   item.labelKey,
         namespaced: false,
         name:       finalName,
-        weight:     item.weight, // ordering is done here and not via "weightType"
+        weight:     item.sideMenu?.weight, // ordering is done here and not via "weightType"
       };
 
       // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
@@ -357,12 +439,24 @@ export abstract class BasePluginProduct {
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(item.name, item.component as ProductChildCustomPage['component']), { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
       } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
       }
 
-      virtualType({ ...virtualTypeConfig, ...(isProductChildWithComponent(item) ? item.config || {} : {}) });
+      if (isProductChildWithComponent(item)) {
+        const itemCustomPage:ProductChildCustomPageInternal = item as ProductChildCustomPageInternal;
+
+        // virtualTypeConfig.component = itemCustomPage.component;
+        applyIfDefined(itemCustomPage.enable?.ifHave, () => virtualTypeConfig.ifHave = itemCustomPage.enable?.ifHave); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifFeature, () => virtualTypeConfig.ifFeature = itemCustomPage.enable?.ifFeature); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifHaveType, () => virtualTypeConfig.ifHaveType = itemCustomPage.enable?.ifHaveType); // eslint-disable-line no-return-assign
+        applyIfDefined(itemCustomPage.enable?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemCustomPage.enable?.ifHaveVerb); // eslint-disable-line no-return-assign
+
+        applyIfDefined(itemCustomPage.resource?.namespaced, () => virtualTypeConfig.namespaced = itemCustomPage.resource?.namespaced); // eslint-disable-line no-return-assign
+      }
+
+      virtualType(virtualTypeConfig);
     } else if (isProductChildWithType(item)) {
       // Page with a "type" specified maps to a configureType
       const typeValue = item.type;
@@ -372,39 +466,53 @@ export abstract class BasePluginProduct {
         this.surfaceError(`Duplicate resource type "${ typeValue }" - each resource type must be unique within a product`);
       }
 
+      const itemRP: ProductChildResourcePageInternal = item as ProductChildResourcePageInternal;
+
       this.registeredPageNames.add(typeValue);
       this.pageIdMap.set(typeValue, typeValue);
 
       const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
 
-      const configureTypeConfig: ConfigureTypeConfiguration = {
-        isCreatable: true,
-        isEditable:  true,
-        isRemovable: true,
-        canYaml:     true,
+      const configureTypeConfig: TypeMapConfigureType = {
+        isCreatable: itemRP.can?.create ?? true,
+        isEditable:  itemRP.can?.edit ?? true,
+        isRemovable: itemRP.can?.create ?? true,
+        canYaml:     itemRP.can?.yaml ?? true,
         customRoute: route
       };
 
-      if (item.headers || item.sspHeaders) {
-        headers(item.type, item.headers, item.sspHeaders);
+      applyIfDefined(itemRP.listConfig?.listGroups, () => configureTypeConfig.listGroups = itemRP.listConfig?.listGroups); // eslint-disable-line no-return-assign
+      applyIfDefined(itemRP.listConfig?.listGroupsWillOverride, () => configureTypeConfig.listGroupsWillOverride = itemRP.listConfig?.listGroupsWillOverride); // eslint-disable-line no-return-assign
+      applyIfDefined(itemRP.listConfig?.subTypes, () => configureTypeConfig.subTypes = itemRP.listConfig?.subTypes); // eslint-disable-line no-return-assign
+
+      if (itemRP.listConfig?.localHeaders || itemRP.listConfig?.headers) {
+        headers(item.type, itemRP.listConfig?.localHeaders, itemRP.listConfig?.headers);
       }
 
-      if (item.overrideListResourceName) {
-        mapType(item.type, item.overrideListResourceName);
+      if (itemRP.label) {
+        mapType(item.type, itemRP.label);
       }
 
-      if (item.hideFromNav) {
+      if (itemRP.sideMenu?.hideFromNav) {
         ignoreType(item.type);
       }
 
-      if (item.hideBulkActions) {
+      if (itemRP.listConfig?.hideBulkActions) {
         hideBulkActions(item.type, true);
       }
 
-      configureType(typeValue, { ...configureTypeConfig, ...(item.config || {}) });
+      applyIfDefined(item.views?.list?.createLabelKey, () => configureTypeConfig.listCreateButtonLabelKey = item.views?.list?.createLabelKey); // eslint-disable-line no-return-assign
+      configureTypeConfig.showState = item.display?.showState ?? true;
+      configureTypeConfig.showAge = item.display?.showAge ?? true;
+      configureTypeConfig.showConfigView = item.views?.detail?.showConfigView ?? true;
+      configureTypeConfig.showListMasthead = item.views?.list?.showListMasthead ?? true;
+      configureTypeConfig.resourceEditMasthead = item.views?.createEdit?.showMasthead ?? true;
+      configureTypeConfig.localOnly = item.sideMenu?.localOnly ?? false;
 
-      if (item.weight) {
-        weightType(typeValue, item.weight, true);
+      configureType(typeValue, configureTypeConfig);
+
+      if (itemRP.sideMenu?.weight !== undefined) {
+        weightType(typeValue, itemRP.sideMenu?.weight, true);
       }
     }
   }
@@ -421,7 +529,7 @@ export abstract class BasePluginProduct {
           this.surfaceError('Group items cannot have a "type" property - only custom pages can have groups.');
         }
 
-        let route;
+        let route: RouteRecordRaw | RouteRecordRawWithParams;
 
         if (!child.component) {
           // Create minimal page object for route generation
@@ -431,23 +539,23 @@ export abstract class BasePluginProduct {
             component: EmptyProductPage
           };
 
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute, { extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute.name, { extendProduct: !this.isNewProduct });
         } else {
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, this.generateMetadataForGroupOverviewPageRouting(child.name, child.component), { component: child.component, extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, { component: child.component, extendProduct: !this.isNewProduct });
         }
 
         // add the route for the group page/parent
         plugin.addRoute(route);
 
         // add children routes
-        this.addRoutes(plugin, `${ parentName }`, child.children);
+        this.addRoutes(plugin, `${ parentName }`, child.sideMenu.children);
       } else if (isProductChildWithComponent(child)) {
         // virtualType page
         if (hasTypeProperty(child)) {
           this.surfaceError('Custom pages cannot have a "type" property - only resource pages can use "type".');
         }
 
-        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child, { component: child.component, extendProduct: !this.isNewProduct });
+        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, { component: child.component, extendProduct: !this.isNewProduct });
 
         plugin.addRoute(route);
       } else if (isProductChildWithType(child)) {

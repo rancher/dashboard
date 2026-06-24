@@ -24,6 +24,8 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
 import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -42,6 +44,7 @@ export default {
     AwsComplianceBanner,
     Inactivity,
     SideNav,
+    RcButton,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
@@ -138,10 +141,16 @@ export default {
       debugger;
     },
 
+    // Open the shell for the current cluster if the user has permissions and the feature is enabled (invoked via keyboard shortcut)
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
       if ( !clusterId ) {
+        return;
+      }
+
+      // Cluster shell is disabled via feature flag
+      if (!this.$store.getters['features/get'](CLUSTER_SHELL)) {
         return;
       }
 
@@ -162,10 +171,13 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <a
-      href="#main-content"
-      class="skip-to-content btn role-primary"
-    >{{ t('nav.skipToContent') }}</a>
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <AwsComplianceBanner v-if="managementReady" />
     <div

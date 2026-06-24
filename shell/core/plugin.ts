@@ -21,18 +21,17 @@ import {
   ServerSidePaginationExtensionConfig,
   TableAction,
 } from './types';
-import {
-  ProductMetadata,
-  ProductSinglePage,
-  ProductChild,
-  StandardProductName,
-  RouteRecordRawWithParams
-} from './plugin-types';
+import { RouteRecordRawWithParams } from './plugin-types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 import { PluginProduct } from './plugin-products';
+import {
+  ProductMetadata, ProductMetadataSinglePage,
+  StandardProductName,
+  ProductChild
+} from '@shell/core/plugin-products-external';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -124,6 +123,9 @@ export class Plugin implements IPlugin {
     this.topLevelProduct = true;
   }
 
+  _setStartRouteWithProduct(_value: boolean): void {
+  }
+
   // Track which products the plugin creates
   // Legacy DSL method
   DSL(store: any, productName: string) {
@@ -134,16 +136,16 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage | string, config?: ProductChild[]): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
     let pluginProduct: PluginProduct;
 
     if (typeof product === 'string') {
       pluginProduct = PluginProduct.fromName(this, product);
     } else if (product?.name) {
-      if (!config) {
-        pluginProduct = new PluginProduct(this, product as ProductSinglePage, []);
+      if (!pages) {
+        pluginProduct = new PluginProduct(this, product, []);
       } else {
-        pluginProduct = new PluginProduct(this, product as ProductMetadata, config);
+        pluginProduct = new PluginProduct(this, product, pages);
       }
     } else {
       this.products.push(product as ProductFunction);

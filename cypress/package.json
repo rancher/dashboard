@@ -42,7 +42,7 @@
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "cypress-multi-reporters": "1.6.4",
-    "cypress-qase-reporter": "3.0.0",
+    "cypress-qase-reporter": "3.6.3",
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0",
     "dotenv": "^10.0.0",
@@ -54,7 +54,7 @@
     "sha.js": "^2.4.12",
     "ts-node": "10.9.2",
     "typescript": "^5.9.3",
-    "ws": "8.18.0"
+    "ws": "8.20.1"
   },
   "devDependencies": {},
   "repository": {
@@ -67,6 +67,6 @@
     "publish-pkg": "./scripts/publish.sh --npm"
   },
   "resolutions": {
-    "axios": "1.13.5"
+    "@cypress/request": "4.0.1"
   }
 }

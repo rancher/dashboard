@@ -10,7 +10,8 @@ import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 const RKE1_ALLOWED_ACTIONS = [
   'goToViewYaml',
   'download',
-  'viewInApi'
+  'viewInApi',
+  'showConfiguration'
 ];
 
 export default class MgmtNode extends HybridModel {
@@ -63,6 +64,10 @@ export default class MgmtNode extends HybridModel {
   }
 
   get pool() {
+    if (!this.spec?.nodePoolName) {
+      return undefined;
+    }
+
     const nodePoolID = this.spec.nodePoolName.replace(':', '/');
 
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
@@ -118,6 +123,42 @@ export default class MgmtNode extends HybridModel {
     return this.status?.addresses || this.status?.internalNodeStatus?.addresses || [];
   }
 
+  get internalIps() {
+    const internal = this.addresses.filter(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    });
+
+    if (!internal.length) {
+      // For RKE1 clusters in EC2, node addresses are
+      // under status.rkeNode.address and status.rkeNode.internalAddress
+      if (this.status?.rkeNode) {
+        return this.status.rkeNode.internalAddress ? [this.status.rkeNode.internalAddress] : [];
+      }
+
+      return [];
+    }
+
+    return internal.map(({ address }) => address);
+  }
+
+  get externalIps() {
+    const external = this.addresses.filter(({ type }) => {
+      return type === ADDRESSES.EXTERNAL_IP;
+    });
+
+    if (!external.length) {
+      // For RKE1 clusters in EC2, node addresses are
+      // under status.rkeNode.address and status.rkeNode.internalAddress
+      if (this.status?.rkeNode) {
+        return this.status.rkeNode.address ? [this.status.rkeNode.address] : [];
+      }
+
+      return [];
+    }
+
+    return external.map(({ address }) => address);
+  }
+
   get internalIp() {
     // This shows in the IP address column for RKE1 nodes in the
     // list of nodes in the cluster detail page of Cluster Management.
@@ -131,7 +172,7 @@ export default class MgmtNode extends HybridModel {
 
     // For RKE1 clusters in EC2, node addresses are
     // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!internal && this.status.rkeNode) {
+    if (!internal && this.status?.rkeNode) {
       return this.status.rkeNode.internalAddress;
     }
 
@@ -147,7 +188,7 @@ export default class MgmtNode extends HybridModel {
 
     // For RKE1 clusters in EC2, node addresses are
     // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!statusAddress && this.status.rkeNode) {
+    if (!statusAddress && this.status?.rkeNode) {
       return this.status.rkeNode.address;
     }
 

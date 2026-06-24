@@ -45,6 +45,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
+    cy.createE2EResourceName('repo-oci').as('ociRepoName');
   });
 
   it('can create a repository', function() {
@@ -79,9 +80,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check details page
-    // Enable check once the detail page issue is resolved https://github.com/rancher/dashboard/issues/17556
-    // repositoriesPage.list().details(this.repoName, 2).click();
-    // cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
+    repositoriesPage.list().details(this.repoName, 2).click();
+    cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
   });
 
   it('can clone a repository', function() {
@@ -243,11 +243,11 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     const ociMaxWait = '7';
     const refreshInterval = '12';
 
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.ociRepoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.ociRepoName }-description`);
     repositoriesPage.createEditRepositories().selectOciUrlCard();
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
@@ -265,17 +265,17 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
-      // check refreshInterval
-      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval));
+      // check refreshInterval (input value × hours unit = seconds)
+      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval) * 3600);
     });
 
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().details(this.ociRepoName, 2).should('be.visible');
 
     // delete repo
-    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName);
   });
 });
 

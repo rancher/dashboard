@@ -720,7 +720,7 @@ describe('topLevelMenu', () => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
-              $route: {},
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
               $store: {
                 ...generateStore([
                   {
@@ -823,7 +823,7 @@ describe('topLevelMenu', () => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
           global: {
             mocks: {
-              $route: {},
+              $route: { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
               $store: store
             },
             stubs: ['BrandImage', 'router-link'],
@@ -834,6 +834,124 @@ describe('topLevelMenu', () => {
         await wrapper.setData({ routeCombo: true });
 
         expect(wrapper.vm.routeComboActive).toBe(true);
+      });
+    });
+
+    describe('handleKeyComboClick', () => {
+      it('should not toggle routeCombo when route is a non-explorer c-cluster route', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
+              $router: { push: jest.fn() },
+              $store:  { ...generateStore([]) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        expect(wrapper.vm.routeCombo).toBe(false);
+        wrapper.vm.handleKeyComboClick();
+        expect(wrapper.vm.routeCombo).toBe(false);
+      });
+
+      it('should toggle routeCombo when route is cluster explorer', async() => {
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-explorer', params: { cluster: 'local', product: 'explorer' } },
+              $router: { push: jest.fn() },
+              $store:  { ...generateStore([]) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        expect(wrapper.vm.routeCombo).toBe(false);
+        wrapper.vm.handleKeyComboClick();
+        expect(wrapper.vm.routeCombo).toBe(true);
+      });
+    });
+
+    describe('clusterMenuClick', () => {
+      it('should navigate normally on non-explorer c-cluster route even with routeCombo set', async() => {
+        const mockPush = jest.fn();
+        const clusterRoute = { name: 'c-cluster-explorer' };
+        const clusters = [
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            clusterRoute
+          },
+          {
+            nameDisplay: 'cluster2',
+            id:          'an-id2',
+            mgmt:        { id: 'an-id2' },
+            canExplore:  true,
+            clusterRoute
+          }
+        ];
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'c-cluster-fleet', params: { cluster: 'local', product: 'fleet' } },
+              $router: { push: mockPush },
+              $store:  { ...generateStore(clusters) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+        await wrapper.setData({ routeCombo: true });
+
+        expect(wrapper.vm.routeComboActive).toBe(false);
+
+        const ev = { preventDefault: jest.fn() };
+
+        wrapper.vm.clusterMenuClick(ev, clusters[1]);
+
+        expect(mockPush).toHaveBeenCalledWith(clusterRoute);
+      });
+
+      it('should navigate to cluster route when routeComboActive is false', async() => {
+        const mockPush = jest.fn();
+        const clusterRoute = { name: 'c-cluster-explorer' };
+        const clusters = [
+          {
+            nameDisplay: 'cluster1',
+            id:          'an-id1',
+            mgmt:        { id: 'an-id1' },
+            canExplore:  true,
+            clusterRoute
+          }
+        ];
+
+        const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+          global: {
+            mocks: {
+              $route:  { name: 'fleet-management', params: {} },
+              $router: { push: mockPush },
+              $store:  { ...generateStore(clusters) }
+            },
+            stubs: ['BrandImage', 'router-link'],
+          }
+        });
+
+        await waitForIt();
+
+        const ev = { preventDefault: jest.fn() };
+
+        wrapper.vm.clusterMenuClick(ev, clusters[0]);
+
+        expect(mockPush).toHaveBeenCalledWith(clusterRoute);
       });
     });
   });

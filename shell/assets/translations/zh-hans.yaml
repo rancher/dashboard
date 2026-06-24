@@ -4947,10 +4947,6 @@ setup:
   confirmPassword: 确认新密码
   defaultPassword:
     intro: 这是你第一次访问 {vendor}。如果你预先设置了 Bootstrap 密码，请在此处输入。否则我们会为你生成一个随机密码。找到它：<br/><br/>
-    dockerPrefix: '"docker run" 安装：'
-    dockerPs: '运行<code>docker ps</code>找到你的容器 ID，然后运行：'
-    dockerSuffix: ""
-    helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
   eula: 选中此框，即表示你接受<a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
   newPassword: 新密码
@@ -6321,7 +6317,6 @@ typeDescription:
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   branding: "管理员可以修改 Rancher 产品名称、Logo 和配色方案来全局自定义 UI 界面。"
-  chart: "除非另有说明，否则所有 Chart 都至少有一个可以安装在具有 Linux 和 Windows 节点的集群上的版本。"
   cis.cattle.io.clusterscanbenchmark: Benchmark 版本是指使用 kube-bench 运行的 Benchmark 名称，以及该 Benchmark 的有效配置参数。
   cis.cattle.io.clusterscanprofile: 配置文件指定 CIS 扫描的配置，也就是要使用的 Benchmark 版本和该 Benchmark 中要跳过的特定测试。
   cis.cattle.io.clusterscan: 扫描是用来根据定义的配置文件，在集群上触发 CIS 扫描的。扫描完成后会创建一份报告。
@@ -6998,9 +6993,8 @@ advancedSettings:
     'ingress-ip-domain': '用于自动生成 Ingress 主机名的通配符 DNS 域。<ingress-name>.<namespace-name>.<ip address of ingress controller> 会被添加到该域。'
     'server-url': '默认 {appName} 安装地址。必须使用 HTTPS。你集群中的所有节点都必须能够访问此地址。'
     'system-default-registry': '用于所有 Rancher System 容器镜像的私有镜像仓库。如果未指定任何值，则使用容器运行时的默认镜像仓库。对于 Docker 和 containerd，默认为 `docker.io`。'
-    'ui-index': 'Cluster Manager UI 的 HTML 索引位置。'
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
-    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
+    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'

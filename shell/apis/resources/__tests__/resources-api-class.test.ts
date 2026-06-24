@@ -10,6 +10,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   let mockDispatch: jest.Mock;
   let mockSchemaFor: jest.Mock;
   let mockPaginationEnabled: jest.Mock;
+  let mockUrlFor: jest.Mock;
   let consoleErrorSpy: any;
 
   beforeEach(() => {
@@ -18,12 +19,23 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
     mockDispatch = jest.fn() as any;
     mockSchemaFor = jest.fn() as any;
     mockPaginationEnabled = jest.fn() as any;
+    mockUrlFor = jest.fn() as any;
+    mockUrlFor.mockImplementation((type: string, id: string) => {
+      const schema = mockSchemaFor(type);
+
+      if (!schema) {
+        throw new Error(`No schema found for type "${ type }"`);
+      }
+
+      return id ? `${ schema.linkFor() }/${ id }` : schema.linkFor();
+    });
 
     mockStore = {
       dispatch: mockDispatch,
       getters:  {
         [`${ storeType }/schemaFor`]:         mockSchemaFor,
-        [`${ storeType }/paginationEnabled`]: mockPaginationEnabled
+        [`${ storeType }/paginationEnabled`]: mockPaginationEnabled,
+        [`${ storeType }/urlFor`]:            mockUrlFor
       }
     } as any;
 
@@ -49,7 +61,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.find('pod', 'default/test-pod', { watch: true });
 
       // Assert
-      expect(result).toStrictEqual(mockResource);
+      expect(result).toMatchObject(mockResource);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'pod',
         id:   'default/test-pod',
@@ -72,7 +84,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.find('node', 'worker-1');
 
       // Assert
-      expect(result).toStrictEqual(mockResource);
+      expect(result).toMatchObject(mockResource);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'node',
         id:   'worker-1',
@@ -89,7 +101,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         `Resource API error - ${ storeType } - Resource "pod" is namespaced. The resourceId must be in "namespace/name" format, but received "test-pod"`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Resource "pod" is namespaced. The resourceId must be in "namespace/name" format, but received "test-pod"`
+        `Resource API error - ${ storeType } - Resource "pod" is namespaced. The resourceId must be in "namespace/name" format, but received "test-pod"`,
+        undefined
       );
       expect(mockDispatch).not.toHaveBeenCalled();
     });
@@ -105,7 +118,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.find('custom.crd', 'my-resource');
 
       // Assert
-      expect(result).toStrictEqual(mockResource);
+      expect(result).toMatchObject(mockResource);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'custom.crd',
         id:   'my-resource',
@@ -125,20 +138,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         `Resource API error - ${ storeType } - Failed to find resource pod/default/test-pod: Network error`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Failed to find resource pod/default/test-pod: Network error`
+        `Resource API error - ${ storeType } - Failed to find resource pod/default/test-pod: Network error`,
+        expect.any(Error)
       );
-    });
-
-    it('should return null when dispatch returns undefined', async() => {
-      // Arrange
-      mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
-      mockDispatch.mockResolvedValue(undefined);
-
-      // Act
-      const result = await resourcesApi.find('pod', 'default/nonexistent-pod');
-
-      // Assert
-      expect(result).toBeNull();
     });
 
     it('should handle resources with different types correctly', async() => {
@@ -155,7 +157,7 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.find('apps.deployment', 'kube-system/test-deployment');
 
       // Assert
-      expect(result).toStrictEqual(mockDeployment);
+      expect(result).toMatchObject(mockDeployment);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/find`, {
         type: 'apps.deployment',
         id:   'kube-system/test-deployment',
@@ -179,7 +181,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.findFiltered('pod', { labelSelector });
 
       // Assert
-      expect(result).toStrictEqual(mockResources);
+      expect(result).toHaveLength(2);
+      expect((result as any[])[0]).toMatchObject(mockResources[0]);
+      expect((result as any[])[1]).toMatchObject(mockResources[1]);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findLabelSelector`, {
         type:     'pod',
         matching: {
@@ -271,7 +275,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         `Resource API error - ${ storeType } - Failed to find filtered resources pod: Network error`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Failed to find filtered resources pod: Network error`
+        `Resource API error - ${ storeType } - Failed to find filtered resources pod: Network error`,
+        expect.any(Error)
       );
     });
 
@@ -303,8 +308,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       } as any);
 
       // Assert
-      expect(result).toStrictEqual(transientResponse);
       expect(result).toHaveProperty('data');
+      expect((result as any).data).toHaveLength(1);
+      expect((result as any).data[0]).toMatchObject({ metadata: { name: 'pod-1' } });
     });
 
     it('should find resources with pagination options when enabled', async() => {
@@ -328,7 +334,9 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.findFiltered('pod', paginationOptions as any);
 
       // Assert
-      expect(result).toStrictEqual(mockResources);
+      expect(result).toHaveLength(2);
+      expect((result as any[])[0]).toMatchObject(mockResources[0]);
+      expect((result as any[])[1]).toMatchObject(mockResources[1]);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findPage`, {
         type: 'pod',
         opt:  paginationOptions
@@ -361,9 +369,10 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.findFiltered('pod', paginationOptions as any);
 
       // Assert
-      expect(result).toStrictEqual(transientResponse);
       expect(result).toHaveProperty('data');
       expect(result).toHaveProperty('pagination');
+      expect((result as any).data).toHaveLength(1);
+      expect((result as any).data[0]).toMatchObject({ metadata: { name: 'pod-1' } });
     });
 
     it('should throw error when pagination is not enabled', async() => {
@@ -382,7 +391,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`
+        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`,
+        undefined
       );
       expect(mockDispatch).not.toHaveBeenCalled();
     });
@@ -396,7 +406,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         /findFiltered request was made with unknown options/
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('findFiltered request was made with unknown options')
+        expect.stringContaining('findFiltered request was made with unknown options'),
+        undefined
       );
     });
 
@@ -442,7 +453,10 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       const result = await resourcesApi.findAll('pod');
 
       // Assert
-      expect(result).toStrictEqual(mockResources);
+      expect(result).toHaveLength(3);
+      expect((result as any[])[0]).toMatchObject(mockResources[0]);
+      expect((result as any[])[1]).toMatchObject(mockResources[1]);
+      expect((result as any[])[2]).toMatchObject(mockResources[2]);
       expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/findAll`, {
         type: 'pod',
         opt:  {}
@@ -531,7 +545,8 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         `Resource API error - ${ storeType } - Failed to find all resources pod: Network error`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - Failed to find all resources pod: Network error`
+        `Resource API error - ${ storeType } - Failed to find all resources pod: Network error`,
+        expect.any(Error)
       );
     });
 
@@ -545,6 +560,272 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
       // Assert
       expect(result).toStrictEqual([]);
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('create', () => {
+    it('should send a POST request with the resource data', async() => {
+      // Arrange
+      const inputData = {
+        type:     'configmap',
+        metadata: { name: 'my-config', namespace: 'default' },
+      };
+      const mockResponse = {
+        type:     'configmap',
+        metadata: { name: 'my-config', namespace: 'default' },
+      };
+
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await resourcesApi.create(inputData);
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps',
+          method:  'POST',
+          headers: { 'content-type': 'application/json' },
+          data:    inputData,
+        }
+      });
+      expect(result).toStrictEqual(mockResponse);
+    });
+
+    it('should throw when data.type is missing', async() => {
+      // Act & Assert
+      await expect(resourcesApi.create({} as any)).rejects.toThrow(
+        `Resource API error - ${ storeType } - Resource data must include a "type" property`
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('should throw error and log when request fails', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockRejectedValue(new Error('Request failed'));
+
+      // Act & Assert
+      await expect(resourcesApi.create({ type: 'configmap' })).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Request failed`
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Resource API error - ${ storeType } - Failed to create resource of type "configmap": Request failed`,
+        expect.any(Error)
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('should send a PATCH request with strategic-merge-patch content type', async() => {
+      // Arrange
+      const mockResponse = { metadata: { name: 'my-config' }, data: { key: 'patched' } };
+
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
+
+      // Assert
+      expect(result).toStrictEqual(mockResponse);
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps/default/my-config',
+          method:  'patch',
+          headers: { 'content-type': 'application/strategic-merge-patch+json' },
+          data:    { data: { key: 'patched' } },
+        }
+      });
+    });
+
+    it('should throw error for namespaced resource without namespace in id', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
+
+      // Act & Assert
+      await expect(resourcesApi.update('configmap', 'my-config', {})).rejects.toThrow(
+        `Resource API error - ${ storeType } - Resource "configmap" is namespaced. The resourceId must be in "namespace/name" format, but received "my-config"`
+      );
+    });
+
+    it('should throw error when no schema is found', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue(null);
+
+      // Act & Assert
+      await expect(resourcesApi.update('configmap', 'default/my-config', {})).rejects.toThrow(
+        'No schema found for type "configmap"'
+      );
+    });
+
+    it('should throw error and log when request fails', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/nodes'
+      });
+      mockDispatch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(resourcesApi.update('node', 'worker-1', {})).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Network error`
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Network error`,
+        expect.any(Error)
+      );
+    });
+  });
+
+  describe('replace', () => {
+    it('should send a PUT request with cleanForSave applied', async() => {
+      // Arrange
+      const inputData = {
+        type:     'configmap',
+        metadata: { name: 'my-config', namespace: 'default' },
+        data:     { key: 'value' },
+      };
+      const cleanedData = { ...inputData };
+      const mockModel = { cleanForSave: jest.fn<any, any[]>().mockReturnValue(cleanedData) };
+      const mockResponse = { ...inputData, metadata: { ...inputData.metadata, resourceVersion: '2' } };
+
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      // First dispatch: create (returns model), second dispatch: request (returns response)
+      mockDispatch
+        .mockResolvedValueOnce(mockModel)
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await resourcesApi.replace('configmap', 'default/my-config', inputData);
+
+      // Assert
+      expect(result).toStrictEqual(mockResponse);
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/create`, inputData);
+      expect(mockModel.cleanForSave).toHaveBeenCalledWith({ ...inputData });
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps/default/my-config',
+          method:  'put',
+          headers: { 'content-type': 'application/json' },
+          data:    cleanedData,
+        }
+      });
+    });
+
+    it('should throw error for namespaced resource without namespace in id', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
+
+      // Act & Assert
+      await expect(resourcesApi.replace('configmap', 'my-config', {})).rejects.toThrow(
+        `Resource API error - ${ storeType } - Resource "configmap" is namespaced. The resourceId must be in "namespace/name" format, but received "my-config"`
+      );
+    });
+
+    it('should throw error and log when request fails', async() => {
+      // Arrange
+      const mockModel = { cleanForSave: jest.fn<any, any[]>().mockReturnValue({}) };
+
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/nodes'
+      });
+      mockDispatch
+        .mockResolvedValueOnce(mockModel)
+        .mockRejectedValueOnce(new Error('Conflict'));
+
+      // Act & Assert
+      await expect(resourcesApi.replace('node', 'worker-1', {})).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Conflict`
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Resource API error - ${ storeType } - Failed to update resource node/worker-1: Conflict`,
+        expect.any(Error)
+      );
+    });
+  });
+
+  describe('delete', () => {
+    it('should send a DELETE request with the correct URL', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockResolvedValue(undefined);
+
+      // Act
+      await resourcesApi.delete('configmap', 'default/my-config');
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:    'https://rancher/v1/configmaps/default/my-config',
+          method: 'delete',
+        }
+      });
+    });
+
+    it('should work with cluster-scoped resources', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/nodes'
+      });
+      mockDispatch.mockResolvedValue(undefined);
+
+      // Act
+      await resourcesApi.delete('node', 'worker-1');
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:    'https://rancher/v1/nodes/worker-1',
+          method: 'delete',
+        }
+      });
+    });
+
+    it('should throw error for namespaced resource without namespace in id', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({ attributes: { namespaced: true } });
+
+      // Act & Assert
+      await expect(resourcesApi.delete('configmap', 'my-config')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Resource "configmap" is namespaced. The resourceId must be in "namespace/name" format, but received "my-config"`
+      );
+    });
+
+    it('should throw error and log when request fails', async() => {
+      // Arrange
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: false },
+        linkFor:    () => 'https://rancher/v1/nodes'
+      });
+      mockDispatch.mockRejectedValue(new Error('Not Found'));
+
+      // Act & Assert
+      await expect(resourcesApi.delete('node', 'worker-1')).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to delete resource node/worker-1: Not Found`
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Resource API error - ${ storeType } - Failed to delete resource node/worker-1: Not Found`,
+        expect.any(Error)
+      );
     });
   });
 });

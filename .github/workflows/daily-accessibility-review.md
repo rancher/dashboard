@@ -10,7 +10,7 @@ on:
   schedule: daily
   workflow_dispatch:
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_ACCESSIBILITY_REVIEW != 'true'
 
 permissions: read-all
 

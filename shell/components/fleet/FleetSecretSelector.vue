@@ -34,6 +34,10 @@ const props = defineProps({
     type:    String,
     default: '',
   },
+  lockedOptions: {
+    type:    Array as () => string[],
+    default: () => []
+  },
 });
 
 const emit = defineEmits(['update:value']);
@@ -118,10 +122,8 @@ function paginatePageOptions(opts: any) {
     :in-store="inStore"
     :paginated-resource-settings="paginateSecretsSetting"
     :all-resources-settings="allSecretsSettings"
+    :locked-options="lockedOptions"
     :multiple="true"
     @update:value="update"
   />
 </template>
-
-<style lang="scss" scoped>
-</style>

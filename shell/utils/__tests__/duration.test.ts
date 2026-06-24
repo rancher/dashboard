@@ -1,4 +1,4 @@
-import { toMilliseconds, toSeconds } from '@shell/utils/duration';
+import { toMilliseconds, toSeconds, secondsToLargestUnit, formatDuration } from '@shell/utils/duration';
 
 describe('toMilliseconds', () => {
   describe('falsy input', () => {
@@ -136,5 +136,41 @@ describe('toSeconds', () => {
     },
   ])('$desc', ({ input, expected }) => {
     expect(toSeconds(input)).toStrictEqual(expected);
+  });
+});
+
+describe('function: secondsToLargestUnit', () => {
+  it.each([
+    [0, { value: 0, unit: 1 }],
+    [-1, { value: -1, unit: 1 }],
+    [-86400, { value: -86400, unit: 1 }],
+    [86400, { value: 1, unit: 86400 }],
+    [172800, { value: 2, unit: 86400 }],
+    [3600, { value: 1, unit: 3600 }],
+    [7200, { value: 2, unit: 3600 }],
+    [120, { value: 2, unit: 60 }],
+    [300, { value: 5, unit: 60 }],
+    [45, { value: 45, unit: 1 }],
+    [90, { value: 90, unit: 1 }],
+    [1, { value: 1, unit: 1 }],
+  ])('given %p seconds, returns %p', (seconds, expected) => {
+    expect(secondsToLargestUnit(seconds)).toStrictEqual(expected);
+  });
+});
+
+describe('function: formatDuration', () => {
+  it.each([
+    [0, '0s'],
+    [-1, '0s'],
+    [1, '1s'],
+    [60, '1m'],
+    [61, '1m 1s'],
+    [3600, '1h'],
+    [3661, '1h 1m 1s'],
+    [86400, '1d'],
+    [90061, '1d 1h 1m 1s'],
+    [100000, '1d 3h 46m 40s'],
+  ])('given %p seconds, returns %p', (seconds, expected) => {
+    expect(formatDuration(seconds)).toStrictEqual(expected);
   });
 });

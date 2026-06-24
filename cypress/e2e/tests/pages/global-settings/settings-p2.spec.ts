@@ -40,6 +40,16 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // only checking that the api request is sent and that the reset button is disabled
 
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_SERVER_URL is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['server-url']?.source === 'env') {
+      settingsPage.environmentLabel('server-url').should('be.visible');
+      settingsPage.actionButtonByLabel('server-url').should('not.exist');
+
+      return;
+    }
+
     settingsPage.settingsValue('server-url').then((el: any) => {
       const value = el.text();
 
@@ -75,6 +85,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
   it('can validate server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_SERVER_URL is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['server-url']?.source === 'env') {
+      settingsPage.environmentLabel('server-url').should('be.visible');
+      settingsPage.actionButtonByLabel('server-url').should('not.exist');
+
+      return;
+    }
 
     settingsPage.editSettingsByLabel('server-url');
 
@@ -101,44 +120,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
       // A non-url is also a non-https
       settingsEdit.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
     });
-  });
-
-  it('can update ui-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('ui-index');
-
-    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-index');
-
-    settingsEdit.waitForUrlPathWithoutContext();
-    settingsEdit.title().contains('Setting: ui-index').should('be.visible');
-    settingsEdit.settingsInput().set(settings['ui-index'].new);
-    settingsEdit.saveAndWait('ui-index', settings['ui-index'].new).then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ui-index'].new);
-      expect(response?.body).to.have.property('value', settings['ui-index'].new);
-    });
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.editSettingsByLabel('ui-index');
-
-    settingsEdit.waitForUrlPathWithoutContext();
-    settingsEdit.title().contains('Setting: ui-index').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-index', settingsOriginal['ui-index'].default).then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['ui-index'].default);
-      expect(response?.body).to.have.property('value', settingsOriginal['ui-index'].default);
-    });
-
-    settingsPage.waitForUrlPathWithoutContext();
-    settingsPage.settingsValue('ui-index').contains(settingsOriginal['ui-index'].default);
-
-    resetSettings.push('ui-index');
   });
 
   it('can update ui-dashboard-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -180,8 +161,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update ui-offline-preferred', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting: Local
     SettingsPagePo.navTo();
+    settingsPage.waitForUrlPathWithoutContext();
+
+    // When CATTLE_UI_OFFLINE_PREFERRED is set on the server the setting is read-only and cannot be edited via the UI
+    if (settingsOriginal['ui-offline-preferred']?.source === 'env') {
+      settingsPage.environmentLabel('ui-offline-preferred').should('be.visible');
+      settingsPage.actionButtonByLabel('ui-offline-preferred').should('not.exist');
+
+      return;
+    }
+
+    // Update setting: Local
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-offline-preferred');
