@@ -1,6 +1,5 @@
-import { haveV2Monitoring } from '@shell/utils/monitoring';
+import { haveV2Monitoring, fetchMonitoringVersion } from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
-import { CATALOG } from '@shell/config/types';
 
 // these two versions of monitoring included a bug fix attempt that required the local cluster to use a different url
 // the solution going forward doesn't require this, see https://github.com/rancher/dashboard/issues/8885
@@ -60,21 +59,7 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
 }
 
 export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster', projectId = null) {
-  let res;
-
-  let monitoringVersion = '';
-
-  if (!projectId && store.getters[`${ storeName }/canList`](CATALOG.APP)) {
-    try {
-      res = await store.dispatch(`${ storeName }/find`, {
-        type: CATALOG.APP,
-        id:   'cattle-monitoring-system/rancher-monitoring'
-      });
-    } catch (err) {
-    }
-
-    monitoringVersion = res?.currentVersion;
-  }
+  const monitoringVersion = projectId ? '' : await fetchMonitoringVersion(store, storeName);
 
   const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId));
 
