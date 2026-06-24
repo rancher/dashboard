@@ -3,8 +3,9 @@ import {
   ActionFindAllArgs, ActionFindArgs,
   ActionFindMatchingArgs,
   ActionFindPageArgs,
-  ActionFindPageResponse, ActionFindMatchingResponse
+  ActionFindPageResponse, ActionFindMatchingResponse,
 } from '@shell/types/store/dashboard-store.types';
+import { SteveListResponse, SteveGetResponse } from '@shell/types/rancher/steve.api';
 
 /**
  * @interface
@@ -22,6 +23,30 @@ import {
  * ```
  */
 export type ResourceType = K8SResourceType | string;
+
+/**
+ * @interface
+ * Data object for creating a new resource. Must include a `type` property.
+ *
+ * @example
+ * ```ts
+ * import { useResources, K8S } from '@shell/apis';
+ *
+ * const resources = useResources();
+ *
+ * const newConfigMap: CreateResourceData = {
+ *   type: K8S.CONFIG_MAP,
+ *   metadata: { name: 'my-config', namespace: 'default' },
+ *   data: { key: 'value' }
+ * };
+ *
+ * await resources.cluster.create(newConfigMap);
+ * ```
+ */
+export type CreateResourceData = {
+  [key: string]: any,
+  type: ResourceType,
+};
 
 /**
  * @interface
@@ -87,6 +112,7 @@ export type FindFilteredLabelSelectorOptions = Omit<ActionFindMatchingArgs, 'dep
 // @internal We use an interface instead of a type alias so the documentation generator
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FindFilteredPageOptions extends ActionFindPageArgs {}
+export interface FindFilteredPageOptionsTransient extends ActionFindPageArgs { transient: true }
 
 /**
  * @interface
@@ -104,4 +130,18 @@ export type FindFilteredPageResponse<T = any> = ActionFindPageResponse<T>;
  * Aligns with the response type of the underlying `findMatching` store action via `findLabelSelector`.
  * Can be either a transient response object (with data and pagination) or an array of resources.
  */
-export type FindFilteredLabelSelectorResponse<T = any> = ActionFindMatchingResponse<T>;
+export type FindFilteredLabelSelectorResponse<T = Record<string, any>> = ActionFindMatchingResponse<T>;
+
+/**
+ * @interface
+ * Steve API JSON response for GET requests for a resource
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export type SteveResource<T = Record<string, any>> = T & SteveGetResponse;
+
+/**
+ * @interface
+ * Steve API JSON response for LIST resource requests
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export type SteveList<T = Record<string, any>> = SteveListResponse<T & SteveGetResponse>;
