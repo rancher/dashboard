@@ -49,7 +49,7 @@ describe('component: Principal', () => {
         mocks: {
           $fetchState: { pending: false },
           $store:      {
-            getters:  { 'rancher/byId': () => null },
+            getters: { 'rancher/byId': () => null },
             dispatch,
           },
         },
