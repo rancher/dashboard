@@ -1,4 +1,4 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import EC2Networking from '@shell/machine-config/components/EC2Networking.vue';
 
 import { vpcInfo, subnetInfo } from './utils/vpcSubnetMockData';
