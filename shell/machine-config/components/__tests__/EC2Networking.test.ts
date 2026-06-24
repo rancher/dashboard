@@ -16,6 +16,7 @@ describe('component: EC2Networking', () => {
     },
     global: {
       mocks: {
+        t:           (key: string) => key,
         $fetchState: { pending: false },
         $store:      { getters: defaultGetters },
       },
@@ -65,16 +66,9 @@ describe('component: EC2Networking', () => {
   });
 
   it('should render the ipv6 only checkbox when the selected network is dual-stack', async() => {
-    const wrapper = mount(EC2Networking, defaultCreateSetup);
-    const ipv6Checkbox = wrapper.findComponent('[data-testid="amazonEc2__enableIpv6"]');
+    const wrapper = shallowMount(EC2Networking, defaultCreateSetup);
 
-    ipv6Checkbox.vm.$emit('update:value', true);
-    await wrapper.vm.$nextTick();
-
-    const networkDropdown = wrapper.findComponent('[data-testid="amazonEc2__selectedNetwork"]');
-
-    networkDropdown.vm.$emit('selecting', 'subnet-321');
-    await wrapper.vm.$nextTick();
+    await wrapper.setData({ enableIpv6: true, selectedNetwork: 'vpc-12345' });
 
     const ipv6OnlyCheckbox = wrapper.findComponent('[data-testid="amazonEc2__ipv6AddressOnly"]');
 
@@ -83,9 +77,12 @@ describe('component: EC2Networking', () => {
 
   it.each([
     [[{ isIpv6: true }, { isIpv6: false }], true],
-    [[{ isIpv6: false }, { isIpv6: false }], false],
-    [[{ isIpv6: true }, { isIpv6: true }], false],
-  ])('should show an error banner if pools do not either all have ipv6 or all have ipv4', (pools, shouldShowError) => {
+    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: false }], true],
+    [[{ isIpv6: true, isDualStack: false }, { isIpv6: false, isDualStack: true }], true],
+    [[{ isIpv6: false, isDualStack: false }, { isIpv6: false, isDualStack: false }], false],
+    [[{ isIpv6: true, isDualStack: false }, { isIpv6: true, isDualStack: false }], false],
+    [[{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: true }], false],
+  ])('should show an error banner when machine pools mix network modes', (pools, shouldShowError) => {
     const wrapper = shallowMount(EC2Networking, { ...defaultCreateSetup, propsData: { ...defaultCreateSetup.propsData, machinePools: pools } });
     const ipv6Warning = wrapper.findComponent('[data-testid="amazonEc2__ipv6Warning"]');
 
@@ -140,6 +137,30 @@ describe('component: EC2Networking', () => {
       propsData: {
         ...defaultCreateSetup.propsData,
         machinePools: [{ isIpv6: true }, { isIpv6: true }],
+      },
+    });
+
+    expect(wrapper.emitted('validationChanged')?.[0][0]).toBe(true);
+  });
+
+  it('should emit a validationChanged: false event when ipv6-only and dual-stack pools are mixed', async() => {
+    const wrapper = shallowMount(EC2Networking, {
+      ...defaultCreateSetup,
+      propsData: {
+        ...defaultCreateSetup.propsData,
+        machinePools: [{ isIpv6: true, isDualStack: false }, { isIpv6: false, isDualStack: true }],
+      },
+    });
+
+    expect(wrapper.emitted('validationChanged')?.[0][0]).toBe(false);
+  });
+
+  it('should emit a validationChanged: true event when all pools are dual-stack', async() => {
+    const wrapper = shallowMount(EC2Networking, {
+      ...defaultCreateSetup,
+      propsData: {
+        ...defaultCreateSetup.propsData,
+        machinePools: [{ isIpv6: false, isDualStack: true }, { isIpv6: false, isDualStack: true }],
       },
     });
 

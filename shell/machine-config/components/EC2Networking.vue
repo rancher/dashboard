@@ -10,6 +10,7 @@ import { Banner } from '@components/Banner';
 import { scrollToBottom } from '@shell/utils/scroll';
 import { _CREATE } from '@shell/config/query-params';
 import { getSubnetDisplayName, getVpcDisplayName, isIpv4Network, isIpv6Network } from '@shell/utils/aws';
+import { STACK_PREFS } from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/index.vue';
 
 export default {
   name: 'Ec2MachinePoolNetworking',
@@ -298,9 +299,19 @@ export default {
     },
 
     poolsInvalid() {
-      const somePoolHasIpv4 = !!this.machinePools.find((p) => !p.isIpv6 && !p.isDualStack);
+      const poolNetworkModes = new Set(this.machinePools.map((p) => {
+        if (p.isDualStack) {
+          return STACK_PREFS.DUAL;
+        }
 
-      return this.somePoolisIpv6OrDual && somePoolHasIpv4;
+        if (p.isIpv6) {
+          return STACK_PREFS.IPV6;
+        }
+
+        return STACK_PREFS.IPV4;
+      }));
+
+      return poolNetworkModes.size > 1;
     },
 
     addressCountInvalid() {

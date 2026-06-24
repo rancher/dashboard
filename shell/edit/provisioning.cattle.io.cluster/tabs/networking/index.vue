@@ -295,7 +295,7 @@ export default {
       <div class="col span-3">
         <LabeledSelect
           :key="hasSomeIpv6Pools"
-          :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"
+          :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.DUAL"
           :mode="mode"
           :options="stackPreferenceOptions"
           data-testid="network-tab-stackpreferences"
