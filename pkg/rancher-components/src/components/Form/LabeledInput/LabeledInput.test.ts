@@ -57,6 +57,121 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  describe('type "integer"', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+
+    it('should render a text input with numeric inputmode', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+
+      expect(input.attributes('type')).toBe('text');
+      expect(input.attributes('inputmode')).toBe('numeric');
+    });
+
+    it.each([
+      'e', 'E', '.', '+',
+    ])('should prevent non-integer key "%s"', (key) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key, cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it.each([
+      '0', '1', '9', '-', 'Backspace', 'Tab', 'ArrowLeft',
+    ])('should allow key "%s"', (key) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key, cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it('should also block "-" when min="0"', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        attrs:     { min: '0' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key: '-', cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    function createPasteEvent(text: string): Event {
+      const event = new Event('paste', { cancelable: true });
+
+      (event as Event & { clipboardData: Pick<DataTransfer, 'getData'> }).clipboardData = { getData: () => text };
+
+      return event;
+    }
+
+    it.each([
+      '123',
+      '-5',
+    ])('should allow pasting valid integer "%s"', (text) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent(text);
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it.each([
+      '-e10',
+      '1.5',
+      '12abc',
+      '1e5',
+    ])('should block pasting invalid integer "%s"', (text) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent(text);
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should block pasting negative integer when min="0"', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        attrs:     { min: '0' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent('-5');
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+  });
+
   describe('a11y: adding ARIA props', () => {
     const ariaLabelVal = 'some-aria-label';
     const subLabelVal = 'some-sublabel';
