@@ -44,7 +44,12 @@ export default {
         return;
       }
 
-      const principalId = escape(this.value).replace(/\//g, '%2F');
+      // Use encodeURIComponent (not the deprecated escape()) so non-ASCII characters
+      // in the DN (e.g. Chinese) are emitted as valid UTF-8 percent-encoding rather
+      // than non-standard %uXXXX sequences that ingress controllers reject with a 400.
+      // encodeURIComponent encodes the whole principal id as a single path segment,
+      // including forward slashes (-> %2F), so they aren't treated as path separators.
+      const principalId = encodeURIComponent(this.value);
 
       try {
         this.principal = await this.$store.dispatch('rancher/find', {

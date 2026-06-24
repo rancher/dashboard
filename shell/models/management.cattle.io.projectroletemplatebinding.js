@@ -20,7 +20,7 @@ export default class PRTB extends HybridModel {
   }
 
   get principal() {
-    const principalId = this.principalId.replace(/\//g, '%2F');
+    const principalId = encodeURIComponent(this.principalId);
 
     return this.$dispatch('rancher/find', {
       type: NORMAN.PRINCIPAL,
