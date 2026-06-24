@@ -128,6 +128,8 @@ export default {
           v-model:value="row.value"
           :mode="mode"
           :type="typeForField(row.key)"
+          :aria-label="row.key || t('generic.value')"
+          placeholder-key="keyValue.valuePlaceholder"
           @update:value="queueUpdate"
         />
       </template>

@@ -99,7 +99,7 @@ export default {
     v-if="$fetchState.pending"
     :delayed="true"
   />
-  <div v-else-if="errors.length">
+  <template v-else>
     <div
       v-for="(err, idx) in errors"
       :key="idx"
@@ -109,9 +109,8 @@ export default {
         :label="stringify(err)"
       />
     </div>
-  </div>
-  <div v-else>
     <Questions
+      v-if="fields"
       :value="value"
       :mode="mode"
       :tabbed="false"
@@ -121,5 +120,5 @@ export default {
       :disabled="disabled"
       @update:value="$emit('input', $event)"
     />
-  </div>
+  </template>
 </template>
