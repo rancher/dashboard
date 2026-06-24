@@ -44,7 +44,7 @@
 - notification-handler.ts: store.getters['notifications/all'] is array (direct value); store.getters['prefs/get'] is function-getter; filter bug `!announcements.includes(v)` always passes through (comparing objects with strings)
 - notifications store: spy on `Storage.prototype` (not `window.localStorage`) — jsdom localStorage methods are not spyable directly
 - modal.ts + slideInPanel.ts: `markRaw` from vue returns same reference; no need to mock; use `jest.useFakeTimers()` for close() 500ms setTimeout
-- features.js: `definitions` is module-level singleton; populated by top-level `create()` calls on import; `rootGetters['management/canList']` is a getter that returns a function (call with type arg)
+- wm.ts: `const enum Layout` is fine with isolatedModules=true and ts-jest; use string values ['default','home','plain'] directly or import Layout — both work; `state()` reads window.localStorage at init time, set localStorage before calling state() in tests; `if (current)` guard in switchTab is always truthy (object spread)
 
 ## Testing Notes (type-map.utils.ts)
 
@@ -55,14 +55,16 @@
 
 ## Testing Backlog (Prioritized)
 
-1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
-2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
-3. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
-4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
+1. `shell/store/ui-context.ts` — simple store module with clear validation logic (add/update/remove actions throw on invalid input); good next target
+2. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
+3. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
+4. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
+5. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
 
 ## Completed Work (Summary)
 
-- 2026-06-23: PR (branch test-assist/notifications-actions-tests): 31 tests for notifications.ts actions; 57%→96.42% stmts, 64%→100% fns
+- 2026-06-24: PR (branch test-assist/wm-store-tests): 57 tests for wm.ts store; 0%→100% stmts/fns/lines, 96.42% branches
+- 2026-06-23: PR #18142 (branch test-assist/notifications-actions-tests): 31 tests for notifications.ts actions; 57%→96.42% stmts, 64%→100% fns — merged ✅
 - 2026-06-22: PR #18117 (branch test-assist/features-store-tests): 12 tests for features.js; 0%→100% all metrics — merged ✅
 - 2026-06-21: PR #18112 (branch test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts; 0%→100% stmts/branches/lines — merged ✅
 - 2026-06-20: PR #18110 (branch test-assist/growl-store-tests): 29 tests for growl.js store; 0%→100% stmts/branches/fns — merged ✅
@@ -84,6 +86,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-24: Task 3 (wm.ts store, 57 tests: state/getters/mutations/actions) + Task 7
 - 2026-06-23: Task 3 (notifications.ts actions, 31 tests: add/fromGrowl/update/markRead/markUnread/markAllRead/remove/clearAll/init) + Task 7
 - 2026-06-22: Task 3 (features.js, 12 tests: getters/actions/mapFeature/create) + Task 7
 - 2026-06-21: Task 3+4 (modal.ts + slideInPanel.ts, 24 tests; PR CI check — infra-only E2E failures) + Task 7
