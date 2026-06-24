@@ -63,27 +63,20 @@ jobs:
               echo "milestone_exists=false" >> $GITHUB_ENV
            fi
 
-      - name: Get target branch
+      - name: Checkout scripts
+        if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }}
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          sparse-checkout: .github/workflows/scripts
+
+      - name: Get target branch and issue
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }}
         env:
           APP_TOKEN: ${{ steps.generate-token.outputs.token }}
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-        run: |
-          TYPE=$(echo "${COMMENT_BODY}" | awk '{ print $1 }' | sed -e 's_/__')
-          echo "Type: ${TYPE}" >> $GITHUB_STEP_SUMMARY
-          echo "type=${TYPE}" >> $GITHUB_ENV
-          TARGET_BRANCH=$(echo "${COMMENT_BODY}" | awk '{ print $3 }')
-          echo "Target branch: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
-          echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_ENV
-          ISSUE_NUMBER=$(echo "${COMMENT_BODY}" | awk '{ print $4 }' | sed -e 's/#//')
-          echo "Issue number: ${ISSUE_NUMBER}" >> $GITHUB_STEP_SUMMARY
-          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_ENV
-          if gh api repos/${GITHUB_REPOSITORY}/branches --paginate | jq -e --arg TARGET_BRANCH "$TARGET_BRANCH" '.[] | select(.name == $TARGET_BRANCH)' > /dev/null; then
-              echo "target_branch_exists=true" >> $GITHUB_ENV
-          else
-              echo "target_branch_exists=false" >> $GITHUB_ENV
-          fi
+        run: bash .github/workflows/scripts/port-pr-get-branch-and-issue.sh
 
       - name: Checkout
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
