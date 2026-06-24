@@ -5,17 +5,16 @@ describe('class VmwarevsphereMachineTemplate', () => {
     it.each([
       ['/DC1/host/ClusterA/Resources', 'ClusterA'],
       ['/DC1/host/ClusterA/Resources/PoolX', 'ClusterA'],
+      ['/DC1/host/ClusterA/Resources/', 'ClusterA'],
       ['/DC1/host/esxi01/Resources', 'esxi01'],
       ['/DC1/vm/FolderA', null],
+      ['/DC1/host/foo/ResourcesPool/bar', null],
+      ['/DC1/host//Resources/PoolX', null],
+      ['', null],
+      [null, null],
       [undefined, null],
-    ])('should derive provider location from pool path %p', (pool: string | undefined, expected: string | null) => {
-      const machineTemplate = new VmwarevsphereMachineTemplate({
-        spec: {
-          template: {
-            spec: { pool }
-          }
-        }
-      });
+    ])('returns %p for pool %p', (pool: string | null | undefined, expected: string | null) => {
+      const machineTemplate = new VmwarevsphereMachineTemplate({ spec: { template: { spec: { pool } } } });
 
       expect(machineTemplate.providerLocation).toStrictEqual(expected);
     });
