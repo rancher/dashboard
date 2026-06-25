@@ -5,7 +5,6 @@ import { OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, OPERATION, LOCAL_CLUSTER, NAMESPACE } from '@shell/config/types';
 import { createOperationCR } from '@shell/utils/operation-cr';
-import { NAME as MANAGER } from '@shell/config/product/manager';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
