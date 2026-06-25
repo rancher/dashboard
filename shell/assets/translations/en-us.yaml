@@ -504,6 +504,7 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  bannerEnableAuthProvider: "The \"Disable Local Authentication\" setting is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access."
   githubapp:
     clientId:
       label: Client ID
@@ -6005,8 +6006,6 @@ promptSlo:
     active: Log out of {name}
     waiting: Logging Out
 
-bannerEnableAuthProvider: "The 'Disable Local Authentication' setting is enabled. Enabling this authentication provider will prevent users from logging in with local credentials. Ensure you have access via this provider before continuing."
-
 promptRemove:
   title: Are you sure?
   andOthers: |-
@@ -9032,6 +9031,8 @@ advancedSettings:
     header: Cluster Provisioning
 
 featureFlags:
+  description:
+    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access
   label: Feature Flags
   title: "Are you sure?"
   warning: |-

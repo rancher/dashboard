@@ -29,8 +29,9 @@ export default {
   data() {
     return {
       // Provided by fetch later
-      enabled:  false,
-      nonLocal: null,
+      enabled:          false,
+      nonLocal:         null,
+      disableLocalAuth: this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER)
     };
   },
 
@@ -58,10 +59,6 @@ export default {
 
     schema() {
       return this.$store.getters[`${ this.inStore }/schemaFor`](resource);
-    },
-
-    disableLocalAuth() {
-      return this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER);
     }
   },
 
@@ -105,9 +102,9 @@ export default {
         <router-link :to="localUsersRoute">
           {{ t('authConfig.manageLocal') }}
         </router-link>
-        <br>
+        <br><br>
         <template v-if="disableLocalAuth">
-          {{ t('authConfig.noneEnabledDisableLocalAuth') }}
+          {{ t('authConfig.bannerEnableAuthProvider', null, true) }}
         </template>
         <template v-else>
           {{ t('authConfig.noneEnabled') }}

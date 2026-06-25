@@ -239,7 +239,6 @@ export default {
         <AuthProviderWarningBanners
           v-if="!model.enabled"
           :t-args="tArgs"
-          :disable-local-auth="disableLocalAuth"
         >
           <template
             v-if="isGithubApp"
