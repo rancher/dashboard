@@ -253,7 +253,6 @@ export default {
            !ua.includes('fxios') && // Firefox iOS
            !ua.includes('opr'); // Opera
 
-        console.log('isSafari', isSafari); // eslint-disable-line no-console
         if (!isSafari) {
           this.webglAddon = new addons.webgl.WebglAddon();
           terminal.loadAddon(this.webglAddon);
