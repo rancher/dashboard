@@ -825,7 +825,7 @@ export default defineComponent({
           @removeTab="removePool($event)"
         >
           <Tab
-            v-for="(pool) in nodePools"
+            v-for="(pool, idx) in nodePools"
             :key="pool._id"
             :weight="-1 * idx"
             :name="pool._id || pool.name"
