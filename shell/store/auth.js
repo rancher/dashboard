@@ -77,30 +77,6 @@ export const getters = {
   selfUser(state) {
     return state.selfUser;
   },
-
-  canCreateLocalUsers(_state, _getters, _rootState, rootGetters) {
-    // Check if the feature flag is enabled
-    const featureEnabled = rootGetters['features/get']('hide-local-auth-provider');
-
-    if (!featureEnabled) {
-      return true; // Feature flag not enabled, allow local user creation
-    }
-
-    // Check if auth configs are loaded
-    const authConfigsLoaded = rootGetters['management/haveAll']('management.cattle.io.authconfig');
-
-    if (!authConfigsLoaded) {
-      // Auth configs not loaded yet, prevent creation until we know
-      return false;
-    }
-
-    // Check if there's at least one non-local auth provider enabled
-    const authConfigs = rootGetters['management/all']('management.cattle.io.authconfig') || [];
-    const hasEnabledNonLocalProvider = authConfigs.some((config) => config.enabled && config.id !== 'local');
-
-    // Allow local user creation only if no other provider is enabled
-    return !hasEnabledNonLocalProvider;
-  }
 };
 
 export const mutations = {
@@ -230,6 +206,16 @@ export const actions = {
     const authConfigs = await dispatch('getAuthConfigs');
 
     return findBy(authConfigs, 'id', id);
+  },
+
+  /**
+   * Is the local auth provider enabled?
+   */
+  async getLocalProviderEnabled({ dispatch }) {
+    // If it exists as an option to log in --> enabled
+    const localProvider = await dispatch('getAuthProvider', 'local');
+
+    return !!localProvider;
   },
 
   /**

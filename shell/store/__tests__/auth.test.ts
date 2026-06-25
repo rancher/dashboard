@@ -1,4 +1,4 @@
-import { actions, getters } from '@shell/store/auth';
+import { actions } from '@shell/store/auth';
 import { createStore } from 'vuex';
 
 // jest.mock('@shell/utils/url', () => ({
@@ -135,109 +135,20 @@ describe('action: test', () => {
   });
 });
 
-describe('getter: canCreateLocalUsers', () => {
-  const createMockRootGetters = (featureEnabled: boolean, authConfigsLoaded: boolean, authConfigs: any[] = []) => ({
-    'features/get': jest.fn(() => featureEnabled),
-    'management/haveAll': jest.fn(() => authConfigsLoaded),
-    'management/all': jest.fn(() => authConfigs),
+describe('action: getLocalProviderEnabled', () => {
+  it('should return true if local auth provider exists', async() => {
+    const dispatch = jest.fn().mockResolvedValue({ id: 'local' });
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(true);
   });
 
-  describe('when feature flag is disabled', () => {
-    it('should allow user creation regardless of auth providers', () => {
-      const rootGetters = createMockRootGetters(false, true, [
-        { id: 'github', enabled: true },
-        { id: 'local', enabled: true }
-      ]);
+  it('should return false if local auth provider does not exist', async() => {
+    const dispatch = jest.fn().mockResolvedValue(undefined);
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
 
-      const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-      expect(result).toBe(true);
-    });
-
-    it('should allow user creation even if auth configs are not loaded', () => {
-      const rootGetters = createMockRootGetters(false, false, []);
-
-      const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('when feature flag is enabled', () => {
-    describe('and auth configs are not loaded yet', () => {
-      it('should prevent user creation (safe default)', () => {
-        const rootGetters = createMockRootGetters(true, false, []);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('and auth configs are loaded', () => {
-      it('should prevent user creation when a non-local auth provider is enabled', () => {
-        const rootGetters = createMockRootGetters(true, true, [
-          { id: 'github', enabled: true },
-          { id: 'local', enabled: true }
-        ]);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(false);
-      });
-
-      it('should allow user creation when only local auth provider is enabled', () => {
-        const rootGetters = createMockRootGetters(true, true, [
-          { id: 'local', enabled: true }
-        ]);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(true);
-      });
-
-      it('should allow user creation when no auth providers are enabled', () => {
-        const rootGetters = createMockRootGetters(true, true, [
-          { id: 'github', enabled: false },
-          { id: 'local', enabled: false }
-        ]);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(true);
-      });
-
-      it('should allow user creation when auth configs list is empty', () => {
-        const rootGetters = createMockRootGetters(true, true, []);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(true);
-      });
-
-      it('should prevent user creation when multiple non-local providers are enabled', () => {
-        const rootGetters = createMockRootGetters(true, true, [
-          { id: 'github', enabled: true },
-          { id: 'azuread', enabled: true },
-          { id: 'local', enabled: true }
-        ]);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(false);
-      });
-
-      it('should allow user creation when non-local providers exist but are disabled', () => {
-        const rootGetters = createMockRootGetters(true, true, [
-          { id: 'github', enabled: false },
-          { id: 'azuread', enabled: false },
-          { id: 'local', enabled: true }
-        ]);
-
-        const result = getters.canCreateLocalUsers({}, {}, {}, rootGetters);
-
-        expect(result).toBe(true);
-      });
-    });
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(false);
   });
 });
