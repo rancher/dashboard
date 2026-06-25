@@ -192,6 +192,19 @@ export interface IClusterProvisioner {
   hidden?: boolean;
 
   /**
+   * Cloud credential driver this provisioner uses.
+   *
+   * Some providers share a common cloud credential type (e.g. the CAPA
+   * `awsmachinetemplate` provisioner uses the `aws` credential driver). The UI
+   * uses this to resolve the correct cloud credential schema and field names.
+   *
+   * Declaring it here (rather than mutating the host's driver map from the
+   * extension) ensures it is read reliably from the registered provisioner,
+   * including in production extension builds.
+   */
+  credentialDriver?: string;
+
+  /**
    * Custom Dashboard route to navigate to when the cluster provider card is clicked
    */
   link?: string;

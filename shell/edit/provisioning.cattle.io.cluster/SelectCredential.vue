@@ -115,12 +115,44 @@ export default {
     },
 
     driverName() {
+      // An extension provisioner can declare the cloud credential driver it
+      // uses. We read it from the registered provisioner so it works in
+      // production extension builds, where mutating the host's driver map from
+      // the extension (via mapDriver) is unreliable due to bundling.
+      const extDriver = this.provisionerCredentialDriver;
+
+      if (extDriver) {
+        return extDriver;
+      }
+
       let driver = this.provider;
 
       // Map providers that share a common credential to one driver
       driver = this.$store.getters['plugins/credentialDriverFor'](driver);
 
       return driver;
+    },
+
+    provisionerCredentialDriver() {
+      const extClass = this.$extension?.getDynamic?.('provisioner', this.provider);
+
+      if (!extClass) {
+        return null;
+      }
+
+      try {
+        const instance = new extClass({
+          dispatch:   this.$store.dispatch,
+          getters:    this.$store.getters,
+          axios:      this.$store.$axios,
+          $extension: this.$store.app.$extension,
+          t:          (...args) => this.t.apply(this, args),
+        });
+
+        return instance?.credentialDriver || null;
+      } catch (e) {
+        return null;
+      }
     },
 
     filteredCredentials() {
