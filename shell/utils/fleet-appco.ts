@@ -198,7 +198,12 @@ export async function ensureAppCoResources(
   return true;
 }
 
-const REPO_WAIT_TIMEOUT_MS = 90000;
+// Cold/first OCI pulls of the AppCo catalog can take several minutes to download,
+// so we allow a generous window before giving up. Genuine repo/OCI errors still
+// short-circuit early via the `hasError` path below, so this only bounds how long
+// we tolerate a repo that is still downloading. Added as 10 minutes to consider
+// future increases on the size of the AppCo catalog.
+const REPO_WAIT_TIMEOUT_MS = 600000; // 10 minutes
 const REPO_WAIT_INTERVAL_MS = 3000;
 
 function getRepoState(repo: any, repoName: string): { state: RepoState; isReady: boolean; hasError: boolean } {
