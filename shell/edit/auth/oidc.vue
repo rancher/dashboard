@@ -669,6 +669,20 @@ export default {
                 />
               </div>
             </div>
+
+            <div
+              v-if="isKeycloak"
+              class="row mb-20"
+            >
+              <div class="col span-6">
+                <LabeledInput
+                  v-model:value="model.adminEndpoint"
+                  :label="t(`authConfig.oidc.adminEndpoint`)"
+                  :mode="mode"
+                  :disabled="!customEndpoint.value"
+                />
+              </div>
+            </div>
           </AdvancedSection>
         </template>
 

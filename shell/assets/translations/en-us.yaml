@@ -782,6 +782,7 @@ authConfig:
     jwksUrl: JWKS URL
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
+    adminEndpoint: Administration API Endpoint
     acrValue: Authorization Context Reference
     customClaims:
       label: Custom Claims
