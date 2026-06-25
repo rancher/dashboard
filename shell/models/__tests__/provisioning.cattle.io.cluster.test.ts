@@ -12,7 +12,7 @@ jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }))
 
 jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
-  default: {
+  default:    {
     helper: {
       clustersPinned: [],
       clustersOthers: []
