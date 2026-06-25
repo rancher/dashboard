@@ -6,6 +6,7 @@ import { MODE, _EDIT } from '@shell/config/query-params';
 import { authProvidersInfo } from '@shell/utils/auth';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -28,8 +29,9 @@ export default {
   data() {
     return {
       // Provided by fetch later
-      enabled:  false,
-      nonLocal: null,
+      enabled:          false,
+      nonLocal:         null,
+      disableLocalAuth: this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER)
     };
   },
 
@@ -100,8 +102,13 @@ export default {
         <router-link :to="localUsersRoute">
           {{ t('authConfig.manageLocal') }}
         </router-link>
-        <br>
-        {{ t('authConfig.noneEnabled') }}
+        <br><br>
+        <template v-if="disableLocalAuth">
+          {{ t('authConfig.bannerEnableAuthProvider', null, true) }}
+        </template>
+        <template v-else>
+          {{ t('authConfig.noneEnabled') }}
+        </template>
       </div>
     </Banner>
     <SelectIconGrid

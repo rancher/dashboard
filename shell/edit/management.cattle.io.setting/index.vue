@@ -32,13 +32,14 @@ export default {
     const t = this.$store.getters['i18n/t'];
 
     return {
-      setting:        ALLOWED_SETTINGS[this.value.id],
-      description:    t(`advancedSettings.descriptions.${ this.value.id }`),
-      editHelp:       t(`advancedSettings.editHelp.${ this.value.id }`),
-      enumOptions:    [],
-      canReset:       false,
-      errors:         [],
-      fvFormRuleSets: [],
+      setting:             ALLOWED_SETTINGS[this.value.id],
+      description:         t(`advancedSettings.descriptions.${ this.value.id }`),
+      editHelp:            t(`advancedSettings.editHelp.${ this.value.id }`),
+      enumOptions:         [],
+      canReset:            false,
+      errors:              [],
+      fvFormRuleSets:      [],
+      customEditComponent: null
     };
   },
 
@@ -60,6 +61,14 @@ export default {
     if (isServerUrl(this.value.id) && !this.value.default) {
       this.canReset = false;
     }
+
+    let component;
+
+    try {
+      component = require(`@shell/edit/management.cattle.io.setting/${ this.value.id }.vue`).default;
+    } catch {}
+
+    this.customEditComponent = component;
   },
 
   computed: {
@@ -195,8 +204,22 @@ export default {
       :label="err"
       data-testid="setting-error-banner"
     />
-
-    <div class="mt-20">
+    <div
+      v-if="customEditComponent"
+      class="mt-20"
+    >
+      <component
+        :is="customEditComponent"
+        :setting-value="value.value"
+        :default-value="value.default"
+        :rules="fvGetAndReportPathRules('value')"
+        @update:setting-value="value.value=$event"
+      />
+    </div>
+    <div
+      v-else
+      class="mt-20"
+    >
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model:value="value.value"

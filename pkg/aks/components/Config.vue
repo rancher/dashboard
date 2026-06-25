@@ -646,7 +646,6 @@ export default defineComponent({
     },
     config: {
       handler: debounce(function(neu) {
-        // console.log('*** updating config');
         this.$emit('update:config', neu);
       }, 200),
       deep: true

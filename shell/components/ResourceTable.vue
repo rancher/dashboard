@@ -746,6 +746,7 @@ export default {
       <ButtonGroup
         v-model:value="group"
         :options="_groupOptions"
+        size="medium"
       />
     </template>
 

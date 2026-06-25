@@ -76,7 +76,7 @@ export const getters = {
 
   selfUser(state) {
     return state.selfUser;
-  }
+  },
 };
 
 export const mutations = {
@@ -206,6 +206,16 @@ export const actions = {
     const authConfigs = await dispatch('getAuthConfigs');
 
     return findBy(authConfigs, 'id', id);
+  },
+
+  /**
+   * Is the local auth provider enabled?
+   */
+  async getLocalProviderEnabled({ dispatch }) {
+    // If it exists as an option to log in --> enabled
+    const localProvider = await dispatch('getAuthProvider', 'local');
+
+    return !!localProvider;
   },
 
   /**

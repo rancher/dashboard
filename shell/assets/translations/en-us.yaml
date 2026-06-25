@@ -72,6 +72,7 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  or: or
   other: |-
     {count, plural,
     one  {other}
@@ -503,6 +504,7 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  bannerEnableAuthProvider: "The \"Disable Local Authentication\" setting is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access."
   githubapp:
     clientId:
       label: Client ID
@@ -1007,6 +1009,7 @@ asyncButton:
     action: Snapshot Now
     waiting: Snapshot Initiated&hellip;
     success: Snapshot Creating
+    day2OpsNotEnabled: Day 2 Operations are not enabled for this cluster
   timing:
     action: Generate Response Times
     waiting: Generating&hellip;
@@ -1138,9 +1141,15 @@ catalog:
       label: Container Registry
       tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
       custom:
-        checkBoxLabel: Container Registry for Rancher System Container Images
+        checkBoxLabel: Override the Default Container Registry
         inputLabel: Container Registry
         placeholder: Registry domain and ports, ex. registry.io:5000
+      pullSecret:
+        skipOption: Do not use image pull secrets
+        defaultLabel: 'Use default pull secret ({name})'
+        defaultLabelGeneric: Use default pull secrets
+        existingValuesBanner: '{secrets} are configured as image pull secrets in the chart values. To modify them, edit the values YAML directly.'
+        defaultSecretsBanner: '{secrets} are configured as default pull secrets. Select or create an image pull secret here to override the default.'
     header:
       charts: Charts
     info:
@@ -1358,6 +1367,8 @@ catalog:
         generatedNewImagePullSecret: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated"
         generatedImagePullSecretBannerFromPreviousAuth: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated from the Repository secret <b>{ repoAuthenticationName }</b>."
         usePreviouslyGeneratedImagePullSecretBanner: "Image Pull Secret <b>{ imagePullSecretName }</b> was already created previously from the Repository secret <b>{ repoAuthenticationName }</b> and will be used."
+        oldMonitoringChartWarning: "From v2.15.0 this chart is deprecated, instead please use the new Rancher Monitoring Dashboard chart."
+        newMonitoringChartWarning: "Before installing the new Rancher Monitoring Dashboard chart please make sure any applications using the old Rancher Monitoring Chart have been uninstalled and dependencies such as Prometheus have been installed."
       clusterTplVersion:
         label: Version
         subtext: Select a version of the template
@@ -1381,6 +1392,8 @@ catalog:
     version: Version
     versions:
       current: '{ver} (Current)'
+      current_linux: '{ver} (Current, Linux-only)'
+      current_windows: '{ver} (Current, Windows-only)'
       linux: '{ver} (Linux-only)'
       windows: '{ver} (Windows-only)'
   delete:
@@ -2162,7 +2175,8 @@ cluster:
         label: Enable IPv6
       httpProtocolIpv6: 
         label: Enable IPv6 endpoint for instance metadata service
-      ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
+      dualStackValidationWarning: When one pool enables dual-stack subnet/vpc, all pools must use the same networking configuration.
+      ipv6ValidationWarning: When one pool enables IPv6 subnet/vpc, all pools must use the same networking configuration.
     pnap:
       serverLocation:
         label: Location
@@ -2440,7 +2454,7 @@ cluster:
     aws: Amazon
     azure: Azure
     azureaks: Azure AKS
-    aks: Azure AKS
+    aks: AKS
     azurekubernetesservice: Azure AKS (Unsupported Kev1)
     baiducloudcontainerengine: Baidu CCE
     baidu: Baidu CCE
@@ -2449,13 +2463,13 @@ cluster:
     custom: Custom
     digitalocean: DigitalOcean
     docker: Docker
-    eks: Amazon EKS
+    eks: EKS
     exoscale: Exoscale
     sks: Exoscale SKS
     gcp: Google
     google: Google GCE
     googlegke: Google GKE
-    gke: Google GKE
+    gke: GKE
     googlekubernetesengine: Google GKE (Unsupported Kev1)
     harvester: Harvester
     huaweicce: Huawei CCE
@@ -2678,6 +2692,7 @@ cluster:
         other {A snapshot has been requested for {count} clusters}
       }
     groupLabel: Location
+    predatesImportTooltip: The restore action is not currently supported for this snapshot as it predates the import into Rancher.
     failed: "Snapshot from {time} failed"
     rke1:
       local: local
@@ -2742,6 +2757,7 @@ cluster:
     upgrade: Upgrade Strategy
     registration: Registration
     nodePools: Node Pools
+    operations: Operations
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
@@ -2982,10 +2998,10 @@ fleet:
     title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
-    noPermissions: You have no permissions to modify Fleet Settings
+    noPermissions: You have no permissions to modify Continuous Delivery Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
-      ariaLabel: Fleet {name} setting
+      ariaLabel: Continuous Delivery {name} setting
     agentTLSMode:
       label: TLS Mode
       description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
@@ -3062,13 +3078,13 @@ fleet:
       description: 'Agent deployment settings.'
     replicas:
       label: Replicas
-      description: 'Number of replicas of Fleet pods.'
+      description: 'Number of replicas of pods.'
     annotations:
       label: Extra Annotations
-      description: 'Extra annotations passed to the Fleet pods.'
+      description: 'Extra annotations passed to the pods.'
     developer:
       label: Developer
-      description: 'Enable debug info from Fleet.'
+      description: 'Enable debug info.'
 
   tableHeaders:
     applicationType: Type
@@ -3079,7 +3095,7 @@ fleet:
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
-    welcome: Welcome to Fleet Continuous Delivery
+    welcome: Welcome to Continuous Delivery
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
     learnMoreLink: https://fleet.rancher.io
@@ -3202,7 +3218,7 @@ fleet:
     groupBy: Group By Type
     subTypes:
       fleet.cattle.io.gitrepo:
-        description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
+        description: GitRepo describes a git repository that is watched. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
         description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
       suse-application-collection:
@@ -6023,6 +6039,13 @@ promptRestore:
   fromS3: Restore from S3
   label: Snapshot
   placeholder: Select a snapshot to restore
+  error:
+    unableToResolveTargetCluster: Unable to resolve target cluster for snapshot restore
+  restoreMode:
+    label: Restore Type
+    onlyEtcd: Only etcd
+    kubernetesVersionAndEtcd: Kubernetes version and etcd
+    clusterConfigKubernetesVersionAndEtcd: Cluster config, Kubernetes version and etcd
   notification:
     title: Restore Snapshot
     message: Restoring snapshot { selectedSnapshot } has started...
@@ -6046,7 +6069,9 @@ promptRotateEncryptionKey:
   title: Rotate Encryption Keys
   description: The last backup {name} was performed on {date}
   warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
-  error: No backup found
+  error:
+    noBackup: No backup found
+    unableToResolveTargetCluster: Unable to resolve target cluster for encryption key rotation
 
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
@@ -6331,6 +6356,8 @@ resourceYaml:
 
 secret:
   authentication: Authentication
+  githubApp:
+    label: GitHub App
   certificate:
     certificate: Certificate
     certificates: Certificates
@@ -6467,14 +6494,19 @@ selectOrCreateAuthSecret:
     passwordPersonalAccessToken: Password/Personal Access Token
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
+  githubApp:
+    appId: GitHub App ID
+    installationId: GitHub App Installation ID
+    privateKey: GitHub App Private Key
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create an SSH Key Secret
   createBasic: Create an HTTP Basic Auth Secret
   createS3: Create an S3-Compatible Auth Secret
   createRKE: Create an RKE Auth Config Secret
+  createGithubApp: Create a GitHub App Auth Secret
   createImagePullSecretBasedOnAuth: Create an Image Pull Secret based on Authentication Secret
-  createImagePullSecret: Create a new Image Pull Secret with new Username/Password
+  createImagePullSecret: Create an Image Pull Secret with a Username and Password
 
 serviceAccount:
   automount: Automount Service Account Token
@@ -7361,6 +7393,7 @@ validation:
   betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
   noType: No type to validate
+  createResourceFailed: 'Failed to create resource: insufficient permissions or resource type not found'
   number:
     requiredInt: '"{key}" must be integer'
     isPositive: '"{key}" must be positive'
@@ -8170,7 +8203,6 @@ typeDescription:
   #       target="_blank" rel="noopener noreferrer nofollow"
   jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
-  chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   compliance.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   compliance.cattle.io.clusterscanprofile: A profile is the configuration for the compliance scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   compliance.cattle.io.clusterscan: A scan is created to trigger a compliance scan on the cluster based on the defined profile. A report is created after the scan is completed.
@@ -8965,6 +8997,7 @@ advancedSettings:
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
     'system-default-registry': 'Private registry to be used for all Rancher System Container Images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
+    'system-default-registry-pull-secrets': 'List of image pull secrets to authenticate into registry from which Rancher System Container Images are pulled. By default, these secrets will be copied into each Rancher chart namespace. Secrets must be in the `cattle-system` namespace. The first valid secret listed here will be used.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
@@ -8987,6 +9020,7 @@ advancedSettings:
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
+    'imported-cluster-day2-ops-enabled': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This does not affect previously imported clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
@@ -9014,6 +9048,8 @@ advancedSettings:
     header: Cluster Provisioning
 
 featureFlags:
+  description:
+    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access
   label: Feature Flags
   title: "Are you sure?"
   warning: |-

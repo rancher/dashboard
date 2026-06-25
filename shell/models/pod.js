@@ -6,6 +6,7 @@ import WorkloadService from '@shell/models/workload.service';
 import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { POD_SHELL } from '@shell/store/features';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -64,11 +65,16 @@ export default class Pod extends WorkloadService {
 
   get _availableActions() {
     const out = super._availableActions;
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     // Add backwards, each one to the top
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+
+    // Only add the menu item for the pod shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
@@ -95,9 +101,14 @@ export default class Pod extends WorkloadService {
 
   get containerActions() {
     const out = [];
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+
+    // Only add the menu item for the container shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, this.openShellMenuItem);
+    }
 
     return out;
   }
@@ -298,19 +309,21 @@ export default class Pod extends WorkloadService {
   save() {
     const prev = { ...this };
 
-    const { metadata, spec } = this.spec.template;
+    if (this.spec?.template) {
+      const { metadata, spec } = this.spec.template;
 
-    this.spec = {
-      ...this.spec,
-      ...spec
-    };
+      this.spec = {
+        ...this.spec,
+        ...spec
+      };
 
-    this.metadata = {
-      ...this.metadata,
-      ...metadata
-    };
+      this.metadata = {
+        ...this.metadata,
+        ...metadata
+      };
 
-    delete this.spec.template;
+      delete this.spec.template;
+    }
 
     // IF there is an error POD world model get overwritten
     // For the workloads this need be reset back

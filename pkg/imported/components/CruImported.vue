@@ -28,18 +28,20 @@ import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
-import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars:   [],
   labels:         {},
   annotations:    {},
-  importedConfig: { privateRegistryURL: null }
+  importedConfig: {}
 };
 
 export default defineComponent({
@@ -104,12 +106,14 @@ export default defineComponent({
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      await this.initDayTwoOps();
     }
   },
 
   data() {
     return {
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
+      PRIVATE_REGISTRY_CONTEXT,
       loadingVersions:                          false,
       membershipUpdate:                         {},
       config:                                   null,
@@ -127,6 +131,9 @@ export default defineComponent({
       needsReplace:                             false,
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
+      s3Backup:                                 false,
+      dayTwoOpsGlobalSetting:                   false,
+      dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -151,6 +158,20 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
+    },
     fvExtraRules() {
       return {
         clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
@@ -161,6 +182,18 @@ export default defineComponent({
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
         privateRegistryRequired:     privateRegistryRequired(this),
       };
+    },
+    dayTwoOpsEnabled: {
+      get() {
+        if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
+          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+        }
+
+        return this.dayTwoOpsGlobalSetting;
+      },
+      set(newValue) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
+      }
     },
 
     upgradeStrategy: {
@@ -387,6 +420,21 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
+    async initDayTwoOps() {
+      try {
+        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.FEATURE,
+          id:   IMPORTED_DAY_2_OPS
+        }))?.enabled || false;
+      } catch {
+        this.dayTwoOpsFlagEnabled = false;
+      }
+
+      this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+      if (this.isCreate && this.dayTwoOpsFlagEnabled) {
+        this.dayTwoOpsEnabled = this.dayTwoOpsGlobalSetting;
+      }
+    },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
         switch (agentType) {
@@ -476,8 +524,11 @@ export default defineComponent({
           :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
+          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
+          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
+          :day-two-ops-enabled="dayTwoOpsEnabled"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
@@ -485,6 +536,7 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
+          @enable-day-two-ops-changed="(val)=>dayTwoOpsEnabled=val"
         />
       </Accordion>
       <Accordion
@@ -606,9 +658,12 @@ export default defineComponent({
       >
         <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
           checkbox-test-id="private-registry-enable-checkbox"
           input-test-id="private-registry-url"
         />

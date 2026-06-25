@@ -678,4 +678,88 @@ describe('class: Resource', () => {
       expect(viewYaml.enabled).toBe(true);
     });
   });
+
+  describe('method: dryRunCreate', () => {
+    const collectionUrl = '/v1/test.resources';
+
+    it('should dispatch a request with dryRun=All query param', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: {
+          name:      'my-resource',
+          namespace: 'my-ns',
+        },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    (link: string) => (link === 'collection' ? collectionUrl : ''),
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await resource.dryRunCreate();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: expect.objectContaining({
+          method: 'post',
+          url:    `${ collectionUrl }/my-ns?dryRun=All`,
+        }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should use provided data instead of resource state when given', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'original', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const customData = {
+        type:     'test.resource',
+        metadata: { name: 'custom' },
+        spec:     {}
+      };
+
+      await resource.dryRunCreate(customData);
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt:  expect.objectContaining({ data: customData }),
+        type: 'test.resource'
+      });
+    });
+
+    it('should propagate API errors', async() => {
+      const apiError = { _status: 409, message: 'already exists' };
+      const dispatch = jest.fn().mockRejectedValue(apiError);
+      const resource = new Resource({
+        type:     'test.resource',
+        metadata: { name: 'dup', namespace: 'ns' },
+      }, {
+        getters: {
+          schemaFor: () => ({
+            linkFor:    () => collectionUrl,
+            attributes: { namespaced: true },
+          })
+        },
+        dispatch,
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      await expect(resource.dryRunCreate()).rejects.toStrictEqual(apiError);
+    });
+  });
 });
