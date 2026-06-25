@@ -7,6 +7,7 @@ import Questions from '@shell/components/Questions';
 import { MANAGEMENT } from '@shell/config/types';
 import { NODE_DRIVER_FIELD_HINTS } from '@shell/config/labels-annotations';
 import { isEmpty } from '@shell/utils/object';
+import cloneDeep from 'lodash/cloneDeep';
 
 export default {
   emits: ['input'],
@@ -38,7 +39,10 @@ export default {
     this.errors = [];
 
     try {
-      this.fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
+      const fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
+
+      // copy the result of the getter before modifying it to add hints
+      this.fields = cloneDeep(fields);
       const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 
       if ( !this.fields ) {
@@ -46,6 +50,8 @@ export default {
       }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
+
+      return;
     }
 
     try {
