@@ -4,6 +4,7 @@ import {
   EVENT, OPERATION
 } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
@@ -789,16 +790,21 @@ export default class ProvCluster extends SteveModel {
   }
 
   get namespaceLocation() {
-    const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+    // Check side nav for local cluster access — `management/byId` only reflects what's
+    // currently cached, which on a downstream detail page is just the downstream cluster
+    // (so admins would falsely look like they have no local access). The side nav reflects
+    // permission, not cache state, so it's accurate for both admins and downstream-only users.
+    const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
+      sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
 
-    if (!localCluster) {
+    if (!hasLocalCluster) {
       return null;
     }
 
     return {
       name:   'c-cluster-product-resource-id',
       params: {
-        cluster:  localCluster.id,
+        cluster:  LOCAL_CLUSTER,
         product:  EXPLORER,
         resource: NAMESPACE,
         id:       this.namespace

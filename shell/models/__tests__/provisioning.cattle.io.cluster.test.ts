@@ -7,8 +7,11 @@ import { MANAGEMENT, OPERATION, LOCAL_CLUSTER, NAMESPACE } from '@shell/config/t
 import { createOperationCR } from '@shell/utils/operation-cr';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
+
+jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({ default: { someMethod: jest.fn() } }));
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
@@ -601,26 +604,21 @@ describe('class ProvCluster', () => {
   });
 
   describe('namespaceLocation', () => {
-    const makeCluster = ({ productId, hasLocalCluster }: { productId: string, hasLocalCluster: boolean }) => {
-      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
-      const byId = jest.fn((type, id) => {
-        if (type === MANAGEMENT.CLUSTER && id === LOCAL_CLUSTER) {
-          return hasLocalCluster ? { id: LOCAL_CLUSTER } : null;
-        }
+    const setLocalClusterAccess = ({ pinned, others }: { pinned: boolean, others: boolean }) => {
+      sideNavService.helper.clustersPinned.length = 0;
+      sideNavService.helper.clustersOthers.length = 0;
 
-        return null;
-      });
-
-      jest.spyOn(cluster, '$rootGetters', 'get').mockReturnValue({
-        productId,
-        'management/byId': byId,
-      });
-
-      return cluster;
+      if (pinned) {
+        sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
+      }
+      if (others) {
+        sideNavService.helper.clustersOthers.push({ id: LOCAL_CLUSTER } as any);
+      }
     };
 
-    it('should route to the local cluster explorer when called from the manager product', () => {
-      const cluster = makeCluster({ productId: MANAGER, hasLocalCluster: true });
+    it('should route to the local cluster explorer when local is in the pinned side-nav clusters', () => {
+      setLocalClusterAccess({ pinned: true, others: false });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
 
       expect(cluster.namespaceLocation).toStrictEqual({
         name:   'c-cluster-product-resource-id',
@@ -633,15 +631,17 @@ describe('class ProvCluster', () => {
       });
     });
 
-    it('should route to the local cluster explorer even when called from the explorer product', () => {
-      const cluster = makeCluster({ productId: EXPLORER, hasLocalCluster: true });
+    it('should route to the local cluster explorer when local is in the unpinned side-nav clusters', () => {
+      setLocalClusterAccess({ pinned: false, others: true });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
 
       expect(cluster.namespaceLocation?.params.cluster).toBe(LOCAL_CLUSTER);
       expect(cluster.namespaceLocation?.params.product).toBe(EXPLORER);
     });
 
     it('should return null when the user has no access to the local cluster', () => {
-      const cluster = makeCluster({ productId: MANAGER, hasLocalCluster: false });
+      setLocalClusterAccess({ pinned: false, others: false });
+      const cluster = new ProvCluster({ metadata: { namespace: 'fleet-default' } });
 
       expect(cluster.namespaceLocation).toBeNull();
     });
