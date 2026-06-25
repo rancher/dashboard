@@ -246,11 +246,14 @@ export default {
       try {
         const ua = window.navigator.userAgent.toLowerCase();
         const isSafari = ua.includes('safari') &&
+           !ua.includes('chrome') && // Chrome / Edge / Opera desktop & Android (all include "safari")
+           !ua.includes('chromium') && // Chromium
            !ua.includes('crios') && // Chrome iOS
+           !ua.includes('edg') && // Edge (desktop "edg", Android "edga", iOS "edgios")
            !ua.includes('fxios') && // Firefox iOS
-           !ua.includes('edgios') && // Edge iOS
            !ua.includes('opr'); // Opera
 
+        console.log('isSafari', isSafari); // eslint-disable-line no-console
         if (!isSafari) {
           this.webglAddon = new addons.webgl.WebglAddon();
           terminal.loadAddon(this.webglAddon);
