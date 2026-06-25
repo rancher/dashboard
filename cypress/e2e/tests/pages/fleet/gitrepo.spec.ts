@@ -19,10 +19,10 @@ const repoInfo = {
 };
 
 const workspace = 'fleet-default';
-let editRepoName = null;
+let editRepoName: string | null = null;
 let adminUserId = '';
 
-const reposToDelete = [];
+const reposToDelete: string[] = [];
 
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const listPage = new FleetApplicationListPagePo();

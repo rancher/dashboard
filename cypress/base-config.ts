@@ -177,8 +177,8 @@ const baseConfig = defineConfig({
           const cpuUsage = await getCpuUsage();
 
           return {
-            memory: `${ (usedMem / 1024 / 1024).toFixed(2) }MB (${ memUsagePercent.toFixed(2) }%)`,
-            cpu:    `${ cpuUsage.toFixed(2) }%`,
+            memory:     `${ (usedMem / 1024 / 1024).toFixed(2) }MB (${ memUsagePercent.toFixed(2) }%)`,
+            processCpu: `${ cpuUsage.toFixed(2) }%`,
           };
         },
       });

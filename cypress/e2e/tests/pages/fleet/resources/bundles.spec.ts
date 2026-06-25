@@ -209,7 +209,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
 
-      // Workaround - there may be a timing issue where the cloned Bundle's Deployments count does not update and needs refresh... validating this...
+      // Workaround - there may be a timing issue where the cloned Bundle's Deployments count does not update and needs refresh
       fleetBundlesListPage.goTo();
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();

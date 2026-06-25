@@ -20,7 +20,7 @@
           "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
         },
         "kube": {
-          "version": "v1.36.1+k3s1"
+          "version": "v1.35.2+k3s1"
         }
       },
       "rancher-rancher-repo": {

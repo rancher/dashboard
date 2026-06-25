@@ -1092,17 +1092,17 @@ const updateUserPreferences = ({
         const actual = resp?.body.data;
         const expected = payload.data;
 
-        const res = Object.entries(actual).every(([key, value]) => {
-          const actual = expected[key];
+        const res = Object.entries(expected).every(([key, value]) => {
+          const expected = actual[key];
 
-          return String(actual) === String(value);
+          return String(expected) === String(value);
         });
 
         if (res) {
+          cy.log(`${ logName }: Compare Succeeded: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
+        } else {
           cy.log(`${ logName }: Compare Failed: Result: Actual State ${ JSON.stringify(actual) }`);
           cy.log(`${ logName }: Compare Failed: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
-        } else {
-          cy.log(`${ logName }: Compare Succeeded: Result: Expected Sub-state ${ JSON.stringify(expected) }`);
         }
 
         return res;
