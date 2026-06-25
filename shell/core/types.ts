@@ -545,7 +545,7 @@ export type ModelExtensionContext = {
 /**
  * Constructor signature for a model extension
  */
-export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
+export type ModelExtensionConstructor = new (context: ModelExtensionContext) => Object;
 
 /**
  * Interface for a UI Extension
