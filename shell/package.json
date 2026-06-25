@@ -38,7 +38,7 @@
     "@smithy/fetch-http-handler": "5.1.1",
     "@types/is-url": "1.2.30",
     "@types/node": "25.3.3",
-    "@types/semver": "^7.5.8",
+    "@types/semver": "7.7.1",
     "@typescript-eslint/eslint-plugin": "8.62.0",
     "@typescript-eslint/parser": "8.62.0",
     "@vee-validate/zod": "4.15.0",
