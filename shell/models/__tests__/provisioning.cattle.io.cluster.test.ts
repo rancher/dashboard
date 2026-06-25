@@ -10,7 +10,15 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 jest.mock('@shell/utils/operation-cr', () => ({ createOperationCR: jest.fn() }));
 
-jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({ default: { someMethod: jest.fn() } }));
+jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
+  __esModule: true,
+  default: {
+    helper: {
+      clustersPinned: [],
+      clustersOthers: []
+    }
+  }
+}));
 
 jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
