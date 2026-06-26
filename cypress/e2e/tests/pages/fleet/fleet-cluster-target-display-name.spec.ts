@@ -48,7 +48,7 @@ function interceptFleetClustersWithDisplayName() {
   }).as('fleetClustersWithDisplayName');
 }
 
-describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Fleet Cluster Targets - Display Name', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const headerPo = new HeaderPo();
 
   before(() => {

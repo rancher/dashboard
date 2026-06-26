@@ -11,7 +11,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(localCluster);
 
   before(() => {
