@@ -91,7 +91,8 @@ export default {
       os:                undefined,
       retries:           0,
       currFocusedElem:   undefined,
-      xtermContainerRef: undefined
+      xtermContainerRef: undefined,
+      isUnmounted:       false
     };
   },
 
@@ -150,6 +151,8 @@ export default {
   },
 
   beforeUnmount() {
+    this.isUnmounted = true;
+
     document.removeEventListener('keyup', this.handleKeyPress);
     this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.removeEventListener('focusout', this.focusOutHandler);
@@ -249,12 +252,20 @@ export default {
       try {
         this.webglAddon = new addons.webgl.WebglAddon();
 
-        this.webglAddon.onContextLoss(() => this.fallbackToCanvas(terminal, addons));
+        this.webglAddon.onContextLoss(() => {
+          if (!this.isUnmounted && this.terminal) {
+            this.fallbackToCanvas(terminal, addons);
+          }
+        });
 
         terminal.loadAddon(this.webglAddon);
 
         // Detect the silent "attaches but never paints" failure after a render frame.
         requestAnimationFrame(() => {
+          if (this.isUnmounted || !this.terminal) {
+            return;
+          }
+
           const textarea = this.$refs.xterm?.querySelector('.xterm-helper-textarea');
           const hasPainted = textarea && textarea.getBoundingClientRect().height > 0;
 
@@ -282,6 +293,10 @@ export default {
     // Dispose the webgl renderer (if any) and switch to the canvas renderer.
     // Used when webgl fails to construct, loses its context, or silently never paints.
     fallbackToCanvas(terminal, addons) {
+      if (this.isUnmounted) {
+        return;
+      }
+
       this.webglAddon?.dispose();
       this.webglAddon = null;
 
@@ -289,6 +304,7 @@ export default {
         this.canvasAddon = new addons.canvas.CanvasAddon();
         terminal.loadAddon(this.canvasAddon);
       }
+      this.fit();
     },
 
     write(msg) {

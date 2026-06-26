@@ -100,6 +100,8 @@ jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-canvas', () => {
 
 // Capture the requestAnimationFrame callback so the "never paints" detection
 // in setupTerminal can be triggered deterministically from tests.
+const originalRequestAnimationFrame = window.requestAnimationFrame;
+
 window.requestAnimationFrame = ((cb: any): number => {
   mockRafCallback = cb;
 
@@ -160,6 +162,10 @@ describe('component: ContainerShell', () => {
 
     return wrapper;
   };
+
+  afterAll(() => {
+    window.requestAnimationFrame = originalRequestAnimationFrame;
+  });
 
   it('test that we are calling the xterm terminal and fitAddon class method mocks correctly', async() => {
     resetMocks();
@@ -226,6 +232,66 @@ describe('component: ContainerShell', () => {
 
     expect(wrapper.vm.webglAddon).toBeNull();
     expect(wrapper.vm.canvasAddon).not.toBeNull();
+  });
+
+  it('disposes the renderer addons before the terminal on cleanup', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    // Fall back to canvas so both renderer addons have been exercised
+    mockOnContextLossCallback?.();
+
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).not.toBeNull();
+
+    wrapper.vm.cleanup();
+
+    // The canvas/webgl addons must be disposed before terminal.dispose() so xterm
+    // can recreate the DOM renderer while the terminal core is still alive.
+    const webglDisposeOrder = mockWebglDispose.mock.invocationCallOrder[0];
+    const canvasDisposeOrder = mockCanvasDispose.mock.invocationCallOrder[0];
+    const terminalDisposeOrder = mockDispose.mock.invocationCallOrder[0];
+
+    expect(mockCanvasDispose).toHaveBeenCalledWith();
+    expect(mockDispose).toHaveBeenCalledWith();
+    expect(canvasDisposeOrder).toBeLessThan(terminalDisposeOrder);
+    expect(webglDisposeOrder).toBeLessThan(terminalDisposeOrder);
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).toBeNull();
+    expect(wrapper.vm.terminal).toBeNull();
+  });
+
+  it('does not attempt a canvas fallback in the render-frame check after the component is unmounted', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+    const vm = wrapper.vm;
+
+    expect(vm.webglAddon).not.toBeNull();
+    expect(vm.canvasAddon).toBeNull();
+
+    wrapper.unmount();
+
+    expect(vm.isUnmounted).toBe(true);
+
+    mockRafCallback?.(0);
+
+    expect(vm.canvasAddon).toBeNull();
+  });
+
+  it('does not attempt a canvas fallback when the webgl context is lost after teardown', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    expect(wrapper.vm.webglAddon).not.toBeNull();
+
+    wrapper.vm.cleanup();
+
+    mockOnContextLossCallback?.();
+
+    expect(wrapper.vm.canvasAddon).toBeNull();
   });
 
   it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {
