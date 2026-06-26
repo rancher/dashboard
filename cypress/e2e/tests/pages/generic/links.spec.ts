@@ -29,7 +29,7 @@ function resetCustomLinks() {
   });
 }
 
-describe('SUSE Application page and link', { testIsolation: 'off' }, () => {
+describe('SUSE Application page and link', { testIsolation: false }, () => {
   before(() => {
     cy.login();
   });

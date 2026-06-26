@@ -1,11 +1,11 @@
 // import PodSecurityPoliciesTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-policy-templates.po';
 // import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
-describe('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Pod Security Policy Templates', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   it('every file must have a test...', () => {});
 });
 
-// describe.skip('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+// describe.skip('Pod Security Policy Templates', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
 //   // Note: this test fails due to https://github.com/rancher/dashboard/issues/10187
 //   // skipping these tests until issue is resolved
 //   const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo();

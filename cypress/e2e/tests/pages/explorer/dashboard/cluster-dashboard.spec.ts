@@ -31,7 +31,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -321,10 +321,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
-    let stdProjectName: string;
-    let stdNsName: string;
-    let stdUsername: string;
+  describe('Cluster dashboard with limited permissions', { testIsolation: true }, () => {
+    let stdProjectName;
+    let stdNsName;
+    let stdUsername;
 
     beforeEach(() => {
       stdProjectName = `standard-user-project${ +new Date() }`;
@@ -397,21 +397,21 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
-    function reply(statusCode: number, body: any) {
-      return (req) => {
-        req.reply({ statusCode, body });
-      };
-    }
-
-    const forbiddenResponse = {
-      type:    'error',
-      links:   {},
-      code:    'Forbidden',
-      message: 'deployments.apps is forbidden',
-      status:  403,
+  function reply(statusCode: number, body: any) {
+    return (req) => {
+      req.reply({ statusCode, body });
     };
+  }
 
+  const forbiddenResponse = {
+    type:    'error',
+    links:   {},
+    code:    'Forbidden',
+    message: 'deployments.apps is forbidden',
+    status:  403,
+  };
+
+  describe('Cluster dashboard - Fleet agent', { testIsolation: true }, () => {
     // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
     // which log in as a standard user and may leave session cookies in an inconsistent state
     beforeEach(() => {

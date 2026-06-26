@@ -332,7 +332,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: false, tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList: string[] = [];

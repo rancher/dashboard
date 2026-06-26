@@ -13,7 +13,7 @@ function updateUserRetentionSetting(settingId, newValue) {
   });
 }
 
-describe('User Retention', { testIsolation: 'off' }, () => {
+describe('User Retention', { testIsolation: false }, () => {
   const runTimestamp = +new Date();
   const usernameBlock = `user_to_block_${ runTimestamp }`;
   const userIdsList = [];
