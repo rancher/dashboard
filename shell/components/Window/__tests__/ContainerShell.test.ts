@@ -29,6 +29,7 @@ const mockDispose = jest.fn();
 const mockClear = jest.fn();
 
 const mockWebglDispose = jest.fn();
+const mockCanvasDispose = jest.fn();
 let mockWebglShouldThrow = false;
 let mockOnContextLossCallback: (() => void) | undefined;
 let mockRafCallback: any;

@@ -463,6 +463,13 @@ export default {
         this.socket = null;
       }
 
+      // Dispose the renderer addons before the terminal. This is needed to avoid xterm throwing an error
+      this.webglAddon?.dispose();
+      this.webglAddon = null;
+
+      this.canvasAddon?.dispose();
+      this.canvasAddon = null;
+
       if (this.terminal) {
         this.terminal.dispose();
         this.terminal = null;
