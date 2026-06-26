@@ -100,6 +100,29 @@ describe('fleet-appco utils', () => {
       expect(onStateChange).toHaveBeenCalledWith(expect.objectContaining({ repoName: 'my-repo', error: false }));
     });
 
+    it('should wait for the repo using a 10 minute timeout and 3s interval (#14627)', async() => {
+      // A cold OCI pull can take minutes; the wait must not give up early.
+      const waitForTestFn = jest.fn((fn: () => boolean) => {
+        fn();
+
+        return Promise.resolve();
+      });
+      const repo = buildRepo({
+        status: { conditions: [{ type: 'OCIDownloaded', status: 'True' }] },
+        waitForTestFn,
+      });
+      const store = buildStore(repo);
+
+      await fetchAppCoCharts(store as any, 'my-repo');
+
+      expect(waitForTestFn).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.stringContaining('my-repo'),
+        600000,
+        3000,
+      );
+    });
+
     it('should return no entries and an error state when the repo reports an error', async() => {
       const repo = buildRepo({ metadata: { state: { error: true, message: 'boom' } } });
       const store = buildStore(repo);
