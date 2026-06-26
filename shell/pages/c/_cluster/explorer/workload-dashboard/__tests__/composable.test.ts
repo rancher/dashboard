@@ -1,5 +1,6 @@
 import { useWorkloadDashboard } from '@shell/pages/c/_cluster/explorer/workload-dashboard/composable';
 import { WORKLOAD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 
@@ -556,6 +557,124 @@ describe('composable: useWorkloadDashboard', () => {
         query: { stateFilter: 'running,active' },
       });
       wrapper.unmount();
+    });
+  });
+
+  describe('response validation', () => {
+    // The composable caches malformed clusters in a module-level singleton, so each
+    // invalid-data test uses a unique cluster id to stay independent of the others.
+    function deploymentRouteFor(cluster: string) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster,
+          product:  'explorer',
+          resource: WORKLOAD_TYPES.DEPLOYMENT,
+        },
+      };
+    }
+
+    const malformedSummaryResponse = {
+      summary: [{
+        property: 'metadata.state.name',
+        counts:   { running: { namespace: { default: 5 } } },
+      }],
+      data: [],
+    };
+
+    it('should redirect to the deployment page when a count entry is missing total', async() => {
+      const { wrapper } = mountComposable({ clusterId: 'c-missing-total' }, malformedSummaryResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).toHaveBeenCalledWith(deploymentRouteFor('c-missing-total'));
+      wrapper.unmount();
+    });
+
+    it('should redirect when the summary is empty but data is present', async() => {
+      const dataWithoutSummaryResponse = { summary: [], data: [{ id: 'pod-1' }] };
+
+      const { wrapper } = mountComposable({ clusterId: 'c-empty-summary-with-data' }, dataWithoutSummaryResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).toHaveBeenCalledWith(deploymentRouteFor('c-empty-summary-with-data'));
+      wrapper.unmount();
+    });
+
+    it('should redirect when there is no summary but data is present', async() => {
+      const dataWithoutSummaryResponse = { data: [{ id: 'pod-1' }] };
+
+      const { wrapper } = mountComposable({ clusterId: 'c-no-summary-with-data' }, dataWithoutSummaryResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).toHaveBeenCalledWith(deploymentRouteFor('c-no-summary-with-data'));
+      wrapper.unmount();
+    });
+
+    it('should not redirect when every count entry has a total', async() => {
+      const { wrapper } = mountComposable();
+
+      await flushPromises();
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should not redirect when the summary is empty and there is no data', async() => {
+      const emptyResponse = { summary: [], data: [] };
+
+      const { wrapper } = mountComposable({}, emptyResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should not redirect when there is no summary and no data', async() => {
+      const noSummaryResponse = { data: [] };
+
+      const { wrapper } = mountComposable({}, noSummaryResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should not redirect for entries returned with an error', async() => {
+      const errorResponse = { summary: null, error: 'No access' };
+
+      const { wrapper } = mountComposable({}, errorResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should skip fetching and redirect immediately for a cluster already known to be invalid', async() => {
+      const cluster = 'c-cached-invalid';
+
+      // First mount detects the malformed response and caches the cluster.
+      const first = mountComposable({ clusterId: cluster }, malformedSummaryResponse);
+
+      await flushPromises();
+      first.wrapper.unmount();
+
+      jest.clearAllMocks();
+
+      // Second mount returns a valid response, but the cache should short-circuit the
+      // fetch entirely and redirect without ever requesting the summaries again.
+      const second = mountComposable({ clusterId: cluster }, summaryResponse);
+
+      await flushPromises();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith('cluster/request', expect.anything());
+      expect(mockRouterPush).toHaveBeenCalledWith(deploymentRouteFor(cluster));
+      second.wrapper.unmount();
     });
   });
 });

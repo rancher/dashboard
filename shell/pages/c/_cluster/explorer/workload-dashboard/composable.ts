@@ -3,7 +3,7 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE } from '@shell/config/types';
+import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
@@ -25,6 +25,13 @@ import {
   type WorkloadDashboardByTypeCard,
   type WorkloadDashboardByNamespaceCard,
 } from './types';
+
+/**
+ * Singleton (module-level) cache of cluster ids whose workload summary responses
+ * have been found to be malformed. Once a cluster is flagged we skip re-fetching
+ * and redirect straight away. Held in memory only, so it is cleared on reload.
+ */
+const invalidDataClusters = new Set<string>();
 
 export function useWorkloadDashboard() {
   const store = useStore();
@@ -344,11 +351,46 @@ export function useWorkloadDashboard() {
 
   // ── Fetching & polling ──
 
+  /**
+   * Validates the shape of a successfully fetched response.
+   * - An empty/absent summary is only valid when there is also no `data`
+   *   (a populated `data` with no summary means we got the wrong response).
+   * - When a summary is present, every state entry under `counts` must
+   *   include a `total`; a count key without `total` is invalid.
+   */
+  function isValidResponse(res: { summary?: WorkloadDashboardSummaryEntry['summary']; data?: unknown }): boolean {
+    const summary = res?.summary;
+    const hasData = Array.isArray(res?.data) ? res.data.length > 0 : !!res?.data;
+
+    if (!Array.isArray(summary) || summary.length === 0) {
+      return !hasData;
+    }
+
+    return summary.every((item) => Object.values(item.counts || {})
+      .every((detail) => typeof detail?.total === 'number'));
+  }
+
+  function redirectToDeployment(): void {
+    stopPollTimer();
+    router.push(resourceRoute(WORKLOAD_TYPES.DEPLOYMENT));
+  }
+
   async function fetchSummaries(): Promise<void> {
+    // If this cluster's data was already found to be malformed, skip the requests
+    // and redirect straight away (cleared on reload via the in-memory singleton).
+    if (invalidDataClusters.has(clusterId.value)) {
+      redirectToDeployment();
+
+      return;
+    }
+
     try {
       const accessibleTypes = WORKLOAD_RESOURCE_TYPES.filter(
         (type) => store.getters['cluster/canList'](type)
       );
+
+      // Set when a successfully fetched response has an unexpected shape.
+      let hasInvalidResponse = false;
 
       const workloadPromises = accessibleTypes.map(async(type): Promise<WorkloadDashboardSummaryEntry> => {
         try {
@@ -360,6 +402,10 @@ export function useWorkloadDashboard() {
           url += `&summary=metadata.state.name&summaryonly&summarynamespaced`;
 
           const res = await store.dispatch('cluster/request', { url });
+
+          if (!isValidResponse(res)) {
+            hasInvalidResponse = true;
+          }
 
           return {
             type, summary: res.summary || [], error: null
@@ -374,6 +420,16 @@ export function useWorkloadDashboard() {
       });
 
       const results = await Promise.all(workloadPromises);
+
+      // Only successful responses are validated (errors are caught above). If any
+      // had an unexpected shape, remember it so we skip future requests, then
+      // stop polling and redirect to the deployment list page.
+      if (hasInvalidResponse) {
+        invalidDataClusters.add(clusterId.value);
+        redirectToDeployment();
+
+        return;
+      }
 
       await resolveStateColors(results);
       summaries.value = results;
