@@ -140,7 +140,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId, undefined, this.$shell.proxy),
-            // China regions (cn-*) don't support dual-stack endpoints
+      // China regions (cn-*) don't support dual-stack endpoints
       useDualstackEndpoint:      !isChinaRegion(region),
     });
 
