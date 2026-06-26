@@ -74,8 +74,6 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
           cy.createRancherResource('v1', 'apps.deployments', JSON.stringify(scaleDeployment), false);
         });
       });
-
-      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
     });
 
     it('should show a translated field name in the required validation message when the name input is left empty', () => {
@@ -95,6 +93,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
 
     it('should be able to create a new deployment with basic options', () => {
+      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       deploymentCreateRequest.metadata.name = deploymentId;
       const { namespace } = deploymentCreateRequest.metadata;
       const containerImage = 'nginx';
