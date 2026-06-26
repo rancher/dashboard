@@ -762,4 +762,64 @@ describe('class: Resource', () => {
       await expect(resource.dryRunCreate()).rejects.toStrictEqual(apiError);
     });
   });
+
+  describe('getter: modelValidationRules', () => {
+    it('should pass translationKey to formRulesGenerator as "key" option', () => {
+      const mockT = (key: string, args?: any) => {
+        if (args) {
+          return JSON.stringify({ message: key, ...args });
+        }
+
+        return key;
+      };
+      const resource = new Resource({ type: 'test.resource' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': mockT, 'i18n/exists': () => true },
+      });
+
+      jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+      }]);
+
+      const rules = resource.modelValidationRules;
+
+      expect(rules).toHaveLength(1);
+      expect(rules[0].path).toStrictEqual('metadata.name');
+
+      // The 'required' rule should use the translated key, not "Value"
+      const requiredRule = rules[0].rules[0];
+      const result = requiredRule(null);
+
+      expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'generic.name' }));
+    });
+
+    it('should default to "Value" when translationKey is not provided', () => {
+      const mockT = (key: string, args?: any) => {
+        if (args) {
+          return JSON.stringify({ message: key, ...args });
+        }
+
+        return key;
+      };
+      const resource = new Resource({ type: 'test.resource' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': mockT, 'i18n/exists': () => true },
+      });
+
+      jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
+        path:     'metadata.name',
+        required: true,
+      }]);
+
+      const rules = resource.modelValidationRules;
+      const requiredRule = rules[0].rules[0];
+      const result = requiredRule(null);
+
+      expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'Value' }));
+    });
+  });
 });

@@ -74,11 +74,26 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
           cy.createRancherResource('v1', 'apps.deployments', JSON.stringify(scaleDeployment), false);
         });
       });
+    });
 
-      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
+    it('should show a translated field name in the required validation message when the name input is left empty', () => {
+      deploymentsCreatePage.goTo();
+      deploymentsCreatePage.waitForPage();
+
+      const nameInput = deploymentsCreatePage.resourceDetail().createEditView().nameNsDescription().name();
+
+      // Focus the name input then blur it to trigger inline validation
+      nameInput.self().focus();
+      deploymentsCreatePage.containerImage().self().focus();
+
+      // Validation error on the name input should use translated key "Name", not default "Value"
+      nameInput.validationMessage()
+        .should('contain', '"Name" is required')
+        .and('not.contain', '"Value" is required');
     });
 
     it('should be able to create a new deployment with basic options', () => {
+      cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       deploymentCreateRequest.metadata.name = deploymentId;
       const { namespace } = deploymentCreateRequest.metadata;
       const containerImage = 'nginx';
