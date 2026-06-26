@@ -42,7 +42,13 @@ export default class ProductNavPo extends ComponentPo {
    * Navigate to a side menu group by label
    */
   navToSideMenuGroupByLabel(label: string): Cypress.Chainable {
-    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).click();
+    // Click the group's header specifically. Clicking the accordion container
+    // would land on a child link when the group is already expanded (groups now
+    // stay expanded across navigation), so target the header to always navigate
+    // into the group's overview.
+    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).find('.header')
+      .first()
+      .click();
   }
 
   sideMenuEntryByLabelCount(label: string): Cypress.Chainable {
