@@ -82,14 +82,16 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsCreatePage.goTo();
       deploymentsCreatePage.waitForPage();
 
-      // Set container image but leave name empty
-      deploymentsCreatePage.containerImage().set(SMALL_CONTAINER.image);
-      deploymentsCreatePage.resourceDetail().createEditView().save();
+      const nameInput = deploymentsCreatePage.resourceDetail().createEditView().nameNsDescription().name();
 
-      // Validation error should use translated key "Name", not default "Value"
-      deploymentsCreatePage.resourceDetail().createEditView().errorBanner()
-        .should('contain.text', '"Name" is required')
-        .and('not.contain.text', '"Value" is required');
+      // Focus the name input then blur it to trigger inline validation
+      nameInput.self().focus();
+      deploymentsCreatePage.containerImage().self().focus();
+
+      // Validation error on the name input should use translated key "Name", not default "Value"
+      nameInput.validationMessage()
+        .should('contain', '"Name" is required')
+        .and('not.contain', '"Value" is required');
     });
 
     it('should be able to create a new deployment with basic options', () => {
