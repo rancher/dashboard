@@ -1,4 +1,6 @@
-import { mount } from '@vue/test-utils';
+import { defineComponent, nextTick, provide, ref } from 'vue';
+import { mount, flushPromises } from '@vue/test-utils';
+import { useForm } from 'vee-validate';
 import { LabeledInput } from './index';
 
 describe('component: LabeledInput', () => {
@@ -55,6 +57,121 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  describe('type "integer"', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+
+    it('should render a text input with numeric inputmode', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+
+      expect(input.attributes('type')).toBe('text');
+      expect(input.attributes('inputmode')).toBe('numeric');
+    });
+
+    it.each([
+      'e', 'E', '.', '+',
+    ])('should prevent non-integer key "%s"', (key) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key, cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it.each([
+      '0', '1', '9', '-', 'Backspace', 'Tab', 'ArrowLeft',
+    ])('should allow key "%s"', (key) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key, cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it('should also block "-" when min="0"', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        attrs:     { min: '0' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = new KeyboardEvent('keydown', { key: '-', cancelable: true });
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    function createPasteEvent(text: string): Event {
+      const event = new Event('paste', { cancelable: true });
+
+      (event as Event & { clipboardData: Pick<DataTransfer, 'getData'> }).clipboardData = { getData: () => text };
+
+      return event;
+    }
+
+    it.each([
+      '123',
+      '-5',
+    ])('should allow pasting valid integer "%s"', (text) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent(text);
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it.each([
+      '-e10',
+      '1.5',
+      '12abc',
+      '1e5',
+    ])('should block pasting invalid integer "%s"', (text) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent(text);
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should block pasting negative integer when min="0"', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { type: 'integer', value: '' },
+        attrs:     { min: '0' },
+        mocks:     i18nMock
+      });
+      const input = wrapper.find('input');
+      const event = createPasteEvent('-5');
+
+      input.element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+  });
+
   describe('a11y: adding ARIA props', () => {
     const ariaLabelVal = 'some-aria-label';
     const subLabelVal = 'some-sublabel';
@@ -104,5 +221,213 @@ describe('component: LabeledInput', () => {
 
     expect(mainInput.attributes('aria-label')).toBeUndefined();
     expect(wrapper.find('label').text()).toBe(label);
+  });
+
+  describe('vee-validate integration', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+
+    it('without name prop: existing rules-based validation message is shown after blur', async() => {
+      const errorMessage = 'This field cannot be empty';
+      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          rules: [notEmptyRule],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await nextTick();
+
+      expect(wrapper.vm.validationMessage).toBe(errorMessage);
+    });
+
+    it('without name prop: error CSS class is not applied automatically', async() => {
+      const notEmptyRule = (v: string) => (!v ? 'Error' : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          rules: [notEmptyRule],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await nextTick();
+
+      expect(wrapper.find('.labeled-input').classes()).not.toContain('error');
+    });
+
+    it('with name prop: name attribute is set on the input element', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { name: 'myField' },
+        mocks:     i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('name')).toStrictEqual('myField');
+    });
+
+    it('with name prop: existing rules run through vee-validate and show error message after blur', async() => {
+      const errorMessage = 'Field cannot be empty';
+      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [notEmptyRule],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await flushPromises();
+
+      expect(wrapper.vm.validationMessage).toStrictEqual(errorMessage);
+    });
+
+    it('with name prop: no error class when validation passes', async() => {
+      const notEmptyRule = (v: string) => (!v ? 'Error' : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [notEmptyRule],
+          value: 'valid value',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await flushPromises();
+
+      expect(wrapper.find('.labeled-input').classes()).not.toContain('error');
+      expect(wrapper.vm.validationMessage).toBeUndefined();
+    });
+
+    it('with name prop: form-level validation schema error is shown when the form validates', async() => {
+      const errorMessage = 'Username is required';
+      const showAllErrors = ref(false);
+      let triggerFormValidation!: () => Promise<unknown>;
+
+      const TestWrapper = defineComponent({
+        components: { LabeledInput },
+        setup() {
+          provide('vee-show-all-errors', showAllErrors);
+
+          const { validate } = useForm({
+            validationSchema: { username: (v: string) => (!v ? errorMessage : true) },
+            initialValues:    { username: '' },
+          });
+
+          triggerFormValidation = async() => {
+            await validate();
+            showAllErrors.value = true;
+          };
+
+          return {};
+        },
+        template: '<LabeledInput name="username" value="" />',
+      });
+
+      const wrapper = mount(TestWrapper, { global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } } });
+
+      await triggerFormValidation();
+      await flushPromises();
+
+      const labeledInput = wrapper.findComponent(LabeledInput);
+
+      expect(labeledInput.vm.validationMessage).toStrictEqual(errorMessage);
+    });
+
+    it('without name prop: error clears when a previously invalid value becomes valid', async() => {
+      const errorMessage = 'This field cannot be empty';
+      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          rules: [notEmptyRule],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await nextTick();
+
+      expect(wrapper.vm.validationMessage).toBe(errorMessage);
+
+      await wrapper.setProps({ value: 'valid value' });
+      await nextTick();
+
+      expect(wrapper.vm.validationMessage).toBeUndefined();
+    });
+
+    it('with name prop: error clears when a previously invalid value becomes valid', async() => {
+      const errorMessage = 'Field cannot be empty';
+      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [notEmptyRule],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      await wrapper.find('input').trigger('blur');
+      await flushPromises();
+
+      expect(wrapper.vm.validationMessage).toStrictEqual(errorMessage);
+
+      await wrapper.setProps({ value: 'valid value' });
+      await flushPromises();
+
+      expect(wrapper.vm.validationMessage).toBeUndefined();
+    });
+
+    describe('with both name and rules provided', () => {
+      it('shows the error message exactly once when invalid (not duplicated across both validation paths)', async() => {
+        const errorMessage = 'Field cannot be empty';
+        const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            name:  'testField',
+            rules: [notEmptyRule],
+            value: '',
+          },
+          mocks: i18nMock
+        });
+
+        await wrapper.find('input').trigger('blur');
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toStrictEqual(errorMessage);
+        expect(wrapper.vm.validationMessage).not.toContain(`${ errorMessage }, ${ errorMessage }`);
+      });
+
+      it('shows no error when the value satisfies the rules', async() => {
+        const notEmptyRule = (v: string) => (!v ? 'Field cannot be empty' : undefined);
+
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            name:  'testField',
+            rules: [notEmptyRule],
+            value: 'valid value',
+          },
+          mocks: i18nMock
+        });
+
+        await wrapper.find('input').trigger('blur');
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+      });
+    });
   });
 });

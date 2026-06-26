@@ -12,7 +12,7 @@ import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 import Ingress from '@shell/edit/provisioning.cattle.io.cluster/tabs/Ingress';
 import {
-  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX
+  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX, INGRESS_NONE
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
@@ -120,6 +120,11 @@ export default {
     canAzureMigrateOnEdit: {
       type:     Boolean,
       required: true
+    },
+    originalIngressController: {
+      type:     [String, Array],
+      required: false,
+      default:  INGRESS_NONE
     }
   },
 
@@ -173,7 +178,17 @@ export default {
     },
     ingressController: {
       get() {
-        return this.serverConfig && this.serverConfig[INGRESS_CONTROLLER] ? this.serverConfig[INGRESS_CONTROLLER] : INGRESS_NGINX ;
+        if (this.serverConfig) {
+          if (this.serverConfig[INGRESS_CONTROLLER]) {
+            return this.serverConfig[INGRESS_CONTROLLER];
+          } else {
+            if (this.serverConfig.disable && this.serverConfig.disable.includes(RKE2_INGRESS_NGINX)) {
+              return INGRESS_NONE;
+            }
+          }
+        }
+
+        return INGRESS_NGINX;
       },
 
       set(neu) {
@@ -253,11 +268,15 @@ export default {
       });
     },
     nginxSupported() {
-      if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
+      if (Object.keys(this.serverArgs).length === 0 || this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
         return true;
       }
 
       return false;
+    },
+    // If version is too old and we couldn't get serverArgs, it has to be NGINX
+    traefikSupported() {
+      return Object.keys(this.serverArgs).length > 0;
     },
 
     serverArgs() {
@@ -680,10 +699,12 @@ export default {
       v-model:value="ingressController"
       :mode="mode"
       :nginx-supported="nginxSupported"
+      :traefik-supported="traefikSupported"
       :nginx-chart="nginxChart"
       :traefik-chart="traefikChart"
       :user-chart-values="userChartValues"
       :version-info="versionInfo"
+      :original-ingress-controller="originalIngressController"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

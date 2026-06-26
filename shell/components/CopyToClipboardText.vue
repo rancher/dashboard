@@ -75,6 +75,10 @@ export default {
       }
     }
 
+    &:active {
+      color: var(--primary-keyboard-focus);
+    }
+
     &.copied {
       pointer-events: none;
       color: var(--success);

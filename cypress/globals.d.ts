@@ -73,6 +73,10 @@ export interface CreateResourceNameOptions {
 
 declare global {
   namespace Cypress {
+    interface RancherVersion {
+      RancherPrime?: string;
+    }
+
     interface Chainable {
       setupWebSocket: any;
       hideElementBySelector(...selectors: string[]): Chainable<void>;
@@ -80,6 +84,7 @@ declare global {
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;
+      clearAllSessions(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
       createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
@@ -122,16 +127,22 @@ declare global {
         wait?: number,
       }): Chainable;
       applyDefaultTestTheme(): Chainable<any>;
-      getRancherVersion(): Chainable<any>;
+      restoreProductDefaultTestTheme(): Chainable<any>;
+      getRancherVersion(): Chainable<RancherVersion>;
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
-      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean}): Chainable;
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean, retryOnNetworkFailure?: boolean, timeout?: number}): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
+      waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
-      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number): Chainable;
+      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
+      checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
+      getClusterToolsChartCount(repoName?: string): Chainable<number>;
+      installChart(repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string): Chainable;
+      getChartVersions(repo: string, chartId: string): Chainable<string[]>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
@@ -162,7 +173,7 @@ declare global {
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
-      setUserPreference(prefs: any);
+      setUserPreference(prefs: any, verify?: boolean, retries?: number);
 
       /**
        * update namespace filter
@@ -206,8 +217,6 @@ declare global {
       keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
-
-      iFrame(): Chainable<Element>;
 
       // Check if an element is visible to the user on the screen.
       isVisible(): Chainable<Element>;

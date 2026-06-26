@@ -113,12 +113,144 @@ describe('component: InternalExternalIP', () => {
     });
   });
 
+  describe('fallback to singular IPs', () => {
+    it('should use singular externalIp and internalIp when arrays are not present', () => {
+      const wrapper = mountComponent({ row: { externalIp: '1.1.1.1', internalIp: '2.2.2.2' } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual(['1.1.1.1']);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['2.2.2.2']);
+      expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual('1.1.1.1');
+      expect(wrapper.find('[data-testid="internal-ip"]').text()).toStrictEqual('2.2.2.2');
+    });
+
+    it('should ignore generic.none value for externalIp', () => {
+      // Assuming the mock translation for 'generic.none' returns 'generic.none'
+      const wrapper = mountComponent({ row: { externalIp: 'generic.none', internalIp: '2.2.2.2' } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual([]);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['2.2.2.2']);
+    });
+
+    it('should prioritize array properties over singular strings', () => {
+      const wrapper = mountComponent({
+        row: {
+          externalIps: ['3.3.3.3'],
+          externalIp:  '1.1.1.1',
+          internalIps: ['4.4.4.4'],
+          internalIp:  '2.2.2.2'
+        }
+      });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual(['3.3.3.3']);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['4.4.4.4']);
+    });
+  });
+
   describe('invalid IPs', () => {
     it('should filter invalid IPs', () => {
       const wrapper = mountComponent({ row: { externalIps: ['1.1.1.1', 'not-an-ip'], internalIps: ['2.2.2.2'] } });
 
       expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual('1.1.1.1');
       expect(wrapper.find('[data-testid="plus-more"]').exists()).toBe(false);
+    });
+  });
+
+  describe('isIp validation', () => {
+    describe('valid IPv4 addresses', () => {
+      it.each([
+        ['0.0.0.0'],
+        ['1.1.1.1'],
+        ['127.0.0.1'],
+        ['192.168.1.1'],
+        ['10.0.0.1'],
+        ['255.255.255.255'],
+        ['172.16.0.1'],
+      ])('should accept %s as a valid IP', (ip) => {
+        const wrapper = mountComponent({ row: { externalIps: [ip], internalIps: [] } });
+
+        expect(wrapper.vm.filteredExternalIps).toStrictEqual([ip]);
+        expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual(ip);
+      });
+    });
+
+    describe('valid IPv6 addresses', () => {
+      it.each([
+        ['::1'],
+        ['::'],
+        ['fe80::1'],
+        ['2001:0db8:85a3:0000:0000:8a2e:0370:7334'],
+        ['2001:db8::1'],
+        ['::ffff:192.168.1.1'],
+      ])('should accept %s as a valid IP', (ip) => {
+        const wrapper = mountComponent({ row: { externalIps: [ip], internalIps: [] } });
+
+        expect(wrapper.vm.filteredExternalIps).toStrictEqual([ip]);
+        expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual(ip);
+      });
+    });
+
+    describe('invalid values', () => {
+      it.each([
+        ['not-an-ip'],
+        ['abc.def.ghi.jkl'],
+        ['999.999.999.999'],
+        ['1.2.3'],
+        ['1.2.3.4.5'],
+        [''],
+        ['hello'],
+        ['192.168.1'],
+        ['192.168.1.1.1'],
+        ['1.2.3.4/24'],
+      ])('should reject %s as an invalid IP', (ip) => {
+        const wrapper = mountComponent({ row: { externalIps: [ip], internalIps: [] } });
+
+        expect(wrapper.vm.filteredExternalIps).toStrictEqual([]);
+        expect(wrapper.find('[data-testid="external-ip"]').exists()).toBe(false);
+      });
+    });
+
+    it('should filter invalid IPs from internal IPs list', () => {
+      const wrapper = mountComponent({ row: { externalIps: [], internalIps: ['10.0.0.1', 'bad-ip', '192.168.1.1'] } });
+
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['10.0.0.1', '192.168.1.1']);
+      expect(wrapper.find('[data-testid="internal-ip"]').text()).toStrictEqual('10.0.0.1');
+      expect(wrapper.vm.remainingIpCount).toStrictEqual(1);
+    });
+
+    it('should filter all invalid IPs leaving no results', () => {
+      const wrapper = mountComponent({ row: { externalIps: ['not-valid', 'also-bad'], internalIps: ['nope'] } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual([]);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual([]);
+      expect(wrapper.find('[data-testid="external-ip"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="internal-ip"]').exists()).toBe(false);
+    });
+
+    it('should handle mixed valid and invalid IPs preserving only valid ones', () => {
+      const wrapper = mountComponent({
+        row: {
+          externalIps: ['1.1.1.1', 'garbage', '8.8.8.8', '999.0.0.1'],
+          internalIps: ['10.0.0.1', '', '172.16.0.1', 'abc']
+        }
+      });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual(['1.1.1.1', '8.8.8.8']);
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual(['10.0.0.1', '172.16.0.1']);
+      expect(wrapper.find('[data-testid="external-ip"]').text()).toStrictEqual('1.1.1.1');
+      expect(wrapper.find('[data-testid="internal-ip"]').text()).toStrictEqual('10.0.0.1');
+      expect(wrapper.vm.remainingIpCount).toStrictEqual(2);
+    });
+
+    it('should handle undefined externalIps gracefully', () => {
+      const wrapper = mountComponent({ row: { internalIps: ['1.1.1.1'] } });
+
+      expect(wrapper.vm.filteredExternalIps).toStrictEqual([]);
+    });
+
+    it('should handle undefined internalIps gracefully', () => {
+      const wrapper = mountComponent({ row: { externalIps: ['1.1.1.1'] } });
+
+      expect(wrapper.vm.filteredInternalIps).toStrictEqual([]);
     });
   });
 

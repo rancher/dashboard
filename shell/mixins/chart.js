@@ -13,7 +13,7 @@ import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
-import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS, isRancherRepo, getPermittedOSs } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
 
@@ -28,6 +28,17 @@ export default {
       ignoreWarning: false,
 
       chart: null,
+
+      // Whether installing a new instance is allowed.
+      // This is false when the chart is targeted (has fixed namespace/name annotations)
+      // or when the URL query specifies a specific app to edit.
+      canInstallNew: true,
+
+      // Installed instances of this chart that can be selected for edit/upgrade
+      // on the chart detail page. When instances exist, `existing` is set to the
+      // first one by default, but the user can select a different instance or
+      // choose to install a new one.
+      installedInstances: [],
     };
   },
 
@@ -60,6 +71,8 @@ export default {
 
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
+      const isRancher = isRancherRepo(this.repo, this.chart);
+      const permittedSystemsByVersion = new Map();
       const out = [];
 
       versions.forEach((version) => {
@@ -73,7 +86,9 @@ export default {
           keywords:        version.keywords
         };
 
-        const permittedSystems = (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+        const permittedSystems = getPermittedOSs(version?.annotations, isRancher);
+
+        permittedSystemsByVersion.set(version.version, permittedSystems);
 
         if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
           nue.disabled = true;
@@ -106,7 +121,13 @@ export default {
       const currentVersion = out.find((v) => v.originalVersion === this.currentVersion);
 
       if (currentVersion) {
-        currentVersion.label = this.t('catalog.install.versions.current', { ver: this.currentVersion });
+        const permittedSystems = permittedSystemsByVersion.get(currentVersion.originalVersion) || [];
+
+        if (permittedSystems.length === 1) {
+          currentVersion.label = this.t(`catalog.install.versions.current_${ permittedSystems[0] }`, { ver: this.currentVersion });
+        } else {
+          currentVersion.label = this.t('catalog.install.versions.current', { ver: this.currentVersion });
+        }
       }
 
       return out;
@@ -260,7 +281,7 @@ export default {
     },
 
     isChartTargeted() {
-      return this.chart?.targetNamespace && this.chart?.targetName;
+      return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
     },
 
     hasQuestions() {
@@ -376,6 +397,9 @@ export default {
         // If found, set the form to edit mode. If not, set the
         // form to create mode.
 
+        // This is a hard blocker - installing a new instance is NOT allowed.
+        this.canInstallNew = false;
+
         try {
           this.existing = await this.$store.dispatch('cluster/find', {
             type: CATALOG.APP,
@@ -396,9 +420,11 @@ export default {
         if ( targetNamespace && targetName ) {
           // If the app name and namespace values are not provided in the
           // query, fall back on target values defined in the Helm chart itself.
-
           // Ask to install a special chart with fixed namespace/name
           // or edit it if there's an existing install.
+
+          // This is a hard blocker - installing a new instance is NOT allowed.
+          this.canInstallNew = false;
 
           try {
             this.existing = await this.$store.dispatch('cluster/find', {
@@ -407,22 +433,40 @@ export default {
             });
             this.mode = _EDIT;
           } catch (e) {
-            this.mode = _CREATE;
-            this.existing = null;
-          }
-        } else if (this.chart) {
-          const matching = this.chart.matchingInstalledApps;
+            // Version targets a different namespace than where the app is installed.
+            // Fall back to matching installed apps (e.g. chart detail page).
+            const matching = this.chart?.matchingInstalledApps || [];
 
-          if (matching.length === 1) {
-            this.existing = matching[0];
-            this.mode = _EDIT;
-          } else {
-            this.mode = _CREATE;
+            this.existing = matching[0] || null;
+            this.mode = this.existing ? _EDIT : _CREATE;
           }
         } else {
-          // Regular create
+          // Regular chart (not targeted) - check if there are installed instances.
+          // Installing new instances IS allowed (canInstallNew remains true).
+          const isChartDetailPage = this.$route.name === 'c-cluster-apps-charts-chart';
 
-          this.mode = _CREATE;
+          if (isChartDetailPage) {
+            const matching = this.chart?.matchingInstalledApps || [];
+
+            // Always refresh the available instances so stale values are removed.
+            this.installedInstances = [];
+
+            if (matching.length >= 1) {
+              // Populate the instance selector and preserve the current selection
+              // when it is still one of the matching installed apps.
+              this.installedInstances = matching;
+              const hasExistingMatch = this.existing?.id && matching.some((instance) => instance.id === this.existing.id);
+
+              if (!hasExistingMatch) {
+                this.existing = matching[0];
+              }
+            } else {
+              this.existing = null;
+            }
+          } else {
+            // Regular create
+            this.mode = _CREATE;
+          }
         }
       }
     }, // End of fetchChart

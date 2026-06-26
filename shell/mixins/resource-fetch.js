@@ -35,7 +35,7 @@ export default {
     // Normally owner components supply `resource` and `inStore` as part of their data, however these are needed here before parent data runs
     // So set up both here
     const params = { ...this.$route.params };
-    const resource = params.resource || this.schema?.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
+    const resource = this.schema?.id || params.resource; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
     const inStore = this.$store.getters['currentStore'](resource);
 
     return {
@@ -86,6 +86,14 @@ export default {
     apiFilter: {
       type:    Function,
       default: null,
+    },
+
+    /**
+     * When making a supporting HTTP request include associated resource data
+     */
+    includeAssociatedData: {
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -185,9 +193,10 @@ export default {
           return;
         }
         const opt = {
-          hasManualRefresh: this.hasManualRefresh,
-          pagination:       { ...this.pagination },
-          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+          hasManualRefresh:      this.hasManualRefresh,
+          pagination:            { ...this.pagination },
+          force:                 this.paginating !== null, // Fix for manual refresh (before ripped out).
+          includeAssociatedData: this.includeAssociatedData,
         };
 
         if (this.apiFilter) {

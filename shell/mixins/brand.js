@@ -3,6 +3,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
+import { requireJson } from '@shell/utils/require-asset';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { allHash } from '@shell/utils/promise';
 import { fetchInitialSettings } from '@shell/utils/settings';
@@ -182,12 +183,13 @@ export default {
     },
     setBodyClass() {
       const body = document.getElementsByTagName('body')[0];
-      const cssClass = `overflow-hidden dashboard-body`;
+      const isStandalone = this.$route?.meta?.standalone;
+      const cssClass = isStandalone ? 'dashboard-body' : 'overflow-hidden dashboard-body';
       let bodyClass = `theme-${ this.theme } ${ cssClass }`;
 
       if ( this.brand ) {
         try {
-          const brandMeta = require(`~shell/assets/brand/${ this.brand }/metadata.json`);
+          const brandMeta = requireJson(`~shell/assets/brand/${ this.brand }/metadata.json`);
 
           if (brandMeta?.hasStylesheet === 'true') {
             bodyClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;

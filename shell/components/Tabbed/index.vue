@@ -7,10 +7,11 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
-import { ref } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
 import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
 
 export default {
   name: 'Tabbed',
@@ -76,6 +77,12 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    extensionParams: {
+      type:    Object,
+      default: null,
+    },
+
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -88,6 +95,17 @@ export default {
     removeBorders: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * title is NOT displayed within the Tabbed component itself
+     * this prop is used to determine a label to use for the set of tabs in the table of contents component
+     * if a title is not provided a random string will be used
+     * components using the table of contents may exclude tabbed and only show tab components, too
+     */
+    title: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -95,6 +113,8 @@ export default {
     const tabs = this.tabs;
 
     return {
+      select: this.select,
+
       sideTabs: this.sideTabs,
 
       addTab(tab) {
@@ -150,14 +170,20 @@ export default {
     },
   },
 
-  setup() {
+  setup(props) {
     const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
     const isInResourceDetailPage = ref(useIsInResourceDetailPage());
     const isInResourceEditPage = ref(useIsInResourceEditPage());
     const isInResourceCreatePage = ref(useIsInResourceCreatePage());
+    const tabbedSummarizedContainer = useTemplateRef('tabbed-summarized-container');
+    const { summary } = useInSummary({
+      label:      computed(() => props.title ?? ''),
+      scrollTo:   () => tabbedSummarizedContainer.value?.scrollIntoView(true),
+      elementRef: tabbedSummarizedContainer,
+    });
 
     return {
-      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage
+      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage, summary
     };
   },
 
@@ -305,6 +331,7 @@ export default {
 
 <template>
   <div
+    ref="tabbed-summarized-container"
     class="tabbed-container"
     :class="{
       'side-tabs': !!sideTabs,
@@ -429,6 +456,7 @@ export default {
         <component
           :is="tab.component"
           :resource="resource"
+          @select="select(tab.name)"
         />
       </Tab>
     </div>

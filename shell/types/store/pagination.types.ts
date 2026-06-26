@@ -44,13 +44,16 @@ export interface PaginationSort {
    * Name of field within the object to sort by
    */
   field: string,
+  /**
+   * Sort direction. `true` for ascending, `false` for descending
+   */
   asc: boolean
 }
 
 /**
  * Equalities that can be used with a `filter` query param
  *
- * filter=<field><equality><values>
+ * `filter=<field><equality><values>`
  *
  * For example
  * - filter=a=b
@@ -143,14 +146,14 @@ type FilterFieldCtorArgs = {
 /**
  * Filter the pagination result by these specific fields
  *
- * In format of <field><equality><value>
+ * In format of `<field><equality><value>`
  *
  * For example
  *
  * - metadata.name=test
  * - metadata.namespace!=system
  *
- * These are sub items for @PaginationParam, for example filter=<PaginationFilterField>
+ * These are sub items for {@link PaginationParam}, for example `filter=<PaginationFilterField>`
  *
  * For more information regarding the API see https://github.com/rancher/steve?tab=readme-ov-file#query-parameters
  */
@@ -607,6 +610,7 @@ export interface StorePaginationRequest {
    * The single namespace to filter results by (as part of url path, not pagination params)
    */
   namespace?: string,
+
   /**
    * The set of pagination args used to create the request
    */
@@ -616,6 +620,11 @@ export interface StorePaginationRequest {
    * Does this request stem from a list with manual refresh?
    */
   hasManualRefresh?: boolean,
+
+  /**
+   * When making a supporting HTTP request include associated resource data
+   */
+  includeAssociatedData?: boolean,
 }
 
 /**

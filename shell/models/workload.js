@@ -1,14 +1,16 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, INGRESS, POD } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, parse, matches } from '@shell/utils/selector';
+import { convertSelectorObj, parse, matches, convert } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
 import { defineAsyncComponent, markRaw } from 'vue';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { POD_SHELL } from '@shell/store/features';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -27,6 +29,7 @@ export default class Workload extends WorkloadService {
   get _availableActions() {
     let out = super._availableActions;
     const type = this._type ? this._type : this.type;
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
     const index = editYaml ? out.indexOf(editYaml) : 0;
@@ -75,13 +78,16 @@ export default class Workload extends WorkloadService {
 
     insertAt(out, 0, { divider: true }) ;
 
-    insertAt(out, 0, {
-      action:  'openShell',
-      enabled: !!this.links.view,
-      icon:    'icon icon-chevron-right',
-      label:   this.t('action.openShell'),
-      total:   1,
-    });
+    // Only add the menu item for the pod shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, {
+        action:  'openShell',
+        enabled: !!this.links.view,
+        icon:    'icon icon-chevron-right',
+        label:   this.t('action.openShell'),
+        total:   1,
+      });
+    }
 
     const toFilter = ['cloneYaml'];
 
@@ -585,6 +591,29 @@ export default class Workload extends WorkloadService {
     return undefined;
   }
 
+  async fetchSummaries() {
+    const summaries = { pods: null };
+
+    try {
+      if (this.podMatchExpression) {
+        summaries.pods = await this.$dispatch('fetchResourceSummary', {
+          type: POD,
+          opt:  {
+            summaryField:  'metadata.state.name',
+            namespace:     this.metadata.namespace,
+            labelSelector: { matchExpressions: this.podMatchExpression },
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('fetchSummaries: failed to fetch pod summary', e); // eslint-disable-line no-console
+    }
+
+    set(this, '_summaries', summaries);
+
+    return summaries;
+  }
+
   async unWatchPods() {
     return await this.$dispatch('unwatch', { type: POD, all: true });
   }
@@ -622,12 +651,29 @@ export default class Workload extends WorkloadService {
 
   calcPodGauges(pods) {
     const out = { };
+    let refPods = pods;
 
-    if (!pods) {
+    if (this.metadata.associatedData) {
+      refPods = [];
+      this.metadata.associatedData.forEach((w) => {
+        if (w.gvk.kind.toLowerCase() !== POD) {
+          return;
+        }
+
+        return w.data.forEach((p) => {
+          refPods.push({
+            stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
+            stateDisplay: stateDisplayFn(p.state.name),
+          });
+        });
+      });
+    }
+
+    if (!refPods) {
       return out;
     }
 
-    pods.map((pod) => {
+    refPods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -729,16 +775,70 @@ export default class Workload extends WorkloadService {
   }
 
   get relatedServices() {
-    // Find Services that have selectors that match this workload's Pod(s).
+    if (this.type === WORKLOAD_TYPES.JOB || this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return [];
+    }
+
+    const podTemplateLabels = this.spec?.template?.metadata?.labels;
+
+    if (!podTemplateLabels || Object.keys(podTemplateLabels).length === 0) {
+      return [];
+    }
+
+    const templateAsObj = { metadata: { labels: podTemplateLabels } };
+
     return this.servicesInNamespace.filter((service) => {
       const selector = service.spec.selector;
 
-      for (let i = 0; i < this.pods.length; i++) {
-        const pod = this.pods[i];
+      if (!selector || typeof selector !== 'object') {
+        return false;
+      }
 
-        if (service.metadata?.namespace === this.metadata?.namespace && matches(pod, selector)) {
-          return true;
+      return matches(templateAsObj, convert(selector));
+    });
+  }
+
+  get matchingIngresses() {
+    const allIngresses = this.$rootGetters['cluster/all'](INGRESS);
+    const services = this.relatedServices;
+
+    if (!services.length) {
+      return [];
+    }
+
+    return allIngresses.filter((ingress) => {
+      try {
+        const rules = ingress.spec?.rules;
+
+        if (!rules || !Array.isArray(rules)) {
+          return false;
         }
+
+        for (const rule of rules) {
+          const paths = rule?.http?.paths;
+
+          if (!paths || !Array.isArray(paths)) {
+            continue;
+          }
+
+          for (const pathData of paths) {
+            const targetServiceName = pathData?.backend?.service?.name;
+
+            if (!targetServiceName) {
+              continue;
+            }
+
+            for (const service of services) {
+              if (ingress.metadata?.namespace === this.metadata?.namespace && service?.metadata?.name === targetServiceName) {
+                return true;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`matchingIngresses: failed to match ingress "${ ingress.id }"`, err); // eslint-disable-line no-console
+
+        return false;
       }
 
       return false;
@@ -746,10 +846,23 @@ export default class Workload extends WorkloadService {
   }
 
   get resourcesCardRows() {
-    return [
-      useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), this.relatedServices, undefined, undefined, '#services'),
-      ...this._resourcesCardRows,
-    ];
+    const rows = [...this._resourcesCardRows];
+    const showsIngressesAndServices = this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB;
+
+    if (showsIngressesAndServices) {
+      const services = this.relatedServices || [];
+      const ingresses = this.matchingIngresses || [];
+
+      if (ingresses.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
+      }
+
+      if (services.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), services, undefined, undefined, '#services'));
+      }
+    }
+
+    return rows;
   }
 
   get podsCard() {
@@ -761,8 +874,11 @@ export default class Workload extends WorkloadService {
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
     const canScale = this.canUpdate && scalingTypes.includes(this.type);
+    const summaryData = this._summaries?.pods || null;
+    const hasPods = this.pods?.length > 0;
+    const hasSummary = summaryData?.count > 0;
 
-    if (!this.pods || (this.pods.length === 0 && !canScale)) {
+    if (!hasPods && !hasSummary && !canScale) {
       return null;
     }
 
@@ -771,6 +887,7 @@ export default class Workload extends WorkloadService {
       props:     {
         title:              this.t('component.resource.detail.card.podsCard.title'),
         resources:          this.pods,
+        summaryData,
         showScaling:        canScale,
         onIncrease:         () => this.scale(true),
         onDecrease:         () => this.scale(false),
@@ -800,8 +917,9 @@ export default class Workload extends WorkloadService {
     return [
       this.podsCard,
       this.jobsCard,
+      this.resourcesCard,
       this.insightCard,
       ...this._cards
-    ];
+    ].filter((c) => c);
   }
 }

@@ -4,6 +4,7 @@ import HelmOp from '@shell/models/fleet.cattle.io.helmop';
 import HelmOpComponent from '@shell/edit/fleet.cattle.io.helmop.vue';
 import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+import { createStore } from 'vuex';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -27,11 +28,16 @@ const mocks = {
   $fetchState: { pending: false },
   $route:      {
     query: { AS: '' },
+    hash:  '',
     name:  {
       endsWith: () => {
         return false;
       }
     }
+  },
+  $router: {
+    currentRoute: { _value: { hash: '' } },
+    replace:      jest.fn(),
   },
 };
 
@@ -84,6 +90,14 @@ const initHelmOp = (props: any, options = {}) => {
     props: {
       value,
       ...props
+    },
+    provide: {
+      store: createStore({
+        getters: {
+          currentStore:                   () => 'current_store',
+          'management/paginationEnabled': () => () => false
+        }
+      })
     },
     computed: mockComputed,
     global:   { mocks },
@@ -140,6 +154,106 @@ describe('helmOp component lifecycle', () => {
 
     // Verify doCreateSecrets method exists
     expect(typeof wrapper.vm.doCreateSecrets).toBe('function');
+  });
+});
+
+describe('onCancel', () => {
+  it('should navigate back to the AppCo chart page with version when isSuseAppCollection is true and mode is CREATE', () => {
+    const routerPush = jest.fn();
+    const appCoMocks = {
+      ...mocks,
+      $route: {
+        ...mocks.$route,
+        query: {
+          AS:      '',
+          type:    'suse-application-collection',
+          chart:   'alertmanager',
+          version: '1.37.0',
+          secret:  'fleet-appco-auth-2n9px',
+        },
+        params: { cluster: 'local' },
+      },
+      $router: {
+        ...mocks.$router,
+        push: routerPush,
+      },
+    };
+
+    const wrapper = mount(HelmOpComponent, {
+      ...initHelmOp({ mode: _CREATE, realMode: _CREATE }),
+      computed: {
+        ...mockComputed,
+        isSuseAppCollection: () => true,
+      },
+      global: { mocks: appCoMocks },
+    });
+
+    wrapper.vm.onCancel();
+
+    expect(routerPush).toHaveBeenCalledWith({
+      name:   'c-cluster-fleet-application-appco-chart',
+      params: { cluster: 'local' },
+      query:  {
+        'repo-type': 'cluster',
+        repo:        'fleet-appco-repo-2n9px',
+        chart:       'alertmanager',
+        version:     '1.37.0',
+        secret:      'fleet-appco-auth-2n9px',
+      },
+    });
+  });
+
+  it('should navigate back to the AppCo chart page without version when version is not in query', () => {
+    const routerPush = jest.fn();
+    const appCoMocks = {
+      ...mocks,
+      $route: {
+        ...mocks.$route,
+        query: {
+          AS:     '',
+          type:   'suse-application-collection',
+          chart:  'alertmanager',
+          secret: 'fleet-appco-auth-2n9px',
+        },
+        params: { cluster: 'local' },
+      },
+      $router: {
+        ...mocks.$router,
+        push: routerPush,
+      },
+    };
+
+    const wrapper = mount(HelmOpComponent, {
+      ...initHelmOp({ mode: _CREATE, realMode: _CREATE }),
+      computed: {
+        ...mockComputed,
+        isSuseAppCollection: () => true,
+      },
+      global: { mocks: appCoMocks },
+    });
+
+    wrapper.vm.onCancel();
+
+    expect(routerPush).toHaveBeenCalledWith({
+      name:   'c-cluster-fleet-application-appco-chart',
+      params: { cluster: 'local' },
+      query:  {
+        'repo-type': 'cluster',
+        repo:        'fleet-appco-repo-2n9px',
+        chart:       'alertmanager',
+        version:     undefined,
+        secret:      'fleet-appco-auth-2n9px',
+      },
+    });
+  });
+
+  it('should call done() when not a SuseAppCollection', () => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode: _CREATE, realMode: _CREATE }));
+
+    jest.spyOn(wrapper.vm, 'done').mockImplementation(jest.fn());
+    wrapper.vm.onCancel();
+
+    expect(wrapper.vm.done).toHaveBeenCalledWith();
   });
 });
 
@@ -307,6 +421,12 @@ describe.each([
     expect(wrapper.vm.value.spec.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
 
+  it('should have a beforeNext method', () => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ mode }));
+
+    expect(typeof wrapper.vm.beforeNext).toBe('function');
+  });
+
   if (mode === _CREATE) {
     it('should set created-by-user-id label when updateBeforeSave is called in CREATE mode', () => {
       const mockCurrentUser = { id: 'user-123' };
@@ -360,4 +480,99 @@ describe.each([
       expect(wrapper.vm.value.metadata.labels['fleet.cattle.io/created-by-user-id']).toBeUndefined();
     });
   }
+});
+
+describe('view: fleet.cattle.io.helmop, beforeNext dryRun validation', () => {
+  const initHelmOpWithMetadata = (props: any) => {
+    const value = new HelmOp({
+      ...mockHelmOp,
+      metadata: {
+        name:      'test-helmop',
+        namespace: 'fleet-default',
+      },
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    value.applyDefaults = () => {};
+
+    return {
+      props: {
+        value,
+        ...props
+      },
+      provide: {
+        store: createStore({
+          getters: {
+            currentStore:                   () => 'current_store',
+            'management/paginationEnabled': () => () => false
+          }
+        })
+      },
+      computed: mockComputed,
+      global:   { mocks },
+    };
+  };
+
+  it('should call dryRunCreate when leaving basics step in create mode', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockResolvedValue({});
+
+    await vm.beforeNext({ name: 'basics' });
+
+    expect(vm.value.dryRunCreate).toHaveBeenCalledWith(expect.objectContaining({
+      type:     'fleet.cattle.io.helmop',
+      metadata: expect.objectContaining({
+        name:      'test-helmop',
+        namespace: 'fleet-default',
+      }),
+      spec: expect.objectContaining({
+        helm: expect.objectContaining({
+          chart: 'placeholder',
+          repo:  'https://example.com',
+        }),
+      }),
+    }));
+  });
+
+  it('should not call dryRunCreate for non-basics steps', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'chart' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should not call dryRunCreate in edit mode', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _EDIT }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'basics' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject with API errors when dryRunCreate fails', async() => {
+    const apiError = {
+      _status:    409,
+      message:    'helmops.fleet.cattle.io "test-helmop" already exists',
+      statusText: 'Conflict',
+    };
+
+    const wrapper = mount(HelmOpComponent, initHelmOpWithMetadata({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+
+    await expect(vm.beforeNext({ name: 'basics' })).rejects.toStrictEqual(apiError);
+  });
 });

@@ -5,25 +5,39 @@ import { set } from '@shell/utils/object';
 
 export default class AlertmanagerConfig extends SteveModel {
   applyDefaults() {
-    if (this.spec) {
-      return this.spec;
-    }
-    const existingReceivers = this.spec?.route?.receivers || [];
+    const spec = this.spec || {};
 
-    const defaultSpec = {
-      receivers: [...existingReceivers],
-      route:     {
-        receivers:      this.spec?.route?.receivers || [],
-        groupBy:        this.spec?.route?.groupBy || [],
-        groupWait:      this.spec?.route?.groupWait || '30s',
-        groupInterval:  this.spec?.route?.groupInterval || '5m',
-        repeatInterval: this.spec?.route?.repeatInterval || '4h',
-        match:          this.spec?.route?.match || {},
-        matchRe:        this.spec?.route?.matchRe || {}
+    spec.receivers = spec.receivers || [];
+
+    // Always provide a route object so the Route tab has something to bind to,
+    // even when loading a resource that was saved without `spec.route`.
+    const route = { ...(spec.route || {}) };
+
+    route.groupBy = route.groupBy || [];
+    route.groupWait = route.groupWait || '30s';
+    route.groupInterval = route.groupInterval || '5m';
+    route.repeatInterval = route.repeatInterval || '4h';
+    route.matchers = route.matchers || [];
+
+    spec.route = route;
+
+    set(this, 'spec', spec);
+  }
+
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data, forNew);
+    const route = val?.spec?.route;
+
+    if (route) {
+      // When a route is present its `receiver` is required and must match an
+      // entry in `spec.receivers`. Until the user has defined a receiver the
+      // root route can't direct alerts anywhere, so drop it entirely
+      if (!route.receiver) {
+        delete val.spec.route;
       }
-    };
+    }
 
-    set(this, 'spec', defaultSpec);
+    return val;
   }
 
   get _availableActions() {

@@ -22,11 +22,13 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/table-headers.js --declara
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/version.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/product/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config/product > /dev/null
 
 # # store
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/plugins.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/store-types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
 # # plugins
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/i18n.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/ > /dev/null
@@ -93,6 +95,16 @@ function processDir() {
         echo "declare module '${module}' {" >> ${INDEX}
         cat $entry >> ${INDEX}
         echo -e "}" >> ${INDEX}
+
+        # Also generate a module declaration with .js extension for JS source files
+        # TypeScript imports use .js extensions for JS files
+        if [ "${name}" != "index" ]; then
+          local moduleWithJs=${basePkg}/${name}.js
+          echo -e "\n// ${moduleWithJs}\n" >> ${INDEX}
+          echo "declare module '${moduleWithJs}' {" >> ${INDEX}
+          cat $entry >> ${INDEX}
+          echo -e "}" >> ${INDEX}
+        fi
       fi
     fi
   done

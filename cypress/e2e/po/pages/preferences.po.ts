@@ -85,6 +85,18 @@ export default class PreferencesPagePo extends PagePo {
     return new RadioGroupInputPo('[data-testid="prefs__landingPagePreference"]');
   }
 
+  customPageOptionsDropdown(): LabeledSelectPo {
+    return new LabeledSelectPo('.custom-page-options');
+  }
+
+  expectThemeOptionSelected(theme = 'auto') {
+    this.themeButtons().isSelected(theme);
+  }
+
+  expectClusterOptionExists(clusterName = 'local') {
+    this.customPageOptionsDropdown().self().should('contain', clusterName);
+  }
+
   checkLangDomElement(label: string) {
     return cy.get(label).should('exist');
   }

@@ -131,11 +131,17 @@ const isWaitingForDestroy = (storeName, store) => {
 };
 
 const waitForSettingsSchema = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING),
+    'management settings schema to be available'
+  );
 };
 
 const waitForSettings = (storeName, store) => {
-  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
+  return waitFor(
+    () => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE),
+    'UI performance settings to be available'
+  );
 };
 
 const isAdvancedWorker = (ctx) => {
@@ -195,8 +201,20 @@ export async function createWorker(store, ctx) {
     };
   }
 
-  await waitForSettingsSchema(storeName, store);
-  await waitForSettings(storeName, store);
+  try {
+    await waitForSettingsSchema(storeName, store);
+    await waitForSettings(storeName, store);
+  } catch (e) {
+    // Clean up the mock worker and abort so callers are not permanently blocked.
+    if (store.$workers[storeName]?.destroy) {
+      store.$workers[storeName].destroy();
+    } else {
+      delete store.$workers[storeName];
+    }
+
+    return;
+  }
+
   if (store.$workers[storeName].waitingForDestroy()) {
     store.$workers[storeName].destroy();
 
@@ -382,6 +400,13 @@ const sharedActions = {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
+
+      // createWorker cleans up and returns early when schema/settings are unavailable.
+      // Guard against calling postMessage on a non-existent worker.
+      if (!this.$workers[getters.storeName]) {
+        return;
+      }
+
       const options = { parseJSON: false };
       const csrf = rootGetters['cookies/get']({ key: CSRF, options });
 
@@ -444,8 +469,10 @@ const sharedActions = {
     const worker = (this.$workers || {})[getters.storeName];
 
     if (worker) {
+      const storeName = getters.storeName;
+
       worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      cleanupTasks.push(waitFor(() => !this.$workers[getters.storeName], 'Worker is destroyed'));
+      cleanupTasks.push(waitFor(() => !this.$workers?.[storeName], 'Worker to be destroyed', 30000, 10, true));
     }
 
     if ( socket ) {
@@ -528,16 +555,31 @@ const sharedActions = {
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true, registerType = false
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      if (registerType) {
+        commit('registerType', type);
+      } else if (mode !== STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // - If we continue and open up a watch whenever we receive a `resource.` notification we go to queueChanges (bar resource.changes mode).
+        // - queueChanges ignores any change that's for a type that hasn't been registered
+        // - So here we're just exiting early, avoiding the watch --> queueChanges --> ignore loop
+        //
+        // Interestingly this is hit quite a few times (on cluster create screens there's token, cluster, project, projectRoleTemplateBinding, etc)
+        state.debugSocket && console.info('Will not Watch (type is not registered)', JSON.stringify(params)); // eslint-disable-line no-console
+
+        return;
+      }
+    }
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
@@ -595,6 +637,9 @@ const sharedActions = {
         if (debounceMs) {
           msg.debounceMs = debounceMs;
         }
+
+        // Anything in the queue will pollute the result set, so clear (and print to console so we know it's working)
+        commit('clearFromQueue', { type, log: true });
       }
     }
 
@@ -789,6 +834,17 @@ const defaultActions = {
     state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
 
     for ( const { action, event, body } of queue ) {
+      const havePage = getters['havePage'](body?.type);
+
+      if (havePage) {
+        // eslint-disable-next-line no-console
+        console.warn(`Prevented watch \`flush\` data from polluting the cache for type "${ body?.type }" (currently represents a page)`, {
+          action, event, body
+        });
+
+        continue;
+      }
+
       if ( action === 'dispatch' && event === 'load' ) {
         // Group loads into one loadMulti when possible
         toLoad.push(body);
@@ -1531,10 +1587,20 @@ const defaultMutations = {
     state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
-  clearFromQueue(state, type) {
+  clearFromQueue(state, args) {
+    const safeArgs = typeof args === 'object' ? args : { type: args };
+    const { type, log } = safeArgs;
+
     // Remove anything in the queue that is a resource update for the given type
     state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
+      const keep = item.body?.type !== type;
+
+      if (!keep && log) {
+        // eslint-disable-next-line no-console
+        console.info(`Clearing queued item of type \`${ type }\` from queue`, item);
+      }
+
+      return keep;
     });
   },
 };

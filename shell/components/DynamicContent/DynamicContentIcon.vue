@@ -7,6 +7,7 @@ import { useStore } from 'vuex';
 import { computed } from 'vue';
 
 import { AnnouncementNotificationIconData } from '@shell/utils/dynamic-content/types';
+import { requireAsset } from '@shell/utils/require-asset';
 
 type KeyValues = {
   [key: string]: string;
@@ -49,9 +50,9 @@ const src = computed(() => {
     const themePrefix = theme.value === 'dark' ? 'dark/' : '';
 
     try {
-      return require(`~shell/assets/images/content/${ themePrefix }${ img }`);
+      return requireAsset(`~shell/assets/images/content/${ themePrefix }${ img }`);
     } catch {
-      return require(`~shell/assets/images/content/${ img }`);
+      return requireAsset(`~shell/assets/images/content/${ img }`);
     }
   }
 

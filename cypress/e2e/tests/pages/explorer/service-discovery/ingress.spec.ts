@@ -29,7 +29,12 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     // testing https://github.com/rancher/dashboard/issues/11086
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
 
-    cy.title().should('eq', 'Rancher - local - Ingresses');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+
+      cy.log(`Expected title is: ${ expectedTitle }`);
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('can open "Edit as YAML"', () => {
@@ -74,8 +79,6 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
     it('can select rules and certificates in Create mode', () => {
       cy.viewport(1440, 900);
-
-      cy.log('!!!!!!!!!!!!!!!!!!', namespace);
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
@@ -213,6 +216,78 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
     });
+
+    it('can create an Ingress targeting a headless service and wait for Active state', () => {
+      const headlessServiceName = Cypress._.uniqueId(`headless-svc-${ Date.now().toString() }`);
+      const ingressHeadlessName = Cypress._.uniqueId(`ingress-headless-${ Date.now().toString() }`);
+
+      cy.createService(namespace, headlessServiceName, {
+        spec: {
+          clusterIP: 'None',
+          ports:     [{
+            name:       'myport',
+            port:       8080,
+            protocol:   'TCP',
+            targetPort: 80
+          }],
+          type: 'ClusterIP'
+        }
+      });
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressHeadlessName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .clickOptionWithLabel(namespace);
+
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
+      ingressCreatePagePo.setPortValueByLabel(0, '8080');
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
+
+          const rule = response?.body?.spec?.rules?.[0];
+
+          expect(rule).to.have.property('host', 'example-headless.com');
+          expect(rule).to.have.property('http');
+          expect(rule.http.paths).to.be.an('array').with.length.greaterThan(0);
+
+          const path = rule.http.paths[0];
+
+          expect(path).to.have.property('pathType', 'ImplementationSpecific');
+          expect(path.backend.service).to.deep.include({
+            name: headlessServiceName,
+            port: { number: 8080 }
+          });
+        });
+
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .column(1)
+        .should('contain.text', 'Active');
+    });
+
+    after('clean up namespaced resources', () => {
+      if (namespace) {
+        cy.deleteNamespace([namespace]);
+      }
+    });
   });
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
@@ -290,7 +365,5 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
   after('clean up', () => {
     cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
-
-    cy.deleteNamespace([namespace]);
   });
 });

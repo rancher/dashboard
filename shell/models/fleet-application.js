@@ -7,6 +7,7 @@ import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
@@ -29,6 +30,10 @@ function normalizeStateCounts(data) {
 }
 
 export default class FleetApplication extends SteveModel {
+  get applicationType() {
+    return this.kind;
+  }
+
   async getCurrentUser() {
     const user = this.$rootGetters['auth/user'];
 
@@ -105,7 +110,7 @@ export default class FleetApplication extends SteveModel {
 
     for (const tgt of this.spec.targets) {
       if (tgt.clusterName) {
-        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
+        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName) || findBy(clusters, 'nameDisplay', tgt.clusterName);
 
         if (cluster) {
           addObject(out, cluster);
@@ -138,7 +143,8 @@ export default class FleetApplication extends SteveModel {
   }
 
   get targetInfo() {
-    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace);
+    const areHarvesterHostsVisible = this.$rootGetters['features/get'](HARVESTER_CONTAINER);
+    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace, areHarvesterHostsVisible);
 
     return {
       mode,

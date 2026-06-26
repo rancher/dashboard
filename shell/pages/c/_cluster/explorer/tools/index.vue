@@ -98,7 +98,7 @@ export default {
           },
           subHeaderItems: chart.cardContent.subHeaderItems,
           footerItems:    chart.deploysOnWindows ? [{
-            icon:        'icon-tag-alt',
+            icon:        'tag-alt',
             iconTooltip: { key: 'generic.tags' },
             labels:      [this.t('catalog.charts.deploysOnWindows')],
           }] : [],

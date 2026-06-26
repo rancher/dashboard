@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
-import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ScalerPo extends ComponentPo {
   constructor(selector = '[data-testid="scaler"]') {

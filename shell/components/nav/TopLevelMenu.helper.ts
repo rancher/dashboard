@@ -35,7 +35,18 @@ interface UpdateArgs {
 }
 
 type MgmtCluster = {
-  [key: string]: any
+  [key: string]: any,
+  id: string,
+  nameDisplay: string,
+  canExplore: boolean,
+  providerMenuLogo: string,
+  badge: string,
+  iconColor: string,
+  isLocal: boolean,
+  pinned: boolean,
+  description: string,
+  pin: () => void
+  unpin: () => void
 }
 
 type ProvCluster = {
@@ -107,7 +118,6 @@ export interface TopLevelMenuHelper {
 
 export abstract class BaseTopLevelMenuHelper {
   protected $store: VuexStore;
-  protected hasProvCluster: boolean;
 
   /**
   * Filter mgmt clusters by
@@ -143,15 +153,14 @@ export abstract class BaseTopLevelMenuHelper {
     $store: VuexStore,
 }) {
     this.$store = $store;
-
-    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
   }
 
-  protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
+  protected convertToCluster(mgmtCluster: MgmtCluster, provCluster?: ProvCluster): TopLevelMenuCluster {
     return {
       id:              mgmtCluster.id,
       label:           mgmtCluster.nameDisplay,
-      ready:           mgmtCluster.isReady,
+      // Align side nav cluster, home page name link and cluster management cluster explore buttons on canExplore
+      ready:           mgmtCluster.canExplore,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
       iconColor:       mgmtCluster.iconColor,
@@ -173,7 +182,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
   private clustersPinnedWrapper: PaginationWrapper<any>;
   private clustersOthersWrapper: PaginationWrapper<any>;
-  private provClusterWrapper: PaginationWrapper<any>;
 
   private clusterCount = 0;
 
@@ -223,43 +231,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       },
       formatResponse: { classify: true },
     });
-    // Fetch all prov clusters for the mgmt clusters we have
-    this.provClusterWrapper = new PaginationWrapper({
-      $store,
-      id:       'top-level-menu-prov-clusters',
-      onChange: async({ forceWatch, revision }) => {
-        if (!this.args) {
-          return;
-        }
-        try {
-          await this.update({
-            ...this.args,
-            forceWatch,
-            provClusterRevision: revision,
-          });
-        } catch {
-          // Failures should be logged lower down, not much we can do here except catch to prevent whole ui page warnings in dev mode
-        }
-      },
-      enabledFor: {
-        store:    STORE.MANAGEMENT,
-        resource: {
-          id:      CAPI.RANCHER_CLUSTER,
-          context: 'side-bar',
-        }
-      },
-      formatResponse: { classify: true }
-    });
   }
 
   // ---------- requests ----------
   async update(args: UpdateArgs) {
-    if (!this.hasProvCluster) {
-      // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
-      // exit early
-      return;
-    }
-
     this.args = args;
     const promises = {
       pinned:    this.updatePinned(args),
@@ -271,22 +246,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
 
-    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
-    const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
-      if (provCluster.mgmtClusterId) {
-        res[provCluster.mgmtClusterId] = provCluster;
-      }
-
-      return res;
-    }, {} as { [mgmtId: string]: ProvCluster});
-
     // Filter out mgmt clusters that don't have matching prov cluster and convert remaining to required format
     const _clustersNotPinned = res.notPinned
-      .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
-      .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
+      .map((mgmtCluster) => this.convertToCluster(mgmtCluster));
     const _clustersPinned = res.pinned
-      .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
-      .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
+      .map((mgmtCluster) => this.convertToCluster(mgmtCluster));
 
     this.clustersPinned.length = 0;
     this.clustersOthers.length = 0;
@@ -298,7 +262,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   async destroy() {
     this.clustersPinnedWrapper.onDestroy();
     this.clustersOthersWrapper.onDestroy();
-    this.provClusterWrapper.onDestroy();
   }
 
   /**
@@ -445,40 +408,20 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       console.warn('Unable to set saved count for clusters', err); // eslint-disable-line no-console
     }
   }
-
-  /**
-   * Find all provisioning clusters associated with the displayed mgmt clusters
-   */
-  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], args: UpdateArgs): Promise<ProvCluster[]> {
-    return this.provClusterWrapper.request({
-      forceWatch: args.forceWatch,
-      pagination: {
-        filters: [
-          PaginationParamFilter.createMultipleFields(
-            [...notPinned, ...pinned]
-              .map((mgmtCluster) => ({
-                field: 'status.clusterName', value: mgmtCluster.id, equals: true, exact: true
-              }))
-          )
-        ],
-        page:                 1,
-        sort:                 [],
-        projectsOrNamespaces: []
-      },
-      revision: args.provClusterRevision
-    })
-      .then((r) => r.data);
-  }
 }
 
 /**
  * Helper designed to supply non-paginated results for the top level menu cluster resources
  */
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
+  protected hasProvCluster: boolean;
+
   constructor({ $store }: {
     $store: VuexStore,
   }) {
     super({ $store });
+
+    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     if (this.hasProvCluster) {
       $store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
@@ -557,7 +500,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     const maxClustersToShow = args.unPinnedMax || 10;
 
     const search = (clusterFilter || '').toLowerCase();
-    let localCluster: MgmtCluster | null = null;
+    let localCluster: TopLevelMenuCluster | null = null;
 
     const filtered = clusters.filter((c) => {
       // If we're searching we don't care if pinned or not
@@ -663,9 +606,6 @@ class TopLevelMenuHelperService {
 
     const canPagination = $store.getters[`management/paginationEnabled`]({
       id:      MANAGEMENT.CLUSTER,
-      context: 'side-bar',
-    }) && $store.getters[`management/paginationEnabled`]({
-      id:      CAPI.RANCHER_CLUSTER,
       context: 'side-bar',
     });
 

@@ -1,5 +1,6 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
+import { requireAsset } from '@shell/utils/require-asset';
 
 let favIconSet = false;
 
@@ -16,11 +17,11 @@ export function setFavIcon(store) {
     let brandImage;
 
     if (brandSetting === 'suse') {
-      brandImage = require('~shell/assets/brand/suse/favicon.png');
+      brandImage = requireAsset('~shell/assets/brand/suse/favicon.png');
     } else if (brandSetting === 'csp') {
-      brandImage = require('~shell/assets/brand/csp/favicon.png');
+      brandImage = requireAsset('~shell/assets/brand/csp/favicon.png');
     } else if (brandSetting === 'harvester') {
-      brandImage = require('~shell/assets/brand/harvester/favicon.png');
+      brandImage = requireAsset('~shell/assets/brand/harvester/favicon.png');
     }
 
     link.href = res?.value || brandImage || defaultFavIcon;

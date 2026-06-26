@@ -77,21 +77,19 @@ const previewId = randomStr();
   position: relative;
   padding: 0;
 
+  $topShift: -6px;
+  $topShiftHidden: -100vh; //100% of the viewport
+
   .copy-to-clipboard {
     position: fixed;
 
     right: -20px;
-    top: -6px;
-    z-index: 20px;
+    top: $topShiftHidden;
+    z-index: z-index('copyToClipboard');
   }
 
   &, .btn, .rc-tag {
     max-width: calc(100%);
-  }
-
-  .rc-tag {
-    display: inline-block;
-    line-height: normal;
   }
 
   .tag-data {
@@ -99,8 +97,9 @@ const previewId = randomStr();
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
     max-width: calc(100%);
-    line-height: normal;
+    line-height: 1;
   }
 
   & .btn.btn-medium.rc-button.variant-ghost {
@@ -126,13 +125,16 @@ const previewId = randomStr();
       }
 
       & + .copy-to-clipboard {
+        // This is how we "hide" the component but still allow it to be visible to accessibility (tab focus)
         position: absolute;
+        top: $topShift;
       }
     }
 
     .copy-to-clipboard:focus-visible, .copy-to-clipboard:hover {
+      // This is how we "hide" the component but still allow it to be visible to accessibility (tab focus)
       position: absolute;
-
+      top: $topShift;
     }
 
     .btn:has(+ .copy-to-clipboard:focus-visible), .btn:has(+ .copy-to-clipboard:hover)  {

@@ -1,5 +1,6 @@
 import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
 import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
@@ -55,6 +56,14 @@ export default class Secret extends SteveModel {
   // For Fleet SSH secrets - does the secret have the 'known_hosts' data key?
   get supportsSshKnownHosts() {
     return this._type === TYPES.SSH && !!this.data && 'known_hosts' in this.data;
+  }
+
+  // A GitHub App auth secret is an Opaque secret holding the GitHub App data keys
+  get isGithubApp() {
+    return this._type === TYPES.OPAQUE && !!this.data &&
+      GITHUB_APP_SECRET_KEYS.APP_ID in this.data &&
+      GITHUB_APP_SECRET_KEYS.INSTALLATION_ID in this.data &&
+      GITHUB_APP_SECRET_KEYS.PRIVATE_KEY in this.data;
   }
 
   get issuer() {
@@ -237,6 +246,11 @@ export default class Secret extends SteveModel {
       return this.sshUser;
     } else if ( this._type === TYPES.SERVICE_ACCT ) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
+    } else if ( this.isGithubApp ) {
+      const appId = base64Decode(this.data[GITHUB_APP_SECRET_KEYS.APP_ID]);
+      const installationId = base64Decode(this.data[GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]);
+
+      return `${ appId } / ${ installationId }`;
     }
 
     return this.keysDisplay;
@@ -274,6 +288,11 @@ export default class Secret extends SteveModel {
 
   get subTypeDisplay() {
     const type = this._type || '';
+
+    if ( this.isGithubApp ) {
+      return this.$rootGetters['i18n/withFallback'](`secret.githubApp.label`, null, 'GitHub App');
+    }
+
     const fallback = type.replace(/^kubernetes.io\//, '');
 
     return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);

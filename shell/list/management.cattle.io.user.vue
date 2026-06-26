@@ -7,6 +7,9 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
 import TableDataUserIcon from '@shell/components/TableDataUserIcon';
+import { RcButton } from '@components/RcButton';
+import { allHash } from '@shell/utils/promise';
+import Loading from '@shell/components/Loading.vue';
 
 export default {
   components: {
@@ -14,6 +17,8 @@ export default {
     ResourceTable,
     Masthead,
     TableDataUserIcon,
+    RcButton,
+    Loading
   },
   mixins: [ResourceFetch],
   props:  {
@@ -38,9 +43,16 @@ export default {
     }
   },
   async fetch() {
-    await this.$fetchType(this.resource);
+    const promises = {
+      resources:                 this.$fetchType(this.resource),
+      localProviderEnabled:      this.$store.dispatch('auth/getLocalProviderEnabled'),
+      membershipRefreshRequests: this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS }),
+    };
 
-    this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
+    const res = await allHash(promises);
+
+    this.localProviderEnabled = res.localProviderEnabled;
+    this.membershipRefreshRequests = res.membershipRefreshRequests;
     this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
   },
 
@@ -85,7 +97,14 @@ export default {
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
-    }
+    },
+
+    canCreateUsers() {
+      const userCan = !!this.schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+      const systemCan = this.localProviderEnabled;
+
+      return userCan && systemCan;
+    },
   },
 
   methods: {
@@ -105,13 +124,15 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :schema="schema"
       :resource="resource"
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+      :is-creatable="canCreateUsers"
     >
       <template #extraActions>
         <AsyncButton
@@ -128,14 +149,17 @@ export default {
         v-if="isAdmin"
         #subHeader
       >
-        <router-link
+        <rc-button
+          variant="link"
+          class="btn-user-retention"
           :to="{ name: 'c-cluster-auth-user.retention'}"
-          class="btn role-link btn-sm btn-user-retention"
           data-testid="router-link-user-retention"
         >
-          <i class="icon icon-gear" />
+          <template #before>
+            <i class="icon icon-gear" />
+          </template>
           {{ t('user.retention.button.label') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
 
@@ -159,10 +183,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-  .btn-user-retention {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0;
+<style lang="scss" scoped>
+  a.rc-button.variant-link.btn-user-retention {
+    padding: 0; //retain the padding override for left-alignment with the header
   }
 </style>

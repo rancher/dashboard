@@ -118,8 +118,5 @@ scripts/standalone/ui
 scripts/standalone/cert
 scripts/standalone/node
 
-# yarn.lock files
-docusaurus/yarn.lock
-
 # GitHub actions scripts output
 codecov

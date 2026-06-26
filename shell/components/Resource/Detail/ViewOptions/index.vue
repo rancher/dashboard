@@ -14,7 +14,8 @@ const view = ref(currentView.value);
 const viewOptions = computed(() => {
   return [
     {
-      labelKey: 'resourceDetail.masthead.config',
+      labelKey: 'resourceDetail.masthead.detail',
+      // _CONFIG is the default when there is no query on the router
       value:    _CONFIG,
     },
     {

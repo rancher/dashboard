@@ -166,13 +166,22 @@ function createMemoryUnits(n) {
 export function createMemoryValues(total, useful) {
   const parsedTotal = parseSi((total || '0').toString());
   const parsedUseful = parseSi((useful || '0').toString());
-  const format = createMemoryFormat(parsedTotal);
-  const formattedTotal = formatSi(parsedTotal, format);
-  const formattedUseful = formatSi(parsedUseful, format);
+
+  // Determine the appropriate unit based on total
+  const exponent = exponentNeeded(parsedTotal, 1024);
+  const divisor = 1024 ** exponent;
+
+  // Convert bytes to the appropriate unit, preserving precision
+  const totalInUnits = parsedTotal / divisor;
+  const usefulInUnits = parsedUseful / divisor;
+
+  // Apply maxPrecision rounding (2 decimal places) directly to numbers
+  const roundedTotal = Math.round(totalInUnits * 100) / 100;
+  const roundedUseful = Math.round(usefulInUnits * 100) / 100;
 
   return {
-    total:  Number.parseFloat(formattedTotal),
-    useful: Number.parseFloat(formattedUseful),
+    total:  roundedTotal,
+    useful: roundedUseful,
     units:  createMemoryUnits(parsedTotal)
   };
 }

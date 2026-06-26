@@ -1,7 +1,9 @@
-import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import { IExtensionProducts } from '@shell/core/plugin-products-external';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
+import { TypeMapProduct } from '@shell/types/store/type-map';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -21,14 +23,14 @@ export interface PackageMetadata {
 //   children: Route[];
 // }
 
+export type PluginRouteRecordRaw = { [key: string]: any }
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
 export type CoreStoreInit = (store: any, ctx: any) => void;
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
-
-export type PluginRouteRecordRaw = { [key: string]: any }
 
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
@@ -193,112 +195,6 @@ export type ExtensionEnvironment = {
   isPrime: boolean;
   docsVersion: string; /** e.g. 'v2.10' */
 };
-
-export interface ProductOptions {
-  /**
-   * The category this product belongs under. i.e. 'config'
-   */
-  category?: string;
-
-  /**
-   * Hide the Copy KubeConfig button in the header
-   */
-  hideCopyConfig?: boolean;
-
-  /**
-   * Hide the Download KubeConfig button in the header
-   */
-  hideKubeConfig?: boolean;
-
-  /**
-   * Hide the Kubectl Shell button in the header
-   */
-  hideKubeShell?: boolean;
-
-  /**
-   * Hide the Namespace location
-   */
-  hideNamespaceLocation?: boolean;
-
-  /**
-   * Hide the system resources
-   */
-
-  hideSystemResources?: boolean;
-  /**
-   * The icon that should be displayed beside this item in the navigation.
-   */
-  icon?: string,
-
-  /**
-   * Only load the product if the feature is present
-   */
-  ifFeature?: string | RegExp;
-
-  /**
-   * Only load the product if the type is present
-   */
-  ifHave?: string;
-
-  /**
-   * Only load the product if the group is present
-   */
-  ifHaveGroup?: string | RegExp;
-
-  /**
-   * Only load the product if the type is present
-   */
-  ifHaveType?: string | RegExp;
-
-  /**
-   * Hide the product if the type is present (opposite of ifHaveType)
-   */
-  ifNotHaveType?: string | RegExp;
-
-  /**
-   * The vuex store that this product should use by default i.e. 'management'
-   */
-  inStore?: string;
-
-  /**
-   * Show the cluster switcher in the navigation
-   */
-  showClusterSwitcher?: boolean;
-
-  /**
-   * Show the namespace filter in the header
-   */
-  showNamespaceFilter?: boolean;
-
-  /**
-   * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
-   */
-  weight?: number;
-
-  /**
-   * The route that the product will lead to if click on in navigation.
-   */
-  to?: PluginRouteRecordRaw;
-
-  /**
-   * Alternative to the icon property. Uses require
-   */
-  svg?: Function;
-
-  /**
-   * Product name
-   */
-  name?: string;
-
-  /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
-   */
-  // ifHaveVerb: string | RegExp;
-  // removable: string;
-  // showWorkspaceSwitcher: boolean;
-  // supportRoute: string;
-  // typeStoreMap: string;
-}
 
 /**
  * Configuration required to show a header in a ResourceTable
@@ -489,9 +385,11 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   name: string;
 
   /**
-   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
+   * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw} {@link RouteRecordRawWithParams}
    */
-  route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+  route: PluginRouteRecordRaw | RouteRecordRaw | RouteRecordRawWithParams | Object;
+
+  weight?: number;
 }
 
 export interface DSLReturnType {
@@ -501,7 +399,7 @@ export interface DSLReturnType {
    * @param group Conditionally a group you want to places all the types in
    * @returns {@link void}
    */
-  basicType: (types: string[], group?: string) => void;
+  basicType: (types: string[] | string, group?: string) => void;
 
   /**
    * Configure a myriad of options for the specified type
@@ -517,22 +415,40 @@ export interface DSLReturnType {
    * @param headers {@link HeaderOptions[]}
    * @returns {@link void}
    */
-  headers: (type: string, headers: HeaderOptions[]) => void;
+  headers: (type: string, headers?: HeaderOptions[], paginationHeaders?: PaginationHeaderOptions[]) => void;
 
   /**
    * Create and register a new product
    * @param options {@link ProductOptions}
    * @returns {@link void}
    */
-  product: (options: ProductOptions) => void;
+  product: (options: TypeMapProduct) => void;
 
   /**
-   * Create and label a group. The group will show up in navigation
-   * @param groupNane Name of the group
-   * @param label Label in navigation
+   /**
+   * Remap group display names in the side-menu navigation.
+   *
+   * Each entry matches a group's internal ID (via string or regex) and replaces its display label
+   * with a new name. This only changes how the group is labelled in the UI — it does not move
+   * resources between groups.
+   *
+   * @param match String, string for a regex or a regex object to match against group names
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
    * @returns {@link void}
    */
-  mapGroup: (groupName: string, label: string) => void;
+  mapGroup: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
+
+  /**
+   * Remap a type ID to a display name
+   * @param match String, string for a regex or a regex object to match against type IDs
+   * @param replace Replacement string or function for the display name
+   * @param weight Priority for applying this mapping (higher numbers applied first, default 5)
+   * @param continueOnMatch If true, continue matching other rules after this one matches
+   * @returns {@link void}
+   */
+  mapType: (match: string | RegExp, replace: string | Function, weight?: number, continueOnMatch?: boolean) => void;
 
   /**
    * Create and configure a myriad of options for a type
@@ -560,18 +476,40 @@ export interface DSLReturnType {
   weightType: (input: string, weight: number, forBasic: boolean) => void;
 
   /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   * Never show the specified type in the navigation
+   * @param regexOrString String, string for a regex or a regex object to match against type names
+   * @returns {@link void}
    */
-  // componentForType: (type: string, replacementType: string)
-  // groupBy: (type: string, field: string)
-  // hideBulkActions: (type: string, field)
-  // ignoreGroup: (regexOrString)
-  // ignoreType: (regexOrString)
-  //
-  // mapType: (match, replace)
-  // moveType: (match, group)
-  // setGroupDefaultType: (input, defaultType)
-  // spoofedType: (obj)
+  ignoreType: (regexOrString: string | RegExp) => void;
+
+  /**
+   * Never show the specified group or any types in it
+   * @param regexOrString String, string for a regex or a regex object to match against group names
+   * @param fn Conditional function that accepts getters and returns true if the group should be ignored
+   * @returns {@link void}
+   */
+  ignoreGroup: (regexOrString: string | RegExp, fn?: (getters: any) => boolean) => void;
+
+  /**
+   * Move a resource type into a different navigation group
+   * @param match String or regex to match against resource type names
+   * @param group Target group name to move the matched types into
+   * @param weight Ordering weight for the mapping (default: 5)
+   * @returns {@link void}
+   */
+  moveType: (match: string | RegExp, group: string, weight?: number) => void;
+
+  /**
+   * Control visibility of bulk actions (e.g. delete) in the list view toolbar for a specific resource type
+   * @param type The resource type to configure
+   * @param hide Whether to hide bulk actions. Set to `true` to hide them
+   * @returns {@link void}
+   */
+  hideBulkActions: (type: string, hide: boolean) => void;
+
+  labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
+
+  setGroupDefaultType: (group: string, defaultType: string) => void;
 }
 
 /**
@@ -607,17 +545,12 @@ export type ModelExtensionContext = {
 /**
  * Constructor signature for a model extension
  */
-export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
+export type ModelExtensionConstructor = new (context: ModelExtensionContext) => Object;
 
 /**
- * Interface for a Dashboard plugin
+ * Interface for a UI Extension
  */
-export interface IPlugin {
-  /**
-   * Add a product
-   * @param importFn Function that will import the module containing a product definition
-   */
-  addProduct(importFn: ProductFunction): void;
+export interface IExtension extends IExtensionProducts {
 
   /**
    * Add a locale to the i18n store
@@ -644,8 +577,8 @@ export interface IPlugin {
   /**
    * Add a route to the Vue Router
    */
-  addRoute(route: RouteRecordRaw): void;
-  addRoute(parent: string, route: RouteRecordRaw): void;
+  addRoute(route: RouteRecordRawWithParams | RouteRecordRaw): void;
+  addRoute(parent: string, route: RouteRecordRawWithParams | RouteRecordRaw): void;
 
   /**
    * Adds an action/button to the UI
@@ -698,7 +631,7 @@ export interface IPlugin {
   /**
    * Add routes to the Vue Router
    */
-  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]): void;
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRawWithParams[] | RouteRecordRaw[]): void;
 
    /**
     * Add a hook to be called when the plugin is uninstalled
@@ -755,6 +688,7 @@ export interface IPlugin {
 
   /**
    * Will return all of the configuration functions used for creating a new product.
+   * @deprecated Should use `addProduct` and `extendProduct` instead and avoid using this directly
    * @param store The store that was passed to the function that's passed to `plugin.addProduct(function)`
    * @param productName The name of the new product. This name is displayed in the navigation.
    */
@@ -765,6 +699,12 @@ export interface IPlugin {
    */
   get environment(): ExtensionEnvironment;
 }
+
+/**
+ * Legacy interface for a plugin, which is just an extension but with the `DSL` function.
+ * @deprecated Should use `IExtension` interface instead
+ */
+export type IPlugin = IExtension;
 
 // Internal interface
 // Built-in extensions may use this, but external extensions should not, as this is subject to change

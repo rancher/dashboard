@@ -18,6 +18,7 @@ export function init(store) {
     ifHave:              IF_HAVE.NOT_V1_ISTIO,
     icon:                'istio',
     showNamespaceFilter: true,
+    extendable:          true,
   });
 
   virtualType({

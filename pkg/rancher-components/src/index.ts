@@ -1,4 +1,5 @@
 export * from './components/RcButton';
+export { RcButtonSplit } from './components/RcButtonSplit';
 export { Card } from './components/Card';
 export { BadgeState } from './components/BadgeState';
 export { Banner } from './components/Banner';
@@ -11,6 +12,7 @@ export {
   RcDropdownMenu
 } from './components/RcDropdown';
 export { RcIcon } from './components/RcIcon';
+export { RcSection } from './components/RcSection';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
 export { default as RcCounterBadge } from './components/Pill/RcCounterBadge';
 export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';

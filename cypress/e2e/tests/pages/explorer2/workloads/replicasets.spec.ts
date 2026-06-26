@@ -1,7 +1,8 @@
 import { WorkloadsReplicasetsListPagePo, WorkloadsReplicasetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-replicasets.po';
 import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
+import { qase } from '@/cypress/support/qase';
 
-describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -10,9 +11,10 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
     describe('Replicasets', () => {
       const replicasetName = '0000-replicaset-test';
 
-      it('should not be able to rollback a replicaset', () => {
+      qase(7800, it('should not be able to rollback a replicaset', () => {
         // list view for replicasets
         const workloadsReplicasetsListPage = new WorkloadsReplicasetsListPagePo('local');
+        const resourceSearchDialog = new ResourceSearchDialog();
 
         workloadsReplicasetsListPage.goTo();
         workloadsReplicasetsListPage.waitForPage();
@@ -25,17 +27,16 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
           .set(replicasetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
         workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
-
-        ResourceSearchDialog.goToResource('ReplicaSets');
-
         workloadsReplicasetsListPage.waitForPage();
+        resourceSearchDialog.waitForNoDialog();
+        workloadsReplicasetsListPage.waitForListReady();
 
         workloadsReplicasetsListPage.list().resourceTable().sortableTable().rowElementWithName(replicasetName)
           .should('be.visible');
         workloadsReplicasetsListPage.baseResourceList().actionMenu(replicasetName).menuItemNames().should('not.contain', 'Rollback');
 
         cy.deleteRancherResource('v1', 'apps.replicasets', `default/${ replicasetName }`);
-      });
+      }));
     });
   });
 });

@@ -4,6 +4,7 @@ import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
+import neuvectorSvg from '~shell/assets/images/vendor/neuvector.svg';
 
 export default {
   components: { LazyImage, Loading },
@@ -11,7 +12,7 @@ export default {
   data() {
     return {
       externalLinks:   [],
-      neuvectorImgSrc: require('~shell/assets/images/vendor/neuvector.svg'),
+      neuvectorImgSrc: neuvectorSvg,
     };
   },
 

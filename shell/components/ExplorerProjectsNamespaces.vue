@@ -20,6 +20,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name:       'ListProjectNamespace',
@@ -29,6 +30,7 @@ export default {
     ResourceTable,
     ButtonMultiAction,
     ActionMenu,
+    RcButton
   },
   mixins: [ResourceFetch],
 
@@ -155,7 +157,7 @@ export default {
       return uniq(ids);
     },
     clusterProjects() {
-      const clusterId = this.currentCluster.id;
+      const clusterId = this.currentCluster?.id;
 
       // Get the list of projects from the store so that the list
       // is updated if a new project is created or removed.
@@ -274,7 +276,7 @@ export default {
     },
 
     canSeeProjectlessNamespaces() {
-      return this.currentCluster.canUpdate;
+      return this.currentCluster?.canUpdate;
     },
 
     showMockNotInProjectGroup() {
@@ -295,7 +297,7 @@ export default {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
     },
     showCreateNsButton() {
-      return this.groupPreference !== 'namespace';
+      return this.groupPreference !== 'namespace' && this.isNamespaceCreatable;
     },
     projectGroupBy() {
       return this.groupPreference === 'none' ? null : 'groupById';
@@ -445,13 +447,14 @@ export default {
         v-if="showCreateNsButton"
         #extraActions
       >
-        <router-link
+        <rc-button
+          size="large"
+          class="mr-10"
           :to="createNamespaceLocationFlatList()"
-          class="btn role-primary mr-10"
           data-testid="create_project_namespaces"
         >
           {{ t('projectNamespaces.createNamespace') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
     <!-- Extensions area -->
@@ -495,13 +498,14 @@ export default {
             </div>
           </div>
           <div class="right mr-10">
-            <router-link
+            <rc-button
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
-              class="create-namespace btn btn-sm role-secondary mr-5"
+              variant="secondary"
+              class="mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
-            </router-link>
+            </rc-button>
             <template v-if="featureDropdownMenu">
               <ActionMenu
                 v-if="showProjectActionButton(group.group)"
@@ -593,15 +597,12 @@ export default {
 
 .project-namespaces {
   & :deep() {
-    .project-namespaces-table table {
-      table-layout: fixed;
-    }
-
     .project-name {
       line-height: 30px;
     }
 
     .project-bar {
+      contain: inline-size;
       display: flex;
       flex-direction: row;
       justify-content: space-between;

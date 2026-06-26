@@ -1,5 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { qase } from '@/cypress/support/qase';
 
 function interceptAndChangeVersion(version) {
   return cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields', (req) => {
@@ -18,14 +19,14 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
     cy.login();
   });
 
-  it('app bar shows version number', () => {
+  qase(3579, it('app bar shows version number', () => {
     HomePagePo.goTo();
 
     nav.version().checkExists();
     nav.version().checkVisible();
-  });
+  }));
 
-  it('app bar shows short version number', () => {
+  qase(3578, it('app bar shows short version number', () => {
     interceptAndChangeVersion('v2.9.0');
     HomePagePo.goTo();
 
@@ -33,7 +34,7 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
     nav.version().checkVisible();
     nav.version().checkVersion('v2.9');
     nav.version().checkNormalText();
-  });
+  }));
 
   it('app bar shows full version number', () => {
     interceptAndChangeVersion('v2.9.1');

@@ -41,6 +41,11 @@ export default {
       default: () => ({})
     },
 
+    infrastructureCluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
     // no credentials are required for elemental machine pools
     credentialId: {
       type:    String,
@@ -86,6 +91,10 @@ export default {
     poolCreateMode: {
       type:     Boolean,
       required: true,
+    },
+    hideAdvanced: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -106,6 +115,16 @@ export default {
           const max = this.value?.pool?.autoscalingMaxSize || 0;
 
           return max - min >= 0 ? undefined : this.t('cluster.machinePool.autoscaler.validation.isAutoscalerMaxGreaterThanMin');
+        },
+        uniquePoolName: (name) => {
+          if (!name) {
+            return undefined;
+          }
+
+          const otherPools = (this.machinePools || []).filter((p) => !p.remove && p !== this.value);
+          const isDuplicate = otherPools.some((p) => p.pool.name?.toLowerCase() === name.toLowerCase());
+
+          return isDuplicate ? this.t('cluster.machinePool.name.unique') : undefined;
         }
       }
     };
@@ -295,6 +314,7 @@ export default {
           :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
+          :require-dirty="false"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
           data-testid="machine-pool-name-input"
         />
@@ -357,6 +377,7 @@ export default {
       v-model:is-ipv6="value.isIpv6"
       v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
+      :infrastructure-cluster="infrastructureCluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
@@ -385,6 +406,7 @@ export default {
     />
 
     <AdvancedSection
+      v-if="!hideAdvanced"
       ref="advanced"
       :mode="mode"
       class="advanced"

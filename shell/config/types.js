@@ -81,6 +81,7 @@ export const RBAC = {
 };
 
 export const WORKLOAD = 'workload';
+export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 
 /**
  * Rancher Workload types
@@ -218,6 +219,12 @@ export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
+export const OPERATION = {
+  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
+  ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
+  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+};
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
@@ -253,7 +260,8 @@ export const MANAGEMENT = {
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
   CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
-  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient',
+  PROXY_ENDPOINT:                'management.cattle.io.proxyEndpoint',
 };
 
 export const BRAND = {
@@ -269,7 +277,6 @@ export const EXT = {
   GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
   PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest',
   KUBECONFIG:                        'ext.cattle.io.kubeconfig',
-  TOKEN:                             'ext.cattle.io.token',
 };
 
 export const CAPI = {
@@ -279,6 +286,7 @@ export const CAPI = {
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',
   MACHINE_CONFIG_GROUP: 'rke-machine-config.cattle.io',
+  CAPI_PROVIDER:        'turtles-capi.cattle.io.capiprovider'
 };
 
 // --------------------------------------
@@ -295,6 +303,7 @@ export const FLEET = {
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
   HELM_OP:                  'fleet.cattle.io.helmop',
+  SUSE_APP_COLLECTION:      'suse-application-collection',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
@@ -397,6 +406,7 @@ export const AUTH_TYPE = {
   _S3:                '_S3',
   _RKE:               '_RKE',
   _IMAGE_PULL_SECRET: '_IPS',
+  _GITHUB_APP:        '_GITHUB_APP',
 };
 
 export const LOCAL_CLUSTER = 'local';
@@ -419,6 +429,12 @@ export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
  * for standard repositories.
  */
 export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
+
+/**
+ * The `generateName` prefix used when creating Helm Op authentication secrets
+ * for standard Helm sources.
+ */
+export const AUTH_GENERATE_NAME = 'auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 

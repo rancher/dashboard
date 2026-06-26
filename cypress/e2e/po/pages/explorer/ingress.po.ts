@@ -68,19 +68,19 @@ export class IngressCreateEditPo extends BaseDetailPagePo {
   }
 
   setTargetServiceValueByLabel(arrayListIndex: number, value: string) {
-    const item = this.rulesList().arrayListItem(arrayListIndex);
-    const select = new LabeledSelectPo(item.find('.col:nth-of-type(2) .unlabeled-select'));
+    const select = new LabeledSelectPo(() => this.rulesList().arrayListItem(arrayListIndex).find('.col:nth-of-type(2) .unlabeled-select'));
 
     select.toggle();
     select.clickOptionWithLabel(value);
+    select.checkOptionSelected(value);
   }
 
   setPortValueByLabel(arrayListIndex: number, value: string) {
-    const item = this.rulesList().arrayListItem(arrayListIndex);
-    const select = new LabeledSelectPo(item.find('.col:nth-of-type(3) .unlabeled-select'));
+    const select = new LabeledSelectPo(() => this.rulesList().arrayListItem(arrayListIndex).find('.col:nth-of-type(3) .unlabeled-select'));
 
     select.toggle();
     select.clickOptionWithLabel(value);
+    select.checkOptionSelected(value);
   }
 
   certificatesList() {

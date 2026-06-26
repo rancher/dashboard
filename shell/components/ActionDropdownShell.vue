@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import { ButtonSize } from '@components/RcButton';
 type HiddenAction = {
   action: string;
   enabled: boolean;
@@ -11,11 +12,12 @@ type HiddenAction = {
   anyEnabled: boolean;
 }
 
-defineProps<{
+withDefaults(defineProps<{
   disabled: boolean,
   hiddenActions: HiddenAction[],
   actionTooltip: unknown,
-}>();
+  size?: ButtonSize,
+}>(), { size: 'large' });
 
 const emit = defineEmits(['click', 'mouseover', 'mouseleave']);
 
@@ -35,6 +37,7 @@ const setBulkActionOfInterest = (act: HiddenAction | null, event: 'mouseover' | 
   >
     <rc-dropdown-trigger
       class="bulk-actions-dropdown"
+      :size="size"
       :disabled="disabled"
     >
       <template #before>
@@ -42,7 +45,7 @@ const setBulkActionOfInterest = (act: HiddenAction | null, event: 'mouseover' | 
       </template>
       <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
       <template #after>
-        <i class="ml-10 icon icon-chevron-down" />
+        <i class="icon icon-chevron-down" />
       </template>
     </rc-dropdown-trigger>
     <template #dropdownCollection>

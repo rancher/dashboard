@@ -646,7 +646,6 @@ export default defineComponent({
     },
     config: {
       handler: debounce(function(neu) {
-        // console.log('*** updating config');
         this.$emit('update:config', neu);
       }, 200),
       deep: true
@@ -899,6 +898,7 @@ export default defineComponent({
         <Tab
           v-for="(pool, i) in nodePools"
           :key="i"
+          :weight="-1 * i"
           :name="pool._id || pool.name"
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="!poolIsValid(pool)"

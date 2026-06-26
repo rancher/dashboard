@@ -62,11 +62,6 @@ export default {
           value: false,
         },
         {
-          key:   'projectcatalogs-manage',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsManage'),
-          value: false,
-        },
-        {
           key:   'projectroletemplatebindings-manage',
           label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsManage'),
           value: false,
@@ -109,11 +104,6 @@ export default {
         {
           key:   'monitoring-ui-view',
           label: this.t('projectMembers.projectPermissions.monitoringUiView'),
-          value: false,
-        },
-        {
-          key:   'projectcatalogs-view',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsView'),
           value: false,
         },
         {

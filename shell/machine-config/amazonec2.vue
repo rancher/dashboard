@@ -329,6 +329,7 @@ export default {
               :searchable="true"
               :disabled="disabled"
               :label="t('cluster.machineConfig.amazonEc2.region')"
+              data-testid="amazonEc2__region"
             />
           </div>
           <div class="col span-6">

@@ -9,6 +9,8 @@ import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 import Loading from '@shell/components/Loading';
+import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
+import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
 
 export default {
   components: {
@@ -23,8 +25,6 @@ export default {
   },
 
   data() {
-    const grafanaSrc = require('~shell/assets/images/vendor/grafana.svg');
-    const prometheusSrc = require('~shell/assets/images/vendor/prometheus.svg');
     const currentCluster = this.$store.getters['currentCluster'];
 
     return {
@@ -106,7 +106,12 @@ export default {
         const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
         // Generate Grafana link
         const currentCluster = this.$store.getters['currentCluster'];
-        const rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
+        let rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring-dashboards') : '';
+
+        if (!rancherMonitoring) {
+          rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
+        }
+
         const clusterPrefix = getClusterPrefix(rancherMonitoring?.currentVersion || '', currentCluster.id);
 
         grafanaMatch.link = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;

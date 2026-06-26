@@ -5,14 +5,15 @@ import { UI_PLUGIN_BASE_URL, isSupportedChartVersion, UI_PLUGIN_LABELS } from '@
 import { Plugin, Version } from '@shell/types/uiplugins';
 
 const MAX_RETRIES = 10;
-const RETRY_WAIT = 2500;
+const RETRY_WAIT = 2500; // 2.5 seconds
+const ACTIVE_STATUS_TIMEOUT = 200000; // 20 seconds
 
 type Action = 'install' | 'upgrade';
 export type HelmRepository = any;
 export type HelmChart = any;
 
 /**
- *
+ * Get the latest compatible version of a Helm Chart extension
  * @param store Vue store
  * @param chartName The chartName
  * @param rancherVersion Rancher version
@@ -68,8 +69,8 @@ export async function waitForUIExtension(store: any, name: string, maxRetries = 
         return extension;
       }
     } catch (e) {
+      console.error('waiting for UI extension to be available: error =', e); // eslint-disable-line no-console
     }
-
     tries++;
 
     if (tries > maxRetries) {
@@ -106,7 +107,6 @@ export async function waitForUIPackage(store: any, extension: any, maxRetries = 
       return true;
     } catch (error) {
     }
-
     tries++;
 
     if (tries > maxRetries) {
@@ -180,18 +180,19 @@ export async function getHelmRepositoryExact(store: any, url: string): Promise<H
 /**
  *
  * @param store Vue store
- * @param urlRegexes Regex to match a community repository
+ * @param urlRegexes Regex to match against the repository's urls
  * @param catalogImages Catalog images to match against the repository's labels
  * @returns HelmRepository
  */
 export async function getHelmRepositoryMatch(store: any, urlRegexes: string[], catalogImages: string[]): Promise<HelmRepository> {
   return await getHelmRepository(store, (repository: any) => {
-    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
     const catalog = repository?.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] || '';
 
-    if (catalogImages.includes(catalog)) {
+    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
+    if (catalog && catalogImages.includes(catalog)) {
       return true;
     }
+
     const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
 
     return matchesSomeRegex(target, urlRegexes);
@@ -199,7 +200,7 @@ export async function getHelmRepositoryMatch(store: any, urlRegexes: string[], c
 }
 
 /**
- *
+ * Get a Helm Repository matching the given criteria.
  * @param store Vue store
  * @param matchFn Match function for repository's urls
  * @returns HelmRepository
@@ -225,15 +226,15 @@ export async function refreshHelmRepository(store: any, url: string): Promise<vo
   const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
   repository.spec.forceUpdate = now;
-
   await repository.save();
 
-  await repository.waitForState('active', 10000, 1000);
+  await repository.waitForState('active', ACTIVE_STATUS_TIMEOUT, RETRY_WAIT);
 
   await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 /**
+ * Create a Helm Repository and wait for it to be downloaded
  *
  * @param store Vue store
  * @param name Repository name
@@ -260,7 +261,7 @@ export async function createHelmRepository(store: any, name: string, url: string
 
   const helmRepo = await repo.save();
 
-  // Poll the repository until it says it has been downloaded
+  // Poll the repository status MAX_RETRIES times until it has been downloaded
   let fetched = false;
   let tries = 0;
 
@@ -272,26 +273,21 @@ export async function createHelmRepository(store: any, name: string, url: string
     });
 
     tries++;
+    const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
-    const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
+    console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
 
-    if (downloaded) {
-      if (downloaded.status === 'True') {
-        fetched = true;
-      }
+    if (downloaded && downloaded.status === 'True') {
+      fetched = true;
     }
 
     if (!fetched) {
-      tries++;
-
       if (tries > MAX_RETRIES) {
         throw new Error('Failed to add Helm Chart Repository');
       }
 
       await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
     }
-
-    fetched = true;
   }
 
   // Return the Helm Repository

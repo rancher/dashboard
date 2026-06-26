@@ -12,6 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
+import { EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -39,8 +40,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { EVENT } from '@shell/config/types';
-import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -79,6 +79,7 @@ export const STATES_ENUM = {
   BUILDING:         'building',
   COMPLETED:        'completed',
   CORDONED:         'cordoned',
+  CANCELLED:        'cancelled',
   COUNT:            'count',
   CREATED:          'created',
   CREATING:         'creating',
@@ -206,6 +207,9 @@ export const STATES = {
   },
   [STATES_ENUM.CORDONED]: {
     color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+  },
+  [STATES_ENUM.CANCELLED]: {
+    color: 'warning', icon: 'error', label: 'Cancelled', compoundIcon: 'warning'
   },
   [STATES_ENUM.COUNT]: {
     color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
@@ -507,12 +511,21 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state) {
+export function simpleColorForState(state, isError = false, isTransitioning = false) {
+  return colorForState(state, isError, isTransitioning).replace('text-', '') || 'disabled';
+}
+
+export function stateDisplay(state, preserveOriginal = false) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
   if ( REMAP_STATE[key] ) {
     return REMAP_STATE[key];
+  }
+
+  // Preserves the original state name returned by the
+  if ( preserveOriginal ) {
+    return ucFirst(state);
   }
 
   return key.split(/-/).map(ucFirst).join('-');
@@ -754,7 +767,7 @@ export default class Resource {
   }
 
   get stateSimpleColor() {
-    return this.stateColor.replace('text-', '');
+    return simpleColorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning);
   }
 
   get stateBackground() {
@@ -919,12 +932,9 @@ export default class Resource {
       componentProps: {
         resource:           this,
         onClose,
-        width:              '73%',
-        // We want this to be full viewport height top to bottom
-        height:             '100vh',
-        top:                '0',
-        'z-index':          101, // We want this to be above the main side menu
-        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
         triggerFocusTrap:   true,
         returnFocusSelector,
         defaultTab
@@ -946,12 +956,15 @@ export default class Resource {
     // where mostly likely extension CRD model is extending from resource-class
     const isResourceDetailDrawerCompatibleWithRancherSystem = semver.satisfies(parsedRancherVersion, '>= 2.13.0');
 
+    // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+    const showConfigEnabled = isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml);
+
     const all = [
       {
         action:  'showConfiguration',
         label:   this.t('action.showConfiguration'),
         icon:    'icon icon-document',
-        enabled: isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+        enabled: showConfigEnabled,
       },
       { divider: true },
       {
@@ -964,7 +977,7 @@ export default class Resource {
         action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
         label:   this.t(this.canEditYaml ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
-        enabled: this.canYaml,
+        enabled: this.canYaml && (this.canEditYaml || !showConfigEnabled), // Hide "View YAML" when "Show Configuration" is available since it already includes YAML viewing
       },
       {
         action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
@@ -1179,6 +1192,46 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  _collectionUrl() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    if ( !schema ) {
+      // Schema not found - likely due to lack of permissions to view this resource type
+      throw new Error(`${ this.type }: ${ this.t('validation.createResourceFailed', { type: this.typeDisplay }, true) }`);
+    }
+
+    let url = schema.linkFor('collection');
+
+    if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
+      url += `/${ this.metadata.namespace }`;
+    }
+
+    return url;
+  }
+
+  async dryRunCreate(data) {
+    try {
+      const url = this._collectionUrl();
+      const separator = url.includes('?') ? '&' : '?';
+      const body = data || this.cleanForSave(this.toSave() || JSON.parse(JSON.stringify(this)), true);
+
+      return this.$dispatch('request', {
+        opt: {
+          method:  'post',
+          url:     `${ url }${ separator }dryRun=All`,
+          data:    body,
+          headers: {
+            'content-type': 'application/json',
+            accept:         'application/json'
+          }
+        },
+        type: this.type
+      });
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
   /**
    * Remove any unwanted properties from the object that will be saved
    */
@@ -1193,12 +1246,15 @@ export default class Resource {
    * Allow to handle the response of the save request
    * @param {*} res Full request response
    */
-  processSaveResponse(res) { }
+  processSaveResponse(res, opt = {}) { }
 
   async _save(opt = { }) {
     const forNew = !this.id;
+    let errors;
 
-    const errors = this.validationErrors(this, opt);
+    if (!opt.skipUIValidation) {
+      errors = this.validationErrors(this, opt);
+    }
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1207,20 +1263,16 @@ export default class Resource {
     if ( this.metadata?.resourceVersion ) {
       this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
     }
-
-    if ( !opt.url ) {
-      if ( forNew ) {
-        const schema = this.$getters['schemaFor'](this.type);
-        let url = schema.linkFor('collection');
-
-        if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
-          url += `/${ this.metadata.namespace }`;
+    try {
+      if ( !opt.url ) {
+        if ( forNew ) {
+          opt.url = this._collectionUrl();
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
         }
-
-        opt.url = url;
-      } else {
-        opt.url = this.linkFor('update') || this.linkFor('self');
       }
+    } catch (e) {
+      return Promise.reject(e);
     }
 
     if ( !opt.method ) {
@@ -1242,7 +1294,9 @@ export default class Resource {
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
     // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
-    opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
+    if (!(opt.method === 'patch')) {
+      opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
+    }
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;
@@ -1260,7 +1314,9 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
-    opt.data = this.cleanForSave(opt.data, forNew);
+    if (!(opt.method === 'patch')) {
+      opt.data = this.cleanForSave(opt.data, forNew);
+    }
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
     if (opt?.replace && opt.method === 'put') {
@@ -1280,7 +1336,7 @@ export default class Resource {
       const res = await this.$dispatch('request', { opt, type: this.type } );
 
       // Allow to process response independently from the related models
-      this.processSaveResponse(res);
+      this.processSaveResponse(res, opt);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
@@ -1358,7 +1414,35 @@ export default class Resource {
     return window.$globalApp.$router;
   }
 
+  get isProdRegistrationV2TopLevelProductResoure() {
+    // this is the logic to determine if the resource is top level product or not
+    // changes c-cluster-product-resource to product-c-cluster-resource
+    // this is for the new extension product registration model
+    let currPluginName = '';
+    const plugins = this.$extension.getPlugins();
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    // the flag "topLevelProduct" only exists in the V2 product registration model
+    return plugins[currPluginName]?.topLevelProduct || false;
+  }
+
   get listLocation() {
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource`,
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: this.type,
+        }
+      };
+    }
+
     return {
       name:   `c-cluster-product-resource`,
       params: {
@@ -1375,6 +1459,20 @@ export default class Resource {
 
     const id = this.id?.replace(/.*\//, '');
 
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          resource:  this.type,
+          namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
+          id,
+        }
+      };
+    }
+
+    // normal cluster scoped resource route as we know
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
@@ -1935,6 +2033,25 @@ export default class Resource {
 
   get _glance() {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
+    let toRoute = null;
+
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      toRoute = {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
+        params: {
+          product:  this.$rootGetters['currentProduct']?.id,
+          cluster:  this.$rootGetters['currentCluster']?.id,
+          resource: this.type,
+        }
+      };
+    } else {
+      toRoute = {
+        name:     `c-cluster-product-resource-id`,
+        product:  this.$rootGetters['currentProduct']?.id,
+        cluster:  this.$rootGetters['currentCluster']?.id,
+        resource: this.type
+      };
+    }
 
     return [
       {
@@ -1958,12 +2075,7 @@ export default class Resource {
         label:         this.t('component.resource.detail.glance.namespace'),
         formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
         formatterOpts: {
-          to: {
-            name:     `c-cluster-product-resource-id`,
-            product:  this.$rootGetters['currentProduct']?.id,
-            cluster:  this.$rootGetters['currentCluster']?.id,
-            resource: this.type
-          },
+          to:      toRoute,
           row:     {},
           options: { internal: true }
         },
@@ -2014,7 +2126,7 @@ export default class Resource {
 
       if ( r.selector ) {
         // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
-        addObjects(out.selectors, {
+        addObject(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
           selector:  r.selector
@@ -2024,7 +2136,7 @@ export default class Resource {
         let namespace = r[`${ direction }Namespace`];
         let name = r[`${ direction }Id`];
 
-        if ( !namespace && name.includes('/') ) {
+        if ( !namespace && name?.includes('/') ) {
           const idx = name.indexOf('/');
 
           namespace = name.substr(0, idx);
@@ -2186,12 +2298,58 @@ export default class Resource {
     };
   }
 
+  get _resourcesCardRows() {
+    const rows = [];
+    const relationships = this.metadata?.relationships || [];
+
+    const referredToByRels = relationships.filter((r) => r.fromType && r.fromId && !r.selector);
+    const refersToRels = relationships.filter((r) => r.toType && r.toId && !r.selector && !r.fromType);
+
+    if (referredToByRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.referredToBy'),
+        referredToByRels,
+        { hash: '#related' }
+      ));
+    }
+
+    if (refersToRels.length) {
+      rows.push(useResourceCardRowFromRelationships(
+        this.t('component.resource.detail.card.resourcesCard.rows.refersTo'),
+        refersToRels,
+        { hash: '#related' }
+      ));
+    }
+
+    return rows;
+  }
+
+  get resourcesCardRows() {
+    return this._resourcesCardRows;
+  }
+
+  get resourcesCard() {
+    const rows = this.resourcesCardRows;
+
+    if (!rows.length) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     {
+        title: this.t('component.resource.detail.card.resourcesCard.title'),
+        rows
+      }
+    };
+  }
+
   get _cards() {
     // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
     return [];
   }
 
   get cards() {
-    return this._cards;
+    return [this.resourcesCard, ...this._cards].filter((c) => c);
   }
 }

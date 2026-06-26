@@ -23,7 +23,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('.controls-steps .btn.variant-primary');
 
     btn.click(true);
 
@@ -41,7 +41,9 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    const btn = new AsyncButtonPo('[data-testid="action-button-async-button"]');
+    // Use the same pattern as nextPage() but target the finish/install button specifically
+    // The install button is in the controls-steps area and is the async button for the final step
+    const btn = new AsyncButtonPo('.controls-steps [data-testid="action-button-async-button"]');
 
     btn.click(true);
 
@@ -54,8 +56,16 @@ export class InstallChartPage extends PagePo {
     return this;
   }
 
+  footerControls() {
+    return cy.get('#wizard-footer-controls');
+  }
+
   chartName() {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
+  }
+
+  chartNameLink() {
+    return this.self().get('[data-testid="chart-install-name-link"]');
   }
 
   chartVersionSelector(): LabeledSelectPo {

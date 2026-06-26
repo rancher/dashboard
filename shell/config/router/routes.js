@@ -58,12 +58,7 @@ export default [
         path:      '/home',
         component: () => interopDefault(import('@shell/pages/home.vue')),
         name:      'home'
-      },
-      {
-        path:      '/support',
-        component: () => interopDefault(import('@shell/pages/support/index.vue')),
-        name:      'support'
-      },
+      }
     ]
   },
   {
@@ -138,6 +133,12 @@ export default [
     component: () => interopDefault(import('@shell/components/templates/standalone.vue')),
     name:      'standalone',
     children:  [
+      {
+        path:      '/c/:cluster/readme',
+        component: () => interopDefault(import('@shell/pages/readme.vue')),
+        name:      'readme',
+        meta:      { requiresAuthentication: true, standalone: true }
+      },
     ]
   },
   {
@@ -232,6 +233,21 @@ export default [
         path:      '/c/:cluster/fleet/application/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
         name:      'c-cluster-fleet-application-create',
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/credentials',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue')),
+        name:      'c-cluster-fleet-application-appco-credentials',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/charts',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue')),
+        name:      'c-cluster-fleet-application-appco-charts',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/chart',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue')),
+        name:      'c-cluster-fleet-application-appco-chart',
+        meta:      { disableWorkspaceSwitcher: true },
       }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
@@ -344,6 +360,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/explorer-utils.js')),
         name:      'c-cluster-explorer-explorer-utils'
       }, {
+        path:      '/c/:cluster/explorer/workload-dashboard',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/workload-dashboard/index.vue')),
+        name:      'c-cluster-explorer-workload-dashboard'
+      }, {
         path:      '/c/:cluster/explorer/tools',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/index.vue')),
         name:      'c-cluster-explorer-tools'
@@ -433,10 +453,6 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/route-receiver/create.vue')),
         name:      'c-cluster-monitoring-route-receiver-create'
       }, {
-        path:      '/c/:cluster/explorer/tools/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/pages/_page.vue')),
-        name:      'c-cluster-explorer-tools-pages-page'
-      }, {
         path:      '/c/:cluster/auth/config/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/_id.vue')),
         name:      'c-cluster-auth-config-id'
@@ -452,10 +468,6 @@ export default [
         path:      '/c/:cluster/manager/nodeDriver/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),
         name:      'c-cluster-manager-driver-nodedriver-id'
-      }, {
-        path:      '/c/:cluster/manager/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/pages/_page.vue')),
-        name:      'c-cluster-manager-pages-page'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig/:alertmanagerconfigid',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/index.vue')),

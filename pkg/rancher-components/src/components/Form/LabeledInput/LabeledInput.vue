@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
@@ -8,6 +8,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -28,7 +29,11 @@ export default defineComponent({
     ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
-     * @values text, cron, multiline, multiline-password
+     *
+     * Any native HTML input type is passed through to the underlying input
+     * (e.g. text, password, number, email). A few custom values change the
+     * rendering or behaviour:
+     * @values cron (renders as text), multiline, multiline-password, integer (renders as text with inputmode="numeric", blocks non-integer input)
      */
     type: {
       type:    String,
@@ -114,6 +119,15 @@ export default defineComponent({
     ariaLabel: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * The field name used for vee-validate integration. When provided, the
+     * component registers with a parent vee-validate form context
+     */
+    name: {
+      type:    String,
+      default: null
     }
   },
 
@@ -132,15 +146,47 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
+    const effectiveStatus = computed(() => props.status);
+    const isInteger = computed(() => props.type === 'integer');
+    const nativeType = computed(() => {
+      if (props.type === 'cron') {
+        return 'text';
+      }
+
+      if (props.type === 'integer') {
+        return 'text';
+      }
+
+      return props.type;
+    });
+
+    // Hints the mobile keyboard to show a numeric layout, since the
+    // integer type renders as type="text" to avoid browser number
+    // formatting quirks (e.g. scientific notation for large values).
+    const inputMode = computed(() => (isInteger.value ? 'numeric' : undefined));
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
       onInput,
       isDisabled,
-      validationMessage,
+      validationMessage: effectiveValidationMessage,
       requiredField,
       isCompact,
+      veeHandleBlur,
+      veeValidate,
+      effectiveStatus,
+      isInteger,
+      nativeType,
+      inputMode,
     };
   },
 
@@ -303,6 +349,59 @@ export default defineComponent({
       }
     },
 
+    isValidIntegerInput(inputValue: string): boolean {
+      const integer = /^-?[0-9]*$/;
+      const nonNegativeInteger = /^[0-9]*$/;
+      const pattern = Number(this.$attrs.min) >= 0 ? nonNegativeInteger : integer;
+
+      if (!pattern.test(inputValue)) {
+        return false;
+      }
+
+      const numeric = Number(inputValue);
+
+      // Safe integer is primarily here to validate that the number fits in the datatype
+      // used for numbers in the browser, if we exceed this safe number the browser automatically converts the number to scientific notation.
+      if (inputValue !== '' && inputValue !== '-' && !Number.isSafeInteger(numeric)) {
+        return false;
+      }
+
+      return true;
+    },
+
+    prospectiveValue(input: HTMLInputElement, inserted: string): string {
+      const start = input.selectionStart ?? 0;
+      const end = input.selectionEnd ?? 0;
+
+      return input.value.slice(0, start) + inserted + input.value.slice(end);
+    },
+
+    onKeydown(event: KeyboardEvent): void {
+      // Skip named keys (Backspace, Arrow, etc.) and modifier shortcuts (Ctrl+A, Cmd+C).
+      if (!this.isInteger || event.key.length !== 1 || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      const next = this.prospectiveValue(event.target as HTMLInputElement, event.key);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
+    onPaste(event: ClipboardEvent): void {
+      if (!this.isInteger) {
+        return;
+      }
+
+      const paste = event.clipboardData?.getData('text/plain') ?? '';
+      const next = this.prospectiveValue(event.target as HTMLInputElement, paste);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
     /**
      * Emit on input change
      */
@@ -339,6 +438,11 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      // Mark the field as touched in vee-validate without relying on its
+      // 'validated-only' guard, then run validation unconditionally so
+      // errors surface on the first blur (matching useLabeledFormElement behavior).
+      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeValidate();
     },
 
     escapeHtml
@@ -353,7 +457,7 @@ export default defineComponent({
       focused,
       [mode]: true,
       disabled: isDisabled,
-      [status]: status,
+      [effectiveStatus]: effectiveStatus,
       suffix: hasSuffix,
       'has-clean-tooltip': hasTooltip,
       'compact-input': isCompact,
@@ -389,13 +493,14 @@ export default defineComponent({
         ref="value"
         v-bind="$attrs"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
+        :class="{ 'multiline-password': type === 'multiline-password' }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @update:value="onInput"
@@ -407,13 +512,15 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :role="type === 'number' ? undefined : 'textbox'"
+        :role="nativeType === 'number' ? undefined : 'textbox'"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
+        :type="nativeType"
+        :inputmode="inputMode"
         :value="value"
         :placeholder="_placeholder"
         autocomplete="off"
@@ -422,6 +529,8 @@ export default defineComponent({
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @input="onInput"
+        @keydown="onKeydown"
+        @paste="onPaste"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"
@@ -464,6 +573,10 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
+.multiline-password:not(:focus) {
+  -webkit-text-security: disc;
+}
+
 .labeled-input.view {
   input {
     text-overflow: ellipsis;

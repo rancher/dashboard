@@ -36,7 +36,7 @@ const props = defineProps({
 
 const { loadComponent } = useComponentsMount();
 
-const { isPanelEnabled } = usePanelsHandler({ layout: props.layout, positions: props.positions });
+const { isPanelEnabled } = usePanelsHandler(props);
 const { tabs } = useTabsHandler();
 </script>
 
@@ -66,6 +66,7 @@ const { tabs } = useTabsHandler();
         :active="true"
         :height="tab.containerHeight"
         :width="tab.containerWidth"
+        :layout="layout"
         v-bind="tab.attrs"
       />
     </keep-alive>

@@ -13,6 +13,7 @@ import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
 import { LabeledTooltip } from '@components/LabeledTooltip';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'KeyValue',
@@ -24,7 +25,8 @@ export default {
     Select,
     TextAreaAutoGrow,
     FileSelector,
-    LabeledTooltip
+    LabeledTooltip,
+    RcButton
   },
   props: {
     value: {
@@ -241,6 +243,10 @@ export default {
     keyErrors: {
       type:    Object,
       default: () => ({})
+    },
+    useRcButton: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -778,11 +784,16 @@ export default {
                     @onInput="onInputMarkdownMultiline(i, $event)"
                     @onFocus="onFocusMarkdownMultiline(i, $event)"
                   />
+                  <div
+                    v-else-if="valueConcealed"
+                    class="concealed-value conceal"
+                    data-testid="concealed-value"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
+                  />
                   <TextAreaAutoGrow
                     v-else-if="valueMultiline && row[valueName] !== undefined"
                     v-model:value="row[valueName]"
                     data-testid="value-multiline"
-                    :class="{'conceal': valueConcealed}"
                     :disabled="disabled"
                     :mode="mode"
                     :placeholder="_valuePlaceholder"
@@ -809,6 +820,7 @@ export default {
                     class="btn btn-sm role-secondary file-selector"
                     :label="t('generic.upload')"
                     :include-file-name="true"
+                    :accept="readAccept"
                     :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @selected="onValueFileSelected(i, $event)"
                   />
@@ -873,8 +885,23 @@ export default {
         name="add"
         :add="add"
       >
+        <RcButton
+          v-if="addAllowed && useRcButton"
+          size="small"
+          variant="secondary"
+          :class="[addClass]"
+          data-testid="add_row_item_button"
+          :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
+          :aria-label="t('generic.ariaLabel.addKeyValue')"
+          @click="add()"
+        >
+          <i
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+          /> {{ _addLabel }}
+        </RcButton>
         <button
-          v-if="addAllowed"
+          v-else-if="addAllowed"
           type="button"
           role="button"
           class="btn role-tertiary add"
@@ -896,6 +923,7 @@ export default {
           class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
+          :accept="readAccept"
           data-testid="read_all_key_value_button"
           @selected="onFileSelected"
         />
@@ -939,6 +967,15 @@ export default {
       }
       &.value textarea {
         padding: 10px 10px 10px 10px;
+      }
+
+      .concealed-value {
+        padding: 10px;
+        min-height: 40px;
+        user-select: none;
+        &::before {
+          content: '••••••••••••••••••••';
+        }
       }
 
       .text-monospace:not(.conceal) {

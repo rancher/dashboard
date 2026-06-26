@@ -1,7 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 import { SNAPSHOT } from '@shell/config/labels-annotations';
-import { CAPI } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
+import { CAPI, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
@@ -12,13 +11,11 @@ export default class EtcdBackup extends NormanModel {
    * Restrict actions for snapshots to restore only
    */
   get _availableActions() {
-    const enabled = this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL;
-
     return [{
-      action: 'promptRestore',
-      enabled,
-      icon:   'icon icon-backup-restore',
-      label:  'Restore'
+      action:  'promptRestore',
+      enabled: this.restoreEnabled,
+      icon:    'icon icon-backup-restore',
+      label:   'Restore'
     }];
   }
 
@@ -31,7 +28,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get clusterId() {
-    return this.cluster.id;
+    return this.cluster?.id;
   }
 
   get name() {
@@ -39,7 +36,9 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return findBy(this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER), 'metadata.name', this.clusterName);
+    const ns = this.metadata?.namespace || DEFAULT_WORKSPACE;
+
+    return this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, `${ ns }/${ this.clusterName }`);
   }
 
   get rke2() {
@@ -48,6 +47,14 @@ export default class EtcdBackup extends NormanModel {
 
   get nameDisplay() {
     return this.snapshotFile?.name || this.name;
+  }
+
+  get restoreEnabled() {
+    return this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && !this.isSnapshotTooOld;
+  }
+
+  get isSnapshotTooOld() {
+    return this.snapshotFile?.createdAt <= this.cluster?.metadata?.creationTimestamp;
   }
 
   get errorMessage() {

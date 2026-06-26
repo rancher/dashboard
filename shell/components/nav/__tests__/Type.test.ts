@@ -28,10 +28,10 @@ describe('component: Type', () => {
     };
     const routerMock = {
       resolve: jest.fn((route) => {
-        return { fullPath: route };
+        return { fullPath: route, path: route };
       })
     };
-    const routeMock = { fullPath: 'route' };
+    const routeMock = { fullPath: 'route', path: 'route' };
 
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
@@ -104,7 +104,7 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad', path: 'bad' }
             },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
@@ -151,6 +151,23 @@ describe('component: Type', () => {
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
 
         expect(elementWithSelector.exists()).toBe(false);
+      });
+      it('should use active and exact active classes when route matches but includes query and hash', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash', path: 'route' }
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
+        });
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+        expect(wrapper.find(`.${ exactActiveClass }`).exists()).toBe(true);
       });
     });
 

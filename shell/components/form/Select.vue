@@ -1,38 +1,37 @@
 <script>
 import { get } from '@shell/utils/object';
-import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { calculatePosition } from '@shell/utils/select';
 import { _VIEW } from '@shell/config/query-params';
 import { useClickOutside } from '@shell/composables/useClickOutside';
+import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
+import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref } from 'vue';
 
 export default {
-  emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
+  inheritAttrs: false,
+
+  emits: ['update:value', 'createdListItem', 'on-open', 'on-close', 'on-focus', 'on-blur', 'update:validation'],
 
   components: { LabeledTooltip },
   mixins:     [
-    LabeledFormElement,
     VueSelectOverrides,
   ],
   props: {
+    ...labeledFormElementProps,
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean],
+    },
     appendToBody: {
       default: true,
-      type:    Boolean,
-    },
-    disabled: {
-      default: false,
       type:    Boolean,
     },
     getKeyForOption: {
       default: null,
       type:    Function
-    },
-    mode: {
-      default: 'edit',
-      type:    String,
     },
     optionKey: {
       default: null,
@@ -45,10 +44,6 @@ export default {
     placement: {
       default: null,
       type:    String,
-    },
-    placeholder: {
-      type:    String,
-      default: '',
     },
     popperOverride: {
       type:    Function,
@@ -78,10 +73,6 @@ export default {
       type:    String,
       default: null,
     },
-    value: {
-      default: null,
-      type:    [String, Object, Number, Array, Boolean],
-    },
     closeOnSelect: {
       type:    Boolean,
       default: true,
@@ -99,8 +90,20 @@ export default {
       default: false,
       type:    Boolean
     },
+    options: {
+      type:    Array,
+      default: () => ([])
+    },
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
+    filterable: {
+      default: true,
+      type:    Boolean
+    },
   },
-  setup() {
+  setup(props, { emit }) {
     const select = ref(null);
     const isOpen = ref(false);
 
@@ -108,13 +111,61 @@ export default {
       isOpen.value = false;
     });
 
-    return { isOpen, select };
+    const {
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField
+    } = useLabeledFormElement(props, emit);
+
+    const onFocus = () => {
+      emit('on-focus');
+      onFocusLabeled();
+    };
+
+    const onBlur = () => {
+      emit('on-blur');
+      onBlurLabeled();
+    };
+
+    const {
+      isSearchable,
+      isFilterable,
+      resizeHandler: resizeHandlerFn
+    } = useLabeledSelect(props);
+
+    const resizeHandler = () => {
+      resizeHandlerFn(select);
+    };
+
+    return {
+      isOpen,
+      select,
+      raised,
+      focused,
+      blurred,
+      empty,
+      isView,
+      onFocus,
+      onBlur,
+      isDisabled,
+      validationMessage,
+      requiredField,
+      isSearchable,
+      isFilterable,
+      resizeHandler
+    };
   },
   data() {
     return { generatedUid: `s-uid-${ generateRandomAlphaString(12) }` };
   },
   methods: {
-    // resizeHandler = in mixin
     getOptionLabel(option) {
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
@@ -252,40 +303,6 @@ export default {
     },
   },
   computed: {
-    requiredField() {
-      // using "any" for a type on "rule" here is dirty but the use of the optional chaining operator makes it safe for what we're doing here.
-      return (this.required || this.rules.some((rule) => rule?.name === 'required'));
-    },
-    validationMessage() {
-      // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
-      const requiredRule = this.rules.find((rule) => rule?.name === 'required');
-      const ruleMessages = [];
-      const value = this?.value;
-
-      if (requiredRule && this.blurred && !this.focused) {
-        const message = requiredRule(value);
-
-        if (!!message) {
-          return message;
-        }
-      }
-
-      for (const rule of this.rules) {
-        const message = rule(value);
-
-        if (!!message && rule.name !== 'required') { // we're catching 'required' above so we can ignore it here
-          ruleMessages.push(message);
-        }
-      }
-      if (ruleMessages.length > 0 && (this.blurred || this.focused)) {
-        return ruleMessages.join(', ');
-      } else {
-        return undefined;
-      }
-    },
-    canPaginate() {
-      return false;
-    },
     deClassedAttrs() {
       const { class: _, ...rest } = this.$attrs;
 

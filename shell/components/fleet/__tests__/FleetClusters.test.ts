@@ -90,36 +90,36 @@ describe('component: FleetClusters', () => {
       const wrapper = createWrapper();
       const reposReady = wrapper.vm.headers.find((h: any) => h.name === 'reposReady');
 
-      expect(reposReady.labelKey).toBe('tableHeaders.reposReady');
-      expect(reposReady.value).toBe('status.readyGitRepos');
-      expect(reposReady.search).toBe(false);
+      expect(reposReady?.labelKey).toBe('tableHeaders.reposReady');
+      expect(reposReady?.value).toBe('status.readyGitRepos');
+      expect(reposReady?.search).toBe(false);
     });
 
     it('should configure helmOpsReady column correctly', () => {
       const wrapper = createWrapper();
       const helmOpsReady = wrapper.vm.headers.find((h: any) => h.name === 'helmOpsReady');
 
-      expect(helmOpsReady.labelKey).toBe('tableHeaders.helmOpsReady');
-      expect(helmOpsReady.value).toBe('status.readyHelmOps');
-      expect(helmOpsReady.search).toBe(false);
+      expect(helmOpsReady?.labelKey).toBe('tableHeaders.helmOpsReady');
+      expect(helmOpsReady?.value).toBe('status.readyHelmOps');
+      expect(helmOpsReady?.search).toBe(false);
     });
 
     it('should configure bundlesReady column correctly', () => {
       const wrapper = createWrapper();
       const bundlesReady = wrapper.vm.headers.find((h: any) => h.name === 'bundlesReady');
 
-      expect(bundlesReady.labelKey).toBe('tableHeaders.bundlesReady');
-      expect(bundlesReady.value).toBe('status.display.readyBundles');
-      expect(bundlesReady.search).toBe(false);
+      expect(bundlesReady?.labelKey).toBe('tableHeaders.bundlesReady');
+      expect(bundlesReady?.value).toBe('status.display.readyBundles');
+      expect(bundlesReady?.search).toBe(false);
     });
 
     it('should configure lastSeen column with LiveDate formatter', () => {
       const wrapper = createWrapper();
       const lastSeen = wrapper.vm.headers.find((h: any) => h.name === 'lastSeen');
 
-      expect(lastSeen.formatter).toBe('LiveDate');
-      expect(lastSeen.formatterOpts).toStrictEqual({ addSuffix: true });
-      expect(lastSeen.width).toBe(120);
+      expect(lastSeen?.formatter).toBe('LiveDate');
+      expect(lastSeen?.formatterOpts).toStrictEqual({ addSuffix: true });
+      expect(lastSeen?.width).toBe(120);
     });
   });
 
@@ -571,6 +571,77 @@ describe('component: FleetClusters', () => {
 
       // Should not exist when customLabels is null
       expect(additionalSubRow.exists()).toBe(false);
+    });
+  });
+
+  describe('labels visibility regardless of error state', () => {
+    it('should pass sub-rows prop as true to ResourceTable so labels always render', () => {
+      const wrapper = createWrapper();
+
+      // sub-rows=true ensures SortableTable.showSubRow() returns true,
+      // which makes the #additional-sub-row slot render regardless of stateDescription.
+      // Without this, labels only appear when there is an error (stateDescription).
+      const resourceTableStub = wrapper.findComponent('.resource-table') as any;
+
+      expect(resourceTableStub.props('subRows')).toBe(true);
+    });
+
+    it('should render labels when cluster has no stateDescription (no error)', () => {
+      const rows = [{
+        customLabels:        ['env:prod', 'team:backend'],
+        displayCustomLabels: false,
+        stateDescription:    undefined,
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(2);
+      expect(tags[0].text()).toBe('env:prod');
+      expect(tags[1].text()).toBe('team:backend');
+    });
+
+    it('should render labels when cluster has a stateDescription (error)', () => {
+      const rows = [{
+        customLabels:        ['env:prod', 'team:backend'],
+        displayCustomLabels: false,
+        stateDescription:    'Something went wrong',
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(2);
+      expect(tags[0].text()).toBe('env:prod');
+      expect(tags[1].text()).toBe('team:backend');
+    });
+
+    it('should render labels when stateDescription is empty string', () => {
+      const rows = [{
+        customLabels:        ['env:staging'],
+        displayCustomLabels: false,
+        stateDescription:    '',
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].text()).toBe('env:staging');
+    });
+
+    it('should render labels when stateDescription is null', () => {
+      const rows = [{
+        customLabels:        ['region:eu-west'],
+        displayCustomLabels: false,
+        stateDescription:    null,
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const tags = wrapper.findAll('.tag');
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].text()).toBe('region:eu-west');
     });
   });
 });

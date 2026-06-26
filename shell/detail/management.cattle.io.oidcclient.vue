@@ -9,6 +9,7 @@ import DateComponent from '@shell/components/formatter/Date.vue';
 import { RcItemCard } from '@components/RcItemCard';
 import ActionMenu, { type ActionMenuSelection } from '@shell/components/ActionMenuShell.vue';
 import { Banner } from '@components/Banner';
+import keySvg from '~shell/assets/images/key.svg';
 
 type SecretActionType = 'create-secret' | 'regen-secret' | 'remove-secret'
 interface ClientSecretData { createdAt: string, lastUsedAt: string, lastFiveCharacters: string }
@@ -228,7 +229,7 @@ export default defineComponent({
           clientSecrets.push({
             id:                 oidcSecretDataKey,
             header:             { title: { text: oidcSecretDataKey } },
-            image:              { src: require('~shell/assets/images/key.svg') },
+            image:              { src: keySvg },
             createdAt,
             lastFiveCharacters: oidcSecretData.lastFiveCharacters,
             lastUsedAt,

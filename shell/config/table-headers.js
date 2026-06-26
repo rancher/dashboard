@@ -793,11 +793,10 @@ export const FLEET_SUMMARY = {
 export const FLEET_APPLICATION_TYPE = {
   name:     'applicationType',
   labelKey: 'fleet.tableHeaders.applicationType',
-  value:    'kind',
-  sort:     'kind',
+  value:    'applicationType',
+  sort:     'applicationType',
   search:   false,
-  align:    'center',
-  width:    100,
+  width:    200,
 };
 
 export const FLEET_APPLICATION_SOURCE = {
@@ -1033,15 +1032,6 @@ export const SCOPE_NORMAN = {
   sort:  ['clusterId'],
 };
 
-export const NORMAN_KEY_DEPRECATION = {
-  name:        'isNormanKeyDeprecated',
-  labelKey:    'tableHeaders.isLegacy',
-  value:       (row) => row.isDeprecated ? 'True' : undefined,
-  sort:        'isDeprecated',
-  align:       'left',
-  dashIfEmpty: true,
-};
-
 export const EXPIRES = {
   name:      'expires',
   value:     'expiresAt',
@@ -1082,11 +1072,14 @@ export const ROLE = {
 export const FEATURE_DESCRIPTION = {
   name:          'description',
   labelKey:      'tableHeaders.description',
-  value:         'status.description',
+  value:         'id',
   align:         'left',
   sort:          ['status.description'],
   formatter:     'Translate',
-  formatterOpts: { prefix: 'featureFlags.description' },
+  formatterOpts: {
+    prefix:       'featureFlags.description',
+    fallbackPath: 'status.description'
+  },
 };
 
 export const STATE_NORMAN = {
@@ -1194,6 +1187,25 @@ export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',
   value:     'isAutoscalerEnabled',
-  sort:      ['autoscaler'],
+  sort:      ['isAutoscalerEnabled'],
   formatter: 'Autoscaler',
+};
+
+export const MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'statusInfo.machineProvider',
+  sort:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const MGMT_CLUSTER_KUBE_VERSION = {
+  name:      'kubernetesVersion',
+  labelKey:  'tableHeaders.version',
+  subLabel:  'Architecture',
+  sort:      'statusInfo.kubernetesVersion',
+  search:    'statusInfo.kubernetesVersion',
+  formatter: 'ClusterKubeVersion',
 };

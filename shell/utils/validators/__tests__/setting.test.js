@@ -4,6 +4,7 @@ import {
   isDomainWithoutProtocol,
   isLocalhost,
   hasTrailingForwardSlash,
+  isValidUrl,
 } from '@shell/utils/validators/setting';
 
 describe('isServerUrl', () => {
@@ -83,10 +84,41 @@ describe('hasTrailingForwardSlash', () => {
     ['http://example.com/', true],
     ['HTTPS://EXAMPLE.COM/', true],
     ['https://example.com/path/', true],
+    ['https://rancher-ui/', true],
     ['https://example.com', false],
     ['http://example.com/path', false],
+    ['https://rancher-ui', false],
     ['example.com/', false],
   ])('should validate that hasTrailingForwardSlash("%s") returns %s', (input, expected) => {
     expect(hasTrailingForwardSlash(input)).toBe(expected);
+  });
+});
+
+describe('isValidUrl', () => {
+  it.each([
+    ['https://example.com', true],
+    ['http://example.com', true],
+    ['https://example.com/', true],
+    ['https://example.com/path?q=1#frag', true],
+    ['https://example.com:8443', true],
+    ['https://localhost', true],
+    ['https://localhost:8443', true],
+    ['https://127.0.0.1', true],
+    ['https://192.168.1.1:443', true],
+    // Single-label hostnames are valid in private DNS (Tailscale, internal DNS, /etc/hosts).
+    ['https://rancher-ui', true],
+    ['https://rancher-ui/', true],
+    ['https://rancher-ui:8443', true],
+    ['http://my-host', true],
+    // Invalid
+    ['not a url', false],
+    ['example.com', false],
+    ['https://', false],
+    ['', false],
+    [null, false],
+    [undefined, false],
+    [42, false],
+  ])('should validate that isValidUrl("%s") returns %s', (input, expected) => {
+    expect(isValidUrl(input)).toBe(expected);
   });
 });

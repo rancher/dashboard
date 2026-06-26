@@ -102,7 +102,7 @@ describe('topLevelMenu.helper', () => {
     it('should initialize PaginationWrappers', () => {
       mockStore.getters['management/schemaFor'].mockReturnValue(true);
       new TopLevelMenuHelperPagination({ $store: mockStore });
-      expect(PaginationWrapper).toHaveBeenCalledTimes(3);
+      expect(PaginationWrapper).toHaveBeenCalledTimes(2);
     });
 
     it('should update clusters correctly', async() => {
@@ -113,19 +113,13 @@ describe('topLevelMenu.helper', () => {
       const mgmtOthers = [{
         id: 'c2', nameDisplay: 'Other', isReady: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
       }];
-      const provClusters = [
-        { mgmtClusterId: 'c1' },
-        { mgmtClusterId: 'c2' }
-      ];
 
       const mockRequestPinned = jest.fn().mockResolvedValue({ data: mgmtPinned });
       const mockRequestOthers = jest.fn().mockResolvedValue({ data: mgmtOthers });
-      const mockRequestProv = jest.fn().mockResolvedValue({ data: provClusters });
 
       (PaginationWrapper as unknown as jest.Mock)
         .mockImplementationOnce(() => ({ request: mockRequestPinned, onDestroy: jest.fn() }))
-        .mockImplementationOnce(() => ({ request: mockRequestOthers, onDestroy: jest.fn() }))
-        .mockImplementationOnce(() => ({ request: mockRequestProv, onDestroy: jest.fn() }));
+        .mockImplementationOnce(() => ({ request: mockRequestOthers, onDestroy: jest.fn() }));
 
       const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
 
@@ -169,56 +163,11 @@ describe('topLevelMenu.helper', () => {
         },
         revision: undefined
       });
-      expect(mockRequestProv).toHaveBeenCalledWith({
-        forceWatch: undefined,
-        pagination: {
-          filters: [{
-            equals: true,
-            fields: [{
-              equals: true, exact: true, field: 'status.clusterName', value: mgmtOthers[0].id
-            }, {
-              equals: true, exact: true, field: 'status.clusterName', value: mgmtPinned[0].id
-            }],
-            param: 'filter'
-          }],
-          page:                 1,
-          projectsOrNamespaces: [],
-          sort:                 []
-        },
-        revision: undefined
-      });
 
       expect(helper.clustersPinned).toHaveLength(1);
       expect(helper.clustersPinned[0].id).toBe('c1');
       expect(helper.clustersOthers).toHaveLength(1);
       expect(helper.clustersOthers[0].id).toBe('c2');
-    });
-
-    it('should filter out mgmt clusters without matching prov clusters', async() => {
-      mockStore.getters['management/schemaFor'].mockReturnValue(true);
-      const mgmtOthers = [{
-        id: 'c2', nameDisplay: 'Other', isReady: true, pinned: false, pin: jest.fn(), unpin: jest.fn()
-      }];
-      // No prov cluster for c2
-      const provClusters: any[] = [];
-
-      const mockRequestPinned = jest.fn().mockResolvedValue({ data: [] });
-      const mockRequestOthers = jest.fn().mockResolvedValue({ data: mgmtOthers });
-      const mockRequestProv = jest.fn().mockResolvedValue({ data: provClusters });
-
-      (PaginationWrapper as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({ request: mockRequestPinned, onDestroy: jest.fn() }))
-        .mockImplementationOnce(() => ({ request: mockRequestOthers, onDestroy: jest.fn() }))
-        .mockImplementationOnce(() => ({ request: mockRequestProv, onDestroy: jest.fn() }));
-
-      const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
-
-      await helper.update({
-        searchTerm: '',
-        pinnedIds:  [],
-      });
-
-      expect(helper.clustersOthers).toHaveLength(0);
     });
   });
 

@@ -4,6 +4,8 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { FLEET } from '@shell/config/types';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { WORKSPACE } from '@shell/store/prefs';
 
 export default {
   name: 'DetailWorkspace',
@@ -34,6 +36,35 @@ export default {
       return this.t(`typeLabel."${ FLEET.HELM_OP }"`, { count: this.value.counts.helmOps });
     },
 
+    applicationRoute() {
+      return {
+        name:   'c-cluster-fleet-application',
+        params: { cluster: BLANK_CLUSTER }
+      };
+    },
+
+    clustersRoute() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  BLANK_CLUSTER,
+          product:  FLEET_NAME,
+          resource: FLEET.CLUSTER,
+        }
+      };
+    },
+
+    clusterGroupsRoute() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  BLANK_CLUSTER,
+          product:  FLEET_NAME,
+          resource: FLEET.CLUSTER_GROUP,
+        }
+      };
+    },
+
     SCOPE_NAMESPACE() {
       return SCOPE_NAMESPACE;
     },
@@ -46,6 +77,16 @@ export default {
       return FLEET_NAME;
     }
   },
+
+  methods: {
+    setWorkspaceAndNavigate(route) {
+      const workspaceId = this.value.id;
+
+      this.$store.commit('updateWorkspace', { value: workspaceId, getters: this.$store.getters });
+      this.$store.dispatch('prefs/set', { key: WORKSPACE, value: workspaceId });
+      this.$router.push(route);
+    }
+  }
 };
 </script>
 
@@ -58,6 +99,8 @@ export default {
             :count="value.counts.gitRepos"
             :name="gitRepoLabel"
             :primary-color-var="'--sizzle-3'"
+            :clickable="true"
+            @click="setWorkspaceAndNavigate(applicationRoute)"
           />
         </div>
         <div class="col span-3">
@@ -65,6 +108,8 @@ export default {
             :count="value.counts.helmOps"
             :name="helmOpsLabel"
             :primary-color-var="'--sizzle-3'"
+            :clickable="true"
+            @click="setWorkspaceAndNavigate(applicationRoute)"
           />
         </div>
         <div class="col span-3">
@@ -72,6 +117,8 @@ export default {
             :count="value.counts.clusters"
             :name="clustersLabel"
             :primary-color-var="'--sizzle-1'"
+            :clickable="true"
+            @click="setWorkspaceAndNavigate(clustersRoute)"
           />
         </div>
         <div class="col span-3">
@@ -79,6 +126,8 @@ export default {
             :count="value.counts.clusterGroups"
             :name="clusterGroupsLabel"
             :primary-color-var="'--sizzle-2'"
+            :clickable="true"
+            @click="setWorkspaceAndNavigate(clusterGroupsRoute)"
           />
         </div>
       </div>

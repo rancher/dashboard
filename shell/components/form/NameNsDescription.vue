@@ -156,6 +156,14 @@ export default {
       type:    Boolean,
       default: true,
     },
+    nameColSpan: {
+      type:    Number,
+      default: 3,
+    },
+    noBottomMargin: {
+      type:    Boolean,
+      default: false,
+    },
     rules: {
       default: () => ({
         namespace:   [],
@@ -163,6 +171,14 @@ export default {
         description: []
       }),
       type: Object,
+    },
+    nameFieldName: {
+      type:    String,
+      default: null,
+    },
+    namespaceFieldName: {
+      type:    String,
+      default: null,
     },
 
     /**
@@ -302,8 +318,8 @@ export default {
 
     if (props.namespaced) {
       if (props.forceNamespace) {
-        namespace.value = toRef(props.forceNamespace);
-        updateNamespace(namespace);
+        namespace.value = props.forceNamespace;
+        updateNamespace(namespace.value);
       } else if (props.namespaceKey) {
         namespace.value = get(v.value, props.namespaceKey);
       } else {
@@ -313,7 +329,7 @@ export default {
       if (!namespace.value && !props.noDefaultNamespace) {
         namespace.value = store.getters['defaultNamespace'];
         if (metadata) {
-          metadata.namespace = namespace;
+          metadata.namespace = namespace.value;
         }
       }
     }
@@ -428,7 +444,7 @@ export default {
 </script>
 
 <template>
-  <div class="row mb-20">
+  <div :class="['row', { 'mb-20': !noBottomMargin }]">
     <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
@@ -438,6 +454,7 @@ export default {
       <LabeledInput
         ref="namespaceInput"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
@@ -464,6 +481,7 @@ export default {
       <LabeledSelect
         v-show="!createNamespace"
         v-model:value="namespace"
+        :name="namespaceFieldName"
         :clearable="true"
         :options="options"
         :disabled="namespaceReallyDisabled"
@@ -481,12 +499,13 @@ export default {
     <div
       v-if="!nameHidden && !nameNsHidden"
       :data-testid="componentTestid + '-name'"
-      class="col span-3"
+      :class="['col', `span-${nameColSpan}`]"
     >
       <LabeledInput
         ref="nameInput"
         key="name"
         v-model:value="name"
+        :name="nameFieldName"
         data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"

@@ -54,9 +54,9 @@ const i18n = useI18n(store);
 .scaler {
   display: inline-flex;
   align-items: center;
-  background-color: hsl(from var(--primary) h s calc(l + 30));
+  background-color: var(--accent-btn);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--primary);
+  border: solid thin var(--primary);
   overflow: hidden;
 
   button {
@@ -77,7 +77,7 @@ const i18n = useI18n(store);
     }
 
     &:hover {
-      background-color: hsl(from var(--primary) h s calc(l + 20));
+      background-color: var(--accent-btn);
     }
 
     &[disabled] {
@@ -88,7 +88,7 @@ const i18n = useI18n(store);
   }
 
   .value {
-    color: initial;
+    color: var(--body-text);
     cursor: default;
     padding: 4px;
     padding-top: 5px;

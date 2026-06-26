@@ -19,6 +19,9 @@ import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
@@ -133,6 +136,7 @@ const defaultImportedCluster = {
   enableNetworkPolicy:    false,
   windowsPreferedCluster: false,
   name:                   '',
+  importedConfig:         {},
   gkeConfig:              {
     imported:               true,
     clusterName:            '',
@@ -155,6 +159,7 @@ export default defineComponent({
     Networking,
     GKENodePoolComponent,
     Config,
+    PrivateRegistry,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -199,6 +204,10 @@ export default defineComponent({
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
+    if (this.value?.id && !this.normanCluster.importedConfig) {
+      this.normanCluster.importedConfig = {};
+    }
+    this.privateRegistryEnabled = !!this.normanCluster.importedConfig?.privateRegistryURL;
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
@@ -246,12 +255,14 @@ export default defineComponent({
 
     return {
       isImport,
-      normanCluster:    { name: '' } as any,
-      nodePools:        [] as GKENodePool[],
-      config:           { } as GKEConfig,
-      membershipUpdate: {} as any,
-      originalVersion:  '',
-      defaultImageType: GKEImageTypes[0],
+      normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
+      PRIVATE_REGISTRY_CONTEXT,
+      nodePools:              [] as GKENodePool[],
+      config:                 { } as GKEConfig,
+      membershipUpdate:       {} as any,
+      originalVersion:        '',
+      defaultImageType:       GKEImageTypes[0],
+      privateRegistryEnabled: false,
       supportedVersionRange,
 
       loadingMachineTypes:     false,
@@ -265,6 +276,9 @@ export default defineComponent({
       }, {
         path:  'importName',
         rules: ['importNameRequired']
+      }, {
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }] : [
         {
           path:  'diskSizeGb',
@@ -310,6 +324,10 @@ export default defineComponent({
           path:  'clusterIpv4Cidr',
           rules: ['clusterIpv4CidrFormat']
         },
+        {
+          path:  'privateRegistry',
+          rules: ['privateRegistryRequired']
+        },
       ],
       isAuthenticated: false,
 
@@ -338,6 +356,25 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    isImportedCluster() {
+      return this.isImport || this.value.isImported;
+    },
+
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
+    },
+
     /**
      * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here
      * entire context is passed in so validators can check if a credential is selected and only run when the rest of the form is shown + use the i18n/t getter + get the norman cluster
@@ -345,10 +382,11 @@ export default defineComponent({
 
     fvExtraRules() {
       return {
-        clusterNameChars:    clusterNameChars(this),
-        clusterNameStartEnd: clusterNameStartEnd(this),
-        nameRequired:        requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
-        importNameRequired:  requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        clusterNameChars:        clusterNameChars(this),
+        clusterNameStartEnd:     clusterNameStartEnd(this),
+        nameRequired:            requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        importNameRequired:      requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
+        privateRegistryRequired: privateRegistryRequired(this),
 
         masterIpv4CidrBlockRequired: () => {
           if (!this.isAuthenticated) {
@@ -571,6 +609,7 @@ export default defineComponent({
     'config.region'() {
       this.debouncedLoadGCPData();
     },
+
   },
 
   methods: {
@@ -786,8 +825,9 @@ export default defineComponent({
           @removeTab="removePool($event)"
         >
           <Tab
-            v-for="(pool) in nodePools"
+            v-for="(pool, idx) in nodePools"
             :key="pool._id"
+            :weight="-1 * idx"
             :name="pool._id || pool.name"
             :label="pool.name || t('gke.notNamed')"
             :error="pool._minMaxValid===false || pool._nameUnique===false"
@@ -914,6 +954,21 @@ export default defineComponent({
         <Labels
           v-model:value="normanCluster"
           :mode="mode"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20"
+        title-key="cluster.tabs.registry"
+        data-testid="registries-accordion"
+      >
+        <PrivateRegistry
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
+          v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
         />
       </Accordion>
     </div>

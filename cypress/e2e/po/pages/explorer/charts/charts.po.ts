@@ -3,6 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -94,7 +95,7 @@ export class ChartsPage extends PagePo {
   }
 
   chartCards() {
-    return this.self().find('[data-testid="app-chart-cards-container"] > [data-testid*="item-card-"]');
+    return this.self().find('[data-testid="app-chart-cards-container"] > [data-testid*="item-card-"]', MEDIUM_TIMEOUT_OPT);
   }
 
   scrollContainer() {

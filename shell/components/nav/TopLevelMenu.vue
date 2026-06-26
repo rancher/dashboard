@@ -12,6 +12,7 @@ import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
@@ -96,6 +97,17 @@ export default {
       const count = counts[MANAGEMENT.CLUSTER] || {};
 
       return count?.summary.count;
+    },
+
+    routeComboActive() {
+      if (!this.routeCombo || !this.isCurrRouteClusterExplorer) {
+        return false;
+      }
+
+      const ready = [...this.appBar.pinFiltered, ...this.appBar.clustersFiltered].filter((c) => c.ready);
+      const readyCount = ready.length;
+
+      return readyCount > 1 || (readyCount === 1 && this.clusterId !== ready[0].id);
     },
 
     // New
@@ -186,8 +198,22 @@ export default {
           to.params.product = p.name;
         }
 
+        let label;
+
+        // Allow product to specify its label (old DSL product() did not have "label" or "labelKey")
+        // new extensions product registration supports both "label" and "labelKey" (with "labelKey" taking precedence if both are provided)
+        if (p.labelKey) {
+          label = this.$store.getters['i18n/t'](p.labelKey);
+        } else if (p.label) {
+          label = p.label;
+        }
+
+        if (!label) {
+          label = this.$store.getters['i18n/withFallback'](`product.${ p.name }`, null, ucFirst(p.name));
+        }
+
         return {
-          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          label,
           icon:              `icon-${ p.icon || 'copy' }`,
           svg:               p.svg,
           value:             p.name,
@@ -212,7 +238,7 @@ export default {
     },
 
     isCurrRouteClusterExplorer() {
-      return this.$route?.name?.startsWith('c-cluster');
+      return this.$route?.name?.startsWith('c-cluster') && this.productFromRoute === EXPLORER;
     },
 
     productFromRoute() {
@@ -368,11 +394,15 @@ export default {
     },
 
     handleKeyComboClick() {
+      if (!this.isCurrRouteClusterExplorer) {
+        return;
+      }
+
       this.routeCombo = !this.routeCombo;
     },
 
     clusterMenuClick(ev, cluster) {
-      if (this.routeCombo) {
+      if (this.routeComboActive) {
         ev.preventDefault();
 
         if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
@@ -409,7 +439,7 @@ export default {
     },
 
     async goToHarvesterCluster() {
-      const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((C) => C.id === 'fleet-local/local');
+      const localCluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, 'fleet-local/local');
 
       try {
         await localCluster.goToHarvesterCluster();
@@ -432,7 +462,7 @@ export default {
         content = this.shown ? null : contentText;
 
       // if key combo is pressed, then we update the tooltip as well
-      } else if (this.routeCombo &&
+      } else if (this.routeComboActive &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
         item !== null &&
@@ -692,7 +722,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -771,7 +801,7 @@ export default {
                     <ClusterIconMenu
                       v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
-                      :route-combo="routeCombo"
+                      :route-combo="routeComboActive"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -925,19 +955,6 @@ export default {
         <div
           class="footer"
         >
-          <div
-            v-if="canEditSettings"
-            class="support"
-            @click="hide()"
-          >
-            <router-link
-              :to="{name: 'support'}"
-              role="link"
-              :aria-label="t('nav.ariaLabel.support')"
-            >
-              {{ t('nav.support', {hasSupport}) }}
-            </router-link>
-          </div>
           <div
             class="version"
             :class="{'version-small': largeAboutText}"
@@ -1544,10 +1561,6 @@ export default {
         margin: 20px 10px;
         width: 50px;
 
-        .support {
-          display: none;
-        }
-
         .version{
           text-align: center;
 
@@ -1567,19 +1580,7 @@ export default {
       > * {
         flex: 1;
         color: var(--link);
-
-        &:first-child {
-          text-align: left;
-        }
-        &:last-child {
-          text-align: right;
-        }
-        text-align: center;
-      }
-
-      .support a:focus-visible {
-        @include focus-outline;
-        outline-offset: 4px;
+        text-align: left;
       }
 
       .version {

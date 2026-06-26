@@ -13,3 +13,13 @@ export const SECRET_TYPES = {
   RKE_AUTH_CONFIG:   'rke.cattle.io/auth-config',
   FLEET_OCI_STORAGE: 'fleet.cattle.io/bundle-oci-storage/v1alpha1'
 };
+
+/**
+ * Data keys for a Fleet GitHub App authentication secret (stored as an Opaque secret).
+ * Shared so the create flows stay in sync.
+ */
+export const GITHUB_APP_SECRET_KEYS = {
+  APP_ID:          'github_app_id',
+  INSTALLATION_ID: 'github_app_installation_id',
+  PRIVATE_KEY:     'github_app_private_key',
+};

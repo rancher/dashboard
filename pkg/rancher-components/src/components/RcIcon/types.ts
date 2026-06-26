@@ -148,8 +148,8 @@ export const RcIconTypeToClass = {
 export const RcIconSizeToCSS = {
   xxlarge: '40px',
   xlarge:  '32px',
-  large:   '25px',
-  medium:  '18px',
+  large:   '24px',
+  medium:  '16px',
   small:   '14px',
   inherit: 'inherit'
 };

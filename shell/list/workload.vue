@@ -99,13 +99,21 @@ export default {
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
     const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
 
+    const workloadIncludeAssociatedData = paginationEnabled && [
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.JOB,
+    ].includes(type);
+
     return {
       allTypes,
       schema,
       paginationEnabled,
       resources: [],
       loadResources,
-      loadIndeterminate
+      loadIndeterminate,
+      workloadIncludeAssociatedData
     };
   },
 
@@ -143,10 +151,8 @@ export default {
      * Fetch resources required to populate POD_RESTARTS and WORKLOAD_HEALTH_SCALE columns
      */
     loadHeathResources() {
-      // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
       if (this.paginationEnabled) {
-        // Unfortunately with SSP enabled we cannot fetch all pods to then let each row find applicable pods by locally applied selectors (bad for scaling)
-        // See https://github.com/rancher/dashboard/issues/14211
+        // When SSP is enabled we efficiently fetch stats for health column imbedded in the original resource type by supplying `includeAssociatedData` param
         return;
       }
 
@@ -184,6 +190,7 @@ export default {
       v-if="paginationEnabled"
       :schema="schema"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :includeAssociatedData="workloadIncludeAssociatedData"
     />
     <ResourceTable
       v-else

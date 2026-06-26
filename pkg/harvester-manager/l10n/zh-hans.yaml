@@ -9,3 +9,6 @@ harvesterManager:
     loadError: 加载 Harvester 插件时出错
   rke:
     templateError: 模版格式不正确
+  cpuModel:
+    label: CPU 型号
+    optionLabel: "{modelName} (就绪节点: {count})"

@@ -191,7 +191,7 @@ export default class SortableTablePo extends ComponentPo {
 
   rowActionMenu() {
     // Get the visible dropdown menu - this ensures we only interact with a menu that's actually open
-    return new ActionMenuPo(cy.get('[dropdown-menu-collection]:visible'));
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
   }
 
   noRowsShouldNotExist() {
@@ -207,6 +207,13 @@ export default class SortableTablePo extends ComponentPo {
    */
   rowCount(): Cypress.Chainable<number> {
     return this.rowElements().then((el) => el.length);
+  }
+
+  /**
+   * get the count of rows in a group
+   */
+  groupRowCount(groupName: string) {
+    return this.groupElementWithName(groupName).nextUntil('tr.group-row').then((el) => el.length);
   }
 
   /**
@@ -231,10 +238,25 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string) {
-    this.rowWithName(name).actionBtn().click();
+  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean) {
+    this.rowWithName(name).actionBtn()
+      .click().then((el) => {
+        expect(el).to.have.attr('aria-expanded', 'true');
+      });
 
-    return this.rowActionMenu();
+    const actionMenu = this.rowActionMenu();
+
+    // Wait for the dropdown menu to appear and be populated with actual content
+    actionMenu.self().should('exist');
+
+    // Wait for the dropdown to finish loading (not show "No actions available")
+    if (!skipNoActionAvailableCheck) {
+      actionMenu.checkNoActionsAvailable(false);
+      // Ensure at least one non-disabled menu item is present
+      actionMenu.atLeastOneActiveMenuItem();
+    }
+
+    return actionMenu;
   }
 
   rowActionMenuClose(name: string) {

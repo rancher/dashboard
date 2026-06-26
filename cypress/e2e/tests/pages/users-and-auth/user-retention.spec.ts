@@ -1,6 +1,7 @@
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 function updateUserRetentionSetting(settingId, newValue) {
   cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
@@ -24,14 +25,12 @@ describe('User Retention', { testIsolation: 'off' }, () => {
 
   beforeEach(() => {
     cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
-    cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*').as('pageLoad');
   });
 
   describe('User retention: admin user', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('save button should be disabled when form is invalid', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
       userRetentionPo.disableAfterPeriodCheckbox().set();
       userRetentionPo.disableAfterPeriodInput().set('30d');
 
@@ -41,7 +40,6 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('save button should be enabled when form is valid', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
       userRetentionPo.disableAfterPeriodCheckbox().set();
       userRetentionPo.disableAfterPeriodInput().set('300h');
       userRetentionPo.userRetentionCron().set('0 0 1 1 *');
@@ -52,11 +50,18 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('can save user retention settings', () => {
       UserRetentionPo.navTo();
       userRetentionPo.waitForPage();
-      cy.wait('@pageLoad');
 
+      // Uncheck the data to make sure it is unchecked before the test starts.
+      userRetentionPo.disableAfterPeriodCheckbox().uncheck();
+      userRetentionPo.deleteAfterPeriodCheckbox().uncheck();
+
+      userRetentionPo.disableAfterPeriodInput().expectToBeDisabled();
       userRetentionPo.disableAfterPeriodCheckbox().set();
+      userRetentionPo.disableAfterPeriodInput().expectToBeEnabled();
       userRetentionPo.disableAfterPeriodInput().set('300h');
+      userRetentionPo.deleteAfterPeriodInput().expectToBeDisabled();
       userRetentionPo.deleteAfterPeriodCheckbox().set();
+      userRetentionPo.deleteAfterPeriodInput().expectToBeEnabled();
       userRetentionPo.deleteAfterPeriodInput().set('600h');
       userRetentionPo.userRetentionCron().set('0 0 1 1 *');
       userRetentionPo.userLastLoginDefault().set('1718744536000');
@@ -65,8 +70,12 @@ describe('User Retention', { testIsolation: 'off' }, () => {
 
       cy.intercept('PUT', '/v1/management.cattle.io.settings/*').as('saveUserRetention');
       userRetentionPo.saveButton().click();
+
+      // Wait for the first request to complete successfully
       cy.wait('@saveUserRetention').its('response.statusCode').should('eq', 200);
-      cy.get('@saveUserRetention.all').should('have.length', 5);
+
+      // Wait for all 5 requests to complete, with proper timeout
+      cy.get('@saveUserRetention.all', MEDIUM_TIMEOUT_OPT).should('have.length', 5);
 
       cy.url().should('include', '/management.cattle.io.user');
 
@@ -120,7 +129,7 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('verify the user account has countdown timers', () => {
       const usersPo = new UsersPo();
 
-      cy.logout();
+      cy.clearAllSessions();
       cy.login();
       usersPo.goTo();
       usersPo.waitForPage();
@@ -154,7 +163,7 @@ describe('User Retention', { testIsolation: 'off' }, () => {
     it('standard user should not have access to user retention page', () => {
       const usersPo = new UsersPo();
 
-      // login as standard user
+      cy.clearAllSessions();
       cy.login();
       usersPo.goTo();
       usersPo.waitForPage();

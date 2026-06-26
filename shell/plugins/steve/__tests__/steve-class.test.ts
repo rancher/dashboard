@@ -74,7 +74,7 @@ describe('class: Steve', () => {
 
         steve.processSaveResponse(response);
 
-        expect(parentProcessSaveResponse).toHaveBeenCalledWith(response);
+        expect(parentProcessSaveResponse).toHaveBeenCalledWith(response, {});
       });
 
       describe('growl notifications', () => {

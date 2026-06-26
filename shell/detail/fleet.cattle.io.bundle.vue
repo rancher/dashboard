@@ -5,12 +5,16 @@ import FleetUtils from '@shell/utils/fleet';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Loading from '@shell/components/Loading.vue';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
+import ResourceTabs from '@shell/components/form/ResourceTabs';
+import Tab from '@shell/components/Tabbed/Tab';
 
 export default {
   name: 'FleetBundleDetail',
 
-  components: { Loading, FleetResources },
-  props:      {
+  components: {
+    Loading, FleetResources, ResourceTabs, Tab
+  },
+  props: {
     value: {
       type:     Object,
       required: true,
@@ -82,42 +86,25 @@ export default {
         return res;
       }, []);
     },
-    resourceCount() {
-      return this.bundleResources.length;
-    },
   }
 };
 
 </script>
 
 <template>
-  <div>
-    <div class="bundle-title mt-20 mb-20">
-      <h2>{{ t('fleet.bundles.resources') }}</h2>
-      <span>{{ resourceCount }}</span>
-    </div>
-    <Loading v-if="$fetchState.pending" />
-    <FleetResources
-      v-else
-      :rows="bundleResources"
-    />
-  </div>
+  <Loading v-if="$fetchState.pending" />
+  <ResourceTabs
+    v-else
+    :value="value"
+    mode="view"
+    :need-related="false"
+  >
+    <Tab
+      label="Resources"
+      name="resources"
+      :weight="20"
+    >
+      <FleetResources :rows="bundleResources" />
+    </Tab>
+  </ResourceTabs>
 </template>
-
-<style lang="scss" scoped>
-.bundle-title {
-  display: flex;
-  align-items: center;
-
-  h2 {
-    margin: 0 10px 0 0;
-  }
-
-  span {
-    background-color: var(--darker);
-    color: var(--default);
-    padding: 5px 10px;
-    border-radius: 15px;
-  }
-}
-</style>

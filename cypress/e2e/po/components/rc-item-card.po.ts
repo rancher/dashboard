@@ -6,8 +6,8 @@ export default class RcItemCardPo extends ComponentPo {
     return new RcItemCardPo(`[data-testid="item-card-${ id }"]`);
   }
 
-  static getCardByTitle(title: string) {
-    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]').contains(title).parents('[data-testid*="item-card-"]'));
+  static getCardByTitle(title: string, options?: Partial<Cypress.Timeoutable>) {
+    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]', options).contains(title).parents('[data-testid*="item-card-"]'));
   }
 
   getImage() {

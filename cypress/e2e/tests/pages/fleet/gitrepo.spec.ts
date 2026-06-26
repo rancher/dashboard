@@ -53,12 +53,17 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
     it('Can create a GitRepo', () => {
       // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
       cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -67,8 +72,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const {
         repo, branch, paths, helmRepoURLRegex
       } = gitRepoCreateRequest.spec;
-
-      headerPo.selectWorkspace(workspace);
 
       // Metadata step
       gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
@@ -85,6 +88,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       // Target selection step
       gitRepoCreatePage.targetClusterOptions().set(1);
+      // The "Manually selected clusters" option only renders once the async fleet-cluster
+      // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+      gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
       gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
@@ -200,6 +206,73 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
           expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
         });
         prefPage.languageDropdownMenu().isClosed();
+      });
+    });
+
+    it('Can create a GitRepo with GitHub App git authentication', () => {
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts({ fakeProvClusterId, fakeMgmtClusterId });
+
+      cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
+
+      const appId = '12345';
+      const installationId = '67890';
+      const privateKey = '-----BEGIN RSA PRIVATE KEY-----\nFAKEKEYCONTENT\n-----END RSA PRIVATE KEY-----';
+
+      // Select the workspace from the list page before navigating to create
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      gitRepoCreatePage.goTo();
+      gitRepoCreatePage.waitForPage();
+
+      // Use a unique name for this create: the shared '@gitRepo' name is already
+      // created by the `before()` hook, and the new dryRunCreate step validation
+      // would reject it with a 409 (name already exists), blocking navigation.
+      cy.createE2EResourceName('git-repo-github-app').then((name) => {
+        // Metadata step
+        gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(name);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Repository details step
+        gitRepoCreatePage.setGitRepoUrl(repoInfo.repoUrl);
+        gitRepoCreatePage.setBranchName(repoInfo.branch);
+        gitRepoCreatePage.setGitRepoPath(repoInfo.paths);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Target selection step
+        gitRepoCreatePage.targetClusterOptions().set(1);
+        // The "Manually selected clusters" option only renders once the async fleet-cluster
+        // data has loaded; wait for it before selecting to avoid flaking on slow fetches.
+        gitRepoCreatePage.targetClusterOptions().getAllOptions().should('have.length.gte', 3);
+        gitRepoCreatePage.targetClusterOptions().set(2);
+        gitRepoCreatePage.targetCluster().toggle();
+        gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
+        gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+        // Wait for secrets fetch to initialize Secret selectors
+        cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
+
+        // Advanced step - create a GitHub App secret for the git authentication
+        gitRepoCreatePage.gitAuthSelectOrCreate().createGitHubAppAuth(appId, installationId, privateKey);
+
+        gitRepoCreatePage.resourceDetail().createEditView().create()
+          .then(() => {
+            reposToDelete.push(`${ workspace }/${ name }`);
+          });
+
+        // Only the git GitHub App secret should be created (helm auth left as None)
+        cy.wait('@interceptSecret').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+          expect(request.body.data).to.have.property('github_app_id', btoa(appId));
+          expect(request.body.data).to.have.property('github_app_installation_id', btoa(installationId));
+          expect(request.body.data).to.have.property('github_app_private_key', btoa(privateKey));
+        });
       });
     });
 
@@ -419,6 +492,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
     cy.applyDefaultTestTheme();
   });
+
   it('should display continuous delivery page git repo', () => {
     const gitRepoList = new FleetGitRepoListPagePo();
 
@@ -429,5 +503,9 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('Continuous Delivery Page - git repos');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

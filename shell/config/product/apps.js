@@ -29,7 +29,8 @@ export function init(store) {
     weight:              97,
     ifHaveGroup:         'catalog.cattle.io',
     icon:                'marketplace',
-    showNamespaceFilter: true
+    showNamespaceFilter: true,
+    extendable:          true,
   });
 
   virtualType({
@@ -53,6 +54,7 @@ export function init(store) {
 
   configureType(CATALOG.APP, { isCreatable: false, isEditable: false });
   configureType(CATALOG.OPERATION, { isCreatable: false, isEditable: false });
+  configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
   const repoType = {
     name:     'type',

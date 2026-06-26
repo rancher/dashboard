@@ -14,5 +14,6 @@ export function init(store) {
     showClusterSwitcher: false,
     category:            'configuration',
     weight:              50,
+    extendable:          false,
   });
 }

@@ -4,6 +4,9 @@ inputs:
   chrome-version:
     description: 'The version of Google Chrome to target. Versions are formatted as `144.0.7559.96-1`.'
     required: true
+  chrome-version-checksum:
+    description: 'The checksum for the target Google Chrome version DEB file.'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -14,5 +17,13 @@ runs:
         sudo apt-get install -y wget libu2f-udev
         cd /tmp
         wget -q https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${{ inputs.chrome-version }}_amd64.deb
+
+        echo "Validating checksum..."
+        DOWNLOADED_CHECKSUM=$(sha256sum google-chrome-stable_${{ inputs.chrome-version }}_amd64.deb | awk '{print $1}')
+        if [ "$DOWNLOADED_CHECKSUM" != "${{ inputs.chrome-version-checksum }}" ]; then
+          echo "Error: Checksum mismatch! Expected ${{ inputs.chrome-version-checksum }} but got $DOWNLOADED_CHECKSUM"
+          exit 1
+        fi
+
         sudo apt-get install -y --allow-downgrades ./google-chrome-stable_${{ inputs.chrome-version }}_amd64.deb
         google-chrome --version

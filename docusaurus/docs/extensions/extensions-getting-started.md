@@ -11,7 +11,7 @@ For an easy follow of this guide, there is two different concepts that a develop
 > Note: Extensions development is only currently supported on Mac and Linux. Windows is not currently supported.
 
 - **Node.js Version:**
-  - For the latest version, you will need Node.js **version `v20`** (tested with `v20.17.0`).
+  - For the latest version, you will need Node.js **version `v24`** (tested with `v24.14.0`).
 - Yarn package manager installed globally: `npm install -g yarn`.
 - Have a Rancher system up and running. See https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade
 
@@ -65,7 +65,7 @@ There are a few options available to be passed as an argument to the `@rancher/e
 - If you want the development app to have a different name than the extension package, you can use the `--app-name` (or `-a`) option:
 
 ```sh
-npm init @rancher/extension@latest new-extension --app-name my-app
+npm init @rancher/extension@latest new-extension -- --app-name my-app
 ```
 
 This will create a development app named `my-app` and an extension package named `new-extension`.
@@ -81,7 +81,7 @@ In this case, only a new extension package (`another-extension`) will be created
 - If you only want to create the development app without any extension package, you can use the `--skeleton-only` (or `-s`) option:
 
 ```sh
-npm init @rancher/extension@latest my-app --skeleton-only
+npm init @rancher/extension@latest my-app -- --skeleton-only
 ```
 
 This will create only the development app, and you can later add extension packages as needed.

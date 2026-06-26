@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { AUTH_TYPE } from '@shell/config/types';
+import { base64Encode } from '@shell/utils/crypto';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
 
@@ -70,6 +71,7 @@ const initGitRepo = (props: any, value?: any) => {
   }, {
     getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
     dispatch:    jest.fn(),
+    rootState:   { $extension: { getPlugins: () => ({}) } },
     rootGetters: { 'i18n/t': jest.fn() },
   });
 
@@ -324,5 +326,96 @@ describe('view: fleet.cattle.io.gitrepo, GitHub password banner - should', () =>
     const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
 
     expect(githubBanner.exists()).toBe(shouldShowBanner);
+  });
+});
+
+describe('view: fleet.cattle.io.gitrepo, GitHub App auth - should', () => {
+  const originalDispatch = mockStore.dispatch;
+
+  afterEach(() => {
+    mockStore.dispatch = originalDispatch;
+  });
+
+  it('create an Opaque secret with the GitHub App data keys on doCreate', async() => {
+    const fakeSecret: any = {
+      metadata: { name: 'gitrepo-auth-abc' },
+      save:     jest.fn().mockResolvedValue(undefined),
+    };
+
+    mockStore.dispatch = jest.fn().mockResolvedValue(fakeSecret);
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+
+    await (wrapper.vm as any).doCreate('clientSecretName', {
+      selected:                AUTH_TYPE._GITHUB_APP,
+      githubAppId:             'app-id',
+      githubAppInstallationId: 'install-id',
+      githubAppPrivateKey:     'private-key',
+    });
+
+    expect(fakeSecret._type).toBe('Opaque');
+    expect(fakeSecret.data).toStrictEqual({
+      github_app_id:              base64Encode('app-id'),
+      github_app_installation_id: base64Encode('install-id'),
+      github_app_private_key:     base64Encode('private-key'),
+    });
+    expect(fakeSecret.save).toHaveBeenCalledWith();
+  });
+});
+
+describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
+  it('should call dryRunCreate when leaving stepMetadata in create mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockResolvedValue({});
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).toHaveBeenCalledWith(expect.objectContaining({
+      type:     'fleet.cattle.io.gitrepo',
+      metadata: expect.objectContaining({
+        name:      'test',
+        namespace: 'test',
+      }),
+      spec: expect.objectContaining({ repo: 'https://example.com/placeholder' }),
+    }));
+  });
+
+  it('should not call dryRunCreate for non-metadata steps', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepRepo' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should not call dryRunCreate in edit mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _EDIT }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject with API errors when dryRunCreate fails', async() => {
+    const apiError = {
+      _status:    409,
+      message:    'gitrepos.fleet.cattle.io "test" already exists',
+      statusText: 'Conflict',
+    };
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
   });
 });

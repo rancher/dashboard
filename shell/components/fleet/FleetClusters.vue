@@ -107,6 +107,7 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
+    :sub-rows="true"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :ignore-filter="ignoreFilter"

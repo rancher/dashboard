@@ -31,7 +31,6 @@ describe('view: nodedriver should', () => {
           active:           true,
           checksum:         '',
           url:              '',
-          uiUrl:            '',
           whitelistDomains: []
         }
       },
@@ -65,21 +64,16 @@ describe('view: nodedriver should', () => {
   });
 
   it.each`
-    url                    | uiurl                  | checksum             | expected
-    ${ '1111' }            | ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ true }
-    ${ 'http://test.com' } | ${ '1111' }            | ${ 'aaaaaBBBBdddd' } | ${ true }
-    ${ 'http://test.com' } | ${ 'http://test.com' } | ${ '!!!' }           | ${ true }
-    ${ 'http://test.com' } | ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ false }
-  `('have "Create" button enabled and disabled depending on validation results', async({
-    url, uiurl, checksum, expected
-  }) => {
+    url                    | checksum             | expected
+    ${ '1111' }            | ${ 'aaaaaBBBBdddd' } | ${ true }
+    ${ 'http://test.com' } | ${ '!!!' }           | ${ true }
+    ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ false }
+  `('have "Create" button enabled and disabled depending on validation results', async({ url, checksum, expected }) => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
-    const uiurlField = wrapper.find('[data-testid="driver-create-uiurl-field"]');
     const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]');
     const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
     urlField.setValue(url);
-    uiurlField.setValue(uiurl);
     checksumField.setValue(checksum);
 
     await nextTick();

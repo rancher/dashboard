@@ -19,12 +19,19 @@ import {
   PaginationTableColumn,
   ExtensionEnvironment,
   ServerSidePaginationExtensionConfig,
-  TableAction
+  TableAction,
 } from './types';
+import { RouteRecordRawWithParams } from './plugin-types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
+import { PluginProduct } from './plugin-products';
+import {
+  ProductMetadata, ProductMetadataSinglePage,
+  StandardProductName,
+  ProductChild
+} from '@shell/core/plugin-products-external';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -42,18 +49,20 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
+  public topLevelProduct = false;
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
-  public routes: { parent?: string, route: RouteRecordRaw }[] = [];
+  public routes: { parent?: string, route: RouteRecordRaw | RouteRecordRawWithParams }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
   public onLogIn: OnLogIn = () => Promise.resolve();
+  public productConfigs: PluginProduct[] = [];
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -110,7 +119,15 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
+  _registerTopLevelProduct() {
+    this.topLevelProduct = true;
+  }
+
+  _setStartRouteWithProduct(_value: boolean): void {
+  }
+
   // Track which products the plugin creates
+  // Legacy DSL method
   DSL(store: any, productName: string) {
     const storeDSL = STORE_DSL(store, productName);
 
@@ -119,8 +136,36 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction): void {
-    this.products.push(product);
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
+    let pluginProduct: PluginProduct;
+
+    if (typeof product === 'string') {
+      pluginProduct = PluginProduct.fromName(this, product);
+    } else if (product?.name) {
+      if (!pages) {
+        pluginProduct = new PluginProduct(this, product, []);
+      } else {
+        pluginProduct = new PluginProduct(this, product, pages);
+      }
+    } else {
+      this.products.push(product as ProductFunction);
+
+      return;
+    }
+
+    const existingProduct = this.productConfigs.find((p) => p.newProduct && p.productName === pluginProduct.productName);
+
+    if (existingProduct) {
+      throw new Error(`Extensions - product "${ pluginProduct.productName }" registration error ::: addProduct can only be called once per product. Use extendProduct to add pages to an existing product.`);
+    }
+
+    this.productConfigs.push(pluginProduct);
+  }
+
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
+    const arrayConfig = Array.isArray(config) ? config : [config];
+
+    this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
   }
 
   addLocale(locale: string, label: string): void {
@@ -131,8 +176,8 @@ export class Plugin implements IPlugin {
     this.register('l10n', locale, fn);
   }
 
-  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]) {
-    routes.forEach((r: PluginRouteRecordRaw | RouteRecordRaw) => {
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRawWithParams[] | RouteRecordRaw[]) {
+    routes.forEach((r: PluginRouteRecordRaw | RouteRecordRawWithParams | RouteRecordRaw) => {
       if (Object.keys(r).includes('parent')) {
         const pConfig = r as PluginRouteRecordRaw;
 
@@ -142,16 +187,16 @@ export class Plugin implements IPlugin {
           this.addRoute(pConfig.route);
         }
       } else {
-        this.addRoute(r as RouteRecordRaw);
+        this.addRoute(r as RouteRecordRaw | RouteRecordRawWithParams);
       }
     });
   }
 
-  addRoute(parentOrRoute: RouteRecordRaw | string, optionalRoute?: RouteRecordRaw): void {
+  addRoute(parentOrRoute: RouteRecordRaw | RouteRecordRawWithParams | string, optionalRoute?: RouteRecordRaw | RouteRecordRawWithParams): void {
     // Always add the pkg name to the route metadata
     const hasParent = typeof (parentOrRoute) === 'string';
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
-    const route: RouteRecordRaw = hasParent ? optionalRoute as RouteRecordRaw : parentOrRoute as RouteRecordRaw;
+    const route: RouteRecordRaw | RouteRecordRawWithParams = hasParent ? (optionalRoute as RouteRecordRaw | RouteRecordRawWithParams) : parentOrRoute as RouteRecordRaw | RouteRecordRawWithParams;
 
     let parentOverride;
 
@@ -390,7 +435,7 @@ export class Plugin implements IPlugin {
     const allowPaths = ['models', 'image'];
     const nparts = name.split('/');
 
-    // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
+    // Support components in a sub-folder - component_name/index.vue (and ignore other components in that folder)
     // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
     if (nparts.length === 2 && !allowPaths.includes(type)) {
       if (nparts[1] !== 'index') {

@@ -29,16 +29,19 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   version(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(3);
-  }
-
-  provider(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(4);
   }
 
+  provider(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .self()
+      .find('.col-cluster-provider');
+  }
+
   providerSubType(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(4)
-      .find(`.text-muted`);
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .self()
+      .find('.col-cluster-provider .text-muted');
   }
 
   machines(clusterName: string) {

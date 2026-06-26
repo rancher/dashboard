@@ -41,7 +41,11 @@ export type ClusterDetailTabs = {
   /**
    * Kube conditions of the provisioning.cattle.io.cluster instance
    */
-  conditions: boolean
+  conditions: boolean,
+  /**
+   * RKE2 autoscaler
+   */
+  autoscaler: boolean
 };
 
 /**
@@ -84,6 +88,48 @@ export interface ClusterProvisionerContext {
    * Are we viewing an existing cluster
    */
   isView: boolean
+}
+
+/**
+ * Existing tabs to show or hide in the cluster's detail view
+ */
+export interface ClusterProvisionerDetailTabs {
+  /**
+   * CAPI machine pool tab
+   */
+  machines: boolean,
+  /**
+   * Mgmt node pool tab
+   */
+  nodes?: boolean,
+  /**
+   * RKE2 provisioning logs
+   */
+  logs: boolean,
+  /**
+   * RKE2 registration commands
+   */
+  registration: boolean,
+  /**
+   * RKE2 snapshots
+   */
+  snapshots: boolean,
+  /**
+   * Kube resources related to the instance of provisioning.cattle.io.cluster
+   */
+  related: boolean,
+  /**
+   * Kube events associated with the instance of provisioning.cattle.io.cluster
+   */
+  events: boolean,
+  /**
+   * Kube conditions of the provisioning.cattle.io.cluster instance
+   */
+  conditions: boolean,
+  /**
+   * RKE2 autoscaler
+   */
+  autoscaler?: boolean,
 }
 
 /**
@@ -180,36 +226,7 @@ export interface IClusterProvisioner {
    *
    * `plugin.addTab(TabLocation.RESOURCE_DETAIL... ` can be used to add additional tabs to the same view
    */
-  detailTabs: {
-    /**
-     * RKE2 machine pool tabs
-     */
-    machines: boolean,
-    /**
-     * RKE2 provisioning logs
-     */
-    logs: boolean,
-    /**
-     * RKE2 registration commands
-     */
-    registration: boolean,
-    /**
-     * RKE2 snapshots
-     */
-    snapshots: boolean,
-    /**
-     * Kube resources related to the instance of provisioning.cattle.io.cluster
-     */
-    related: boolean,
-    /**
-     * Kube events associated with the instance of provisioning.cattle.io.cluster
-     */
-    events: boolean,
-    /**
-     * Kube conditions of the provisioning.cattle.io.cluster instance
-     */
-    conditions: boolean
-  };
+  detailTabs: ClusterProvisionerDetailTabs;
 
   /* --------------------------------------------------------------------------------------
    * Getters / Functions for Managing Machine Configs
@@ -224,6 +241,16 @@ export interface IClusterProvisioner {
    * The `attributes: { group: <value> }` should match the remaining parts of the id
    */
   machineConfigSchema?: { [key: string]: any };
+
+  /**
+   * Schema for infrastructure cluster object. For example infrastructure.cluster.x-k8s.io.awscluster
+   *
+   * The `id` should be in the format of `infrastructure.cluster.x-k8s.io.${ provider id }cluster`
+   *
+   * The `attributes: { kind: <value> }` should match the last part of the id
+   * The `attributes: { group: <value> }` should match the remaining parts of the id
+   */
+  infrastructureClusterSchema?: { [key: string]: any };
 
   /**
    * Override the default method to create a machine config object that will be inserted into a new machine pool
@@ -257,6 +284,16 @@ export interface IClusterProvisioner {
    */
   saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
 
+  /**
+   * Optional custom UI section for infrastructure-cluster-specific configuration.
+   */
+  extensionInfrastructureSection?: any
+
+  /**
+   * Indicates the provisioner manages upstream CAPI infrastructure resources directly.
+   */
+  isUpstreamCAPIProvider?: boolean
+
   /* --------------------------------------------------------------------------------------
    * Optionally override parts of the cluster save process with
    * - hooks that run before or after the cluster resource is saved
@@ -275,6 +312,15 @@ export interface IClusterProvisioner {
    * @param cluster The cluster (`provisioning.cattle.io.cluster`)
    */
   registerSaveHooks?(registerBeforeHook: RegisterClusterSaveHook, registerAfterHook: RegisterClusterSaveHook, cluster: any): void;
+
+  /**
+   * Register hooks that run during `initSpecs` while initializing the cluster form.
+   *
+   * @param registerInitHook
+   *  Call `registerInitHook` with a function. The function will be executed during form initialization.
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   */
+  registerInitHooks?(registerInitHook: RegisterClusterSaveHook, cluster: any): void;
 
   /**
    * Optionally override the save of the cluster resource itself

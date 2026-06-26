@@ -7,10 +7,15 @@
  *
  * <rc-button variant="primary" @click="doAction">Perform an Action</rc-button>
  */
-import { computed, ref } from 'vue';
+import { computed, ref, resolveComponent, watchEffect } from 'vue';
 import {
-  ButtonVariantProps, ButtonSizeProps, ButtonVariantNewProps, ButtonSizeNewProps, ButtonSize,
-  IconProps
+  ButtonVariantProps,
+  ButtonSizeProps,
+  ButtonVariantNewProps,
+  ButtonSizeNewProps,
+  ButtonSize,
+  IconProps,
+  NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
@@ -33,7 +38,54 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
   { size: 'large', className: 'btn-large' },
 ];
 
-const props = withDefaults(defineProps<ButtonVariantProps & ButtonSizeProps & ButtonVariantNewProps & ButtonSizeNewProps & IconProps>(), { size: 'medium' });
+const props = withDefaults(
+  defineProps<
+        ButtonVariantProps &
+        ButtonSizeProps &
+        ButtonVariantNewProps &
+        ButtonSizeNewProps &
+        IconProps &
+        NavigationProps
+    >(),
+  {
+    size: 'medium',
+    to:   undefined,
+    href: undefined,
+  }
+);
+
+if (process.env.NODE_ENV !== 'production') {
+  watchEffect(() => {
+    if (props.to && props.href) {
+      console.warn('[RcButton] "to" and "href" are mutually exclusive. Provide only one.'); // eslint-disable-line no-console
+    }
+  });
+}
+
+const tag = computed(() => {
+  if (props.to) {
+    return resolveComponent('RouterLink');
+  }
+  if (props.href) {
+    return 'a';
+  }
+
+  return 'button';
+});
+
+const role = computed(() => (props.to || props.href ? 'link' : 'button'));
+
+const linkProps = computed(() => {
+  if (props.to) {
+    return { to: props.to };
+  }
+
+  if (props.href) {
+    return { href: props.href };
+  }
+
+  return {};
+});
 
 const activeVariantClassName = computed(() => {
   if (props.variant === 'multiAction' || props.multiAction) {
@@ -90,14 +142,34 @@ const focus = () => {
   RcFocusTarget?.value?.focus();
 };
 
+const preventScroll = (event: KeyboardEvent) => {
+  if (tag.value === 'button') {
+    return;
+  }
+
+  event.preventDefault();
+};
+
+const handleSpace = (event: KeyboardEvent) => {
+  if (tag.value === 'button') {
+    return;
+  }
+
+  (event.target as HTMLElement).click();
+};
+
 defineExpose({ focus });
 </script>
 
 <template>
-  <button
+  <component
+    :is="tag"
     ref="RcFocusTarget"
-    role="button"
+    :role="role"
+    v-bind="linkProps"
     :class="{ ...buttonClass }"
+    @keydown.space="preventScroll"
+    @keyup.space="handleSpace"
   >
     <slot
       v-if="$slots.before || props.leftIcon"
@@ -124,14 +196,22 @@ defineExpose({ focus });
         size="inherit"
       />
     </slot>
-  </button>
+  </component>
 </template>
 
 <style lang="scss" scoped>
-button {
+.rc-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  // Override global .btn > .icon:not(:only-child) { margin-right: 6px } from _button.scss.
+  // RcButton uses flex gap for spacing instead. The :not(:only-child) clause matches the global
+  // selector so we win on specificity regardless of stylesheet load order; :deep() is needed to
+  // target slotted content.
+  & > :deep(.icon:not(:only-child)) {
+    margin-right: 0;
+  }
 
   // Much of the styling in here came from _button.scss. Because we're making changes from role to variant and we don't want to impact existing use cases we're pulling in some of these styles. We should in the long run deprecate that file.
   // Variant styles
@@ -155,9 +235,12 @@ button {
     }
 
     &:disabled {
-      background: var(--primary);
-      color: var(--primary-text);
-      opacity: 0.5;
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 
@@ -180,6 +263,15 @@ button {
       @include focus-outline;
       outline-offset: 2px;
     }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
+    }
   }
 
   &.variant-tertiary {
@@ -200,6 +292,15 @@ button {
     &:focus-visible {
       @include focus-outline;
       outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 
@@ -253,11 +354,15 @@ button {
   &.btn-small {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 15px;
+      // Unitless ratio chosen so font-size * line-height (12px * 4/3 = 16px)
+      // is a whole pixel value. A fractional computed line-height (e.g. the
+      // previous 140% = 16.8px) shifts text ~1px off-center within the
+      // flex-centered button in Chrome, but not in Firefox.
+      line-height: calc(4 / 3);
       font-size: 12px;
       min-height: 24px;
 
-      padding: 0 8px;
+      padding: var(--rc-button-padding, 0 8px);
       gap: 8px;
     }
   }
@@ -265,11 +370,13 @@ button {
   &.btn-medium {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      line-height: 18px;
+      // Unitless ratio chosen so font-size * line-height (14px * 10/7 = 20px)
+      // is a whole pixel value. See note in .btn-small for why this matters.
+      line-height: calc(10 / 7);
       font-size: 14px;
       min-height: 32px;
 
-      padding: 0 12px;
+      padding: var(--rc-button-padding, 0 12px);
       gap: 8px;
     }
   }
@@ -277,11 +384,13 @@ button {
   &.btn-large {
     // This is the default size brought by the global button styling
     &, &:not(.btn-sm) {
-      line-height: 20px;
+      // Unitless ratio chosen so font-size * line-height (16px * 1.5 = 24px)
+      // is a whole pixel value. See note in .btn-small for why this matters.
+      line-height: 1.5;
       font-size: 16px;
       min-height: 40px;
 
-      padding: 0 16px;
+      padding: var(--rc-button-padding, 0 16px);
       gap: 12px;
     }
   }

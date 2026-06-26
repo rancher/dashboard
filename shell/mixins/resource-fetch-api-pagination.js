@@ -1,13 +1,31 @@
 import { NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO, NAMESPACE_FILTER_ALL } from '@shell/utils/namespace-filter';
-import { NAMESPACE } from '@shell/config/types';
+import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
-import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+
+export function parseStateFilter(stateFilter) {
+  if (!stateFilter) {
+    return null;
+  }
+
+  const states = stateFilter.split(',').filter(Boolean);
+
+  if (!states.length) {
+    return null;
+  }
+
+  return [new PaginationFilterField({
+    field:    'metadata.state.name',
+    value:    states.join(','),
+    equality: PaginationFilterEquality.IN,
+  })];
+}
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -75,6 +93,7 @@ export default {
       const {
         page, perPage, filter, sort, descending
       } = event;
+      const stateFilters = parseStateFilter(this.$route?.query?.stateFilter) || [];
       const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
@@ -91,6 +110,7 @@ export default {
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
         filters:              [
           new PaginationParamFilter({ fields: searchFilters }),
+          new PaginationParamFilter({ fields: stateFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
         ]
       });
@@ -248,7 +268,7 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
-        if (!this.canPaginate || !this.isNamespaced) {
+        if (!this.canPaginate || !this.isNamespaced || !this.currentProduct?.showNamespaceFilter) {
           return;
         }
 
@@ -283,7 +303,7 @@ export default {
           allNamespaces:                 this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
           selection:                     neu,
           isAllNamespaces:               this.isAllNamespaces,
-          isLocalCluster:                this.$store.getters['currentCluster'].isLocal,
+          isLocalCluster:                this.$store.getters['currentCluster']?.isLocal,
           showReservedRancherNamespaces: this.showDynamicRancherNamespaces,
           productHidesSystemNamespaces:  this.productHidesSystemNamespaces,
         });
@@ -354,15 +374,51 @@ export default {
 
   async beforeUnmount() {
     if (this.havePaginated) {
+      const store = this.overrideInStore || this.inStore;
       // of type @STEVE_WATCH_PARAMS
       const watchArgs = {
         type: this.resource,
         mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      await this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
-        return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.type.mode;
+      // Ensure that a resource remains in the store... and it's the same reference as before
+      // We'll do this for the mgmt cluster if there's a currentCluster set, otherwise we become unstuck
+      // (on nav we ensure currentCluster exists, but beforeUnmount fires afterwards, removing the cluster from pages that are using it)
+      const retainResource = this.resource === MANAGEMENT.CLUSTER && this.currentCluster ? this.currentCluster : null;
+
+      // Forget (unwatch, clear from store) the list's resource
+      await this.$store.dispatch(`${ store }/forgetType`, {
+        type:           this.resource,
+        compareWatches: (watchParams) => {
+          return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.mode;
+        },
+        unwatch: true,
+        forget:  !retainResource
       });
+
+      if (!!retainResource) {
+        // The end state should be just like we've dispatched `${store}/find`
+
+        try {
+          // Clone to ensure we can load each property of A into B without worrying about them being the same reference
+          const clone = await this.$store.dispatch(`${ store }/clone`, { resource: retainResource });
+
+          // Load the resource. It's already in the store but this makes sure any legacy state (like havePage) is reset
+          await this.$store.dispatch(`${ store }/load`, {
+            data:                clone,
+            existing:            retainResource,
+            invalidatePageCache: true,
+          });
+
+          // Watch the resource.
+          await this.$store.dispatch(`${ store }/watch`, {
+            type: this.resource,
+            id:   retainResource.id,
+          });
+        } catch (error) {
+          console.error('Error occurred whilst trying to retain the management cluster in cache and correctly watched', error); // eslint-disable-line no-console
+        }
+      }
     }
   }
 };

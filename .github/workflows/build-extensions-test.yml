@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -117,13 +117,13 @@ jobs:
     steps:
       - name: Checkout Repository
         if: ${{ matrix.folder != '_skip_' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
       - name: Install Node
         if: ${{ matrix.folder != '_skip_' }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -131,7 +131,7 @@ jobs:
       - name: Install Dependencies
         if: ${{ matrix.folder != '_skip_' }}
         shell: bash
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: "Build extension: ${{ matrix.folder }}"
         if: ${{ matrix.folder != '_skip_' }}

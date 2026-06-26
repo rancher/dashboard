@@ -124,7 +124,9 @@ export const createExtensionManager = (context) => {
           } catch (e) {
             delete plugins[id];
 
-            return reject(new Error('Could not initialize plugin'));
+            console.error(`Could not initialize plugin ${ id }`, e); // eslint-disable-line no-console
+
+            return reject(new Error(`Could not initialize plugin ${ id } - ${ e?.message }`));
           }
 
           // Load all of the types etc from the plugin
@@ -405,6 +407,11 @@ export const createExtensionManager = (context) => {
       }
     },
 
+    // Internal use only
+    _add(id, plugin) {
+      plugins[id] = plugin;
+    },
+
     // For debugging
     getAll() {
       return dynamic;
@@ -426,7 +433,7 @@ export const createExtensionManager = (context) => {
    * Return the UI configuration for the given type and location
    */
     getUIConfig(type, uiArea) {
-      return uiConfig[type][uiArea] || [];
+      return uiConfig[type]?.[uiArea] || [];
     },
 
     /**
@@ -498,7 +505,11 @@ export const createExtensionManager = (context) => {
         loadPlugins = Object.values(plugins);
       }
 
-      loadPlugins.forEach((plugin) => {
+      // Ensure builtin plugins are processed before external plugins so that
+      // core + builtin products are registered first and available for extending
+      const orderedPlugins = [...loadPlugins.filter((p) => p.builtin), ...loadPlugins.filter((p) => !p.builtin)];
+
+      orderedPlugins.forEach((plugin) => {
         if (plugin.products) {
           plugin.products.forEach(async(p) => {
             const impl = await p;
@@ -506,6 +517,26 @@ export const createExtensionManager = (context) => {
             if (impl.init) {
               impl.init(plugin, store);
             }
+          });
+        }
+
+        // Load products and product extensions using the simpler API
+        if (plugin.productConfigs?.length) {
+          // Add new products first
+          plugin.productConfigs.filter((p) => p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+
+          // Extend existing products after new products are added
+          plugin.productConfigs.filter((p) => !p.newProduct).forEach((productConfig) => {
+            productConfig.apply(plugin, store, app.router, pluginRoutes);
+          });
+        }
+
+        // Apply all type configurations
+        if (plugin.resourceTypeConfigs?.length) {
+          plugin.resourceTypeConfigs.forEach((resourceTypeConfig) => {
+            resourceTypeConfig.apply(plugin, store, app.router, pluginRoutes);
           });
         }
       });

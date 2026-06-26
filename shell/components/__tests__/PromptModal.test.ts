@@ -24,6 +24,7 @@ import DeveloperLoadExtensionDialog from '@shell/dialog/DeveloperLoadExtensionDi
 import AddExtensionReposDialog from '@shell/dialog/AddExtensionReposDialog.vue';
 import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
 import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
+import UninstallExistingExtensionDialog from '@shell/dialog/UninstallExistingExtensionDialog.vue';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import SearchDialog from '@shell/dialog/SearchDialog.vue';
@@ -110,6 +111,7 @@ describe('component: PromptModal', () => {
     ['AddExtensionReposDialog', AddExtensionReposDialog],
     ['InstallExtensionDialog', InstallExtensionDialog],
     ['UninstallExtensionDialog', UninstallExtensionDialog],
+    ['UninstallExistingExtensionDialog', UninstallExistingExtensionDialog],
     ['KnownHostsEditDialog', KnownHostsEditDialog],
     ['ImportDialog', ImportDialog],
     ['SearchDialog', SearchDialog],

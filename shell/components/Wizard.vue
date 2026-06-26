@@ -2,6 +2,7 @@
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
 import LazyImage from '@shell/components/LazyImage';
@@ -28,6 +29,7 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    RcButton,
     Loading,
     LazyImage,
   },
@@ -44,7 +46,6 @@ export default {
     loading: Wizard will block until all steps are not loading
     nextButton?: {
       labelKey?: default to `wizard.next`
-      style?:  defaults to `btn role-primary`
     },
     previousButton: {
       disable: defaults to false
@@ -108,6 +109,11 @@ export default {
       default: null
     },
 
+    showStepHeader: {
+      type:    Boolean,
+      default: true
+    },
+
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -118,6 +124,11 @@ export default {
     errors: {
       type:    Array,
       default: null,
+    },
+
+    beforeGoToStep: {
+      type:    Function,
+      default: null
     }
   },
 
@@ -185,9 +196,6 @@ export default {
       return this.steps.filter((step) => !step.hidden);
     },
 
-    nextButtonStyle() {
-      return this.activeStep.nextButton?.style || `btn role-primary`;
-    },
     nextButtonLabel() {
       return this.activeStep.nextButton?.labelKey || `wizard.next`;
     }
@@ -214,7 +222,7 @@ export default {
   },
 
   methods: {
-    goToStep(number, fromNav) {
+    async goToStep(number, fromNav) {
       if (number < 1) {
         return;
       }
@@ -228,6 +236,14 @@ export default {
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
+      }
+
+      if (this.beforeGoToStep && fromNav) {
+        try {
+          await this.beforeGoToStep(this.activeStep, selected);
+        } catch {
+          return;
+        }
       }
 
       this.activeStep = selected;
@@ -291,7 +307,7 @@ export default {
     >
       <div>
         <div class="header">
-          <div class="title">
+          <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
               v-if="showBanner"
               class="top choice-banner"
@@ -330,7 +346,7 @@ export default {
               </slot>
               <!-- Step number with subtext -->
               <div
-                v-if="activeStep && showSteps"
+                v-if="activeStep && showSteps && showStepHeader"
                 class="subtitle"
               >
                 <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
@@ -444,13 +460,14 @@ export default {
             name="cancel"
             :cancel="cancel"
           >
-            <button
+            <RcButton
               type="button"
-              class="btn role-secondary"
+              variant="secondary"
+              size="large"
               @click="cancel"
             >
               <t k="generic.cancel" />
-            </button>
+            </RcButton>
           </slot>
           <div class="controls-steps">
             <slot
@@ -458,14 +475,15 @@ export default {
               name="back"
               :back="back"
             >
-              <button
+              <RcButton
                 :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)"
                 type="button"
-                class="btn role-secondary"
+                variant="secondary"
+                size="large"
                 @click="back()"
               >
                 <t k="wizard.previous" />
-              </button>
+              </RcButton>
             </slot>
             <slot
               v-if="activeStepIndex === visibleSteps.length-1"
@@ -484,14 +502,15 @@ export default {
               name="next"
               :next="next"
             >
-              <button
+              <RcButton
                 :disabled="!canNext"
                 type="button"
-                :class="nextButtonStyle"
+                variant="primary"
+                size="large"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />
-              </button>
+              </RcButton>
             </slot>
           </div>
         </div>
@@ -595,10 +614,10 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 17px;
+        top: 23px;
 
         .cru__content & {
-          top: 13px;
+          top: 17px;
         }
       }
     }

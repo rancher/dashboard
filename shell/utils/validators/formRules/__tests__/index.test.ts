@@ -81,6 +81,8 @@ describe('formRules', () => {
     const testCases = [
       ['https://test.com', undefined],
       ['https://test.com/', message],
+      ['https://rancher-ui', undefined],
+      ['https://rancher-ui/', message],
       ['https://', undefined],
       ['/', undefined],
       [undefined, undefined]
@@ -92,6 +94,54 @@ describe('formRules', () => {
         const formRuleResult = formRules.trailingForwardSlash(url);
 
         expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('url', () => {
+    const message = JSON.stringify({ message: 'validation.setting.serverUrl.url' });
+    const testCases: [string | undefined, string | undefined][] = [
+      // Valid (including bare-hostname URLs in private networks)
+      ['https://example.com', undefined],
+      ['http://example.com', undefined],
+      ['https://example.com:8443/path', undefined],
+      ['https://localhost', undefined],
+      ['https://192.168.1.1', undefined],
+      ['https://rancher-ui', undefined],
+      ['https://rancher-ui:8443', undefined],
+
+      // Invalid
+      ['not a url', message],
+      ['example.com', message],
+      ['https://', message],
+
+      // Empty values pass — `required` rule covers that case separately
+      ['', undefined],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message for url(%p)',
+      (url, expected) => {
+        expect(formRules.url(url)).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('genericUrl', () => {
+    const message = JSON.stringify({ message: 'validation.genericUrl' });
+    const testCases: [string | undefined, string | undefined][] = [
+      ['https://example.com', undefined],
+      ['https://rancher-ui', undefined],
+      ['not a url', message],
+      ['', undefined],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message for genericUrl(%p)',
+      (url, expected) => {
+        expect(formRules.genericUrl(url)).toStrictEqual(expected);
       }
     );
   });

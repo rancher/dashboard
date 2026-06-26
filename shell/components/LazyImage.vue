@@ -1,5 +1,6 @@
 <script>
 import { BLANK_IMAGE } from '@shell/utils/style';
+import genericCatalogSvg from '@shell/assets/images/generic-catalog.svg';
 
 export default {
   props: {
@@ -10,7 +11,7 @@ export default {
 
     errorSrc: {
       type:    String,
-      default: require('@shell/assets/images/generic-catalog.svg'),
+      default: genericCatalogSvg,
     },
 
     src: {

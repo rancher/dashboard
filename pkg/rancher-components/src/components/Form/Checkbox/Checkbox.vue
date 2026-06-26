@@ -126,6 +126,14 @@ export default defineComponent({
     },
 
     /**
+     * Use body text color for the label instead of the default input-label color.
+     */
+    useBodyTextColor: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
      */
@@ -316,6 +324,7 @@ export default defineComponent({
           <span
             v-if="labelKey"
             :id="idForLabel"
+            :class="{ 'body-text-color': useBodyTextColor }"
           >
             <t
               :k="labelKey"
@@ -325,6 +334,7 @@ export default defineComponent({
           <span
             v-else-if="label"
             :id="idForLabel"
+            :class="{ 'body-text-color': useBodyTextColor }"
           >{{ label }}</span>
           <i
             v-if="tooltipKey"
@@ -402,6 +412,10 @@ $fontColor: var(--input-label);
     color: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
+
+    .body-text-color {
+      color: var(--body-text);
+    }
 
     &.checkbox-primary {
       color: inherit;

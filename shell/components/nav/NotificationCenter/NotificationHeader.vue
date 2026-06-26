@@ -2,17 +2,19 @@
 import { useStore } from 'vuex';
 import { computed, inject, ref } from 'vue';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
+import RcButton from '@components/RcButton/RcButton.vue';
+import { RcButtonType } from '@components/RcButton/types';
 
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
 const store = useStore();
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
-const markAllReadButton = ref<HTMLElement>();
+const markAllReadButton = ref<RcButtonType | null>(null);
 
 const markAllRead = (keyboard: boolean) => {
   store.dispatch('notifications/markAllRead');
 
-  // If we have focus, then move to the next item if activated by the keyboard
-  if (keyboard && document.activeElement === markAllReadButton?.value) {
+  // If activated via keyboard, move focus to the next dropdown item
+  if (keyboard) {
     moveFocus(true);
   }
 };
@@ -65,18 +67,19 @@ const gotFocus = (e: Event) => {
         {{ t('notificationCenter.title') }}
       </div>
       <div v-if="unreadCount !== 0">
-        <a
+        <RcButton
           ref="markAllReadButton"
-          role="button"
+          variant="ghost"
+          size="small"
           tabindex="-1"
-          href="#"
+          class="mark-all-read"
           data-testid="notifications-center-markall-read"
           @keydown.up.down.stop.prevent="handleKeydown"
           @keydown.enter.space.stop="markAllRead(true)"
           @click="markAllRead(false)"
         >
           {{ t('notificationCenter.markAllRead') }}
-        </a>
+        </RcButton>
       </div>
     </div>
     <div class="notification-border" />
@@ -104,8 +107,17 @@ const gotFocus = (e: Event) => {
         flex: 1;
       }
 
-      A {
+      .mark-all-read {
+        padding: 0;
+        min-height: auto;
+        font-size: inherit;
+        line-height: inherit;
         color: var(--link);
+
+        &:hover {
+          color: var(--body-text);
+          text-decoration: underline;
+        }
       }
     }
   }

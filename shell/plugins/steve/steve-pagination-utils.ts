@@ -15,8 +15,7 @@ import {
   INGRESS,
   WORKLOAD_TYPES,
   HPA,
-  SECRET,
-  EXT
+  SECRET
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -24,6 +23,7 @@ import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 import { parseField } from '@shell/utils/sort';
+import { POD_LAST_RESTART_FIELD, POD_RESTART_FIELD } from '@shell/types/resources/pod';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -241,6 +241,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
+      { field: POD_RESTART_FIELD },
+      { field: POD_LAST_RESTART_FIELD },
     ],
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
@@ -256,6 +258,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `status.connected` },
+      { field: `status.info.machineProvider` },
+      { field: `status.driver` },
+      { field: `status.provider` },
+      { field: `status.info.kubernetesVersion` },
+      { field: `spec.fleetWorkspaceName` },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
@@ -263,7 +270,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [NAMESPACE]: [
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' }
+      { field: 'spec.clusterName' },
+    ],
+    [CAPI.MACHINE_DEPLOYMENT]: [
+      { field: 'spec.clusterName' },
     ],
     [EVENT]: [
       { field: '_type' },
@@ -515,6 +525,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       }
     }
 
+    if (opt.includeAssociatedData) {
+      params.push('includeAssociatedData=true');
+    }
+
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
@@ -642,7 +656,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * A lot of the requirements and details are taken directly from
    * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
    */
-  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
+  convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
@@ -764,12 +778,10 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
-          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
           { resource: CATALOG.APP, context: ['branding'] },
-          SECRET,
-          CAPI.MACHINE_SET,
-          EXT.TOKEN
+          SECRET
         ],
         generic: false,
       }

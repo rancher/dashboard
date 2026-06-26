@@ -16,12 +16,24 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   });
 
   after(() => {
-    clusters.forEach((name) => {
-      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/fleet-default`, `${ name }`);
+    // Handle uncaught exceptions during cleanup to prevent test failures
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      // Allow resource not found errors during cleanup
+      if (err.message.includes('not found') && runnable.title.includes('after all')) {
+        return false;
+      }
+
+      return true;
     });
 
+    // Clean up clusters with error handling - don't fail on 404s
+    clusters.forEach((name) => {
+      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/fleet-default`, `${ name }`, false);
+    });
+
+    // Clean up secrets with error handling - don't fail on 404s
     secrets.forEach((name) => {
-      cy.deleteRancherResource('v1', `secrets/fleet-default`, `${ name }`);
+      cy.deleteRancherResource('v1', `secrets/fleet-default`, `${ name }`, false);
     });
   });
 
