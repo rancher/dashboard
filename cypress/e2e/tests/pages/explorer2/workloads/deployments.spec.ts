@@ -78,6 +78,20 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
     });
 
+    it('should show a translated field name in the required validation message when the name input is left empty', () => {
+      deploymentsCreatePage.goTo();
+      deploymentsCreatePage.waitForPage();
+
+      // Set container image but leave name empty
+      deploymentsCreatePage.containerImage().set(SMALL_CONTAINER.image);
+      deploymentsCreatePage.resourceDetail().createEditView().save();
+
+      // Validation error should use translated key "Name", not default "Value"
+      deploymentsCreatePage.resourceDetail().createEditView().errorBanner()
+        .should('contain.text', '"Name" is required')
+        .and('not.contain.text', '"Value" is required');
+    });
+
     it('should be able to create a new deployment with basic options', () => {
       deploymentCreateRequest.metadata.name = deploymentId;
       const { namespace } = deploymentCreateRequest.metadata;
