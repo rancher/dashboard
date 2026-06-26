@@ -3,7 +3,7 @@ import { qase } from '@/cypress/support/qase';
 
 const secretsListPage = new SecretsListPagePo('local');
 
-describe('Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe('Secrets', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

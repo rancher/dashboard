@@ -4,7 +4,7 @@ import { qase } from '@/cypress/support/qase';
 
 const horizontalPodAutoscalersPage = new HorizontalPodAutoscalersPagePo();
 
-describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+describe('HorizontalPodAutoscalers', { testIsolation: false, tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });

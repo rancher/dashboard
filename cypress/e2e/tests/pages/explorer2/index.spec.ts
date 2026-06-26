@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import { qase } from '@/cypress/support/qase';
 
-describe('Explorer Index', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe('Explorer Index', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
