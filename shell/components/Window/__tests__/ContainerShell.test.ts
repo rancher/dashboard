@@ -28,6 +28,11 @@ const mockPaste = jest.fn();
 const mockDispose = jest.fn();
 const mockClear = jest.fn();
 
+const mockWebglDispose = jest.fn();
+let mockWebglShouldThrow = false;
+let mockOnContextLossCallback: (() => void) | undefined;
+let mockRafCallback: any;
+
 jest.mock(/* webpackChunkName: "xterm" */ '@xterm/xterm', () => {
   return {
     Terminal: class {
@@ -71,8 +76,34 @@ jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-search', () => {
 }, { virtual: true });
 
 jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-webgl', () => {
-  return { WebglAddon: class {} };
+  return {
+    WebglAddon: class {
+      constructor() {
+        if (mockWebglShouldThrow) {
+          throw new Error('webgl not supported');
+        }
+      }
+
+      onContextLoss = (cb: () => void) => {
+        mockOnContextLossCallback = cb;
+      };
+
+      dispose = mockWebglDispose;
+    }
+  };
 }, { virtual: true });
+
+jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-canvas', () => {
+  return { CanvasAddon: class {} };
+}, { virtual: true });
+
+// Capture the requestAnimationFrame callback so the "never paints" detection
+// in setupTerminal can be triggered deterministically from tests.
+window.requestAnimationFrame = ((cb: any): number => {
+  mockRafCallback = cb;
+
+  return 0;
+}) as unknown as typeof window.requestAnimationFrame;
 
 describe('component: ContainerShell', () => {
   const action = jest.fn();
@@ -115,6 +146,9 @@ describe('component: ContainerShell', () => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
     defaultContainerShellParams.propsData.pod.os = 'linux';
+    mockWebglShouldThrow = false;
+    mockOnContextLossCallback = undefined;
+    mockRafCallback = undefined;
   };
 
   const wrapperPostMounted = async(params: Object) => {
@@ -144,24 +178,53 @@ describe('component: ContainerShell', () => {
     expect(windowComponent.isVisible()).toBe(true);
   });
 
-  it('does not load webgl addon on Safari browser', async() => {
+  it('loads the webgl renderer by default when it is supported', async() => {
     resetMocks();
 
-    const originalUserAgent = window.navigator.userAgent;
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
 
-    Object.defineProperty(window.navigator, 'userAgent', {
-      value:        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
-      configurable: true
-    });
+    expect(wrapper.vm.webglAddon).not.toBeNull();
+    expect(wrapper.vm.canvasAddon).toBeNull();
+  });
+
+  it('falls back to the canvas renderer when the webgl context is lost', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    expect(wrapper.vm.webglAddon).not.toBeNull();
+
+    // Simulate the webgl renderer losing its context mid-session
+    mockOnContextLossCallback?.();
+
+    expect(mockWebglDispose).toHaveBeenCalledWith();
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).not.toBeNull();
+  });
+
+  it('falls back to the canvas renderer when the webgl renderer attaches but never paints', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    expect(wrapper.vm.webglAddon).not.toBeNull();
+
+    // Simulate the post-render frame where the helper textarea has no size
+    mockRafCallback?.(0);
+
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).not.toBeNull();
+  });
+
+  it('falls back to the canvas renderer when the webgl addon fails to load', async() => {
+    resetMocks();
+
+    mockWebglShouldThrow = true;
 
     const wrapper = await wrapperPostMounted(defaultContainerShellParams);
 
     expect(wrapper.vm.webglAddon).toBeNull();
-
-    Object.defineProperty(window.navigator, 'userAgent', {
-      value:        originalUserAgent,
-      configurable: true
-    });
+    expect(wrapper.vm.canvasAddon).not.toBeNull();
   });
 
   it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {

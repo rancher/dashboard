@@ -243,8 +243,7 @@ export default {
       terminal.open(this.$refs.xterm);
 
       // The webgl renderer can fail without throwing: the context may be lost
-      // mid-session, or it can attach but silently never paint (e.g. Safari with
-      // webGPU disabled, or headless/software-GL environments), leaving the
+      // mid-session, or it can attach but silently never paint, leaving the
       // terminal's helper textarea at 0x0. Detect both cases and fall back to the
       // canvas renderer so the terminal stays interactive.
       try {
