@@ -60,7 +60,7 @@ export default {
       <slot name="actions" />
       <button
         type="button"
-        class="btn-sm role-primary"
+        class="btn btn-sm role-primary"
         @click="edit"
       >
         {{ t('action.edit') }}
