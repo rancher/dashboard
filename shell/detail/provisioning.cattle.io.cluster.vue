@@ -227,9 +227,7 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
     }
-  },
 
-  created() {
     if ( this.showLog ) {
       this.connectLog();
     }

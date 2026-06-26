@@ -1,5 +1,6 @@
-import { getters, mutations, state } from '@shell/store/notifications';
+import { actions, getters, mutations, state } from '@shell/store/notifications';
 import { NotificationLevel, Notification, StoredNotification } from '@shell/types/notifications';
+import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 jest.mock('@shell/utils/string', () => ({ randomStr: jest.fn(() => 'mock-random-id') }));
 jest.mock('@shell/utils/crypto', () => ({ md5: jest.fn((v: string) => `hash-${ v }`) }));
@@ -428,6 +429,470 @@ describe('notifications store', () => {
       it('does nothing when there are no notifications', () => {
         mutations.clearAll(mockState);
         expect(mockState.notifications).toStrictEqual([]);
+      });
+    });
+  });
+
+  describe('actions', () => {
+    const mockEncrypt = encrypt as jest.Mock;
+    const mockDecrypt = decrypt as jest.Mock;
+    const mockDeriveKey = deriveKey as jest.Mock;
+    const mockKey = {} as CryptoKey;
+    let mockCommit: jest.Mock;
+    let mockDispatch: jest.Mock;
+    let mockGetters: any;
+
+    beforeEach(() => {
+      mockCommit = jest.fn();
+      mockDispatch = jest.fn();
+      mockGetters = {
+        localStorageKey: 'rancher-notifications-test',
+        encryptionKey:   mockKey,
+        userId:          'user-1',
+        item:            jest.fn(() => undefined),
+        all:             [],
+      };
+      mockEncrypt.mockResolvedValue({ iv: 'test-iv', data: 'test-data' });
+      mockDecrypt.mockResolvedValue('{}');
+      mockDeriveKey.mockResolvedValue(mockKey);
+      localStorage.clear();
+    });
+
+    describe('add', () => {
+      it('generates an id via randomStr when none is provided', async() => {
+        const notification = makeNotification({ id: '' });
+
+        await actions.add(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          notification
+        );
+
+        expect(notification.id).toStrictEqual('mock-random-id');
+      });
+
+      it('commits add with the notification', async() => {
+        const notification = makeNotification({ id: 'n1' });
+
+        await actions.add(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          notification
+        );
+
+        expect(mockCommit).toHaveBeenCalledWith('add', notification);
+      });
+
+      it('dispatches growl/notification with root:true', async() => {
+        const notification = makeNotification({ id: 'n1' });
+
+        await actions.add(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          notification
+        );
+
+        expect(mockDispatch).toHaveBeenCalledWith('growl/notification', notification, { root: true });
+      });
+
+      it('returns the notification id', async() => {
+        const result = await actions.add(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          makeNotification({ id: 'n1' })
+        );
+
+        expect(result).toStrictEqual('n1');
+      });
+
+      it('saves the encrypted notification to localStorage', async() => {
+        const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+
+        await actions.add(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          makeNotification({ id: 'n1' })
+        );
+
+        expect(setItemSpy).toHaveBeenCalledWith(
+          'rancher-notifications-test-n1',
+          JSON.stringify({ iv: 'test-iv', data: 'test-data' })
+        );
+        setItemSpy.mockRestore();
+      });
+    });
+
+    describe('fromGrowl', () => {
+      it('always assigns a new id via randomStr', async() => {
+        const notification = makeNotification({ id: 'original-id' });
+
+        await actions.fromGrowl({ commit: mockCommit, getters: mockGetters }, notification);
+
+        expect(notification.id).toStrictEqual('mock-random-id');
+      });
+
+      it('commits add with the notification', async() => {
+        const notification = makeNotification({ id: 'n1' });
+
+        await actions.fromGrowl({ commit: mockCommit, getters: mockGetters }, notification);
+
+        expect(mockCommit).toHaveBeenCalledWith('add', notification);
+      });
+
+      it('returns the new notification id', async() => {
+        const result = await actions.fromGrowl(
+          { commit: mockCommit, getters: mockGetters },
+          makeNotification({ id: 'original' })
+        );
+
+        expect(result).toStrictEqual('mock-random-id');
+      });
+    });
+
+    describe('update', () => {
+      it('commits update with the notification', () => {
+        const notification = makeNotification({ id: 'n1', title: 'updated' });
+
+        actions.update({ commit: mockCommit, getters: mockGetters }, notification);
+
+        expect(mockCommit).toHaveBeenCalledWith('update', notification);
+      });
+    });
+
+    describe('markRead', () => {
+      it('commits markRead with the notification id', async() => {
+        await actions.markRead(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockCommit).toHaveBeenCalledWith('markRead', 'n1');
+      });
+
+      it('dispatches prefs/set when the notification has a preference', async() => {
+        const pref = { key: 'some-pref', value: 'on' };
+
+        mockGetters.item = jest.fn(() => makeStoredNotification({ id: 'n1', preference: pref }));
+
+        await actions.markRead(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockDispatch).toHaveBeenCalledWith('prefs/set', pref, { root: true });
+      });
+
+      it('does not dispatch when the notification has no preference', async() => {
+        mockGetters.item = jest.fn(() => makeStoredNotification({ id: 'n1' }));
+
+        await actions.markRead(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+
+      it('calls the extension handler when the notification has a handlerName', async() => {
+        const mockOnReadUpdated = jest.fn().mockResolvedValue(undefined);
+        const mockExtension = { getDynamic: jest.fn(() => ({ onReadUpdated: mockOnReadUpdated })) };
+
+        mockGetters.item = jest.fn(() => makeStoredNotification({ id: 'n1', handlerName: 'my-handler' }));
+
+        await actions.markRead.call(
+          { $extension: mockExtension },
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockOnReadUpdated).toHaveBeenCalledWith(
+          expect.objectContaining({ id: 'n1' }),
+          true
+        );
+      });
+    });
+
+    describe('markUnread', () => {
+      it('commits markUnread with the notification id', async() => {
+        await actions.markUnread(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockCommit).toHaveBeenCalledWith('markUnread', 'n1');
+      });
+
+      it.each([
+        {
+          desc: 'uses unsetValue when the preference has one',
+          pref: {
+            key: 'k', value: 'on', unsetValue: 'off'
+          },
+          expected: { key: 'k', value: 'off' },
+        },
+        {
+          desc:     'falls back to empty string when no unsetValue is set',
+          pref:     { key: 'k', value: 'on' },
+          expected: { key: 'k', value: '' },
+        },
+      ])('dispatches prefs/set: $desc', async({ pref, expected }) => {
+        mockGetters.item = jest.fn(() => makeStoredNotification({ id: 'n1', preference: pref }));
+
+        await actions.markUnread(
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          },
+          'n1'
+        );
+
+        expect(mockDispatch).toHaveBeenCalledWith('prefs/set', expected, { root: true });
+      });
+    });
+
+    describe('markAllRead', () => {
+      it('commits markAllRead', async() => {
+        await actions.markAllRead({
+          commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+        });
+
+        expect(mockCommit).toHaveBeenCalledWith('markAllRead');
+      });
+
+      it('dispatches prefs/set for every notification with a preference', async() => {
+        const pref1 = { key: 'pref-1', value: 'on' };
+        const pref2 = { key: 'pref-2', value: 'off' };
+
+        mockGetters.all = [
+          makeStoredNotification({ id: 'n1', preference: pref1 }),
+          makeStoredNotification({ id: 'n2' }),
+          makeStoredNotification({ id: 'n3', preference: pref2 }),
+        ];
+
+        await actions.markAllRead({
+          commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+        });
+
+        expect(mockDispatch).toHaveBeenCalledWith('prefs/set', pref1, { root: true });
+        expect(mockDispatch).toHaveBeenCalledWith('prefs/set', pref2, { root: true });
+        expect(mockDispatch).toHaveBeenCalledTimes(2);
+      });
+
+      it('calls handlers for notifications with a handlerName', async() => {
+        const mockOnReadUpdated = jest.fn().mockResolvedValue(undefined);
+        const mockExtension = { getDynamic: jest.fn(() => ({ onReadUpdated: mockOnReadUpdated })) };
+
+        mockGetters.all = [
+          makeStoredNotification({ id: 'n1', handlerName: 'handler-a' }),
+          makeStoredNotification({ id: 'n2' }),
+        ];
+
+        await actions.markAllRead.call(
+          { $extension: mockExtension },
+          {
+            commit: mockCommit, dispatch: mockDispatch, getters: mockGetters
+          }
+        );
+
+        expect(mockOnReadUpdated).toHaveBeenCalledTimes(1);
+        expect(mockOnReadUpdated).toHaveBeenCalledWith(
+          expect.objectContaining({ id: 'n1' }),
+          true
+        );
+      });
+    });
+
+    describe('remove', () => {
+      it('commits remove with the notification id', () => {
+        actions.remove({ commit: mockCommit, getters: mockGetters }, 'n1');
+
+        expect(mockCommit).toHaveBeenCalledWith('remove', 'n1');
+      });
+    });
+
+    describe('clearAll', () => {
+      it('commits clearAll', () => {
+        actions.clearAll({ commit: mockCommit, getters: mockGetters });
+
+        expect(mockCommit).toHaveBeenCalledWith('clearAll');
+      });
+    });
+
+    describe('init', () => {
+      let MockBroadcastChannel: jest.Mock;
+      let mockBcInstance: any;
+
+      beforeEach(() => {
+        mockBcInstance = {
+          onmessage:   null as any,
+          postMessage: jest.fn(),
+        };
+        MockBroadcastChannel = jest.fn(() => mockBcInstance);
+        (global as any).BroadcastChannel = MockBroadcastChannel;
+      });
+
+      it.each([
+        {
+          desc:     'userKey is missing',
+          userData: { id: '', user: { metadata: { uid: 'u1' } } },
+        },
+        {
+          desc:     'userId is missing',
+          userData: { id: 'key1', user: { metadata: {} } },
+        },
+      ])('returns without committing when $desc', async({ userData }) => {
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await actions.init({ commit: mockCommit, getters: mockGetters }, userData);
+
+        expect(mockCommit).not.toHaveBeenCalled();
+        consoleErrorSpy.mockRestore();
+      });
+
+      it('commits localStorageKey and userId for valid user data', async() => {
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        expect(mockCommit).toHaveBeenCalledWith('localStorageKey', 'hash-user-key');
+        expect(mockCommit).toHaveBeenCalledWith('userId', 'user-uid');
+      });
+
+      it('commits encryptionKey from the deriveKey result', async() => {
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        expect(mockCommit).toHaveBeenCalledWith('encryptionKey', mockKey);
+      });
+
+      it('returns early without loading notifications when deriveKey fails', async() => {
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        mockDeriveKey.mockRejectedValue(new Error('derive failed'));
+
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        expect(mockCommit).not.toHaveBeenCalledWith('load', expect.anything());
+        consoleErrorSpy.mockRestore();
+      });
+
+      it('loads and decrypts notifications from localStorage', async() => {
+        const createdDate = new Date().toISOString();
+        const indexEntry = {
+          id:      'n1',
+          created: createdDate,
+          read:    false,
+        };
+
+        mockGetters.localStorageKey = 'rancher-notifications-test';
+        localStorage.setItem('rancher-notifications-test', JSON.stringify([indexEntry]));
+        localStorage.setItem('rancher-notifications-test-n1', JSON.stringify({ iv: 'iv', data: 'enc' }));
+        mockDecrypt.mockResolvedValue(JSON.stringify({ title: 'decrypted', level: NotificationLevel.Info }));
+
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        const loadCall = mockCommit.mock.calls.find((c) => c[0] === 'load');
+
+        expect(loadCall).toBeDefined();
+        expect(loadCall![1]).toStrictEqual([{
+          id:      'n1',
+          created: createdDate,
+          read:    false,
+          title:   'decrypted',
+          level:   NotificationLevel.Info,
+        }]);
+      });
+
+      it('filters out notifications older than 14 days', async() => {
+        const expiredDate = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+        const indexEntry = {
+          id:      'old',
+          created: expiredDate,
+          read:    false,
+        };
+
+        mockGetters.localStorageKey = 'rancher-notifications-test';
+        localStorage.setItem('rancher-notifications-test', JSON.stringify([indexEntry]));
+        localStorage.setItem('rancher-notifications-test-old', JSON.stringify({ iv: 'iv', data: 'enc' }));
+
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        const loadCall = mockCommit.mock.calls.find((c) => c[0] === 'load');
+
+        expect(loadCall).toBeDefined();
+        expect(loadCall![1]).toStrictEqual([]);
+      });
+
+      it('sets up a BroadcastChannel listener', async() => {
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        expect(MockBroadcastChannel).toHaveBeenCalledWith('rancher-notification-sync');
+        expect(typeof mockBcInstance.onmessage).toStrictEqual('function');
+      });
+
+      it('commits the operation from a matching broadcast message', async() => {
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        mockCommit.mockClear();
+        mockBcInstance.onmessage({
+          data: {
+            userId:    'user-uid',
+            operation: 'add',
+            param:     { id: 'n99' },
+          },
+        });
+
+        expect(mockCommit).toHaveBeenCalledWith('add', { id: 'n99' });
+      });
+
+      it('ignores broadcast messages when the userId does not match', async() => {
+        await actions.init({ commit: mockCommit, getters: mockGetters }, {
+          id:   'user-key',
+          user: { metadata: { uid: 'user-uid' } },
+        });
+
+        mockCommit.mockClear();
+        mockBcInstance.onmessage({
+          data: {
+            userId:    'other-user',
+            operation: 'add',
+            param:     { id: 'n99' },
+          },
+        });
+
+        expect(mockCommit).not.toHaveBeenCalled();
       });
     });
   });

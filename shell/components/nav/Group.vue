@@ -384,13 +384,11 @@ export default {
       user-select: none;
       text-transform: none;
       font-size: 14px;
+      height: 100%;
+      padding: 8px 0 8px 16px;
+      display: inline-flex;
+      align-items: center;
     }
-
-    > H6 {
-        text-transform: none;
-        height: 100%;
-        padding: 8px 0 8px 16px;
-      }
 
     > A {
       display: block;
@@ -402,10 +400,6 @@ export default {
       }
       &:focus{
         outline:none;
-      }
-      > H6 {
-        text-transform: none;
-        padding: 8px 0 8px 16px;
       }
     }
   }
@@ -574,6 +568,7 @@ export default {
       padding-left: 24px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     A:focus {

@@ -1629,7 +1629,7 @@ export default {
       const isIpv6 = this.hasOnlyIpv6Pools;
 
       const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
-      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && ![STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(stackPreference));
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
 
       const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
       const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');

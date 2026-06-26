@@ -43,6 +43,7 @@ export const AUTOSCALER = create('cluster-autoscaling', false);
 export const CLUSTER_SHELL = create('cluster-shell', true);
 export const NODE_SHELL = create('node-shell', true);
 export const POD_SHELL = create('pod-shell', true);
+export const HIDE_LOCAL_AUTH_PROVIDER = create('hide-local-auth-provider', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

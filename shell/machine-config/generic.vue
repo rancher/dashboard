@@ -4,6 +4,10 @@ import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';
+import { MANAGEMENT } from '@shell/config/types';
+import { NODE_DRIVER_FIELD_HINTS } from '@shell/config/labels-annotations';
+import { isEmpty } from '@shell/utils/object';
+import cloneDeep from 'lodash/cloneDeep';
 
 export default {
   emits: ['input'],
@@ -35,11 +39,35 @@ export default {
     this.errors = [];
 
     try {
-      this.fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
+      const fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
+
+      // copy the result of the getter before modifying it to add hints
+      this.fields = cloneDeep(fields);
       const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 
       if ( !this.fields ) {
         throw new Error(`Machine Driver config schema not found for ${ name }`);
+      }
+    } catch (e) {
+      this.errors = exceptionToErrorsArray(e);
+
+      return;
+    }
+
+    try {
+      const driver = await this.$store.dispatch('management/find', { type: MANAGEMENT.NODE_DRIVER, id: this.provider } );
+      const fieldHints = driver?.metadata?.annotations?.[NODE_DRIVER_FIELD_HINTS];
+      let parsedHints;
+
+      if (fieldHints) {
+        parsedHints = JSON.parse(fieldHints);
+      }
+      if (parsedHints && !isEmpty(parsedHints)) {
+        Object.keys(this.fields).forEach((fieldKey) => {
+          if (parsedHints[fieldKey] && parsedHints[fieldKey].type) {
+            this.fields[fieldKey].type = parsedHints[fieldKey].type;
+          }
+        });
       }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
@@ -77,7 +105,7 @@ export default {
     v-if="$fetchState.pending"
     :delayed="true"
   />
-  <div v-else-if="errors.length">
+  <template v-else>
     <div
       v-for="(err, idx) in errors"
       :key="idx"
@@ -87,9 +115,8 @@ export default {
         :label="stringify(err)"
       />
     </div>
-  </div>
-  <div v-else>
     <Questions
+      v-if="fields"
       :value="value"
       :mode="mode"
       :tabbed="false"
@@ -99,5 +126,5 @@ export default {
       :disabled="disabled"
       @update:value="$emit('input', $event)"
     />
-  </div>
+  </template>
 </template>

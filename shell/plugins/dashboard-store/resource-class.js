@@ -932,12 +932,9 @@ export default class Resource {
       componentProps: {
         resource:           this,
         onClose,
-        width:              '73%',
-        // We want this to be full viewport height top to bottom
-        height:             '100vh',
-        top:                '0',
-        'z-index':          101, // We want this to be above the main side menu
-        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
         triggerFocusTrap:   true,
         returnFocusSelector,
         defaultTab
@@ -1253,8 +1250,11 @@ export default class Resource {
 
   async _save(opt = { }) {
     const forNew = !this.id;
+    let errors;
 
-    const errors = this.validationErrors(this, opt);
+    if (!opt.skipUIValidation) {
+      errors = this.validationErrors(this, opt);
+    }
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1294,7 +1294,9 @@ export default class Resource {
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
     // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
-    opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
+    if (!(opt.method === 'patch')) {
+      opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
+    }
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;
@@ -1312,7 +1314,9 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
-    opt.data = this.cleanForSave(opt.data, forNew);
+    if (!(opt.method === 'patch')) {
+      opt.data = this.cleanForSave(opt.data, forNew);
+    }
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
     if (opt?.replace && opt.method === 'put') {

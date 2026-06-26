@@ -285,7 +285,7 @@ export default {
           </legend>
           <LabeledInput
             v-model:value.number="securityContext.runAsUser"
-            type="number"
+            type="integer"
             min="0"
             :label="t('workload.container.security.runAsUser.label')"
             :mode="mode"

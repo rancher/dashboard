@@ -1,13 +1,9 @@
-import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
-import type {
-  ProductMetadata, ProductSinglePage,
-  StandardProductName, RouteRecordRawWithParams, ProductChild,
-  ProductChildGroup,
-  ProductChildPage
-} from './plugin-types';
+import { IExtensionProducts } from '@shell/core/plugin-products-external';
+import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
+import { TypeMapProduct } from '@shell/types/store/type-map';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -200,137 +196,6 @@ export type ExtensionEnvironment = {
   docsVersion: string; /** e.g. 'v2.10' */
 };
 
-export interface ProductOptions {
-  /**
-   * The category this product belongs under. i.e. 'config'
-   */
-  category?: string;
-
-  /**
-   * Hide the Copy KubeConfig button in the header
-   */
-  hideCopyConfig?: boolean;
-
-  /**
-   * Hide the Download KubeConfig button in the header
-   */
-  hideKubeConfig?: boolean;
-
-  /**
-   * Hide the Kubectl Shell button in the header
-   */
-  hideKubeShell?: boolean;
-
-  /**
-   * Hide the Namespace location
-   */
-  hideNamespaceLocation?: boolean;
-
-  /**
-   * Hide the system resources
-   */
-
-  hideSystemResources?: boolean;
-  /**
-   * The icon that should be displayed beside this item in the navigation.
-   */
-  icon?: string,
-
-  /**
-   * Only load the product if the feature is present
-   */
-  ifFeature?: string | RegExp;
-
-  /**
-   * Only load the product if the type is present
-   */
-  ifHave?: string;
-
-  /**
-   * Only load the product if the group is present
-   */
-  ifHaveGroup?: string | RegExp;
-
-  /**
-   * Only load the product if the type is present
-   */
-  ifHaveType?: string | RegExp;
-
-  /**
-   * Hide the product if the type is present (opposite of ifHaveType)
-   */
-  ifNotHaveType?: string | RegExp;
-
-  /**
-   * The vuex store that this product should use by default i.e. 'management'
-   */
-  inStore?: string;
-
-  /**
-   * Show the cluster switcher in the navigation
-   */
-  showClusterSwitcher?: boolean;
-
-  /**
-   * Indicates whether UI Extensions can add pages to this product
-   */
-  extendable?: boolean;
-
-  /**
-   * Show the namespace filter in the header
-   */
-  showNamespaceFilter?: boolean;
-
-  /**
-   * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
-   */
-  weight?: number;
-
-  /**
-   * The route that the product will lead to if click on in navigation.
-   */
-  to?: PluginRouteRecordRaw;
-
-  /**
-   * Whether the product can be removed by users (default: false — products are built-in/not removable unless explicitly set to true)
-   */
-  removable?: boolean;
-
-  /**
-   * Alternative to the icon property. Uses require
-   */
-  svg?: Function;
-
-  /**
-   * Product name
-   */
-  name?: string;
-
-  /**
-   *  controls whether a workspace switcher dropdown appears in the header (instead of the namespace filter) if set to true
-   */
-  showWorkspaceSwitcher?: boolean;
-
-  /**
-   *
-   */
-  label?: string;
-
-  labelKey?: string;
-
-  iconHeader?: string;
-
-  // Do not use - internal use only
-  version?: number;
-
-  /**
-   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
-   */
-  // ifHaveVerb: string | RegExp;
-  // supportRoute: string;
-  // typeStoreMap: string;
-}
-
 /**
  * Configuration required to show a header in a ResourceTable
  */
@@ -398,17 +263,6 @@ export interface HeaderOptions {
  * Configuration required to show a header in a ResourceTable when server-side pagination is enable
  */
 export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
-
-export type ResourceTypeConfig = {
-  options?: {
-    isCreatable?: boolean;
-    isEditable?: boolean;
-  },
-  listHeaders?: {
-    legacy?: HeaderOptions[];
-    paginated?: PaginationHeaderOptions[];
-  }
-};
 
 /**
  * External extension configuration for @HeaderOptions
@@ -568,7 +422,7 @@ export interface DSLReturnType {
    * @param options {@link ProductOptions}
    * @returns {@link void}
    */
-  product: (options: ProductOptions) => void;
+  product: (options: TypeMapProduct) => void;
 
   /**
    /**
@@ -691,62 +545,12 @@ export type ModelExtensionContext = {
 /**
  * Constructor signature for a model extension
  */
-export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
+export type ModelExtensionConstructor = new (context: ModelExtensionContext) => Object;
 
 /**
  * Interface for a UI Extension
  */
-export interface IExtension {
-  /**
-   * Register a top-level product as a flag on the plugin
-   * @internal - DO NOT USE - Internal API only
-   */
-  _registerTopLevelProduct(): void;
-  /**
-   *
-   * @internal - DO NOT USE - Internal API only
-   */
-  _setStartRouteWithProduct(value: boolean): void;
-
-  /**
-   * Add a product to the sidebar, with children and a side menu for navigation for internal pages
-   * @param name
-   * @param config
-   */
-  addProduct(product: ProductMetadata, config: ProductChildPage[]): void;
-  addProduct(product: ProductMetadata, config: ProductChildGroup[]): void;
-  addProduct(product: ProductMetadata, config: ProductChild[]): void;
-
-  /**
-   * Add a product to the sidebar, without children (no side menu, single page only)
-   * @param product
-   */
-  addProduct(product: ProductSinglePage): void;
-
-  /**
-   * Add a product with just a name (convenience/bridge method for quick setup).
-   * Creates a basic product with an empty page component automatically.
-   * This is useful for getting started quickly - expand to the full API once you're ready to add custom pages.
-   * @param productName Simple product name - will be used as both the name and label
-   */
-  addProduct(productName: string): void;
-
-  /**
-   * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
-   * @deprecated Use other `addProduct` signatures instead
-   * @param importFn Function that will import the module containing a product definition
-   */
-  addProduct(importFn: ProductFunction): void;
-
-  /**
-   * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages
-   *
-   * @param product Product to be extended
-   * @param config Product extension configuration
-   */
-  extendProduct(product: StandardProductName | string, config: ProductChildPage[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChildGroup[]): void;
-  extendProduct(product: StandardProductName | string, config: ProductChild[]): void;
+export interface IExtension extends IExtensionProducts {
 
   /**
    * Add a locale to the i18n store
