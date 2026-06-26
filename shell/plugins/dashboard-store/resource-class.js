@@ -1839,7 +1839,7 @@ export default class Resource {
     const customValidationRulesets = this?.customValidationRules
       .filter((rule) => !!rule.validators || !!rule.required)
       .map((rule) => {
-        const formRules = formRulesGenerator(this.t, { displayKey: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
+        const formRules = formRulesGenerator(this.t, { key: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
 
         return {
           path:  rule.path,

@@ -140,7 +140,7 @@ export default {
           const formRules = {
             ...formRulesGenerator(
               this.$store.getters['i18n/t'],
-              { displayKey: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' }),
+              { key: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' }),
             ...this.fvExtraRules
           };
 
