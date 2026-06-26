@@ -53,17 +53,26 @@
 - `configureConditionalDepaginate`: Norman types need `management.cattle.io.` prefix; uses `rootGetters['currentStore'](type)` then `all(COUNT)[0]?.counts[type]?.summary?.count`
 - `headerFromSchemaCol`: age shortcut requires `ageColumn` to be truthy; label key lowercases first char; tooltip strips trailing `.`
 
+## Testing Notes (action-menu.js)
+
+- `anon` counter is module-level; always provide `action` field in test data to avoid anon ids
+- `_add`: allEnabled is only ever set to false (never true — possibly incomplete logic); anyEnabled set to true when enabled !== false
+- `_filter`: only keeps actions where anyEnabled===true; disabled-only actions are silently excluded
+- `_execute`: bulkAction path only fires when resources.length>1, action.bulkAction exists, and !opts.alt; otherwise falls through to per-resource loop
+
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, `findMe`, etc. (require store/BroadcastChannel mocking)
 3. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (require full Vuex store mock; follow-up)
 4. `shell/utils/favicon.js` — DOM-based favicon logic (low-medium priority)
+5. `shell/store/prefs.js` — large (544L), complex pref system with cookies/mangling (follow-up)
 
 ## Completed Work (Summary)
 
-- 2026-06-25: PR (branch test-assist/ui-context-store-tests): 28 tests for ui-context.ts store; 0%→100% stmts/fns/lines, 86.36% branches
-- 2026-06-24: PR #18154 (branch test-assist/wm-store-tests): 57 tests for wm.ts store; 0%→100% stmts/fns/lines, 96.42% branches
+- 2026-06-26: PR (branch test-assist/action-menu-store-tests): 53 tests for action-menu.js store; 0%→98% stmts, 100% fns, 96% branches
+- 2026-06-25: PR #18164 (branch test-assist/ui-context-store-tests): 28 tests for ui-context.ts store; 0%→100% stmts/fns/lines, 86.36% branches — merged ✅
+- 2026-06-24: PR #18154 (branch test-assist/wm-store-tests): 57 tests for wm.ts store; 0%→100% stmts/fns/lines, 96.42% branches — merged ✅
 - 2026-06-23: PR #18142 (branch test-assist/notifications-actions-tests): 31 tests for notifications.ts actions; 57%→96.42% stmts, 64%→100% fns — merged ✅
 - 2026-06-22: PR #18117 (branch test-assist/features-store-tests): 12 tests for features.js; 0%→100% all metrics — merged ✅
 - 2026-06-21: PR #18112 (branch test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts; 0%→100% stmts/branches/lines — merged ✅
@@ -86,6 +95,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-26: Task 3 (action-menu.js store, 53 tests: state/getters/optionsArray/_add/_filter/_execute/mutations/actions) + Task 7
 - 2026-06-25: Task 3+4 (ui-context.ts store, 28 tests: state/getters/mutations/actions; PR #18154 wm.ts CI-clean — infra-only E2E failures) + Task 7
 - 2026-06-24: Task 3 (wm.ts store, 57 tests: state/getters/mutations/actions) + Task 7
 - 2026-06-23: Task 3 (notifications.ts actions, 31 tests: add/fromGrowl/update/markRead/markUnread/markAllRead/remove/clearAll/init) + Task 7
