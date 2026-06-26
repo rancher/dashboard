@@ -29,6 +29,7 @@ const mockDispose = jest.fn();
 const mockClear = jest.fn();
 
 const mockWebglDispose = jest.fn();
+const mockCanvasDispose = jest.fn();
 let mockWebglShouldThrow = false;
 let mockOnContextLossCallback: (() => void) | undefined;
 let mockRafCallback: any;
@@ -94,7 +95,11 @@ jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-webgl', () => {
 }, { virtual: true });
 
 jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-canvas', () => {
-  return { CanvasAddon: class {} };
+  return {
+    CanvasAddon: class {
+      dispose = mockCanvasDispose;
+    }
+  };
 }, { virtual: true });
 
 // Capture the requestAnimationFrame callback so the "never paints" detection
@@ -225,6 +230,34 @@ describe('component: ContainerShell', () => {
 
     expect(wrapper.vm.webglAddon).toBeNull();
     expect(wrapper.vm.canvasAddon).not.toBeNull();
+  });
+
+  it('disposes the renderer addons before the terminal on cleanup', async() => {
+    resetMocks();
+
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
+
+    // Fall back to canvas so both renderer addons have been exercised
+    mockOnContextLossCallback?.();
+
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).not.toBeNull();
+
+    wrapper.vm.cleanup();
+
+    // The canvas/webgl addons must be disposed before terminal.dispose() so xterm
+    // can recreate the DOM renderer while the terminal core is still alive.
+    const webglDisposeOrder = mockWebglDispose.mock.invocationCallOrder[0];
+    const canvasDisposeOrder = mockCanvasDispose.mock.invocationCallOrder[0];
+    const terminalDisposeOrder = mockDispose.mock.invocationCallOrder[0];
+
+    expect(mockCanvasDispose).toHaveBeenCalledWith();
+    expect(mockDispose).toHaveBeenCalledWith();
+    expect(canvasDisposeOrder).toBeLessThan(terminalDisposeOrder);
+    expect(webglDisposeOrder).toBeLessThan(terminalDisposeOrder);
+    expect(wrapper.vm.webglAddon).toBeNull();
+    expect(wrapper.vm.canvasAddon).toBeNull();
+    expect(wrapper.vm.terminal).toBeNull();
   });
 
   it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {
