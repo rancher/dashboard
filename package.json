@@ -174,7 +174,7 @@
     "cross-env": "7.0.3",
     "css-loader": "7.1.2",
     "csv-loader": "3.0.3",
-    "cypress": "11.1.0",
+    "cypress": "12.17.4",
     "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
