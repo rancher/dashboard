@@ -13,7 +13,7 @@ import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
-describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
+describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'] }, () => {
   const kubectl = new Kubectl();
   const chartAppDisplayName = 'Logging';
   const chartApp = 'rancher-logging';
