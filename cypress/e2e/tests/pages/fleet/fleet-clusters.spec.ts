@@ -23,7 +23,7 @@ const branch = 'master';
 const paths = 'qa-test-apps/nginx-app';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: 'off', tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
+describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: false, tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const region = 'us-west-1';
   const namespace = 'fleet-default';
   let removeCluster = false;

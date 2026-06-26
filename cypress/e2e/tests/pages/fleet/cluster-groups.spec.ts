@@ -2,7 +2,7 @@ import { FleetClusterGroupsCreateEditPo, FleetClusterGroupsListPagePo, FleetClus
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterGroupsListPage = new FleetClusterGroupsListPagePo();
 
   const headerPo = new HeaderPo();
