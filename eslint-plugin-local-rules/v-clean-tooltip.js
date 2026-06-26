@@ -10,10 +10,6 @@ module.exports = {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const parserServices = sourceCode.parserServices ?? context.parserServices;
 
-    if (!parserServices?.defineTemplateBodyVisitor) {
-      return {};
-    }
-
     return parserServices.defineTemplateBodyVisitor({
       VAttribute(node) {
         // v-tooltip is a VDirectiveKey
