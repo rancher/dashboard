@@ -95,7 +95,11 @@ jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-webgl', () => {
 }, { virtual: true });
 
 jest.mock(/* webpackChunkName: "@xterm" */ '@xterm/addon-canvas', () => {
-  return { CanvasAddon: class {} };
+  return {
+    CanvasAddon: class {
+      dispose = mockCanvasDispose;
+    }
+  };
 }, { virtual: true });
 
 // Capture the requestAnimationFrame callback so the "never paints" detection
