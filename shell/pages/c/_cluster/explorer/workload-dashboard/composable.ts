@@ -360,10 +360,10 @@ export function useWorkloadDashboard() {
    */
   function isValidResponse(res: { summary?: WorkloadDashboardSummaryEntry['summary']; data?: unknown }): boolean {
     const summary = res?.summary;
-    const hasData = Array.isArray(res?.data) ? res.data.length > 0 : !!res?.data;
 
     if (!Array.isArray(summary) || summary.length === 0) {
-      return !hasData;
+      // With no summary, the response is only valid when there is also no data.
+      return Array.isArray(res?.data) ? res.data.length === 0 : !res?.data;
     }
 
     return summary.every((item) => Object.values(item.counts || {})
@@ -371,6 +371,10 @@ export function useWorkloadDashboard() {
   }
 
   function redirectToDeployment(): void {
+    // Logged to help triage "where's my workload summary page?" style questions:
+    // the summary response was malformed, so we fall back to the deployments list.
+    console.info(`Workload dashboard: unexpected summary response for cluster "${ clusterId.value }", redirecting to the deployments list.`); // eslint-disable-line no-console
+
     stopPollTimer();
     router.push(resourceRoute(WORKLOAD_TYPES.DEPLOYMENT));
   }
@@ -403,7 +407,7 @@ export function useWorkloadDashboard() {
 
           const res = await store.dispatch('cluster/request', { url });
 
-          if (!isValidResponse(res)) {
+          if (!hasInvalidResponse && !isValidResponse(res)) {
             hasInvalidResponse = true;
           }
 
