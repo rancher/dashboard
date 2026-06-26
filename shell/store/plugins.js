@@ -129,6 +129,12 @@ export const state = function() {
   return {};
 };
 
+export const actions = {
+  mapDriver(ctx, { name, to }) {
+    mapDriver(name, to);
+  },
+};
+
 export const getters = {
   credentialOptions() {
     return (name) => {

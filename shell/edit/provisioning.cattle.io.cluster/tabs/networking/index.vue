@@ -120,7 +120,7 @@ export default {
 
     stackPreference: {
       get() {
-        return this.localValue.spec?.networking?.stackPreference || STACK_PREFS.IPV4;
+        return this.localValue.spec?.networking?.stackPreference || STACK_PREFS.DUAL;
       },
       set(neu) {
         if (!this.localValue.spec.networking) {
@@ -295,7 +295,7 @@ export default {
       <div class="col span-3">
         <LabeledSelect
           :key="hasSomeIpv6Pools"
-          :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"
+          :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.DUAL"
           :mode="mode"
           :options="stackPreferenceOptions"
           data-testid="network-tab-stackpreferences"

@@ -1,4 +1,4 @@
-import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN,
@@ -9,7 +9,7 @@ import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
 import { isEmpty, isEqual } from '@shell/utils/object';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { HARVESTER_NAME as HARVESTER, IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -20,7 +20,7 @@ import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
-
+import { SETTING } from '@shell/config/settings';
 const DEFAULT_BADGE_COLOR = '#707070';
 
 // See translation file cluster.providers for list of providers
@@ -387,6 +387,24 @@ export default class MgmtCluster extends SteveModel {
 
   get isLocal() {
     return this.spec?.internal === true;
+  }
+
+  get isDayTwoOpsFeatureEnabled() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.FEATURE, IMPORTED_DAY_2_OPS)?.enabled || false;
+  }
+
+  /**
+   * Whether day 2 operations are enabled for this cluster.
+   * Reads the `operations.cattle.io/ops-enabled` annotation.
+   */
+  get isDayTwoOpsEnabled() {
+    const isImportedRke2K3s = !this.isLocal && (this.isImportedK3s || this.isImportedRke2);
+    const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationEnabled = this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+    const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+    const annotationEnabledOrDefault = annotationExists ? annotationEnabled : globalDefaultIsTrue;
+
+    return this.isDayTwoOpsFeatureEnabled && isImportedRke2K3s && annotationEnabledOrDefault;
   }
 
   get isHarvester() {

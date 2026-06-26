@@ -30,10 +30,11 @@ import genericImportedClusterValidators from '../util/validators';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
-import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -105,6 +106,7 @@ export default defineComponent({
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      await this.initDayTwoOps();
     }
   },
 
@@ -129,6 +131,9 @@ export default defineComponent({
       needsReplace:                             false,
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
+      s3Backup:                                 false,
+      dayTwoOpsGlobalSetting:                   false,
+      dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -177,6 +182,18 @@ export default defineComponent({
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
         privateRegistryRequired:     privateRegistryRequired(this),
       };
+    },
+    dayTwoOpsEnabled: {
+      get() {
+        if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
+          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+        }
+
+        return this.dayTwoOpsGlobalSetting;
+      },
+      set(newValue) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
+      }
     },
 
     upgradeStrategy: {
@@ -403,6 +420,21 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
+    async initDayTwoOps() {
+      try {
+        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.FEATURE,
+          id:   IMPORTED_DAY_2_OPS
+        }))?.enabled || false;
+      } catch {
+        this.dayTwoOpsFlagEnabled = false;
+      }
+
+      this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+      if (this.isCreate && this.dayTwoOpsFlagEnabled) {
+        this.dayTwoOpsEnabled = this.dayTwoOpsGlobalSetting;
+      }
+    },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
         switch (agentType) {
@@ -492,8 +524,11 @@ export default defineComponent({
           :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
+          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
+          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
+          :day-two-ops-enabled="dayTwoOpsEnabled"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
@@ -501,6 +536,7 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
+          @enable-day-two-ops-changed="(val)=>dayTwoOpsEnabled=val"
         />
       </Accordion>
       <Accordion

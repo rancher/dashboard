@@ -1072,11 +1072,14 @@ export const ROLE = {
 export const FEATURE_DESCRIPTION = {
   name:          'description',
   labelKey:      'tableHeaders.description',
-  value:         'status.description',
+  value:         'id',
   align:         'left',
   sort:          ['status.description'],
   formatter:     'Translate',
-  formatterOpts: { prefix: 'featureFlags.description' },
+  formatterOpts: {
+    prefix:       'featureFlags.description',
+    fallbackPath: 'status.description'
+  },
 };
 
 export const STATE_NORMAN = {

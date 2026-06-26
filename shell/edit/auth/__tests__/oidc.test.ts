@@ -69,6 +69,7 @@ describe('oidc.vue', () => {
               'current_store/all':       jest.fn(),
               'i18n/t':                  (val: string) => val,
               'i18n/exists':             jest.fn(),
+              'features/get':            () => false,
             },
             dispatch: jest.fn()
           },

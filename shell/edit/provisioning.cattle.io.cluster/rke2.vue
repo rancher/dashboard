@@ -919,6 +919,10 @@ export default {
       return this.needCredential && !this.credentialId;
     },
 
+    canEditAsYaml() {
+      return !(this.isUpstreamCAPIProvider);
+    },
+
     overallFormValidationPassed() {
       return this.validationPassed &&
             this.fvFormIsValid &&
@@ -1118,7 +1122,6 @@ export default {
 
         this.rkeConfig.etcd.disableSnapshots = disableSnapshots;
       }
-
       // Namespaces if required - this is mainly for custom provisioners via extensions that want
       // to allow creating their resources in a different namespace
       if (this.needsNamespace) {
@@ -1626,7 +1629,7 @@ export default {
       const isIpv6 = this.hasOnlyIpv6Pools;
 
       const flannelMasqInvalid = isIpv6 && isK3s && !flannelMasqEnabled;
-      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && ![STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(stackPreference));
+      const stackPrefInvalid = (isIpv6 && stackPreference !== STACK_PREFS.IPV6) || (isDualStack && stackPreference !== STACK_PREFS.DUAL);
 
       const clusterCIDRInvalid = (isIpv6 || isDualStack) && !clusterCIDR.includes(':');
       const serviceCIDRInvalid = (isIpv6 || isDualStack) && !serviceCIDR.includes(':');
@@ -2459,6 +2462,7 @@ export default {
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
+    :can-yaml="canEditAsYaml"
     class="rke2"
     component-testid="rke2-custom-create"
     @done="done"
