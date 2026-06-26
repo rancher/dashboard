@@ -4,9 +4,12 @@ import { WORKLOAD_TYPES } from '@shell/config/types';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 
+const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
+
 const mockGetters: Record<string, any> = {};
 const mockDispatch = jest.fn();
 const mockRouterPush = jest.fn();
+const mockCurrentRoute = { value: { name: WORKLOAD_DASHBOARD_ROUTE } };
 
 jest.mock('vuex', () => ({
   useStore: () => ({
@@ -19,7 +22,7 @@ jest.mock('vuex', () => ({
   }),
 }));
 
-jest.mock('vue-router', () => ({ useRouter: () => ({ push: mockRouterPush }) }));
+jest.mock('vue-router', () => ({ useRouter: () => ({ push: mockRouterPush, currentRoute: mockCurrentRoute }) }));
 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string, args?: Record<string, any>) => `%${ key }%${ args ? JSON.stringify(args) : '' }` }) }));
 
@@ -106,6 +109,7 @@ describe('composable: useWorkloadDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupGetters();
+    mockCurrentRoute.value.name = WORKLOAD_DASHBOARD_ROUTE;
   });
 
   describe('namespaceSubtitle', () => {
@@ -648,6 +652,18 @@ describe('composable: useWorkloadDashboard', () => {
       const errorResponse = { summary: null, error: 'No access' };
 
       const { wrapper } = mountComposable({}, errorResponse);
+
+      await flushPromises();
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should not redirect when the user has already navigated away from the dashboard', async() => {
+      // The fetch resolves after the user left the workload dashboard.
+      mockCurrentRoute.value.name = 'c-cluster-product-resource';
+
+      const { wrapper } = mountComposable({ clusterId: 'c-navigated-away' }, malformedSummaryResponse);
 
       await flushPromises();
 

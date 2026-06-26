@@ -26,6 +26,8 @@ import {
   type WorkloadDashboardByNamespaceCard,
 } from './types';
 
+const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
+
 /**
  * Singleton (module-level) cache of cluster ids whose workload summary responses
  * have been found to be malformed. Once a cluster is flagged we skip re-fetching
@@ -371,6 +373,12 @@ export function useWorkloadDashboard() {
   }
 
   function redirectToDeployment(): void {
+    // The redirect can fire from an async fetch or poll that resolves after the
+    // user has already navigated away — only redirect if still on the dashboard.
+    if (router.currentRoute.value.name !== WORKLOAD_DASHBOARD_ROUTE) {
+      return;
+    }
+
     // Logged to help triage "where's my workload summary page?" style questions:
     // the summary response was malformed, so we fall back to the deployments list.
     console.info(`Workload dashboard: unexpected summary response for cluster "${ clusterId.value }", redirecting to the deployments list.`); // eslint-disable-line no-console
