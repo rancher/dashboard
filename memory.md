@@ -37,7 +37,7 @@
 - wm.ts: `const enum Layout` works with isolatedModules; state() reads localStorage at init time
 - prefs.js: `definitions` is module-level (not in state); use EXPANDED_GROUPS/NAMESPACE_FILTERS (array/object) to test clone; `clone()` on primitives returns same value; reset skips asCookie prefs
 - action-menu.js: `anon` counter is module-level; provide `action` field in test data; `_execute` bulkAction fires only when resources.length>1 and !opts.alt
-- type-map.utils.ts: `rowValueGetter` fields matching `$.metadata.fields[N]` → fast path; `configureConditionalDepaginate` Norman types need `management.cattle.io.` prefix
+- i18n.js: `intlCache` is module-level var; use unique keys per test to avoid cache pollution; mock `@shell/assets/translations/en-us.yaml` with `jest.mock(..., () => ({}))` since Jest has no YAML transformer; provide own translations in makeState()
 
 ## Testing Backlog (Prioritized)
 
@@ -46,10 +46,12 @@
 3. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (full Vuex store mock)
 4. `shell/utils/favicon.js` — DOM-based favicon logic (medium priority)
 5. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
+6. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad` (full Vuex store + dynamic import mock)
 
 ## Completed Work (Summary)
 
-- 2026-06-27: PR (test-assist/prefs-store-tests): 67 tests for prefs.js; 0%→~65% stmts, ~80% branches
+- 2026-06-28: PR (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns
+- 2026-06-27: PR #18196 (test-assist/prefs-store-tests): 67 tests for prefs.js; 0%→~65% stmts, ~80% branches
 - 2026-06-26: PR #18184 (test-assist/action-menu-store-tests): 53 tests for action-menu.js — merged ✅
 - 2026-06-25: PR #18164 (test-assist/ui-context-store-tests): 28 tests for ui-context.ts — merged ✅
 - 2026-06-24: PR #18154 (test-assist/wm-store-tests): 57 tests for wm.ts — merged ✅
@@ -68,6 +70,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-28: Task 3 (i18n.js store, 51 tests) + Task 7
 - 2026-06-27: Task 3 (prefs.js store, 67 tests) + Task 7
 - 2026-06-26: Task 3 (action-menu.js, 53 tests) + Task 7
 - 2026-06-25: Task 3+4 (ui-context.ts, 28 tests) + Task 7
