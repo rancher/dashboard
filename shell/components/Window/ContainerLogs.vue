@@ -607,7 +607,7 @@ export default {
             />
           </template>
         </Select>
-        <div class="log-action log-action-group ml-5">
+        <div class="log-action log-action-group ml-5 mmr-6">
           <button
             class="btn role-primary wm-btn"
             role="button"
@@ -616,11 +616,11 @@ export default {
             :disabled="isFollowing"
             @click="startFollowing"
           >
+            <i class="icon icon-chevron-end" />
             <t
               class="wm-btn-large"
               k="wm.containerLogs.follow"
             />
-            <i class="wm-btn-small icon icon-chevron-end" />
           </button>
           <button
             class="btn role-primary wm-btn"
@@ -628,15 +628,17 @@ export default {
             :aria-label="t('wm.containerLogs.clear')"
             @click="clear"
           >
+            <i class="icon icon-close" />
             <t
               class="wm-btn-large"
               k="wm.containerLogs.clear"
             />
-            <i class="wm-btn-small icon icon-close" />
           </button>
           <AsyncButton
             mode="download"
             role="button"
+            icon="icon-download"
+            show-only-icon-in-small-view
             :aria-label="t('asyncButton.download.action')"
             @click="download"
           />
@@ -831,7 +833,8 @@ export default {
       min-width: 200px;
       height: 30px;
       min-height: 30px;
-      width: initial;
+      width: 100%;
+      max-width: 960px;
     }
   }
 
@@ -897,7 +900,7 @@ export default {
   @media only screen and (max-width: 1060px) {
     .wm-button-bar {
       .wm-btn {
-        padding: 0 10px;
+        padding: 0 6px 0 12px;
 
         .wm-btn-large {
           display: none;
