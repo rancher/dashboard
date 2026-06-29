@@ -366,7 +366,6 @@ The metadata that defines a product — its identity, icon, and product-level se
 | Property | Type | Description |
 | --- | --- | --- |
 | `hideSystemResources` | `boolean` | Hide system resources in lists |
-| `store` | `string` | Vuex store to use by default (e.g. `'management'`) |
 
 <br/>
 
