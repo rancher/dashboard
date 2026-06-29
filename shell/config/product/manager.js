@@ -20,7 +20,7 @@ import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
 import {
-  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
 } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
@@ -201,7 +201,7 @@ export function init(store) {
     AGE,
     EXPLORER,
   ], [
-    STEVE_STATE_COL,
+    STEVE_MGMT_STATE_COL,
     {
       name:          'name',
       labelKey:      'tableHeaders.name',

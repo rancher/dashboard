@@ -25,7 +25,7 @@ import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
-import { STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION, getVersionData } from '@shell/config/version';
@@ -159,7 +159,7 @@ export default defineComponent({
       ],
 
       paginationHeaders: [
-        STEVE_STATE_COL,
+        STEVE_MGMT_STATE_COL,
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
