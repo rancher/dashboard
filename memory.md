@@ -47,11 +47,18 @@
 4. `shell/utils/favicon.js` — DOM-based favicon logic (medium priority)
 5. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
 6. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad` (full Vuex store + dynamic import mock)
+7. `shell/composables/useRuntimeFlag.ts` — featureDropdownMenu semver logic (29 lines, testable with getVersionInfo mock)
+
+## Testing Notes (composables)
+
+- useFormValidation.ts: `provide()` outside component context warns but doesn't throw; spy on console.warn in beforeEach
+- useFormValidation.ts: mock `vee-validate` (`useForm`) and `@shell/utils/validators/formRules/index` (default export); NODE_ENV='production' → nullValidator for unknown rules
 
 ## Completed Work (Summary)
 
-- 2026-06-28: PR (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns
-- 2026-06-27: PR #18196 (test-assist/prefs-store-tests): 67 tests for prefs.js; 0%→~65% stmts, ~80% branches
+- 2026-06-29: PR (test-assist/form-validation-composable-tests): 17 tests for useFormValidation.ts; 0%→100% all metrics
+- 2026-06-28: PR #18197 (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns
+- 2026-06-27: PR #18196 (test-assist/prefs-store-tests): 67 tests for prefs.js — merged ✅
 - 2026-06-26: PR #18184 (test-assist/action-menu-store-tests): 53 tests for action-menu.js — merged ✅
 - 2026-06-25: PR #18164 (test-assist/ui-context-store-tests): 28 tests for ui-context.ts — merged ✅
 - 2026-06-24: PR #18154 (test-assist/wm-store-tests): 57 tests for wm.ts — merged ✅
@@ -70,6 +77,7 @@
 
 ## Task Round-Robin History
 
+- 2026-06-29: Task 3 (useFormValidation.ts composable, 17 tests) + Task 7
 - 2026-06-28: Task 3 (i18n.js store, 51 tests) + Task 7
 - 2026-06-27: Task 3 (prefs.js store, 67 tests) + Task 7
 - 2026-06-26: Task 3 (action-menu.js, 53 tests) + Task 7
