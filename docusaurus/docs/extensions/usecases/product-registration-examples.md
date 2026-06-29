@@ -35,16 +35,16 @@ A product that shows one full-page component with no side-menu. Good for dashboa
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductSinglePage } from '@shell/core/plugin-types';
+import { ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
   extension.metadata = require('./package.json');
 
-  const product: ProductSinglePage = {
+  const product: ProductMetadataSinglePage = {
     name:      'status-board',
     label:     'Status Board',
-    icon:      'globe',
+    sideBar:   { icon: { name: 'globe' } },
     component: () => import('./pages/StatusBoard.vue'),
   };
 
@@ -67,7 +67,7 @@ import { IPlugin } from '@shell/core/types';
 import {
   ProductMetadata,
   ProductChildCustomPage
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -77,27 +77,27 @@ export default function(extension: IPlugin) {
     name:      'overview',
     label:     'Overview',
     component: () => import('./pages/Overview.vue'),
-    weight:    3,
+    sideMenu:  { weight: 3 },
   };
 
   const usersPage: ProductChildCustomPage = {
     name:      'users',
     label:     'Users',
     component: () => import('./pages/Users.vue'),
-    weight:    2,
+    sideMenu:  { weight: 2 },
   };
 
   const logsPage: ProductChildCustomPage = {
     name:      'logs',
     label:     'Logs',
     component: () => import('./pages/Logs.vue'),
-    weight:    1,
+    sideMenu:  { weight: 1 },
   };
 
   const product: ProductMetadata = {
-    name:  'my-app',
-    label: 'My App',
-    icon:  'gear',
+    name:    'my-app',
+    label:   'My App',
+    sideBar: { icon: { name: 'gear' } },
   };
 
   extension.addProduct(product, [overviewPage, usersPage, logsPage]);
@@ -119,29 +119,32 @@ import { IPlugin } from '@shell/core/types';
 import {
   ProductMetadata,
   ProductChildResourcePage
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
   extension.metadata = require('./package.json');
 
   const clusterPage: ProductChildResourcePage = {
-    type:   'provisioning.cattle.io.cluster',
-    weight: 2,
-    config: {
-      displayName: 'Clusters',
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      canYaml:     true,
-      showState:   true,
-      showAge:     true,
+    type:     'provisioning.cattle.io.cluster',
+    label:    'Clusters',
+    sideMenu: { weight: 2 },
+    can: {
+      create: true,
+      edit:   true,
+      remove: true,
+      yaml:   true,
     },
+    display: {
+      showState: true,
+      showAge:   true,
+    },
+    views: { list: { showListMasthead: false } }, // prevent double masthead on types with custom list views
   };
 
   const secretsPage: ProductChildResourcePage = {
-    type:   'secret',
-    weight: 1,
+    type:     'secret',
+    sideMenu: { weight: 1 },
   };
 
   const product: ProductMetadata = {
@@ -169,7 +172,7 @@ import {
   ProductMetadata,
   ProductChildCustomPage,
   ProductChildResourcePage
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -179,19 +182,19 @@ export default function(extension: IPlugin) {
     name:      'dashboard',
     label:     'Dashboard',
     component: () => import('./pages/Dashboard.vue'),
-    weight:    3,
+    sideMenu:  { weight: 3 },
   };
 
   const clusterPage: ProductChildResourcePage = {
-    type:   'provisioning.cattle.io.cluster',
-    weight: 2,
+    type:     'provisioning.cattle.io.cluster',
+    sideMenu: { weight: 2 },
   };
 
   const settingsPage: ProductChildCustomPage = {
     name:      'settings',
     label:     'Settings',
     component: () => import('./pages/Settings.vue'),
-    weight:    1,
+    sideMenu:  { weight: 1 },
   };
 
   const product: ProductMetadata = {
@@ -217,7 +220,7 @@ import {
   ProductMetadata,
   ProductChildCustomPage,
   ProductChildGroup
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -228,7 +231,7 @@ export default function(extension: IPlugin) {
     name:      'home',
     label:     'Home',
     component: () => import('./pages/Home.vue'),
-    weight:    10,
+    sideMenu:  { weight: 10 },
   };
 
   // "Monitoring" group with two pages
@@ -245,10 +248,12 @@ export default function(extension: IPlugin) {
   };
 
   const monitoringGroup: ProductChildGroup = {
-    name:     'monitoring',
-    label:    'Monitoring',
-    weight:   5,
-    children: [alertsPage, metricsPage],
+    name:    'monitoring',
+    label:   'Monitoring',
+    sideMenu: {
+      weight:   5,
+      children: [alertsPage, metricsPage],
+    },
   };
 
   // "Admin" group with two pages
@@ -265,10 +270,12 @@ export default function(extension: IPlugin) {
   };
 
   const adminGroup: ProductChildGroup = {
-    name:     'admin',
-    label:    'Administration',
-    weight:   1,
-    children: [usersPage, rolesPage],
+    name:    'admin',
+    label:   'Administration',
+    sideMenu: {
+      weight:   1,
+      children: [usersPage, rolesPage],
+    },
   };
 
   const product: ProductMetadata = {
@@ -303,7 +310,7 @@ const monitoringGroup: ProductChildGroup = {
   name:      'monitoring',
   label:     'Monitoring',
   component: () => import('./pages/MonitoringOverview.vue'), // group's own page
-  children:  [alertsPage, metricsPage],
+  sideMenu:  { children: [alertsPage, metricsPage] },
 };
 ```
 
@@ -319,7 +326,7 @@ Add a standalone custom page to the Cluster Explorer product:
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductChildCustomPage } from '@shell/core/plugin-types';
+import { ProductChildCustomPage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -344,7 +351,7 @@ import { IPlugin } from '@shell/core/types';
 import {
   ProductChildCustomPage,
   ProductChildGroup
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -363,9 +370,9 @@ export default function(extension: IPlugin) {
   };
 
   const insightsGroup: ProductChildGroup = {
-    name:     'insights',
-    label:    'Insights',
-    children: [costPage, usagePage],
+    name:    'insights',
+    label:   'Insights',
+    sideMenu: { children: [costPage, usagePage] },
   };
 
   extension.extendProduct('explorer', [insightsGroup]);
@@ -384,7 +391,7 @@ For i18n support, use `labelKey` instead of `label`. The key will be resolved fr
 const product: ProductMetadata = {
   name:     'my-app',
   labelKey: 'product.myApp.label',
-  icon:     'gear',
+  sideBar:  { icon: { name: 'gear' } },
 };
 
 const overviewPage: ProductChildCustomPage = {
