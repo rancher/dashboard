@@ -1,6 +1,6 @@
-name: Supportability
+name: SUSE Supportability Review
 author: SUSE
 authorUrl: https://www.rancher.com/products/rancher-platform
-description: SUSE's proactive support to customers.Collects and analyses cluster data for supportability assessment
+description: SUSE's proactive support to customers. Collects and analyses cluster data for supportability assessment
 url: https://support.scc.suse.com/s/kb/Rancher-Supportability-Review-FAQ
-icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/icons/supportability-review-app/3.0.2-icon.png
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/supportability-review-app/files/icon.svg
