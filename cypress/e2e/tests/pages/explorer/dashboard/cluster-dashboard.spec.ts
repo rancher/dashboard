@@ -216,33 +216,39 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  let removePods = false;
-  const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
-  const projName = `project${ +new Date() }`;
-  const nsName = `namespace${ +new Date() }`;
+  const projIds: string[] = [];
+  const nsIds: string[] = [];
 
   it('can view events and change events list count in cluster dashboard', () => {
+    const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
+
+    // Create unique for this run values (helps with retries)
+    cy.createE2EResourceName(`cd-proj-${ new Date().getTime() }`).as('projName');
+    cy.createE2EResourceName(`cd-ns-${ new Date().getTime() }`).as('nsName');
+
     // Create a pod to trigger events
 
     // get user id
     cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
       const userId = resp.body.status.userID;
 
-      // create project
-      cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        cy.wrap(resp.body.id.trim()).as('projId');
+      cy.get<string>('@projName').then((projName) => {
+        cy.get<string>('@nsName').then((nsName) => {
+          // create project
+          cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
+            const projId = resp.body.id;
 
-        // create ns
-        cy.get<string>('@projId').then((projId) => {
-          cy.createNamespaceInProject(nsName, projId);
-        });
+            projIds.push(projId);
 
-        // create various pods to generate 12 events in total
-        // eslint-disable-next-line no-return-assign
-        podNames.forEach((podName, i) => {
-          cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
-            podNames[i] = resp.body.metadata.name;
-            removePods = true;
+            // create ns
+            cy.createNamespaceInProject(nsName, projId).then((resp: Cypress.Response<any>) => {
+              const nsId = resp.body.id;
+
+              nsIds.push(nsId);
+
+              // create various pods to generate 12 events in total
+              podNames.forEach((podName) => cy.createPod(nsName, podName, 'nginx:latest')); // eslint-disable-current-line no-return-assign
+            });
           });
         });
       });
@@ -316,9 +322,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {
-    let stdProjectName;
-    let stdNsName;
-    let stdUsername;
+    let stdProjectName: string;
+    let stdNsName: string;
+    let stdUsername: string;
 
     beforeEach(() => {
       stdProjectName = `standard-user-project${ +new Date() }`;
@@ -391,21 +397,21 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  function reply(statusCode: number, body: any) {
-    return (req) => {
-      req.reply({ statusCode, body });
-    };
-  }
-
-  const forbiddenResponse = {
-    type:    'error',
-    links:   {},
-    code:    'Forbidden',
-    message: 'deployments.apps is forbidden',
-    status:  403,
-  };
-
   describe('Cluster dashboard - Fleet agent', { testIsolation: 'on' }, () => {
+    function reply(statusCode: number, body: any) {
+      return (req) => {
+        req.reply({ statusCode, body });
+      };
+    }
+
+    const forbiddenResponse = {
+      type:    'error',
+      links:   {},
+      code:    'Forbidden',
+      message: 'deployments.apps is forbidden',
+      status:  403,
+    };
+
     // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
     // which log in as a standard user and may leave session cookies in an inconsistent state
     beforeEach(() => {
@@ -443,18 +449,19 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  after(function() {
+  after(() => {
     // Ensure admin auth is restored before cleanup, as previous tests may have
     // logged in as a different user or left the session in an inconsistent state
     cy.login();
 
-    if (removePods) {
-      podNames.forEach((podName) => {
-        cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
-      });
-      cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
-      cy.deleteRancherResource('v3', 'projects', this.projId);
-    }
+    nsIds.forEach((nsId) => {
+      cy.deleteRancherResource('v1', 'namespaces', nsId);
+    });
+
+    projIds.forEach((projId) => {
+      cy.deleteRancherResource('v3', 'projects', projId);
+    });
+
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

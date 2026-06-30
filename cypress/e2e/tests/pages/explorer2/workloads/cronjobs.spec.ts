@@ -17,8 +17,6 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
   describe('Details', () => {
     let cronJobName: string;
-    let jobName: string;
-    let podName: string;
     const defaultNamespace = 'default';
 
     beforeEach('set up', () => {
@@ -56,7 +54,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
     it('Jobs list updates automatically in CronJob details page', () => {
       // Set namespace filter to include the test cronjob namespace
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`);
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`, { delay: true });
 
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
@@ -67,14 +65,21 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       cy.wait('@runNow').its('response.statusCode').should('eq', 201);
 
       // Retrieve the job and pod names created by the CronJob
-      cy.getRancherResource('v1', 'batch.job', `${ defaultNamespace }`).then((resp) => {
-        const job = resp.body.data.find((job: any) => job.metadata.name.startsWith(cronJobName));
+      const findJob = (resp: any) => {
+        return resp.body.data.find((job: any) => job.metadata.name.startsWith(cronJobName));
+      };
 
-        jobName = job.metadata.name;
-        cy.getRancherResource('v1', 'pods', `${ defaultNamespace }`).then((resp) => {
-          const pod = resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+      cy.waitForRancherResource<any>('v1', 'batch.job', `${ defaultNamespace }`, findJob, 20, { returnResource: true }).then((resp) => {
+        const jod = findJob(resp);
+        const jobName = jod.metadata.name;
 
-          podName = pod.metadata.name;
+        const findPod = (resp: any) => {
+          return resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+        };
+
+        cy.waitForRancherResource<any>('v1', 'pods', `${ defaultNamespace }`, findPod, 20, { returnResource: true }).then((resp) => {
+          const pod = findPod(resp);
+          const podName = pod.metadata.name;
 
           // User is redirected to the job's details page after "Run Now"
           const jobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName, undefined, 'local', defaultNamespace);
@@ -87,32 +92,32 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
             .should('contain', 'Active');
 
           // Pod status should be Running
-          jobDetailsPage.resourceDetail().resourceGauges().should('contain', 'Running');
+          jobDetailsPage.resourceDetail().resourceGauges().should('contain', 'Running', MEDIUM_TIMEOUT_OPT);
           jobDetailsPage.resourceDetail().tabbedList('pods').resourceTableDetails(podName, 1).contains('Running', MEDIUM_TIMEOUT_OPT);
+
+          // Navigate back to CronJobs list page
+          WorkloadsCronJobsListPagePo.navTo();
+          cronJobListPage.waitForPage();
+
+          // Verify CronJob status is Active in the list
+          cronJobListPage.resourceTableDetails(cronJobName, 1).contains('Active');
+
+          // Navigate to CronJob details page
+          cronJobListPage.goToDetailsPage(cronJobName);
+
+          const cronJobDetailsPage = new WorkloadsCronJobDetailPagePo(cronJobName, 'local', defaultNamespace);
+
+          cronJobDetailsPage.waitForPage(undefined, 'jobs');
+
+          // Verify CronJob status is Active in details page
+          cronJobDetailsPage.resourceDetail().masthead().resourceStatus()
+            .should('contain', 'Active');
+
+          // Verify the job in the jobs tab shows correct status without manual page refresh
+          // Testing https://github.com/rancher/dashboard/issues/14981:
+          // The job list should update automatically and not show stale "In Progress" status
+          cronJobDetailsPage.resourceDetail().tabbedList('jobs').resourceTableDetails(cronJobName, 1).contains('Active');
         });
-
-        // Navigate back to CronJobs list page
-        WorkloadsCronJobsListPagePo.navTo();
-        cronJobListPage.waitForPage();
-
-        // Verify CronJob status is Active in the list
-        cronJobListPage.resourceTableDetails(cronJobName, 1).contains('Active');
-
-        // Navigate to CronJob details page
-        cronJobListPage.goToDetailsPage(cronJobName);
-
-        const cronJobDetailsPage = new WorkloadsCronJobDetailPagePo(cronJobName, 'local', defaultNamespace);
-
-        cronJobDetailsPage.waitForPage(undefined, 'jobs');
-
-        // Verify CronJob status is Active in details page
-        cronJobDetailsPage.resourceDetail().masthead().resourceStatus()
-          .should('contain', 'Active');
-
-        // Verify the job in the jobs tab shows correct status without manual page refresh
-        // Testing https://github.com/rancher/dashboard/issues/14981:
-        // The job list should update automatically and not show stale "In Progress" status
-        cronJobDetailsPage.resourceDetail().tabbedList('jobs').resourceTableDetails(jobName, 1).contains('Active');
       });
     });
 
@@ -127,7 +132,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
     let detailsPageCronJob = SortableTablePo.firstByDefaultName('detailscron');
-    let cronJobNamesList = [];
+    let cronJobNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let nsName3: string;
@@ -187,7 +192,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           uniqueCronJob = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         })
         .then(() => cy.createManyNamespacedResources({
           context:        'cronjobs3',

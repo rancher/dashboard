@@ -32,7 +32,7 @@
     "docker:local:start": "./scripts/local-docker-start",
     "docker:local:stop": "docker kill ${RANCHER_CONTAINER_NAME:-cypress} || true && docker rm ${RANCHER_CONTAINER_NAME:-cypress} || true",
     "docker:local:logs": "docker logs ${RANCHER_CONTAINER_NAME:-cypress} > $E2E_RANCHER_LOG 2>&1",
-    "k3s:local:start": "./scripts/e2e-k3s-start $RANCHER_VERSION_E2E",
+    "k3s:local:start": "./scripts/e2e-k3s-start.sh $RANCHER_VERSION_E2E",
     "k3s:local:logs": "E2E_RANCHER_LOG=$E2E_RANCHER_LOG ./scripts/e2e-k3s-logs",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
     "build:lib": "cd pkg/rancher-components && yarn build:lib",

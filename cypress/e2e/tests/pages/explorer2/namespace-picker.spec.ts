@@ -278,7 +278,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { delay: true });
 
     if (removeProjectAndNs) {
       // delete project and ns

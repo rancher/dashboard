@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 export class LoginPagePo extends PagePo {
   static url = '/auth/login'
@@ -51,6 +52,14 @@ export class LoginPagePo extends PagePo {
 
   confirmationAcceptButton(): ComponentPo {
     return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
+  }
+
+  welcomeMessage() {
+    return this.self(MEDIUM_TIMEOUT_OPT).find('.login-welcome');
+  }
+
+  isWelcomeMessage(vendor = 'Rancher') {
+    return this.welcomeMessage().contains(`Welcome to ${ vendor }`).should('be.visible');
   }
 
   /**

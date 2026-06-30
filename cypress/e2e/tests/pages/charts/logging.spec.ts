@@ -21,13 +21,15 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
   const chartNamespace = 'cattle-logging-system';
   const loggingFlowList = new LoggingClusterFlowListPagePo();
   const loggingFlowCreate = new LoggingClusterFlowCreateEditPagePo('local');
-  let flowName;
-  let outputName;
+  let flowName: string;
+  let outputName: string;
 
   before(() => {
     cy.login();
-    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}', { delay: true });
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
+    cy.setUserPreference({ 'all-namespaces': true }, true);
+
     HomePagePo.goTo();
 
     cy.createE2EResourceName('logging-flow').then((name) => {
@@ -82,14 +84,14 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         .nameNsDescription().name()
         .set(flowName);
       loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
-      loggingFlowCreate.waitForPage(null, 'outputs');
+      loggingFlowCreate.waitForPage(undefined, 'outputs');
       loggingFlowCreate.outputSelector().toggle();
       loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
 
       // Configure namespaces during creation
       // testing https://github.com/rancher/dashboard/issues/13845
       loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-match"]');
-      loggingFlowCreate.waitForPage(null, 'match');
+      loggingFlowCreate.waitForPage(undefined, 'match');
       const namespaces = ['fleet-default', 'cattle-system'];
 
       loggingFlowCreate.setNamespaceValueByLabel(0, namespaces);
@@ -118,7 +120,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       const clusterTools = new ClusterToolsPagePo('local');
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-      installedAppsPage.goTo('local', 'apps');
+      installedAppsPage.goTo();
       installedAppsPage.waitForPage();
       cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
       installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
@@ -132,6 +134,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         const hasCrdChart = rowNames.includes(chartCrd);
 
         if (!hasLoggingChart || !hasCrdChart) {
+          // If this is a retry this step will always be hit (because the previous run uninstalled the charts.....)
           throw new Error(`Charts not found: logging=${ hasLoggingChart }, crd=${ hasCrdChart }. Charts may not be properly installed.`);
         }
 
@@ -167,20 +170,20 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
         kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
 
         // Verify charts are removed after uninstallation
-        installedAppsPage.goTo('local', 'apps');
+        installedAppsPage.goTo();
         installedAppsPage.waitForPage();
         cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
         installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
         installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-        installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
-          .should('not.contain', chartApp);
-        // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
-        installedAppsPage.appsList().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+        installedAppsPage.appsList().sortableTable().filter(chartApp);
+        installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
+        installedAppsPage.appsList().sortableTable().checkRowCount(true, 1, undefined, true);
       });
     });
   });
 
   after('clean up', () => {
+    cy.setUserPreference({ 'all-namespaces': false }, true);
     cy.setUserPreference({ 'show-pre-release': false });
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
     cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);

@@ -140,8 +140,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Active');
 
     // Deactivate
-    FeatureFlagsPagePo.navTo();
-
     featureFlagsPage.list().elementWithName('unsupported-storage-drivers').scrollIntoView().should('be.visible');
     featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Deactivate');
     featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'unsupported-storage-drivers', false);

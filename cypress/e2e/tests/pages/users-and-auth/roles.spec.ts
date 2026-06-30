@@ -10,6 +10,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3
@@ -75,7 +76,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 let runTimestamp: number;
 let runPrefix: string;
 let globalRoleName: string;
-const roleTemplatesToDelete = [];
+const roleTemplatesToDelete: string[] = [];
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -361,7 +362,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
-    const globalRolesIdsList = [];
+    const globalRolesIdsList: string[] = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');
     let initialCount: number;
@@ -567,17 +568,26 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('Global Roles', () => {
-    before(() => {
+    let customRoleName: string | undefined;
+    let standardUsername: string | undefined;
+
+    beforeEach(() => {
+      cy.clearAllSessions(); // clear any previous standard user session from a previous run
       cy.login();
     });
 
     it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
-      const customRoleName = `${ runPrefix }-my-custom-role`;
-      const standardUsername = `${ runPrefix }-standard-user-e2e`;
+      runTimestamp = +new Date();
+      runPrefix = `e2e-test-${ runTimestamp }`;
+
+      customRoleName = `${ runPrefix }-my-custom-role`;
+      standardUsername = `${ runPrefix }-standard-user-e2e`;
       const standardPassword = 'standard-password';
 
       // create global role
       roles.goTo();
+      roles.waitForPage(undefined, 'GLOBAL');
+
       roles.listCreate('Create Global Role');
 
       const createGlobal = roles.createGlobal();
@@ -606,11 +616,25 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // logout admin
       cy.logout();
 
+      // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
+
+      // attempt 2 (remove if attempt 2 resolves)
+      // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
+      // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
+      cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+
       // login as standard user
       cy.login(standardUsername, standardPassword);
 
+      const homePage = new HomePagePo();
+
+      // attempt 3
+      homePage.goTo();
+      homePage.waitForPage();
+
       // navigate to the roles page and make sure user can see it
       roles.goTo();
+      roles.waitForPage(undefined, 'GLOBAL');
       roles.list('GLOBAL').masthead().title().should('contain', 'Role Templates');
       roles.list('GLOBAL').elements().should('have.length.of.at.least', 1);
 
@@ -618,6 +642,32 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForRequests();
       usersPo.list().masthead().title().should('contain', 'Users');
       usersPo.list().elements().should('have.length', 1);
+    });
+
+    afterEach(() => {
+      // Log in as someone with permission to delete things
+      cy.clearAllSessions();
+      cy.login();
+
+      if (customRoleName) {
+        cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
+          const newRole = resp.body.data.find((r: any) => r.displayName === customRoleName);
+
+          if (newRole) {
+            cy.deleteRancherResource('v1', 'management.cattle.io.globalroles', newRole.id, false);
+          }
+        });
+      }
+
+      if (standardUsername) {
+        cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+          const newUser = resp.body.data.find((r: any) => r.displayName === standardUsername);
+
+          if (newUser) {
+            cy.deleteRancherResource('v1', 'management.cattle.io.users', newUser.id, false);
+          }
+        });
+      }
     });
   });
 });

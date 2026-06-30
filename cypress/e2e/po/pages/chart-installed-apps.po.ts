@@ -12,10 +12,6 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.app`;
   }
 
-  goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ChartInstalledAppsListPagePo.createPath(clusterId, product));
-  }
-
   constructor(clusterId = 'local', product: 'apps' | 'manager') {
     super(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }

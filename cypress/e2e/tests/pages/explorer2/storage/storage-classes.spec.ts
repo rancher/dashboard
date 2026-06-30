@@ -10,7 +10,7 @@ describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer2', '@adminU
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('validate storage classes table in empty state', () => {

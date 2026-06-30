@@ -56,6 +56,8 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
       workloadsJobsListPage.goTo();
+      workloadsJobsListPage.waitForPage();
+      workloadsJobsListPage.baseResourceList().checkVisible();
       workloadsJobsListPage.baseResourceList().masthead().create();
 
       // create view jobs
@@ -96,7 +98,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
     let uniqueJob = SortableTablePo.firstByDefaultName('job');
-    let jobNamesList = [];
+    let jobNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -150,7 +152,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           uniqueJob = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 

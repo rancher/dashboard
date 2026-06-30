@@ -1,4 +1,4 @@
-import { FleetGitRepoCreateEditPo, FleetApplicationListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import { FleetGitRepoCreateEditPo, FleetApplicationListPagePo, FleetApplicationCreatePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
@@ -6,6 +6,10 @@ import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/bluepri
 const METADATA_NAME = 'c-m-e2etest';
 const DISPLAY_NAME = 'e2e-custom-display-cluster';
 const workspace = 'fleet-default';
+
+const listPage = new FleetApplicationListPagePo();
+const createPage = new FleetApplicationCreatePo();
+const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
 function interceptFleetClustersWithDisplayName() {
   cy.intercept('GET', '/v1/fleet.cattle.io.clusters?*', (req) => {
@@ -56,15 +60,12 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       interceptFleetClustersWithDisplayName();
 
       // Select workspace from list page first, then navigate to create
-      const listPage = new FleetApplicationListPagePo();
-
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
+      listPage.create();
+      createPage.createGitRepo();
 
-      const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
-
-      gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
 
       // Step 1: Metadata
@@ -104,15 +105,12 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       interceptFleetClustersWithDisplayName();
 
       // Select workspace from list page first, then navigate to create
-      const listPage = new FleetApplicationListPagePo();
-
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
+      listPage.create();
+      createPage.createGitRepo();
 
-      const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
-
-      gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
 
       // Step 1: Metadata
