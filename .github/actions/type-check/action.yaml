@@ -1,0 +1,12 @@
+name: Run Type Check
+description: Fail on net-new TypeScript errors compared to the committed baseline
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      uses: ./.github/actions/setup
+
+    - name: Run type check
+      shell: bash
+      run: yarn type-check:ci
