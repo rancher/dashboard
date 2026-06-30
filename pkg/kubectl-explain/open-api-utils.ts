@@ -97,6 +97,13 @@ export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definit
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }
+    } else if (!propRef) {
+      const inlineProperties = prop.properties || prop.items?.properties;
+
+      if (inlineProperties) {
+        prop.$$ref = { properties: JSON.parse(JSON.stringify(inlineProperties)) };
+        expandOpenAPIDefinition(definitions, prop.$$ref, breadcrumbs);
+      }
     }
 
     extractMoreInfo(prop);
