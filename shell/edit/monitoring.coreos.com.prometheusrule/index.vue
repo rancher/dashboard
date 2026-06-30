@@ -4,6 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { removeAt } from '@shell/utils/array';
 import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
+import Labels from '@shell/components/form/Labels';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -20,6 +21,7 @@ export default {
     Banner,
     CruResource,
     GroupRules,
+    Labels,
     LabeledInput,
     NameNsDescription,
     Tab,
@@ -51,17 +53,6 @@ export default {
   },
 
   computed: {
-    prometheusReleaseLabel: {
-      get() {
-        return this.value?.metadata?.labels?.release || '';
-      },
-      set(val) {
-        if (!this.value.metadata.labels) {
-          this.value.metadata.labels = {};
-        }
-        this.value.metadata.labels['release'] = val;
-      }
-    },
     filteredGroups() {
       return this.value?.spec?.groups || [];
     },
@@ -87,11 +78,8 @@ export default {
     if (this.isCreate) {
       this.value.metadata['namespace'] = 'cattle-monitoring-system';
 
-      if (!this.value.metadata.labels) {
-        this.value.metadata.labels = {};
-      }
-      if (!this.value.metadata.labels['release']) {
-        this.value.metadata.labels['release'] = 'kube-prometheus-stack';
+      if (!this.value.metadata?.labels?.release) {
+        this.value.setLabel('release', 'kube-prometheus-stack');
       }
     }
   },
@@ -167,16 +155,22 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model:value="prometheusReleaseLabel"
-          :label="t('prometheusRule.releaseLabel.label')"
-          :tooltip="t('prometheusRule.releaseLabel.tooltip', null, true)"
-          :mode="mode"
-        />
-      </div>
-    </div>
+    <hr class="mt-20 mb-20">
+    <h3>
+      {{ t('prometheusRule.labels.title') }}
+      <i
+        v-clean-tooltip="t('prometheusRule.labels.tooltip')"
+        class="icon icon-info"
+      />
+    </h3>
+    <Labels
+      :value="value"
+      :mode="mode"
+      :show-annotations="false"
+      :show-label-title="false"
+      :show-label-description="false"
+      data-testid="v2-monitoring-prom-rules-labels"
+    />
     <div>
       <Tabbed
         v-if="filteredGroups.length > 0"

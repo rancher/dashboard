@@ -69,85 +69,6 @@ describe('edit: management.cattle.io.setting should', () => {
   });
 });
 
-describe('edit: monitoring.coreos.com.prometheusrule prometheusReleaseLabel computed', () => {
-  const store = createStore({
-    getters: {
-      namespaces:                () => () => ({}),
-      currentStore:              () => () => 'current_store',
-      'current_store/schemaFor': () => jest.fn()
-    }
-  });
-
-  const requiredSetup = () => ({
-    global: {
-      provide: { store },
-      mocks:   {
-        $store: {
-          dispatch: jest.fn(),
-          getters:  {
-            currentStore:              () => 'current_store',
-            'current_store/schemaFor': jest.fn(),
-            'current_store/all':       jest.fn(),
-            'i18n/t':                  jest.fn(),
-            'i18n/exists':             jest.fn(),
-            namespaces:                () => ({})
-          }
-        },
-        $route:  { query: { AS: '' }, name: '' },
-        $router: { applyQuery: jest.fn() }
-      }
-    }
-  });
-
-  it('should return the release label value from metadata.labels', () => {
-    const wrapper = shallowMount(Monitoring, {
-      props: {
-        mode:  _EDIT,
-        value: { metadata: { labels: { release: 'my-release' } } },
-      },
-      ...requiredSetup()
-    });
-
-    expect((wrapper.vm as any).prometheusReleaseLabel).toBe('my-release');
-  });
-
-  it('should return an empty string when release label is not set', () => {
-    const wrapper = shallowMount(Monitoring, {
-      props: {
-        mode:  _EDIT,
-        value: { metadata: {} },
-      },
-      ...requiredSetup()
-    });
-
-    expect((wrapper.vm as any).prometheusReleaseLabel).toBe('');
-  });
-
-  it('should update metadata.labels.release when set', () => {
-    const value = { metadata: { labels: { release: 'old-release' } } };
-    const wrapper = shallowMount(Monitoring, {
-      props: { mode: _EDIT, value },
-      ...requiredSetup()
-    });
-
-    (wrapper.vm as any).prometheusReleaseLabel = 'new-release';
-
-    expect(value.metadata.labels.release).toBe('new-release');
-  });
-
-  it('should initialize labels object when setting release label if labels are undefined', () => {
-    const value: { metadata: { labels?: { release?: string } } } = { metadata: {} };
-    const wrapper = shallowMount(Monitoring, {
-      props: { mode: _EDIT, value },
-      ...requiredSetup()
-    });
-
-    (wrapper.vm as any).prometheusReleaseLabel = 'my-release';
-
-    expect(value.metadata.labels).toStrictEqual({ release: 'my-release' });
-  });
-});
-
 describe('edit: monitoring.coreos.com.prometheusrule created hook', () => {
   const store = createStore({
     getters: {
@@ -178,8 +99,17 @@ describe('edit: monitoring.coreos.com.prometheusrule created hook', () => {
     }
   });
 
+  const makeSetLabel = (value: any) => jest.fn((key: string, val: string) => {
+    if (!value.metadata.labels) {
+      value.metadata.labels = {};
+    }
+    value.metadata.labels[key] = val;
+  });
+
   it('should set default namespace and release label in CREATE mode', () => {
     const value: any = { metadata: {} };
+
+    value.setLabel = makeSetLabel(value);
 
     shallowMount(Monitoring, {
       props: { mode: _CREATE, value },
@@ -187,22 +117,26 @@ describe('edit: monitoring.coreos.com.prometheusrule created hook', () => {
     });
 
     expect(value.metadata.namespace).toBe('cattle-monitoring-system');
-    expect(value.metadata.labels?.['release']).toBe('kube-prometheus-stack');
+    expect(value.setLabel).toHaveBeenCalledWith('release', 'kube-prometheus-stack');
+    expect(value.metadata.labels?.release).toBe('kube-prometheus-stack');
   });
 
   it('should not override an existing release label in CREATE mode', () => {
     const value: any = { metadata: { labels: { release: 'custom-release' } } };
+
+    value.setLabel = makeSetLabel(value);
 
     shallowMount(Monitoring, {
       props: { mode: _CREATE, value },
       ...requiredSetup()
     });
 
+    expect(value.setLabel).not.toHaveBeenCalled();
     expect(value.metadata.labels.release).toBe('custom-release');
   });
 
   it('should not set default namespace or release label in EDIT mode', () => {
-    const value: any = { metadata: {} };
+    const value: any = { metadata: {}, setLabel: jest.fn() };
 
     shallowMount(Monitoring, {
       props: { mode: _EDIT, value },
@@ -210,6 +144,6 @@ describe('edit: monitoring.coreos.com.prometheusrule created hook', () => {
     });
 
     expect(value.metadata.namespace).toBeUndefined();
-    expect(value.metadata.labels).toBeUndefined();
+    expect(value.setLabel).not.toHaveBeenCalled();
   });
 });
