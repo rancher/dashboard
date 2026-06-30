@@ -299,7 +299,7 @@ export default class Workload extends WorkloadService {
       out.push({
         nullable:       false,
         path:           'spec.serviceName',
-        required:       true,
+        required:       false,
         type:           'string',
         translationKey: 'workload.serviceName'
       });
