@@ -807,6 +807,117 @@ describe('component: rke2', () => {
     });
   });
 
+  describe('method: showIpv6Warning', () => {
+    const createWrapper = ({ mode = _CREATE, dispatch = jest.fn() } = {}) => {
+      return shallowMount(rke2, {
+        props: {
+          mode,
+          value: {
+            spec: {
+              ...defaultSpec,
+              rkeConfig: {
+                ...defaultSpec.rkeConfig,
+                networking: { stackPreference: 'ipv6' }
+              }
+            },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          provider: 'custom'
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch, getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+
+    it('should not show modal when mode is not create', async() => {
+      const dispatch = jest.fn();
+      const wrapper = createWrapper({ mode: _EDIT, dispatch });
+
+      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+
+      await (wrapper.vm as any).showIpv6Warning();
+
+      expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should not show modal when networking values are valid', async() => {
+      const dispatch = jest.fn();
+      const wrapper = createWrapper({ dispatch });
+
+      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+
+      Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+rke2r1' }) });
+      Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
+      Object.defineProperty(wrapper.vm, 'hasDualStackPools', { get: () => false });
+
+      wrapper.vm.value.spec.rkeConfig.networking.stackPreference = 'ipv6';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['flannel-ipv6-masq'] = true;
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = '2001:db8::/64';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['service-cidr'] = '2001:db8:1::/112';
+
+      await (wrapper.vm as any).showIpv6Warning();
+
+      expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should show modal with all relevant warnings for invalid ipv6 settings', async() => {
+      const dispatch = jest.fn((_action, payload) => {
+        payload.componentProps.confirm(true);
+      });
+      const wrapper = createWrapper({ dispatch });
+
+      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+
+      Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+k3s1' }) });
+      Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
+      Object.defineProperty(wrapper.vm, 'hasDualStackPools', { get: () => false });
+
+      wrapper.vm.value.spec.rkeConfig.networking.stackPreference = 'ipv4';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['flannel-ipv6-masq'] = false;
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = '10.42.0.0/16';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['service-cidr'] = '10.43.0.0/16';
+
+      await (wrapper.vm as any).showIpv6Warning();
+
+      expect(dispatch).toHaveBeenCalledWith('cluster/promptModal', expect.objectContaining({
+        component:      'Ipv6NetworkingDialog',
+        componentProps: expect.objectContaining({
+          isK3s:    true,
+          warnings: [
+            'cluster.rke2.modal.ipv6Warning.stackPrefInvalid',
+            'cluster.rke2.modal.ipv6Warning.flannelMasqInvalid',
+            'cluster.rke2.modal.ipv6Warning.cidrInvalidK3s'
+          ]
+        })
+      }));
+    });
+
+    it('should reject when user cancels ipv6 warning modal', async() => {
+      const dispatch = jest.fn((_action, payload) => {
+        payload.componentProps.confirm(false);
+      });
+      const wrapper = createWrapper({ dispatch });
+
+      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+
+      Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
+      Object.defineProperty(wrapper.vm, 'hasDualStackPools', { get: () => false });
+
+      wrapper.vm.value.spec.rkeConfig.networking.stackPreference = 'ipv4';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = '10.42.0.0/16';
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig['service-cidr'] = '10.43.0.0/16';
+
+      await expect((wrapper.vm as any).showIpv6Warning()).rejects.toThrow('User Cancelled');
+      expect(dispatch).toHaveBeenCalledWith('cluster/promptModal', expect.any(Object));
+    });
+  });
+
   describe('computed: canEditAsYaml', () => {
     it('should return false when isUpstreamCAPIProvider is true', () => {
       const vm = { isUpstreamCAPIProvider: true } as any;
