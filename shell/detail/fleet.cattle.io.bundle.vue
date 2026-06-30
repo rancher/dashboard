@@ -26,12 +26,7 @@ export default {
   },
 
   async fetch() {
-    const allDispatches = await checkSchemasForFindAllHash({
-      allBundleDeployments: {
-        inStoreType: 'management',
-        type:        FLEET.BUNDLE_DEPLOYMENT,
-      },
-
+    await checkSchemasForFindAllHash({
       // must be loaded for bundle.targetClusters to work
       allFleetClusters: {
         inStoreType: 'management',
@@ -43,7 +38,24 @@ export default {
       }
     }, this.$store);
 
-    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
+    // Only this bundle's deployments (server-side filtered by the bundle-name / bundle-namespace
+    // labels) rather than every BundleDeployment in the cluster. findLabelSelector uses the
+    // paginated sql-cache api when available and falls back to a native labelSelector list.
+    try {
+      this.allBundleDeployments = await this.$store.dispatch('management/findLabelSelector', {
+        type:     FLEET.BUNDLE_DEPLOYMENT,
+        matching: {
+          labelSelector: {
+            matchLabels: {
+              [FLEET_ANNOTATIONS.BUNDLE_NAME]:      this.value.metadata.name,
+              [FLEET_ANNOTATIONS.BUNDLE_NAMESPACE]: this.value.metadata.namespace,
+            }
+          }
+        },
+      });
+    } catch (e) {
+      this.allBundleDeployments = [];
+    }
   },
 
   computed: {
