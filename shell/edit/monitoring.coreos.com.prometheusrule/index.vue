@@ -161,6 +161,8 @@ export default {
       <i
         v-clean-tooltip="t('prometheusRule.labels.tooltip')"
         class="icon icon-info"
+        role="img"
+        :aria-label="t('prometheusRule.labels.tooltip')"
       />
     </h3>
     <Labels
@@ -169,7 +171,7 @@ export default {
       :show-annotations="false"
       :show-label-title="false"
       :show-label-description="false"
-      data-testid="v2-monitoring-prom-rules-labels"
+      data-testid="monitoring-prom-rules-labels"
     />
     <div>
       <Tabbed
