@@ -5932,6 +5932,9 @@ projectNamespaces:
   isIstioInjectionEnabled: Istio automatic sidecar injection is enabled for this namespace
 
 prometheusRule:
+  releaseLabel:
+    label: Prometheus Release Label
+    tooltip: This label must match the Prometheus Operator's rule selector for these rules to be discovered and evaluated.
   alertingRules:
     addLabel: Add Alert
     annotations:

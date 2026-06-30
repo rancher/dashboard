@@ -9,7 +9,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _VIEW } from '@shell/config/query-params';
 import isString from 'lodash/isString';
 import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
@@ -51,6 +51,17 @@ export default {
   },
 
   computed: {
+    prometheusReleaseLabel: {
+      get() {
+        return this.value?.metadata?.labels?.release || '';
+      },
+      set(val) {
+        if (!this.value.metadata.labels) {
+          this.value.metadata.labels = {};
+        }
+        this.value.metadata.labels['release'] = val;
+      }
+    },
     filteredGroups() {
       return this.value?.spec?.groups || [];
     },
@@ -73,8 +84,15 @@ export default {
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
 
-    if (this.mode === _CREATE) {
+    if (this.isCreate) {
       this.value.metadata['namespace'] = 'cattle-monitoring-system';
+
+      if (!this.value.metadata.labels) {
+        this.value.metadata.labels = {};
+      }
+      if (!this.value.metadata.labels['release']) {
+        this.value.metadata.labels['release'] = 'kube-prometheus-stack';
+      }
     }
   },
 
@@ -146,6 +164,16 @@ export default {
           :mode="mode"
           :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
           @change="name = value.metadata.name"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="prometheusReleaseLabel"
+          :label="t('prometheusRule.releaseLabel.label')"
+          :tooltip="t('prometheusRule.releaseLabel.tooltip', null, true)"
+          :mode="mode"
         />
       </div>
     </div>

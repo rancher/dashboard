@@ -1,7 +1,7 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import FormValidation from '@shell/mixins/form-validation';
 import Monitoring from '@shell/edit/monitoring.coreos.com.prometheusrule/index.vue';
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { createStore } from 'vuex';
 
 describe('edit: management.cattle.io.setting should', () => {
@@ -66,5 +66,150 @@ describe('edit: management.cattle.io.setting should', () => {
       // Assert that an error banner is closed until the last one
       expect(resultErrorBanners).toHaveLength(MOCKED_ERRORS.length - 1 - i);
     }
+  });
+});
+
+describe('edit: monitoring.coreos.com.prometheusrule prometheusReleaseLabel computed', () => {
+  const store = createStore({
+    getters: {
+      namespaces:                () => () => ({}),
+      currentStore:              () => () => 'current_store',
+      'current_store/schemaFor': () => jest.fn()
+    }
+  });
+
+  const requiredSetup = () => ({
+    global: {
+      provide: { store },
+      mocks:   {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+            namespaces:                () => ({})
+          }
+        },
+        $route:  { query: { AS: '' }, name: '' },
+        $router: { applyQuery: jest.fn() }
+      }
+    }
+  });
+
+  it('should return the release label value from metadata.labels', () => {
+    const wrapper = shallowMount(Monitoring, {
+      props: {
+        mode:  _EDIT,
+        value: { metadata: { labels: { release: 'my-release' } } },
+      },
+      ...requiredSetup()
+    });
+
+    expect((wrapper.vm as any).prometheusReleaseLabel).toBe('my-release');
+  });
+
+  it('should return an empty string when release label is not set', () => {
+    const wrapper = shallowMount(Monitoring, {
+      props: {
+        mode:  _EDIT,
+        value: { metadata: {} },
+      },
+      ...requiredSetup()
+    });
+
+    expect((wrapper.vm as any).prometheusReleaseLabel).toBe('');
+  });
+
+  it('should update metadata.labels.release when set', () => {
+    const value = { metadata: { labels: { release: 'old-release' } } };
+    const wrapper = shallowMount(Monitoring, {
+      props: { mode: _EDIT, value },
+      ...requiredSetup()
+    });
+
+    (wrapper.vm as any).prometheusReleaseLabel = 'new-release';
+
+    expect(value.metadata.labels.release).toBe('new-release');
+  });
+
+  it('should initialize labels object when setting release label if labels are undefined', () => {
+    const value: { metadata: { labels?: { release?: string } } } = { metadata: {} };
+    const wrapper = shallowMount(Monitoring, {
+      props: { mode: _EDIT, value },
+      ...requiredSetup()
+    });
+
+    (wrapper.vm as any).prometheusReleaseLabel = 'my-release';
+
+    expect(value.metadata.labels).toStrictEqual({ release: 'my-release' });
+  });
+});
+
+describe('edit: monitoring.coreos.com.prometheusrule created hook', () => {
+  const store = createStore({
+    getters: {
+      namespaces:                () => () => ({}),
+      currentStore:              () => () => 'current_store',
+      'current_store/schemaFor': () => jest.fn()
+    }
+  });
+
+  const requiredSetup = () => ({
+    global: {
+      provide: { store },
+      mocks:   {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+            namespaces:                () => ({})
+          }
+        },
+        $route:  { query: { AS: '' }, name: '' },
+        $router: { applyQuery: jest.fn() }
+      }
+    }
+  });
+
+  it('should set default namespace and release label in CREATE mode', () => {
+    const value: any = { metadata: {} };
+
+    shallowMount(Monitoring, {
+      props: { mode: _CREATE, value },
+      ...requiredSetup()
+    });
+
+    expect(value.metadata.namespace).toBe('cattle-monitoring-system');
+    expect(value.metadata.labels?.['release']).toBe('kube-prometheus-stack');
+  });
+
+  it('should not override an existing release label in CREATE mode', () => {
+    const value: any = { metadata: { labels: { release: 'custom-release' } } };
+
+    shallowMount(Monitoring, {
+      props: { mode: _CREATE, value },
+      ...requiredSetup()
+    });
+
+    expect(value.metadata.labels.release).toBe('custom-release');
+  });
+
+  it('should not set default namespace or release label in EDIT mode', () => {
+    const value: any = { metadata: {} };
+
+    shallowMount(Monitoring, {
+      props: { mode: _EDIT, value },
+      ...requiredSetup()
+    });
+
+    expect(value.metadata.namespace).toBeUndefined();
+    expect(value.metadata.labels).toBeUndefined();
   });
 });
