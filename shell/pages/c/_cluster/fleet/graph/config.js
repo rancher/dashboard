@@ -260,7 +260,10 @@ export const graphConfig = {
     const schemas = await checkSchemasForFindAllHash({
       cluster: {
         inStoreType: 'management',
-        type:        FLEET.CLUSTER
+        type:        FLEET.CLUSTER,
+        // The graphed application's clusters all live in its workspace namespace, so scope the
+        // fetch there instead of loading every cluster in the cluster.
+        opt:         { namespaced: data?.metadata?.namespace },
       },
       bundle: {
         inStoreType: 'management',

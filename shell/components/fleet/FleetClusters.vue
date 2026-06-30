@@ -2,7 +2,9 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Tag from '@shell/components/Tag.vue';
 import { STATE, NAME, AGE, FLEET_SUMMARY } from '@shell/config/table-headers';
+import { STEVE_STATE_COL, STEVE_AGE_COL } from '@shell/config/pagination-table-headers';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 
 export default {
   components: { ResourceTable, Tag },
@@ -33,6 +35,15 @@ export default {
     ignoreFilter: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * When true the list is server-side paginated (list page only). Detail/dashboard usages leave
+     * this false so their behaviour is unchanged.
+     */
+    canPaginate: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -42,45 +53,69 @@ export default {
     },
 
     headers() {
-      const out = [
+      const reposReady = {
+        name:     'reposReady',
+        labelKey: 'tableHeaders.reposReady',
+        value:    'status.readyGitRepos',
+        sort:     'status.summary.ready',
+        search:   false,
+      };
+      const helmOpsReady = {
+        name:     'helmOpsReady',
+        labelKey: 'tableHeaders.helmOpsReady',
+        value:    'status.readyHelmOps',
+        sort:     'status.summary.ready',
+        search:   false,
+      };
+      const bundlesReady = {
+        name:     'bundlesReady',
+        labelKey: 'tableHeaders.bundlesReady',
+        value:    'status.display.readyBundles',
+        sort:     'status.summary.ready',
+        search:   false,
+      };
+      const lastSeen = {
+        name:          'lastSeen',
+        labelKey:      'tableHeaders.lastSeen',
+        value:         'status.agent.lastSeen',
+        sort:          'status.agent.lastSeen',
+        search:        false,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+        width:         120,
+      };
+
+      // Server-side pagination: state/name/age use raw STEVE fields. The repos/helmops/bundles ready
+      // columns sort on their own raw status count fields (the base sort is the ambiguous shared
+      // status.summary.ready, so override per column). The Name column keeps nameDisplay but
+      // sorts/searches on the cluster-display-name label (falling back to the resource name).
+      if (this.canPaginate) {
+        return [
+          STEVE_STATE_COL,
+          {
+            ...NAME,
+            sort:   [`metadata.labels[${ FLEET_LABELS.CLUSTER_DISPLAY_NAME }]`, 'metadata.name'],
+            search: [`metadata.labels[${ FLEET_LABELS.CLUSTER_DISPLAY_NAME }]`, 'metadata.name'],
+          },
+          { ...reposReady, sort: 'status.readyGitRepos' },
+          { ...helmOpsReady, sort: 'status.readyHelmOps' },
+          { ...bundlesReady, sort: 'status.summary.ready' },
+          FLEET_SUMMARY,
+          lastSeen,
+          STEVE_AGE_COL,
+        ];
+      }
+
+      return [
         STATE,
         NAME,
-        {
-          name:     'reposReady',
-          labelKey: 'tableHeaders.reposReady',
-          value:    'status.readyGitRepos',
-          sort:     'status.summary.ready',
-          search:   false,
-        },
-        {
-          name:     'helmOpsReady',
-          labelKey: 'tableHeaders.helmOpsReady',
-          value:    'status.readyHelmOps',
-          sort:     'status.summary.ready',
-          search:   false,
-        },
-        {
-          name:     'bundlesReady',
-          labelKey: 'tableHeaders.bundlesReady',
-          value:    'status.display.readyBundles',
-          sort:     'status.summary.ready',
-          search:   false,
-        },
+        reposReady,
+        helmOpsReady,
+        bundlesReady,
         FLEET_SUMMARY,
-        {
-          name:          'lastSeen',
-          labelKey:      'tableHeaders.lastSeen',
-          value:         'status.agent.lastSeen',
-          sort:          'status.agent.lastSeen',
-          search:        false,
-          formatter:     'LiveDate',
-          formatterOpts: { addSuffix: true },
-          width:         120,
-        },
+        lastSeen,
         AGE,
       ];
-
-      return out;
     },
 
     pagingParams() {
@@ -111,6 +146,7 @@ export default {
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :ignore-filter="ignoreFilter"
+    :groupable="canPaginate ? false : null"
     key-field="_key"
   >
     <template #cell:workspace="{row}">

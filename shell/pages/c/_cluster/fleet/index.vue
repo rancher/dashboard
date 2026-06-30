@@ -4,6 +4,7 @@ import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
 import { FLEET } from '@shell/config/types';
+import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 import { WORKSPACE } from '@shell/store/prefs';
 import Loading from '@shell/components/Loading.vue';
 import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
@@ -51,15 +52,6 @@ export default {
           return !!schema?.links?.collection;
         }
       },
-      clusterGroups: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER_GROUP
-      },
-      allBundles: {
-        inStoreType: 'management',
-        type:        FLEET.BUNDLE,
-        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
-      },
       gitRepos: {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO,
@@ -67,10 +59,6 @@ export default {
       helmOps: {
         inStoreType: 'management',
         type:        FLEET.HELM_OP,
-      },
-      fleetClusters: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER,
       }
     };
 
@@ -80,6 +68,11 @@ export default {
 
     this[FLEET.GIT_REPO] = hash.gitRepos || [];
     this[FLEET.HELM_OP] = hash.helmOps || [];
+
+    // The cluster / cluster-group panels only show a per-workspace state breakdown (not individual,
+    // selectable resources), so fetch aggregated state counts via the Steve summary API instead of
+    // every cluster object. Falls back to a full fetch when VAI (ui-sql-cache) is unavailable.
+    await this.fetchClusterSummaries();
 
     try {
       const permissionsSchemas = {
@@ -109,6 +102,9 @@ export default {
       [FLEET.GIT_REPO]: [],
       [FLEET.HELM_OP]:  [],
       fleetWorkspaces:  [],
+      // Per-workspace state breakdowns from the summary API (null = fall back to fetched objects).
+      clusterStateSummary:      null as Record<string, any[]> | null,
+      clusterGroupStateSummary: null as Record<string, any[]> | null,
       VIEW_MODE,
       viewModeOptions:  [
         {
@@ -192,11 +188,12 @@ export default {
     },
 
     clusterStates() {
-      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusters));
+      // Prefer the server-side summary (no objects fetched); fall back to deriving from objects.
+      return this.clusterStateSummary || this._groupByWorkspace((ws) => this._resourceStates(ws.clusters));
     },
 
     clusterGroupsStates() {
-      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusterGroups));
+      return this.clusterGroupStateSummary || this._groupByWorkspace((ws) => this._resourceStates(ws.clusterGroups));
     },
 
     cardResources() {
@@ -372,6 +369,79 @@ export default {
         ...acc,
         [ws.id]: callback(ws)
       }), {});
+    },
+
+    /**
+     * Fetch per-workspace state counts for clusters + cluster groups via the Steve summary API
+     * (no resource data, just counts). Falls back to fetching the objects when VAI is unavailable.
+     */
+    async fetchClusterSummaries() {
+      const opt = { summaryField: 'metadata.state.name', namespaceCounts: true };
+
+      const [clusters, clusterGroups] = await Promise.all([
+        this.$store.dispatch('management/fetchResourceSummary', { type: FLEET.CLUSTER, opt }).catch(() => undefined),
+        this.$store.dispatch('management/fetchResourceSummary', { type: FLEET.CLUSTER_GROUP, opt }).catch(() => undefined),
+      ]);
+
+      if (clusters) {
+        this.clusterStateSummary = this._summaryToWorkspaceStates(clusters);
+      } else {
+        // VAI unavailable - fall back to the objects (clusterStates derives from them).
+        await checkSchemasForFindAllHash({
+          fleetClusters: { inStoreType: 'management', type: FLEET.CLUSTER, opt: { excludeFields: ['metadata.managedFields'] } }
+        }, this.$store);
+      }
+
+      if (clusterGroups) {
+        this.clusterGroupStateSummary = this._summaryToWorkspaceStates(clusterGroups);
+      } else {
+        await checkSchemasForFindAllHash({
+          clusterGroups: { inStoreType: 'management', type: FLEET.CLUSTER_GROUP }
+        }, this.$store);
+      }
+    },
+
+    /**
+     * Convert a summary API result ({ summary: [{ counts: { <state>: { namespace: { <ns>: n } } } }] })
+     * into the per-workspace `states` shape ResourcePanel expects ({ [ws]: [{ statePanel, resources }] }).
+     * ResourcePanel only reads `statePanel` + `resources.length`, so a sized placeholder array is enough.
+     */
+    _summaryToWorkspaceStates(summaryResult: any): Record<string, any[]> {
+      const counts = summaryResult?.summary?.[0]?.counts || {};
+      const out: Record<string, any[]> = {};
+
+      Object.entries(counts).forEach(([stateName, info]: [string, any]) => {
+        const color = colorForState(stateName);
+        const display = stateDisplay(stateName);
+        const statePanel = FleetUtils.getDashboardState({ stateColor: color });
+
+        Object.entries(info?.namespace || {}).forEach(([ns, count]: [string, any]) => {
+          if (!out[ns]) {
+            out[ns] = [];
+          }
+
+          out[ns].push({
+            stateDisplay: display,
+            stateSort:    stateSort(color, display),
+            statePanel,
+            resources:    new Array(count), // ResourcePanel only uses resources.length
+          });
+        });
+      });
+
+      return out;
+    },
+
+    _stateCountForWorkspace(states: Record<string, any[]>, workspaceId: string): number {
+      return (states?.[workspaceId] || []).reduce((acc: number, s: any) => acc + s.resources.length, 0);
+    },
+
+    workspaceClusterCount(workspaceId: string): number {
+      return this._stateCountForWorkspace(this.clusterStates, workspaceId);
+    },
+
+    workspaceClusterGroupCount(workspaceId: string): number {
+      return this._stateCountForWorkspace(this.clusterGroupsStates, workspaceId);
     },
 
     _stateExistsInWorkspace(workspace, state) {
@@ -556,7 +626,7 @@ export default {
                 @click:state="selectStates(workspace.id, $event)"
               />
               <ResourcePanel
-                v-if="workspace.clusters?.length"
+                v-if="workspaceClusterCount(workspace.id)"
                 :data-testid="'resource-panel-clusters'"
                 :states="clusterStates[workspace.id]"
                 :workspace="workspace.id"
@@ -564,7 +634,7 @@ export default {
                 :selectable="false"
               />
               <ResourcePanel
-                v-if="workspace.clusterGroups?.length"
+                v-if="workspaceClusterGroupCount(workspace.id)"
                 :data-testid="'resource-panel-cluster-groups'"
                 :states="clusterGroupsStates[workspace.id]"
                 :workspace="workspace.id"

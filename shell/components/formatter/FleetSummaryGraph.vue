@@ -31,7 +31,16 @@ export default {
     },
 
     show() {
-      return this.stateParts.length > 0 && (this.row.type === FLEET.CLUSTER || this.row.targetClusters?.length);
+      // `targetClusters` requires the workspace's clusters to be loaded. On list pages we avoid that
+      // fetch, so fall back to status fields already on the row that indicate the row targets/has
+      // clusters: desiredReadyClusters for applications (gitrepo/helmop), clusterCount for cluster
+      // groups. Detail/cluster views still have targetClusters populated.
+      return this.stateParts.length > 0 && (
+        this.row.type === FLEET.CLUSTER ||
+        this.row.targetClusters?.length ||
+        this.row.status?.desiredReadyClusters ||
+        this.row.status?.clusterCount
+      );
     },
 
     stateParts() {
