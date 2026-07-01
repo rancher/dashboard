@@ -15,6 +15,7 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import { useI18n } from '@shell/composables/useI18n';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const AUTH_TYPE = 'ldap';
 
@@ -35,26 +36,23 @@ export default {
   setup() {
     const store = useStore();
     const { t } = useI18n(store);
-
-    const coerce = (schema) => z.preprocess((v) => (v === null || v === undefined) ? '' : String(v), schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const optionalField = coerce(z.string());
+    const { field } = zodValidators(t);
 
     const tlsEnabledRef = ref(false);
     const isActiveDirectoryRef = ref(false);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        hostname:                        requiredField('authConfig.ldap.hostname.label'),
-        port:                            requiredField('authConfig.ldap.port'),
-        certificate:                     tlsEnabledRef.value ? requiredField('authConfig.ldap.cert') : optionalField,
-        connectionTimeout:               requiredField('authConfig.ldap.serverConnectionTimeout'),
-        serviceAccountUsername:          isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
-        serviceAccountDistinguishedName: !isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
-        serviceAccountPassword:          requiredField('authConfig.ldap.serviceAccountPassword'),
-        userSearchBase:                  requiredField('authConfig.ldap.userSearchBase.label'),
-        username:                        requiredField(`authConfig.${ AUTH_TYPE }.username`),
-        password:                        requiredField(`authConfig.${ AUTH_TYPE }.password`),
+        hostname:                        field('authConfig.ldap.hostname.label').required(),
+        port:                            field('authConfig.ldap.port').required(),
+        certificate:                     tlsEnabledRef.value ? field('authConfig.ldap.cert').required() : field(),
+        connectionTimeout:               field('authConfig.ldap.serverConnectionTimeout').required(),
+        serviceAccountUsername:          isActiveDirectoryRef.value ? field('authConfig.ldap.serviceAccountDN').required() : field(),
+        serviceAccountDistinguishedName: !isActiveDirectoryRef.value ? field('authConfig.ldap.serviceAccountDN').required() : field(),
+        serviceAccountPassword:          field('authConfig.ldap.serviceAccountPassword').required(),
+        userSearchBase:                  field('authConfig.ldap.userSearchBase.label').required(),
+        username:                        field(`authConfig.${ AUTH_TYPE }.username`).required(),
+        password:                        field(`authConfig.${ AUTH_TYPE }.password`).required(),
       })
     ));
 
