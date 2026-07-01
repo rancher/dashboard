@@ -11,6 +11,7 @@ import {
   VIRTUAL_TYPES,
   CAPI,
   WORKLOAD_DASHBOARD,
+  CRD,
 } from '@shell/config/types';
 
 import {
@@ -358,6 +359,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
     ]
   );
+
   headers(HPA,
     [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
@@ -571,6 +573,28 @@ export function init(store) {
     LAST_USED,
     EXPIRES,
     AGE_NORMAN
+  ]);
+
+  const CRD_CR_COL = {
+    name:          'crd-cr',
+    labelKey:      'tableHeaders.customResources',
+    sort:          false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    search:        false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    value:         'resourceLink',
+    formatter:     'Link',
+    formatterOpts: { options: { internal: true } },
+  };
+
+  headers(CRD, [
+    STATE,
+    NAME_COL,
+    CRD_CR_COL,
+    AGE
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    CRD_CR_COL,
+    STEVE_AGE_COL
   ]);
 
   virtualType({
