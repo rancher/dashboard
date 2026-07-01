@@ -4,12 +4,13 @@ import FormValidation from '@shell/mixins/form-validation';
 import { removeAt } from '@shell/utils/array';
 import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
+import Labels from '@shell/components/form/Labels';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _VIEW } from '@shell/config/query-params';
 import isString from 'lodash/isString';
 import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
@@ -20,6 +21,7 @@ export default {
     Banner,
     CruResource,
     GroupRules,
+    Labels,
     LabeledInput,
     NameNsDescription,
     Tab,
@@ -73,8 +75,12 @@ export default {
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
 
-    if (this.mode === _CREATE) {
+    if (this.isCreate) {
       this.value.metadata['namespace'] = 'cattle-monitoring-system';
+
+      if (!this.value.metadata?.labels?.release) {
+        this.value.setLabel('release', 'kube-prometheus-stack');
+      }
     }
   },
 
@@ -149,6 +155,24 @@ export default {
         />
       </div>
     </div>
+    <hr class="mt-20 mb-20">
+    <h3>
+      {{ t('prometheusRule.labels.title') }}
+      <i
+        v-clean-tooltip="t('prometheusRule.labels.tooltip')"
+        class="icon icon-info"
+        role="img"
+        :aria-label="t('prometheusRule.labels.tooltip')"
+      />
+    </h3>
+    <Labels
+      :value="value"
+      :mode="mode"
+      :show-annotations="false"
+      :show-label-title="false"
+      :show-label-description="false"
+      data-testid="monitoring-prom-rules-labels"
+    />
     <div>
       <Tabbed
         v-if="filteredGroups.length > 0"
