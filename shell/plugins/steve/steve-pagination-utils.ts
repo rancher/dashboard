@@ -352,6 +352,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
       { field: 'spec.template.spec.containers.image' },
     ],
+    [CRD]: [
+      // { field: 'spec.group' }, // blocked on https://github.com/rancher/rancher/issues/55811
+      // { field: 'spec.names.singular' }, // blocked on https://github.com/rancher/rancher/issues/55811
+    ]
   }
 
   private convertArrayPath(path: string): string {
