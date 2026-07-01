@@ -31,7 +31,10 @@ describe('Home Page List', { testIsolation: false }, () => {
     HomePagePo.navTo();
     homePage.waitForPage();
 
-    homeClusterList.version(clusterName).invoke('text').should('not.contain', '—');
+    // Verify version is present before proceeding
+    homeClusterList.version(clusterName).should('not.contain', '—');
+
+    // Get text values and store as aliases
     homeClusterList.state(clusterName).invoke('text').as('stateText');
     homeClusterList.name(clusterName).invoke('text').as('nameText');
     homeClusterList.version(clusterName).invoke('text').as('versionText');
