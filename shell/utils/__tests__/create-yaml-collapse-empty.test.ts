@@ -27,25 +27,57 @@ describe('fx: isDeepEmpty', () => {
 describe('fx: createYaml collapseEmptyObjects', () => {
   // Mirrors the pod affinity shape: an object type whose sub-fields are arrays.
   const schemas = [
-    { id: 'test.pod', type: 'schema', resourceFields: { spec: { type: 'test.podSpec', create: true, update: true } } },
-    { id: 'test.podSpec', type: 'schema', resourceFields: { affinity: { type: 'test.affinity', create: true, update: true } } },
+    {
+      id:             'test.pod',
+      type:           'schema',
+      resourceFields: {
+        spec: {
+          type: 'test.podSpec', create: true, update: true
+        }
+      }
+    },
+    {
+      id:             'test.podSpec',
+      type:           'schema',
+      resourceFields: {
+        affinity: {
+          type: 'test.affinity', create: true, update: true
+        }
+      }
+    },
     {
       id:             'test.affinity',
       type:           'schema',
       resourceFields: {
-        podAffinity:     { type: 'test.podAffinity', create: true, update: true },
-        podAntiAffinity: { type: 'test.podAffinity', create: true, update: true },
+        podAffinity: {
+          type: 'test.podAffinity', create: true, update: true
+        },
+        podAntiAffinity: {
+          type: 'test.podAffinity', create: true, update: true
+        },
       }
     },
     {
       id:             'test.podAffinity',
       type:           'schema',
       resourceFields: {
-        requiredDuringSchedulingIgnoredDuringExecution:  { type: 'array[test.term]', create: true, update: true },
-        preferredDuringSchedulingIgnoredDuringExecution: { type: 'array[test.term]', create: true, update: true },
+        requiredDuringSchedulingIgnoredDuringExecution: {
+          type: 'array[test.term]', create: true, update: true
+        },
+        preferredDuringSchedulingIgnoredDuringExecution: {
+          type: 'array[test.term]', create: true, update: true
+        },
       }
     },
-    { id: 'test.term', type: 'schema', resourceFields: { topologyKey: { type: 'string', create: true, update: true } } },
+    {
+      id:             'test.term',
+      type:           'schema',
+      resourceFields: {
+        topologyKey: {
+          type: 'string', create: true, update: true
+        }
+      }
+    },
   ];
 
   const data = () => ({

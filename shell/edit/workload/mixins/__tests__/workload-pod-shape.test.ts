@@ -18,14 +18,16 @@ describe('workload mixin: Pod uses native shape', () => {
     };
 
     // The model's `containers` getter prefers spec.containers when present
-    Object.defineProperty(value, 'containers', { get() {
-      return value.spec.containers;
-    } });
+    Object.defineProperty(value, 'containers', {
+      get() {
+        return value.spec.containers;
+      }
+    });
 
     return {
       value,
-      spec:     value.spec,
-      isPod:    true,
+      spec:      value.spec,
+      isPod:     true,
       isCronJob: false,
     } as any;
   };
@@ -69,14 +71,14 @@ describe('workload mixin: Pod uses native shape', () => {
     it('saves a Pod in native shape with no template or selector', () => {
       const ctx = {
         ...podCtx(),
-        type:            POD,
-        mode:            'create',
-        realMode:        'create',
-        container:       undefined,
+        type:             POD,
+        mode:             'create',
+        realMode:         'create',
+        container:        undefined,
         portsForServices: [],
-        fixNodeAffinity: jest.fn(),
-        fixPodAffinity:  jest.fn(),
-        nvidiaIsValid:   jest.fn(() => true),
+        fixNodeAffinity:  jest.fn(),
+        fixPodAffinity:   jest.fn(),
+        nvidiaIsValid:    jest.fn(() => true),
       } as any;
 
       (workloadMixin.methods as any).saveWorkload.call(ctx);
