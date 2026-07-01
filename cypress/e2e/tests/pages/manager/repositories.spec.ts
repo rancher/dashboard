@@ -233,6 +233,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   });
 
   it('can create an oci repository with basic auth', function() {
+    // Clean up any existing repository with the same name from previous failed test runs
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
