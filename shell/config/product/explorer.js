@@ -585,25 +585,15 @@ export function init(store) {
     formatterOpts: { options: { internal: true } },
   };
 
-  const CRD_CR_COUNT_COL = {
-    name:     'crd-cr-count',
-    labelKey: 'tableHeaders.customResourcesCount',
-    sort:     false,
-    search:   false,
-    value:    'resourceCount',
-  };
-
   headers(CRD, [
     STATE,
     NAME_COL,
     CRD_CR_COL,
-    CRD_CR_COUNT_COL,
     AGE
   ], [
     STEVE_STATE_COL,
     STEVE_NAME_COL,
     CRD_CR_COL,
-    CRD_CR_COUNT_COL,
     STEVE_AGE_COL
   ]);
 
