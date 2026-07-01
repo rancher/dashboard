@@ -1,20 +1,27 @@
 # Changelog
 
-> **Rancher 2.10.0** will introduce the migration to Vue 3 - extensions will need to be updated to Vue 3 - read more [**here**](./rancher-2.10-support.md)  
-  
-> **Rancher 2.9.0** contains changes that may require updates to extensions - read more [**here**](./rancher-2.9-support.md)  
-  
-  
-
 | Date | Version | Description |
 |---|---|---|
-| TBD | [**3.1.0**](https://github.com/rancher/dashboard/releases) | [BREAKING] Bump TypeScript from 4.5.5 to 5.6.3: Extension developers need to bump TypeScript to version 5.6.3 in their projects. |
-| 01&#160;November&#160;2024 | [**2.0.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.2) | Remove upper limit on kube version for default annotations on extensions. Update creators package. Minor bug fixes |
-| 09&#160;July&#160;2024 | 1.2.3 | Minor bug fixes |
-| 09&#160;July&#160;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes |
-| 01&#160;July&#160;2024 | 1.2.2 | First release of a new `Shell` version, but codewise similar to `0.5.3` in order to keep extensions api versioning up to par with shell versioning |
-| 01&#160;July&#160;2024 | [**2.0.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.0) | Various fixes to the `Shell` package in order to make it compliant with Rancher 2.9 |
-| 15&#160;February&#160;2024 | [**0.5.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.3) | Inclusion of the replacement of `Vue.extend` to `defineComponent` with proper fix |
-| 31&#160;January&#160;2024 | [**0.5.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.2) | Fix `parse tag name` check in workflows for publishing extensions |
-| 29&#160;January&#160;2024 | [**0.5.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.1) | Revert changes to replacement of `Vue.extend` to `defineComponent` because of impact on extensions |
-| 24&#160;January&#160;2024 | [**0.5.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.0) | Add support for Gitlab workflows for publishing extensions |
+| 08&#160;April&#160;2026 | [**3.0.11**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.11) | Fixed a silent error that swallowed the real failure message when an extension failed to initialize — errors are now properly surfaced. Fixed a compatibility issue where certain extension points were not available when running against older Rancher versions. Updated creators package to v3.0.10. |
+| 19&#160;March&#160;2026 | [**3.0.10**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.10) | Fixed a cross-version compatibility problem with extension formatters. Fixed a bug where extensions loaded in older Rancher instances would unexpectedly display the new resource detail page layout. Upgraded to Node.js v24 and Vue 3.5. |
+| 13&#160;March&#160;2026 | [**3.0.9**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.9) | **[BREAKING]** The SlideIn Shell API now receives `props` as a direct property — update any extension using `slideIn` to pass `props` at the top level. New extension point: extensions can now customize action buttons on resource detail pages. Modal API callback usage is now documented. |
+| 09&#160;January&#160;2026 | [**3.0.8**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.8) | New Tab extension points for resource create, edit, detail, and "Show Configuration" pages (`TabLocation.RESOURCE_CREATE_PAGE`, `TabLocation.RESOURCE_EDIT_PAGE`, `TabLocation.RESOURCE_DETAIL_PAGE`, `TabLocation.RESOURCE_SHOW_CONFIGURATION`). Tables API extension points expanded. Extensions can now register hosted cloud provider UIs. Shell API methods now have full TypeScript signatures. Fixed a bug when adding tabs to workload create/edit views. Fixed extension naming during Developer Load. Added `ifNotHaveType` option to hide a product when a specific resource type already exists. Prime-only extensions are now gated and will not load on community Rancher. |
+| 09&#160;October&#160;2025 | [**3.0.7**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.7) | Extensions can now opt in to server-side pagination for any custom resource type they register. The Extensions page in Rancher received a visual redesign. |
+| 03&#160;October&#160;2025 | [**3.0.6**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.6) | Fixed a bug with the "Show Configuration" slide-in panel in extensions. `addTableColumn` now works correctly with server-side paginated tables. |
+| 24&#160;September&#160;2025 | [**3.0.5**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.5) | Minor bug fixes and internal stability improvements. |
+| 27&#160;March&#160;2025 | [**3.0.4**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.4) | Restored the `resourceNames` utility that some extensions depend on. Reverted some Vue 3.5-specific features to keep extensions targeting Vue 3.2 working correctly. |
+| 24&#160;March&#160;2025 | [**3.0.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.3) | Fixed missing TypeScript types for `weightGroup` and `weightType`. Added the extensions catalog page to the documentation site. |
+| 06&#160;January&#160;2025 | [**3.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.1) | Extension creator package fixes and stability improvements. Added support for registering custom pages conditionally based on a resource type. Added missing TypeScript types for extensions. Fixed a typo in annotation names generated by the extension creator. |
+| 04&#160;November&#160;2024 | [**3.0.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.0) | First Shell v3 release — required for Rancher 2.10 and later. Both extension creators (`@rancher/app` and `@rancher/pkg`) were merged into a single package (`@rancher/extension`). A Vue 3 migration helper was added to the extension creator. Extensions can now load dynamic components. Fixed auto-imported extension components in Vue 3. Extensions can now override node provider icons for cloud credentials. Publishing workflows updated for Vue 3 compatibility. |
+| 06&#160;January&#160;2025 | [**2.0.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.3) | Extension creator fixes and upgrade path improvements for Rancher 2.9. Added support for registering custom pages conditionally based on a resource type. Added missing TypeScript types. |
+| 01&#160;November&#160;2024 | [**2.0.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.2) | Removed the upper limit on the Kubernetes version for default extension annotations. Updated creators package. Minor bug fixes. |
+| 09&#160;July&#160;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes. |
+| 01&#160;July&#160;2024 | [**2.0.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.0) | Shell v2 release — required for Rancher 2.9. Various fixes to make Shell compliant with Rancher 2.9. |
+| 12&#160;November&#160;2024 | [**1.2.5**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v1.2.5) | Updated and improved extension creator package for Rancher 2.8. |
+| 06&#160;January&#160;2025 | [**1.2.6**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v1.2.6) | Extension creator fixes and upgrade path improvements for Rancher 2.8. Added support for registering custom pages conditionally based on a resource type. Added missing TypeScript types. |
+| 09&#160;July&#160;2024 | **1.2.3** | Minor bug fixes. |
+| 01&#160;July&#160;2024 | **1.2.2** | First release of Shell v1, mirroring `0.5.3` to align the versioning scheme with the new Shell major version approach. |
+| 15&#160;February&#160;2024 | [**0.5.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.3) | Properly replaced `Vue.extend` with `defineComponent`. |
+| 31&#160;January&#160;2024 | [**0.5.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.2) | Fixed the `parse tag name` check in extension publishing workflows. |
+| 29&#160;January&#160;2024 | [**0.5.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.1) | Reverted the `Vue.extend` to `defineComponent` change due to impact on existing extensions. |
+| 24&#160;January&#160;2024 | [**0.5.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.0) | Added support for GitLab workflows for publishing extensions. |

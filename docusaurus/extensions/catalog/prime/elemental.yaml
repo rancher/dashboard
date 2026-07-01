@@ -1,6 +1,6 @@
-name: Elemental
+name: SUSE OS Management
 author: SUSE
 authorUrl: https://www.rancher.com/products/rancher-platform
-description: SUSE's solution for full cloud-native OS management with Kubernetes
+description: Manages and automates cloud-native operating system lifecycles as native Kubernetes resources
 url: https://elemental.docs.rancher.com
-icon: https://elemental.docs.rancher.com/img/logo.svg
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/elemental/files/icon.svg

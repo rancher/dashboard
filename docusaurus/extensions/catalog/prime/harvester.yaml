@@ -1,6 +1,6 @@
-name: Harvester
+name: SUSE Virtualization
 author: SUSE
 authorUrl: https://www.rancher.com/products/rancher-platform
-description: SUSE's open-source alternative designed for operators seeking a cloud-native HCI solution
+description: Centralizes and manages SUSE hyperconverged infrastructure and virtual machine workloads
 url: https://docs.harvesterhci.io/v1.7/
-icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/icons/harvester/1.7.1-icon.svg
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/harvester/files/icon.svg

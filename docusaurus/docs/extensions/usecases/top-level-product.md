@@ -183,4 +183,4 @@ const routes = [
 export default routes;
 ```
 
-A full working example of this code, which can be deployed as an Extension on you Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dasboard.
+A full working example of this code, which can be deployed as an Extension on your Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dashboard.
