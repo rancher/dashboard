@@ -208,6 +208,65 @@ const getLoaders = (SHELL_ABS, dir) => [
   },
 ];
 
+function checkRancherVersionCompatibility(targetApi, shellRancherVersion) {
+  if (!shellRancherVersion) return;
+
+  const url = new URL('/rancherversion', targetApi);
+  const protocol = url.protocol === 'https:' ? require('https') : require('http');
+
+  const req = protocol.get(
+    {
+      hostname:           url.hostname,
+      port:               url.port || (url.protocol === 'https:' ? 443 : 80),
+      path:               '/rancherversion',
+      rejectUnauthorized: false,
+    },
+    (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const { Version } = JSON.parse(data);
+          const targetMatch = Version?.match(/^v?(\d+)\.(\d+)(?:\.(\d+))?/);
+          const shellMatch = shellRancherVersion.match(/^(\d+)\.(\d+)(?:\.(\d+))?/);
+
+          if (targetMatch && shellMatch) {
+            const targetMaj = parseInt(targetMatch[1], 10);
+            const targetMin = parseInt(targetMatch[2], 10);
+            const targetPatch = parseInt(targetMatch[3] || '0', 10);
+            const shellMaj = parseInt(shellMatch[1], 10);
+            const shellMin = parseInt(shellMatch[2], 10);
+            const shellPatch = parseInt(shellMatch[3] || '0', 10);
+
+            if (
+              targetMaj < shellMaj ||
+              (targetMaj === shellMaj && targetMin < shellMin) ||
+              (targetMaj === shellMaj && targetMin === shellMin && targetPatch < shellPatch)
+            ) {
+              // eslint-disable-next-line no-console
+              console.warn([
+                '',
+                '⚠️  Rancher version mismatch detected!',
+                `   Target Rancher:        ${ Version }`,
+                `   Shell compatible with: v${ shellRancherVersion }.x`,
+                '   Whilst this may mostly work, there may be areas that won\'t',
+                '   (where the shell depends on version-dependent Rancher features).',
+                '   It\'s recommended to keep both target Rancher and app shell versions aligned.',
+                '   This only affects `yarn dev` — building and loading extensions continues to work.',
+                '',
+              ].join('\n'));
+            }
+          }
+        } catch { /* ignore malformed responses */ }
+      });
+    }
+  );
+
+  req.on('error', () => { /* ignore — proxy will surface connection errors */ });
+  req.end();
+}
+
 const getDevServerConfig = (proxy) => {
   const harFile = process.env.HAR_FILE;
   // HAR File support - load network responses from the specified .har file and use those rather than communicating to the Rancher server
@@ -288,6 +347,8 @@ const getDevServerConfig = (proxy) => {
           }
         }
       });
+
+      checkRancherVersionCompatibility(api, shellPkgData.rancherVersion);
 
       return middlewares;
     }
@@ -387,6 +448,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
   'process.env.api':                       JSON.stringify(api),
   'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
+  'process.env.UI_SHELL_RANCHER_VERSION':  JSON.stringify(shellPkgData.rancherVersion || ''),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
