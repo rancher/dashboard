@@ -13,7 +13,7 @@ export default class CustomResourceDefinition extends SteveModel {
     to.params.resource = this.resourceType;
 
     return {
-      text: this.resourceType,
+      text: `${ this.resourceType }` + `${ this.resourceCount ? ` (${ this.resourceCount })` : '' }`,
       to
     };
   }
