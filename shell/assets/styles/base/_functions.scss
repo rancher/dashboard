@@ -20,7 +20,12 @@
     $color-brightness: brightness($color);
     $dark-text-brightness: brightness($dark);
     $light-text-brightness: brightness($light);
-    @return if(abs($color-brightness - $light-text-brightness) > abs($color-brightness - $dark-text-brightness), $light, $dark);
+    @if math.abs($color-brightness - $light-text-brightness) > math.abs($color-brightness - $dark-text-brightness) {
+      @return $light;
+    }
+    @else {
+      @return $dark;
+    }
   }
 }
 

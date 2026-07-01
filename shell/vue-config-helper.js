@@ -96,7 +96,12 @@ function proxyWsOpts(target) {
 
 function onProxyReq(proxyReq, req) {
   if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
-    proxyReq.setHeader('x-api-host', req.headers['host']);
+    // With HTTP/2 (vite dev server) the host header is replaced by :authority
+    const host = req.headers['host'] || req.headers[':authority'];
+
+    if (host) {
+      proxyReq.setHeader('x-api-host', host);
+    }
     proxyReq.setHeader('x-forwarded-proto', 'https');
   }
 }
@@ -104,7 +109,12 @@ function onProxyReq(proxyReq, req) {
 function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
-  proxyReq.setHeader('x-api-host', req.headers['host']);
+
+  const host = req.headers['host'] || req.headers[':authority'];
+
+  if (host) {
+    proxyReq.setHeader('x-api-host', host);
+  }
   proxyReq.setHeader('x-forwarded-proto', 'https');
   // console.log(proxyReq.getHeaders());
 
@@ -119,11 +129,31 @@ function onError(err, req, res) {
   res.write(JSON.stringify(err));
 }
 
+// Standard set of dev-server proxies to the Rancher API, shared by the webpack
+// and vite dev servers
+function getStandardProxies(target = api) {
+  return {
+    '/k8s':            proxyWsOpts(target), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/pp':             proxyWsOpts(target), // For (epinio) standalone API
+    '/api':            proxyWsOpts(target), // Management k8s API
+    '/apis':           proxyWsOpts(target), // Management k8s API
+    '/v1':             proxyWsOpts(target), // Management Steve API
+    '/v3':             proxyWsOpts(target), // Rancher API
+    '/v3-public':      proxyOpts(target), // Rancher Unauthed API
+    '/api-ui':         proxyOpts(target), // Browser API UI
+    '/meta':           proxyMetaOpts(target), // Browser API UI
+    '/v1-*':           proxyOpts(target), // SAML, KDM, etc
+    '/rancherversion': proxyPrimeOpts(target), // Rancher version endpoint
+    '/version':        proxyPrimeOpts(target), // Rancher Kube version endpoint
+  };
+}
+
 module.exports = {
   dev,
   devPorts,
   prime,
   api,
+  getStandardProxies,
   proxyMetaOpts,
   proxyOpts,
   proxyPrimeOpts,

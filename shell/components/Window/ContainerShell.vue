@@ -220,6 +220,8 @@ export default {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ '@xterm/xterm');
 
+      await import(/* webpackChunkName: "xterm" */ '@xterm/xterm/css/xterm.css');
+
       const addons = await allHash({
         fit:      import(/* webpackChunkName: "xterm" */ '@xterm/addon-fit'),
         webgl:    import(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl'),
