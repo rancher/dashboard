@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { SERVICE } from '@shell/config/types';
+import { SERVICE, CONFIG_MAP } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 
 const HARVESTER_ADD_ON_CONFIG = [{
@@ -19,6 +19,7 @@ const HARVESTER_ADD_ON_CONFIG = [{
 }];
 
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
+const NAD_MAPPING_CONFIGMAP_ID = 'kube-system/harvester-nad-mapping';
 
 export default {
   name: 'HarvesterServiceAddOnConfig',
@@ -40,6 +41,7 @@ export default {
     const hash = {
       rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
       services:     this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
+      nadMapping:   this.$store.dispatch(`${ inStore }/find`, { type: CONFIG_MAP, id: NAD_MAPPING_CONFIGMAP_ID }).catch(() => null),
     };
 
     const res = await allHash(hash);
@@ -61,7 +63,10 @@ export default {
     return {
       ...harvesterAddOnConfig,
       showShareIP,
-      rke2Versions: {},
+      rke2Versions:     {},
+      serviceInterface: annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] || '',
+      network:          annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] || '',
+      poolInterface:    annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] || ''
     };
   },
 
@@ -124,10 +129,74 @@ export default {
         return true;
       }
     },
+
+    // Reads interface-nad-mapping from the harvester-nad-mapping ConfigMap.
+    // Returns object where key is NAD name and value is interface name.
+    interfaceNadMapping() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const cm = this.$store.getters[`${ inStore }/byId`](CONFIG_MAP, NAD_MAPPING_CONFIGMAP_ID);
+      const raw = cm?.data?.['interface-nad-mapping'];
+
+      if (!raw) {
+        return {};
+      }
+
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        return {};
+      }
+    },
+
+    // Options for DHCP interface dropdown.
+    // Parsed from {"default/mgmt-vlan1":"enp1s0"} — key is NAD, value is interface name.
+    interfaceOptions() {
+      const mapping = this.interfaceNadMapping;
+
+      if (!mapping || Object.keys(mapping).length === 0) {
+        return [];
+      }
+
+      return Object.entries(mapping).map(([nad, iface]) => ({
+        label: `${ iface }`,
+        value: iface,
+      }));
+    },
+
+    // Options for pool mode network dropdown.
+    // NAD keys from interface-nad-mapping are used as the selectable network values.
+    networkOptions() {
+      const mapping = this.interfaceNadMapping;
+
+      if (!mapping || Object.keys(mapping).length === 0) {
+        return [];
+      }
+
+      return Object.keys(mapping).map((nad) => ({
+        label: nad,
+        value: nad,
+      }));
+    },
+
+    // Options for pool mode interface dropdown.
+    // Prepends 'Auto' (empty value) to the interface list.
+    poolInterfaceOptions() {
+      return [
+        { label: 'Auto', value: '' },
+        ...this.interfaceOptions,
+      ];
+    },
+  },
+
+  mounted() {
+    this.syncAnnotations();
   },
 
   watch: {
     ipam() {
+      this.serviceInterface = '';
+      this.network = '';
+      this.poolInterface = '';
       this.syncAnnotations();
     },
 
@@ -137,7 +206,19 @@ export default {
 
     showShareIP() {
       this.syncAnnotations();
-    }
+    },
+
+    serviceInterface() {
+      this.syncAnnotations();
+    },
+
+    network() {
+      this.syncAnnotations();
+    },
+
+    poolInterface() {
+      this.syncAnnotations();
+    },
   },
 
   methods: {
@@ -156,6 +237,20 @@ export default {
         delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM];
       } else {
         delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE];
+      }
+
+      if (this.ipam === 'dhcp' && this.serviceInterface) {
+        this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] = this.serviceInterface;
+      } else if (this.ipam === 'pool' && this.poolInterface) {
+        this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE] = this.poolInterface;
+      } else {
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.KUBE_VIP_SERVICE_IFACE];
+      }
+
+      if (this.ipam === 'pool' && this.network) {
+        this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = this.network;
+      } else {
+        delete this.resource.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK];
       }
     },
 
@@ -177,14 +272,39 @@ export default {
         :label="t('servicesPage.harvester.shareIP.label')"
         :disabled="currentMode === 'edit'"
       />
-      <LabeledSelect
-        v-else
-        v-model:value="ipam"
-        :mode="currentMode"
-        :options="ipamOptions"
-        :label="t('servicesPage.harvester.ipam.label')"
-        :disabled="currentMode === 'edit'"
-      />
+      <template v-else>
+        <LabeledSelect
+          v-model:value="ipam"
+          :mode="currentMode"
+          :options="ipamOptions"
+          :label="t('servicesPage.harvester.ipam.label')"
+          :disabled="currentMode === 'edit'"
+        />
+        <LabeledSelect
+          v-if="ipam === 'dhcp' && interfaceOptions.length"
+          v-model:value="serviceInterface"
+          :mode="currentMode"
+          :options="interfaceOptions"
+          :label="t('servicesPage.harvester.dhcpInterface.label')"
+          class="mt-10"
+        />
+        <LabeledSelect
+          v-if="ipam === 'pool' && networkOptions.length"
+          v-model:value="network"
+          :mode="currentMode"
+          :options="networkOptions"
+          :label="t('servicesPage.harvester.network.label')"
+          class="mt-10"
+        />
+        <LabeledSelect
+          v-if="ipam === 'pool' && interfaceOptions.length"
+          v-model:value="poolInterface"
+          :mode="currentMode"
+          :options="poolInterfaceOptions"
+          :label="t('servicesPage.harvester.poolInterface.label')"
+          class="mt-10"
+        />
+      </template>
       <div
         v-if="currentMode === 'create'"
         class="mt-10"
