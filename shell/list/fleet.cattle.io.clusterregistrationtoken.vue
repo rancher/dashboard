@@ -1,11 +1,11 @@
 <script>
-import { FLEET } from '@shell/config/types';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { CAPI } from '@shell/config/labels-annotations';
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { HARVESTER_CONTAINER } from '@shell/store/features';
-import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name:       'ListClusterGroup',
@@ -27,19 +27,22 @@ export default {
   },
 
   async fetch() {
-    try {
-      await checkSchemasForFindAllHash({
-        cluster: {
-          inStoreType: 'management',
-          type:        FLEET.CLUSTER
-        },
-      }, this.$store);
-    } catch (e) {
-    }
-
     await this.$fetchType(this.resource);
-    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
-      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+
+    // Clusters are only needed to hide Harvester-owned tokens. When Harvester hosts are visible we
+    // don't filter at all, so skip the fetch entirely; otherwise fetch ONLY the Harvester clusters
+    // (server-side, by the provider label) rather than every cluster.
+    const harvesterVisible = this.$store.getters['features/get'](HARVESTER_CONTAINER);
+
+    if (!harvesterVisible && this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      try {
+        this.allFleet = await this.$store.dispatch('management/findLabelSelector', {
+          type:     FLEET.CLUSTER,
+          matching: { labelSelector: { matchLabels: { [CAPI.PROVIDER]: VIRTUAL_HARVESTER_PROVIDER } } },
+        }) || [];
+      } catch (e) {
+        this.allFleet = [];
+      }
     }
   },
 
