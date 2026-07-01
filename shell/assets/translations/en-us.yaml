@@ -6577,6 +6577,8 @@ servicesPage:
       label: Use IPAM
     shareIP:
       label: Share IP LB
+    network:
+      label: Network
 
   ips:
     define: Service Ports
