@@ -39,7 +39,35 @@ export default {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
       return this.fvFormIsValid && !hasContainerErrors;
-    }
+    },
+
+    serviceOptions() {
+      const noneOption = {
+        label: this.t('generic.none') || 'None',
+        value: null
+      };
+
+      const services = this.headlessServices.map((service) => ({
+        label: service.metadata.name,
+        value: service.metadata.name
+      }));
+
+      return [noneOption, ...services];
+    },
+    optionalServiceName: {
+      get() {
+        return this.spec.serviceName;
+      },
+      set(value) {
+        if (!value) {
+          delete this.spec.serviceName;
+
+          return;
+        }
+
+        this.spec.serviceName = value;
+      }
+    },
   },
   methods: {
     changed(tab) {
@@ -160,13 +188,12 @@ export default {
           class="col span-3"
         >
           <LabeledSelect
-            v-model:value="spec.serviceName"
-            option-label="metadata.name"
-            :reduce="service=>service.metadata.name"
+            v-model:value="optionalServiceName"
+            option-label="label"
+            :reduce="opt=>opt.value"
             :mode="mode"
             :label="t('workload.serviceName')"
-            :options="headlessServices"
-            required
+            :options="serviceOptions"
           />
         </div>
       </div>
