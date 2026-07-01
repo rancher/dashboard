@@ -306,23 +306,57 @@ export default class Pod extends WorkloadService {
     }
   }
 
+  /**
+   * A standalone Pod reuses the shared Workload form, which stores the pod spec
+   * nested under `spec.template.spec` / `spec.template.metadata`. Flatten that
+   * back into the valid Pod shape (`spec.*` / `metadata.*`). New objects are
+   * returned; the inputs are not mutated.
+   *
+   * @see https://github.com/rancher/dashboard/issues/10171
+   */
+  flattenPodTemplate(spec = {}, metadata = {}) {
+    if (!spec.template) {
+      return { spec, metadata };
+    }
+
+    const { metadata: templateMetadata, spec: templateSpec } = spec.template;
+
+    const flatSpec = { ...spec, ...templateSpec };
+
+    delete flatSpec.template;
+
+    return {
+      spec:     flatSpec,
+      metadata: { ...metadata, ...templateMetadata }
+    };
+  }
+
+  /**
+   * Build a valid, cleaned Pod representation from the workload-shaped form
+   * data, matching what `save()` persists. Used to render the "Edit as YAML"
+   * preview/editor so it produces a creatable Pod instead of a Workload-shaped
+   * spec (`spec.template.spec.containers`). The live model is not mutated.
+   *
+   * @see https://github.com/rancher/dashboard/issues/10171
+   */
+  toYamlPreviewResource() {
+    const data = this.toJSON();
+    const { spec, metadata } = this.flattenPodTemplate(data.spec, data.metadata);
+
+    data.spec = spec;
+    data.metadata = metadata;
+
+    return this.cleanForSave(data);
+  }
+
   save() {
     const prev = { ...this };
 
     if (this.spec?.template) {
-      const { metadata, spec } = this.spec.template;
+      const { spec, metadata } = this.flattenPodTemplate(this.spec, this.metadata);
 
-      this.spec = {
-        ...this.spec,
-        ...spec
-      };
-
-      this.metadata = {
-        ...this.metadata,
-        ...metadata
-      };
-
-      delete this.spec.template;
+      this.spec = spec;
+      this.metadata = metadata;
     }
 
     // IF there is an error POD world model get overwritten

@@ -4,7 +4,8 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
 import { FORM_TYPES } from '@shell/components/form/Security';
-import { NODE } from '@shell/config/types';
+import { NODE, POD, SCHEMA } from '@shell/config/types';
+import { createYamlWithOptions } from '@shell/utils/create-yaml';
 
 export default {
   name:   'Workload',
@@ -39,9 +40,35 @@ export default {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
       return this.fvFormIsValid && !hasContainerErrors;
+    },
+
+    /**
+     * Only Pods need custom YAML generation; every other workload type falls
+     * back to CruResource's default (`null`). See generateYaml below.
+     */
+    yamlGenerator() {
+      return this.value.type === POD ? this.generateYaml : null;
     }
   },
   methods: {
+    /**
+     * Only used for Pods (see the `generate-yaml` binding below). The Pod form
+     * is shared with Workloads and keeps the pod spec nested under
+     * `spec.template.spec`; without this, "Edit as YAML" would serialize that
+     * Workload-shaped spec, producing an invalid (uncreatable) Pod. Here we
+     * serialize a flattened, cleaned copy that matches what `save()` persists.
+     * Every other workload type keeps CruResource's default YAML generation.
+     *
+     * @see https://github.com/rancher/dashboard/issues/10171
+     */
+    generateYaml() {
+      const resource = this.value;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+
+      return createYamlWithOptions(schemas, resource.type, resource.toYamlPreviewResource());
+    },
+
     changed(tab) {
       const key = this.idKey;
 
@@ -111,6 +138,7 @@ export default {
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
+      :generate-yaml="yamlGenerator"
       :value="value"
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
