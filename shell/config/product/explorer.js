@@ -11,6 +11,7 @@ import {
   VIRTUAL_TYPES,
   CAPI,
   WORKLOAD_DASHBOARD,
+  CRD,
 } from '@shell/config/types';
 
 import {
@@ -358,6 +359,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
     ]
   );
+
   headers(HPA,
     [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
@@ -571,6 +573,38 @@ export function init(store) {
     LAST_USED,
     EXPIRES,
     AGE_NORMAN
+  ]);
+
+  const CRD_CR_COL = {
+    name:          'crd-cr',
+    labelKey:      'tableHeaders.customResources',
+    sort:          false,
+    search:        false,
+    value:         'resourceLink',
+    formatter:     'Link',
+    formatterOpts: { options: { internal: true } },
+  };
+
+  const CRD_CR_COUNT_COL = {
+    name:     'crd-cr-count',
+    labelKey: 'tableHeaders.customResourcesCount',
+    sort:     false,
+    search:   false,
+    value:    'resourceCount',
+  };
+
+  headers(CRD, [
+    STATE,
+    NAME_COL,
+    CRD_CR_COL,
+    CRD_CR_COUNT_COL,
+    AGE
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    CRD_CR_COL,
+    CRD_CR_COUNT_COL,
+    STEVE_AGE_COL
   ]);
 
   virtualType({

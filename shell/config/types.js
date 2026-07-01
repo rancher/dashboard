@@ -47,6 +47,7 @@ export const API_GROUP = 'apiGroups';
 export const API_SERVICE = 'apiregistration.k8s.io.apiservice';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
+export const CRD = 'apiextensions.k8s.io.customresourcedefinition';
 export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
