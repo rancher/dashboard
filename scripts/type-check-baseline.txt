@@ -1,0 +1,686 @@
+# Auto-generated type-check baseline. Do not edit by hand.
+# Regenerate with: yarn type-check:baseline
+# Total errors: 683
+pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/aks/components/AksNodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property '$emit' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'canUseAvailabilityZones' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'clusterVersion' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'clusterVersion' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'clusterVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'clusterVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'clusterVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'mode' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'mode' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'originalClusterVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'originalOrchestratorVersion' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'originalOrchestratorVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'originalOrchestratorVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'originalOrchestratorVersion' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ 'pool.enableAutoScaling'(neu: any): void; 'pool.vmSize'(neu: any): void; validAZ(neu: any): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'pool' does not exist on type '{ validAZ(): Boolean; isView(): any; clusterWillUpgrade(): any; upgradeAvailable(): boolean; willUpgrade: { get(): any; set(neu: boolean): void; }; upgradeLabel(): string; t: Computed; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 't' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'taints' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'taints' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'taints' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'taints' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'taints' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'upgradeAvailable' does not exist on type '{ get(): any; set(neu: boolean): void; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'validAZ' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2339: Property 'validationRules' does not exist on type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/AksNodePool.vue: error TS2554: Expected 0 arguments, but got 2.
+pkg/aks/components/AksNodePool.vue: error TS2769: No overload matches this call.
+pkg/aks/components/AksNodePool.vue: error TS7006: Parameter 'e' implicitly has an 'any' type.
+pkg/aks/components/AksNodePool.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/AksNodePool.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/AksNodePool.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/AksNodePool.vue: error TS7023: 'availabilityZonesSupport' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/AksNodePool.vue: error TS7023: 'clusterWillUpgrade' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/AksNodePool.vue: error TS7023: 'get' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/AksNodePool.vue: error TS7023: 'isView' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/AksNodePool.vue: error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/AksNodePool.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"taints"' can't be used to index type '{ addTaint(): void; updateTaint(keyedTaint: any, idx: any): void; removeTaint(idx: number): void; availabilityZonesSupport(): any; poolCountValidator(): (val: number) => any; }'.
+pkg/aks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/aks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/aks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/aks/components/Config.vue: error TS2339: Property '$emit' does not exist on type '{ immediate: boolean; handler(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$emit' does not exist on type '{ immediate: boolean; handler(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$nextTick' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$refs' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$refs' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$store' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/Config.vue: error TS2339: Property '$store' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$store' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property '$store' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'allAksVersions' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'allAksVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'allAksVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'allAksVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'canUseAvailabilityZones' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'clusterId' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'clusterId' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'clusterId' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): String; set(neu: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): String; set(neu: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): String; set(neu: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'config' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'defaultVmSize' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'defaultVmSize' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'defaultVmSize' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'errors' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'errors' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'errors' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'filter' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'find' does not exist on type '() => { value: string; label: string; sort?: string | undefined; disabled?: boolean | undefined; }[]'.
+pkg/aks/components/Config.vue: error TS2339: Property 'find' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'forEach' does not exist on type '{ get(): any; set(neu: any): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'fvFormRuleSets' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'fvFormRuleSets' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'getAksVersions' does not exist on type '{ handler(neu: any): void; immediate: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'getVirtualNetworks' does not exist on type '{ handler(neu: any): void; immediate: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'getVmSizes' does not exist on type '{ handler(neu: any): void; immediate: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'isNewOrUnprovisioned' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'isNewOrUnprovisioned' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVersions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVirtualNetworks' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVmSizes' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVmSizes' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'loadingVmSizes' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'mode' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'mode' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'mode' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'networkPlugin' does not exist on type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'networkPolicy' does not exist on type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'networkingAuthMode' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/Config.vue: error TS2339: Property 'networkingAuthMode' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'nodePools' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'originalVersion' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'originalVersion' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'originalVersion' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'originalVersion' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'privateDnsZone' does not exist on type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'privateDnsZone' does not exist on type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'resetCredentialDependentProperties' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'setAuthorizedIPRanges' does not exist on type '(props: Record<string, any>, ctx: { attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<...>>(exposed?: Exposed | undefined) => void; }) => RenderFunction | Promise<...>'.
+pkg/aks/components/Config.vue: error TS2339: Property 'setAuthorizedIPRanges' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'supportedVersionRange' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'supportedVersionRange' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 't' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 't' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 't' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 't' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 't' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'touchedVersion' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'touchedVersion' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'touchedVirtualNetwork' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'touchedVmSize' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'value' does not exist on type '{ fvFormIsValid: { immediate: boolean; handler(neu: any): void; }; fvUnreportedValidationErrors: { immediate: boolean; handler(neu: any): void; }; config: { handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }; ... 10 more ...; isUserDefinedRouting(neu: boolean): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'value' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'virtualNetworkOptions' does not exist on type '{ get(): any; set(neu: { label: string; kind?: string | undefined; disabled?: boolean | undefined; value?: string | undefined; virtualNetwork?: any; }): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'vmSizeOptions' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'vmSizeOptions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'vmSizeOptions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'vmSizeOptions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2339: Property 'vmSizeOptions' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/aks/components/Config.vue: error TS2345: Argument of type 'null' is not assignable to parameter of type 'Record<string, any> | undefined'.
+pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+pkg/aks/components/Config.vue: error TS2367: This comparison appears to be unintentional because the types '{ get(): String; set(neu: string): void; }' and 'string' have no overlap.
+pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
+pkg/aks/components/Config.vue: error TS2551: Property 'allVirtualNetworks' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'. Did you mean 'virtualNetwork'?
+pkg/aks/components/Config.vue: error TS2551: Property 'allVirtualNetworks' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'. Did you mean 'virtualNetwork'?
+pkg/aks/components/Config.vue: error TS2551: Property 'allVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'allVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'allVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'loadingVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'loadingVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'loadingVirtualNetworks' does not exist on type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'. Did you mean 'getVirtualNetworks'?
+pkg/aks/components/Config.vue: error TS2551: Property 'touchedVirtualNetwork' does not exist on type '{ nodePools: { get(): any; set(neu: any): void; }; fvExtraRules(): { locationRequired: () => String | undefined; resourceGroupRequired: () => String | undefined; dnsPrefixRequired: () => String | undefined; ... 24 more ...; poolTaints: (taint: string) => any; }; ... 18 more ...; t: Computed; }'. Did you mean 'virtualNetwork'?
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 2.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 2.
+pkg/aks/components/Config.vue: error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+pkg/aks/components/Config.vue: error TS2769: No overload matches this call.
+pkg/aks/components/Config.vue: error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+pkg/aks/components/Config.vue: error TS7006: Parameter 'network' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'old' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'pool' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'sn' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'v' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'v' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'versions' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'vn' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7023: 'get' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/Config.vue: error TS7023: 'get' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"authorizedIpRanges"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"errors"' can't be used to index type '{ resetCredentialDependentProperties(): void; getAksVersions(): Promise<void>; getVmSizes(): Promise<void>; getVirtualNetworks(): Promise<void>; addPool(): void; removePool(idx: number): void; poolIsValid(pool: AKSNodePool): boolean; onNetworkingAuthModeChange(authMode: string): void; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"loadBalancerSku"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"logAnalyticsWorkspaceGroup"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"logAnalyticsWorkspaceName"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"networkPolicy"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"privateCluster"' can't be used to index type '{ handler: DebouncedFunc<(neu: any) => void>; deep: boolean; }'.
+pkg/aks/components/CruAks.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/aks/components/CruAks.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/aks/components/CruAks.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_IMPORT'.
+pkg/aks/components/CruAks.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/aks/components/CruAks.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+pkg/aks/components/CruAks.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/aks/components/CruAks.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/aks/components/CruAks.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/aks/components/CruAks.vue: error TS7006: Parameter 'val' implicitly has an 'any' type.
+pkg/aks/components/Import.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/aks/components/Import.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/aks/components/Taint.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/aks/components/Taint.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/eks/components/AccountAccess.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/eks/components/AccountAccess.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/eks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/eks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/eks/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/CruEKS.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/eks/components/CruEKS.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/eks/components/CruEKS.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/Logging.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/eks/components/Networking.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/eks/components/Networking.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/eks/components/Networking.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/eks/components/Networking.vue: error TS2740: Type 'VuexStore' is missing the following properties from type 'Store<any>': state, install, replaceState, subscribe, and 6 more.
+pkg/eks/components/Networking.vue: error TS2740: Type 'VuexStore' is missing the following properties from type 'Store<any>': state, install, replaceState, subscribe, and 6 more.
+pkg/eks/components/NodeGroup.vue: error TS18046: 'opt' is of type 'unknown'.
+pkg/eks/components/NodeGroup.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/eks/components/NodeGroup.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'label' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type 'never'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type '`update:${string}`' is not assignable to parameter of type '"error" | "update:instanceType" | "update:spotInstanceTypes" | "update:ec2SshKey" | "update:launchTemplate" | "update:nodeRole" | "update:version" | "update:poolIsUpgrading" | ... 12 more ... | "update:arm"'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type '`update:${string}`' is not assignable to parameter of type '"error" | "update:instanceType" | "update:spotInstanceTypes" | "update:ec2SshKey" | "update:launchTemplate" | "update:nodeRole" | "update:version" | "update:poolIsUpgrading" | ... 12 more ... | "update:arm"'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/NodeGroup.vue: error TS7006: Parameter 'options' implicitly has an 'any' type.
+pkg/eks/util/validators.ts: error TS2307: Cannot find module 'types' or its corresponding type declarations.
+pkg/gke/components/AdvancedOptions.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/AuthScopes.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2538: Type 'undefined' cannot be used as an index type.
+pkg/gke/components/AuthScopes.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/gke/components/AuthScopes.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/gke/components/AuthScopes.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ userinfo: { labelKey: string; value: string; }[]; compute: { labelKey: string; value: string; }[]; devstorage: { labelKey: string; value: string; }[]; taskqueue: { labelKey: string; value: string; }[]; bigquery: { ...; }[]; ... 12 more ...; cloud_debugger: { ...; }[]; }'.
+pkg/gke/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/Config.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Config.vue: error TS2353: Object literal may only specify known properties, and 'includePrerelease' does not exist in type 'Options'.
+pkg/gke/components/Config.vue: error TS2531: Object is possibly 'null'.
+pkg/gke/components/Config.vue: error TS2554: Expected 4 arguments, but got 5.
+pkg/gke/components/Config.vue: error TS7006: Parameter 'z' implicitly has an 'any' type.
+pkg/gke/components/CruGKE.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/CruGKE.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/gke/components/CruGKE.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/gke/components/CruGKE.vue: error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+pkg/gke/components/CruGKE.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/gke/components/CruGKE.vue: error TS2551: Property 'decription' does not exist on type '{ imported: boolean; clusterAddons: { horizontalPodAutoscaling: boolean; httpLoadBalancing: boolean; networkPolicyConfig: boolean; }; clusterIpv4Cidr: string; clusterName: string; description: string; ... 17 more ...; zone: string; }'. Did you mean 'description'?
+pkg/gke/components/CruGKE.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/gke/components/CruGKE.vue: error TS7006: Parameter 'val' implicitly has an 'any' type.
+pkg/gke/components/CruGKE.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"config.imageType"' can't be used to index type '{ autoscaling: { enabled?: boolean | undefined; maxNodeCount?: number | undefined; minNodeCount?: number | undefined; }; config: { diskSizeGb?: number | undefined; diskType?: string | undefined; ... 8 more ...; tags?: any; }; ... 8 more ...; _nameUnique?: boolean | undefined; }'.
+pkg/gke/components/GKENodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/GKENodePool.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/gke/components/Import.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/gke/components/Import.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS18048: '__VLS_ctx.selectedClusterSecondaryRangeName' is possibly 'undefined'.
+pkg/gke/components/Networking.vue: error TS18048: '__VLS_ctx.selectedClusterSecondaryRangeName' is possibly 'undefined'.
+pkg/gke/components/Networking.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+pkg/gke/components/Networking.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/gke/components/Networking.vue: error TS2339: Property 'ipCidrRange' does not exist on type 'string | GKESecondaryRangeOption'.
+pkg/gke/components/Networking.vue: error TS2339: Property 'ipCidrRange' does not exist on type 'string | GKESecondaryRangeOption'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue: error TS2322: Type 'string | number | Record<string, any>' is not assignable to type 'string'.
+pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue: error TS2345: Argument of type 'LooseRequired<Readonly<ExtractPropTypes<{ type: { type: StringConstructor; default: string; }; status: { type: StringConstructor; default: null; }; subLabel: { type: StringConstructor; default: null; }; ... 19 more ...; requireDirty: { ...; }; }>> & Readonly<...> & {}>' is not assignable to parameter of type 'LabeledFormElementProps'.
+pkg/rancher-components/src/components/Form/Radio/RadioButton.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/rancher-components/src/components/Form/Radio/RadioGroup.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+pkg/rancher-components/src/components/RcDropdown/RcDropdownItemSelect.vue: error TS2307: Cannot find module '@shell/components/form/LabeledSelect' or its corresponding type declarations.
+pkg/rancher-components/src/components/RcDropdown/RcDropdownMenu.vue: error TS2307: Cannot find module '@shell/components/IconOrSvg' or its corresponding type declarations.
+pkg/rancher-components/src/components/RcItemCard/RcItemCard.vue: error TS2307: Cannot find module './RcItemCardAction' or its corresponding type declarations.
+pkg/rancher-prime/config/navigation.ts: error TS2305: Module '"@shell/store/type-map"' has no exported member 'IF_HAVE'.
+pkg/rancher-prime/config/navigation.ts: error TS2353: Object literal may only specify known properties, and 'ifFeature' does not exist in type 'ConfigureVirtualTypeOptions'.
+pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@shell/components/AsyncButton' or its corresponding type declarations.
+pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@shell/components/Tabbed' or its corresponding type declarations.
+pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@shell/components/Tabbed/Tab' or its corresponding type declarations.
+pkg/rancher-prime/pages/Registration.vue: error TS2307: Cannot find module '@shell/components/form/FileSelector' or its corresponding type declarations.
+pkg/rancher-prime/pages/registration.composable.ts: error TS2339: Property 'message' does not exist on type '{}'.
+shell/apis/shell/index.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyAuthCloudCredential'.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyAuthToken'.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyRequestOptions'.
+shell/apis/shell/proxy.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
+shell/apis/shell/system.ts: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
+shell/apis/shell/system.ts: error TS2724: '"@shell/config/version"' has no exported member named 'getKubeVersionData'. Did you mean 'getVersionData'?
+shell/components/AppModal.vue: error TS2345: Argument of type '{ role: string; 'aria-modal': "true"; style: object; class: string; id: string; ref: string; onClick: () => void; }' is not assignable to parameter of type 'HTMLAttributes & ReservedProps & Record<string, unknown>'.
+shell/components/Certificates.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<{}, {}>, {}, Data, { expiredData(): any; }, {}, ComponentOptionsMixin, ComponentOptionsMixin, ... 18 more ..., {}>'.
+shell/components/ConfigMapSettings/Settings.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/ConfigMapSettings/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'save' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2345: Argument of type 'T' is not assignable to parameter of type 'string | number | null | undefined'.
+shell/components/Drawer/ResourceDetailDrawer/ConfigTab.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/Drawer/ResourceDetailDrawer/index.vue: error TS2614: Module '"@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' has no exported member 'Props'. Did you mean to use 'import Props from "@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' instead?
+shell/components/PodSecurityAdmission.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/components/PodSecurityAdmission.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/Resource/Detail/Metadata/index.vue: error TS2322: Type '(returnFocusSelector: string, defaultTab: string) => void' is not assignable to type '(returnFocusSelector: string) => void'.
+shell/components/Resource/Detail/Preview/Content.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/Resource/Detail/TitleBar/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'AS'.
+shell/components/Resource/Detail/TitleBar/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/components/Resource/Detail/TitleBar/index.vue: error TS2307: Cannot find module '@shell/components/TabTitle' or its corresponding type declarations.
+shell/components/Resource/Detail/ViewOptions/composable.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'VIEW'.
+shell/components/Resource/Detail/ViewOptions/composable.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/components/Resource/Detail/ViewOptions/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/components/Resource/Detail/ViewOptions/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_GRAPH'.
+shell/components/Resource/Detail/ViewOptions/index.vue: error TS2307: Cannot find module '@shell/components/ButtonGroup' or its corresponding type declarations.
+shell/components/ResourceDetail/Masthead/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/ResourceDetail/Masthead/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_YAML'.
+shell/components/fleet/AppCoChartGrid.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
+shell/components/fleet/AppCoChartGrid.vue: error TS2307: Cannot find module '@shell/components/form/Select' or its corresponding type declarations.
+shell/components/fleet/AppCoChartGrid.vue: error TS2307: Cannot find module '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader' or its corresponding type declarations.
+shell/components/fleet/AppCoVersionSelect.vue: error TS2307: Cannot find module '@shell/components/form/LabeledSelect' or its corresponding type declarations.
+shell/components/fleet/FleetClusterTargets/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/components/fleet/FleetClusterTargets/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/FleetClusterTargets/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/fleet/FleetClusterTargets/index.vue: error TS2345: Argument of type '{ raw: boolean; }' is not assignable to parameter of type 'boolean | undefined'.
+shell/components/fleet/FleetConfigMapSelector.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/FleetConfigMapSelector.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; namespace: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: string; }; mode: { ...; }; label: { ...; }; }>, { ...; }>, ... 24 more ..., { ...; }>'.
+shell/components/fleet/FleetGitRepoPaths.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/FleetGitRepoPaths.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/fleet/FleetSecretSelector.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/FleetSecretSelector.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; namespace: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: string; }; mode: { ...; }; label: { ...; }; lockedOptions: { ...; }; }>, { ...; }>, ......'.
+shell/components/fleet/FleetValuesFrom.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/FleetValuesFrom.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2307: Cannot find module '@shell/components/form/SelectOrCreateAuthSecret' or its corresponding type declarations.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2307: Cannot find module '@shell/components/form/UnitInput' or its corresponding type declarations.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2307: Cannot find module '@shell/components/LazyImage' or its corresponding type declarations.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2307: Cannot find module '@shell/components/form/Labels' or its corresponding type declarations.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2307: Cannot find module '@shell/components/form/NameNsDescription' or its corresponding type declarations.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2307: Cannot find module '@shell/components/form/SelectOrCreateAuthSecret' or its corresponding type declarations.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2307: Cannot find module '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader' or its corresponding type declarations.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpResource': spec, metadata
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpValue': spec, metadata, targetClusters
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpValue': spec, metadata, targetClusters
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2741: Property 'spec' is missing in type 'Record<string, any>' but required in type '{ spec: { serviceAccount?: string | undefined; namespace?: string | undefined; }; }'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS7005: Variable 'items' implicitly has an 'any[]' type.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS7034: Variable 'items' implicitly has type 'any[]' in some locations where its type cannot be determined.
+shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'object[]' is not assignable to type 'Cluster[]'.
+shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'string' is not assignable to type 'TargetMode | undefined'.
+shell/components/fleet/HelmOpValuesTab.vue: error TS2307: Cannot find module '@shell/components/ButtonGroup' or its corresponding type declarations.
+shell/components/fleet/HelmOpValuesTab.vue: error TS2307: Cannot find module '@shell/components/YamlEditor' or its corresponding type declarations.
+shell/components/fleet/HelmOpValuesTab.vue: error TS2322: Type 'unknown' is not assignable to type 'ValueFrom[] | undefined'.
+shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/components/form/Footer.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
+shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
+shell/components/form/Labels.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/form/NodeScheduling.vue: error TS18046: 'n' is of type 'unknown'.
+shell/components/form/NodeScheduling.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/form/NodeScheduling.vue: error TS2322: Type 'string | null' is not assignable to type 'string | boolean | Record<string, any> | undefined'.
+shell/components/form/NodeScheduling.vue: error TS2554: Expected 1-2 arguments, but got 3.
+shell/components/form/ResourceLabeledSelect.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resourceType: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: undefined; }; paginateMode: { type: PropType<RESOURCE_LABEL_SELECT_MODE>; default: RESOURCE_LABEL_SELECT_MODE; }; allResourcesSettings: {...'.
+shell/components/form/ResourceLabeledSelect.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resourceType: { type: StringConstructor; required: true; }; inStore: { type: StringConstructor; default: undefined; }; paginateMode: { type: PropType<RESOURCE_LABEL_SELECT_MODE>; default: RESOURCE_LABEL_SELECT_MODE; }; allResourcesSettings: {...'.
+shell/components/form/ResourceQuota/ResourceQuotaEntry.vue: error TS2307: Cannot find module '@shell/components/form/Select' or its corresponding type declarations.
+shell/components/form/ResourceQuota/ResourceQuotaEntry.vue: error TS2307: Cannot find module '@shell/components/form/UnitInput' or its corresponding type declarations.
+shell/components/form/SSHKnownHosts/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/components/form/SSHKnownHosts/index.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/google/AccountAccess.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/components/google/AccountAccess.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/components/google/AccountAccess.vue: error TS2339: Property 'data' does not exist on type '{}'.
+shell/components/google/AccountAccess.vue: error TS7006: Parameter 'e' implicitly has an 'any' type.
+shell/components/google/util/__mocks__/gcp.ts: error TS7006: Parameter 'zone' implicitly has an 'any' type.
+shell/components/google/util/gcp.ts: error TS2307: Cannot find module 'types/gcp' or its corresponding type declarations.
+shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationLevel' can't be used to index type '{ 0: string; 5: string; 2: string; 1: string; 4: string; 3: string; }'.
+shell/components/user.retention/user-retention-header.vue: error TS2307: Cannot find module '@shell/components/TabTitle' or its corresponding type declarations.
+shell/composables/useIsNewDetailPageEnabled.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member 'LEGACY'.
+shell/composables/useLabeledFormElement.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/composables/useLabeledFormElement.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
+shell/core/plugin-helpers.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CONFIG'.
+shell/core/plugin-helpers.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/core/plugin-helpers.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/core/plugin-helpers.ts: error TS2305: Module '"@shell/config/query-params"' has no exported member '_LIST'.
+shell/detail/auditlog.cattle.io.auditpolicy.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+shell/detail/management.cattle.io.oidcclient.vue: error TS2307: Cannot find module '~shell/assets/images/key.svg' or its corresponding type declarations.
+shell/dialog/RedeployWorkloadDialog.vue: error TS2307: Cannot find module '@shell/components/AsyncButton' or its corresponding type declarations.
+shell/edit/auditlog.cattle.io.auditpolicy/index.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+shell/edit/auth/github-app-steps.vue: error TS2307: Cannot find module '@shell/components/CopyToClipboard' or its corresponding type declarations.
+shell/edit/auth/github-app-steps.vue: error TS2307: Cannot find module '@shell/components/InfoBox' or its corresponding type declarations.
+shell/edit/auth/github-steps.vue: error TS2307: Cannot find module '@shell/components/CopyToClipboard' or its corresponding type declarations.
+shell/edit/auth/github-steps.vue: error TS2307: Cannot find module '@shell/components/InfoBox' or its corresponding type declarations.
+shell/edit/autoscaling.horizontalpodautoscaler/index.vue: error TS2307: Cannot find module '@shell/components/Tabbed' or its corresponding type declarations.
+shell/edit/autoscaling.horizontalpodautoscaler/index.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2322: Type '{ selected: string; } | null' is not assignable to type 'Record<string, any> | undefined'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2345: Argument of type 'string | LocationQueryValue[]' is not assignable to parameter of type 'string'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'clusterRepoType' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'newVal' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'old' implicitly has an 'any' type.
+shell/edit/management.cattle.io.podsecurityadmissionconfigurationtemplate.vue: error TS2339: Property 'pending' does not exist on type 'never'.
+shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_CREATE'.
+shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_EDIT'.
+shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_VIEW'.
+shell/edit/provisioning.cattle.io.cluster/tabs/Ingress.vue: error TS2307: Cannot find module '@shell/components/YamlEditor' or its corresponding type declarations.
+shell/list/node.vue: error TS2339: Property 'id' does not exist on type 'string'.
+shell/list/projectsecret.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SECRET_QUERY_PARAMS'.
+shell/list/projectsecret.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SECRET_SCOPE'.
+shell/list/projectsecret.vue: error TS2307: Cannot find module '@shell/components/PaginatedResourceTable' or its corresponding type declarations.
+shell/list/projectsecret.vue: error TS2307: Cannot find module '@shell/components/ResourceList/Masthead' or its corresponding type declarations.
+shell/list/projectsecret.vue: error TS2322: Type 'false' is not assignable to type 'string | string[] | undefined'.
+shell/list/projectsecret.vue: error TS2339: Property '$fetchState' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resource: { type: StringConstructor; required: true; }; useQueryParamsForSimpleFiltering: { type: BooleanConstructor; default: boolean; }; }>, {}>, ... 24 more ..., { ...; }>'.
+shell/list/projectsecret.vue: error TS2339: Property 'metadata' does not exist on type 'never'.
+shell/list/projectsecret.vue: error TS2339: Property 'metadata' does not exist on type 'never'.
+shell/list/projectsecret.vue: error TS2339: Property 'row' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resource: { type: StringConstructor; required: true; }; useQueryParamsForSimpleFiltering: { type: BooleanConstructor; default: boolean; }; }>, {}>, ... 24 more ..., {}>'.
+shell/list/provisioning.cattle.io.cluster.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'MODE'.
+shell/list/provisioning.cattle.io.cluster.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_IMPORT'.
+shell/list/secret.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SECRET_QUERY_PARAMS'.
+shell/list/secret.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SECRET_SCOPE'.
+shell/list/secret.vue: error TS2307: Cannot find module '@shell/components/PaginatedResourceTable' or its corresponding type declarations.
+shell/list/secret.vue: error TS2307: Cannot find module '@shell/components/ResourceList/Masthead' or its corresponding type declarations.
+shell/mixins/compact-input.ts: error TS2339: Property 'label' does not exist on type '{ isCompact(): boolean; }'.
+shell/mixins/compact-input.ts: error TS2339: Property 'labelKey' does not exist on type '{ isCompact(): boolean; }'.
+shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
+shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2305: Module '"vue-router"' has no exported member 'Location'.
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2416: Property '_availableActions' in type 'Kubeconfig' is not assignable to the same property in base type 'SteveModel'.
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2769: No overload matches this call.
+shell/models/steve-schema.ts: error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{} | undefined'.
+shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader.vue: error TS2314: Generic type 'Record' requires 2 type argument(s).
+shell/pages/c/_cluster/explorer/workload-dashboard/index.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
+shell/pages/c/_cluster/explorer/workload-dashboard/index.vue: error TS2307: Cannot find module '@shell/components/ResourceList/Masthead' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'SUB_TYPE'.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/components/ResourceDetail/Masthead' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/ChartDetailBody.vue: error TS2307: Cannot find module '@shell/components/ChartReadme' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/ChartDetailHeader.vue: error TS2307: Cannot find module '@shell/components/LazyImage' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/ChartDetailHeader.vue: error TS2307: Cannot find module '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'CHART'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'REPO'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'REPO_TYPE'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'VERSION'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2322: Type '{ id: string; label: string; href: string | null; name: string | undefined; }[]' is not assignable to type 'ChartMaintainer[]'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'CHART'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'REPO'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'REPO_TYPE'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2322: Type '(chartValue: { name: string; }) => void' is not assignable to type '(value: unknown) => void'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue: error TS2307: Cannot find module '@shell/components/Loading' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue: error TS2307: Cannot find module '@shell/components/form/LabeledSelect' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/index.vue: error TS18047: '$event.target' is possibly 'null'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'fleetWorkspaces' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'gitRepos' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'gitRepos' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'helmOps' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'helmOps' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'value' does not exist on type 'EventTarget'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'workspaces' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7005: Variable 'out' implicitly has an 'any[]' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7005: Variable 'out' implicitly has an 'any[]' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'action' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'action' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'callback' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'name' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'name' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'resources' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 's' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'selected' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'statePanel' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7034: Variable 'out' implicitly has type 'any[]' in some locations where its type cannot be determined.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+shell/pages/home.vue: error TS18048: '__VLS_ctx.altClusterListFeature.configuration' is possibly 'undefined'.
+shell/pages/home.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member 'MODE'.
+shell/pages/home.vue: error TS2305: Module '"@shell/config/query-params"' has no exported member '_IMPORT'.
+shell/pages/home.vue: error TS2345: Argument of type '{ maxExponent: number; minExponent: number; addSuffix: boolean; firstSuffix: string; increment: number; maxPrecision: number; startingExponent: number; suffix: string; }' is not assignable to parameter of type '{ increment?: number | undefined; addSuffix?: boolean | undefined; addSuffixSpace?: boolean | undefined; suffix?: string | undefined; firstSuffix?: null | undefined; startingExponent?: number | undefined; minExponent?: number | undefined; maxExponent?: number | undefined; maxPrecision?: number | undefined; canRoundT...'.
+shell/plugins/__tests__/mutations.tests.ts: error TS18048: 'ctx.getters' is possibly 'undefined'.
+shell/plugins/__tests__/mutations.tests.ts: error TS18048: 'originalResourceRef.metadata' is possibly 'undefined'.
+shell/plugins/__tests__/mutations.tests.ts: error TS2339: Property 'a' does not exist on type '{}'.
+shell/plugins/__tests__/mutations.tests.ts: error TS2339: Property 'prop' does not exist on type 'Pod'.
+shell/plugins/steve/__tests__/utils/mutation.test.helpers.ts: error TS2339: Property 'id' does not exist on type 'Resource'.
+shell/plugins/steve/accept-or-reject-socket-message.ts: error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ActionFindAllArgs'.
+shell/utils/duration.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'null | undefined'.
+shell/utils/dynamic-content/config.ts: error TS2305: Module '"@shell/config/version"' has no exported member 'isRancherPrime'.
+shell/utils/gc/gc-interval.ts: error TS2769: No overload matches this call.
+shell/utils/validators/private-registry.ts: error TS2307: Cannot find module 'types/store/vuex' or its corresponding type declarations.
+shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setKubeVersionData'. Did you mean 'getVersionData'?
+shell/utils/versions.ts: error TS2724: '"@shell/config/version"' has no exported member named 'setVersionData'. Did you mean 'getVersionData'?

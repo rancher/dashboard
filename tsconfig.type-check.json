@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-pkg",
+    "cypress",
+    "shell/scripts",
+    "./cypress.config.ts",
+    "docusaurus",
+    "scripts/standalone",
+    "storybook",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}
