@@ -53,7 +53,9 @@ export default {
   data() {
     const id = (this.idPrefix || '') + this.group.name;
 
-    return { id, expanded: false };
+    // `expanded` is stamped onto the group when the nav is built (see SideNav),
+    // so a group restores its saved expand/collapse state on first render.
+    return { id, expanded: !!this.group.expanded };
   },
 
   computed: {
@@ -180,6 +182,7 @@ export default {
         $event.target.parentElement.classList.add('active');
       }
       this.isExpanded = !this.isExpanded;
+      this.$emit(this.isExpanded ? 'expand' : 'close', this.group);
       $event.stopPropagation();
     },
 

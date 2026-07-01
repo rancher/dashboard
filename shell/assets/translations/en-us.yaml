@@ -205,6 +205,7 @@ nav:
     about: About page link
     pinCluster: Pin/Unpin {cluster} cluster
     collapseExpand: Collapse/Expand menu group
+    collapseAllSections: Collapse all sections
     productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
