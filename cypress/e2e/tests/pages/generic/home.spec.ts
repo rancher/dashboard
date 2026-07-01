@@ -41,7 +41,7 @@ function assertHomeNotificationCount(nc: NotificationsCenterPo) {
   });
 }
 
-describe('Home Page', { testIsolation: 'off' }, () => {
+describe('Home Page', { testIsolation: false }, () => {
   before(() => {
     cy.login();
   });

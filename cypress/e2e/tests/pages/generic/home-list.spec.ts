@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
-describe('Home Page List', { testIsolation: 'off' }, () => {
+describe('Home Page List', { testIsolation: false }, () => {
   const homePage = new HomePagePo();
   const homeClusterList = homePage.list();
 
