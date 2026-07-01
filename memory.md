@@ -38,6 +38,15 @@
 - prefs.js: `definitions` is module-level (not in state); use EXPANDED_GROUPS/NAMESPACE_FILTERS (array/object) to test clone; `clone()` on primitives returns same value; reset skips asCookie prefs
 - action-menu.js: `anon` counter is module-level; provide `action` field in test data; `_execute` bulkAction fires only when resources.length>1 and !opts.alt
 - i18n.js: `intlCache` is module-level var; use unique keys per test to avoid cache pollution; mock `@shell/assets/translations/en-us.yaml` with `jest.mock(..., () => ({}))` since Jest has no YAML transformer; provide own translations in makeState()
+- useI18n.ts: `jest.setup.js` globally stubs `@shell/composables/useI18n`; add `jest.unmock('@shell/composables/useI18n')` BEFORE imports to bypass; mock `@shell/plugins/i18n` for stringFor; module-level `store` is shared — tests are order-dependent but safe since each test sets store via useI18n()
+
+## Testing Notes (composables)
+
+- useFormValidation.ts: `provide()` outside component context warns but doesn't throw; spy on console.warn in beforeEach
+- useFormValidation.ts: mock `vee-validate` (`useForm`) and `@shell/utils/validators/formRules/index` (default export); NODE_ENV='production' → nullValidator for unknown rules
+- useRuntimeFlag.ts: `featureDropdownMenu` is module-level computed; use `jest.resetModules()` + `jest.mock('@shell/utils/version', ...)` + dynamic `require()` in beforeEach to get fresh computed per test
+- useLabeledSelect.ts: mock `@shell/utils/width` (getWidth/setWidth); use `jest.spyOn(el, 'querySelector')` for DOM mocking; `await nextTick()` after resizeHandler to flush callback
+- useI18n.ts: needs `jest.unmock('@shell/composables/useI18n')` at top (jest.setup.js stubs it globally); mock `@shell/plugins/i18n`; null-store path: use try/catch on `useI18n(null)` to get store=null after getting t reference
 
 ## Testing Backlog (Prioritized)
 
@@ -47,18 +56,11 @@
 4. `shell/utils/favicon.js` — DOM-based favicon logic (medium priority)
 5. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
 6. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad` (full Vuex store + dynamic import mock)
-7. `shell/composables/useI18n.ts` — module-level store, `t()` with/without store; mock `@shell/plugins/i18n` (stringFor)
-
-## Testing Notes (composables)
-
-- useFormValidation.ts: `provide()` outside component context warns but doesn't throw; spy on console.warn in beforeEach
-- useFormValidation.ts: mock `vee-validate` (`useForm`) and `@shell/utils/validators/formRules/index` (default export); NODE_ENV='production' → nullValidator for unknown rules
-- useRuntimeFlag.ts: `featureDropdownMenu` is module-level computed; use `jest.resetModules()` + `jest.mock('@shell/utils/version', ...)` + dynamic `require()` in beforeEach to get fresh computed per test
-- useLabeledSelect.ts: mock `@shell/utils/width` (getWidth/setWidth); use `jest.spyOn(el, 'querySelector')` for DOM mocking; `await nextTick()` after resizeHandler to flush callback
 
 ## Completed Work (Summary)
 
-- 2026-06-30: PR (test-assist/runtime-flag-labeled-select-tests): 29 tests for useRuntimeFlag.ts + useLabeledSelect.ts; 0%→100% stmts/fns
+- 2026-07-01: PR (test-assist/usei18n-composable-tests): 10 tests for useI18n.ts; 0%→100% all metrics
+- 2026-06-30: PR #18210 (test-assist/runtime-flag-labeled-select-tests): 29 tests for useRuntimeFlag.ts + useLabeledSelect.ts; 0%→100% stmts/fns
 - 2026-06-29: PR #18202 (test-assist/form-validation-composable-tests): 17 tests for useFormValidation.ts; 0%→100% all metrics — merged ✅
 - 2026-06-28: PR #18197 (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns — merged ✅
 - 2026-06-27: PR #18196 (test-assist/prefs-store-tests): 67 tests for prefs.js — merged ✅
@@ -69,7 +71,7 @@
 - 2026-06-22: PR #18117 (test-assist/features-store-tests): 12 tests for features.js — merged ✅
 - 2026-06-21: PR #18112 (test-assist/modal-slidein-store-tests): 24 tests for modal.ts + slideInPanel.ts — merged ✅
 - 2026-06-20: PR #18110 (test-assist/growl-store-tests): 29 tests for growl.js — merged ✅
-- 2026-06-19: PR #18103 (test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts
+- 2026-06-19: PR #18103 (test-assist/type-map-utils-tests): 41 tests for type-map.utils.ts — merged ✅
 - 2026-06-18: PR #18092 (test-assist/notifications-store-tests): 49 tests for notifications store — merged ✅
 - 2026-06-17: PR #18083 (test-assist/dynamic-importer-tests): 46 tests for dynamic-importer.js — merged ✅
 - 2026-06-16: PR #18071 (test-assist/notification-handler-tests): 17 tests — merged ✅
@@ -80,6 +82,7 @@
 
 ## Task Round-Robin History
 
+- 2026-07-01: Task 4 (PR #18210 CI-green, no action) + Task 3 (useI18n.ts, 10 tests) + Task 7 (new month: closed June #17976, created July issue)
 - 2026-06-30: Task 2+3 (useRuntimeFlag.ts + useLabeledSelect.ts, 29 tests) + Task 7
 - 2026-06-29: Task 3 (useFormValidation.ts composable, 17 tests) + Task 7
 - 2026-06-28: Task 3 (i18n.js store, 51 tests) + Task 7
@@ -97,8 +100,8 @@
 
 ## Monthly Activity Issue
 
-- May 2026 issue: #17452 (closed)
-- June 2026 issue: #17976 (open)
+- June 2026 issue: #17976 (closed)
+- July 2026 issue: recently created (TBD — search for "[Test Improver] Monthly Activity 2026-07")
 
 ## Maintainer Priorities
 
