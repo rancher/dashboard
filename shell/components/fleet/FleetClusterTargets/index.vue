@@ -4,8 +4,16 @@ import { isEmpty } from 'lodash';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { HARVESTER_CONTAINER } from '@shell/store/features';
-import { FLEET } from '@shell/config/types';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { CAPI } from '@shell/config/labels-annotations';
 import FleetUtils from '@shell/utils/fleet';
+import {
+  FilterArgs,
+  PaginationArgs,
+  PaginationParamFilter,
+  PaginationParamProjectOrNamespace,
+  PaginationFilterEquality,
+} from '@shell/types/store/pagination.types';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
@@ -31,7 +39,8 @@ interface FleetResource {
 
 interface DataType {
   targetMode: TargetMode,
-  allClusters: FleetResource[],
+  resolvedClusters: FleetResource[],
+  clusterCount: number,
   allClusterGroups: FleetResource[],
   selectedClusters: string[],
   selectedClusterGroups: string[],
@@ -92,25 +101,32 @@ export default {
   },
 
   async fetch() {
+    // Clusters can be very numerous (thousands for admins) so they're no longer bulk-loaded here - the
+    // cluster select paginates them on demand and the "all" count comes from a bounded count query.
+    // Cluster groups are a small, bounded collection, so a findAll is still fine.
     const hash = await checkSchemasForFindAllHash({
-      allClusters: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER
-      },
       allClusterGroups: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER_GROUP
       },
-    }, this.$store) as { allClusters: FleetResource[], allClusterGroups: FleetResource[] };
+    }, this.$store) as { allClusterGroups: FleetResource[] };
 
-    this.allClusters = hash.allClusters || [];
     this.allClusterGroups = hash.allClusterGroups || [];
   },
 
   data(): DataType {
     return {
       targetMode:               'all',
-      allClusters:              [],
+      /**
+       * The subset of clusters we've resolved by name (from existing targets) so their friendly
+       * `nameDisplay` can be shown for pre-selected clusters without loading every cluster.
+       */
+      resolvedClusters:         [],
+      /**
+       * Total number of clusters in the workspace (respecting Harvester visibility). Used for the
+       * "all clusters" label count and to gate the "manually selected clusters" option.
+       */
+      clusterCount:             0,
       allClusterGroups:         [],
       selectedClusters:         [],
       selectedClusterGroups:    [],
@@ -128,6 +144,9 @@ export default {
     this.areHarvesterHostsVisible = this.$store.getters['features/get'](HARVESTER_CONTAINER);
 
     this.fromTargets();
+
+    this.fetchClusterCount();
+    this.resolveSelectedClusters();
 
     if (this.mode === _CREATE) {
       // Restore the targetMode from parent component; this is the case of edit targets in CREATE mode, go to YAML editor and come back to the form
@@ -151,9 +170,12 @@ export default {
       if (this.mode !== _VIEW) {
         this.update();
       }
+
+      this.fetchClusterCount();
+      this.resolveSelectedClusters();
     },
 
-    allClusters(clusters: FleetResource[]) {
+    resolvedClusters(clusters: FleetResource[]) {
       if (clusters.length) {
         // Resolve metadata.name values to nameDisplay for UI display
         this.selectedClusters = this.selectedClusters.map(
@@ -172,7 +194,9 @@ export default {
         }];
       }
 
-      const allLabel = this.compact ? this.t('fleet.clusterTargets.targetMode.allCompact', { namespace: this.namespace, count: this.clustersOptions.length }, { raw: true }) : this.t('fleet.clusterTargets.targetMode.all');
+      // Use the same "All Clusters in the <workspace> (<count>)" text as the AppCo/compact UI in both
+      // layouts, now that the cluster count is available without loading every cluster.
+      const allLabel = this.t('fleet.clusterTargets.targetMode.allCompact', { namespace: this.namespace, count: this.clusterCount }, { raw: true });
 
       const out: { label: string, value: TargetMode }[] = [
         {
@@ -185,7 +209,7 @@ export default {
         },
       ];
 
-      if (this.clustersOptions.length) {
+      if (this.clusterCount) {
         out.push({
           label: this.t('fleet.clusterTargets.targetMode.clusters'),
           value: 'clusters'
@@ -193,16 +217,6 @@ export default {
       }
 
       return out;
-    },
-
-    clustersOptions() {
-      return this.allClusters
-        .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x) || this.selectedClusters.includes(x.name)))
-        .map((x) => ({
-          label:    x.nameDisplay,
-          value:    x.nameDisplay,
-          disabled: !this.areHarvesterHostsVisible && isHarvesterCluster(x)
-        }));
     },
 
     clusterGroupsOptions() {
@@ -396,11 +410,115 @@ export default {
     },
 
     resolveClusterDisplayName(name: string): string {
-      const cluster = this.allClusters.find(
+      const cluster = this.resolvedClusters.find(
         (c: FleetResource) => c.metadata.namespace === this.namespace && c.metadata.name === name
       );
 
       return cluster ? cluster.nameDisplay : name;
+    },
+
+    /**
+     * Mirrors Fleet's own "exclude harvester" rule - provider.cattle.io NOT IN (harvester). Only the
+     * label column is filterable server-side (status.provider isn't an indexed column), so we use it
+     * here rather than the broader `paginationFilterOnlyKubernetesClusters` helper.
+     */
+    harvesterFilterField(equality: string) {
+      return PaginationParamFilter.createSingleField({
+        field: `metadata.labels[${ CAPI.PROVIDER }]`,
+        value: VIRTUAL_HARVESTER_PROVIDER,
+        equality,
+      });
+    },
+
+    /**
+     * Cluster select is paginated, so the "all clusters" label/gate can't count loaded clusters.
+     * Fetch just the total count (respecting Harvester visibility) via a bounded request.
+     */
+    async fetchClusterCount() {
+      if (this.isLocal) {
+        this.clusterCount = 0;
+
+        return;
+      }
+
+      const paginationEnabled = this.$store.getters['management/paginationEnabled'](FLEET.CLUSTER);
+
+      if (paginationEnabled) {
+        try {
+          const { pagination } = await this.$store.dispatch('management/findPage', {
+            type: FLEET.CLUSTER,
+            opt:  {
+              transient:  true,
+              watch:      false,
+              pagination: new PaginationArgs({
+                page:                 1,
+                pageSize:             1,
+                projectsOrNamespaces: new PaginationParamProjectOrNamespace({ projectOrNamespace: [this.namespace] }),
+                filters:              this.areHarvesterHostsVisible ? [] : [this.harvesterFilterField(PaginationFilterEquality.NOT_IN)],
+              })
+            }
+          });
+
+          this.clusterCount = pagination?.result?.count || 0;
+
+          return;
+        } catch (e) {
+          // Fall through to the non-paginated count below
+        }
+      }
+
+      try {
+        const all = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER, opt: { namespaced: this.namespace } });
+
+        this.clusterCount = (all || []).filter((c: FleetResource) => this.areHarvesterHostsVisible || !isHarvesterCluster(c)).length;
+      } catch (e) {
+        this.clusterCount = 0;
+      }
+    },
+
+    /**
+     * Pre-selected clusters (from existing targets) are stored by `metadata.name` but shown by
+     * `nameDisplay`. Fetch just those clusters so `resolveClusterDisplayName` can map them, without
+     * loading the whole collection.
+     */
+    async resolveSelectedClusters() {
+      const names = [...new Set(this.selectedClusters)].filter((name) => !!name);
+
+      if (this.isLocal || !names.length) {
+        return;
+      }
+
+      const paginationEnabled = this.$store.getters['management/paginationEnabled'](FLEET.CLUSTER);
+
+      if (paginationEnabled) {
+        try {
+          const { data } = await this.$store.dispatch('management/findPage', {
+            type: FLEET.CLUSTER,
+            opt:  {
+              transient:  true,
+              watch:      false,
+              pagination: new FilterArgs({
+                projectsOrNamespaces: new PaginationParamProjectOrNamespace({ projectOrNamespace: [this.namespace] }),
+                filters:              PaginationParamFilter.createSingleField({
+                  field: 'metadata.name', value: names.join(','), equality: PaginationFilterEquality.IN
+                }),
+              })
+            }
+          });
+
+          this.resolvedClusters = data || [];
+
+          return;
+        } catch (e) {
+          // Fall through to the non-paginated resolution below
+        }
+      }
+
+      try {
+        this.resolvedClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER, opt: { namespaced: this.namespace } }) || [];
+      } catch (e) {
+        this.resolvedClusters = [];
+      }
     },
 
     reset() {
@@ -471,7 +589,8 @@ export default {
                 :selected-clusters="selectedClusters"
                 :selected-cluster-groups="selectedClusterGroups"
                 :cluster-selectors="clusterSelectors"
-                :clusters-options="clustersOptions"
+                :namespace="namespace"
+                :are-harvester-hosts-visible="areHarvesterHostsVisible"
                 :cluster-groups-options="clusterGroupsOptions"
                 :mode="mode"
                 :is-view="isView"
@@ -514,7 +633,8 @@ export default {
           :selected-clusters="selectedClusters"
           :selected-cluster-groups="selectedClusterGroups"
           :cluster-selectors="clusterSelectors"
-          :clusters-options="clustersOptions"
+          :namespace="namespace"
+          :are-harvester-hosts-visible="areHarvesterHostsVisible"
           :cluster-groups-options="clusterGroupsOptions"
           :mode="mode"
           :is-view="isView"
@@ -531,20 +651,6 @@ export default {
           class="target-list"
           :clusters="matching"
           :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
-        />
-      </div>
-    </div>
-
-    <!-- All mode: compact intentionally omits the target list since the parent handles cluster visibility -->
-    <div
-      v-if="targetMode === 'all' && !isLocal && !compact"
-      class="row"
-    >
-      <div class="col span-6">
-        <TargetsList
-          class="target-list"
-          :clusters="matching"
-          :compact="compact"
         />
       </div>
     </div>
