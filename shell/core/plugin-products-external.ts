@@ -298,11 +298,6 @@ type _ProductMetadata = LabelOrLabelKey & {
      * Hide the system resources in lists
      */
     hideSystemResources?: boolean;
-
-    /**
-    * The vuex store that this product should use by default i.e. 'management'
-    */
-    store?: string;
   }
 
   /**

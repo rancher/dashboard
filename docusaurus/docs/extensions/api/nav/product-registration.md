@@ -65,7 +65,7 @@ Register a single page product (no side-menu).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `product` | `ProductSinglePage` | Product metadata plus a `component` to render |
+| `product` | `ProductMetadataSinglePage` | Product metadata plus a `component` to render |
 
 ### `extendProduct(product, config)`
 
@@ -107,16 +107,16 @@ A product that renders a single Vue component with no side-menu:
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductSinglePage } from '@shell/core/plugin-types';
+import { ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
   extension.metadata = require('./package.json');
 
-  const product: ProductSinglePage = {
+  const product: ProductMetadataSinglePage = {
     name:      'my-dashboard',
     label:     'My Dashboard',
-    icon:      'globe',
+    sideBar:   { icon: { name: 'globe' } },
     component: () => import('./pages/DashboardPage.vue')
   };
 
@@ -132,7 +132,7 @@ A product with multiple custom pages listed as side-menu entries:
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductMetadata, ProductChildCustomPage } from '@shell/core/plugin-types';
+import { ProductMetadata, ProductChildCustomPage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -142,25 +142,27 @@ export default function(extension: IPlugin) {
     name:      'overview',
     label:     'Overview',
     component: () => import('./pages/OverviewPage.vue'),
-    weight:    2, // side-menu ordering (bigger number on top)
+    sideMenu:  { weight: 2 }, // side-menu ordering (bigger number on top)
   };
 
   const settingsPage: ProductChildCustomPage = {
     name:      'settings',
     label:     'Settings',
     component: () => import('./pages/SettingsPage.vue'),
-    weight:    1,
+    sideMenu:  { weight: 1 },
   };
 
   const product: ProductMetadata = {
-    name:  'my-app',
-    label: 'My App',
-    icon:  'gear',
+    name:    'my-app',
+    label:   'My App',
+    sideBar: { icon: { name: 'gear' } },
   };
 
   extension.addProduct(product, [overviewPage, settingsPage]);
 }
 ```
+
+> We recommend that ordering of the pages in the side menu entry is done via the order in the array of pages rather than using `weight`
 
 ### Product with resource pages
 
@@ -170,27 +172,26 @@ A product that displays Kubernetes resources using Rancher's built-in list/detai
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductMetadata, ProductChildResourcePage } from '@shell/core/plugin-types';
+import { ProductMetadata, ProductChildResourcePage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
   extension.metadata = require('./package.json');
 
   const clusterPage: ProductChildResourcePage = {
-    type:   'provisioning.cattle.io.cluster',
-    weight: 2,
-    config: {
-      displayName: 'Clusters',
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      canYaml:     true,
+    type:     'provisioning.cattle.io.cluster',
+    label:    'Clusters',
+    can: {
+      create: true,
+      edit:   true,
+      remove: true,
+      yaml:   true,
     },
+    views: { list: { showListMasthead: false } }, // prevent double masthead on types with custom list views
   };
 
   const nodePage: ProductChildResourcePage = {
-    type:   'management.cattle.io.node',
-    weight: 1,
+    type:     'management.cattle.io.node',
   };
 
   const product: ProductMetadata = {
@@ -214,7 +215,7 @@ import {
   ProductMetadata,
   ProductChildCustomPage,
   ProductChildGroup
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -234,10 +235,11 @@ export default function(extension: IPlugin) {
   };
 
   const monitoringGroup: ProductChildGroup = {
-    name:     'monitoring',
-    label:    'Monitoring',
-    weight:   2,
-    children: [alertsPage, metricsPage],
+    name:    'monitoring',
+    label:   'Monitoring',
+    sideMenu: {
+      children: [alertsPage, metricsPage],
+    },
   };
 
   // A standalone page outside any group
@@ -245,7 +247,6 @@ export default function(extension: IPlugin) {
     name:      'overview',
     label:     'Overview',
     component: () => import('./pages/OverviewPage.vue'),
-    weight:    3, // side-menu ordering (bigger number on top)
   };
 
   const product: ProductMetadata = {
@@ -265,7 +266,7 @@ Add new pages to one of Rancher Dashboard's built-in products:
 // ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ProductChildCustomPage } from '@shell/core/plugin-types';
+import { ProductChildCustomPage } from '@shell/core/plugin-products-external';
 
 export default function(extension: IPlugin) {
   importTypes(extension);
@@ -293,19 +294,19 @@ The products available for extension are:
 
 ## Type Reference
 
-All types are importable from `@shell/core/plugin-types`:
+All types are importable from `@shell/core/plugin-products-external`:
 
 ```ts
 import {
   ProductMetadata,
-  ProductSinglePage,
+  ProductMetadataSinglePage,
   ProductChildCustomPage,
   ProductChildResourcePage,
   ProductChildPage,
   ProductChildGroup,
   ProductChild,
   StandardProductName,
-} from '@shell/core/plugin-types';
+} from '@shell/core/plugin-products-external';
 ```
 
 ### `ProductMetadata`
@@ -317,19 +318,66 @@ The metadata that defines a product — its identity, icon, and product-level se
 | `name` | `string` | Yes | Unique product identifier |
 | `label` | `string` | Yes* | Display label (* either `label` or `labelKey` is required) |
 | `labelKey` | `string` | Yes* | Translation key for the label |
-| `icon` | `string` | No | Icon name (based on [rancher icons](https://rancher.github.io/icons/)). Defaults to `'extension'` |
-| `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `showClusterSwitcher` | `boolean` | No | Show the cluster switcher in navigation |
-| `showNamespaceFilter` | `boolean` | No | Show the namespace filter in the header |
-| `removable` | `boolean` | No | Whether the product can be removed by users (default: `false` — products are built-in/not removable unless explicitly set to `true`) |
+| `extendable` | `boolean` | No | Whether UI Extensions can add pages to this product |
+| `enable` | `Object` | No | Conditions that control when this product is visible. Check [enable](#enable-optional--conditions-that-control-when-this-product-is-visible) object defintion |
+| `appHeader` | `Object` | No | Controls what appears in the main application header. Check [appHeader](#appheader-optional--controls-what-appears-in-the-main-application-header) object defintion |
+| `sideBar` | `Object` | No | Controls how the product appears in the vertical side bar. Check [sideBar](#sidebar-optional--controls-how-the-product-appears-in-the-vertical-side-bar) object defintion |
+| `resources` | `Object` | No | Controls how resources are fetched, filtered and stored. Check [resources](#resources-optional--controls-how-resources-are-fetched-filtered-and-stored) object defintion |
 
-### `ProductSinglePage`
+<br/>
+
+#### **`enable`** *(optional)* — Conditions that control when this product is visible:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `ifFeature` | `string \| RegExp` | Only show the product if a feature flag is present |
+| `ifHave` | `string` | Only show if the specified resource type exists |
+| `ifHaveGroup` | `string \| RegExp` | Only show if the specified API group is present |
+| `ifHaveType` | `string \| RegExp` | Only show if the specified resource type is present |
+| `ifNotHaveType` | `string \| RegExp` | Hide if the specified resource type is present (opposite of `ifHaveType`) |
+
+<br/>
+
+#### **`appHeader`** *(optional)* — Controls what appears in the main application header:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `icon` | `string` | Icon to display in the app header |
+| `showNamespaceFilter` | `boolean` | Show the namespace filter in the header |
+| `showClusterInfo` | `boolean` | Show cluster info in the header |
+| `hideCopyConfig` | `boolean` | Hide the Copy KubeConfig button |
+| `hideKubeConfig` | `boolean` | Hide the Download KubeConfig button |
+| `hideKubeShell` | `boolean` | Hide the Kubectl Shell button |
+
+<br/>
+
+#### **`sideBar`** *(optional)* — Controls how the product appears in the vertical side bar:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `weight` | `number` | Side-bar ordering (bigger number = higher in the list) |
+| `icon.name` | `string` | Icon name (based on [rancher icons](https://rancher.github.io/icons/)). Defaults to `'extension'` |
+| `icon.svg` | `Function` | Alternative to `icon.name` — provides the icon as an SVG (uses `require`) |
+
+<br/>
+
+#### **`resources`** *(optional)* — Controls how resources are fetched, filtered and stored:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `hideSystemResources` | `boolean` | Hide system resources in lists |
+
+<br/>
+
+### `ProductMetadataSinglePage`
 
 A product that renders a single full-page Vue component with no side-menu. Extends `ProductMetadata` with:
 
 | Property | Type | Required | Description |
 | --- | --- | --- | --- |
-| `component` | `RouteComponent` | Yes | Vue component to render for the entire product |
+| `component` | `VueRouteComponent` | Yes | Vue component to render for the entire product |
+
+<br/>
 
 ### `ProductChildCustomPage`
 
@@ -340,20 +388,39 @@ A page inside a product that renders a Vue component you provide. Equivalent to 
 | `name` | `string` | Yes | Unique page identifier |
 | `label` | `string` | Yes* | Display label (* either `label` or `labelKey` is required) |
 | `labelKey` | `string` | Yes* | Translation key for the label |
-| `component` | `RouteComponent` | Yes | Vue component to render |
-| `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | [`CustomPageConfiguration`](#CustomPageConfiguration) | No | Optional configuration for the page | 
+| `component` | `VueRouteComponent` | Yes | Vue component to render |
+| `enable` | `Object` | No | Conditions that control when this page is visible. Check [enable](#enable-optional--conditions-that-control-when-this-page-is-visible) object definition |
+| `sideMenu` | `Object` | No | Controls how this page appears in the side menu. Check [sideMenu](#sidemenu-optional--controls-how-this-page-appears-in-the-side-menu) object definition |
+| `resource` | `Object` | No | Controls how resources are handled for this page. Check [resource](#resource-optional--controls-how-resources-are-handled-for-this-page) object definition |
 
-Configuration options for a custom page, passed via the `config` property of `ProductChildCustomPage`. These control visibility conditions, routing, and navigation behavior.
+<br/>
 
-| Property | Type | Required | Description |
-| --- | --- | --- | --- |
-| `ifHave` | `boolean` | No | Display only if a condition is met (relates to `IF_HAVE` in the store) |
-| `ifFeature` | `string` | No | Display only if the specified feature flag is present |
-| `ifHaveType` | `string` | No | Display only if the specified resource type exists |
-| `ifHaveVerb` | `string` | No | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
-| `namespaced` | `boolean` | No | Whether this custom page is namespaced |
-| `exact` | `boolean` | No | Whether this custom page requires an exact route match |
+#### **`enable`** *(optional)* — Conditions that control when this page is visible:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `ifHave` | `boolean` | Display only if a condition is met (relates to `IF_HAVE` in the store) |
+| `ifFeature` | `string` | Display only if the specified feature flag is present |
+| `ifHaveType` | `string` | Display only if the specified resource type exists |
+| `ifHaveVerb` | `string` | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
+
+<br/>
+
+#### **`sideMenu`** *(optional)* — Controls how this page appears in the side menu:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `weight` | `number` | Side-menu ordering (bigger number on top) |
+
+<br/>
+
+#### **`resource`** *(optional)* — Controls how resources are handled for this page:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `namespaced` | `boolean` | Whether this custom page is namespaced |
+
+<br/>
 
 ### `ProductChildResourcePage`
 
@@ -362,33 +429,63 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 | Property | Type | Required | Description |
 | --- | --- | --- | --- |
 | `type` | `string` | Yes | Kubernetes resource type (e.g. `'provisioning.cattle.io.cluster'`) |
-| `weight` | `number` | No | Side-menu ordering (bigger number on top) |
-| `config` | `TypeMapConfigureType` | No | Resource page options (creatable, editable, removable, etc.) |
-| `headers` | `HeaderOptions[]` | No | Custom table column headers for the list view (client-side pagination). See [Table headers](#table-headers-headers) |
-| `sspHeaders` | `PaginationHeaderOptions[]` | No | Custom table column headers for the list view (server-side pagination). See [Server-side pagination headers](#server-side-pagination-headers-sspheaders) |
-| `overrideListResourceName` | `string` | No | Override the display name for this resource type in the list view. See [Renaming types](#renaming-types-overridelistresourcename) |
-| `hideFromNav` | `boolean` | No | Hide this resource type from the side-menu entirely. See [Hiding types](#hiding-types-from-navigation-hidefromnav) |
-| `hideBulkActions` | `boolean` | No | Hide bulk action buttons (e.g. delete) for this resource type in the list view. See [Hiding bulk actions](#hiding-bulk-actions-hidebulkactions) |
+| `label` | `string` | No | Override the display name for this resource type |
+| `sideMenu` | `Object` | No | Controls the side-menu entry for this resource page. Check [sideMenu](#sidemenu-optional--controls-the-side-menu-entry-for-this-resource-page) object definition |
+| `display` | `Object` | No | Controls what information is shown. Check [display](#display-optional--controls-what-information-is-shown) object definition |
+| `can` | `Object` | No | Controls what actions are available for this resource type. Check [can](#can-optional--controls-what-actions-are-available-for-this-resource-type) object definition |
+| `views` | `Object` | No | Controls how this resource behaves in list, detail, and create/edit pages. Check [views](#views-optional--controls-how-this-resource-behaves-in-list-detail-and-createedit-pages) object definition |
+| `listConfig` | `Object` | No | Controls how all lists that show this resource behave. Check [listConfig](#listconfig-optional--controls-how-all-lists-that-show-this-resource-behave) object definition |
 
-### `ResourcePageConfiguration`
+<br/>
 
-Configuration options for a resource page, passed via the `config` property of `ProductChildResourcePage`. These control how the resource behaves in list, detail, and edit views.
+#### **`sideMenu`** *(optional)* — Controls the side-menu entry for this resource page:
 
-| Property | Type | Required | Description |
-| --- | --- | --- | --- |
-| `listCreateButtonLabelKey` | `string` | No | Translation key to override the "Create" button label in the list view |
-| `isCreatable` | `boolean` | No | If `false`, disable creation even if the schema allows it |
-| `isEditable` | `boolean` | No | If `false`, disable editing |
-| `isRemovable` | `boolean` | No | If `false`, disable remove/delete |
-| `showState` | `boolean` | No | If `false`, hide state in columns and masthead |
-| `showAge` | `boolean` | No | If `false`, hide age in columns and masthead |
-| `showConfigView` | `boolean` | No | If `false`, hide the config button in the masthead when in view mode |
-| `showListMasthead` | `boolean` | No | If `false`, hide the masthead in the list view |
-| `canYaml` | `boolean` | No | If `false`, disable YAML editing and viewing |
-| `resourceEditMasthead` | `boolean` | No | Show the masthead in the edit resource component |
-| `localOnly` | `boolean` | No | Hide this type from the nav/search bar on downstream clusters (only show in the `local` cluster) |
-| `namespaced` | `boolean` | No | Whether this resource page is namespaced |
+| Property | Type | Description |
+| --- | --- | --- |
+| `weight` | `number` | Side-menu ordering (bigger number on top) |
+| `localOnly` | `boolean` | Hide this type from the nav on downstream clusters (only shows in the `local` cluster) |
 
+<br/>
+
+#### **`display`** *(optional)* — Controls what information is shown:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `showState` | `boolean` | If `false`, hide state in columns and masthead |
+| `showAge` | `boolean` | If `false`, hide age in columns and masthead |
+
+<br/>
+
+#### **`can`** *(optional)* — Controls what actions are available for this resource type:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `create` | `boolean` | If `false`, disable creation even if the schema allows it |
+| `edit` | `boolean` | If `false`, disable editing |
+| `remove` | `boolean` | If `false`, disable deletion |
+| `yaml` | `boolean` | If `false`, disable YAML editing and viewing |
+
+<br/>
+
+#### **`views`** *(optional)* — Controls how this resource behaves in list, detail, and create/edit pages:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `list.createLabelKey` | `string` | Translation key to override the "Create" button label in the list view |
+| `list.showListMasthead` | `boolean` | If `false`, hide the masthead in the list view. Defaults to `false` |
+| `detail.showConfigView` | `boolean` | If `false`, hide the config button in the masthead when in view mode |
+| `createEdit.showMasthead` | `boolean` | Show the masthead in the edit/create resource component |
+
+<br/>
+
+#### **`listConfig`** *(optional)* — Controls how all lists that show this resource behave:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `headers` | `HeaderOptions[]` | Custom table column headers for the list view. See [Table headers](#table-headers-listconfigheaders) |
+| `hideBulkActions` | `boolean` | Hide bulk action buttons (e.g. delete) for this resource in the list view. See [Hiding bulk actions](#hiding-bulk-actions-listconfighidebulkactions) |
+
+<br/>
 
 ### `ProductChildGroup`
 
@@ -399,9 +496,20 @@ A collapsible folder/group in the product's side-menu that contains pages or oth
 | `name` | `string` | Yes | Unique group identifier |
 | `label` | `string` | Yes* | Display label (* either `label` or `labelKey` is required) |
 | `labelKey` | `string` | Yes* | Translation key for the label |
-| `children` | `ProductChild[]` | Yes | Array of pages or nested groups |
-| `component` | `RouteComponent` | No | Optional component for the group's own page |
+| `component` | `VueRouteComponent` | No | Optional component to render when the group header is clicked |
+| `sideMenu` | `Object` | Yes | Defines the group's children and ordering. Check [sideMenu](#sidemenu-required--defines-the-groups-children-and-ordering) object definition |
+
+<br/>
+
+#### **`sideMenu`** *(required)* — Defines the group's children and ordering:
+
+| Property | Type | Required | Description |
+| --- | --- | --- | --- |
+| `children` | `ProductChild[]` | Yes | Array of pages or nested groups inside this group |
 | `weight` | `number` | No | Side-menu ordering (bigger number on top) |
+| `default` | `string` | No | Name of the default child to navigate to when the group is clicked (if no `component` is set) |
+
+<br/>
 
 ### `ProductChildPage`
 
@@ -414,6 +522,8 @@ A union type representing any page item in a product configuration. It can be on
 type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage;
 ```
 
+<br/>
+
 ### `ProductChild`
 
 A union type representing any item that can appear in a product configuration — either a page or a group. This is the type used for arrays passed to `addProduct` and `extendProduct`, and for the `children` property of `ProductChildGroup`.
@@ -424,13 +534,13 @@ type ProductChild = ProductChildGroup | ProductChildPage;
 
 ## Advanced Configuration
 
-### Table headers (`headers`)
+### Table headers (`listConfig.headers`)
 
 Resource lists use Headers to control which columns appear in the resource list view, what data they display, and how they behave (sorting, searching, formatting).
 
-By default these mostly come from the resource's definition and it's `additionalPrinterColumns` field.
+By default these mostly come from the resource's definition and its `additionalPrinterColumns` field.
 
-When you set `headers` on a resource page, these columns **replace** the default columns.
+When you set `listConfig.headers` on a resource page, these columns **replace** the default columns.
 
 #### Using built-in headers
 
@@ -447,8 +557,8 @@ Rancher Dashboard provides a set of commonly used header definitions in `@shell/
 import { NAME, STATE, AGE, NAMESPACE } from '@shell/config/table-headers';
 
 const clusterPage: ProductChildResourcePage = {
-  type:    'provisioning.cattle.io.cluster',
-  headers: [STATE, NAME, NAMESPACE, AGE],
+  type:       'provisioning.cattle.io.cluster',
+  listConfig: { headers: [STATE, NAME, NAMESPACE, AGE] },
 };
 ```
 
@@ -462,25 +572,27 @@ You can define your own headers by providing objects that follow the `HeaderOpti
 import { NAME, AGE } from '@shell/config/table-headers';
 
 const clusterPage: ProductChildResourcePage = {
-  type:    'provisioning.cattle.io.cluster',
-  headers: [
-    NAME,
-    {
-      name:  'provider',
-      label: 'Provider',
-      value: 'status.provider',
-      sort:  'status.provider',
-    },
-    {
-      name:     'nodeCount',
-      label:    'Nodes',
-      value:    'status.nodeCount',
-      sort:     'status.nodeCount',
-      search:   false,   // exclude from search filtering
-      width:    80,       // fixed column width
-    },
-    AGE,
-  ],
+  type:       'provisioning.cattle.io.cluster',
+  listConfig: {
+    headers: [
+      NAME,
+      {
+        name:  'provider',
+        label: 'Provider',
+        value: 'status.provider',
+        sort:  'status.provider',
+      },
+      {
+        name:   'nodeCount',
+        label:  'Nodes',
+        value:  'status.nodeCount',
+        sort:   'status.nodeCount',
+        search: false,  // exclude from search filtering
+        width:  80,      // fixed column width
+      },
+      AGE,
+    ],
+  },
 };
 ```
 
@@ -534,79 +646,29 @@ Formatters transform raw values into formatted display output. Rancher Dashboard
 | `width` | `number` | Fixed column width in pixels. If not set, the column auto-sizes |
 | `getValue` | `(row: any) => string \| number \| null` | Custom function to extract or compute the display value from a row. Takes precedence over `value` for display, but `value` is still used for sorting/searching |
 
-### Server-side pagination headers (`sspHeaders`)
+### Renaming types (`label`)
 
-When server-side pagination is enabled for a resource type, Rancher Dashboard uses a separate set of headers optimized for paginated data. These headers follow the same format as `headers` but **do not support `getValue`** — since rows are fetched page-by-page from the server, computed client-side values are not available.
-
-> **Important:** Property paths used to display, sort and search on must exist natively on the resource and not in the Dashboard's model for the resource type. For more information please see [Choosing fields to display, sort and filter on](https://extensions.rancher.io/extensions/next/performance/scaling/lists#choosing-fields-to-display-sort-and-filter-on).
-
-Before using `sspHeaders`, server-side pagination must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
-
-> **Important:** Server-side pagination via `sspHeaders` is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`.
-
-Use `sspHeaders` alongside `headers` to define columns for both pagination modes:
+Use the `label` property directly on a resource page to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
 
 ```ts
-import { NAME, STATE, AGE, NAMESPACE } from '@shell/config/table-headers';
-
 const clusterPage: ProductChildResourcePage = {
-  type:       'provisioning.cattle.io.cluster',
-  headers:    [STATE, NAME, NAMESPACE, AGE],
-  sspHeaders: [
-    { name: 'name', label: 'Name', value: 'metadata.name' },
-    { name: 'namespace', label: 'Namespace', value: 'metadata.namespace' },
-  ],
+  type:  'provisioning.cattle.io.cluster',
+  label: 'Provisioned Clusters',
 };
 ```
 
-You can also set `sspHeaders` without `headers` if you only need to customize the server-side pagination view:
+### Hiding bulk actions (`listConfig.hideBulkActions`)
+
+Set `listConfig.hideBulkActions: true` on a resource page to hide the bulk action buttons (e.g. "Delete") from the list view toolbar. Users can still perform actions on individual resources.
 
 ```ts
 const clusterPage: ProductChildResourcePage = {
   type:       'provisioning.cattle.io.cluster',
-  sspHeaders: [
-    { name: 'name', label: 'Name', value: 'metadata.name' },
-    { name: 'status', label: 'Status', value: 'status.display' },
-  ],
+  listConfig: { hideBulkActions: true },
 };
 ```
 
-> Note: `PaginationHeaderOptions` is the same as `HeaderOptions` but without the `getValue` property. All other header properties (`name`, `label`, `value`, `sort`, `search`, `formatter`, `formatterOpts`, `width`) are supported.
-
-### Renaming types (`overrideListResourceName`)
-
-Use `overrideListResourceName` to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
-
-```ts
-const clusterPage: ProductChildResourcePage = {
-  type:                     'provisioning.cattle.io.cluster',
-  overrideListResourceName: 'Provisioned Clusters',
-};
-```
-
-### Hiding types from navigation (`hideFromNav`)
-
-Set `hideFromNav: true` on a resource page to hide it from the side-menu entirely. The resource page is still accessible via its route — it just won't appear in the navigation. This is useful for resources that should be reachable from other pages but don't need a dedicated side-menu entry.
-
-```ts
-const clusterPage: ProductChildResourcePage = {
-  type:        'provisioning.cattle.io.cluster',
-  hideFromNav: true,
-};
-```
-
-### Hiding bulk actions (`hideBulkActions`)
-
-Set `hideBulkActions: true` on a resource page to hide the bulk action buttons (e.g. "Delete") from the list view toolbar. Users can still perform actions on individual resources.
-
-```ts
-const clusterPage: ProductChildResourcePage = {
-  type:            'provisioning.cattle.io.cluster',
-  hideBulkActions: true,
-};
-```
-
-> **Known limitation:** Some built-in resource types in Rancher Dashboard have custom list views that explicitly control bulk action visibility. For those types, `hideBulkActions` may have no effect. This may apply to a small number of resource types. If you notice that bulk actions are still showing after setting `hideBulkActions: true`, the resource type likely has a custom list view that overrides this setting. See [#17426](https://github.com/rancher/dashboard/issues/17426) for more details.
+> **Known limitation:** Some built-in resource types in Rancher Dashboard have custom list views that explicitly control bulk action visibility. For those types, `listConfig.hideBulkActions` may have no effect. This may apply to a small number of resource types. If you notice that bulk actions are still showing after setting `listConfig.hideBulkActions: true`, the resource type likely has a custom list view that overrides this setting. See [#17426](https://github.com/rancher/dashboard/issues/17426) for more details.
 
 
 ## Rules & Constraints
@@ -635,11 +697,11 @@ A page item is either a **custom page** (has `component`) or a **resource page**
 
 ### Resource pages cannot have children
 
-Only custom pages and groups can have `children`. A resource page (an item with `type`) cannot be turned into a group — it uses Rancher Dashboard's built-in list/detail/edit views and does not support child navigation.
+Only custom pages and groups can have `sideMenu.children`. A resource page (an item with `type`) cannot be turned into a group — it uses Rancher Dashboard's built-in list/detail/edit views and does not support child navigation.
 
 ### Groups cannot have a `type` property
 
-A group (an item with `children`) cannot also have a `type` property. Groups are for organizing navigation — they do not display Kubernetes resources directly. Place resource pages as children of the group instead.
+A group (an item with `sideMenu.children`) cannot also have a `type` property. Groups are for organizing navigation — they do not display Kubernetes resources directly. Place resource pages as children of the group instead.
 
 ### Naming requirements
 
