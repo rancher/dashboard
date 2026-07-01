@@ -578,8 +578,8 @@ export function init(store) {
   const CRD_CR_COL = {
     name:          'crd-cr',
     labelKey:      'tableHeaders.customResources',
-    sort:          false,
-    search:        false,
+    sort:          false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    search:        false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
     value:         'resourceLink',
     formatter:     'Link',
     formatterOpts: { options: { internal: true } },
