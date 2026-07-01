@@ -184,25 +184,26 @@ export default {
           name:            `container-0`,
         }];
 
-        const metadata = { ...this.value.metadata };
-
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
-
-        this.value['spec'] = podSpec;
+        // A standalone Pod keeps its spec in the native Pod shape (spec.*),
+        // NOT wrapped in a Workload's spec.template.spec. The shared form works
+        // on this shape via the podTemplateSpec/podLabels/podAnnotations
+        // computeds. See https://github.com/rancher/dashboard/issues/10171
+        this.value['spec'] = { containers: podContainers, initContainers: [] };
       }
     }
 
-    // EDIT view for POD
-    // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
-      const podSpec = { ...this.value.spec };
-      const metadata = { ...this.value.metadata };
-
-      this.value.spec['template'] = { spec: podSpec, metadata };
-    }
-
+    // Pods are read/edited/cloned in their native shape - no POD->workload
+    // wrapping needed. (Workloads legitimately nest under spec.template.spec.)
     const spec = this.value.spec;
-    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let podTemplateSpec;
+
+    if (type === WORKLOAD_TYPES.CRON_JOB) {
+      podTemplateSpec = spec.jobTemplate.spec.template.spec;
+    } else if (this.value.type === POD) {
+      podTemplateSpec = spec;
+    } else {
+      podTemplateSpec = spec?.template?.spec;
+    }
 
     // Area to add default value to securityContext on POD CREATE
     // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
@@ -212,10 +213,6 @@ export default {
 
     let containers = podTemplateSpec.containers || [];
     let container;
-
-    if (this.mode === _VIEW && this.value.type === 'pod' ) {
-      podTemplateSpec = spec;
-    }
 
     if (
       this.mode === _CREATE ||
@@ -365,14 +362,25 @@ export default {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
     },
 
-    // if this is a cronjob, grab pod spec from within job template spec
+    // For a Pod the pod spec IS spec; a cronjob nests it within the job template
+    // spec; other workloads nest it under spec.template.spec.
     podTemplateSpec: {
       get() {
-        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
       },
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.spec.template['spec'] = neu;
+        } else if (this.isPod) {
+          this.spec = neu;
+          this.value['spec'] = neu;
         } else {
           this.spec.template['spec'] = neu;
         }
@@ -389,6 +397,17 @@ export default {
           return this.spec.jobTemplate.metadata.labels;
         }
 
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.labels) {
+            this.value.metadata['labels'] = {};
+          }
+
+          return this.value.metadata.labels;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { labels: {} };
         }
@@ -398,6 +417,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['labels'] = neu;
+        } else if (this.isPod) {
+          this.value.metadata['labels'] = neu;
         } else {
           this.spec.template.metadata['labels'] = neu;
         }
@@ -413,6 +434,18 @@ export default {
 
           return this.spec.jobTemplate.metadata.annotations;
         }
+
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.annotations) {
+            this.value.metadata['annotations'] = {};
+          }
+
+          return this.value.metadata.annotations;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { annotations: {} };
         }
@@ -422,6 +455,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['annotations'] = neu;
+        } else if (this.isPod) {
+          this.value.metadata['annotations'] = neu;
         } else {
           this.spec.template.metadata['annotations'] = neu;
         }
@@ -763,7 +798,9 @@ export default {
     },
 
     saveWorkload() {
+      // A Pod has no selector/template - it is saved in its native shape.
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
@@ -776,12 +813,18 @@ export default {
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         template = this.spec.jobTemplate;
+      } else if (this.isPod) {
+        // For a Pod, `spec` is the pod spec and `value.metadata` is the pod
+        // metadata - present them the same way the workload template is shaped
+        // so the shared logic below can operate on them uniformly.
+        template = { spec: this.spec, metadata: this.value.metadata };
       } else {
         template = this.spec.template;
       }
 
       // WORKLOADS
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)

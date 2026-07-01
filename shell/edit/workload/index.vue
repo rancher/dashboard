@@ -4,7 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
 import { FORM_TYPES } from '@shell/components/form/Security';
-import { NODE } from '@shell/config/types';
+import { NODE, POD } from '@shell/config/types';
 
 export default {
   name:   'Workload',
@@ -39,6 +39,16 @@ export default {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
       return this.fvFormIsValid && !hasContainerErrors;
+    },
+
+    /**
+     * For Pods, render empty blocks (e.g. an unused podAntiAffinity the form
+     * seeds as empty) as `{}` in "Edit as YAML" instead of a valueless key that
+     * parses back to `null` - so the same pod data always yields the same YAML.
+     * See https://github.com/rancher/dashboard/issues/10171
+     */
+    yamlModifiers() {
+      return this.value.type === POD ? { collapseEmptyObjects: true } : undefined;
     }
   },
   methods: {
@@ -112,6 +122,7 @@ export default {
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
+      :yaml-modifiers="yamlModifiers"
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
