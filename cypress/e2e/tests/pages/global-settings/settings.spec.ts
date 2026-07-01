@@ -19,7 +19,7 @@ const BANNER_TEXT = "Typical users will not need to change these. Proceed with c
 const settingsOriginal = {};
 const resetSettings = [];
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

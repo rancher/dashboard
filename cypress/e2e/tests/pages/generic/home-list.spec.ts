@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
-describe('Home Page List', { testIsolation: 'off' }, () => {
+describe('Home Page List', { testIsolation: false }, () => {
   const homePage = new HomePagePo();
   const homeClusterList = homePage.list();
 
@@ -31,7 +31,10 @@ describe('Home Page List', { testIsolation: 'off' }, () => {
     HomePagePo.navTo();
     homePage.waitForPage();
 
-    homeClusterList.version(clusterName).invoke('text').should('not.contain', '—');
+    // Verify version is present before proceeding
+    homeClusterList.version(clusterName).should('not.contain', '—');
+
+    // Get text values and store as aliases
     homeClusterList.state(clusterName).invoke('text').as('stateText');
     homeClusterList.name(clusterName).invoke('text').as('nameText');
     homeClusterList.version(clusterName).invoke('text').as('versionText');

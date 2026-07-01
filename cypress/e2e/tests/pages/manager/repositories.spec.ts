@@ -9,7 +9,7 @@ import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
 
-describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   before(() => {
     cy.clearAllSessions();
     cy.login();
@@ -34,7 +34,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
   });
 });
 
-describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -233,6 +233,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 
   it('can create an oci repository with basic auth', function() {
+    // Clean up any existing repository with the same name from previous failed test runs
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName, false);
+
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
@@ -252,7 +255,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
     repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
-    repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue('');
 
     cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createRepository');
 
@@ -279,7 +282,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 });
 
-describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   let repoName: string;
 

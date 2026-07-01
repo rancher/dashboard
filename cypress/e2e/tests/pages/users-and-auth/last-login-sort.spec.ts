@@ -4,7 +4,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 const LAST_LOGIN_COLUMN = 6;
 const NAME_COLUMN = 3;
 
-describe('Users: Last Login sorting', { testIsolation: 'off', tags: ['@usersAndAuths', '@adminUser'] }, () => {
+describe('Users: Last Login sorting', { testIsolation: false, tags: ['@usersAndAuths', '@adminUser'] }, () => {
   const runTimestamp = +new Date();
   const usersPo = new UsersPo();
   const userIdsList: string[] = [];
