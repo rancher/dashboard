@@ -66,7 +66,10 @@ export default {
       const inStore = this.$store.getters['currentStore'](resource);
       const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
 
-      return createYamlWithOptions(schemas, resource.type, resource.toYamlPreviewResource());
+      // collapseEmptyObjects: render empty blocks (e.g. an unused podAntiAffinity)
+      // as `{}` instead of a valueless key, so the same pod data always yields the
+      // same YAML. See https://github.com/rancher/dashboard/issues/10171
+      return createYamlWithOptions(schemas, resource.type, resource.toYamlPreviewResource(), { collapseEmptyObjects: true });
     },
 
     changed(tab) {
