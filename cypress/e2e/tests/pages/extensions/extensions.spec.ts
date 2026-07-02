@@ -358,6 +358,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
+    extensionsPo.loading().should('not.exist');
+
+    // Ensure the extension card is visible and loaded before trying to upgrade
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
