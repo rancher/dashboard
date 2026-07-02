@@ -13,7 +13,13 @@ export class RancherSetupConfigurePage extends PagePo {
     return super.goTo(RancherSetupConfigurePage.url);
   }
 
+  readyForNav() {
+    return cy.waitForRancherResources('v1', 'management.cattle.io.users', 1, true);
+  }
+
   waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
+    this.readyForNav();
+
     return super.waitForPage(params, fragment, options);
   }
 
