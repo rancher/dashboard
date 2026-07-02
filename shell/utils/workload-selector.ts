@@ -18,7 +18,7 @@ export function generateWorkloadSelector(type: string, namespace: string, name: 
   if (fullPath.length <= MAX_LABEL_VALUE_LENGTH) {
     return {
       labelValue: fullPath,
-      fullID: '' // No annotation needed
+      fullID:     '' // No annotation needed
     };
   }
 

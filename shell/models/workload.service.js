@@ -173,9 +173,7 @@ export default class WorkloadService extends SteveModel {
       this.metadata.annotations[WORKLOAD_ID_FULL_ANNOTATION] = fullID;
     }
 
-    return {
-      'workload.user.cattle.io/workloadselector': labelValue
-    };
+    return { 'workload.user.cattle.io/workloadselector': labelValue };
   }
 
   // create clusterip, nodeport, loadbalancer services from container port spec
