@@ -39,6 +39,7 @@
 - action-menu.js: `anon` counter is module-level; provide `action` field in test data; `_execute` bulkAction fires only when resources.length>1 and !opts.alt
 - i18n.js: `intlCache` is module-level var; use unique keys per test to avoid cache pollution; mock `@shell/assets/translations/en-us.yaml` with `jest.mock(..., () => ({}))` since Jest has no YAML transformer; provide own translations in makeState()
 - useI18n.ts: `jest.setup.js` globally stubs `@shell/composables/useI18n`; add `jest.unmock('@shell/composables/useI18n')` BEFORE imports to bypass; mock `@shell/plugins/i18n` for stringFor; module-level `store` is shared — tests are order-dependent but safe since each test sets store via useI18n()
+- auth.js: `jest.mock('@shell/utils/uiplugins', ...)` needed for isLoggedIn; store getters with schemaFor are function-getters (return functions, not values); `notLoggedIn` — 'index'.includes('auth')=false so setAuthRedirect IS called for index route; `openAuthPopup` deferred (Popup + BroadcastChannel complexity)
 
 ## Testing Notes (composables)
 
@@ -51,15 +52,16 @@
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
-2. `shell/utils/auth.js` — remaining functions: `openAuthPopup`, `checkSchemasForFindAllHash`, `canViewResource`, etc.
-3. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (full Vuex store mock)
-4. `shell/utils/favicon.js` — DOM-based favicon logic (medium priority)
-5. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
-6. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad` (full Vuex store + dynamic import mock)
+2. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (full Vuex store mock)
+3. `shell/utils/favicon.js` — DOM-based favicon logic (medium priority)
+4. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
+5. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
+6. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
 
 ## Completed Work (Summary)
 
-- 2026-07-01: PR (test-assist/usei18n-composable-tests): 10 tests for useI18n.ts; 0%→100% all metrics
+- 2026-07-02: PR (test-assist/auth-utils-tests): 25 new tests for auth.js — checkSchemasForFindAllHash, canViewResource, authProvidersInfo, findMe, noAuth, notLoggedIn, isLoggedIn, tryInitialSetup; ~35%→82.82% stmts, 95.91% branches
+- 2026-07-01: PR #18235 (test-assist/usei18n-composable-tests): 10 tests for useI18n.ts; 0%→100% all metrics
 - 2026-06-30: PR #18210 (test-assist/runtime-flag-labeled-select-tests): 29 tests for useRuntimeFlag.ts + useLabeledSelect.ts; 0%→100% stmts/fns
 - 2026-06-29: PR #18202 (test-assist/form-validation-composable-tests): 17 tests for useFormValidation.ts; 0%→100% all metrics — merged ✅
 - 2026-06-28: PR #18197 (test-assist/i18n-store-tests): 51 tests for i18n.js; 0%→72% stmts, 98.5% branches, 83% fns — merged ✅
@@ -82,6 +84,7 @@
 
 ## Task Round-Robin History
 
+- 2026-07-02: Task 4 (PRs #18235/#18210 CI green) + Task 3 (auth.js, 25 tests) + Task 7
 - 2026-07-01: Task 4 (PR #18210 CI-green, no action) + Task 3 (useI18n.ts, 10 tests) + Task 7 (new month: closed June #17976, created July issue)
 - 2026-06-30: Task 2+3 (useRuntimeFlag.ts + useLabeledSelect.ts, 29 tests) + Task 7
 - 2026-06-29: Task 3 (useFormValidation.ts composable, 17 tests) + Task 7
@@ -101,7 +104,7 @@
 ## Monthly Activity Issue
 
 - June 2026 issue: #17976 (closed)
-- July 2026 issue: recently created (TBD — search for "[Test Improver] Monthly Activity 2026-07")
+- July 2026 issue: #18236
 
 ## Maintainer Priorities
 
