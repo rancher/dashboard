@@ -5,11 +5,16 @@ import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po'
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class RancherSetupConfigurePage extends PagePo {
   static url = '/auth/setup'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(RancherSetupConfigurePage.url);
+  }
+
+  waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
+    return super.waitForPage(params, fragment, options);
   }
 
   constructor() {
