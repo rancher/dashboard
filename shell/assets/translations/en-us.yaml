@@ -6577,6 +6577,12 @@ servicesPage:
       label: Use IPAM
     shareIP:
       label: Share IP LB
+    dhcpInterface:
+      label: Interface
+    network:
+      label: Network
+    poolInterface:
+      label: Interface
 
   ips:
     define: Service Ports
