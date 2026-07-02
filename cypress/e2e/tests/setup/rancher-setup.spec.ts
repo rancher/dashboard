@@ -35,6 +35,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.bootstrapLogin();
 
+    // Wait for login to succeed, to get things like CSRF
     cy.wait('@bootstrapReq').then((login) => {
       expect(login.response?.statusCode).to.equal(200);
     });
@@ -43,6 +44,8 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     cy.wait('@settingsReq', EXTRA_LONG_TIMEOUT_OPT).then((interception) => {
       expect(interception.response?.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
+
+    // Wait for actual page we need
     rancherSetupConfigurePage.waitForPage();
 
     // Yes this is bad, but want to ensure no other settings requests are made.

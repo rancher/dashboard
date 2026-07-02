@@ -277,8 +277,6 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
-        console.info('TODO:RC', 1);
-
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
@@ -286,8 +284,6 @@ export default {
             password: this.password
           }
         });
-
-        console.info('TODO:RC', 2);
 
         // we have to do the XHR requests because we don't have schemas loaded yet...
         let mgmtUser;
@@ -297,27 +293,16 @@ export default {
           data:   {}
         });
 
-        console.info('TODO:RC', 3, selfUser);
-
         if (selfUser) {
-          console.info('TODO:RC', 3.1);
           await this.$store.dispatch('auth/updateSelfUser', selfUser);
-          console.info('TODO:RC', 3.5, 'pre-hang');
           mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` });
-          console.info('TODO:RC', 3.5, 'post-hang');
         }
-
-        console.info('TODO:RC', 4, mgmtUser);
 
         if (!!mgmtUser) {
           this.$store.dispatch('auth/gotUser', mgmtUser);
         }
 
-        console.info('TODO:RC', 5);
-
         if ( this.remember ) {
-          console.info('TODO:RC', 5.1);
-
           const options = {
             encode:   (x) => x,
             maxAge:   86400 * 365,
@@ -330,11 +315,9 @@ export default {
             key: USERNAME, value: this.username, options
           });
         } else {
-          console.info('TODO:RC', 5.5);
           this.$store.commit('cookies/remove', { key: USERNAME });
         }
 
-        console.info('TODO:RC', 6);
         // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
         // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
         // the plugins will load via the boot-time plugin
@@ -344,21 +327,13 @@ export default {
           $extension: this.$store.$extension,
         });
 
-        console.info('TODO:RC', 7, this.firstLogin, mgmtUser?.mustChangePassword);
-
         if (this.firstLogin || mgmtUser?.mustChangePassword) {
-          console.info('TODO:RC', 7.1);
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
-          console.info('TODO:RC', 7.5);
-
           this.$router.push({ name: 'index' });
         }
-        console.info('TODO:RC', 8);
       } catch (err) {
-        console.info('TODO:RC', 'error', err);
-
         this.err = err;
         this.timedOut = null;
         this.loggedOut = null;
