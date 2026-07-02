@@ -49,7 +49,8 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     const productNavPo = new ProductNavPo();
 
     productNavPo.expandedGroup().first().as('openGroup');
-    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0).should('be.visible')
+    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+      .should('be.visible')
       .click();
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
@@ -61,7 +62,8 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
     // Wait for the group to expand and then click the first visible link
-    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first().click();
+    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
+      .click();
     // Now verify the clicked link is active
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
