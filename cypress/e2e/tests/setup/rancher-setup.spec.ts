@@ -3,6 +3,7 @@ import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -34,7 +35,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.bootstrapLogin();
 
     // Second request (after user is logged in) will return the full list
-    cy.wait('@settingsReq').then((interception) => {
+    cy.wait('@settingsReq', MEDIUM_TIMEOUT_OPT).then((interception) => {
       expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
     rancherSetupConfigurePage.waitForPage();
