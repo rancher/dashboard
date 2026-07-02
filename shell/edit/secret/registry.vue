@@ -2,6 +2,7 @@
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
+import { extractDockerAuthCredentials } from '@shell/utils/secret';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -70,8 +71,8 @@ export default {
       registryProvider = 'Artifactory';
     }
 
-    const username = auths[registryUrl]?.username || '';
-    const password = auths[registryUrl]?.password || '';
+    const authEntry = auths[registryUrl] || {};
+    const { username = '', password = '' } = extractDockerAuthCredentials(authEntry);
 
     return {
       registryProvider,
