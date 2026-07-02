@@ -6,7 +6,7 @@ import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { generateWorkloadSelector, generateFullWorkloadId, WORKLOAD_ID_FULL_ANNOTATION } from '@shell/utils/workload-selector';
+import { generateWorkloadSelector, WORKLOAD_ID_FULL_ANNOTATION } from '@shell/utils/workload-selector';
 
 export default class WorkloadService extends SteveModel {
   get stateDisplay() {
@@ -161,21 +161,20 @@ export default class WorkloadService extends SteveModel {
     const namespace = this.metadata.namespace;
     const name = this.metadata.name;
 
-    const selectorValue = generateWorkloadSelector(type, namespace, name);
-    const fullWorkloadId = generateFullWorkloadId(type, namespace, name);
+    const { labelValue, fullID } = generateWorkloadSelector(type, namespace, name);
 
-    // If selector is hash-based (length doesn't match full ID), store full ID in annotation
-    if (selectorValue.length !== fullWorkloadId.length) {
+    // If fullID is set, the label was truncated - store annotation
+    if (fullID) {
       // Ensure annotations object exists
       if (!this.metadata.annotations) {
         this.metadata.annotations = {};
       }
       // Store full workload ID for debugging
-      this.metadata.annotations[WORKLOAD_ID_FULL_ANNOTATION] = fullWorkloadId;
+      this.metadata.annotations[WORKLOAD_ID_FULL_ANNOTATION] = fullID;
     }
 
     return {
-      'workload.user.cattle.io/workloadselector': selectorValue
+      'workload.user.cattle.io/workloadselector': labelValue
     };
   }
 

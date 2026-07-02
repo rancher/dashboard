@@ -1,11 +1,12 @@
-import { generateWorkloadSelector, generateFullWorkloadId, WORKLOAD_ID_FULL_ANNOTATION } from '../workload-selector';
+import { generateWorkloadSelector, WORKLOAD_ID_FULL_ANNOTATION } from '../workload-selector';
 
 describe('workload-selector', () => {
   describe('generateWorkloadSelector', () => {
     it('should return full format for short names', () => {
       const result = generateWorkloadSelector('deployment', 'default', 'nginx');
 
-      expect(result).toStrictEqual('deployment-default-nginx');
+      expect(result.labelValue).toStrictEqual('deployment-default-nginx');
+      expect(result.fullID).toStrictEqual('');
     });
 
     it('should return full format when exactly at 63 character limit', () => {
@@ -14,46 +15,47 @@ describe('workload-selector', () => {
       const name = 'b'.repeat(25);
       const result = generateWorkloadSelector('deployment', namespace, name);
 
-      expect(result).toHaveLength(63);
-      expect(result).toStrictEqual(`deployment-${ namespace }-${ name }`);
+      expect(result.labelValue).toHaveLength(63);
+      expect(result.labelValue).toStrictEqual(`deployment-${ namespace }-${ name }`);
+      expect(result.fullID).toStrictEqual('');
     });
 
-    it('should return hash format when exceeding 63 characters', () => {
+    it('should return truncated format when exceeding 63 characters', () => {
       // deployment(10) + -(1) + namespace(27) + -(1) + name(26) = 65 chars
       const namespace = 'a'.repeat(27);
       const name = 'b'.repeat(26);
       const result = generateWorkloadSelector('deployment', namespace, name);
 
-      expect(result.length).toBeLessThanOrEqual(63);
-      expect(result).toMatch(/^deployment-[a-f0-9]{12}$/);
+      expect(result.labelValue.length).toBeLessThanOrEqual(63);
+      expect(result.labelValue).toMatch(/^deployment-[ab-]+-[a-f0-9]{5}$/);
+      expect(result.fullID).toStrictEqual(`deployment-${ namespace }-${ name }`);
     });
 
-    it('should return hash format for maximum length names', () => {
+    it('should return truncated format for maximum length names', () => {
       const namespace = 'a'.repeat(63);
       const name = 'b'.repeat(63);
       const result = generateWorkloadSelector('deployment', namespace, name);
 
-      expect(result.length).toBeLessThanOrEqual(63);
-      expect(result).toMatch(/^deployment-[a-f0-9]{12}$/);
-      // deployment(10) + -(1) + hash(12) = 23 chars
-      expect(result).toHaveLength(23);
+      expect(result.labelValue.length).toBeLessThanOrEqual(63);
+      expect(result.fullID).toHaveLength(138); // deployment(10) + -(1) + 63 + -(1) + 63
     });
 
-    it('should generate deterministic hashes', () => {
+    it('should generate deterministic results', () => {
       const namespace = 'very-long-namespace-name-that-exceeds-limits';
       const name = 'very-long-deployment-name-that-also-exceeds-limits';
 
       const result1 = generateWorkloadSelector('deployment', namespace, name);
       const result2 = generateWorkloadSelector('deployment', namespace, name);
 
-      expect(result1).toStrictEqual(result2);
+      expect(result1.labelValue).toStrictEqual(result2.labelValue);
+      expect(result1.fullID).toStrictEqual(result2.fullID);
     });
 
-    it('should generate different hashes for different inputs', () => {
+    it('should generate different results for different inputs', () => {
       const result1 = generateWorkloadSelector('deployment', 'namespace-a'.repeat(10), 'workload-1'.repeat(10));
       const result2 = generateWorkloadSelector('deployment', 'namespace-b'.repeat(10), 'workload-2'.repeat(10));
 
-      expect(result1).not.toStrictEqual(result2);
+      expect(result1.labelValue).not.toStrictEqual(result2.labelValue);
     });
 
     it('should work with different workload types', () => {
@@ -64,13 +66,13 @@ describe('workload-selector', () => {
       const statefulset = generateWorkloadSelector('statefulset', namespace, name);
       const daemonset = generateWorkloadSelector('daemonset', namespace, name);
 
-      expect(deployment).toMatch(/^deployment-[a-f0-9]{12}$/);
-      expect(statefulset).toMatch(/^statefulset-[a-f0-9]{12}$/);
-      expect(daemonset).toMatch(/^daemonset-[a-f0-9]{12}$/);
+      expect(deployment.labelValue).toMatch(/^deployment-/);
+      expect(statefulset.labelValue).toMatch(/^statefulset-/);
+      expect(daemonset.labelValue).toMatch(/^daemonset-/);
 
-      // Different types should produce different hashes for same namespace/name
-      expect(deployment).not.toStrictEqual(statefulset);
-      expect(deployment).not.toStrictEqual(daemonset);
+      // Different types should produce different results
+      expect(deployment.labelValue).not.toStrictEqual(statefulset.labelValue);
+      expect(deployment.labelValue).not.toStrictEqual(daemonset.labelValue);
     });
 
     it('should handle apps.deployment type format', () => {
@@ -79,26 +81,29 @@ describe('workload-selector', () => {
 
       const result = generateWorkloadSelector('apps.deployment', namespace, name);
 
-      expect(result.length).toBeLessThanOrEqual(63);
-      expect(result).toMatch(/^apps\.deployment-[a-f0-9]{12}$/);
-    });
-  });
-
-  describe('generateFullWorkloadId', () => {
-    it('should return the complete workload ID regardless of length', () => {
-      const namespace = 'a'.repeat(63);
-      const name = 'b'.repeat(63);
-      const result = generateFullWorkloadId('deployment', namespace, name);
-
-      // deployment(10) + -(1) + namespace(63) + -(1) + name(63) = 138 chars
-      expect(result).toHaveLength(138);
-      expect(result).toStrictEqual(`deployment-${ namespace }-${ name }`);
+      expect(result.labelValue.length).toBeLessThanOrEqual(63);
+      expect(result.labelValue).toMatch(/^apps\.deployment-/);
     });
 
-    it('should match format for short names', () => {
-      const result = generateFullWorkloadId('deployment', 'default', 'nginx');
+    it('should handle boundary case exactly', () => {
+      const type = 'deployment';
+      // Create exactly 63 chars: deployment(10) + -(1) + ns(26) + -(1) + name(25) = 63
+      const ns63 = 'a'.repeat(26);
+      const name63 = 'b'.repeat(25);
 
-      expect(result).toStrictEqual('deployment-default-nginx');
+      const result63 = generateWorkloadSelector(type, ns63, name63);
+
+      expect(result63.labelValue).toHaveLength(63);
+      expect(result63.fullID).toStrictEqual('');
+
+      // Create 64 chars: deployment(10) + -(1) + ns(26) + -(1) + name(26) = 64
+      const ns64 = 'a'.repeat(26);
+      const name64 = 'b'.repeat(26);
+
+      const result64 = generateWorkloadSelector(type, ns64, name64);
+
+      expect(result64.labelValue.length).toBeLessThanOrEqual(63);
+      expect(result64.fullID).not.toStrictEqual('');
     });
   });
 
