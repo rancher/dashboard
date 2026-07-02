@@ -515,7 +515,7 @@ export default {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
 
-    showMonitoringBanner() {
+    monitoringChartWarning() {
       const annotations = this.version?.annotations || {};
       const releaseName = annotations[CATALOG_ANNOTATIONS.RELEASE_NAME];
       const certified = annotations[CATALOG_ANNOTATIONS.CERTIFIED];
@@ -528,11 +528,11 @@ export default {
       }
 
       if (releaseName === 'rancher-monitoring') {
-        return this.t('catalog.install.steps.basics.oldMonitoringChartWarning');
+        return this.t('catalog.install.steps.basics.oldMonitoringChartWarning', {}, true);
       }
 
       if (!this.existing && releaseName === 'rancher-monitoring-dashboards') {
-        return this.t('catalog.install.steps.basics.newMonitoringChartWarning');
+        return this.t('catalog.install.steps.basics.newMonitoringChartWarning', {}, true);
       }
 
       return null;
@@ -1702,10 +1702,10 @@ export default {
       <template #basics>
         <div class="step__basic">
           <Banner
-            v-if="showMonitoringBanner"
+            v-if="monitoringChartWarning"
             color="warning"
           >
-            {{ showMonitoringBanner }}
+            <span v-clean-html="monitoringChartWarning" />
           </Banner>
           <Banner
             v-if="step1Description"
