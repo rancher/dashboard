@@ -623,7 +623,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
   return retry();
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined): Cypress.Chainable => {
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined, config = { requestTimeout: MEDIUM_API_DELAY }): Cypress.Chainable => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
@@ -639,6 +639,7 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
         'x-api-csrf': _token.value,
         Accept:       'application/json'
       },
+      timeout: config?.requestTimeout
     })
       .then((resp) => {
         if (greaterThan) {

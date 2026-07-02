@@ -17,3 +17,10 @@ export const USERS_BASE_URL = '/v1/management.cattle.io.users';
  * When making quick sequential API requests delay by this amount. This should be used as little and infrequently as possible
  */
 export const MEDIUM_API_DELAY = 500;
+
+/**
+ * When waiting for rancher for initialise wait a long time
+ *
+ * This should NOT be used when making generic requests to rancher
+ */
+export const EXTREME_API_DELAY = 1000 * 60 * 5;

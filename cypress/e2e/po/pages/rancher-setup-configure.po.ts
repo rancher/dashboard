@@ -6,6 +6,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTREME_API_DELAY } from '@/cypress/support/utils/api-endpoints';
 
 export class RancherSetupConfigurePage extends PagePo {
   static url = '/auth/setup'
@@ -22,7 +23,7 @@ export class RancherSetupConfigurePage extends PagePo {
    * Once done we know we can fetch later ok
    */
   readyForNav() {
-    return cy.waitForRancherResources('v1', 'management.cattle.io.users', 1, true);
+    return cy.waitForRancherResources('v1', 'management.cattle.io.users', 1, true, { requestTimeout: EXTREME_API_DELAY });
   }
 
   waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
