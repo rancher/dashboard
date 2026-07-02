@@ -43,6 +43,10 @@ describe('Home Page List', { testIsolation: false }, () => {
     clusterMgmtClusterList.goTo();
     clusterMgmtClusterList.waitForPage();
 
+    // Wait for the table to load and the cluster row to be visible
+    clusterMgmtClusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterMgmtClusterList.sortableTable().rowWithName(clusterName).checkVisible();
+
     cy.get('@stateText').then((state) => {
       clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
     });
