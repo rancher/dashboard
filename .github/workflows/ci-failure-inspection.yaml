@@ -1,0 +1,53 @@
+name: Jenkins CI Failure Inspection
+
+on:
+  schedule:
+    # Runs Tue–Sat at 11:00 UTC (4:00 AM PST) — after all Jenkins jobs from the prior day complete
+    - cron: '0 11 * * 2-6'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run — print failures without creating issues'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  inspect:
+    name: Inspect CI failures and create issues
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read QA secrets from Vault
+        uses: rancher-eio/read-vault-secrets@7282bf97898cd1c16c89f837e0bb442e6d384c89 # v3
+        with:
+          secrets: |
+            github/token/rancher--qa-tasks--issues--write token | GH_TOKEN
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run CI inspection
+        working-directory: cypress/jenkins/inspector
+        env:
+          GITHUB_TOKEN: ${{ env.GH_TOKEN }}
+          JENKINS_AUTH: ${{ secrets.INSPECTOR_JENKINS_AUTH }}
+          JENKINS_BASE_URL: ${{ secrets.INSPECTOR_JENKINS_BASE_URL }}
+          JENKINS_JOB_PATH: rancher_qa/ui-automation-ansible-job
+          GITHUB_ORG: rancher
+          GITHUB_REPO: qa-tasks
+          GITHUB_PROJECT_NUMBER: '40'
+          GITHUB_PROJECT_OWNER: org
+          GITHUB_ISSUE_LABELS: area/automation-test-ui,kind/flaky-test
+          STATUS_FIELD_ID: PVTSSF_lADOAI6QIs4APE0XzgJn5b4
+          BACKLOG_OPTION_ID: f75ad846
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: node src/inspect.js
