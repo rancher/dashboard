@@ -9,7 +9,7 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "head"
+          "tag": "v2.15-af21cbeebe186a83e1c339357f91a640e7c655eb-head"
         },
         "rancher-agent": {
           "namespace": "rancher",
