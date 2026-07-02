@@ -61,12 +61,10 @@ jobs:
 
   test-build-extension-charts-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml
     permissions:
-      actions: write
       contents: write
-      deployments: write
-      pages: write
+      pull-requests: write
     with:
       target_branch: 'gh-pages'
       tagged_release:  ${{ needs.retrieve-tags-master.outputs.EXTENSION_TAG }}

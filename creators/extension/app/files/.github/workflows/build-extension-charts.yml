@@ -16,8 +16,6 @@ jobs:
     permissions:
       actions: write
       contents: write
-      deployments: write
-      pages: write
     with:
       target_branch: gh-pages
       tagged_release: ${{ github.ref_name }}
