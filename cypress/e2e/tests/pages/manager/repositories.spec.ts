@@ -255,7 +255,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
     repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
-    repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue('');
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
 
     cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createRepository');
 
