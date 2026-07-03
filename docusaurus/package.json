@@ -50,7 +50,8 @@
   },
   "resolutions": {
     "cheerio": "1.0.0-rc.12",
-    "webpack": "5.105.4"
+    "webpack": "5.105.4",
+    "ws": "8.21.0"
   },
   "engines": {
     "node": ">=18.0"
