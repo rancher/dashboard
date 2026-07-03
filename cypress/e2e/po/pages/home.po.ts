@@ -6,6 +6,7 @@ import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -31,6 +32,12 @@ export default class HomePagePo extends PagePo {
     homePage.bannerGraphic().checkVisible();
 
     return homePage;
+  }
+
+  waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
+    this.readyForLoggedInPage();
+
+    return super.waitForPage(params, fragment, options);
   }
 
   constructor() {
