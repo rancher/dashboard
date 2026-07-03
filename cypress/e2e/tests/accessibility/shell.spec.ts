@@ -242,7 +242,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Project: Create');
             });
-            createProjectPage.waitForPage(null, 'members');
+            createProjectPage.waitForPage(undefined, 'members');
             createProjectPage.resourceDetail().createEditView()
               .nameNsDescription()
               .name()
@@ -430,7 +430,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           storageClasses.goTo();
           storageClasses.waitForPage();
           storageClasses.clickCreate();
-          storageClasses.createStorageClassesForm().waitForPage(null, 'parameters');
+          storageClasses.createStorageClassesForm().waitForPage(undefined, 'parameters');
           storageClasses.mastheadTitle().then((title) => {
             expect(title.replace(/\s+/g, ' ')).to.contain('StorageClass: Create');
           });
@@ -545,7 +545,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         cy.checkPageAccessibility();
 
         // delete digital ocean cloud credential
-        cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+        cy.getRancherResource('v3', 'cloudcredentials').then((resp: Cypress.Response<any>) => {
           const body = resp.body;
 
           if (body.pagination['total'] > 0) {
@@ -673,7 +673,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Chart Detail Page - Kubecost', () => {
         const chartPage = new ChartPage();
 
-        ChartPage.navTo(null, 'Kubecost');
+        ChartPage.navTo(undefined, 'Kubecost');
         chartPage.waitForChartPage('rancher-partner-charts', 'cost-analyzer');
         chartPage.waitForChartHeader('Kubecost', MEDIUM_TIMEOUT_OPT);
 
@@ -691,10 +691,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         cy.setUserPreference({ 'plugin-developer': true });
 
         extensionsPo.goTo();
-        extensionsPo.waitForPage(null, 'available');
+        extensionsPo.waitForPage(undefined, 'available');
         extensionsPo.loading().should('not.exist');
         extensionsPo.extensionTabBuiltinClick();
-        extensionsPo.waitForPage(null, 'builtin');
+        extensionsPo.waitForPage(undefined, 'builtin');
         extensionsPo.extensionCard('AKS Provisioning').checkVisible();
         cy.injectAxe();
 
