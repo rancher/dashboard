@@ -61,7 +61,7 @@ jobs:
 
   test-build-extension-charts-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9bf23dff6650116673346447bcf0b088e0edb27f # creators-pkg-v3.0.12
     permissions:
       contents: write
       pull-requests: write
