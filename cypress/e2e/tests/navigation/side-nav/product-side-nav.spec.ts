@@ -52,7 +52,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
       .should('be.visible')
       .click();
-    cy.get('@openGroup').find('ul').should('have.length', 0);
+    cy.get('@openGroup').should('not.have.class', 'expanded');
   });
 
   it('Should flag second menu group as active on navigation', () => {
