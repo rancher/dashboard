@@ -63,18 +63,15 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
 
-      - name: Create URLs from public ip
+      - name: Create URLs from public ip # URLs are per job and are needed at build time
         run: |
           IP=$(curl -s ifconfig.me)
           echo "API=$IP" >> $GITHUB_ENV
           echo "TEST_BASE_URL=https://$IP.sslip.io" >> $GITHUB_ENV
+          echo $TEST_BASE_URL > rancher-url.txt
 
       - name: Build e2e
         run: yarn e2e:build
-
-      - name: Upload Public IP
-        run: |
-          echo $TEST_BASE_URL > rancher-url.txt
 
       - name: Run Rancher
         run: yarn e2e:k3s
@@ -87,14 +84,14 @@ jobs:
           TEST_USERNAME: admin
           TEST_ONLY: setup
 
-      - name: Upload URL
+      - name: Upload Rancher URL # creating this artifact triggers dependent jobs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rancher-url-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}
           path: rancher-url.txt
           retention-days: 1
 
-      - name: Keep alive and capture logs
+      - name: Keep Rancher alive # this ensure rancher runs until dependent job finishes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -109,7 +106,6 @@ jobs:
             if [[ -n "$ARTIFACT_ID" ]]; then
               echo "Test job has finished. Shutting down Rancher."
 
-              yarn k3s:local:logs
               exit 0
             fi
 
@@ -131,9 +127,11 @@ jobs:
       - name: Upload Rancher Logs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs
+          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
           path: artifacts/
+          if-no-files-found: error
           retention-days: 5
+          compression-level: 9
 
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
