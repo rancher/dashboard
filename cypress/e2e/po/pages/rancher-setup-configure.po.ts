@@ -5,7 +5,7 @@ import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po'
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import { HELM_STARTUP_DELAY_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class RancherSetupConfigurePage extends PagePo {
   static url = '/auth/setup'
@@ -13,20 +13,8 @@ export class RancherSetupConfigurePage extends PagePo {
     return super.goTo(RancherSetupConfigurePage.url);
   }
 
-  /**
-   * Sometimes, when running in helm, Rancher will hang for a loooong time on the request we make to fetch the signed in mgmt user.
-   *
-   * This causes anything cypress side to basically always time out (page / component waits)
-   *
-   * Here we're checking if the resource is ready to fetch by trying to fetch all mgmt users. This may take 4 minutes... but should eventually succeed.
-   * Once done we know we can fetch later ok
-   */
-  readyForNav() {
-    return cy.waitForRancherResources('v1', 'management.cattle.io.users', 1, true, { requestTimeout: HELM_STARTUP_DELAY_OPT.timeout });
-  }
-
   waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
-    this.readyForNav();
+    this.readyForLoggedInPage();
 
     return super.waitForPage(params, fragment, options);
   }

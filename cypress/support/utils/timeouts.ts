@@ -25,4 +25,4 @@ export const VERY_LONG_TIMEOUT_OPT = { timeout: 700000 };
  *
  * This should NOT be used in any other scenario
  */
-export const HELM_STARTUP_DELAY_OPT = { timeout: 1000 * 60 * 5 } ;
+export const HELM_STARTUP_DELAY_OPT = { timeout: 1000 * 60 * 6 } ;
