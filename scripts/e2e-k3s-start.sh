@@ -136,6 +136,11 @@ helm install cert-manager jetstack/cert-manager \
   --create-namespace \
   --version v1.7.1
 
+echo "Waiting for cert-manager pods to be ready..."
+kubectl wait --for=condition=Ready pods -l app=cert-manager -n cert-manager --timeout=300s
+kubectl wait --for=condition=Ready pods -l app=cainjector -n cert-manager --timeout=300s
+kubectl wait --for=condition=Ready pods -l app=webhook -n cert-manager --timeout=300s
+
 echo "Cert manager pods should be up"
 kubectl get pods --namespace cert-manager
 
@@ -180,13 +185,14 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
 
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
+kubectl wait --for=condition=Available -n cattle-system deployment/rancher --timeout=300s
 
 echo "Waiting for dashboard UI to be reachable.........."
 
 okay=0
 
 while [ $okay -lt 20 ]; do
-  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+  STATUS=$(curl --silent --location --head -k $TEST_BASE_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
 
   echo "Status: $STATUS (Try: $okay)"
 
@@ -226,7 +232,7 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
   kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
   # Final validation
-  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+  STATUS=$(curl --silent --location --head -k $TEST_BASE_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
   echo "Status: $STATUS"
 
   if [ "$STATUS" != "200" ]; then

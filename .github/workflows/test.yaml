@@ -168,7 +168,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          ARTIFACT_NAME="rancher-ip-${RUN_ID}-${{ matrix.role.username }}-${{ matrix.features[0] }}"
+          ARTIFACT_NAME="rancher-url-${RUN_ID}-${{ matrix.role.username }}-${{ matrix.features[0] }}"
           echo "Looking for artifact: $ARTIFACT_NAME"
           for i in {1..60}; do
             ARTIFACT_ID=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .id")
@@ -183,7 +183,7 @@ jobs:
             echo "Attempt $i: Rancher not ready yet. Waiting 10 seconds..."
             sleep 10
           done
-          echo "Tired of waiting for rancher-ip artifact. Timing out."
+          echo "Tired of waiting for rancher-url artifact. Timing out."
           exit 1
 
       - name: Setup Rancher and user
@@ -226,6 +226,19 @@ jobs:
           if-no-files-found: error
           retention-days: 5
           compression-level: 9
+
+      - name: Signal test completion
+        if: always()
+        run: |
+          touch test-done
+          echo "Signaling test completion"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: test-done-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}
+          path: test-done
+          retention-days: 1
 
   unit-test:
     runs-on: ubuntu-latest
