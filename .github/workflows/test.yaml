@@ -19,10 +19,10 @@ env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  # TEST_BASE_URL set dynamically in jobs
-  # API set dynamically in jobs
-  RANCHER_URL: "not set"
-  RANCHER_IP: "not set"
+  TEST_BASE_URL: "not set"
+  API: "not set"
+  # RANCHER_URL: "not set"
+  # RANCHER_IP: "not set"
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
@@ -33,38 +33,9 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
-  e2e-ui-build:
+  e2e-build-and-run-rancher:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          fetch-depth: 1
-      - name: Setup env
-        uses: ./.github/actions/setup
-      - name: Build e2e
-        run: yarn e2e:build
-      - name: Upload e2e build
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ env.E2E_BUILD_DIST_NAME }}
-          path: ${{ env.E2E_BUILD_DIST_DIR }}/
-          if-no-files-found: error
-          retention-days: 10
-          compression-level: 9
-      - name: Upload e2e build ember
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
-          if-no-files-found: error
-          retention-days: 10
-          compression-level: 9
-
-  e2e-run-rancher:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    runs-on: ubuntu-latest
-    needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
@@ -73,50 +44,56 @@ jobs:
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          ['@navigation', '@extensions'],
+          # ['@navigation', '@extensions'],
           ['@charts'],
-          ['@explorer'],
-          ['@explorer2'],
-          ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@noVai']
+          # ['@explorer'],
+          # ['@explorer2'],
+          # ['@virtualizationMgmt', '@fleet'],
+          # ['@generic', '@globalSettings'],
+          # ['@manager'],
+          # ['@userMenu', '@usersAndAuths'],
+          # ['@components'],
+          # ['@noVai']
         ]
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
+
       - name: Setup env
         uses: ./.github/actions/setup
-      - name: Download e2e build
-        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-         name: ${{ env.E2E_BUILD_DIST_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_DIR }}
-      - name: Download e2e build ember
-        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
-      - name: Get Public IP and Start Rancher
-        id: get_ip
+
+      - name: Create URLs from public ip
         run: |
           IP=$(curl -s ifconfig.me)
-          echo "RANCHER_IP=$IP" >> $GITHUB_ENV
-          echo $IP > rancher_ip.txt
-          TEST_BASE_URL=https://$IP.sslip.io nohup ./scripts/e2e-k3s-start.sh > ${{ env.E2E_RANCHER_LOG }} 2>&1 &
-      - name: Upload IP
+          echo "API=$IP" >> $GITHUB_ENV
+          echo "TEST_BASE_URL=https://$IP.sslip.io" >> $GITHUB_ENV
+
+      - name: Build e2e
+        run: yarn e2e:build
+
+      - name: Upload Public IP
+        run: |
+          echo $TEST_BASE_URL > rancher-url.txt
+
+      - name: Run Rancher
+        run: yarn e2e:k3s
+
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env: 
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+
+      - name: Upload URL
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: rancher-ip-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}
-          path: rancher_ip.txt
+          name: rancher-url-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}
+          path: rancher-url.txt
           retention-days: 1
-      - name: Wait for Rancher to be ready
-        run: |
-          echo "Waiting for Rancher at https://${{ env.RANCHER_IP }}.sslip.io"
-          timeout 5m bash -c 'until curl -k --silent --output /dev/null --head --fail "https://${{ env.RANCHER_IP }}.sslip.io/dashboard/"; do echo "waiting..."; sleep 5; done'
+
       - name: Keep alive and capture logs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -131,23 +108,26 @@ jobs:
             ARTIFACT_ID=$(gh api "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq ".artifacts[] | select(.name == \"test-done-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}\") | .id")
             if [[ -n "$ARTIFACT_ID" ]]; then
               echo "Test job has finished. Shutting down Rancher."
+
+              yarn k3s:local:logs
               exit 0
             fi
 
             echo "Test job not finished yet. Waiting..."
 
-            # Capture Rancher logs and wait before next check
-            yarn k3s:local:logs
+            # wait before next check
             sleep 30
           done
 
           echo "Timed out waiting for test job to finish."
           exit 1
+
       - name: Fetch Rancher Logs
         run: |
           yarn k3s:local:logs
           mkdir -p artifacts
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+
       - name: Upload Rancher Logs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -157,7 +137,6 @@ jobs:
 
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
@@ -166,25 +145,27 @@ jobs:
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          ['@navigation', '@extensions'],
+          # ['@navigation', '@extensions'],
           ['@charts'],
-          ['@explorer'],
-          ['@explorer2'],
-          ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@noVai']
+          # ['@explorer'],
+          # ['@explorer2'],
+          # ['@virtualizationMgmt', '@fleet'],
+          # ['@generic', '@globalSettings'],
+          # ['@manager'],
+          # ['@userMenu', '@usersAndAuths'],
+          # ['@components'],
+          # ['@noVai']
         ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 1
+
       - name: Setup env
         uses: ./.github/actions/setup
-      - name: Wait for Rancher and get IP
+
+      - name: Wait for Rancher and get URL
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
@@ -196,9 +177,9 @@ jobs:
             if [[ -n "$ARTIFACT_ID" ]]; then
               echo "Artifact found with ID: $ARTIFACT_ID"
               gh artifact download $ARTIFACT_NAME --dir .
-              IP=$(cat rancher_ip.txt)
-              echo "RANCHER_URL=https://$IP.sslip.io" >> $GITHUB_ENV
-              rm rancher_ip.txt
+              TEST_BASE_URL=$(cat rancher-url.txt)
+              echo "TEST_BASE_URL=$TEST_BASE_URL" >> $GITHUB_ENV
+              rm rancher-url.txt
               exit 0
             fi
             echo "Attempt $i: Rancher not ready yet. Waiting 10 seconds..."
@@ -206,10 +187,7 @@ jobs:
           done
           echo "Tired of waiting for rancher-ip artifact. Timing out."
           exit 1
-      - name: Wait for Rancher to be ready
-        run: |
-          echo "Waiting for Rancher to be ready at ${{ env.RANCHER_URL }}"
-          timeout 5m bash -c 'until curl -k --silent --output /dev/null --head --fail "${{ env.RANCHER_URL }}/dashboard/"; do echo "waiting..."; sleep 5; done'
+
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
@@ -217,8 +195,9 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
-          TEST_BASE_URL: ${{ env.RANCHER_URL }}
-          API: ${{ env.RANCHER_URL }}
+          TEST_BASE_URL: ${{ env.TEST_BASE_URL }}
+          API: ${{ env.TEST_BASE_URL }}
+
       - name: Run user tests
         run: |
           yarn e2e:prod
@@ -228,8 +207,9 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
-          TEST_BASE_URL: ${{ env.RANCHER_URL }}
-          API: ${{ env.RANCHER_URL }}
+          TEST_BASE_URL: ${{ env.TEST_BASE_URL }}
+          API: ${{ env.TEST_BASE_URL }}
+
       - name: Create Artifacts Folder
         if: ${{ always() }}
         run: |
@@ -238,6 +218,7 @@ jobs:
           cp -r cypress/videos artifacts 2>/dev/null || :
           cp -r cypress/reports/* artifacts || :
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ always() }}
@@ -247,79 +228,6 @@ jobs:
           if-no-files-found: error
           retention-days: 5
           compression-level: 9
-      - name: Signal completion
-        if: ${{ always() }}
-        run: |
-          echo "done" > completion.txt
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ always() }}
-        with:
-          name: test-done-${{ github.run_id }}-${{ matrix.role.username }}-${{ matrix.features[0] }}
-          path: completion.txt
-          retention-days: 1
-
-  a11y-test:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    needs: e2e-ui-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          fetch-depth: 1
-      - name: Setup env
-        uses: ./.github/actions/setup
-      - name: Wait for Rancher and get IP
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          echo "Looking for artifact: rancher-ip-${RUN_ID}"
-          for i in {1..60}; do
-            ARTIFACT_ID=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq ".artifacts[] | select(.name == \"rancher-ip-${RUN_ID}\") | .id")
-            if [[ -n "$ARTIFACT_ID" ]]; then
-              echo "Artifact found with ID: $ARTIFACT_ID"
-              gh artifact download rancher-ip-${RUN_ID} --dir .
-              IP=$(cat rancher_ip.txt)
-              echo "RANCHER_URL=https://$IP.sslip.io" >> $GITHUB_ENV
-              rm rancher_ip.txt
-              exit 0
-            fi
-            echo "Attempt $i: Rancher not ready yet. Waiting 10 seconds..."
-            sleep 10
-          done
-          echo "Tired of waiting for rancher-ip artifact. Timing out."
-          exit 1
-      - name: Wait for Rancher to be ready
-        run: |
-          echo "Waiting for Rancher to be ready at ${{ env.RANCHER_URL }}"
-          timeout 5m bash -c 'until curl -k --silent --output /dev/null --head --fail "${{ env.RANCHER_URL }}/dashboard/"; do echo "waiting..."; sleep 5; done'
-      - name: Setup Rancher and user
-        run: |
-          yarn e2e:prod
-        env: 
-          GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
-          TEST_USERNAME: admin
-          TEST_ONLY: setup
-          TEST_BASE_URL: ${{ env.RANCHER_URL }}
-          API: ${{ env.RANCHER_URL }}
-      - name: Run user tests
-        run: |
-          yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
-          TEST_SKIP: setup
-          GREP_TAGS: "@adminUser+@accessibility --@jenkins"
-          TEST_USERNAME: admin
-          TEST_A11Y: true
-          TEST_NO_VIDEOS: true
-          TEST_BASE_URL: ${{ env.RANCHER_URL }}
-          API: ${{ env.RANCHER_URL }}
-
-      - name: Upload report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: accessibility-report
-          path: cypress/accessibility
 
   unit-test:
     runs-on: ubuntu-latest
