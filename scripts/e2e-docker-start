@@ -7,6 +7,9 @@ DIR=$(cd $(dirname $0)/..; pwd)
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
+
+USE_LOCAL_BRANCH_METADATA=true # use an updated branch-metadata with pinned dashboard version
+
 # Container Image Defaults
 RANCHER_IMG_TAG=head
 RANCHER_IMG_REGISTRY=
@@ -27,8 +30,12 @@ if [ $# -eq 1 ]; then
   # When an image is specified, we use that image, including its front-end, so we don't want the volume args to mount the locally-built UI
   VOLUME_ARGS=""
 else
-  # Get container image from branch-metadata
-  BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  # Get container image from branch-metadata. when testing locally update to pass in your target branch
+  if [ "$USE_LOCAL_BRANCH_METADATA" = "true" ]; then
+    BRANCH_DATA=$(./scripts/get-branch-metadata.sh --local ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  else
+    BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${GITHUB_BASE_REF:-${GITHUB_REF_NAME}})
+  fi
 
   if [ -n "$BRANCH_DATA" ]; then
     REGISTRY=$(echo "$BRANCH_DATA" | jq -r '.e2e["rancher-image"].registry // ""')
