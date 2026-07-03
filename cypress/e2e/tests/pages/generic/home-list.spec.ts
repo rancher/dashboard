@@ -48,21 +48,21 @@ describe('Home Page List', { testIsolation: false }, () => {
     clusterMgmtClusterList.sortableTable().rowWithName(clusterName).checkVisible();
 
     cy.get('@stateText').then((state) => {
-      clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
+      clusterMgmtClusterList.list().state(clusterName).should('contain.text', state);
     });
 
     cy.get('@nameText').then((nameElm) => {
       const name = (nameElm as unknown as string).trim(); // nameElm is text...
 
-      clusterMgmtClusterList.list().details(clusterName, 2).should('contain.text', name);
+      clusterMgmtClusterList.list().name(clusterName).should('contain.text', name);
     });
 
     cy.get('@versionText').then((version) => {
-      clusterMgmtClusterList.list().details(clusterName, 4).should('contain.text', version);
+      clusterMgmtClusterList.list().version(clusterName).should('contain.text', version);
     });
 
     cy.get('@providerText').then((provider) => {
-      clusterMgmtClusterList.list().details(clusterName, 3).should('contain.text', provider);
+      clusterMgmtClusterList.list().provider(clusterName).should('contain.text', provider);
     });
   }));
 
