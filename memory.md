@@ -41,6 +41,7 @@
 - useI18n.ts: `jest.setup.js` globally stubs `@shell/composables/useI18n`; add `jest.unmock('@shell/composables/useI18n')` BEFORE imports to bypass; mock `@shell/plugins/i18n` for stringFor; module-level `store` is shared — tests are order-dependent but safe since each test sets store via useI18n()
 - auth.js: `jest.mock('@shell/utils/uiplugins', ...)` needed for isLoggedIn; store getters with schemaFor are function-getters (return functions, not values); `notLoggedIn` — 'index'.includes('auth')=false so setAuthRedirect IS called for index route; `openAuthPopup` deferred (Popup + BroadcastChannel complexity)
 - favicon.js: `favIconSet` and `defaultFavIcon` are module-level; use `jest.resetModules()` + dynamic `require()` in beforeEach; mock `@shell/utils/require-asset`; use `link.getAttribute('href')` (not `link.href`) to avoid jsdom URL resolution
+- useLabeledFormElement.ts: no lifecycle hooks, no store — use ref/computed directly; `raised` is initialized once (not reactive to prop changes); `rule.name` detection requires named `function` declarations not arrow functions; `rule(value)` at line 115 is NOT null-guarded (code inconsistency); emit is jest.Mock for 'update:validation'
 
 ## Testing Notes (composables)
 
@@ -53,14 +54,15 @@
 ## Testing Backlog (Prioritized)
 
 1. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
-2. `shell/store/type-map.utils.ts` — `createHeaders`, `headerFromSchemaColString` (full Vuex store mock)
-3. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
-4. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
-5. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
+3. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
+4. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
+5. `shell/composables/useClickOutside.ts` — click-outside detection, ignore list, shouldListen logic
 
 ## Completed Work (Summary)
 
-- 2026-07-03: PR (test-assist/favicon-utils-tests): 15 new tests for favicon.js — haveSetFavIcon state, setFavIcon brand selection (suse/csp/harvester), findIconLink; 0%→100% stmts/fns, 94.7% branches
+- 2026-07-04: PR (test-assist/labeled-form-element-composable-tests): 30 new tests for useLabeledFormElement.ts — raised/focused state, validation messages, required-field detection, emit assertions; 0%→100% stmts/lines, 93.33% branches
+- 2026-07-03: PR #18267 (test-assist/favicon-utils-tests): 15 new tests for favicon.js — haveSetFavIcon state, setFavIcon brand selection (suse/csp/harvester), findIconLink; 0%→100% stmts/fns, 94.7% branches
 - 2026-07-02: PR #18249 (test-assist/auth-utils-tests): 25 new tests for auth.js — checkSchemasForFindAllHash, canViewResource, authProvidersInfo, findMe, noAuth, notLoggedIn, isLoggedIn, tryInitialSetup; ~35%→82.82% stmts, 95.91% branches
 - 2026-07-01: PR #18235 (test-assist/usei18n-composable-tests): 10 tests for useI18n.ts; 0%→100% all metrics
 - 2026-06-30: PR #18210 (test-assist/runtime-flag-labeled-select-tests): 29 tests for useRuntimeFlag.ts + useLabeledSelect.ts; 0%→100% stmts/fns
@@ -83,6 +85,7 @@
 
 ## Task Round-Robin History
 
+- 2026-07-04: Task 4 (all 4 PRs CI green) + Task 3 (useLabeledFormElement.ts, 30 tests) + Task 7
 - 2026-07-03: Task 4 (PRs #18249/#18235 CI green) + Task 3 (favicon.js, 15 tests) + Task 7
 - 2026-07-02: Task 4 (PRs #18235/#18210 CI green) + Task 3 (auth.js, 25 tests) + Task 7
 - 2026-07-01: Task 4 (PR #18210 CI-green, no action) + Task 3 (useI18n.ts, 10 tests) + Task 7 (new month: closed June #17976, created July issue)
