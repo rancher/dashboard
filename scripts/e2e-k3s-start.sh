@@ -237,8 +237,9 @@ fi
 
 echo "Dashboard UI is ready"
 
-#  wait 7 minutes (sleep 10 * 6 * 7)
-wait=42
+# wait 20 minutes (sleep 10 * wait 10 *  6 = 20 minutes)
+# if it regularly takes 20 minutes we have problems...
+wait=120
 
 echo "Waiting for rancher-webhook to be running..."
 okay=0
@@ -246,7 +247,7 @@ while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
   else
-    echo "Webhook not ready, checking again in 10s..."
+    echo "Webhook not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
     sleep 10
   fi
@@ -263,7 +264,7 @@ while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-capi-system get service capi-webhook-service | grep '443/TCP' ; then
     break
   else
-    echo "capi-webhook-service does not exist, checking again in 10s..."
+    echo "capi-webhook-service does not exist, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
     sleep 10
   fi
@@ -282,7 +283,7 @@ while [ $okay -lt $wait ] ; do
   if [ "$STATUS" = "True" ]; then
     break
   else
-    echo "Rancher imperative api not ready, checking again in 10s..."
+    echo "Rancher imperative api not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
     sleep 10
   fi
