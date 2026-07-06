@@ -53,7 +53,10 @@ export class SettingsPagePo extends RootClusterPage {
    * @returns
    */
   editSettingsByLabel(label: string) {
-    this.actionButtonByLabel(label).click();
+    const actionButton = this.actionButtonByLabel(label);
+
+    actionButton.scrollIntoView();
+    actionButton.click();
 
     return this.editSettingsButton().click();
   }
