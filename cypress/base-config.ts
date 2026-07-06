@@ -153,11 +153,14 @@ const baseConfig = defineConfig({
     // Set to 'true' to allow skipping when a chart is filtered from the UI catalog.
     allowFilteredCatalogSkip: process.env.CYPRESS_ALLOW_FILTERED_CATALOG_SKIP,
   },
-  reporter:        'cypress-mochawesome-reporter',
+  reporter:        'cypress-multi-reporters',
   reporterOptions: {
-    saveJson:        true,
-    saveAllAttempts: true,
-    reportDir:       'cypress/reports'
+    reporterEnabled:                           'spec, cypress-mochawesome-reporter',
+    cypressMochawesomeReporterReporterOptions: {
+      saveJson:        true,
+      saveAllAttempts: true,
+      reportDir:       'cypress/reports'
+    }
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
