@@ -10,6 +10,8 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       'GET',
       '/v1/management.cattle.io.settings?exclude=metadata.managedFields'
     ).as('settingsReq');
+    cy.intercept('POST', '/v1-public/login').as('bootstrapReq');
+
     const loginPage = new LoginPagePo();
 
     loginPage.goTo();
@@ -28,7 +30,9 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     loginPage.password().set(Cypress.env('password'));
     loginPage.submit();
 
-    new HomePagePo().waitForPage();
+    cy.wait('@bootstrapReq').then((login) => {
+      expect(login.response?.statusCode).to.equal(200);
+    });
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
@@ -36,6 +40,9 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
         PARTIAL_SETTING_THRESHOLD
       );
     });
+
+    new HomePagePo().waitForPage();
+
     // Yes this is bad, but want to ensure no other settings requests are made.
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
     cy.get('@settingsReq.all').should('have.length', 2);
