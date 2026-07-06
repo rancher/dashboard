@@ -25,6 +25,8 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    chartsPage.waitForPage();
+    chartsPage.chartsSearchFilterInput().should('be.visible');
     chartsPage.chartsSearchFilterInput().type(chartName);
     // Wait for the URL to update and then assert the 'q' parameter's value.
     cy.location(MEDIUM_TIMEOUT_OPT).should((loc) => {
