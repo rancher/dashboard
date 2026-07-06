@@ -190,8 +190,8 @@ const baseConfig = defineConfig({
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
-        logToFilesOnAfterRun: false,
-        printLogsToConsole:   'onFail',
+        logToFilesOnAfterRun: true,
+        printLogsToConsole:   'never',
         // printLogsToFile:      'always', // default prints on failures
       });
 

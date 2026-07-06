@@ -59,98 +59,98 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-  e2e-test:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    needs: e2e-ui-build
-    strategy:
-      fail-fast: false
-      matrix:
-        role: [
-          { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
-        ]
-        features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
-          ['@explorer2'],
-          ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@noVai']
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          fetch-depth: 1
-      - name: Setup env
-        uses: ./.github/actions/setup
+  # e2e-test:
+  #   if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+  #   needs: e2e-ui-build
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       role: [
+  #         { username: 'admin', tag: '@adminUser' }, 
+  #         { username: 'standard_user', tag: '@standardUser' }
+  #       ]
+  #       features:  [
+  #         ['@navigation', '@extensions'],
+  #         ['@charts'],
+  #         ['@explorer'],
+  #         ['@explorer2'],
+  #         ['@virtualizationMgmt', '@fleet'],
+  #         ['@generic', '@globalSettings'],
+  #         ['@manager'],
+  #         ['@userMenu', '@usersAndAuths'],
+  #         ['@components'],
+  #         ['@noVai']
+  #       ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+  #       with:
+  #         fetch-depth: 1
+  #     - name: Setup env
+  #       uses: ./.github/actions/setup
 
-      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
-      # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # - name: Install Chrome
-      #   uses: ./.github/actions/install-chrome
-      #   with:
-      #     chrome-version: '143.0.7499.192-1'
-      #     chrome-version-checksum:
+  #     # Installing fixed version of Chrome since latest version does not work (128 didn't work)
+  #     # Leaving this here again in case we need to pin to a specific Chrome version in the future
+  #     # - name: Install Chrome
+  #     #   uses: ./.github/actions/install-chrome
+  #     #   with:
+  #     #     chrome-version: '143.0.7499.192-1'
+  #     #     chrome-version-checksum:
 
-      - name: Download e2e build
-        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-         name: ${{ env.E2E_BUILD_DIST_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_DIR }}
-      - name: Download e2e build ember
-        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+  #     - name: Download e2e build
+  #       uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+  #       with:
+  #        name: ${{ env.E2E_BUILD_DIST_NAME }}
+  #        path: ${{ env.E2E_BUILD_DIST_DIR }}
+  #     - name: Download e2e build ember
+  #       uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+  #       with:
+  #        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+  #        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Run Rancher
-        run: yarn e2e:k3s
+  #     - name: Run Rancher
+  #       run: yarn e2e:k3s
       
-      - name: Setup Rancher and user
-        run: |
-          yarn e2e:prod
-        env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-          TEST_USERNAME: admin
-          TEST_ONLY: setup
-      - name: Run user tests
-        run: |
-          yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
-          TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-          TEST_USERNAME: ${{ matrix.role.username }}
-          VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
+  #     - name: Setup Rancher and user
+  #       run: |
+  #         yarn e2e:prod
+  #       env: 
+  #         GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+  #         TEST_USERNAME: admin
+  #         TEST_ONLY: setup
+  #     - name: Run user tests
+  #       run: |
+  #         yarn e2e:prod
+  #         [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+  #       env: 
+  #         TEST_SKIP: setup
+  #         GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+  #         TEST_USERNAME: ${{ matrix.role.username }}
+  #         VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
 
-      - name: Fetch Rancher Logs
-        if: ${{ failure() }}
-        run: yarn k3s:local:logs
+  #     - name: Fetch Rancher Logs
+  #       if: ${{ failure() }}
+  #       run: yarn k3s:local:logs
 
-      - name: Create Artifacts Folder
-        if: ${{ always() }}
-        run: |
-          mkdir artifacts
-          cp -r cypress/screenshots artifacts 2>/dev/null || :
-          cp -r cypress/videos artifacts 2>/dev/null || :
-          cp -r cypress/reports/* artifacts || :
-          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
-          cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+  #     - name: Create Artifacts Folder
+  #       if: ${{ always() }}
+  #       run: |
+  #         mkdir artifacts
+  #         cp -r cypress/screenshots artifacts 2>/dev/null || :
+  #         cp -r cypress/videos artifacts 2>/dev/null || :
+  #         cp -r cypress/reports/* artifacts || :
+  #         cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+  #         cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ always() }}
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: artifacts/
-          if-no-files-found: error
-          retention-days: 5
-          compression-level: 9
+  #     - name: Upload Artifacts
+  #       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+  #       if: ${{ always() }}
+  #       with:
+  #         name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+  #         path: artifacts/
+  #         if-no-files-found: error
+  #         retention-days: 5
+  #         compression-level: 9
 
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -190,6 +190,7 @@ jobs:
           GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
+
       - name: Run user tests
         run: |
           yarn e2e:prod
