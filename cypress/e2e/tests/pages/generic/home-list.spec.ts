@@ -111,10 +111,9 @@ describe('Home Page List', { testIsolation: false }, () => {
     homePage.goTo();
     homePage.waitForPage();
 
-    const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
-      .get('.cluster-description');
-
-    desc.contains(longClusterDescription);
+    homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
+      .find('.cluster-description')
+      .should('contain', longClusterDescription);
   }));
 
   qase(4107, it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
