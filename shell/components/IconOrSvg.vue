@@ -87,6 +87,7 @@ export default {
   watch: {
     brand: 'recomputeColor',
     theme: 'recomputeColor',
+    src:   'recomputeColor',
   },
 
   methods: {
@@ -143,6 +144,7 @@ export default {
       this.mainFilter = null;
       this.hoverFilter = null;
       this.activeFilter = null;
+
       this.setColor();
     },
   }
