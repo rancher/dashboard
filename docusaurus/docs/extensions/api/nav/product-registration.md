@@ -655,8 +655,6 @@ When server-side pagination is enabled for a resource type, Rancher Dashboard us
 
 Before using headers with server-side pagination, it must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
 
-> **Important:** Server-side pagination is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`.
-
 ### Renaming types (`label`)
 
 Use the `label` property directly on a resource page to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
