@@ -26,6 +26,8 @@ export class ChartPage extends PagePo {
 
     ChartsPage.navTo();
     chartsPage.waitForPage();
+    chartsPage.isChartsTotalVanilla(); // Wait for the page to be ready for filtering (avoid race condition where text enters does not change state)
+
     chartsPage.chartsSearchFilterInput().should('be.visible');
     chartsPage.chartsSearchFilterInput().type(chartName);
     // Wait for the URL to update and then assert the 'q' parameter's value.
