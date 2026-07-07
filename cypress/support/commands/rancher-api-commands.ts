@@ -547,7 +547,7 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 /**
  * delete a v3 / v1 resource
  */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true) => {
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { failOnStatusCodes } = { failOnStatusCodes: [200, 204] }) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
@@ -558,8 +558,8 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
     failOnStatusCode,
   })
     .then((resp) => {
-      if (failOnStatusCode) {
-        expect(resp.status).to.be.oneOf([200, 204]);
+      if (failOnStatusCode && failOnStatusCodes?.length) {
+        expect(resp.status).to.be.oneOf(failOnStatusCodes);
       }
     });
 });
