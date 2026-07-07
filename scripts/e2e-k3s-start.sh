@@ -265,6 +265,8 @@ while [ $okay -lt $wait ] ; do
     break
   else
     echo "capi-webhook-service does not exist, checking again in 10s (total time waited: $((okay * 10))s)..."
+    kubectl get service --all-namespaces
+    kubectl -n cattle-capi-system describe service capi-webhook-service
     okay=$((okay+1))
     sleep 10
   fi
