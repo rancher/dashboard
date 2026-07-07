@@ -84,6 +84,7 @@ exports[`component: General rendering & initial state should render with default
               rules=""
               searchable="false"
               selectable="[Function]"
+              size="large"
               value="0"
             />
           </div>
