@@ -688,6 +688,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       const extensionsPo = new ExtensionsPagePo();
       const dialogModal = new GenericDialog();
 
+      beforeEach(() => {
+        dialogModal.cancelIfOpen();
+      });
+
       it('Extensions page', () => {
         // Set the preference
         cy.setUserPreference({ 'plugin-developer': true });
@@ -732,10 +736,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         });
 
         dialogModal.clickActionButton('Cancel');
-      });
-
-      afterEach(() => {
-        dialogModal.cancelIfOpen();
       });
     });
 

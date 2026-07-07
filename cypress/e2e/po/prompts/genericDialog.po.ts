@@ -25,6 +25,7 @@ export default class GenericDialog extends ComponentPo {
 
       if (found.length) {
         this.clickActionButton('Cancel');
+        this.checkNotVisible();
       }
     });
   }
