@@ -114,6 +114,7 @@ export const SETTING = {
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
   SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
+  DELETE_INFRA_MACHINE_ON_FAILURE_AFTER:         'delete-infra-machine-on-failure-after',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
@@ -186,6 +187,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'integer',
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
+  [SETTING.DELETE_INFRA_MACHINE_ON_FAILURE_AFTER]:         { kind: 'integer', ruleSet: [{ name: 'minValue', factoryArg: 0 }] },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
   [SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT]:             { kind: 'boolean' },
   // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
@@ -204,6 +206,7 @@ export const PROVISIONING_SETTINGS = [
   SETTING.ENGINE_ISO_URL,
   SETTING.RKE_METADATA_CONFIG,
   SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
+  SETTING.DELETE_INFRA_MACHINE_ON_FAILURE_AFTER,
   SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
   SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
