@@ -2,7 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT, SMALL_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class ChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -26,12 +26,17 @@ export class ChartPage extends PagePo {
 
     ChartsPage.navTo();
     chartsPage.waitForPage();
-    chartsPage.isChartsTotalVanilla(); // Wait for the page to be ready for filtering (avoid race condition where text enters does not change state)
+
+    // Wait for the page to be ready for filtering (avoid race condition where text enters does not change state)
+    chartsPage.isChartsTotalVanilla();
+    // loathed to put this in, but somehow we're stilling typing text before the component is ready
+    // `(153 chart matching your criteria)`, no `q` in url
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
 
     chartsPage.chartsSearchFilterInput().should('be.visible');
     chartsPage.chartsSearchFilterInput().type(chartName);
     // Wait for the URL to update and then assert the 'q' parameter's value.
-    cy.location(MEDIUM_TIMEOUT_OPT).should((loc) => {
+    cy.location(SMALL_TIMEOUT_OPT).should((loc) => {
       const params = new URLSearchParams(loc.search);
 
       expect(params.get('q')).to.eq(chartName);
