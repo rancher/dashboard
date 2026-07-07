@@ -183,7 +183,7 @@ export default {
         if (e.status === 404 || e.status === 403) {
           store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
         }
-        console.debug(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
+        console.info(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         liveModel = {};
         notFound = fqid;
       }
@@ -200,6 +200,7 @@ export default {
           yaml = await getYaml(this.$store, liveModel);
         }
       } catch (e) {
+        console.warn(`Could not set 'model' for '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         this.errors.push(e);
       }
       if ( as === _YAML ) {
@@ -211,14 +212,14 @@ export default {
       }
 
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
-        model.cleanForNew();
+        model?.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
       }
     }
 
     // Ensure common properties exists
     try {
-      model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
+      model = await store.dispatch(`${ inStore }/cleanForDetail`, model || {});
     } catch (e) {
       this.errors.push(e);
     }
@@ -242,7 +243,7 @@ export default {
     }
 
     if ( this.mode === _CREATE ) {
-      this.value.applyDefaults(this, realMode);
+      this.value?.applyDefaults(this, realMode);
     }
   },
   data() {
