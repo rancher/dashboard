@@ -200,7 +200,7 @@ jobs:
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
-          TEST_NO_VIDEOS: true
+          TEST_NO_VIDEOS: false
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}

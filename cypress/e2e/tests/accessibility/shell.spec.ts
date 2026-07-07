@@ -41,6 +41,7 @@ import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import GenericDialog from '@/cypress/e2e/po/prompts/genericDialog.po';
 
 describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
   describe('Login page', () => {
@@ -685,6 +686,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
     describe('Extensions', () => {
       const extensionsPo = new ExtensionsPagePo();
+      const dialogModal = new GenericDialog();
 
       it('Extensions page', () => {
         // Set the preference
@@ -704,15 +706,15 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Add Rancher Repositories Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.addRepositoriesClick();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
       });
 
       it('Import Extension Catalog Modal', () => {
@@ -721,15 +723,15 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         extensionsPo.catalogsList().sortableTable()
           .bulkActionButton('Import Extension Catalog')
           .click();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
       });
     });
 
