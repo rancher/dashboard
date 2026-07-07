@@ -688,17 +688,18 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       const extensionsPo = new ExtensionsPagePo();
       const dialogModal = new GenericDialog();
 
-      beforeEach(() => {
-        dialogModal.cancelIfOpen();
-      });
-
-      it('Extensions page', () => {
+      before(() => {
         // Set the preference
         cy.setUserPreference({ 'plugin-developer': true });
+      });
 
+      beforeEach(() => {
         extensionsPo.goTo();
         extensionsPo.waitForPage(undefined, 'available');
         extensionsPo.loading().should('not.exist');
+      });
+
+      it('Extensions page', () => {
         extensionsPo.extensionTabBuiltinClick();
         extensionsPo.waitForPage(undefined, 'builtin');
         extensionsPo.extensionCard('AKS Provisioning').checkVisible();
@@ -736,6 +737,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         });
 
         dialogModal.clickActionButton('Cancel');
+      });
+
+      after(() => {
+        cy.setUserPreference({ 'plugin-developer': false });
       });
     });
 
@@ -846,6 +851,5 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
   after(() => {
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
-    cy.setUserPreference({ 'plugin-developer': false });
   });
 });
