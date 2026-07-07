@@ -366,6 +366,7 @@ The metadata that defines a product — its identity, icon, and product-level se
 | Property | Type | Description |
 | --- | --- | --- |
 | `hideSystemResources` | `boolean` | Hide system resources in lists |
+| `store` | `string` | The vuex store this product uses for resources. Defaults to `management`. Use `cluster` for products that work with a specific downstream cluster, or provide a custom store name if your extension defines one |
 
 <br/>
 
@@ -645,6 +646,16 @@ Formatters transform raw values into formatted display output. Rancher Dashboard
 | `formatterOpts` | `any` | Configuration options passed to the formatter component |
 | `width` | `number` | Fixed column width in pixels. If not set, the column auto-sizes |
 | `getValue` | `(row: any) => string \| number \| null` | Custom function to extract or compute the display value from a row. Takes precedence over `value` for display, but `value` is still used for sorting/searching |
+
+#### Server-side pagination
+
+When server-side pagination is enabled for a resource type, Rancher Dashboard uses the same `listConfig.headers` format — with one important constraint: **`getValue` is not supported**, since rows are fetched page-by-page from the server rather than loaded all at once.
+
+> **Important:** Property paths used to display, sort and search on must exist natively on the resource and not in the Dashboard's model for the resource type. For more information please see [Choosing fields to display, sort and filter on](https://extensions.rancher.io/extensions/next/performance/scaling/lists#choosing-fields-to-display-sort-and-filter-on).
+
+Before using headers with server-side pagination, it must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
+
+> **Important:** Server-side pagination is currently supported for global-level resources (e.g. `provisioning.cattle.io.cluster`) in the Rancher `local` cluster. Resources in downstream clusters are not yet supported by `addProduct`.
 
 ### Renaming types (`label`)
 

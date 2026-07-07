@@ -311,6 +311,7 @@ export abstract class BasePluginProduct {
       applyIfDefined(this.product?.enable?.ifNotHaveType, () => typeMapProduct.ifNotHaveType = this.product?.enable?.ifNotHaveType); // eslint-disable-line no-return-assign
 
       applyIfDefined(this.product?.resources?.hideSystemResources, () => typeMapProduct.hideSystemResources = this.product?.resources?.hideSystemResources); // eslint-disable-line no-return-assign
+      typeMapProduct.inStore = this.product.resources?.store ?? 'management';
 
       applyIfDefined(this.product?.extendable, () => typeMapProduct.extendable = this.product?.extendable); // eslint-disable-line no-return-assign
 
