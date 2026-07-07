@@ -23,7 +23,7 @@ import { EventsCreateEditPo, EventsPageListPo } from '@/cypress/e2e/po/pages/exp
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateEditPagePo } from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { dialogModal, promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import { WorkLoadsDaemonsetsCreatePagePo, WorkloadsDaemonsetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
@@ -732,6 +732,10 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         });
 
         dialogModal.clickActionButton('Cancel');
+      });
+
+      afterEach(() => {
+        dialogModal.cancelIfOpen();
       });
     });
 
