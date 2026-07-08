@@ -21,7 +21,22 @@ if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 't
 
 timeout-minutes: 15
 
-permissions: read-all
+permissions:
+  actions: read
+  attestations: read
+  checks: read
+  contents: read
+  deployments: read
+  discussions: read
+  issues: read
+  models: read
+  packages: read
+  pages: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+  copilot-requests: write
 
 network:
   allowed:
