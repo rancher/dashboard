@@ -325,7 +325,7 @@ export default class ProvCluster extends SteveModel {
    * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
    */
   get isImportedWithDayTwoOps() {
-    const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationExists = typeof this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
     const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
     const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
     const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);

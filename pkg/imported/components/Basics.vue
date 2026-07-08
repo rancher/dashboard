@@ -13,7 +13,7 @@ import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
 import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
-import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({
   name:       'Basics',
@@ -88,13 +88,17 @@ export default defineComponent({
       type:     String,
       required: true
     },
+    dayTwoOpsOld: {
+      type:    String,
+      default: DEFAULT
+    },
     isLocal: {
       type:    Boolean,
       default: false
     },
-    dayTwoOpsEnabled: {
-      type:    Boolean,
-      default: false
+    dayTwoOps: {
+      type:    String,
+      default: DEFAULT
     },
     rules: {
       default: () => ({
@@ -251,9 +255,10 @@ export default defineComponent({
   </div>
   <DayTwoOps
     v-if="!isLocal && dayTwoOpsFlag"
-    :value="dayTwoOpsEnabled"
+    :value="dayTwoOps"
     :global-setting="dayTwoOpsGlobalSetting"
     :mode="mode"
+    :old-value="dayTwoOpsOld"
     @update:value="$emit('enable-day-two-ops-changed', $event)"
   />
 </template>

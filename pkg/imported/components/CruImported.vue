@@ -32,10 +32,9 @@ import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
-import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
-
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars:   [],
@@ -121,6 +120,7 @@ export default defineComponent({
       defaultVersion:                           '',
       versionManagementGlobalSetting:           false,
       versionManagementOld:                     VERSION_MANAGEMENT_DEFAULT,
+      dayTwoOpsOld:                             DEFAULT,
       schedulingCustomizationFeatureEnabled:    false,
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
@@ -183,16 +183,20 @@ export default defineComponent({
         privateRegistryRequired:     privateRegistryRequired(this),
       };
     },
-    dayTwoOpsEnabled: {
+    dayTwoOps: {
       get() {
         if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
-          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === true || this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] === 'true';
+          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ;
         }
 
-        return this.dayTwoOpsGlobalSetting;
+        return DEFAULT;
       },
       set(newValue) {
-        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = !!newValue ? 'true' : 'false';
+        if (newValue === DEFAULT) {
+          delete this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
+        } else {
+          this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue;
+        }
       }
     },
 
@@ -431,9 +435,7 @@ export default defineComponent({
       }
 
       this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
-      if (this.isCreate && this.dayTwoOpsFlagEnabled) {
-        this.dayTwoOpsEnabled = this.dayTwoOpsGlobalSetting;
-      }
+      this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? '' : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
     },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
@@ -528,7 +530,8 @@ export default defineComponent({
           :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
-          :day-two-ops-enabled="dayTwoOpsEnabled"
+          :day-two-ops="dayTwoOps"
+          :day-two-ops-old="dayTwoOpsOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
@@ -536,7 +539,7 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
-          @enable-day-two-ops-changed="(val)=>dayTwoOpsEnabled=val"
+          @enable-day-two-ops-changed="(val)=>dayTwoOps=val"
         />
       </Accordion>
       <Accordion
