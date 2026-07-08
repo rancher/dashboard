@@ -266,7 +266,6 @@ export default {
         case SLO_OPTION_VALUES.rancher:
           this.model.logoutAllEnabled = false;
           this.model.logoutAllForced = false;
-          this.model.endSessionEndpoint = '';
           break;
         case SLO_OPTION_VALUES.all:
           this.model.logoutAllEnabled = true;

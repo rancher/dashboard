@@ -180,12 +180,12 @@ hr {
 /* Fixes for CSS issues with auto generated docs */
 /* Fixes anchor styling methods subtitle */
 h4.anchor {
-  font-size: 26px;
+  font-size: 20px;
 }
 
 /* Fixes anchor styling for method params */
 h5.anchor {
-  font-size: 20px;
+  font-size: 18px;
   text-decoration: underline;
 }
 
