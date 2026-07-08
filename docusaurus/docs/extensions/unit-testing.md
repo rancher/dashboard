@@ -10,14 +10,21 @@ From the root of your development app:
 
 ```sh
 yarn add --dev \
-  jest jest-environment-jsdom \
-  ts-jest babel-jest \
-  @vue/vue3-jest @vue/test-utils \
-  @babel/core @babel/preset-env \
-  @types/jest
+  jest@^29 jest-environment-jsdom@^29 \
+  ts-jest@^29 babel-jest@^29 \
+  @vue/vue3-jest@^29 @vue/test-utils@^2 \
+  @babel/core@7.26.0 @babel/preset-env@7.26.0 \
+  @types/jest@^29 \
+  babel-plugin-transform-require-context
 ```
 
-> Note: You may see a peer dependency warning from `@vue/vue3-jest` about expecting Jest 29.x. This is harmless — the package works correctly with Jest 30.
+> **Why `babel-plugin-transform-require-context`?** `@rancher/shell/babel.config.js` automatically adds this plugin when `NODE_ENV=test` (which Jest sets by default). Without it, the `.vue` file transformer fails to initialise, and every Vue component test suite will error before running.
+
+> **Why pin `@babel/core` and `@babel/preset-env` to `7.26.0`?** Starting with `7.27.0`, `@babel/preset-env` ships a nested `@babel/helper-compilation-targets@8` (ESM) that requires `lru-cache@^11`, which is not installed by `@rancher/shell`. Using an exact pin of `7.26.0` avoids this broken dependency chain while remaining fully compatible with all other packages.
+
+> **Peer dependency note:** `ts-jest@29` declares `typescript@>=4.3 <7` as a peer. The `@rancher/shell` scaffold currently ships TypeScript 5.x, so yarn may warn but will still install correctly — the version is within the supported range.
+
+> **After installing, run `yarn install` a second time** to ensure no stale nested `node_modules` from a prior install are left inside `@babel/preset-env/node_modules/`. This is a yarn v1 quirk: it may not evict old nested packages when downgrading a dependency.
 
 ### 2. Create `jest.config.js`
 
@@ -31,7 +38,7 @@ module.exports = {
   watchman:               false,
   moduleFileExtensions:   ['js', 'ts', 'json', 'vue'],
   modulePaths:            ['<rootDir>'],
-  moduleNameMapper:       {
+  moduleNameMapper: {
     '^~/(.*)$':         '<rootDir>/$1',
     '^@/(.*)$':         '<rootDir>/$1',
     '@shell/(.*)':      '<rootDir>/node_modules/@rancher/shell/$1',
@@ -41,19 +48,27 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/cypress/'],
   transform: {
     '^.+\\.vue$':  '@vue/vue3-jest',
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { sourceMap: true }, isolatedModules: true }],
     '^.+\\.jsx?$': ['babel-jest', {
       configFile: false,
       presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
     }],
-    '^.+\\.svg$':  '<rootDir>/utils/svgTransform.js'
+    '^.+\\.svg$': '<rootDir>/utils/svgTransform.js'
   },
   transformIgnorePatterns: ['/node_modules/(?!@rancher/shell).+\\.js$'],
-  testMatch: ['**/__tests__/**/*.test.ts']
+  testMatch:               ['**/__tests__/**/*.test.ts']
 };
 ```
 
-> **Note on `configFile: false`:** This prevents Jest from inheriting Rancher's webpack-oriented `babel.config.js`, which adds plugins not installed in your extension. TypeScript files are handled directly by `ts-jest` and never reach Babel. Do **not** modify `babel.config.js` — it is required for the webpack dev server and build.
+> **Why inline ts-jest options in `transform`?**
+> The older `globals['ts-jest']` block format was deprecated in ts-jest v28 and will be removed in v30. The correct way to pass ts-jest options is as the second element of the transform tuple:
+> ```js
+> '^.+\\.tsx?$': ['ts-jest', { tsconfig: { sourceMap: true }, isolatedModules: true }]
+> ```
+> - `sourceMap: true` — The extension scaffold sets `"sourceMap": false` in `tsconfig.json`. With source maps off, `@vue/vue3-jest`'s TypeScript transformer produces an empty-string `inputSourceMap`, which newer versions of `@babel/core` reject. Enabling source maps here (scoped to Jest only) fixes this without touching `tsconfig.json`.
+> - `isolatedModules: true` — Speeds up compilation by skipping full type-checking during test runs. Type safety is enforced separately by `tsc --noEmit`.
+
+> **Note on `configFile: false`:** This only applies to `.js` files processed by `babel-jest`. The `@vue/vue3-jest` transformer has its own internal Babel invocation that still reads `babel.config.js` — which is why `babel-plugin-transform-require-context` is required above. Do **not** modify `babel.config.js` — it is required for the webpack dev server and build.
 
 ### 3. Create `utils/svgTransform.js`
 
@@ -95,34 +110,104 @@ Tests live in `__tests__` directories placed next to the code they test. Files m
 ```
 pkg/
   my-app/
-    utils/
-      greet.ts
+    composables/
+      useGreeting.ts
       __tests__/
-        greet.test.ts          ← utility function test
+        useGreeting.test.ts    ← composable test
     components/
       MyComponent.vue
       __tests__/
         MyComponent.test.ts    ← Vue component test
 ```
 
-### Utility function test
+### Composable
+
+`pkg/my-app/composables/useGreeting.ts`:
+
+```ts
+import { computed, ref } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
+
+interface UseGreeting {
+  name: Ref<string>;
+  greeting: ComputedRef<string>;
+}
+
+export function useGreeting(initialName = ''): UseGreeting {
+  const name = ref(initialName);
+  const greeting = computed(() => `Hello, ${ name.value }!`);
+
+  return { name, greeting };
+}
+```
+
+### Composable test
+
+`pkg/my-app/composables/__tests__/useGreeting.test.ts`:
 
 ```ts
 import { describe, it, expect } from '@jest/globals';
-import { greet } from '../greet';
+import { useGreeting } from '../useGreeting';
 
-describe('greet', () => {
-  it('returns a greeting with the name', () => {
-    expect(greet('World')).toStrictEqual('Hello, World!');
+describe('useGreeting', () => {
+  it('returns a greeting with the initial name', () => {
+    const { greeting } = useGreeting('World');
+
+    expect(greeting.value).toStrictEqual('Hello, World!');
   });
 
   it('handles empty string', () => {
-    expect(greet('')).toStrictEqual('Hello, !');
+    const { greeting } = useGreeting('');
+
+    expect(greeting.value).toStrictEqual('Hello, !');
+  });
+
+  it('updates greeting reactively when name changes', () => {
+    const { name, greeting } = useGreeting('Alex');
+
+    name.value = 'World';
+
+    expect(greeting.value).toStrictEqual('Hello, World!');
   });
 });
 ```
 
+### Vue component
+
+`pkg/my-app/components/MyComponent.vue`:
+
+```vue
+<template>
+  <div>
+    <h1>{{ title }}</h1>
+    <p>{{ greeting }}</p>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed } from 'vue';
+import { useGreeting } from '../composables/useGreeting';
+
+export default defineComponent({
+  name: 'MyComponent',
+  props: {
+    title: {
+      type:     String,
+      required: true,
+    },
+  },
+  setup(props) {
+    const { greeting } = useGreeting(props.title);
+
+    return { greeting: computed(() => greeting.value) };
+  },
+});
+</script>
+```
+
 ### Vue component test
+
+`pkg/my-app/components/__tests__/MyComponent.test.ts`:
 
 ```ts
 import { shallowMount } from '@vue/test-utils';
@@ -153,7 +238,7 @@ yarn test
 yarn test:ci
 
 # Run a single file
-yarn test:ci pkg/my-app/utils/__tests__/greet.test.ts
+yarn test:ci pkg/my-app/composables/__tests__/useGreeting.test.ts
 ```
 
 ---
