@@ -185,7 +185,7 @@ export default defineComponent({
     },
     dayTwoOps: {
       get() {
-        if (this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED]) {
+        if (typeof this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined') {
           return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ;
         }
 

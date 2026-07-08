@@ -75,6 +75,9 @@ const showBanner = computed(() => {
 <template>
   <div class="mt-10">
     <h3>{{ t('imported.basics.dayTwoOpsEnabled.title') }}</h3>
+    <p class="mb-10">
+      {{ t('imported.basics.dayTwoOpsEnabled.description') }}
+    </p>
     <Banner
       v-if="showBanner"
       color="info"

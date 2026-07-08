@@ -30,9 +30,10 @@ imported:
         willDisable: it will be manually <b>DISABLED</b> for this cluster.
     dayTwoOpsEnabled:
       title: Day 2 Operations
+      description: Snapshot creation, snapshot restoration, and encryption key rotation.
       label: Enable snapshot creation, snapshot restoration, and encryption key rotation
-      globallyEnabled: 'Day 2 Operations (snapshot creation, snapshot restoration, and encryption key rotation) for imported clusters are globally <b>enabled</b>.'
-      globallyDisabled: 'Day 2 Operations (snapshot creation, snapshot restoration, and encryption key rotation) for imported clusters are globally <b>disabled</b>.'
+      globallyEnabled: 'Day 2 Operations for imported clusters are globally <b>enabled</b>.'
+      globallyDisabled: 'Day 2 Operations for imported clusters are globally <b>disabled</b>.'
       enabled: Enabled
       disabled: Disabled
       globalEnabledDefault: Global default (enabled)
