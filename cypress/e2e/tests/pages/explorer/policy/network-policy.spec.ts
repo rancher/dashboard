@@ -19,8 +19,8 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
   });
 
   it('creates a network policy and displays it in the list', () => {
-    // Ensure we start from a clean slate
-    cy.deleteRancherResource('v1', 'networking.k8s.io.networkpolicies', customNetworkPolicyName, true, { failOnStatusCodes: [] });
+    // Ensure we start from a clean slate, fixes auto retry on failureS
+    cy.deleteRancherResource('v1', 'networking.k8s.io.networkpolicies', `${ namespace }/${ customNetworkPolicyName }`, false, { explicitFailOnStatusCodes: [] });
 
     // Visit the main menu and select the 'local' cluster
     // Navigate to Policy => Network Policies
@@ -74,18 +74,19 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
 
       const networkPolicyEditPage = new NetworkPolicyCreateEditPagePo('local', namespace, customNetworkPolicyName);
 
+      // We're printing out additional info
       networkPolicyEditPage.waitForPage();
       networkPolicyEditPage.matchingNamespacesMessage(0).self().scrollIntoView();
       networkPolicyEditPage.matchingNamespacesMessage(0).self().invoke('text').then((text) => {
         cy.log('!!!!!!!!');
-        cy.log(`Comparing component 1 value ${ text } for count ${ count }`);
+        cy.log(`Comparing first component value "${ text }" matches expected "Matches ${ count } of ${ count }"`);
         cy.log('!!!!!!!!');
       });
       networkPolicyEditPage.matchingNamespacesMessage(0).shouldContainText(`Matches ${ count } of ${ count }`);
       networkPolicyEditPage.matchingNamespacesMessage(1).self().scrollIntoView();
       networkPolicyEditPage.matchingNamespacesMessage(0).self().invoke('text').then((text) => {
         cy.log('!!!!!!!!');
-        cy.log(`Comparing component 2 value ${ text } four count ${ count }`);
+        cy.log(`Comparing second component value "${ text }" matches expected "Matches 0 of ${ count }"`);
         cy.log('!!!!!!!!');
       });
       networkPolicyEditPage.matchingNamespacesMessage(1).shouldContainText(`Matches 0 of ${ count }`);
