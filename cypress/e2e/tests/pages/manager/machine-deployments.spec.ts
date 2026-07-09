@@ -167,14 +167,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
 
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, resource);
-    });
-
     // check list details
     cy.contains(cloneName).should('not.exist');
   });
@@ -197,14 +189,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
-
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, resource);
-    });
 
     // check list details
     cy.contains(this.machineDeploymentsName).should('not.exist');
