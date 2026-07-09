@@ -1,9 +1,10 @@
 <script>
-import UnitInput from '@shell/components/form/UnitInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   name:       'DeleteMachineOnFailureAfter',
-  components: { UnitInput },
+  components: { LabeledInput },
+  emits:      ['update:setting-value'],
   props:      {
     settingValue: {
       type:     String,
@@ -19,28 +20,48 @@ export default {
     },
   },
   computed: {
-    value: {
-      get() {
-        return this.settingValue;
-      },
-      set(value) {
-        this.$emit('update:setting-value', value);
-      },
+    displayValue() {
+      // Remove the 's' suffix for display if present
+      const val = this.settingValue || this.defaultValue;
+
+      return val?.endsWith('s') ? val.slice(0, -1) : val;
+    },
+  },
+  methods: {
+    updateValue(event) {
+      const inputValue = event.target?.value || event;
+      // Ensure the value always has the 's' suffix
+      const newValue = inputValue ? `${ inputValue }s` : '0s';
+
+      this.$emit('update:setting-value', newValue);
     },
   },
 };
 </script>
 
 <template>
-  <UnitInput
-    v-model:value="value"
+  <LabeledInput
+    :value="displayValue"
     data-testid="input-setting-delete-machine"
     :label="t('advancedSettings.edit.value')"
-    suffix="s"
-    :input-exponent="0"
-    :increment="1"
-    output-as="string"
-    :output-modifier="true"
+    type="number"
+    :min="0"
     :rules="rules"
-  />
+    @update:value="updateValue"
+    @blur="updateValue"
+  >
+    <template #suffix>
+      <div class="addon">
+        s
+      </div>
+    </template>
+  </LabeledInput>
 </template>
+
+<style lang="scss" scoped>
+.addon {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+</style>
