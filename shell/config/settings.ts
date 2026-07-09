@@ -114,7 +114,6 @@ export const SETTING = {
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
   SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
-  DELETE_INFRA_MACHINE_ON_FAILURE_AFTER:         'delete-infra-machine-on-failure-after',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
@@ -126,7 +125,8 @@ export const SETTING = {
    */
   DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
-  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled'
+  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled',
+  DELETE_MACHINE_ON_FAILURE_AFTER:               'delete-machine-on-failure-after',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -187,7 +187,6 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'integer',
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
-  [SETTING.DELETE_INFRA_MACHINE_ON_FAILURE_AFTER]:         { kind: 'integer', ruleSet: [{ name: 'minValue', factoryArg: 0 }] },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
   [SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT]:             { kind: 'boolean' },
   // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
@@ -195,6 +194,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
   [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
+  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:               {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
+  },
 };
 
 /**
@@ -206,13 +209,13 @@ export const PROVISIONING_SETTINGS = [
   SETTING.ENGINE_ISO_URL,
   SETTING.RKE_METADATA_CONFIG,
   SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
-  SETTING.DELETE_INFRA_MACHINE_ON_FAILURE_AFTER,
   SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
   SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
   SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
-  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT
+  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT,
+  SETTING.DELETE_MACHINE_ON_FAILURE_AFTER,
 ];
 
 /**
