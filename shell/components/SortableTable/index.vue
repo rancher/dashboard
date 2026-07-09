@@ -1134,11 +1134,13 @@ export default {
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
-                <i
+                <template
                   v-if="act.icon"
-                  :class="act.icon"
-                />
-                <span v-clean-html="act.label" />
+                  #before
+                >
+                  <i :class="act.icon" />
+                </template>
+                {{ act.label }}
               </RcButton>
               <template v-if="featureDropdownMenu">
                 <ActionDropdownShell

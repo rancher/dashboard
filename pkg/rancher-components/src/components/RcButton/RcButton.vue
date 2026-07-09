@@ -182,9 +182,12 @@ defineExpose({ focus });
         size="inherit"
       />
     </slot>
-    <slot>
-      <!-- Empty Content -->
-    </slot>
+    <span
+      v-if="$slots.default"
+      class="rc-button__label"
+    >
+      <slot />
+    </span>
     <slot
       v-if="$slots.after || props.rightIcon"
       name="after"
@@ -211,6 +214,14 @@ defineExpose({ focus });
   // target slotted content.
   & > :deep(.icon:not(:only-child)) {
     margin-right: 0;
+  }
+
+  // Trim the label to its cap box so flex centering aligns the letters
+  // themselves, independent of Lato's declared ascent/descent. This replaces the
+  // per-size line-height hacks below, which had to be hand-picked to keep the
+  // text vertically centered and were fragile to any font-metric change.
+  .rc-button__label {
+    @include cap-trim;
   }
 
   // Much of the styling in here came from _button.scss. Because we're making changes from role to variant and we don't want to impact existing use cases we're pulling in some of these styles. We should in the long run deprecate that file.
@@ -354,11 +365,8 @@ defineExpose({ focus });
   &.btn-small {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      // Unitless ratio chosen so font-size * line-height (12px * 4/3 = 16px)
-      // is a whole pixel value. A fractional computed line-height (e.g. the
-      // previous 140% = 16.8px) shifts text ~1px off-center within the
-      // flex-centered button in Chrome, but not in Firefox.
-      line-height: calc(4 / 3);
+      // Vertical centering is handled by cap-trim on .rc-button__label, so no
+      // line-height tuning is required here.
       font-size: 12px;
       min-height: 24px;
 
@@ -370,9 +378,7 @@ defineExpose({ focus });
   &.btn-medium {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
     &, &:not(.btn-sm) {
-      // Unitless ratio chosen so font-size * line-height (14px * 10/7 = 20px)
-      // is a whole pixel value. See note in .btn-small for why this matters.
-      line-height: calc(10 / 7);
+      // Vertical centering is handled by cap-trim on .rc-button__label.
       font-size: 14px;
       min-height: 32px;
 
@@ -384,9 +390,7 @@ defineExpose({ focus });
   &.btn-large {
     // This is the default size brought by the global button styling
     &, &:not(.btn-sm) {
-      // Unitless ratio chosen so font-size * line-height (16px * 1.5 = 24px)
-      // is a whole pixel value. See note in .btn-small for why this matters.
-      line-height: 1.5;
+      // Vertical centering is handled by cap-trim on .rc-button__label.
       font-size: 16px;
       min-height: 40px;
 
