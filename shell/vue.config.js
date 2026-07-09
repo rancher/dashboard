@@ -520,6 +520,7 @@ module.exports = function(dir, appConfig = {}) {
             @import "~shell/assets/styles/base/_variables.scss";
             @import "~shell/assets/styles/base/_functions.scss";
             @import "~shell/assets/styles/base/_mixins.scss";
+            @import "~shell/assets/styles/base/_cap-trim.generated.scss";
             @import 'node_modules/@xterm/xterm/css/xterm.css';
           `
         }
