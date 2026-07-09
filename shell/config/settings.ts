@@ -194,10 +194,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
   [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
-  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:               {
-    kind:    'integer',
-    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
-  },
+  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:               { kind: 'string' },
 };
 
 /**
