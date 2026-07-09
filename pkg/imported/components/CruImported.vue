@@ -32,9 +32,10 @@ import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
-import { VERSION_MANAGEMENT_DEFAULT, DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars:   [],
@@ -120,7 +121,7 @@ export default defineComponent({
       defaultVersion:                           '',
       versionManagementGlobalSetting:           false,
       versionManagementOld:                     VERSION_MANAGEMENT_DEFAULT,
-      dayTwoOpsOld:                             DEFAULT,
+      dayTwoOpsOld:                             DAY_2_OPS_DEFAULT,
       schedulingCustomizationFeatureEnabled:    false,
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
@@ -189,10 +190,10 @@ export default defineComponent({
           return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ;
         }
 
-        return DEFAULT;
+        return DAY_2_OPS_DEFAULT;
       },
       set(newValue) {
-        if (newValue === DEFAULT) {
+        if (newValue === DAY_2_OPS_DEFAULT) {
           delete this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
         } else {
           this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue;

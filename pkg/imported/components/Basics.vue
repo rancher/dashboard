@@ -13,7 +13,7 @@ import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
 import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
-import { VERSION_MANAGEMENT_DEFAULT, DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({
   name:       'Basics',

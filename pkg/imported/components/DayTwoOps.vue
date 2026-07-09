@@ -4,7 +4,7 @@ import { _EDIT } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { useStore } from 'vuex';
-import { DEFAULT } from '@pkg/imported/util/shared.ts';
+import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
 
 defineOptions({ name: 'DayTwoOps' });
 const props = defineProps({
