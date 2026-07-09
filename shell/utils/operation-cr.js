@@ -12,7 +12,7 @@ export async function createOperationCR(dispatch, type, spec, namespace, namePre
   const resource = await dispatch('management/create', {
     type,
     metadata: { namespace, generateName: `${ namePrefix }-` },
-    spec,
+    spec:     { ...spec, ...{ ttl: 60 } },
   }, { root: true });
 
   return resource.save();
