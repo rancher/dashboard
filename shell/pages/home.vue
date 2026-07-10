@@ -311,15 +311,15 @@ export default defineComponent({
     },
 
     cpuUsed(cluster: any) {
-      return parseSi(cluster.status.requested?.cpu);
+      return parseSi(cluster.status?.requested?.cpu);
     },
 
     cpuAllocatable(cluster: any) {
-      return parseSi(cluster.status.allocatable?.cpu);
+      return parseSi(cluster.status?.allocatable?.cpu);
     },
 
     memoryAllocatable(cluster: any) {
-      const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
+      const parsedAllocatable = (parseSi(cluster.status?.allocatable?.memory) || 0).toString();
       const format = createMemoryFormat(parsedAllocatable);
 
       return formatSi(parsedAllocatable, format);
