@@ -547,10 +547,12 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 /**
  * delete a v3 / v1 resource
  */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: [200, 204] }) => {
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: undefined }) => {
   if (failOnStatusCode && explicitFailOnStatusCodes?.length) {
     throw new Error('Invalid config. Informing cy to fail on status code other than 2xx and 3xx but supplying codes to explicitly fail on');
   }
+
+  explicitFailOnStatusCodes = explicitFailOnStatusCodes || [200, 204];
 
   return cy.request({
     method:  'DELETE',
