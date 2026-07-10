@@ -546,14 +546,11 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 
 /**
  * delete a v3 / v1 resource
- */
+ *
+ * @param failOnStatusCode true to fail on anything other than 2XX and 3XX
+ * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
+*/
 Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: undefined }) => {
-  if (failOnStatusCode && explicitFailOnStatusCodes?.length) {
-    throw new Error('Invalid config. Informing cy to fail on status code other than 2xx and 3xx but supplying codes to explicitly fail on');
-  }
-
-  explicitFailOnStatusCodes = explicitFailOnStatusCodes || [200, 204];
-
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
@@ -564,6 +561,10 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
     failOnStatusCode,
   })
     .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.be.oneOf([200, 204]);
+      }
+
       if (explicitFailOnStatusCodes?.length) {
         expect(resp.status).to.be.oneOf(explicitFailOnStatusCodes);
       }
