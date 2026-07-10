@@ -104,11 +104,12 @@ export default class MgmtCluster extends SteveModel {
     });
 
     insertAt(out, 2, {
-      action:   'copyKubeConfig',
-      label:    this.t('cluster.copyConfig'),
-      bulkable: false,
-      enabled:  this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
-      icon:     'icon icon-copy',
+      action:     'copyKubeConfig',
+      bulkAction: 'copyKubeConfigBulk',
+      label:      this.t('cluster.copyConfig'),
+      bulkable:   true,
+      enabled:    this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
+      icon:       'icon icon-copy',
     });
 
     return out;
@@ -687,6 +688,17 @@ export default class MgmtCluster extends SteveModel {
   async copyKubeConfig() {
     try {
       const config = await this.generateKubeConfig();
+
+      if (config) {
+        await copyTextToClipboard(config);
+      }
+    } catch {}
+  }
+
+  async copyKubeConfigBulk(items) {
+    try {
+      const clusters = items.map((item) => item.mgmt?.id || item.id);
+      const config = await this.generateKubeConfig(clusters);
 
       if (config) {
         await copyTextToClipboard(config);
