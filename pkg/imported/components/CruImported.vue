@@ -193,11 +193,7 @@ export default defineComponent({
         return DAY_2_OPS_DEFAULT;
       },
       set(newValue) {
-        if (newValue === DAY_2_OPS_DEFAULT) {
-          delete this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
-        } else {
-          this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue;
-        }
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue;
       }
     },
 
