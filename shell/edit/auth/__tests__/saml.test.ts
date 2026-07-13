@@ -283,7 +283,14 @@ describe('saml.vue', () => {
       wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="generic-saml-fields"]').exists() || wrapper.vm.isGenericSaml).toBe(true);
+      expect(wrapper.find('[data-testid="genericsaml-fields"]').exists()).toBe(true);
+    });
+
+    it('does not render generic SAML fields for non-generic providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-fields"]').exists()).toBe(false);
     });
   });
 });
