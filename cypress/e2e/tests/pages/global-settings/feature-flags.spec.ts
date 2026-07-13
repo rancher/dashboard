@@ -88,26 +88,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
   });
 
-  it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be active by default
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
-
-    // Deactivate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'rke1-custom-node-cleanup', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'rke1-custom-node-cleanup', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
-  });
-
   it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
@@ -199,7 +179,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       'istio-virtual-service-ui',
       'legacy',
       'multi-cluster-management',
-      'rke1-custom-node-cleanup',
       'rke2',
       'token-hashing',
       'unsupported-storage-drivers'
