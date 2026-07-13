@@ -3,7 +3,7 @@ import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import DayTwoOps from '../DayTwoOps.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
+import { DAY_2_OPS_DEFAULT as DEFAULT } from '../../util/shared';
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
@@ -141,7 +141,7 @@ describe('component: DayTwoOps', () => {
     const banner = wrapper.find('[data-testid="day-two-ops-banner"]');
 
     expect(banner.exists()).toBe(true);
-    expect(wrapper.vm.dayTwoOpsInfo).toBe(expectedText);
+    expect(banner.text()).toContain(expectedText);
   });
 
   it.each([

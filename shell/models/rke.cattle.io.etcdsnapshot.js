@@ -46,7 +46,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get nameDisplay() {
-    return this.snapshotFile?.name || this.name;
+    return this.snapshotFile?.name || this.name || this.metadata?.name;
   }
 
   get restoreEnabled() {

@@ -202,7 +202,7 @@ export default {
               kind:       'Cluster',
               name:       mgmtCluster?.id,
             },
-            args: { name: this.snapshot?.snapshotFile?.name },
+            args: { name: this.snapshot?.metadata?.name },
           };
 
           createOperationCR(this.$store.dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
