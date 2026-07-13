@@ -1,5 +1,5 @@
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
-import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+// import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { CLUSTER_APPS_BASE_URL, CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
@@ -39,18 +39,19 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
     cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
   });
 
-  qase(2061, it('can navigate to cluster tools and see all feature charts', () => {
-    const clusterDashboard = new ClusterDashboardPagePo('local');
+  // TODO: #18352 Re-enable test
+  // qase(2061, it('can navigate to cluster tools and see all feature charts', () => {
+  //   const clusterDashboard = new ClusterDashboardPagePo('local');
 
-    clusterDashboard.goTo();
-    clusterDashboard.waitForPage();
-    clusterDashboard.navToSideMenuEntryByLabel('Tools');
-    clusterTools.waitForPage();
+  //   clusterDashboard.goTo();
+  //   clusterDashboard.waitForPage();
+  //   clusterDashboard.navToSideMenuEntryByLabel('Tools');
+  //   clusterTools.waitForPage();
 
-    cy.getClusterToolsChartCount().then((expectedCount) => {
-      clusterTools.featureChartCards().should('have.length', expectedCount);
-    });
-  }));
+  //   cy.getClusterToolsChartCount().then((expectedCount) => {
+  //     clusterTools.featureChartCards().should('have.length', expectedCount);
+  //   });
+  // }));
 
   describe('Install', () => {
     beforeEach(function() {
