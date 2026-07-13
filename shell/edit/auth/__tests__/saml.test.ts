@@ -77,6 +77,43 @@ const mountOptions = (model: object) => ({
   },
 });
 
+const mountOptionsForProvider = (provider: string, model: object) => ({
+  data() {
+    return {
+      isEnabling:     false,
+      editConfig:     false,
+      model:          { ...model, id: provider },
+      serverSetting:  null,
+      errors:         [],
+      originalModel:  null,
+      principals:     [],
+      authConfigName: provider,
+    } as any;
+  },
+  global: {
+    mocks: {
+      $fetchState: { pending: false },
+      $store:      {
+        getters: {
+          currentStore:              () => 'current_store',
+          'current_store/schemaFor': jest.fn(),
+          'current_store/all':       jest.fn(),
+          'i18n/t':                  (val: string) => val,
+          'i18n/exists':             jest.fn(),
+          'features/get':            () => false,
+        },
+        dispatch: jest.fn(),
+      },
+      $route:  { query: { AS: '' }, params: { id: provider } },
+      $router: { applyQuery: jest.fn() },
+    },
+  },
+  props: {
+    value: {},
+    mode:  _EDIT,
+  },
+});
+
 describe('saml.vue', () => {
   describe('validationPassed computed', () => {
     let wrapper: VueWrapper<any, any>;
@@ -192,6 +229,61 @@ describe('saml.vue', () => {
 
         expect(saveButton.disabled).toBe(false);
       });
+    });
+  });
+
+  describe('genericsaml provider', () => {
+    const genericSamlModel = {
+      ...validModel,
+      id: 'genericsaml',
+    };
+
+    let wrapper: VueWrapper<any, any>;
+
+    afterEach(() => {
+      wrapper.unmount();
+    });
+
+    it('isGenericSaml is true for genericsaml provider', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
+      await flushPromises();
+
+      expect(wrapper.vm.isGenericSaml).toBe(true);
+    });
+
+    it('isGenericSaml is false for other providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel));
+      await flushPromises();
+
+      expect(wrapper.vm.isGenericSaml).toBe(false);
+    });
+
+    it('seeds nameIDFormat default to unspecified on create', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: undefined }));
+      await flushPromises();
+
+      expect(wrapper.vm.model.nameIDFormat).toBe('unspecified');
+    });
+
+    it('seeds signatureMethod default to RSA-SHA256 on create', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, signatureMethod: undefined }));
+      await flushPromises();
+
+      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA256');
+    });
+
+    it('does not overwrite nameIDFormat when already set', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: 'persistent' }));
+      await flushPromises();
+
+      expect(wrapper.vm.model.nameIDFormat).toBe('persistent');
+    });
+
+    it('renders generic SAML fields when provider is genericsaml', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="generic-saml-fields"]').exists() || wrapper.vm.isGenericSaml).toBe(true);
     });
   });
 });

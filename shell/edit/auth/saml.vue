@@ -10,6 +10,7 @@ import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -47,6 +48,7 @@ export default {
     Loading,
     CruResource,
     LabeledInput,
+    LabeledSelect,
     Banner,
     AllowedPrincipals,
     Checkbox,
@@ -99,15 +101,37 @@ export default {
   data() {
     return {
       showLdap:        false,
-      showLdapDetails: false
+      showLdapDetails: false,
+      nameIDFormatOptions: [
+        { value: 'unspecified', label: 'unspecified' },
+        { value: 'emailAddress', label: 'emailAddress' },
+        { value: 'transient', label: 'transient' },
+        { value: 'persistent', label: 'persistent' },
+      ],
+      signatureMethodOptions: [
+        { value: 'RSA-SHA256', label: 'RSA-SHA256' },
+        { value: 'RSA-SHA1', label: 'RSA-SHA1' },
+        { value: 'RSA-SHA512', label: 'RSA-SHA512' },
+      ],
     };
   },
 
   created() {
     this.registerBeforeHook(this.validateAllFields, 'willSave');
+
+    if (this.isGenericSaml && !this.model.nameIDFormat) {
+      this.model.nameIDFormat = 'unspecified';
+    }
+    if (this.isGenericSaml && !this.model.signatureMethod) {
+      this.model.signatureMethod = 'RSA-SHA256';
+    }
   },
 
   computed: {
+    isGenericSaml() {
+      return this.NAME === 'genericsaml';
+    },
+
     validationPassed() {
       if (this.model?.enabled && !this.editConfig) {
         return true;
@@ -345,7 +369,7 @@ export default {
 
         <div class="row mb-20">
           <div
-            v-if="NAME === 'keycloak' || NAME === 'ping'"
+            v-if="NAME === 'keycloak' || NAME === 'ping' || NAME === 'genericsaml'"
             class="col span-6"
           >
             <LabeledInput
@@ -418,6 +442,44 @@ export default {
             />
           </div>
         </div>
+
+        <!-- Generic SAML options -->
+        <template v-if="isGenericSaml">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="model.nameIDFormat"
+                :label="t('authConfig.saml.nameIDFormat')"
+                :options="nameIDFormatOptions"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="model.signatureMethod"
+                :label="t('authConfig.saml.signatureMethod')"
+                :options="signatureMethodOptions"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <Checkbox
+                v-model:value="model.allowIdpInitiated"
+                :label="t('authConfig.saml.allowIdpInitiated')"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <Checkbox
+                v-model:value="model.forceAuthn"
+                :label="t('authConfig.saml.forceAuthn')"
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </template>
 
         <!-- SLO logout -->
         <div
