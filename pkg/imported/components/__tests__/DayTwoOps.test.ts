@@ -3,7 +3,7 @@ import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import DayTwoOps from '../DayTwoOps.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { DEFAULT } from '@pkg/imported/util/shared.ts';
+import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {

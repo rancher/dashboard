@@ -45,7 +45,7 @@ imported:
       summary:
         canEnable: You can enable it at a cluster level.
         willEnable: It will be manually <b>ENABLED</b> for this cluster.
-        willDisable: it will be manually <b>DISABLED</b> for this cluster.
+        willDisable: It will be manually <b>DISABLED</b> for this cluster.
   drainWorkerNodes:
     label: Drain Worker Nodes
   drainControlPlaneNodes:
