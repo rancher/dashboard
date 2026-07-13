@@ -9,7 +9,12 @@ describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
     const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
-    return { global: { plugins: [store] } };
+    return {
+      global: {
+        plugins: [store],
+        stubs:   { Banner: { template: '<div v-bind="$attrs"><slot /></div>' } }
+      }
+    };
   };
 
   it('should render the title and radio group with default props', () => {
@@ -141,7 +146,7 @@ describe('component: DayTwoOps', () => {
     const banner = wrapper.find('[data-testid="day-two-ops-banner"]');
 
     expect(banner.exists()).toBe(true);
-    expect(banner.text()).toContain(expectedText);
+    expect(wrapper.text()).toContain(expectedText);
   });
 
   it.each([
