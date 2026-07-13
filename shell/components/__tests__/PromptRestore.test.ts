@@ -2,8 +2,6 @@ import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import PromptRestore from '@shell/components/PromptRestore.vue';
 import { createStore } from 'vuex';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
 import { CAPI, MANAGEMENT, OPERATION, SNAPSHOT } from '@shell/config/types';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { createOperationCR } from '@shell/utils/operation-cr';
@@ -39,12 +37,14 @@ const RKE2_FAILED_SNAPSHOT = {
   name:           'rke2_name_3'
 };
 
+type Rke2Snapshot = typeof RKE2_SUCCESSFUL_SNAPSHOT_1;
+
 describe('component: PromptRestore', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  const rke2TestCases = [
+  const rke2TestCases: Array<[Rke2Snapshot[], number]> = [
     [[], 0],
     [[RKE2_FAILED_SNAPSHOT], 0],
     [[RKE2_SUCCESSFUL_SNAPSHOT_1], 1],
@@ -52,7 +52,7 @@ describe('component: PromptRestore', () => {
     [[RKE2_FAILED_SNAPSHOT, RKE2_SUCCESSFUL_SNAPSHOT_1, RKE2_SUCCESSFUL_SNAPSHOT_2], 2]
   ];
 
-  it.each(rke2TestCases)('should list RKE2 snapshots properly', async(snapShots, expected) => {
+  it.each(rke2TestCases)('should list RKE2 snapshots properly', async(snapShots: Rke2Snapshot[], expected: number) => {
     const store = createStore({
       modules: {
         'action-menu': {
@@ -72,10 +72,7 @@ describe('component: PromptRestore', () => {
       actions: { 'management/findAll': jest.fn().mockResolvedValue(snapShots), 'rancher/findAll': jest.fn().mockResolvedValue([]) }
     });
 
-    const wrapper = shallowMount(
-      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
-      { global: { mocks: { $store: store } } }
-    );
+    const wrapper = shallowMount(PromptRestore, { global: { mocks: { $store: store } } });
 
     await wrapper.vm.fetchSnapshots();
     await nextTick();
@@ -119,18 +116,15 @@ describe('component: PromptRestore', () => {
       }
     });
 
-    const wrapper = shallowMount(
-      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
-      { global: { mocks: { $store: store } } }
-    );
+    const wrapper = shallowMount(PromptRestore, { global: { mocks: { $store: store } } });
 
     wrapper.vm.allSnapshots = {
       'snapshot-1': {
-        name:         'snapshot-1',
-        snapshotFile: { name: 'snapshot-file-1' }
+        name:     'snapshot-1',
+        metadata: { name: 'snapshot-1' }
       }
     };
-    wrapper.vm.selectedSnapshot = 'snapshot-1';
+    (wrapper.vm as any).selectedSnapshot = 'snapshot-1';
 
     await wrapper.vm.apply(buttonDone);
 
@@ -142,7 +136,7 @@ describe('component: PromptRestore', () => {
         kind:       'Cluster',
         name:       'c-m-imported',
       },
-      args: { name: 'snapshot-file-1' },
+      args: { name: 'snapshot-1' },
     });
     expect((createOperationCR as jest.Mock).mock.calls[0][3]).toBe('c-m-imported');
     expect((createOperationCR as jest.Mock).mock.calls[0][4]).toBe('c-m-imported');
@@ -187,7 +181,7 @@ describe('component: PromptRestore', () => {
             showPromptRestore: true,
             toRestore:         [{
               type:         SNAPSHOT,
-              metadata:     { namespace: 'fleet-default' },
+              metadata:     { namespace: 'fleet-default', name: 'snapshot-file-2' },
               spec:         { clusterName: 'imported-cluster', clusterRef: { name: 'c-m-imported' } },
               snapshotFile: { name: 'snapshot-file-2' },
               nameDisplay:  'snapshot-2',
@@ -200,10 +194,7 @@ describe('component: PromptRestore', () => {
       actions: { 'growl/success': jest.fn() }
     });
 
-    const wrapper = shallowMount(
-      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
-      { global: { mocks: { $store: store } } }
-    );
+    const wrapper = shallowMount(PromptRestore, { global: { mocks: { $store: store } } });
 
     await wrapper.vm.apply(buttonDone);
 
