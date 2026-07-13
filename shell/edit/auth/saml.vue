@@ -445,38 +445,40 @@ export default {
 
         <!-- Generic SAML options -->
         <template v-if="isGenericSaml">
-          <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledSelect
-                v-model:value="model.nameIDFormat"
-                :label="t('authConfig.saml.nameIDFormat')"
-                :options="nameIDFormatOptions"
-                :mode="mode"
-              />
+          <div data-testid="genericsaml-fields">
+            <div class="row mb-20">
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model:value="model.nameIDFormat"
+                  :label="t('authConfig.saml.nameIDFormat')"
+                  :options="nameIDFormatOptions"
+                  :mode="mode"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model:value="model.signatureMethod"
+                  :label="t('authConfig.saml.signatureMethod')"
+                  :options="signatureMethodOptions"
+                  :mode="mode"
+                />
+              </div>
             </div>
-            <div class="col span-6">
-              <LabeledSelect
-                v-model:value="model.signatureMethod"
-                :label="t('authConfig.saml.signatureMethod')"
-                :options="signatureMethodOptions"
-                :mode="mode"
-              />
-            </div>
-          </div>
-          <div class="row mb-20">
-            <div class="col span-6">
-              <Checkbox
-                v-model:value="model.allowIdpInitiated"
-                :label="t('authConfig.saml.allowIdpInitiated')"
-                :mode="mode"
-              />
-            </div>
-            <div class="col span-6">
-              <Checkbox
-                v-model:value="model.forceAuthn"
-                :label="t('authConfig.saml.forceAuthn')"
-                :mode="mode"
-              />
+            <div class="row mb-20">
+              <div class="col span-6">
+                <Checkbox
+                  v-model:value="model.allowIdpInitiated"
+                  :label="t('authConfig.saml.allowIdpInitiated')"
+                  :mode="mode"
+                />
+              </div>
+              <div class="col span-6">
+                <Checkbox
+                  v-model:value="model.forceAuthn"
+                  :label="t('authConfig.saml.forceAuthn')"
+                  :mode="mode"
+                />
+              </div>
             </div>
           </div>
         </template>
