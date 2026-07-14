@@ -69,6 +69,20 @@ describe('rcButton.vue', () => {
     expect(wrapper.text()).toContain('After');
   });
 
+  it('wraps default slot content in a cap-trimmed label', () => {
+    const wrapper = mount(RcButton, { slots: { default: 'Click Me' } });
+    const label = wrapper.find('.rc-button__label');
+
+    expect(label.exists()).toBe(true);
+    expect(label.text()).toStrictEqual('Click Me');
+  });
+
+  it('does not render the label wrapper for an icon-only button (no default slot)', () => {
+    const wrapper = mount(RcButton, { props: { leftIcon: 'icon-plus' } });
+
+    expect(wrapper.find('.rc-button__label').exists()).toBe(false);
+  });
+
   it('focuses the button when focus method is called', async() => {
     const wrapper = mount(
       RcButton,
