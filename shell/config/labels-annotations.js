@@ -151,7 +151,7 @@ export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
 export const SNAPSHOT = { CLUSTER_NAME: 'rke.cattle.io/cluster-name' };
 
-export const OPERATION_ANNOTATIONS = { ENABLED: 'operations.cattle.io/ops-enabled' };
+export const OPERATION_ANNOTATIONS = { ENABLED: 'rancher.io/operations-enabled' };
 
 export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
 
