@@ -1,7 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_API_DELAY, USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { base64Encode } from '@shell/utils/crypto/index.js';
 
@@ -71,7 +71,13 @@ Cypress.Commands.add('login', (
   };
 
   if (cacheSession) {
-    (cy as any).session([username, password], login);
+    (cy as any).session([username, password], login, {
+      validate: () => cy.request({
+        method:           'GET',
+        url:              `${ Cypress.env('api') }${ USERS_BASE_URL }?limit=1`,
+        failOnStatusCode: false
+      }).its('status').should('eq', 200)
+    });
     cy.getCookie('CSRF').then((c) => {
       token = c;
     });
