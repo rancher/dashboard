@@ -47,6 +47,11 @@ export default {
     highlightRoute: {
       type:    Boolean,
       default: true,
+    },
+
+    parentLabel: {
+      type:    String,
+      default: '',
     }
   },
 
@@ -101,6 +106,10 @@ export default {
 
     headerRoute() {
       return filterLocationValidParams(this.$router, this.group.children[0].route);
+    },
+
+    parentName() {
+      return this.depth > 0 ? `${ this.parentLabel }, ` : '';
     }
   },
 
@@ -260,9 +269,9 @@ export default {
         v-if="showHeader"
         class="header"
         :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
-        role="button"
+        role="navigation"
         :tabindex="fixedOpen ? -1 : 0"
-        :aria-label="group.labelDisplay || group.label || ''"
+        :aria-label="`${ parentName }${ group.labelDisplay || group.label || '' }`"
         :aria-expanded="!canCollapse || isExpanded"
         :aria-controls="!canCollapse ? null : `group-${id}`"
         @click="groupSelected()"
@@ -352,6 +361,7 @@ export default {
             :group="child"
             :fixed-open="fixedOpen"
             :highlight-route="highlightRoute"
+            :parent-label="group.label"
             @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"

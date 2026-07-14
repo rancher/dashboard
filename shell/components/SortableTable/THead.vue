@@ -361,7 +361,11 @@ export default {
       <th
         v-else-if="rowActions"
         :width="rowActionsWidth"
-      />
+      >
+        <span class="sr-only">
+          {{ t('sortableTable.tableHeader.actions') }}
+        </span>
+      </th>
     </tr>
   </thead>
 </template>

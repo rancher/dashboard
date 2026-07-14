@@ -71,6 +71,19 @@ export default {
     },
     modalName() {
       return this.modalData?.modalName;
+    },
+
+    /**
+     * When the component is a string, we can generate a title from the name of the component which we can then use for the aria-label attribute.
+     * For example, if the component is "MyComponentDialog", we generate a title of "My Component Dialog"
+     */
+    modalTitle() {
+      if (typeof this.modalData?.component === 'string') {
+        // Insert a space before all caps and trim any leading/trailing whitespace
+        return this.modalData.component.replace(/([A-Z])/g, ' $1').trim();
+      }
+
+      return '';
     }
   },
 
@@ -124,6 +137,7 @@ export default {
     :custom-class="customClass"
     :styles="styles"
     :height="height"
+    :title="modalTitle"
     :trigger-focus-trap="true"
     :return-focus-selector="returnFocusSelector"
     :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
