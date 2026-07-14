@@ -35,3 +35,13 @@ jobs:
 
       - name: Run lint
         uses: ./.github/actions/lint
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Run type check
+        uses: ./.github/actions/type-check
