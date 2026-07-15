@@ -5049,7 +5049,7 @@ node:
     glance:
       consumptionGauge:
         used: Used
-        amount: "{used} of {total} {unit}"
+        amount: "{used}{unit} of {total}{unit}"
         cpu: CPU
         memory: MEMORY
         pods: PODS
