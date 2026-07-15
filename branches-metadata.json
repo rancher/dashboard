@@ -2,8 +2,8 @@
   "branches": {
     "master": {
       "milestone": {
-        "version": "v2.15.0",
-        "codeFreeze": true
+        "version": "v2.16.0",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
