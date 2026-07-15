@@ -3,6 +3,74 @@ import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 
 describe('component: ConsumptionGauge', () => {
+  it('amountTemplateValues should include unit for both used and total', () => {
+    const wrapper = mount(ConsumptionGauge, {
+      props: {
+        resourceName: 'MEMORY',
+        capacity:     16000,
+        used:         4000,
+        units:        'GiB',
+      },
+    });
+
+    const values = (wrapper.vm as any).amountTemplateValues;
+
+    expect(values).toStrictEqual({
+      used:  4000,
+      total: 16000,
+      unit:  ' GiB',
+    });
+  });
+
+  it('amountTemplateValues should have empty unit when units prop is not provided', () => {
+    const wrapper = mount(ConsumptionGauge, {
+      props: {
+        resourceName: 'CPU',
+        capacity:     4,
+        used:         2,
+      },
+    });
+
+    const values = (wrapper.vm as any).amountTemplateValues;
+
+    expect(values).toStrictEqual({
+      used:  2,
+      total: 4,
+      unit:  '',
+    });
+  });
+
+  it('should render the amount string with units on both used and total values', () => {
+    const amountTemplate = '{used}{unit} of {total}{unit}';
+
+    const wrapper = mount(ConsumptionGauge, {
+      props: {
+        resourceName: 'MEMORY',
+        capacity:     16000,
+        used:         4000,
+        units:        'GiB',
+      },
+      global: {
+        mocks: {
+          t: (key: string, opts?: Record<string, string>) => {
+            if (key === 'node.detail.glance.consumptionGauge.amount' && opts) {
+              return amountTemplate
+                .replace('{used}', opts.used)
+                .replace('{total}', opts.total)
+                .replace(/\{unit\}/g, opts.unit);
+            }
+
+            return `%${ key }%`;
+          }
+        }
+      }
+    });
+
+    const statsText = wrapper.find('.numbers-stats').text();
+
+    expect(statsText).toContain('4000 GiB of 16000 GiB');
+  });
+
   it('should render component with the correct data applied', () => {
     const colorStops = {
       0: '--success', 30: '--warning', 70: '--error'

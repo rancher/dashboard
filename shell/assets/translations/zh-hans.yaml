@@ -3614,7 +3614,7 @@ node:
     glance:
       consumptionGauge:
         used: 已使用
-        amount: "已使用 {total} {unit} 中的 {used}"
+        amount: "已使用 {total}{unit} 中的 {used}{unit}"
         cpu: CPU
         memory: 内存
         pods: Pod
