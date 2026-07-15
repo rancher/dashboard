@@ -4,7 +4,7 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
   return new Promise((resolve, reject) => {
     if (testFn()) {
       gatedLog('Wait for', msg || 'unknown', 'done immediately');
-      resolve(this);
+      resolve(true);
 
       return;
     }
@@ -19,7 +19,7 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
         gatedLog('Wait for', msg, 'done');
         clearInterval(interval);
         clearTimeout(timeout);
-        resolve(this);
+        resolve(true);
       } else if (msg) {
         gatedLog('Wait for', msg, 'not done yet');
       }

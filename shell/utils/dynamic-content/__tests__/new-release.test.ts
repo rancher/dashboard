@@ -5,13 +5,21 @@ import { Context, VersionInfo } from '../types';
 import * as util from '../util'; // Import util to mock removeMatchingNotifications
 import semver from 'semver';
 
+// `removeMatchingNotifications` is stubbed via a partial module mock. Under the
+// Babel/SWC transpile (no TypeScript compiler), named exports are non-configurable
+// getters, so `jest.spyOn(util, ...)` cannot redefine them - mock the module instead.
+jest.mock('../util', () => ({
+  ...jest.requireActual('../util'),
+  removeMatchingNotifications: jest.fn(),
+}));
+
 describe('processReleaseVersion', () => {
   let mockContext: Context;
   let mockContextPrime: Context;
   let mockDispatch: jest.Mock;
   let mockGetters: any;
   let mockLogger: any;
-  let mockRemoveMatchingNotifications: jest.SpyInstance;
+  let mockRemoveMatchingNotifications: jest.Mock;
 
   beforeEach(() => {
     mockDispatch = jest.fn();
@@ -72,8 +80,9 @@ describe('processReleaseVersion', () => {
     };
 
     // Mock the utility function. Default: notification does not exist, so add it.
-    mockRemoveMatchingNotifications = jest.spyOn(util, 'removeMatchingNotifications')
-      .mockResolvedValue(false);
+    mockRemoveMatchingNotifications = util.removeMatchingNotifications as jest.Mock;
+    mockRemoveMatchingNotifications.mockReset();
+    mockRemoveMatchingNotifications.mockResolvedValue(false);
   });
 
   afterEach(() => {

@@ -11,6 +11,12 @@ const har = require('./server/har-file');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
 
+// Give @vue/compiler-sfc a TypeScript-free resolver for the aliased types used in
+// SFC macros (`defineProps<T>()` etc.). The native TypeScript 7 package ships no JS
+// API, so vue-loader's SFC compilation can no longer auto-use `typescript` for this.
+// Same shim the Jest `.vue` transformer uses (see ../vueSfcTsResolverShim).
+require('@vue/compiler-sfc').registerTS(() => require('../vueSfcTsResolverShim'));
+
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
 const oldInfoLogger = console.info; // eslint-disable-line no-console
@@ -183,15 +189,15 @@ const getLoaders = (SHELL_ABS, dir) => [
         }
       },
       {
-        loader:  'ts-loader',
+        // `esbuild-loader` transpiles TS without the TypeScript JS API (which the
+        // native TS 7 compiler no longer ships). VueLoaderPlugin clones this
+        // `/\.tsx?$/` rule onto `<script lang="ts">` blocks, so `.vue` scripts are
+        // covered too - no ts-loader `appendTsxSuffixTo` shim needed.
+        loader:  'esbuild-loader',
         options: {
-          transpileOnly:     true,
-          happyPackMode:     false,
-          appendTsxSuffixTo: [
-            '\\.vue$'
-          ],
-          configFile:      path.join(SHELL_ABS, 'tsconfig.json'),
-          compilerOptions: { rootDir: dir }
+          loader:   'ts', // repo has no `.tsx`/JSX source; `ts` preserves `<T>x` type-assertion syntax
+          target:   'es2018', // matches `target: "ES2018"` in shell/tsconfig.json
+          tsconfig: path.join(SHELL_ABS, 'tsconfig.json')
         }
       }
     ]

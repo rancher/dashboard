@@ -1,7 +1,8 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  preset:             'ts-jest',
+  // No `preset: 'ts-jest'` - `.ts` is transpiled by `@swc/jest` (see transform
+  // below) so nothing loads the TypeScript compiler (native TS 7 ships no JS API).
   testEnvironment:    'jsdom',
   // Jest 28+ (jest-environment-jsdom) defaults package resolution to the "browser" export
   // condition, which makes packages like @vue/test-utils resolve their browser (global-Vue)
@@ -50,12 +51,38 @@ module.exports = {
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
     '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
-    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
-    '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
-    '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
+    // `*.vue` are handled by a custom single-pass transformer that assembles the SFC
+    // and transpiles it once with Babel - no TypeScript compiler JS API (see the file).
+    '^.+\\.vue$':  './vueSfcJestTransformer.js',
+    // Process `*.ts`/`*.tsx` with `babel-jest` + `@babel/preset-typescript` (strips
+    // types via Babel; never loads the TypeScript compiler, so it is compatible
+    // with the native TS 7 package that ships no JS API). Babel replicates the
+    // prior ts-jest behaviour the suite relies on: `jest.mock` hoisting (via the
+    // auto-injected babel-preset-jest) and writable CommonJS exports.
+    '^.+\\.tsx?$': ['@swc/jest', { // process `*.ts` files with `@swc/jest` (no TypeScript JS API dependency)
+      jsc: {
+        parser:    { syntax: 'typescript', tsx: true },
+        target:    'es2019',
+        transform: {
+          // Match TypeScript `target: ES2018` (useDefineForClassFields defaults to
+          // false below ES2022): class fields use assignment, and - crucially -
+          // *uninitialised* fields emit nothing (so a subclass type-only field does
+          // not clobber a value set by an inherited setter, and does not throw when
+          // it shadows an inherited getter). Babel cannot replicate this.
+          useDefineForClassFields: false
+        }
+        // `const enum`s are emitted as runtime enum objects (not erased), so
+        // cross-module references keep working without whole-program inlining.
+      },
+      module:     { type: 'commonjs' },
+      sourceMaps: 'inline'
+    }],
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
+
+  // NOTE: `.ts` is transpiled by `@swc/jest` (see transform above). No `ts-jest`.
+  // `.vue` files are handled by ./vueSfcJestTransformer.js (no TypeScript compiler API).
 
   // Coverage
   coverageProvider:    'v8',
@@ -79,7 +106,4 @@ module.exports = {
     }
     ]
   ],
-
-  // Globals
-  globals: { 'ts-jest': { isolatedModules: true } },
 };

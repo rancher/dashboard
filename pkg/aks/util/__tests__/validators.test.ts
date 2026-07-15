@@ -1,20 +1,28 @@
 import * as validators from '@pkg/aks/util/validators';
 import { AKSNodePool } from 'types';
 
-validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
-
-validators.needsValidation = () => true;
-
 const MOCK_TRANSLATION = 'abc';
+
+// `needsValidation` gates every validator on `ctx.config.{azureCredentialSecret,
+// resourceLocation}`. Provide them so validation runs. (Previously the test
+// reassigned `validators.needsValidation`/`requiredTranslation`, but under the
+// Babel/SWC transpile - no TypeScript compiler - named exports are non-configurable
+// getters and, being same-module calls, are not interceptable anyway.)
+const mockConfig = { azureCredentialSecret: 'x', resourceLocation: 'x' };
 
 const mockCtx = {
   normanCluster: { },
+  config:        mockConfig,
   t:             () => MOCK_TRANSLATION,
 };
 
 describe('fx: requiredInCluster', () => {
+  // `t` reproduces `requiredTranslation`'s "<label> is required." output via the
+  // real `ctx.t('validation.required', { key })` call; `config` satisfies `needsValidation`.
+  const requiredT = (key: string, args?: any) => (key === 'validation.required' ? `${ args.key } is required.` : key);
+
   it('returns an error message containing the field label if field is not defined in cluster', () => {
-    const mockCtx = { };
+    const mockCtx = { config: mockConfig, t: requiredT };
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');
@@ -23,7 +31,9 @@ describe('fx: requiredInCluster', () => {
   });
 
   it('returns undefined if field is defined in cluster', () => {
-    const mockCtx = { spec: 'abc' } ;
+    const mockCtx = {
+ spec: 'abc', config: mockConfig, t: requiredT
+};
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');

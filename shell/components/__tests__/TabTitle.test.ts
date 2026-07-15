@@ -4,6 +4,19 @@ import TabTitle from '@shell/components/TabTitle.vue';
 import * as privateLabel from '@shell/config/private-label';
 import * as title from '@shell/utils/title';
 
+// Under the Babel/SWC transpile (no TypeScript compiler), named exports are
+// non-configurable getters, so the previous `privateLabel.getVendor = ...` /
+// `title.updatePageTitle = ...` reassignments throw. Mock the modules instead
+// and drive them with `mockImplementation` in `createMocks`.
+jest.mock('@shell/config/private-label', () => ({
+  ...jest.requireActual('@shell/config/private-label'),
+  getVendor: jest.fn(),
+}));
+jest.mock('@shell/utils/title', () => ({
+  ...jest.requireActual('@shell/utils/title'),
+  updatePageTitle: jest.fn(),
+}));
+
 describe('component: TabTitle', () => {
   function createMocks(): any {
     const mocks = {
@@ -17,11 +30,11 @@ describe('component: TabTitle', () => {
       withFallback:        null,
       vendor:              'Vendor',
       child:               'Child',
-      updatePageTitleArgs: null
+      updatePageTitleArgs: null as any[] | null
     };
 
-    privateLabel.getVendor = () => mocks.vendor;
-    title.updatePageTitle = (...args: any[]) => (mocks.updatePageTitleArgs = args);
+    (privateLabel.getVendor as jest.Mock).mockImplementation(() => mocks.vendor);
+    (title.updatePageTitle as jest.Mock).mockImplementation((...args: any[]) => (mocks.updatePageTitleArgs = args));
 
     return mocks;
   }

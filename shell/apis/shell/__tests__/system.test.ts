@@ -1,8 +1,10 @@
 // system.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+// NOTE: `jest` is intentionally NOT imported from '@jest/globals'. The transpiler
+// (SWC/Babel, no TypeScript compiler) only hoists `jest.mock(...)` calls when
+// `jest` is the global - an imported `jest` binding is left below the imports, so
+// the mock factory would run too late. The global `jest` is typed via @types/jest.
 import { SystemApiImpl } from '../system';
 import { Store } from 'vuex';
 

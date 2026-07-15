@@ -16,6 +16,14 @@ const vueApp = createApp({});
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
+// jsdom does not implement PointerEvent. Some SFCs reference it in prop-type
+// declarations that run at module-evaluation time (e.g. ActionMenu.vue), so it
+// must exist before those components are imported - hence at module top level
+// rather than in a beforeAll hook.
+if (typeof global.PointerEvent === 'undefined') {
+  global.PointerEvent = global.MouseEvent || class PointerEvent extends Event {};
+}
+
 // vueApp.config.productionTip = false;
 vueApp.use(i18n, { store: { dispatch() {} } });
 vueApp.use(FloatingVue, floatingVueOptions);
