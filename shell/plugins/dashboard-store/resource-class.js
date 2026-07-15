@@ -928,7 +928,7 @@ export default class Resource {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
-      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
+      component:      defineAsyncComponent(() => import('@shell/components/Drawer/ResourceDetailDrawer/index.vue')),
       componentProps: {
         resource:           this,
         onClose,

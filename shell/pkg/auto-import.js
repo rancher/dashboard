@@ -155,5 +155,6 @@ module.exports = {
   contextFolders,
   contextMap,
   generateTypeImport,
-  generateDynamicTypeImport
+  generateDynamicTypeImport,
+  COMPAT_SHIM
 };
