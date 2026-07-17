@@ -141,6 +141,10 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
         // Change chart version
         installChartPage.chartVersionSelector().toggle();
+        // Ensure the version list has fully populated before selecting by index — clicking
+        // `nth-child(2)` can otherwise land while the async version fetch is still rendering
+        // rows, selecting a transient/placeholder option (or missing the click entirely).
+        installChartPage.chartVersionSelector().getOptions().should('have.length.greaterThan', 2);
         installChartPage.chartVersionSelector().clickOption(2);
 
         // Verify custom registry is still there

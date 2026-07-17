@@ -18,9 +18,14 @@ export class RancherSetupLoginPagePo extends PagePo {
   }
 
   bootstrapLogin() {
-    this.canSubmit().should('eq', true);
+    // Use the retry-able `expectToBeEnabled()` assertion rather than
+    // `canSubmit().should('eq', true)`: `canSubmit()` reads the `disabled` attribute
+    // once through a non-retry-able `.then()`, so it races the reactive tick that
+    // toggles the submit button while the login form hydrates / validates the password.
+    // `.should('not.have.attr', 'disabled')` retries until the button settles enabled.
+    this.submitButton().expectToBeEnabled();
     this.password().set(Cypress.env('bootstrapPassword'));
-    this.canSubmit().should('eq', true);
+    this.submitButton().expectToBeEnabled();
     this.submit();
   }
 
