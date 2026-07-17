@@ -69,6 +69,9 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
       labeledSelect.self().scrollIntoView();
       labeledSelect.toggle();
+      // Ensure the dropdown menu is actually open (options rendered) before selecting;
+      // avoids a race where the click lands before vue-select finishes populating configmaps.
+      labeledSelect.isOpened();
       labeledSelect.clickLabel(`${ configMapPayload.metadata.name }`);
     });
 

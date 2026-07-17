@@ -30,7 +30,9 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
             installChartPage.footerControls().should('be.visible');
 
-            installChartPage.footerControls().then(($el) => {
+            // Use a retry-able `.should()` (not a one-shot `.then()`) so the sticky-footer
+            // position assertion re-evaluates until layout settles after the YAML editor renders.
+            installChartPage.footerControls().should(($el) => {
               const elementRect = $el[0].getBoundingClientRect();
               const viewportHeight = Cypress.config('viewportHeight');
               const pageHeight = Cypress.$(cy.state('window')).height();
