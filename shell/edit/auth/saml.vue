@@ -258,8 +258,8 @@ export default {
             <template v-if="isGenericSaml">
               <tr data-testid="genericsaml-view-fields"><td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ model.nameIDFormat }}</td></tr>
               <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ model.signatureMethod }}</td></tr>
-              <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated }}</td></tr>
-              <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
             </template>
             <tr v-if="isLogoutAllSupported">
               <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
