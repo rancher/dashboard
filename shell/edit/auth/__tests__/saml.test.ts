@@ -292,5 +292,19 @@ describe('saml.vue', () => {
 
       expect(wrapper.find('[data-testid="genericsaml-fields"]').exists()).toBe(false);
     });
+
+    it('renders generic SAML fields in the enabled read-only view', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, enabled: true }));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-view-fields"]').exists()).toBe(true);
+    });
+
+    it('does not render generic SAML view fields for non-generic providers when enabled', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', { ...validModel, enabled: true }));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-view-fields"]').exists()).toBe(false);
+    });
   });
 });
