@@ -39,8 +39,12 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     });
     rancherSetupConfigurePage.waitForPage();
 
-    // Yes this is bad, but want to ensure no other settings requests are made.
-    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    // Wait for the configure page to finish rendering its initial data (server URL
+    // field visible + submit gated) as a deterministic settle point — this replaces an
+    // arbitrary timed wait and guarantees the app's startup request burst has completed
+    // before we assert that no further settings requests were made.
+    rancherSetupConfigurePage.serverUrl().self().should('be.visible');
+    rancherSetupConfigurePage.canSubmit().should('eq', false);
     cy.get('@settingsReq.all').should('have.length', 2);
   });
 
