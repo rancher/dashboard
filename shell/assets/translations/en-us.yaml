@@ -197,7 +197,7 @@ nav:
     sideNav: Secondary menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
-    harvesterCluster: Harvester cluster menu item
+    harvesterCluster: '[[Harvester]] cluster menu item'
     seeAll: See all clusters menu item
     multiClusterApps: Main menu multi cluster app menu item
     configurationApps: Main menu configuration app menu item
@@ -213,7 +213,7 @@ nav:
     mainMenuRancherLogo: Main menu Rancher logo
     userAvatar: User avatar image
   expandCollapseAppBar: Expand/Collapse the Application Bar
-  harvesterDashboard: Harvester Dashboard
+  harvesterDashboard: '[[Harvester]] Dashboard'
   backToRancher: Cluster Manager
   tools: Tools
   clusterTools: Cluster Tools
@@ -1640,7 +1640,7 @@ cluster:
       label: vSphere
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-on Configuration tab.'
     harvester:
-      label: Harvester
+      label: '[[Harvester]]'
   copyConfig: Copy KubeConfig to Clipboard
   copiedConfig: Copied KubeConfig to Clipboard
   custom:
@@ -1819,7 +1819,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Imported Harvester Cluster
+      cluster: Imported [[Harvester]] Cluster
       enableTpm: Enable TPM
       enableCpuPinning: Enable CPU Pinning
       cpuPinningTooltip: Enable CPU Pinning brings better performance and reduce latency for the harvester virtual machine
@@ -1827,25 +1827,25 @@ cluster:
       secureBoot: Secure Boot
       enableEfi: Booting in EFI mode
       installGuestAgent: Install guest agent
-      tokenExpirationWarning: 'Warning: Harvester Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
+      tokenExpirationWarning: 'Warning: [[Harvester]] Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
   harvester:
-    importNotice: Import Harvester Clusters via
+    importNotice: Import [[Harvester]] Clusters via
     warning:
-      label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
+      label: This is a [[Harvester]] Cluster - enable the [[Harvester]] feature flag to manage it
       state: Warning
       cloudProvider:
         incompatible:
-          You cannot select the Harvester cloud provider as the current Harvester version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
+          You cannot select the [[Harvester]] cloud provider as the current [[Harvester]] version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
     clusterWarning: |-
       There {count, plural,
-      =1 {is 1 Harvester cluster that is not shown}
-      other {are # Harvester clusters that are not shown}
+      =1 {is 1 [[Harvester]] cluster that is not shown}
+      other {are # [[Harvester]] clusters that are not shown}
       }
     registration:
-      step1: "1. Go to the <code>Advanced / Settings</code> page of the target Harvester's UI."
+      step1: "1. Go to the <code>Advanced / Settings</code> page of the target [[Harvester]]'s UI."
       step2: '2. Find the <code>cluster-registration-url</code> setting and click the <code><i class="icon icon-actions" ></i></code> -> <code>Edit Setting</code> button.'
       step3: "3. Input the following registration URL and click the <code>Save</code> button."
       step4: "Registration URL"
@@ -1869,7 +1869,7 @@ cluster:
         toolTip: SSH user to login with the selected OS image.
     kubeconfigSecret:
         nameRequired: Cluster name is required.
-        error: 'Error generating Harvester kubeconfig secret: {err}'
+        error: 'Error generating [[Harvester]] kubeconfig secret: {err}'
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
@@ -2475,7 +2475,7 @@ cluster:
     googlegke: Google GKE
     gke: GKE
     googlekubernetesengine: Google GKE (Unsupported Kev1)
-    harvester: Harvester
+    harvester: '[[Harvester]]'
     huaweicce: Huawei CCE
     import: Generic
     imported: Imported
@@ -3146,21 +3146,21 @@ fleet:
   clusters:
     harvester: |-
       There {count, plural,
-      =1 {is 1 Harvester cluster that is hidden as this can not be used with Continuous Delivery}
-      other {are # Harvester clusters that are hidden as they can not be used with Continuous Delivery}
+      =1 {is 1 [[Harvester]] cluster that is hidden as this can not be used with Continuous Delivery}
+      other {are # [[Harvester]] clusters that are hidden as they can not be used with Continuous Delivery}
       }
   tokens:
     harvester: |-
       {count, plural,
-      =1 {1 token is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
-      other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
+      =1 {1 token is hidden as it belongs to a [[Harvester]] cluster that can not be used with Continuous Delivery}
+      other {# tokens are hidden as they belong to [[Harvester]] clusters that can not be used with Continuous Delivery}
       }
   bundles:
     resources: Resources
     harvester: |-
       {count, plural,
-      =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
-      other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
+      =1 {1 bundle is hidden as it belongs to a [[Harvester]] cluster that can not be used with Continuous Delivery}
+      other {# bundles are hidden as they belong to [[Harvester]] clusters that can not be used with Continuous Delivery}
       }
   fleetSummary:
     noClusters:
@@ -5296,7 +5296,7 @@ persistentVolume:
       disk-csi-azure-com: Azure Disk (CSI)
       file-csi-azure-com: Azure File (CSI)
       driver-longhorn-io: Longhorn (CSI)
-      driver-harvesterhci-io: Harvester (CSI)
+      driver-harvesterhci-io: '[[Harvester]] (CSI)'
       lvm-driver-harvesterhci-io: LVM
       nfs-csi-k8s-io: NFS (CSI)
       ebs-csi-aws-com: AWS Elastic Block Store (CSI)
@@ -7004,13 +7004,13 @@ storageClass:
     title: (Deprecated)
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
   harvesterhci:
-    title: Harvester (CSI)
+    title: '[[Harvester]] (CSI)'
     warning:
-      unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
+      unSatisfiesVersion: Please upgrade your [[Harvester]] CSI driver version to use this feature. (csi-driver >= v0.1.15)
     hostStorageClass:
       label: Host Storage Class
-      placeholder: Storage class name on the host Harvester cluster
-      tooltip: By default the default storage class on the host Harvester cluster is used.
+      placeholder: Storage class name on the host [[Harvester]] cluster
+      tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
@@ -8634,8 +8634,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Harvester Cluster }
-      other { Harvester Clusters }
+      one { [[Harvester]] Cluster }
+      other { [[Harvester]] Clusters }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,

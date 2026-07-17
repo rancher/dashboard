@@ -1,7 +1,7 @@
 import { EXT_IDS_VALUES } from '@shell/core/plugin';
 import { ClusterProvisionerContext } from '@shell/core/types';
 
-type ExtensionManagerType = { [name: string]: Function, }
+type ExtensionManagerType = { [name: string]: Function | String }
 export type ExtensionManagerTypes =
   { [type in EXT_IDS_VALUES]?: ExtensionManagerType } & // eslint-disable-line no-unused-vars
   { [name: string]: ExtensionManagerType }
@@ -17,7 +17,7 @@ export type ExtensionManager = {
   removePlugin(name: string): Promise<void>;
   removeTypeFromStore(store: any, storeName: string, types: string[]): any[];
   applyPlugin(plugin: any): void;
-  register(type: string, name: string, fn: Function): void;
+  register(type: string, name: string, fn: Function | String): void;
   unregister(type: string, name: string, fn: Function): void;
   getAll(): ExtensionManagerTypes;
   getPlugins(): any;

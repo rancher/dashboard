@@ -5,6 +5,8 @@ import {
   getters,
   mutations,
   actions,
+  substituteGlobals,
+  I18N_GLOBAL_TYPE,
 } from '@shell/store/i18n';
 
 jest.mock('@shell/assets/translations/en-us.yaml', () => ({}));
@@ -205,6 +207,90 @@ describe('i18n store', () => {
         const translate = getters.t(s);
 
         expect(translate('greeting', {}, 'en-us')).toStrictEqual('Hello');
+      });
+
+      describe('i18n globals ([[name]] substitution)', () => {
+        // The formatter cache in i18n.js is keyed by locale/key; use unique keys
+        // per test so results do not leak between cases.
+        function stateWithGlobalMsg(key: string, msg: string) {
+          const s = makeState({ selected: 'en-us' });
+
+          (s.translations as any)['en-us'][key] = msg;
+
+          return s;
+        }
+
+        function extensionWith(globals: Record<string, string | Function>) {
+          return {
+            getDynamic: (type: string, name: string) => {
+              return type === I18N_GLOBAL_TYPE ? globals[name] : undefined;
+            }
+          };
+        }
+
+        it('substitutes a [[name]] token with the registered global value', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.registered', 'Manage your [[Harvester]] cluster');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.registered')).toStrictEqual('Manage your Rancher Virtualization cluster');
+        });
+
+        it('falls back to the token name when the global is not registered', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.unregistered', 'Manage your [[Harvester]] cluster');
+          const rootState = { $extension: extensionWith({}) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.unregistered')).toStrictEqual('Manage your Harvester cluster');
+        });
+
+        it('evaluates function-valued globals when substituting', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.function', 'Welcome to [[Product]]');
+          const rootState = { $extension: extensionWith({ Product: () => 'Fabric' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.function')).toStrictEqual('Welcome to Fabric');
+        });
+
+        it('preserves the literal [[name]] when the token is escaped with a backslash', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.escaped', 'Use \\[[Harvester]] to reference the global');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.escaped')).toStrictEqual('Use [[Harvester]] to reference the global');
+        });
+
+        it('substitutes multiple different tokens in the same message', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.multiple', '[[Product]] on [[Platform]]');
+          const rootState = { $extension: extensionWith({ Product: 'Fabric', Platform: 'Kubernetes' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.multiple')).toStrictEqual('Fabric on Kubernetes');
+        });
+
+        it('substitutes before IntlMessageFormat args are interpolated', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.withArgs', 'Found {count} [[Harvester]] cluster(s)');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.withArgs', { count: 3 })).toStrictEqual('Found 3 Rancher Virtualization cluster(s)');
+        });
+
+        it('leaves messages without [[ tokens unchanged', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.noToken', 'Nothing to substitute here');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobal.noToken')).toStrictEqual('Nothing to substitute here');
+        });
+
+        it('does not crash when rootState.$extension is unavailable', () => {
+          const s = stateWithGlobalMsg('i18nGlobal.noExtension', 'Manage your [[Harvester]] cluster');
+          const translate = getters.t(s, undefined, {});
+
+          // With no extension registry available, the token name is used as the value
+          expect(translate('i18nGlobal.noExtension')).toStrictEqual('Manage your Harvester cluster');
+        });
       });
     });
 
