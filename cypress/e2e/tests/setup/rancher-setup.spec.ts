@@ -66,6 +66,12 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupConfigurePage.submitShouldBeDisabled();
     // Check server url validation
     rancherSetupConfigurePage.serverUrl().self().should('be.visible');
+    // The server URL field is auto-populated asynchronously once the setup page hydrates.
+    // Wait until it holds a non-empty value before capturing it with the non-retry-able
+    // `.then()` below — otherwise we snapshot an empty string, restore the field to empty
+    // at the end of the validation loop, and leave submit disabled so
+    // `submitShouldBeEnabled()` times out.
+    rancherSetupConfigurePage.serverUrl().self().invoke('val').should('not.be.empty');
     rancherSetupConfigurePage.serverUrl().self().invoke('val').then((initialServerUrl) => {
     // Check showing localhost warning banner
       serverUrlLocalhostCases.forEach((url) => {
