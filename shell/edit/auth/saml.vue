@@ -255,6 +255,12 @@ export default {
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+            <template v-if="isGenericSaml">
+              <tr data-testid="genericsaml-view-fields"><td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ model.nameIDFormat }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ model.signatureMethod }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn }}</td></tr>
+            </template>
             <tr v-if="isLogoutAllSupported">
               <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
