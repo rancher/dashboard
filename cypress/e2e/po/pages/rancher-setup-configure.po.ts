@@ -48,6 +48,24 @@ export class RancherSetupConfigurePage extends PagePo {
     return this.submitButton().isDisabled().then((isDisabled) => !isDisabled);
   }
 
+  /**
+   * Retry-able assertion that the submit button is enabled.
+   * Prefer this over `canSubmit().should('eq', true)`: `canSubmit()` reads the
+   * `disabled` attribute once through a non-retry-able `.then()`, so it races the
+   * reactive tick that toggles the button state. `.should('not.have.attr', ...)`
+   * retries until Vue settles.
+   */
+  submitShouldBeEnabled(): Cypress.Chainable {
+    return this.submitButton().expectToBeEnabled();
+  }
+
+  /**
+   * Retry-able assertion that the submit button is disabled (see `submitShouldBeEnabled`).
+   */
+  submitShouldBeDisabled(): Cypress.Chainable {
+    return this.submitButton().expectToBeDisabled();
+  }
+
   submit(): Cypress.Chainable {
     return this.submitButton().click();
   }

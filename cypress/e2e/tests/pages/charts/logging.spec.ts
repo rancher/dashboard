@@ -86,9 +86,11 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
       loggingFlowCreate.waitForPage(undefined, 'outputs');
       loggingFlowCreate.outputSelector().toggle();
-      // Wait for the dropdown options to render before selecting, so the click doesn't
-      // race the async load of the cluster outputs list.
-      loggingFlowCreate.outputSelector().isOpened();
+      // Wait for the *specific* output option to render (not just any option) before
+      // selecting, so the click doesn't race the async load of the cluster outputs list
+      // and clickOptionWithLabel doesn't read an option index while the list is still
+      // mutating.
+      loggingFlowCreate.outputSelector().getOptions().contains('li', outputName).should('be.visible');
       loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
 
       // Configure namespaces during creation

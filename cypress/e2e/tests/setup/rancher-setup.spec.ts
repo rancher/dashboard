@@ -44,7 +44,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     // arbitrary timed wait and guarantees the app's startup request burst has completed
     // before we assert that no further settings requests were made.
     rancherSetupConfigurePage.serverUrl().self().should('be.visible');
-    rancherSetupConfigurePage.canSubmit().should('eq', false);
+    rancherSetupConfigurePage.submitShouldBeDisabled();
     cy.get('@settingsReq.all').should('have.length', 2);
   });
 
@@ -63,7 +63,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
 
     rancherSetupConfigurePage.waitForPage();
-    rancherSetupConfigurePage.canSubmit().should('eq', false);
+    rancherSetupConfigurePage.submitShouldBeDisabled();
     // Check server url validation
     rancherSetupConfigurePage.serverUrl().self().should('be.visible');
     rancherSetupConfigurePage.serverUrl().self().invoke('val').then((initialServerUrl) => {
@@ -89,7 +89,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     });
 
     rancherSetupConfigurePage.termsAgreement().set();
-    rancherSetupConfigurePage.canSubmit().should('eq', true);
+    rancherSetupConfigurePage.submitShouldBeEnabled();
     rancherSetupConfigurePage.submit();
 
     cy.location('pathname', { timeout: 15000 }).should('include', '/home');
