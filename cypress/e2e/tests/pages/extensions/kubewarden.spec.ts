@@ -90,10 +90,11 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     kubewardenPo.goTo();
     kubewardenPo.waitForPage();
 
-    const kubewardenNavItem = productMenu.groups().contains('Admission Policy Management');
-
-    kubewardenNavItem.should('exist');
-    kubewardenNavItem.click();
+    // Re-query the nav item for each command instead of reusing a stored chainable: the
+    // side-nav re-renders as the extension's menu registers, so a snapshot captured for the
+    // `.should('exist')` assertion can be detached by the time we `.click()` it.
+    productMenu.groups().contains('Admission Policy Management').should('exist');
+    productMenu.groups().contains('Admission Policy Management').click();
   }));
 
   qase(1432, it('Kubewarden dashboard view should exist', () => {

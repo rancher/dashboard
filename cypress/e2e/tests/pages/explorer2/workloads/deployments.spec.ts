@@ -450,6 +450,10 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     it('sorting changes the order of paginated deployments data', () => {
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
+      // Wait for the table to finish loading before filtering/sorting: filtering a table that
+      // is still fetching rows races the sort-order and row-visibility assertions below.
+      deploymentsListPage.sortableTable().checkVisible();
+      deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
       // use filter to only show test data
       deploymentsListPage.sortableTable().filter(rootResourceName);
 

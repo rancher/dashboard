@@ -304,6 +304,10 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
     it('sorting changes the order of paginated cronjobs data', () => {
       WorkloadsCronJobsListPagePo.navTo();
       cronJobListPage.waitForPage();
+      // Wait for the table to finish loading before filtering/sorting: filtering a table that
+      // is still fetching rows races the sort-order and row-visibility assertions below.
+      cronJobListPage.list().resourceTable().sortableTable().checkVisible();
+      cronJobListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       // use filter to only show test data
       cronJobListPage.list().resourceTable().sortableTable().filter(rootResourceName);
 

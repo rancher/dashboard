@@ -255,6 +255,10 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     it('sorting changes the order of paginated jobs data', () => {
       WorkloadsJobsListPagePo.navTo();
       jobsListPage.waitForPage();
+      // Wait for the table to finish loading before filtering/sorting: filtering a table that
+      // is still fetching rows races the sort-order and row-visibility assertions below.
+      jobsListPage.list().resourceTable().sortableTable().checkVisible();
+      jobsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       // use filter to only show test data
       jobsListPage.list().resourceTable().sortableTable().filter(rootResourceName);
 
