@@ -135,6 +135,13 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
   it('can delete a network policy', () => {
     NetworkPolicyListPagePo.navTo();
     networkPolicyPage.waitForPage();
+    // Scope to the target row and wait for the list to finish loading so the action
+    // menu opens on a settled table row rather than a row still being rendered/re-fetched
+    networkPolicyPage.baseResourceList().resourceTable().sortableTable().filter(customNetworkPolicyName);
+    networkPolicyPage.waitForPage(`q=${ customNetworkPolicyName }`);
+    networkPolicyPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    networkPolicyPage.list().resourceTable().sortableTable().rowElementWithName(customNetworkPolicyName)
+      .should('be.visible');
     networkPolicyPage.list().actionMenu(customNetworkPolicyName).getMenuItem('Delete').click();
     const promptRemove = new PromptRemove();
 
@@ -142,7 +149,9 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     promptRemove.remove();
     cy.wait('@deleteNetworkPolicy');
     networkPolicyPage.waitForPage();
-    cy.contains(customNetworkPolicyName).should('not.exist');
+    // Assert against the table row (not a page-wide text match, which can catch the filter input / toasts)
+    networkPolicyPage.list().resourceTable().sortableTable().rowElementWithName(customNetworkPolicyName)
+      .should('not.exist');
   });
 
   after(() => {
