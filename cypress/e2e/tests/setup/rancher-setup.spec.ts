@@ -24,8 +24,12 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     rancherSetupLoginPage.goTo();
 
-    // First request will fetch a partial list of settings
-    cy.wait('@settingsReq').then((interception) => {
+    // First request will fetch a partial list of settings.
+    // This spec runs against a freshly-booted Rancher backend, so the initial settings
+    // fetch can be slower than Cypress's default 5s request-timeout on a cold, loaded CI
+    // runner. Give the intercept waits a generous timeout so a slow-but-healthy startup
+    // doesn't read as a flake.
+    cy.wait('@settingsReq', { timeout: 30000 }).then((interception) => {
       expect(interception.response.body.count).lessThan(PARTIAL_SETTING_THRESHOLD);
     });
     cy.get('@settingsReq.all').should('have.length', 1);
@@ -34,7 +38,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.bootstrapLogin();
 
     // Second request (after user is logged in) will return the full list
-    cy.wait('@settingsReq').then((interception) => {
+    cy.wait('@settingsReq', { timeout: 30000 }).then((interception) => {
       expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
     rancherSetupConfigurePage.waitForPage();
@@ -55,7 +59,9 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.bootstrapLogin();
 
-    cy.wait('@bootstrapReq').then((login) => {
+    // Generous timeout: the bootstrap login POST hits a cold backend on the first setup
+    // request and can exceed the default 5s request-timeout on a slow CI runner.
+    cy.wait('@bootstrapReq', { timeout: 30000 }).then((login) => {
       expect(login.response?.statusCode).to.equal(200);
       rancherSetupConfigurePage.waitForPage();
     });
@@ -100,7 +106,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     cy.location('pathname', { timeout: 15000 }).should('include', '/home');
 
-    cy.wait('@firstLoginReq').then((login) => {
+    cy.wait('@firstLoginReq', { timeout: 30000 }).then((login) => {
       expect(login.response?.statusCode).to.equal(200);
       homePage.waitForPage();
     });
