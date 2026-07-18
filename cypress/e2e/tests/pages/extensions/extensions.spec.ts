@@ -380,6 +380,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
+    // Wait for the install dialog to finish rendering before clicking the async install
+    // button — clicking it while the modal is still animating open races the render and
+    // can miss or hit a detached element. Mirrors the install/large-extension tests.
+    extensionsPo.installModal().checkVisible();
     extensionsPo.installModal().installButton().click();
     cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
@@ -406,6 +410,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on the downgrade button on card
     // this will downgrade to the immediate previous version
     extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
+    // Guard against the modal-open race before clicking the async install button, as in
+    // the upgrade/install tests above.
+    extensionsPo.installModal().checkVisible();
     extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
