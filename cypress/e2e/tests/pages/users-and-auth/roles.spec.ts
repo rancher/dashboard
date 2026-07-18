@@ -602,6 +602,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.goTo();
       usersPo.list().create();
 
+      // Capture the created user's id so we can wait for the backend to finish
+      // provisioning it before we log in as that user (see the deterministic wait below).
+      cy.intercept('POST', '/v3/users').as('createStandardUser');
+
       userCreate.username().set(standardUsername);
       userCreate.newPass().set(standardPassword);
       userCreate.confirmNewPass().set(standardPassword);
@@ -616,12 +620,14 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // logout admin
       cy.logout();
 
-      // Attempt at fix. Infrequently log in can throw 'namespaces "m-..." already exists' errors for PUT /v1/userpreferences
-
-      // attempt 2 (remove if attempt 2 resolves)
-      // Going on the assumption that something user side hasn't quite been setup correctly before we try to log in and apply preferences
-      // So give it some time. We can investigate replacing this with a dedicated request to the intended resource at some point
-      cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+      // Infrequently the first login as the new user throws 'namespaces "m-..." already
+      // exists' on PUT /v1/userpreferences — the user's backing namespace/preferences
+      // aren't ready yet. Instead of a blind fixed wait, wait for the deterministic signal:
+      // the user reaching the Active state (its provisioning, including that namespace, is
+      // complete). This removes the race without coupling the test to a magic duration.
+      cy.wait('@createStandardUser').then(({ response }) => {
+        cy.waitForResourceState('v1', 'management.cattle.io.users', response?.body?.id, 'active');
+      });
 
       // login as standard user
       cy.login(standardUsername, standardPassword);
