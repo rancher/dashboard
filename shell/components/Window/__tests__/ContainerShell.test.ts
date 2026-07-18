@@ -5,6 +5,7 @@ import Socket, {
 } from '@shell/utils/socket';
 import Window from '@shell/components/Window/Window.vue';
 
+jest.mock('clipboard-polyfill', () => ({ writeText: jest.fn() }));
 jest.mock('@shell/utils/socket');
 jest.mock('@shell/utils/crypto', () => {
   const originalModule = jest.requireActual('@shell/utils/crypto');
