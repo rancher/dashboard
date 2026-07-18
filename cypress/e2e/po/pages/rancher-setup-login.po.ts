@@ -98,7 +98,94 @@ export class RancherSetupLoginPagePo extends PagePo {
     return new FormPo('form', this.self());
   }
 
+  /**
+   * Gate the UI login on the AUTHENTICATED post-login chain being ready — the real race the
+   * anonymous probes in waitForBackendReady() cannot see (they even say so). loginLocal()
+   * (shell/pages/auth/login.vue) authenticates and then, client-side, does
+   * `POST /v1/ext.cattle.io.selfuser` + a mgmt-user GET BEFORE it router.push()es to
+   * /auth/setup. On a cold backend the aggregated ext apiserver is not registered yet, that
+   * POST 404s/5xxs, and loginLocal()'s catch SWALLOWS it — so the app never leaves /auth/login
+   * and the setup page never mounts. That is exactly the two observed flakes:
+   *   - 'expected .../auth/login to include .../auth/setup'
+   *   - `@settingsReq` 2nd request "never occurred".
+   * An anonymous probe can report the route as present (401/403) while the authenticated call
+   * still fails, so this reproduces loginLocal()'s exact chain with a real session and polls
+   * until it genuinely SERVES (2xx), then drops the probe session so the UI flow runs clean.
+   *
+   * All calls here are cy.request (issued by Cypress, not the app) so they are NOT captured by
+   * any cy.intercept alias and cannot inflate the settings-request-count assertions. It runs
+   * after the page's first (partial) settings fetch has already been asserted, and adds no
+   * app-side settings request, so the "exactly 2 settings requests" expectation is preserved.
+   * Relative URLs are used deliberately so the session/CSRF cookies land on the dashboard
+   * origin — the same origin loginLocal() talks to — instead of a cross-origin API host.
+   */
+  private waitForAuthenticatedBackendReady(retries = 30) {
+    const username = 'admin';
+    const password = Cypress.env('bootstrapPassword');
+
+    const is2xx = (resp: any) => resp.status >= 200 && resp.status < 300;
+
+    const poll = (fn: () => Cypress.Chainable, test: (resp: any) => boolean, remaining: number): Cypress.Chainable => {
+      return fn().then((resp: any) => {
+        if (test(resp)) {
+          return;
+        }
+        if (remaining <= 0) {
+          throw new Error(`Authenticated backend not ready after retries (last status ${ resp.status })`);
+        }
+        cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+        return poll(fn, test, remaining - 1);
+      });
+    };
+
+    // 1. The first-run login itself must succeed. Body mirrors auth/login (shell/store/auth.js).
+    poll(() => cy.request({
+      url:                   '/v1-public/login',
+      method:                'POST',
+      failOnStatusCode:      false,
+      retryOnNetworkFailure: true,
+      body:                  {
+        username,
+        password,
+        description:  'UI session',
+        type:         'localProvider',
+        responseType: 'cookie'
+      },
+    }), is2xx, retries);
+
+    // 2. Reproduce loginLocal()'s post-auth chain authenticated, until it truly serves. This is
+    //    the call that 404s on a cold ext apiserver and gets swallowed, stranding /auth/login.
+    cy.getCookie('CSRF').then((csrf: any) => {
+      const headers = csrf ? { 'x-api-csrf': csrf.value } : {};
+
+      poll(() => cy.request({
+        url:                   `/v1/${ EXT.SELFUSER }`,
+        method:                'POST',
+        headers,
+        body:                  {},
+        failOnStatusCode:      false,
+        retryOnNetworkFailure: true,
+      }), is2xx, retries);
+    });
+
+    poll(() => cy.request({
+      url:                   '/v1/management.cattle.io.users',
+      failOnStatusCode:      false,
+      retryOnNetworkFailure: true,
+    }), is2xx, retries);
+
+    // 3. Drop the probe session so the UI login runs the real first-run flow (unauthenticated
+    //    -> login -> redirect). The backend registration warmed above persists server-side.
+    cy.clearCookies();
+  }
+
   bootstrapLogin() {
+    // Close the authenticated cold-backend race BEFORE driving the UI: wait until the exact
+    // post-login chain loginLocal() runs actually serves, so the swallowed-error path that
+    // strands the app on /auth/login (and prevents the 2nd settings fetch) cannot happen.
+    this.waitForAuthenticatedBackendReady();
+
     // Gate the submit on the login page having finished loading its first-run state.
     // The post-login redirect to /auth/setup only happens when the page's `firstLogin`
     // flag is true, which is set asynchronously in fetch() from the FIRST_LOGIN setting.
