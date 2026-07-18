@@ -12,6 +12,29 @@ const pageSize = 10;
 // Should be enough to create at least 3 pages of events
 const podCount = 15;
 
+// Events are generated asynchronously by the backend after the pods are created. The
+// pagination tests need at least 3 pages of events, so poll the events endpoint until the
+// count clears that threshold rather than blindly waiting a fixed time. Bounded so a genuinely
+// event-starved backend still fails fast instead of hanging the whole run.
+const MIN_EVENTS_TO_SETTLE = 3 * pageSize;
+const SETTLE_MAX_ATTEMPTS = 30;
+const SETTLE_INTERVAL_MS = 2000;
+
+const waitForEventsToSettle = (attempt = 0) => {
+  return cy.getRancherResource('v1', 'events').then((resp: Cypress.Response<any>) => {
+    const count = resp.body?.count || 0;
+
+    if (count > MIN_EVENTS_TO_SETTLE || attempt >= SETTLE_MAX_ATTEMPTS) {
+      return;
+    }
+
+    // eslint-disable-next-line cypress/no-unnecessary-waiting -- short backoff between event-count polls, not a fixed settle
+    cy.wait(SETTLE_INTERVAL_MS);
+
+    return waitForEventsToSettle(attempt + 1);
+  });
+};
+
 const countHelper = {
   setupCount: (vaiCacheEnabled: boolean, initialCount: number) => {
     if (vaiCacheEnabled) {
@@ -74,8 +97,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
           nsName2 = ns;
         });
 
-      // I'm loathed to do this, but the events created from the pods need to settle before we start
-      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+      // The events created from the pods need to settle before we start. A fixed wait is
+      // flaky: too short on a slow/loaded CI runner (events not yet emitted, so the
+      // `greaterThan(3 * pageSize)` count assertion below fails) and wasteful on a fast one.
+      // Poll the events endpoint until enough events exist to fill the >3 pages the test needs.
+      waitForEventsToSettle();
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
@@ -131,10 +157,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .self()
             .scrollIntoView();
           events.list().resourceTable().sortableTable().pagination()
-            .paginationText()
-            .then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
-            });
+            .checkPaginationTextEquals(`1 - ${ pageSize } of ${ initialCount } Events`);
 
           // navigate to next page - right button
           countHelper.setupCount(vaiCacheEnabled, initialCount);
@@ -149,10 +172,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .scrollIntoView();
           countHelper.getCount().then((count) => {
             return events.list().resourceTable().sortableTable().pagination()
-              .paginationText()
-              .then((el) => {
-                expect(el.trim()).to.eq(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
-              });
+              .checkPaginationTextEquals(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
           });
           events.list().resourceTable().sortableTable().pagination()
             .beginningButton()
@@ -174,10 +194,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .scrollIntoView();
           countHelper.getCount().then((count) => {
             return events.list().resourceTable().sortableTable().pagination()
-              .paginationText()
-              .then((el) => {
-                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
-              });
+              .checkPaginationTextEquals(`1 - ${ pageSize } of ${ count } Events`);
           });
 
           events.list().resourceTable().sortableTable().pagination()
@@ -200,19 +217,16 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .self()
             .scrollIntoView();
           countHelper.getCount().then((count) => {
+            let pages = Math.floor(count / pageSize);
+
+            if (count % pageSize === 0) {
+              pages--;
+            }
+            const from = (pages * pageSize) + 1;
+            const to = count;
+
             return events.list().resourceTable().sortableTable().pagination()
-              .paginationText()
-              .then((el) => {
-                let pages = Math.floor(count / pageSize);
-
-                if (count % pageSize === 0) {
-                  pages--;
-                }
-                const from = (pages * pageSize) + 1;
-                const to = count;
-
-                expect(el.trim()).to.eq(`${ from } - ${ to } of ${ to } Events`);
-              });
+              .checkPaginationTextEquals(`${ from } - ${ to } of ${ to } Events`);
           });
 
           // navigate to first page - beginning button
@@ -228,10 +242,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .scrollIntoView();
           countHelper.getCount().then((count) => {
             events.list().resourceTable().sortableTable().pagination()
-              .paginationText()
-              .then((el) => {
-                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
-              });
+              .checkPaginationTextEquals(`1 - ${ pageSize } of ${ count } Events`);
           });
 
           events.list().resourceTable().sortableTable().pagination()
