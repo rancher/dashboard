@@ -109,7 +109,55 @@ export class RancherSetupLoginPagePo extends PagePo {
     this.canSubmit().should('eq', true);
     this.password().set(Cypress.env('bootstrapPassword'));
     this.canSubmit().should('eq', true);
-    this.submit();
+    this.submitUntilRedirected();
+  }
+
+  /**
+   * Submit the first-run login and confirm we actually LEAVE /auth/login before returning.
+   *
+   * loginLocal() (shell/pages/auth/login.vue) authenticates and then, still client-side,
+   * POSTs `/v1/ext.cattle.io.selfuser`, GETs the management user and runs loadPlugins()
+   * BEFORE it router.push()es to /auth/setup. On a cold backend any of those follow-up
+   * calls can transiently fail, and loginLocal() SWALLOWS the error in its catch() — so we
+   * are left on /auth/login with no redirect and, because the setup page never mounts, no
+   * second (post-login) settings fetch. That is exactly the two observed flakes:
+   *   - 'expected .../auth/login to include .../auth/setup'
+   *   - `@settingsReq` 2nd request "never occurred".
+   *
+   * Anonymous backend-readiness probes (see waitForBackendReady) can report those endpoints
+   * as routed while the AUTHENTICATED follow-up call still transiently fails, so gating alone
+   * cannot close this race. Re-submitting re-runs the whole loginLocal() chain against the
+   * now-warmer backend until it completes. A re-submit does NOT reload the page, so it fires
+   * no additional `@settingsReq` and keeps the "exactly 2 settings requests" assertion intact
+   * (the second settings fetch happens only once we finally reach /auth/setup).
+   */
+  private submitUntilRedirected(attempt = 0, settlePolls = 0) {
+    const MAX_ATTEMPTS = 4;
+    const SETTLE_POLLS = 12; // ~6s per attempt for the post-login chain + redirect to resolve
+
+    if (settlePolls === 0) {
+      this.submit();
+    }
+
+    cy.url().then((url) => {
+      if (!url.includes('/auth/login')) {
+        return; // redirected off the login page -> loginLocal() completed
+      }
+
+      if (settlePolls < SETTLE_POLLS) {
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+        return this.submitUntilRedirected(attempt, settlePolls + 1);
+      }
+
+      // Settle window elapsed and we're still on /auth/login: loginLocal() caught a transient
+      // cold-backend error. Re-submit (bounded) against the warmer backend.
+      if (attempt + 1 >= MAX_ATTEMPTS) {
+        return; // exhausted; let the downstream waitForPage()/assertion surface a clear failure
+      }
+
+      return this.submitUntilRedirected(attempt + 1, 0);
+    });
   }
 
   hasInfoMessage() {
