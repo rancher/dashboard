@@ -405,17 +405,13 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().endButton().isEnabled();
 
         // check text before navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination().checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
 
         // navigate to next page - right button
         deploymentsListPage.sortableTable().pagination().rightButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination().checkPaginationTextEquals(`11 - 20 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isEnabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isEnabled();
 
@@ -423,9 +419,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().leftButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination().checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
 
@@ -441,17 +435,13 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         }
 
         // check text after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination().checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
 
         // navigate to first page - beginning button
         deploymentsListPage.sortableTable().pagination().beginningButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination().checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
       });

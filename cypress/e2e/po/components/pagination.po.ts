@@ -27,6 +27,20 @@ export default class PaginationPo extends ComponentPo {
   }
 
   /**
+   * Retry-able assertion on the "x - y of z" pagination summary text.
+   * The summary updates asynchronously after a page-navigation click (next/prev/first/last),
+   * so reading it once through a non-retry-able `.then()` + `expect` races the re-render and
+   * flakes. `.should()` with a callback retries the whole `find('span').invoke('text')` chain
+   * until the trimmed text settles on the expected value.
+   * @param expected The exact expected summary text (compared after trimming)
+   */
+  checkPaginationTextEquals(expected: string): Cypress.Chainable {
+    return this.self().find('span').invoke('text').should((text) => {
+      expect(text.trim()).to.eq(expected);
+    });
+  }
+
+  /**
    * Check the x of y pagination text against the side nav count
    */
   checkPaginationText(productNav: ProductNavPo, options: {
