@@ -21,6 +21,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
   it('Confirm correct number of settings requests made', () => {
     cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+    cy.intercept('POST', '/v1-public/login').as('setupLoginReq');
 
     rancherSetupLoginPage.goTo();
 
@@ -32,6 +33,12 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.bootstrapLogin();
+
+    // Gate on the login itself completing before expecting the post-login settings fetch.
+    // The second settings request is only made once the user is actually logged in and the
+    // setup page mounts; asserting the login returned 200 first turns a never-occurring
+    // downstream request into a clear failure of its real precondition.
+    cy.wait('@setupLoginReq').its('response.statusCode').should('eq', 200);
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
@@ -110,5 +117,26 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
       },
       password: Cypress.env('password')
     }, { createNameOptions: { onlyContext: true } });
+
+    // Poll until standard_user is actually queryable before the setup step ends, so the
+    // downstream standardUser matrix jobs never race ahead of eventual consistency and
+    // fail to log in. Re-issue the GET on each attempt (a plain .should() would only retry
+    // the assertion against a single, stale response) with a bounded backoff.
+    const assertStandardUserQueryable = (attempt = 0) => {
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: any) => {
+        const found = (resp.body?.data || []).some((u: any) => u.username === 'standard_user');
+
+        if (found) {
+          return;
+        }
+        if (attempt >= 20) {
+          throw new Error('standard_user was not queryable after creation');
+        }
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+        assertStandardUserQueryable(attempt + 1);
+      });
+    };
+
+    assertStandardUserQueryable();
   });
 });
