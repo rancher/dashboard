@@ -33,9 +33,14 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
 
       const resourceYaml = new ResourceYamlPo();
 
-      resourceYaml.body().should('be.visible').then(() => {
-        resourceYaml.footer().isVisible();
-      });
+      // `footer().isVisible()` is a one-shot viewport-position check (reads getBoundingClientRect()
+      // synchronously, no retry). Gate it behind a retry-able `.should('be.visible')` on both the
+      // body and the footer so the codemirror editor has finished laying out before we measure —
+      // firing the measurement from inside a `.then()` the moment the body appears races the layout
+      // and flakes. (Only the footer is viewport-measured; the body can legitimately be taller than
+      // the viewport, so it just needs to be rendered/visible.)
+      resourceYaml.body().should('be.visible');
+      resourceYaml.footer().should('be.visible').isVisible();
     }));
   });
 
