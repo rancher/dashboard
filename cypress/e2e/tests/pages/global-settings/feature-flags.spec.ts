@@ -197,15 +197,20 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher'];
 
+      // Let the table settle before snapshotting the header row. The `.each()` below is a
+      // non-retryable, single-snapshot assertion — if it runs while the table is still
+      // loading, the header cells can be empty or partially rendered and the text equality
+      // check fails intermittently. Assert the table is visible with the loading indicator
+      // gone first so the headers are guaranteed to be their final values.
+      featureFlagsPage.list().resourceTable().sortableTable().checkVisible();
+      featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+
       featureFlagsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
         });
-
-      featureFlagsPage.list().resourceTable().sortableTable().checkVisible();
-      featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-      featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
         // We filter out fleet and ui-sql-cache feature flags
         const featureCount = resp.body.count - 2;

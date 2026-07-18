@@ -162,6 +162,12 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     // check table headers
     const expectedHeadersDetailsView = ['State', 'Name', 'Git Repos Ready', 'Helm Ops Ready', 'Bundles Ready', 'Resources', 'Last Seen', 'Age'];
 
+    // Settle the cluster list before snapshotting its header row: the `.each()` below is a
+    // non-retryable assertion, so if it runs while the details table is still loading the
+    // header cells can be empty/partial and the equality check flakes.
+    fleetClusterGroupDetailsPage.clusterList().sortableTable().checkVisible();
+    fleetClusterGroupDetailsPage.clusterList().sortableTable().checkLoadingIndicatorNotVisible();
+
     fleetClusterGroupDetailsPage.clusterList().sortableTable()
       .tableHeaderRow()
       .within('.table-header-container .content')

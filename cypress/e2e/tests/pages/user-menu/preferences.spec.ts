@@ -76,6 +76,10 @@ describe('User can update their preferences', () => {
     header.showKubectlExplainTooltip();
     header.getKubectlExplainTooltipContent().contains('Describe Resource');
     cy.reload();
+    // After reload the app re-hydrates asynchronously; driving the header tooltip before
+    // the page has re-rendered acts on a not-yet-mounted element and flakes. Wait for the
+    // events list to be back on screen (same settle point used above) before interacting.
+    cy.contains('.title > h1', '事件').should('be.visible');
     header.showKubectlExplainTooltip();
     header.getKubectlExplainTooltipContent().contains('Describe Resource');
     // EO test https://github.com/rancher/dashboard/issues/10153
