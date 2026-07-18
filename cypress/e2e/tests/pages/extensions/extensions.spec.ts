@@ -288,6 +288,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // we should be on the extensions page
     extensionsPo.waitForTitle();
 
+    // Wait for the specific card to render before clicking it — the available-tab card
+    // list can still be populating right after the title appears, and clicking a
+    // not-yet-rendered card flakes.
+    extensionsPo.extensionCard(EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
+
     // show extension details
     extensionsPo.extensionCardClick(EXTENSION_NAME);
 
@@ -317,6 +322,13 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
+
+    // The extension cards come from the repo added in the earlier "add repository" test.
+    // After that repo becomes Active its charts are indexed asynchronously, so the card
+    // (and its action menu) can render a beat after the available tab is shown. Wait for
+    // the specific card to be visible before opening its action menu — otherwise the
+    // install click races the card render and flakes. Mirrors the large-extension test.
+    extensionsPo.extensionCard(EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
@@ -468,6 +480,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.loading().should('not.exist');
+
+    // Wait for the specific card to render before opening its action menu, so the install
+    // click doesn't race the available-tab card list still populating after load.
+    extensionsPo.extensionCard(UNAUTHENTICATED_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
