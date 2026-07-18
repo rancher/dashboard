@@ -23,8 +23,15 @@ export class RancherSetupLoginPagePo extends PagePo {
     // once through a non-retry-able `.then()`, so it races the reactive tick that
     // toggles the submit button while the login form hydrates / validates the password.
     // `.should('not.have.attr', 'disabled')` retries until the button settles enabled.
+    const bootstrapPassword = Cypress.env('bootstrapPassword');
+
     this.submitButton().expectToBeEnabled();
-    this.password().set(Cypress.env('bootstrapPassword'));
+    this.password().set(bootstrapPassword);
+    // Guard against dropped keystrokes: `cy.type()` can lose characters under CI load,
+    // which would submit a truncated password, fail login (401), and leave the configure
+    // page (and every downstream setup assertion for this tag run) to time out. Assert the
+    // field holds the full value before clicking — this retries until the input settles.
+    this.password().shouldHaveValue(bootstrapPassword);
     this.submitButton().expectToBeEnabled();
     this.submit();
   }
