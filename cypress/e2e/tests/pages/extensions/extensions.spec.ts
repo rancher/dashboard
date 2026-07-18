@@ -200,8 +200,15 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionMenuToggle();
     extensionsPo.addRepositoriesClick();
 
+    // Intercept the cluster-repo creation POST that the "Add" button fires so we can wait
+    // for the repo to be persisted before navigating. Without this, the repos list can be
+    // fetched before the new repo exists on the backend, and `.should('exist')` then retries
+    // against a stale, non-refetching table until it times out — the flake.
+    cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createPartnerRepo');
+
     // add the partners repo
     extensionsPo.addReposModalAddClick();
+    cy.wait('@createPartnerRepo').its('response.statusCode').should('be.oneOf', [200, 201]);
     extensionsPo.addReposModal().should('not.exist');
 
     // go to repos list page
