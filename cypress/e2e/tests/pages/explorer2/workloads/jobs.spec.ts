@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
@@ -84,6 +84,9 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cloneJobDetailsPage.resourceDetail().createEditView().save();
       cloneJobDetailsPage.errorBanner().should('not.exist');
 
+      // Navigate back to the list page and wait for it to load
+      workloadsJobsListPage.goTo();
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobNameClone)
         .should('exist');
     });

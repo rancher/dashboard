@@ -12,7 +12,7 @@ const namespace = 'default';
 let removeServices = false;
 const servicesToDelete: string[] = [];
 
-describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Services', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.createE2EResourceName('serviceexternalname').then((name) => {

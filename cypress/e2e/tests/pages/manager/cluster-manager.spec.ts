@@ -44,7 +44,7 @@ let originalSettings = '[{"name":"aks","active":true},{"name":"alibaba","active"
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -831,7 +831,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 });
 
-describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+describe('Cluster Manager as standard user', { testIsolation: false, tags: ['@manager', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });

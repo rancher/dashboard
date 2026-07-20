@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const clusterMgmtClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
-describe('Home Page List', { testIsolation: 'off' }, () => {
+describe('Home Page List', { testIsolation: false }, () => {
   const homePage = new HomePagePo();
   const homeClusterList = homePage.list();
 
@@ -31,7 +31,10 @@ describe('Home Page List', { testIsolation: 'off' }, () => {
     HomePagePo.navTo();
     homePage.waitForPage();
 
-    homeClusterList.version(clusterName).invoke('text').should('not.contain', '—');
+    // Verify version is present before proceeding
+    homeClusterList.version(clusterName).should('not.contain', '—');
+
+    // Get text values and store as aliases
     homeClusterList.state(clusterName).invoke('text').as('stateText');
     homeClusterList.name(clusterName).invoke('text').as('nameText');
     homeClusterList.version(clusterName).invoke('text').as('versionText');
@@ -40,22 +43,26 @@ describe('Home Page List', { testIsolation: 'off' }, () => {
     clusterMgmtClusterList.goTo();
     clusterMgmtClusterList.waitForPage();
 
+    // Wait for the table to load and the cluster row to be visible
+    clusterMgmtClusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterMgmtClusterList.sortableTable().rowWithName(clusterName).checkVisible();
+
     cy.get('@stateText').then((state) => {
-      clusterMgmtClusterList.list().details(clusterName, 1).should('contain.text', state);
+      clusterMgmtClusterList.list().state(clusterName).should('contain.text', state);
     });
 
     cy.get('@nameText').then((nameElm) => {
       const name = (nameElm as unknown as string).trim(); // nameElm is text...
 
-      clusterMgmtClusterList.list().details(clusterName, 2).should('contain.text', name);
+      clusterMgmtClusterList.list().name(clusterName).should('contain.text', name);
     });
 
     cy.get('@versionText').then((version) => {
-      clusterMgmtClusterList.list().details(clusterName, 4).should('contain.text', version);
+      clusterMgmtClusterList.list().version(clusterName).should('contain.text', version);
     });
 
     cy.get('@providerText').then((provider) => {
-      clusterMgmtClusterList.list().details(clusterName, 3).should('contain.text', provider);
+      clusterMgmtClusterList.list().provider(clusterName).should('contain.text', provider);
     });
   }));
 
@@ -104,10 +111,9 @@ describe('Home Page List', { testIsolation: 'off' }, () => {
     homePage.goTo();
     homePage.waitForPage();
 
-    const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
-      .get('.cluster-description');
-
-    desc.contains(longClusterDescription);
+    homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
+      .find('.cluster-description')
+      .should('contain', longClusterDescription);
   }));
 
   qase(4107, it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {

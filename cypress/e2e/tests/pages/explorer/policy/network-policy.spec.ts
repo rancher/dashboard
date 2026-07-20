@@ -10,7 +10,7 @@ let removeNetworkPolicy = false;
 const networkPolicyToDelete = [];
 const portValue = 8080;
 
-describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('NetworkPolicies', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.createE2EResourceName('networkpolicy').then((name) => {

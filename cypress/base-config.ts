@@ -215,8 +215,7 @@ const baseConfig = defineConfig({
 
       return config;
     },
-    experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(testDirs, process.env),
+    specPattern: getSpecPattern(testDirs, process.env),
     baseUrl
   },
   videoCompression:       15,

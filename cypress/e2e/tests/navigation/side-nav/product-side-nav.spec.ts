@@ -38,35 +38,40 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').eq(0)
+    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
-    productNavPo.groups().get('expanded').should('not.be.instanceOf', Array);
+    productNavPo.expandedGroup().should('have.length.gte', 1);
   });
 
   it('Can close first menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-    productNavPo.groups().not('.expanded').eq(0).should('be.visible')
+    productNavPo.expandedGroup().first().as('openGroup');
+    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+      .should('be.visible')
       .click();
-    cy.get('@openGroup').find('ul').should('have.length', 0);
+    cy.get('@openGroup').should('not.have.class', 'expanded');
   });
 
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().not('.expanded').eq(0)
+    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
+    // Wait for the group to expand and then click the first visible link
+    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
+      .click();
+    // Now verify the clicked link is active
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Going into resource detail should keep relevant group active', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
+    productNavPo.expandedGroup().first().as('openGroup');
 
     productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
 
