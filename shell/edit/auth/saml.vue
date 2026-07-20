@@ -340,6 +340,7 @@ export default {
               name="displayNameField"
               :label="t(`authConfig.saml.displayName`)"
               :mode="mode"
+              data-testid="saml-display-name-field"
               required
             />
           </div>
@@ -349,6 +350,7 @@ export default {
               name="userNameField"
               :label="t(`authConfig.saml.userName`)"
               :mode="mode"
+              data-testid="saml-user-name-field"
               required
             />
           </div>
@@ -361,6 +363,7 @@ export default {
               name="uidField"
               :label="t(`authConfig.saml.UID`)"
               :mode="mode"
+              data-testid="saml-uid-field"
               required
             />
           </div>
@@ -370,6 +373,7 @@ export default {
               name="groupsField"
               :label="t(`authConfig.saml.groups`)"
               :mode="mode"
+              data-testid="saml-groups-field"
               required
             />
           </div>
@@ -384,6 +388,7 @@ export default {
               v-model:value="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
               :mode="mode"
+              data-testid="saml-entity-id-field"
             />
           </div>
           <div class="col span-6">
@@ -392,6 +397,7 @@ export default {
               name="rancherApiHost"
               :label="t(`authConfig.saml.api`)"
               :mode="mode"
+              data-testid="saml-rancher-api-host"
               required
             />
           </div>
@@ -405,6 +411,7 @@ export default {
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
+              data-testid="saml-key"
               required
               type="multiline"
             />
@@ -422,6 +429,7 @@ export default {
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
+              data-testid="saml-cert"
               required
               type="multiline"
             />
@@ -439,6 +447,7 @@ export default {
               :label="t(`authConfig.saml.metadata.label`)"
               :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
+              data-testid="saml-metadata"
               required
               type="multiline"
             />
@@ -461,6 +470,7 @@ export default {
                   :label="t('authConfig.saml.nameIDFormat')"
                   :options="nameIDFormatOptions"
                   :mode="mode"
+                  data-testid="saml-nameid-format"
                 />
               </div>
               <div class="col span-6">
@@ -469,6 +479,7 @@ export default {
                   :label="t('authConfig.saml.signatureMethod')"
                   :options="signatureMethodOptions"
                   :mode="mode"
+                  data-testid="saml-signature-algorithm"
                 />
               </div>
             </div>
@@ -478,6 +489,7 @@ export default {
                   v-model:value="model.allowIdpInitiated"
                   :label="t('authConfig.saml.allowIdpInitiated')"
                   :mode="mode"
+                  data-testid="saml-allow-idp-initiated"
                 />
               </div>
               <div class="col span-6">
@@ -485,6 +497,7 @@ export default {
                   v-model:value="model.forceAuthn"
                   :label="t('authConfig.saml.forceAuthn')"
                   :mode="mode"
+                  data-testid="saml-force-authn"
                 />
               </div>
             </div>
