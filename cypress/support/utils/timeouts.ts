@@ -18,4 +18,9 @@ export const RESTART_TIMEOUT_OPT = { timeout: 120000 };
  */
 export const MEDIUM_TIMEOUT_OPT = { timeout: 30000 };
 
+/**
+ * slightly larger than the default
+ */
+export const SMALL_TIMEOUT_OPT = { timeout: 20000 };
+
 export const VERY_LONG_TIMEOUT_OPT = { timeout: 700000 };

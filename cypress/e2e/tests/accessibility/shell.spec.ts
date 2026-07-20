@@ -23,7 +23,7 @@ import { EventsCreateEditPo, EventsPageListPo } from '@/cypress/e2e/po/pages/exp
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateEditPagePo } from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { dialogModal, promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import { WorkLoadsDaemonsetsCreatePagePo, WorkloadsDaemonsetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
@@ -41,6 +41,7 @@ import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import GenericDialog from '@/cypress/e2e/po/prompts/genericDialog.po';
 
 describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
   describe('Login page', () => {
@@ -242,7 +243,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Project: Create');
             });
-            createProjectPage.waitForPage(null, 'members');
+            createProjectPage.waitForPage(undefined, 'members');
             createProjectPage.resourceDetail().createEditView()
               .nameNsDescription()
               .name()
@@ -430,7 +431,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           storageClasses.goTo();
           storageClasses.waitForPage();
           storageClasses.clickCreate();
-          storageClasses.createStorageClassesForm().waitForPage(null, 'parameters');
+          storageClasses.createStorageClassesForm().waitForPage(undefined, 'parameters');
           storageClasses.mastheadTitle().then((title) => {
             expect(title.replace(/\s+/g, ' ')).to.contain('StorageClass: Create');
           });
@@ -545,7 +546,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         cy.checkPageAccessibility();
 
         // delete digital ocean cloud credential
-        cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+        cy.getRancherResource('v3', 'cloudcredentials').then((resp: Cypress.Response<any>) => {
           const body = resp.body;
 
           if (body.pagination['total'] > 0) {
@@ -673,7 +674,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Chart Detail Page - Kubecost', () => {
         const chartPage = new ChartPage();
 
-        ChartPage.navTo(null, 'Kubecost');
+        ChartPage.navTo(undefined, 'Kubecost');
         chartPage.waitForChartPage('rancher-partner-charts', 'cost-analyzer');
         chartPage.waitForChartHeader('Kubecost', MEDIUM_TIMEOUT_OPT);
 
@@ -685,16 +686,22 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
     describe('Extensions', () => {
       const extensionsPo = new ExtensionsPagePo();
+      const dialogModal = new GenericDialog();
 
-      it('Extensions page', () => {
+      before(() => {
         // Set the preference
         cy.setUserPreference({ 'plugin-developer': true });
+      });
 
+      beforeEach(() => {
         extensionsPo.goTo();
-        extensionsPo.waitForPage(null, 'available');
+        extensionsPo.waitForPage(undefined, 'available');
         extensionsPo.loading().should('not.exist');
+      });
+
+      it('Extensions page', () => {
         extensionsPo.extensionTabBuiltinClick();
-        extensionsPo.waitForPage(null, 'builtin');
+        extensionsPo.waitForPage(undefined, 'builtin');
         extensionsPo.extensionCard('AKS Provisioning').checkVisible();
         cy.injectAxe();
 
@@ -704,15 +711,15 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Add Rancher Repositories Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.addRepositoriesClick();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
       });
 
       it('Import Extension Catalog Modal', () => {
@@ -721,15 +728,19 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         extensionsPo.catalogsList().sortableTable()
           .bulkActionButton('Import Extension Catalog')
           .click();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
+      });
+
+      after(() => {
+        cy.setUserPreference({ 'plugin-developer': false });
       });
     });
 
@@ -840,6 +851,5 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
   after(() => {
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
-    cy.setUserPreference({ 'plugin-developer': false });
   });
 });
