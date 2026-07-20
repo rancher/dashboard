@@ -51,7 +51,7 @@ export default {
 
   computed: {
     principal() {
-      const principalId = this.member.principalId.replace(/\//g, '%2F');
+      const principalId = encodeURIComponent(this.member.principalId);
 
       return this.$store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
