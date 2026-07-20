@@ -10,6 +10,13 @@ KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 
+# On a probe wedge (steve/RBAC not converged) we do a FULL REBUILD: k3s-uninstall + re-run this whole
+# script from scratch — a genuinely clean instance — rather than just restarting the Rancher pod. A pod
+# restart re-reads the persisted k3s/etcd state and can leave CAPI/RBAC/impersonation in a half-broken
+# state (e.g. cattle-capi-system missing, auth failures downstream). PROVISION_ROLL counts the rebuilds.
+PROVISION_ROLL="${PROVISION_ROLL:-1}"
+PROVISION_MAX="${PROVISION_MAX:-3}"
+
 # --------------------------------------
 # ----------------------- Setup Env Vars
 # --------------------------------------
@@ -219,9 +226,12 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
   kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
   kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
 
-  # Copy local builds to root folders that should contain UIs
-  mv $DASHBOARD_DIST dashboard
-  mv $EMBER_DIST ui
+  # Copy local builds to root folders that should contain UIs.
+  # Guard the mv so a REBUILD re-run is idempotent: on the first provision we move $DASHBOARD_DIST/$EMBER_DIST
+  # into ./dashboard and ./ui; on a rebuild those source dirs are already gone, so we keep the moved copies and
+  # just re-cp them into the freshly-provisioned pod.
+  [ -d dashboard ] || mv $DASHBOARD_DIST dashboard
+  [ -d ui ] || mv $EMBER_DIST ui
   kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
   kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
