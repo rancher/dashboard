@@ -18,7 +18,7 @@ import Color from 'color';
 export function createCssVars(color, theme = 'light', name = 'primary') {
   const contrastOpts = theme === 'light' ? LIGHT_CONTRAST_COLORS : DARK_CONTRAST_COLORS;
 
-  return {
+  const vars = {
     [`--${ name }`]:                color,
     [`--${ name }-text `]:          contrastColor(color, contrastOpts),
     [`--${ name }-hover-bg`]:       lighten(color, -10),
@@ -29,6 +29,45 @@ export function createCssVars(color, theme = 'light', name = 'primary') {
     [`--${ name }-light-bg`]:       opacity(color, 0.05),
     [`--${ name }-keyboard-focus`]: lighten(color, -10),
   };
+
+  // The "modern" theme (introduced in 2.13) paints the side-nav active item, the expanded
+  // category background and the header/nav hovers using a separate set of variables that are
+  // baked to build-time shades of the default primary color ($primary-*). Those don't derive
+  // from `--primary`, so overriding only the `--primary-*` vars above left the nav showing the
+  // default (prime) color. Derive them from the custom color so branding applies everywhere.
+  // See https://github.com/rancher/dashboard/issues/16905
+  if (name === 'primary') {
+    Object.assign(vars, {
+      '--active':            color,
+      '--active-nav':        color,
+      '--active-hover':      lighten(color, -10),
+      '--on-active':         contrastColor(color, contrastOpts),
+      '--category-active':   opacity(color, 0.15),
+      '--non-primary-hover': opacity(color, 0.1),
+      // Secondary (outlined/ghost) buttons draw their border and text from these, which the
+      // modern theme also bakes to a shade of the default primary color.
+      '--secondary-border':  color,
+      '--on-secondary':      color,
+    });
+  }
+
+  // In the base modern theme the tertiary family (side/top-nav icons, tertiary/ghost button
+  // text) is defined as `var(--link)`, so a custom link color already reaches it. The Prime
+  // (.suse) theme instead re-points these at its own hardcoded green (--non-primary-text),
+  // decoupling them from --link — so a custom link color never reached the nav icons on Prime.
+  // Re-tie them to the custom link color, restoring the base-theme behaviour.
+  // See https://github.com/rancher/dashboard/issues/16905
+  if (name === 'link') {
+    Object.assign(vars, {
+      '--on-tertiary':              color,
+      '--on-tertiary-hover':        color,
+      '--on-tertiary-header':       color,
+      '--on-tertiary-header-hover': color,
+      '--tertiary-hover-app-bar':   color,
+    });
+  }
+
+  return vars;
 }
 
 // scss 'lighten(color, percent)' increases color's hsl lightness by percent amount, not scaled
