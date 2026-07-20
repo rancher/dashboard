@@ -147,6 +147,7 @@
     "qs": "6.15.2",
     "roarr": "7.0.4",
     "semver": "7.5.4",
+    "ws": "8.21.0",
     "@types/lodash": "4.17.5",
     "@types/node": "25.3.3",
     "@vue/cli-service/html-webpack-plugin": "^5.0.0"
