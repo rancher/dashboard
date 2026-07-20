@@ -169,7 +169,7 @@ export default {
       ];
     },
     principal() {
-      const principalId = this.principalId.replace(/\//g, '%2F');
+      const principalId = encodeURIComponent(this.principalId);
 
       return this.$store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
