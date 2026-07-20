@@ -47,7 +47,7 @@ describe('Settings Configuration', () => {
       const deleteMachineIndex = PROVISIONING_SETTINGS.indexOf(SETTING.DELETE_MACHINE_ON_FAILURE_AFTER);
 
       expect(deleteMachineIndex).toBeGreaterThan(k3sIndex);
-      expect(deleteMachineIndex).toBe(k3sIndex + 1);
+      expect(deleteMachineIndex).toBe(PROVISIONING_SETTINGS.length - 1);
     });
   });
 });
