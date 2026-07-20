@@ -100,8 +100,8 @@ export default {
 
   data() {
     return {
-      showLdap:        false,
-      showLdapDetails: false,
+      showLdap:            false,
+      showLdapDetails:     false,
       nameIDFormatOptions: [
         { value: 'unspecified', label: 'unspecified' },
         { value: 'emailAddress', label: 'emailAddress' },
@@ -256,7 +256,9 @@ export default {
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
             <template v-if="isGenericSaml">
-              <tr data-testid="genericsaml-view-fields"><td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ model.nameIDFormat }}</td></tr>
+              <tr data-testid="genericsaml-view-fields">
+                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ model.nameIDFormat }}</td>
+              </tr>
               <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ model.signatureMethod }}</td></tr>
               <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
               <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
