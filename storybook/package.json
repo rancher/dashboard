@@ -34,5 +34,8 @@
     "storybook-vue3-router": "^5.0.0",
     "typescript": "^5.5.3",
     "vue-tsc": "^2.1.6"
+  },
+  "resolutions": {
+    "serialize-javascript": "7.0.3"
   }
 }
