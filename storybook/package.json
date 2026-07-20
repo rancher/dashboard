@@ -11,6 +11,9 @@
     "remark-gfm": "^4.0.0",
     "vue": "^3.5.10"
   },
+  "resolutions": {
+    "braces": "^3.0.3"
+  },
   "devDependencies": {
     "@storybook/addon-actions": "^8.4.2",
     "@storybook/addon-essentials": "^8.4.2",
