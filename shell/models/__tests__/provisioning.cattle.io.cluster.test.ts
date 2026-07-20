@@ -653,4 +653,58 @@ describe('class ProvCluster', () => {
       expect(cluster.namespaceLocation).toBeNull();
     });
   });
+
+  describe('copyKubeConfigBulk', () => {
+    it('should delegate to mgmt cluster copyKubeConfigBulk method', async() => {
+      const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);
+      const mgmtCluster = new MgmtCluster({});
+
+      mgmtCluster.copyKubeConfigBulk = mockCopyKubeConfigBulk;
+
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+
+      const items = [
+        { id: 'cluster-1', mgmt: { id: 'mgmt-cluster-1' } },
+        { id: 'cluster-2', mgmt: { id: 'mgmt-cluster-2' } }
+      ];
+
+      await cluster.copyKubeConfigBulk(items);
+
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledWith(items);
+    });
+
+    it('should handle when mgmt cluster is undefined', () => {
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(undefined);
+
+      const items = [{ id: 'cluster-1' }];
+
+      expect(cluster.copyKubeConfigBulk(items)).toBeUndefined();
+    });
+
+    it('should pass through all items to mgmt cluster', async() => {
+      const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);
+      const mgmtCluster = new MgmtCluster({});
+
+      mgmtCluster.copyKubeConfigBulk = mockCopyKubeConfigBulk;
+
+      const cluster = new ProvCluster({});
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+
+      const items = [
+        { id: 'rke2-cluster', mgmt: { id: 'c-m-1' } },
+        { id: 'k3s-cluster', mgmt: { id: 'c-m-2' } },
+        { id: 'eks-cluster', mgmt: { id: 'c-m-3' } }
+      ];
+
+      await cluster.copyKubeConfigBulk(items);
+
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledWith(items);
+      expect(mockCopyKubeConfigBulk).toHaveBeenCalledTimes(1);
+    });
+  });
 });
