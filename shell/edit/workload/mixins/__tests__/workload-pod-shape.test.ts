@@ -2,12 +2,12 @@ import workloadMixin from '@shell/edit/workload/mixins/workload.js';
 import { POD } from '@shell/config/types';
 
 /**
- * Prototype (tier 2) for https://github.com/rancher/dashboard/issues/10171
+ * Unit tests for https://github.com/rancher/dashboard/issues/10171
  *
  * A standalone Pod should be created/edited in its native shape (spec.*),
  * NOT wrapped in a Workload's spec.template.spec. These tests invoke the real
  * mixin computeds/methods with a controlled `this` to prove the pod branch keeps
- * the native shape (so "Edit as YAML" serialises a valid Pod with no reshaping).
+ * the native shape so "Edit as YAML" serialises a valid Pod without reshaping.
  */
 describe('workload mixin: Pod uses native shape', () => {
   const podCtx = () => {
@@ -93,6 +93,37 @@ describe('workload mixin: Pod uses native shape', () => {
 
       // Namespace is carried onto the pod metadata
       expect(ctx.value.metadata.namespace).toBe('default');
+    });
+  });
+
+  describe('method: saveWorkload — edit mode', () => {
+    it('does not throw and preserves native shape when saving a Pod in edit mode', () => {
+      const ctx = {
+        ...podCtx(),
+        type:             POD,
+        mode:             'edit',
+        realMode:         'edit',
+        container:        undefined,
+        portsForServices: [],
+        fixNodeAffinity:  jest.fn(),
+        fixPodAffinity:   jest.fn(),
+        nvidiaIsValid:    jest.fn(() => true),
+      } as any;
+
+      // Seed the empty affinity shape that #18238 was triggered by
+      ctx.value.spec.affinity = {
+        podAntiAffinity: {
+          requiredDuringSchedulingIgnoredDuringExecution:  [],
+          preferredDuringSchedulingIgnoredDuringExecution: [],
+        },
+      };
+      ctx.spec = ctx.value.spec;
+
+      expect(() => (workloadMixin.methods as any).saveWorkload.call(ctx)).not.toThrow();
+
+      // Still native Pod shape — no template wrapping introduced
+      expect(ctx.spec.template).toBeUndefined();
+      expect(ctx.spec.selector).toBeUndefined();
     });
   });
 });

@@ -418,6 +418,9 @@ export default {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['labels'] = neu;
         } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
           this.value.metadata['labels'] = neu;
         } else {
           this.spec.template.metadata['labels'] = neu;
@@ -456,6 +459,9 @@ export default {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['annotations'] = neu;
         } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
           this.value.metadata['annotations'] = neu;
         } else {
           this.spec.template.metadata['annotations'] = neu;
