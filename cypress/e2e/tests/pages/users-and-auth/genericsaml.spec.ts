@@ -17,7 +17,13 @@ const idpMetadata = '<EntityDescriptor/>';
 
 const mockStatusCode = 200;
 
-describe('Generic SAML', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
+// SKIPPED pending backend availability. This suite selects the Generic SAML
+// provider from the auth-config grid, which is populated from the backend. The
+// dashboard e2e runs against a released Rancher that does not yet include the
+// generic SAML provider (rancher/rancher#56139), so the tile is absent and
+// selection times out. Change `describe.skip` back to `describe` once a Rancher
+// image containing the generic SAML provider is used by the e2e job.
+describe.skip('Generic SAML', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   beforeEach(() => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
