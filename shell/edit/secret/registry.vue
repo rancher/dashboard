@@ -4,6 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import { useFormRules } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
+import { decodeDockerAuthEntry } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
 
 export default {
   components: { LabeledInput, RadioGroup },
@@ -70,8 +71,8 @@ export default {
       registryProvider = 'Artifactory';
     }
 
-    const username = auths[registryUrl]?.username || '';
-    const password = auths[registryUrl]?.password || '';
+    // Supports both Rancher's username/password fields and the base64 `auth` field written by `docker login`.
+    const { username, password } = decodeDockerAuthEntry(auths[registryUrl]);
 
     return {
       registryProvider,
