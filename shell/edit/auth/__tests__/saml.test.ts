@@ -258,25 +258,25 @@ describe('saml.vue', () => {
       expect(wrapper.vm.isGenericSaml).toBe(false);
     });
 
-    it('seeds nameIDFormat default to unspecified on create', async() => {
+    it('defaults nameIDFormat to unspecified when unset', async() => {
       wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: undefined }));
       await flushPromises();
 
-      expect(wrapper.vm.model.nameIDFormat).toBe('unspecified');
+      expect(wrapper.vm.nameIDFormat).toBe('unspecified');
     });
 
-    it('seeds signatureMethod default to RSA-SHA256 on create', async() => {
+    it('defaults signatureMethod to RSA-SHA256 when unset', async() => {
       wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, signatureMethod: undefined }));
       await flushPromises();
 
-      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA256');
+      expect(wrapper.vm.signatureMethod).toBe('RSA-SHA256');
     });
 
-    it('does not overwrite nameIDFormat when already set', async() => {
+    it('reflects nameIDFormat when already set', async() => {
       wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: 'persistent' }));
       await flushPromises();
 
-      expect(wrapper.vm.model.nameIDFormat).toBe('persistent');
+      expect(wrapper.vm.nameIDFormat).toBe('persistent');
     });
 
     it('renders generic SAML fields when provider is genericsaml', async() => {

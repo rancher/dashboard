@@ -118,18 +118,33 @@ export default {
 
   created() {
     this.registerBeforeHook(this.validateAllFields, 'willSave');
-
-    if (this.isGenericSaml && !this.model.nameIDFormat) {
-      this.model.nameIDFormat = 'unspecified';
-    }
-    if (this.isGenericSaml && !this.model.signatureMethod) {
-      this.model.signatureMethod = 'RSA-SHA256';
-    }
   },
 
   computed: {
     isGenericSaml() {
       return this.NAME === 'genericsaml';
+    },
+
+    // The model is (re)assigned by the auth-config mixin's fetch(), so defaults
+    // can't be seeded in created(). Instead default on read and write on change,
+    // matching how oidc.vue handles its generic defaults. An untouched default is
+    // saved empty and the backend applies the same default (unspecified / RSA-SHA256).
+    nameIDFormat: {
+      get() {
+        return this.model?.nameIDFormat || 'unspecified';
+      },
+      set(value) {
+        this.model.nameIDFormat = value;
+      }
+    },
+
+    signatureMethod: {
+      get() {
+        return this.model?.signatureMethod || 'RSA-SHA256';
+      },
+      set(value) {
+        this.model.signatureMethod = value;
+      }
     },
 
     validationPassed() {
@@ -257,9 +272,9 @@ export default {
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
             <template v-if="isGenericSaml">
               <tr data-testid="genericsaml-view-fields">
-                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ model.nameIDFormat }}</td>
+                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ nameIDFormat }}</td>
               </tr>
-              <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ model.signatureMethod }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ signatureMethod }}</td></tr>
               <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
               <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
             </template>
@@ -466,7 +481,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledSelect
-                  v-model:value="model.nameIDFormat"
+                  v-model:value="nameIDFormat"
                   :label="t('authConfig.saml.nameIDFormat')"
                   :options="nameIDFormatOptions"
                   :mode="mode"
@@ -475,7 +490,7 @@ export default {
               </div>
               <div class="col span-6">
                 <LabeledSelect
-                  v-model:value="model.signatureMethod"
+                  v-model:value="signatureMethod"
                   :label="t('authConfig.saml.signatureMethod')"
                   :options="signatureMethodOptions"
                   :mode="mode"
@@ -483,8 +498,8 @@ export default {
                 />
               </div>
             </div>
-            <div class="row mb-20">
-              <div class="col span-6">
+            <div class="row mb-10">
+              <div class="col span-12">
                 <Checkbox
                   v-model:value="model.allowIdpInitiated"
                   :label="t('authConfig.saml.allowIdpInitiated')"
@@ -492,7 +507,9 @@ export default {
                   data-testid="saml-allow-idp-initiated"
                 />
               </div>
-              <div class="col span-6">
+            </div>
+            <div class="row mb-20">
+              <div class="col span-12">
                 <Checkbox
                   v-model:value="model.forceAuthn"
                   :label="t('authConfig.saml.forceAuthn')"
