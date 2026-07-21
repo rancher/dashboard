@@ -10,7 +10,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { delay: true });
     });

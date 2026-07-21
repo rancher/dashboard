@@ -106,14 +106,14 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is not cached
    *
-   * Requires `ui-sql-cache` to be enabled.
+   * Requires resourceType to be sever-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   * @throws Error if pagination mode is requested but resourceType is not server-side pagination enabled.
    */
   findFiltered<T = Record<string, any>, I = ActionFindPageTransientResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
@@ -125,14 +125,14 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is cached.
    *
-   * Requires `ui-sql-cache` to be enabled.
+   * Requires resourceType to be sever-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   * @throws Error if pagination mode is requested but resourceType is not server-side pagination enabled.
    */
   findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
@@ -143,7 +143,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Finds resources using label selector matching.
    *
    * Filters resources by Kubernetes labels. The store automatically handles pagination:
-   * - If `ui-sql-cache` is enabled: uses server-side pagination
+   * - If resourceType is sever-side pagination enabled: uses server-side pagination
    * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
@@ -170,7 +170,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
 
         if (!canPaginate) {
-          return this.surfaceError('findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled');
+          return this.surfaceError('findFiltered requests with FindFilteredPageOptions are only supported when resourceType is enabled with server-side pagination');
         }
 
         const safeOption = options as FindFilteredPageOptions;

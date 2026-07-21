@@ -33,7 +33,6 @@ import {
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
-import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
 import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 import { POD_LAST_RESTART_FIELD as POD_RESTARTS_LAST_FIELD, POD_RESTART_FIELD as POD_RESTARTS_COUNT_FIELD } from '@shell/types/resources/pod';
@@ -105,7 +104,7 @@ export function init(store) {
   ], 'storage');
   basicType([
     WORKLOAD_DASHBOARD,
-    WORKLOAD,
+    // WORKLOAD,
     WORKLOAD_TYPES.DEPLOYMENT,
     WORKLOAD_TYPES.DAEMON_SET,
     WORKLOAD_TYPES.STATEFUL_SET,
@@ -222,13 +221,13 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  configureType(WORKLOAD, {
-    displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
-    location:    {
-      name:   'c-cluster-product-resource',
-      params: { resource: WORKLOAD },
-    },
-  });
+  // configureType(WORKLOAD, {
+  //   displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
+  //   location:    {
+  //     name:   'c-cluster-product-resource',
+  //     params: { resource: WORKLOAD },
+  //   },
+  // });
 
   /** This CRD is installed on provisioned clusters because rancher webhook, used for both local and provisioned clusters, expects it to be there
    * Creating instances of this resource on downstream clusters wont do anything - Only show them for the local cluster
@@ -384,7 +383,6 @@ export function init(store) {
     search: `metadata.fields.${ resourceFieldPos }`,
   });
 
-  headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
@@ -593,7 +591,6 @@ export function init(store) {
     weight:         100,
     icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
-    ifFeature:      STEVE_CACHE,
     route:          { name: 'c-cluster-explorer-workload-dashboard' },
     exact:          true,
     overview:       true,
@@ -613,23 +610,6 @@ export function init(store) {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       store: 'management'
     }
-  });
-
-  virtualType({
-    label:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
-    group:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
-    namespaced:     true,
-    name:           WORKLOAD,
-    weight:         99,
-    icon:           'folder',
-    // Workloads fetch ALL resources of ALL resource types... which scales badly. Until this is replaced by an overview page disable entirely
-    ifFeature:      `!${ STEVE_CACHE }`,
-    ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
-    route:          {
-      name:   'c-cluster-product-resource',
-      params: { resource: WORKLOAD }
-    },
-    overview: true,
   });
 
   virtualType({

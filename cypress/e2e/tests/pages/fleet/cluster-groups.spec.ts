@@ -134,7 +134,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
       .checkExists();
   });
 
-  it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, () => {
+  it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const groupName = 'default';
 
     FleetClusterGroupsListPagePo.navTo();

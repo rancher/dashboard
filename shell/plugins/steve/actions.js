@@ -89,7 +89,7 @@ export default {
     }
 
     let paginatedResult;
-    const isSteveCacheUrl = getters.isSteveCacheUrl(opt.url);
+    const isSteveUrl = getters.isSteveUrl(opt.url);
 
     while (true) {
       try {
@@ -100,7 +100,7 @@ export default {
         }
 
         if (!paginatedResult) {
-          const pageByNumber = isSteveCacheUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
+          const pageByNumber = isSteveUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
             total: out.count,
             page:  1,
             url:   opt.url,
@@ -224,7 +224,6 @@ export default {
 
   /**
    * Fetch aggregated state counts for a resource type via the Steve summary API.
-   * Requires VAI (ui-sql-cache) to be enabled; returns undefined otherwise.
    *
    * Uses `summaryonly` by default so no resource data is returned.
    *
@@ -253,18 +252,12 @@ export default {
    * });
    * // result.summary[0].counts => { running: { total: 3, namespace: { default: 2, 'kube-system': 1 } } }
    */
-  async fetchResourceSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
+  async fetchResourceSummary({ getters, dispatch }, { type, opt = {} }) {
     type = getters.normalizeType(type);
     const schema = getters.schemaFor(type);
 
     if (!schema) {
       console.warn(`fetchResourceSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
-
-      return undefined;
-    }
-
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters })) {
-      console.warn(`fetchResourceSummary: VAI is not enabled, summary API unavailable for type "${ type }"`); // eslint-disable-line no-console
 
       return undefined;
     }

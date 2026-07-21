@@ -65,9 +65,6 @@ export type FindMethodOptions = Omit<ActionFindArgs, 'invalidatePageCache' | 'me
  * Options for `findFiltered` when using label selector matching (label selector mode).
  *
  * Filters resources by `labelSelector` (matchLabels / matchExpressions).
- * The store automatically handles pagination:
- * - If `ui-sql-cache` is enabled: uses server-side pagination
- * - Otherwise: uses native Kubernetes API pagination
  *
  * @example
  * ```ts
@@ -87,7 +84,7 @@ export type FindFilteredLabelSelectorOptions = Omit<ActionFindMatchingArgs, 'dep
  * Options for `findFiltered` when using server-side pagination (pagination mode).
  *
  * Requires `pagination` settings for server-side filtering, sorting, and pagination
- * via the Steve API's pagination cache. **Only available when `ui-sql-cache` is enabled.**
+ * via the Steve API's pagination cache.
  *
  * @example
  * ```ts

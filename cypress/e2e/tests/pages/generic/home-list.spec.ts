@@ -110,7 +110,7 @@ describe('Home Page List', { testIsolation: 'off' }, () => {
     desc.contains(longClusterDescription);
   }));
 
-  qase(4107, it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
+  qase(4107, it('check table headers are visible', { tags: ['@generic', '@adminUser'] }, () => {
     homePage.goTo();
     homePage.waitForPage();
 
