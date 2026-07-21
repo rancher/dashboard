@@ -332,7 +332,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList: string[] = [];
@@ -377,7 +377,6 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @noVai only world
       usersPo.waitForPage();
       const count = initialCount + 26;
 

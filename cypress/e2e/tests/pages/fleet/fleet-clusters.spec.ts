@@ -448,7 +448,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
-  it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, () => {
+  it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const clusterName = 'local';
 
     // create gitrepo

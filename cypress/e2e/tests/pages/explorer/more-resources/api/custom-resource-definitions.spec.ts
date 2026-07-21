@@ -14,7 +14,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { delay: true });
     });

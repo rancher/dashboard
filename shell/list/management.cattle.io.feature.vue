@@ -3,11 +3,10 @@ import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import { MANAGEMENT } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { STEVE_CACHE } from '@shell/store/features';
 
 const hideFeatureFlags = [
   'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
-  STEVE_CACHE
+  'ui-sql-cache', // TODO: RC remove once actually gone
 ];
 
 export default {

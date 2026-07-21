@@ -57,14 +57,11 @@ export interface ResourcesApi {
    *
    * The response is not cached
    *
-   * Requires `ui-sql-cache` to be enabled.
-   *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
    *
    * @example
    * ```ts
@@ -93,14 +90,11 @@ export interface ResourcesApi {
    *
    * The response is cached.
    *
-   * Requires `ui-sql-cache` to be enabled.
-   *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
    *
    * @example
    * ```ts
@@ -125,10 +119,6 @@ export interface ResourcesApi {
 
   /**
    * Finds resources using label selector matching.
-   *
-   * Filters resources by Kubernetes labels. The store automatically handles pagination:
-   * - If `ui-sql-cache` is enabled: uses server-side pagination
-   * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T

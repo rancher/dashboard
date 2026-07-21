@@ -26,7 +26,6 @@ describe('steve: actions:', () => {
 
     beforeEach(() => {
       warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      jest.spyOn(paginationUtils, 'isSteveCacheEnabled').mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -39,15 +38,6 @@ describe('steve: actions:', () => {
 
       expect(result).toBeUndefined();
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('no schema found'));
-    });
-
-    it('should return undefined and warn when VAI is not enabled', async() => {
-      jest.spyOn(paginationUtils, 'isSteveCacheEnabled').mockReturnValue(false);
-      const ctx = baseCtx();
-      const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
-
-      expect(result).toBeUndefined();
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('VAI is not enabled'));
     });
 
     it('should return undefined and warn when summaryField is missing', async() => {

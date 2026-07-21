@@ -35,7 +35,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let nsName1: string;
     let nsName2: string;
@@ -85,21 +85,10 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       EventsPageListPo.navTo();
       events.waitForPage();
 
-      let vaiCacheEnabled = false;
 
-      cy.isVaiCacheEnabled()
-        .then((isVaiCacheEnabled) => {
-          vaiCacheEnabled = isVaiCacheEnabled;
-
-          return cy.getRancherResource('v1', 'events');
-        })
+      cy.getRancherResource('v1', 'events')
         .then((resp: Cypress.Response<any>) => {
           let initialCount = resp.body.count;
-
-          if (!vaiCacheEnabled && resp.body.count > 500) {
-            // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
-            initialCount = 500;
-          }
 
           // Test break down if less than 3 pages...
           expect(initialCount).to.be.greaterThan(3 * pageSize);

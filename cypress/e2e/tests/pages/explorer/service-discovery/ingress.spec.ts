@@ -5,11 +5,11 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
 let ingressName = '';
-let secretsNamesList = [];
-let servicesNamesList = [];
+let secretsNamesList: string[] = [];
+let servicesNamesList: string[] = [];
 const secretsCount = 4;
 const servicesCount = 4;
-let namespace;
+let namespace: string;
 
 describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -47,7 +47,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
   });
 
-  describe('Create/Edit', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('Create/Edit', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.createE2EResourceName('ingress').then((name) => {
         ingressName = name;
@@ -290,7 +290,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });

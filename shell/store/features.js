@@ -33,7 +33,7 @@ export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
 export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
 export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-population', false);
-export const STEVE_CACHE = create('ui-sql-cache', false);
+
 export const UIEXTENSION = create('uiextension', true);
 export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
 export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);

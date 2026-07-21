@@ -277,7 +277,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       .should('have.length.gte', 12);
   });
 
-  it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
+  it('can view events table empty if no events', { tags: ['@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 
@@ -286,39 +286,33 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.eventsList().sortableTable().checkRowCount(true, 1);
 
-    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
 
-    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
-      if (isVaiCacheEnabled) {
-        expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
-      }
+    clusterDashboard.eventsList().sortableTable().tableHeaderRow()
+      .self()
+      .scrollIntoView();
+    clusterDashboard.eventsList().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeaders[i]);
+      });
 
-      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
-        .self()
-        .scrollIntoView();
-      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
-        .within('.table-header-container .content')
-        .each((el, i) => {
-          expect(el.text().trim()).to.eq(expectedHeaders[i]);
-        });
+    clusterDashboard.fullEventsLink().click();
+    cy.wait('@eventsNoData');
+    const events = new EventsPageListPo('local');
 
-      clusterDashboard.fullEventsLink().click();
-      cy.wait('@eventsNoData');
-      const events = new EventsPageListPo('local');
+    events.waitForPage();
 
-      events.waitForPage();
+    events.list().resourceTable().sortableTable().checkRowCount(true, 1);
 
-      events.list().resourceTable().sortableTable().checkRowCount(true, 1);
+    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
-      const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
-        'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
-
-      events.list().resourceTable().sortableTable().tableHeaderRow()
-        .within('.table-header-container .content')
-        .each((el, i) => {
-          expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
-        });
-    });
+    events.list().resourceTable().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+      });
   });
 
   describe('Cluster dashboard with limited permissions', { testIsolation: 'on' }, () => {

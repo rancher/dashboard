@@ -70,11 +70,9 @@ describe('steve: getters:', () => {
   describe('urlOptions', () => {
     const urlOptionsGetter = urlOptions(undefined, {
       isSteveUrl:      isSteveUrl(),
-      isSteveCacheUrl: () => false,
     });
     const urlOptionsGetterVaiOn = urlOptions(undefined, {
       isSteveUrl:      isSteveUrl(),
-      isSteveCacheUrl: () => true,
     });
 
     it('expects urlOptions to return a function', () => {

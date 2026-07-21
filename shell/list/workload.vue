@@ -5,7 +5,6 @@ import {
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import { STEVE_CACHE } from '@shell/store/features';
 
 const workloadSchema = {
   id:         'workload',
@@ -85,19 +84,12 @@ export default {
   },
 
   data() {
-    const allTypes = this.$route.params.resource === workloadSchema.id;
-
-    if (allTypes && this.$store.getters['features/get'](STEVE_CACHE)) {
-      this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource: workloadSchema.id }, true)));
-
-      return;
-    }
     // Ensure these are set on load (to determine if the NS filter is required) rather than too late on `fetch`
     const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
 
     const { params:{ resource: type } } = this.$route;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
-    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+    const paginationEnabled = this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
 
     const workloadIncludeAssociatedData = paginationEnabled && [
       WORKLOAD_TYPES.DEPLOYMENT,
