@@ -33,18 +33,18 @@ export default {
   async fetch() {
     const _hash = {};
 
-    if (this.$store.getters['management/schemaFor'](FLEET.CLUSTER)) {
-      _hash.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    }
-
     if (this.$store.getters['management/schemaFor'](FLEET.WORKSPACE)) {
       _hash.allWorkspaces = this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     }
 
     const hash = await allHash(_hash);
 
-    this.allClusters = hash.allClusters || [];
     this.allWorkspaces = hash.allWorkspaces || [];
+
+    // The "matches N of M clusters" preview only looks at the selected workspace's clusters
+    // (clustersForWorkspace -> workspace.clusters), so load just that namespace's clusters rather
+    // than every cluster. Re-fetched when the workspace changes (see the namespace watcher).
+    await this.fetchClustersForWorkspace();
 
     if ( !this.value.spec?.selector ) {
       this.value.spec = this.value.spec || {};
@@ -64,7 +64,6 @@ export default {
 
   data() {
     return {
-      allClusters:      null,
       allWorkspaces:    null,
       matchingClusters: null,
       expressions:      null,
@@ -93,10 +92,27 @@ export default {
     },
   },
 
-  watch: { 'value.metadata.namespace': 'updateMatchingClusters' },
+  watch: { 'value.metadata.namespace': 'workspaceChanged' },
 
   methods: {
     set,
+
+    /**
+     * Load only the selected workspace's clusters (the preview is scoped to that workspace) instead
+     * of every cluster. Populates the store that `workspace.clusters` (clustersForWorkspace) reads.
+     */
+    async fetchClustersForWorkspace() {
+      const namespace = this.value.metadata?.namespace;
+
+      if ( namespace && this.$store.getters['management/schemaFor'](FLEET.CLUSTER) ) {
+        await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER, opt: { namespaced: namespace } });
+      }
+    },
+
+    async workspaceChanged() {
+      await this.fetchClustersForWorkspace();
+      this.updateMatchingClusters();
+    },
 
     matchChanged(expressions) {
       const { matchLabels, matchExpressions } = simplify(expressions);

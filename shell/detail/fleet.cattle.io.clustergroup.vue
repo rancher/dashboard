@@ -28,12 +28,21 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      workspaces:    this.$store.dispatch('cluster/findAll', { type: FLEET.WORKSPACE }),
-      FleetClusters: this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
-    };
+    const selector = this.value.spec?.selector || {};
+    const hasSelector = Object.keys(selector.matchLabels || {}).length > 0 || (selector.matchExpressions || []).length > 0;
 
-    await allHash(hash);
+    await allHash({
+      // Needed by the group's targetClusters getter (it reads workspace.clusters).
+      workspaces: this.$store.dispatch('cluster/findAll', { type: FLEET.WORKSPACE }),
+
+      // Fetch only the clusters this group selects (server-side, by its own spec.selector) rather
+      // than every cluster. An empty selector matches all clusters in the workspace, so in that
+      // case scope to the workspace namespace instead (findLabelSelector rejects empty selectors).
+      fleetClusters: hasSelector ? this.$store.dispatch('management/findLabelSelector', {
+        type:     FLEET.CLUSTER,
+        matching: { namespace: this.value.metadata.namespace, labelSelector: selector },
+      }) : this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER, opt: { namespaced: this.value.metadata.namespace } }),
+    });
   },
 
   computed: {

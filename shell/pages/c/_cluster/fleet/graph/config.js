@@ -1,5 +1,6 @@
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET } from '@shell/config/types';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 // TODO use Rancher icons
@@ -255,23 +256,41 @@ export const graphConfig = {
     return moreInfo;
   },
 
-  checkSchemaPermissions: async(store) => {
+  checkSchemaPermissions: async(store, data) => {
     const schemas = await checkSchemasForFindAllHash({
       cluster: {
         inStoreType: 'management',
-        type:        FLEET.CLUSTER
+        type:        FLEET.CLUSTER,
+        // The graphed application's clusters all live in its workspace namespace, so scope the
+        // fetch there instead of loading every cluster in the cluster.
+        opt:         { namespaced: data?.metadata?.namespace },
       },
       bundle: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
         opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
-      },
-      bundleDeployment: {
-        inStoreType: 'management',
-        type:        FLEET.BUNDLE_DEPLOYMENT
       }
     }, store);
 
-    return schemas.cluster && schemas.bundle && schemas.bundleDeployment;
+    // BundleDeployments scoped to the graphed application (server-side filtered by the GitRepo's
+    // repo-name / HelmOp's helm-name label) rather than every BundleDeployment in the cluster.
+    // findLabelSelector uses the paginated sql-cache api when available and falls back to a native
+    // labelSelector list. data.bundleDeployments (matching getter) then reads them from the store.
+    let bundleDeployment = false;
+
+    try {
+      const labelKey = data?.type === FLEET.HELM_OP ? FLEET_ANNOTATIONS.HELM_NAME : FLEET_ANNOTATIONS.REPO_NAME;
+
+      await store.dispatch('management/findLabelSelector', {
+        type:     FLEET.BUNDLE_DEPLOYMENT,
+        matching: { labelSelector: { matchLabels: { [labelKey]: data?.metadata?.name } } },
+      });
+
+      bundleDeployment = true;
+    } catch (e) {
+      bundleDeployment = false;
+    }
+
+    return schemas.cluster && schemas.bundle && bundleDeployment;
   }
 };

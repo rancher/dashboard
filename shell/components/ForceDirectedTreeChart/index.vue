@@ -18,7 +18,7 @@ export default {
   },
 
   async fetch() {
-    this.canViewChart = await this.fdcConfig.checkSchemaPermissions(this.$store);
+    this.canViewChart = await this.fdcConfig.checkSchemaPermissions(this.$store, this.data);
 
     if (this.canViewChart) {
       // set watcher for the chart data

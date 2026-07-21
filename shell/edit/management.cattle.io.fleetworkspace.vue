@@ -5,7 +5,7 @@ import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { FLEET, MANAGEMENT, SCHEMA } from '@shell/config/types';
+import { FLEET, SCHEMA } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 // import RoleBindings from '@shell/components/RoleBindings';
 import Tabbed from '@shell/components/Tabbed';
@@ -41,12 +41,6 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.rancherClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-
-    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
-      this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    }
-
     if (this.hasRepoRestrictionSchema) {
       const restrictions = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO_RESTRICTION });
 
@@ -67,8 +61,6 @@ export default {
     this.value['spec'] = this.value.spec || {};
 
     return {
-      fleetClusters:            null,
-      rancherClusters:          null,
       workSpaceRestriction:     null,
       restrictions:             [],
       targetNamespaces:         [],

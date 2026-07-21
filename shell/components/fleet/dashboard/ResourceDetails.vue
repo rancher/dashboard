@@ -11,6 +11,12 @@ import Drawer from '@shell/components/Drawer/Chrome.vue';
 import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
 import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
+import {
+  FilterArgs,
+  PaginationParamFilter,
+  PaginationParamProjectOrNamespace,
+  PaginationFilterEquality,
+} from '@shell/types/store/pagination.types';
 
 export default {
   name: 'FleetDashboardResourceDetails',
@@ -57,6 +63,15 @@ export default {
     this.clusterId = '';
   },
 
+  watch: {
+    'value.id': {
+      immediate: true,
+      handler() {
+        this.loadApplicationClusters();
+      }
+    }
+  },
+
   computed: {
     noResources() {
       return !this.value.resourcesStatuses?.length;
@@ -83,6 +98,43 @@ export default {
   methods: {
     closePanel() {
       this.$store.commit('slideInPanel/close');
+    },
+
+    /**
+     * The dashboard only loads state-count summaries, so this application's clusters aren't in the
+     * store and `value.targetClusters` / `value.resourcesStatuses` resolve to nothing. Load just the
+     * clusters it's deployed to - their ids are already in the application's status - so both tabs
+     * resolve. Once loaded the model getters recompute reactively.
+     */
+    async loadApplicationClusters() {
+      const ids = [...new Set(Object.keys(this.value.status?.perClusterResourceCounts || {}))].filter((id: string) => id.includes('/'));
+
+      if (!ids.length) {
+        return;
+      }
+
+      const namespaces = [...new Set(ids.map((id: string) => id.split('/')[0]))];
+      const names = [...new Set(ids.map((id: string) => id.split('/')[1]))];
+
+      try {
+        await this.$store.dispatch('management/findPage', {
+          type: FLEET.CLUSTER,
+          opt:  {
+            pagination: new FilterArgs({
+              projectsOrNamespaces: new PaginationParamProjectOrNamespace({ projectOrNamespace: namespaces }),
+              filters:              PaginationParamFilter.createSingleField({
+                field: 'metadata.name', value: names.join(','), equality: PaginationFilterEquality.IN
+              }),
+            })
+          }
+        });
+      } catch (e) {
+        // Fallback (e.g. pagination api unavailable): namespace-scoped list.
+        try {
+          await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER, opt: { namespaced: namespaces[0] } });
+        } catch (e2) {
+        }
+      }
     }
   }
 };
