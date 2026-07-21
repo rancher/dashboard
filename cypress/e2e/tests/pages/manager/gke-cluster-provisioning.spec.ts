@@ -82,7 +82,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     clusterList.createCluster();
     createGKEClusterPage.selectKubeProvider(2);
     loadingPo.checkNotExists();
-    createGKEClusterPage.rke2PageTitle().should('include', 'Create Google GKE');
+    createGKEClusterPage.rke2PageTitle().should('include', 'Create GKE');
     createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
     // Wait for the inline cloud credential form's async fetch to complete before interacting with it.
     loadingPo.checkNotExists();
