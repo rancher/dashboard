@@ -1,0 +1,40 @@
+# Warns and closes stale issues (labels configured via STALE_TARGET_LABELS below).
+# Non-agentic replacement for the gh-aw workflow; logic lives in
+# scripts/weekly-stale-issue-manager.js.
+name: Weekly Stale Issue Manager
+
+run-name: Weekly Stale Issue Manager
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 12 * * 0" # weekly, Sunday 12:37 UTC
+
+permissions: {}
+
+jobs:
+  stale-issue-manager:
+    if: ${{ github.repository_owner == 'rancher' && vars.DISABLE_STALE_ISSUE_MANAGER != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read  # checkout
+      issues: write   # label, comment, close
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run stale issue manager
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          # The stalebot only manages issues carrying one of these labels (comma-separated).
+          STALE_TARGET_LABELS: kind/enhancement
+          # Max mark-or-close actions per run (closes first); the rest wait for next run.
+          STALE_MAX_ACTIONS: "20"
+        run: node .github/workflows/scripts/weekly-stale-issue-manager.js
