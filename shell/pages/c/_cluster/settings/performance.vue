@@ -8,7 +8,6 @@ import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
-import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import Collapse from '@shell/components/Collapse';
@@ -96,10 +95,6 @@ export default {
 
     canSave() {
       return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
-    },
-
-    steveCacheEnabled() {
-      return this.$store.getters['features/get'](STEVE_CACHE);
     },
 
     sspApplicableResources() {
@@ -239,7 +234,7 @@ export default {
           <p>{{ t('performance.serverPagination.description') }}</p>
           <Collapse
             :title="t('performance.serverPagination.applicable')"
-            :open="steveCacheEnabled && ssPApplicableTypesOpen"
+            :open="ssPApplicableTypesOpen"
             :isDisabled="!steveCacheEnabled"
             @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
           >
