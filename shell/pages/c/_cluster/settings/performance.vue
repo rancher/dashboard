@@ -235,7 +235,7 @@ export default {
           <Collapse
             :title="t('performance.serverPagination.applicable')"
             :open="ssPApplicableTypesOpen"
-            :isDisabled="!steveCacheEnabled"
+            :isDisabled="false"
             @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
           >
             <p
