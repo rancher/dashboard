@@ -388,10 +388,10 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
 
       // Act & Assert
       await expect(resourcesApi.findFiltered('pod', paginationOptions as any)).rejects.toThrow(
-        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`
+        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when resourceType is enabled with server-side pagination`
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled`,
+        `Resource API error - ${ storeType } - findFiltered requests with FindFilteredPageOptions are only supported when resourceType is enabled with server-side pagination`,
         undefined
       );
       expect(mockDispatch).not.toHaveBeenCalled();
