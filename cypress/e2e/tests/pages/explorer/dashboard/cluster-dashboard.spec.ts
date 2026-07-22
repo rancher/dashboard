@@ -286,7 +286,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.eventsList().sortableTable().checkRowCount(true, 1);
 
-    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
+    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
 
     clusterDashboard.eventsList().sortableTable().tableHeaderRow()
       .self()

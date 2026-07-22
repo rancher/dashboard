@@ -42,7 +42,7 @@ export default {
    *
    * Can be used to change behaviour given steve api
    */
-  isSteveUrl:      () => (urlPath) => steveRegEx.test(urlPath),
+  isSteveUrl: () => (urlPath) => steveRegEx.test(urlPath),
 
   /**
    * opt: ActionFindPageArgs

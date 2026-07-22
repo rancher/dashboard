@@ -79,7 +79,7 @@ class PaginationUtils {
    *
    * Almost all the time the downstream cluster vai state will align with upstream (it manages it)
    * ... unless it's harvester then weird things happen
-   * 
+   *
    * We should be able to remove this once we're confident when all downstream clusters are on steve from 2.16
    */
   async isDownstreamSteveCacheEnabled({ dispatch }: any, clusterId: string): Promise<boolean> {

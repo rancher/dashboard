@@ -68,12 +68,8 @@ describe('steve: getters:', () => {
   });
 
   describe('urlOptions', () => {
-    const urlOptionsGetter = urlOptions(undefined, {
-      isSteveUrl:      isSteveUrl(),
-    });
-    const urlOptionsGetterVaiOn = urlOptions(undefined, {
-      isSteveUrl:      isSteveUrl(),
-    });
+    const urlOptionsGetter = urlOptions(undefined, { isSteveUrl: isSteveUrl() });
+    const urlOptionsGetterVaiOn = urlOptions(undefined, { isSteveUrl: isSteveUrl() });
 
     it('expects urlOptions to return a function', () => {
       expect(typeof urlOptions()).toBe('function');
