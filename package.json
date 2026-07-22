@@ -224,6 +224,7 @@
     "qs": "6.15.2",
     "cross-spawn": "7.0.6",
     "serialize-javascript": "7.0.3",
+    "linkify-it": "5.0.2",
     "mocha/minimatch": "5.1.8",
     "mocha/js-yaml": "4.3.0",
     "@cypress/code-coverage/js-yaml": "4.3.0",
