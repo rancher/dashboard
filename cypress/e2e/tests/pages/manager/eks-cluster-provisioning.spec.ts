@@ -60,7 +60,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
-    createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
+    createEKSClusterPage.rke2PageTitle().should('include', 'Create EKS');
     createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // create amazon cloud credential
@@ -115,7 +115,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
-    createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
+    createEKSClusterPage.rke2PageTitle().should('include', 'Create EKS');
     createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // Verify that eks-zone-select dropdown is set to the default zone

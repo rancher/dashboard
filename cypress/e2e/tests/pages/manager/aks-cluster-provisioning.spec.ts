@@ -72,7 +72,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
-    createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
+    createAKSClusterPage.rke2PageTitle().should('include', 'Create AKS');
     createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 
     // create azure cloud credential
@@ -129,7 +129,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
-    createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
+    createAKSClusterPage.rke2PageTitle().should('include', 'Create AKS');
     cy.intercept('GET', '**/meta/aksVersions*').as('getAksVersions');
     createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 
