@@ -21,9 +21,16 @@ GITHUB_RELEASE_TAG=""
 PODMAN_CONTAINER="false"
 UPDATE_OLD_PACKAGES="true"
 UPDATE_LATEST_PACAKGES="true"
+VERBOSE="${CI:-false}"
 
 GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
 GITHUB_BRANCH="main"
+
+debug_log() {
+  if [ "${VERBOSE}" == "true" ]; then
+    echo -e "${YELLOW}[debug] $*${RESET}"
+  fi
+}
 
 usage() {
   echo "Usage: $0 [<options>] [extensions]"
@@ -40,6 +47,7 @@ usage() {
   echo "  -l           Specify Podman container build"
   echo "  -n           Do not check for updates to existing Charts (Chart.yaml)"
   echo "  -e           Only check for updates to existing Charts (Chart.yaml)"
+  echo "  -v           Enable verbose/debug output (enabled automatically in CI)"
   exit 1
 }
 
@@ -87,6 +95,9 @@ while getopts "hvr:o:pi:fcb:t:s:lne" opt; do
       UPDATE_OLD_PACKAGES="true"
       UPDATE_LATEST_PACAKGES="false"
       ;;
+    v)
+      VERBOSE="true"
+      ;;
     *)
       usage
       ;;
@@ -109,14 +120,25 @@ if [ "${GITHUB_BUILD}" == "true" ]; then
     exit 1
   fi
 
-  echo -e "${CYAN}GitHub Repository: ${GITHUB_SOURCE}${RESET}"
-  echo -e "${CYAN}GitHub Branch    : ${GITHUB_BRANCH}${RESET}"
-
+  echo -e "${CYAN}${BOLD}Build Configuration${RESET}"
+  echo -e "${CYAN}  Mode        : GitHub Pages${RESET}"
+  echo -e "${CYAN}  Repository  : ${GITHUB_SOURCE}${RESET}"
+  echo -e "${CYAN}  Branch      : ${GITHUB_BRANCH}${RESET}"
   if [[ -n "${GITHUB_RELEASE_TAG}" ]]; then
-    echo -e "${CYAN}GitHub Release   : ${GITHUB_RELEASE_TAG}${RESET}"
+    echo -e "${CYAN}  Release Tag : ${GITHUB_RELEASE_TAG}${RESET}"
   fi
 else
-  echo -e ${CYAN}"Image prefix: ${IMAGE_PREFIX}${RESET}"
+  echo -e "${CYAN}${BOLD}Build Configuration${RESET}"
+  echo -e "${CYAN}  Mode        : Container Image${RESET}"
+  echo -e "${CYAN}  Registry    : ${REGISTRY:-<dockerhub>}${RESET}"
+  echo -e "${CYAN}  Org         : ${REGISTRY_ORG:-<inferred from git>}${RESET}"
+  echo -e "${CYAN}  Image Prefix: ${IMAGE_PREFIX}${RESET}"
+fi
+echo -e "${CYAN}  Force Build : ${FORCE}${RESET}"
+if [[ ${#PLUGINS[@]} -gt 0 ]]; then
+  echo -e "${CYAN}  Extensions  : ${PLUGINS[*]}${RESET}"
+else
+  echo -e "${CYAN}  Extensions  : all${RESET}"
 fi
 
 # --------------------------------------------------------------------------------
@@ -307,6 +329,10 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
 
       echo "Package version: ${PKG_VERSION}"
       echo "Package folder:  ${PKG_NAME}"
+      debug_log "Asset path   : ${PKG_ASSET}"
+      debug_log "Chart folder : ${CHARTS}/${pkg}/${PKG_VERSION}"
+      debug_log "Ext folder   : ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}"
+      debug_log "Dist folder  : ${BASE_DIR}/dist-pkg/${PKG_NAME}"
 
       # --------------------------------------------------------------------------------
       # Build the plugin from source
@@ -358,6 +384,7 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       # Use the script from the template repository
       echo -e "${CYAN}Patching Helm chart template${RESET}"
 
+      debug_log "Patch env: REGISTRY='${REGISTRY}' ORG='${REGISTRY_ORG}' PACKAGE_JSON='${BASE_DIR}/pkg/${pkg}/package.json'"
       CHART=${CHART_FOLDER} REGISTRY="${REGISTRY}" ORG="${REGISTRY_ORG}" PACKAGE_JSON=${BASE_DIR}/pkg/${pkg}/package.json ${CHART_TEMPLATE}/scripts/patch
 
       # Copy README file from the plugin to the Helm chart, if there is one
@@ -376,6 +403,7 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
 
       # Package into a .tgz helm chart
       helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
+      debug_log "Chart packaged to: ${ASSETS}/${pkg}/${PKG_NAME}.tgz"
 
       BUILT="true"
     fi
