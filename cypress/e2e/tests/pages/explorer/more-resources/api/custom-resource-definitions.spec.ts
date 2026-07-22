@@ -48,7 +48,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off' }, () => {
         .should('be.visible');
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Custom Resources', 'Created At'];
+      const expectedHeaders = ['State', 'Name', 'Resource', 'Created At'];
 
       crdsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

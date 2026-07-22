@@ -7042,7 +7042,7 @@ tableHeaders:
   completions: Completions
   count: Count
   createdAt: Created At
-  customResources: Custom Resource
+  customResources: Resource
   customVerbs: Custom Verbs
   description: Description
   cpu: CPU
