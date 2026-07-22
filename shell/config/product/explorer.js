@@ -376,6 +376,7 @@ export function init(store) {
     search: `metadata.fields.${ resourceFieldPos }`,
   });
 
+  // Whilst we don't show a workloads view in the side bar... we still have a workloads list in namespace detail page
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],

@@ -106,7 +106,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is not cached
    *
-   * Requires resourceType to be sever-side pagination enabled (see enableServerSidePagination).
+   * Requires resourceType to be server-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -125,7 +125,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is cached.
    *
-   * Requires resourceType to be sever-side pagination enabled (see enableServerSidePagination).
+   * Requires resourceType to be server-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -143,7 +143,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Finds resources using label selector matching.
    *
    * Filters resources by Kubernetes labels. The store automatically handles pagination:
-   * - If resourceType is sever-side pagination enabled: uses server-side pagination
+   * - If resourceType is server-side pagination enabled: uses server-side pagination
    * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
