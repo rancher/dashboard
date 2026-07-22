@@ -1,5 +1,4 @@
 import actions from '@shell/plugins/steve/actions';
-import paginationUtils from '@shell/utils/pagination-utils';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 

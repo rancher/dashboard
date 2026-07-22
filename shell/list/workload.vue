@@ -1,8 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import {
-  WORKLOAD_TYPES, SCHEMA, NODE, POD
-} from '@shell/config/types';
+import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
@@ -16,7 +14,7 @@ const workloadSchema = {
   metadata: { name: 'workload' },
 };
 
-const $loadingResources = ($route, $store) => {
+const $loadingResources = ($route) => {
   return {
     loadResources:     [$route.params.resource],
     loadIndeterminate: false,

@@ -43,8 +43,7 @@ type FeatureFlagInfos = {
 /**
  * Explicit ff's to send
  */
-const ffs: FeatureFlagInfos = {
-};
+const ffs: FeatureFlagInfos = { };
 
 /**
  * System information that is collected and which can then be encoded into a query string in the dyanmic content request
