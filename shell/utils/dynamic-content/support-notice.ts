@@ -57,7 +57,7 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
     return;
   }
 
-  const { version } = versionInfo;
+  const { version, isPrime } = versionInfo;
   const { logger } = context;
 
   // TODO: ****************************************************************************************
@@ -82,14 +82,18 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
   }
 
   if (status.eom && semver.satisfies(version, status.eom)) {
-    logger.info(`This version (${ version }) is End of Maintenance`);
+    if (isPrime) {
+      logger.info(`This version (${ version }) is End of Maintenance`);
+    } else {
+      logger.info(`This version (${ version }) will no longer receive updates`);
+    }
 
     return await checkAndAddNotification(context, {
       prefValuePrefix:    PREFIX.EOM,
       pref:               READ_SUPPORT_NOTICE,
       notificationPrefix: SUPPORT_NOTICE_PREFIX,
-      titleKey:           'dynamicContent.eom.title',
-      messageKey:         'dynamicContent.eom.message',
+      titleKey:           isPrime ? 'dynamicContent.eom.title' : 'dynamicContent.eoc.title',
+      messageKey:         isPrime ? 'dynamicContent.eom.message' : 'dynamicContent.eoc.message',
     }, majorMinor);
   }
 
