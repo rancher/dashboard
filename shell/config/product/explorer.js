@@ -221,14 +221,6 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  // configureType(WORKLOAD, {
-  //   displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
-  //   location:    {
-  //     name:   'c-cluster-product-resource',
-  //     params: { resource: WORKLOAD },
-  //   },
-  // });
-
   /** This CRD is installed on provisioned clusters because rancher webhook, used for both local and provisioned clusters, expects it to be there
    * Creating instances of this resource on downstream clusters wont do anything - Only show them for the local cluster
    */

@@ -6,7 +6,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 
 const hideFeatureFlags = [
   'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
-  'ui-sql-cache', // TODO: RC remove once actually gone
+  'ui-sql-cache', // This can be removed once https://github.com/rancher/rancher/issues/53996 merges
 ];
 
 export default {
