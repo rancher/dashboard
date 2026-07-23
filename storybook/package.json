@@ -36,6 +36,8 @@
     "vue-tsc": "^2.1.6"
   },
   "resolutions": {
-    "serialize-javascript": "7.0.5"
+    "serialize-javascript": "7.0.5",
+    "postcss": "8.5.10",
+    "braces": "^3.0.3"
   }
 }
