@@ -352,6 +352,22 @@ export interface IClusterProvisioner {
    * @returns Array of errors. If there are no errors the array will be empty
    */
   provision?(cluster: any, pools: any[]): Promise<any[]>;
+
+  /**
+   * Generic event hook called by the cluster form on specific user actions.
+   *
+   * Use this to react to any form event without needing a dedicated hook per action.
+   * The `cluster` argument is the live `provisioning.cattle.io.cluster` object and can be mutated directly.
+   *
+   * Supported events:
+   * - `'kubernetesVersionChange'` — payload: `{ newVersion: string, oldVersion: string | undefined, infrastructureCluster: any | null }`
+   * - `'credentialChange'`        — payload: `{ credentialId: string, infrastructureCluster: any | null }`
+   *
+   * @param event  Name of the event
+   * @param payload Event-specific data
+   * @param cluster The provisioning cluster (`provisioning.cattle.io.cluster`)
+   */
+  onEvent?(event: string, payload: Record<string, any>, cluster: any): void | Promise<void>;
 }
 
 /**

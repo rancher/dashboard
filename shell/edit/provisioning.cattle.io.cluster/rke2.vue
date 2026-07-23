@@ -840,6 +840,38 @@ export default {
       return this.extensionProvider?.extensionInfrastructureSection || null;
     },
 
+    extensionInfrastructureSectionProps() {
+      const defaultProps = {
+        value:               this.infrastructureCluster,
+        mode:                this.mode,
+        provider:            this.provider,
+        credentialId:        this.credentialId,
+        provisioningCluster: this.value,
+      };
+
+      const extensionProps = this.extensionProvider?.extensionInfrastructureSectionProps;
+
+      if (typeof extensionProps === 'function') {
+        const extensionContext = { ...defaultProps };
+
+        extensionContext.infrastructureCluster = this.infrastructureCluster;
+        extensionContext.cluster = this.value;
+        extensionContext.isCreate = this.isCreate;
+        extensionContext.isEdit = this.isEdit;
+        extensionContext.isView = this.isView;
+
+        const out = extensionProps(extensionContext);
+
+        if (out && typeof out === 'object') {
+          return { ...defaultProps, ...out };
+        }
+      } else if (extensionProps && typeof extensionProps === 'object') {
+        return { ...defaultProps, ...extensionProps };
+      }
+
+      return defaultProps;
+    },
+
     showForm() {
       return !!this.credentialId || !this.needCredential;
     },
@@ -974,6 +1006,14 @@ export default {
       }
 
       this.value.spec.cloudCredentialSecretName = val;
+
+      if (this.extensionProvider?.onEvent) {
+        const p = this.extensionProvider.onEvent('credentialChange', { credentialId: val, infrastructureCluster: this.infrastructureCluster }, this.value);
+
+        if (p) {
+          p.catch((err) => this.errors.push(err));
+        }
+      }
     },
 
     addonNames(neu, old) {
@@ -2274,6 +2314,20 @@ export default {
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Allow extension providers to react to the version change
+        if (this.extensionProvider?.onEvent) {
+          const k8sChangePayload = {};
+
+          k8sChangePayload.newVersion = value;
+          k8sChangePayload.oldVersion = old;
+          k8sChangePayload.infrastructureCluster = this.infrastructureCluster;
+          const p = this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value);
+
+          if (p) {
+            p.catch((err) => this.errors.push(err));
+          }
+        }
       }
     },
 
@@ -2541,11 +2595,7 @@ export default {
           <component
             :is="extensionInfrastructureSection"
             v-if="extensionInfrastructureSection"
-            :value="infrastructureCluster"
-            :mode="mode"
-            :provider="provider"
-            :credential-id="credentialId"
-            :provisioning-cluster="value"
+            v-bind="extensionInfrastructureSectionProps"
             data-testid="extension-top-section"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"
