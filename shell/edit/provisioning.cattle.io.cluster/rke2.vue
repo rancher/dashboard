@@ -860,7 +860,13 @@ export default {
         extensionContext.isEdit = this.isEdit;
         extensionContext.isView = this.isView;
 
-        const out = extensionProps(extensionContext);
+        let out;
+
+        try {
+          out = extensionProps(extensionContext);
+        } catch {
+          return defaultProps;
+        }
 
         if (out && typeof out === 'object') {
           return { ...defaultProps, ...out };
@@ -1008,13 +1014,9 @@ export default {
       this.value.spec.cloudCredentialSecretName = val;
 
       if (this.extensionProvider?.onEvent) {
-        try {
-          const p = this.extensionProvider.onEvent('credentialChange', { credentialId: val, infrastructureCluster: this.infrastructureCluster }, this.value);
+        const payload = { credentialId: val, infrastructureCluster: this.infrastructureCluster };
 
-          Promise.resolve(p).catch((err) => this.errors.push(err));
-        } catch (err) {
-          this.errors.push(err);
-        }
+        this._scheduleOnEvent(() => this.extensionProvider.onEvent('credentialChange', payload, this.value));
       }
     },
 
@@ -2324,19 +2326,48 @@ export default {
           k8sChangePayload.newVersion = value;
           k8sChangePayload.oldVersion = old;
           k8sChangePayload.infrastructureCluster = this.infrastructureCluster;
-          try {
-            const p = this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value);
 
-            Promise.resolve(p).catch((err) => this.errors.push(err));
-          } catch (err) {
-            this.errors.push(err);
-          }
+          // Use latest-only scheduling: if a previous onEvent is still in-flight, the
+          // intermediate call is replaced so only the most-recent version change runs next.
+          this._scheduleOnEvent(() => this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value));
         }
       }
     },
 
     handleShowDeprecatedPatchVersionsChanged(value) {
       this.showDeprecatedPatchVersions = value;
+    },
+
+    /**
+     * Schedules an onEvent call using a latest-only queue: one call runs at a time, and
+     * any new call while one is in-flight replaces the pending slot, so only the most
+     * recent call runs after the current in-flight one settles.
+     *
+     * This prevents out-of-order mutations when extension providers perform async work
+     * (e.g. rapid Kubernetes version changes).
+     */
+    _scheduleOnEvent(fn) {
+      this._onEventPending = fn;
+      if (this._onEventInFlight) {
+        return;
+      }
+
+      const run = () => {
+        const next = this._onEventPending;
+
+        if (!next) {
+          this._onEventInFlight = false;
+
+          return;
+        }
+        this._onEventPending = null;
+        this._onEventInFlight = true;
+        new Promise((resolve) => resolve(fn()))
+          .catch((err) => this.errors.push(err))
+          .finally(run);
+      };
+
+      run();
     },
     /**
      * Track Machine Pool validation status

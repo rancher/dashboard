@@ -937,16 +937,25 @@ describe('component: rke2', () => {
   });
 
   describe('extensionProvider.onEvent error handling', () => {
-    const makeVm = (onEvent: jest.Mock) => ({
-      extensionProvider:        { onEvent },
-      errors:                   [] as unknown[],
-      infrastructureCluster:    null,
-      value:                    { spec: {} },
-      togglePsaDefault:         jest.fn(),
-      updateNginxConfiguration: jest.fn(),
-      isHarvesterDriver:        false,
-      serverConfig:             {},
-    });
+    const makeVm = (onEvent: jest.Mock) => {
+      const vm: Record<string, any> = {
+        extensionProvider:        { onEvent },
+        errors:                   [] as unknown[],
+        infrastructureCluster:    null,
+        value:                    { spec: {} },
+        togglePsaDefault:         jest.fn(),
+        updateNginxConfiguration: jest.fn(),
+        isHarvesterDriver:        false,
+        serverConfig:             {},
+      };
+
+      // Bind the real _scheduleOnEvent so handleKubernetesChange can call it
+      vm._scheduleOnEvent = (fn: () => unknown) => (rke2.methods as any)._scheduleOnEvent.call(vm, fn);
+
+      return vm;
+    };
+
+    const flushPromises = () => new Promise(process.nextTick);
 
     describe('method: handleKubernetesChange', () => {
       it('pushes error to this.errors when onEvent rejects', async() => {
@@ -955,7 +964,7 @@ describe('component: rke2', () => {
         const vm = makeVm(onEvent) as any;
 
         (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toContain(err);
       });
@@ -965,7 +974,7 @@ describe('component: rke2', () => {
         const vm = makeVm(onEvent) as any;
 
         (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toHaveLength(0);
       });
@@ -975,9 +984,45 @@ describe('component: rke2', () => {
         const vm = makeVm(onEvent) as any;
 
         (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toHaveLength(0);
+      });
+
+      it('serializes rapid calls: runs first, then only the latest pending', async() => {
+        let resolveFirst!: () => void;
+        const firstSettled = new Promise<void>((res) => {
+          resolveFirst = res;
+        });
+
+        const onEvent = jest.fn()
+          .mockImplementationOnce(() => new Promise<void>((res) => {
+            firstSettled.then(res);
+          }))
+          .mockImplementation(() => Promise.resolve());
+
+        const vm = makeVm(onEvent) as any;
+        const call = (v: string) => (rke2.methods as any).handleKubernetesChange.call(vm, v, '');
+
+        // Fire three rapid changes while the first is still in-flight
+        call('v1.28.0+rke2r1');
+        call('v1.29.0+rke2r1'); // replaced by the next
+        call('v1.30.0+rke2r1'); // becomes the single pending call
+
+        // First in-flight is running; onEvent called once so far
+        expect(onEvent).toHaveBeenCalledTimes(1);
+
+        // Settle the first call — the latest pending (v1.30) should now run
+        resolveFirst();
+        await flushPromises();
+
+        // Intermediate call (v1.29) was dropped; only v1.28 and v1.30 ran
+        expect(onEvent).toHaveBeenCalledTimes(2);
+        expect(onEvent).not.toHaveBeenCalledWith(
+          'kubernetesVersionChange',
+          expect.objectContaining({ newVersion: 'v1.29.0+rke2r1' }),
+          expect.anything()
+        );
       });
     });
 
@@ -993,7 +1038,7 @@ describe('component: rke2', () => {
         } as any;
 
         credentialIdWatcher.call(vm, 'cred-123');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toContain(err);
       });
@@ -1006,7 +1051,7 @@ describe('component: rke2', () => {
         } as any;
 
         credentialIdWatcher.call(vm, 'cred-123');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toHaveLength(0);
       });
@@ -1019,7 +1064,7 @@ describe('component: rke2', () => {
         } as any;
 
         credentialIdWatcher.call(vm, 'cred-123');
-        await new Promise(process.nextTick);
+        await flushPromises();
 
         expect(vm.errors).toHaveLength(0);
       });
