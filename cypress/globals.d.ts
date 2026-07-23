@@ -133,11 +133,17 @@ declare global {
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource<T = boolean>(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean, retryOnNetworkFailure?: boolean, timeout?: number, returnResource?: boolean}): Chainable<T>;
-      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
+      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean, config?: { requestTimeout: number }): Chainable;
       waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
       waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
-      deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
+      /**
+       * delete a v3 / v1 resource
+       *
+       * @param failOnStatusCode true to fail on anything other than 2XX and 3XX
+       * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
+       */
+      deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean, config?: { explicitFailOnStatusCodes?: number[]}): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
       checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
       getClusterToolsChartCount(repoName?: string): Chainable<number>;

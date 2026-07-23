@@ -546,8 +546,11 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 
 /**
  * delete a v3 / v1 resource
- */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true) => {
+ *
+ * @param failOnStatusCode true to fail on anything other than 2XX and 3XX
+ * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
+*/
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: undefined }) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
@@ -560,6 +563,10 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.be.oneOf([200, 204]);
+      }
+
+      if (explicitFailOnStatusCodes?.length) {
+        expect(resp.status).to.be.oneOf(explicitFailOnStatusCodes);
       }
     });
 });
@@ -586,10 +593,10 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failO
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config): Cypress.Chainable => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
-  const retry = () => {
+  const retry = (): Cypress.Chainable => {
     cy.log('waitForRancherResource: ', retries, url);
 
     return cy.request({
@@ -623,30 +630,35 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
   return retry();
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined) => {
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined, config = { requestTimeout: MEDIUM_TIMEOUT_OPT.timeout }): Cypress.Chainable => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
-  const retry = () => {
+  let _token: { value: string };
+
+  const retry = (): Cypress.Chainable => {
+    cy.log('Using Token: ', _token);
+
     return cy.request({
       method:  'GET',
       url,
       headers: {
-        'x-api-csrf': token.value,
+        'x-api-csrf': _token.value,
         Accept:       'application/json'
       },
+      timeout: config?.requestTimeout
     })
       .then((resp) => {
         if (greaterThan) {
           if (resp.body.count > expectedResourcesTotal) {
-            return resp;
+            return Promise.resolve(resp);
           }
         } else if (resp.body.count === expectedResourcesTotal) {
-          return resp;
+          return Promise.resolve(resp);
         }
 
         retries = retries - 1;
-        if (retries === 0) return resp;
+        if (retries === 0) return Promise.resolve(resp);
         // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(1000);
 
@@ -654,7 +666,13 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
       });
   };
 
-  return retry();
+  return cy.getCookie('CSRF').then((c) => {
+    cy.log('Original Token: ', token);
+    cy.log('Current Token: ', c);
+    _token = token || c;
+
+    return retry();
+  });
 });
 
 /**
@@ -712,10 +730,10 @@ Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, 
 /**
  * delete a node template
  */
-Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false) => {
+Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false): Cypress.Chainable => {
   let retries = 10;
 
-  const retry = () => {
+  const retry = (): Cypress.Chainable => {
     return cy.request({
       method:  'DELETE',
       url:     `${ Cypress.env('api') }/v3/nodetemplate/${ nodeTemplateId }`,

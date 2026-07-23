@@ -6,6 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
@@ -490,7 +491,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure both extensions have been imported after logging in again
     cy.login(undefined, undefined, false);
     extensionsPo.goTo();
-    extensionsPo.waitForPage(undefined, 'installed');
+    extensionsPo.waitForPage(undefined, 'installed', MEDIUM_TIMEOUT_OPT);
     extensionsPo.loading().should('not.exist');
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');

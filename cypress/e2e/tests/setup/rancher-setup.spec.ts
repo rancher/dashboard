@@ -3,6 +3,7 @@ import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import { HELM_STARTUP_DELAY_OPT } from '@/cypress/support/utils/timeouts';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -21,22 +22,30 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
   it('Confirm correct number of settings requests made', () => {
     cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+    cy.intercept('POST', '/v1-public/login').as('bootstrapReq');
 
     rancherSetupLoginPage.goTo();
 
     // First request will fetch a partial list of settings
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).lessThan(PARTIAL_SETTING_THRESHOLD);
+      expect(interception.response?.body.count).lessThan(PARTIAL_SETTING_THRESHOLD);
     });
     cy.get('@settingsReq.all').should('have.length', 1);
 
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.bootstrapLogin();
 
-    // Second request (after user is logged in) will return the full list
-    cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
+    // Wait for login to succeed, to get things like CSRF
+    cy.wait('@bootstrapReq').then((login) => {
+      expect(login.response?.statusCode).to.equal(200);
     });
+
+    // Second request (after user is logged in) will return the full list
+    cy.wait('@settingsReq', HELM_STARTUP_DELAY_OPT).then((interception) => {
+      expect(interception.response?.body.count).gte(PARTIAL_SETTING_THRESHOLD);
+    });
+
+    // Wait for actual page we need
     rancherSetupConfigurePage.waitForPage();
 
     // Yes this is bad, but want to ensure no other settings requests are made.

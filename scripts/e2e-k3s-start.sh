@@ -237,28 +237,63 @@ fi
 
 echo "Dashboard UI is ready"
 
+# wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
+# if it regularly takes 10 minutes we have problems...
+wait=60
+
 echo "Waiting for rancher-webhook to be running..."
 okay=0
-while [ $okay -lt 30 ] ; do
+while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
   else
-    echo "Webhook not ready, checking again in 10s..."
+    echo "Webhook not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
     sleep 10
   fi
 done
 
+if [ $okay -eq $wait ]; then
+  echo "Rancher webhook did not become ready in a reasonable time"
+  exit 1
+fi
+
 echo "Waiting for capi-webhook-service to exist..."
 okay=0
-while [ $okay -lt 30 ] ; do
+while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-capi-system get service capi-webhook-service | grep '443/TCP' ; then
     break
   else
-    echo "capi-webhook-service does not exist, checking again in 10s..."
+    echo "capi-webhook-service does not exist, checking again in 10s (total time waited: $((okay * 10))s)..."
+    kubectl get service --all-namespaces
+    kubectl -n cattle-capi-system describe service capi-webhook-service
     okay=$((okay+1))
     sleep 10
   fi
 done
+
+if [ $okay -eq $wait ]; then
+  echo "CAPI webhook service did not become available in a reasonable time"
+  exit 1
+fi
+
+echo "Waiting for rancher imperative api to be running..."
+okay=0
+while [ $okay -lt $wait ] ; do
+  STATUS=$(kubectl get apiservice v1.ext.cattle.io -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null)
+
+  if [ "$STATUS" = "True" ]; then
+    break
+  else
+    echo "Rancher imperative api not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
+    okay=$((okay+1))
+    sleep 10
+  fi
+done
+
+if [ $okay -eq $wait ]; then
+  echo "Rancher imperative api did not become ready in a reasonable time"
+  exit 1
+fi
 
 echo "Rancher is ready"
