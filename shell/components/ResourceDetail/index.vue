@@ -213,7 +213,7 @@ export default {
 
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
         model?.cleanForNew();
-        yaml = model.cleanYaml(yaml, realMode);
+        yaml = model?.cleanYaml(yaml, realMode);
       }
     }
 
