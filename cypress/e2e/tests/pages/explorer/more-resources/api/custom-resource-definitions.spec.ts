@@ -9,12 +9,12 @@ const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
 const crdName = `e2etests.${ +new Date() }.example.com`;
 const crdGroup = `${ +new Date() }.example.com`;
 
-describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('CustomResourceDefinitions', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@explorer', '@adminUser'] }, () => {
     before(() => {
       cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { delay: true });
     });
@@ -48,7 +48,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         .should('be.visible');
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Created At'];
+      const expectedHeaders = ['State', 'Name', 'Resource', 'Age'];
 
       crdsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

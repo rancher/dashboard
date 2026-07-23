@@ -15,7 +15,8 @@ import {
   INGRESS,
   WORKLOAD_TYPES,
   HPA,
-  SECRET
+  SECRET,
+  CRD
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -351,6 +352,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
       { field: 'spec.template.spec.containers.image' },
     ],
+    [CRD]: [
+      // { field: 'spec.group' }, // blocked on https://github.com/rancher/rancher/issues/55811
+      // { field: 'spec.names.singular' }, // blocked on https://github.com/rancher/rancher/issues/55811
+    ]
   }
 
   private convertArrayPath(path: string): string {
@@ -768,6 +773,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
           WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+          CRD
         ],
         generic: true,
       }
