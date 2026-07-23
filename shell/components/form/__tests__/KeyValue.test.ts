@@ -278,4 +278,131 @@ describe('component: KeyValue', () => {
     expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
     expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
   });
+
+  describe('a11y: grid ARIA structure', () => {
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    describe('aria-colcount', () => {
+      it.each([
+        ['no extraColumns, remove not allowed', { value: { k: 'v' }, removeAllowed: false }, 2],
+        ['no extraColumns, remove allowed', { value: { k: 'v' }, removeAllowed: true }, 3],
+        [
+          '1 extraColumn, remove allowed',
+          {
+            value: { k: 'v' }, removeAllowed: true, extraColumns: ['x']
+          },
+          4
+        ],
+        [
+          '2 extraColumns, remove not allowed',
+          {
+            value: { k: 'v' }, removeAllowed: false, extraColumns: ['a', 'b']
+          },
+          4
+        ],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-colcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('aria-rowcount', () => {
+      it.each([
+        ['1 data row in edit mode', { value: { k: 'v' }, mode: 'edit' }, 2],
+        ['2 data rows in edit mode', { value: { k: 'v', k2: 'v2' }, mode: 'edit' }, 3],
+        ['no rows in view mode', { value: {}, mode: 'view' }, 2],
+        ['no rows in edit mode', { value: {}, mode: 'edit' }, 0],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-rowcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('rowgroup and row roles', () => {
+      it('header section should wrap its row with role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k: 'v' } });
+        const firstRowgroup = wrapper.find('[role="rowgroup"]');
+
+        expect(firstRowgroup.exists()).toBe(true);
+        expect(firstRowgroup.find('[role="row"]').exists()).toBe(true);
+      });
+
+      it('each data row should be wrapped in role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' } });
+        const rowgroups = wrapper.findAll('[role="rowgroup"]');
+
+        // 1 header rowgroup + 2 data rowgroups
+        expect(rowgroups).toHaveLength(3);
+        rowgroups.forEach((rg) => {
+          expect(rg.find('[role="row"]').exists()).toBe(true);
+        });
+      });
+    });
+
+    describe('header columnheader cells', () => {
+      it('key and value headers have role="columnheader" with aria-rowindex="1" and sequential aria-colindex', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(headers[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('remove column header has aria-colindex equal to extraColumns.length + 3', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: true });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[2].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[2].attributes('aria-colindex')).toStrictEqual('3');
+      });
+    });
+
+    describe('data gridcell aria-rowindex and aria-colindex', () => {
+      it('first data row cells have aria-rowindex="2" to account for the header row', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('second data row cells have aria-rowindex="3"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        // 2 rows × 2 cells (no remove), second row starts at cells[2]
+        expect(cells[2].attributes('aria-rowindex')).toStrictEqual('3');
+        expect(cells[2].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[3].attributes('aria-rowindex')).toStrictEqual('3');
+        expect(cells[3].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+
+    describe('no-data placeholder in view mode', () => {
+      it('placeholder cells have aria-rowindex="2" and sequential aria-colindex', () => {
+        const wrapper = mountKV({ value: {}, mode: 'view' });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+  });
 });

@@ -613,16 +613,24 @@ export default {
       class="kv-container"
       role="grid"
       :aria-label="title || t('generic.ariaLabel.keyValue')"
-      :aria-rowcount="rows.length"
-      :aria-colcount="extraColumns.length + 2"
+      :aria-rowcount="rows.length > 0 ? rows.length + 1 : isView ? 2 : 0"
+      :aria-colcount="extraColumns.length + 2 + (canRemove ? 1 : 0)"
       :style="containerStyle"
     >
       <template v-if="rows.length || isView">
-        <div class="rowgroup">
-          <div class="row">
+        <div
+          class="rowgroup"
+          role="rowgroup"
+        >
+          <div
+            class="row"
+            role="row"
+          >
             <div
               class="text-label key-value-label"
               role="columnheader"
+              aria-rowindex="1"
+              aria-colindex="1"
             >
               {{ _keyLabel }}
               <i
@@ -637,6 +645,8 @@ export default {
             <div
               class="text-label key-value-label"
               role="columnheader"
+              aria-rowindex="1"
+              aria-colindex="2"
             >
               {{ _valueLabel }}
               <i
@@ -652,32 +662,44 @@ export default {
               v-for="(c, i) in extraColumns"
               :key="i"
               role="columnheader"
+              aria-rowindex="1"
+              :aria-colindex="i+3"
             >
               <slot :name="'label:'+c">
                 {{ c }}
               </slot>
             </div>
-            <slot
+            <div
               v-if="canRemove"
-              name="remove"
-            >
-              <span />
-            </slot>
+              role="columnheader"
+              aria-rowindex="1"
+              :aria-colindex="extraColumns.length+3"
+            />
           </div>
         </div>
       </template>
       <template v-if="!rows.length && isView">
-        <div class="rowgroup">
-          <div class="row">
+        <div
+          class="rowgroup"
+          role="rowgroup"
+        >
+          <div
+            class="row"
+            role="row"
+          >
             <div
               class="kv-item key text-muted"
               role="gridcell"
+              aria-rowindex="2"
+              aria-colindex="1"
             >
               &mdash;
             </div>
             <div
               class="kv-item key text-muted"
               role="gridcell"
+              aria-rowindex="2"
+              aria-colindex="2"
             >
               &mdash;
             </div>
@@ -689,13 +711,19 @@ export default {
         v-else
         :key="i"
       >
-        <div class="rowgroup">
-          <div class="row">
+        <div
+          class="rowgroup"
+          role="rowgroup"
+        >
+          <div
+            class="row"
+            role="row"
+          >
             <!-- Key -->
             <div
               class="kv-item key"
               role="gridcell"
-              :aria-rowindex="i+1"
+              :aria-rowindex="i+2"
               :aria-colindex="1"
               :class="{
                 'labeled-input-key': keyErrors[row.key],
@@ -748,7 +776,7 @@ export default {
               :data-testid="`kv-item-value-${i}`"
               class="kv-item value"
               role="gridcell"
-              :aria-rowindex="i+1"
+              :aria-rowindex="i+2"
               :aria-colindex="2"
             >
               <slot
@@ -832,7 +860,7 @@ export default {
               :key="`${i}-${j}`"
               class="kv-item extra"
               role="gridcell"
-              :aria-rowindex="i+1"
+              :aria-rowindex="i+2"
               :aria-colindex="j+3"
             >
               <slot
@@ -847,7 +875,7 @@ export default {
               :key="i"
               class="kv-item remove"
               role="gridcell"
-              :aria-rowindex="i+1"
+              :aria-rowindex="i+2"
               :aria-colindex="extraColumns.length+3"
               :data-testid="`remove-column-${i}`"
             >
