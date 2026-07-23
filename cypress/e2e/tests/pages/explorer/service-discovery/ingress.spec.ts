@@ -283,6 +283,82 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         .should('contain.text', 'Active');
     });
 
+    // Testing https://github.com/rancher/dashboard/issues/17105 - the Ingress form previously
+    // collapsed named service ports to numeric or dropped them on save. Verifies a named port is
+    // persisted as `port.name` (not `port.number`) and survives a load -> save round-trip.
+    it('preserves a named service port on create and edit', () => {
+      const namedPortServiceName = Cypress._.uniqueId(`named-port-svc-${ Date.now().toString() }`);
+      const ingressNamedPortName = Cypress._.uniqueId(`ingress-named-port-${ Date.now().toString() }`);
+
+      cy.createService(namespace, namedPortServiceName, {
+        spec: {
+          ports: [{
+            name:       'http',
+            port:       8080,
+            protocol:   'TCP',
+            targetPort: 80
+          }],
+          type: 'ClusterIP'
+        }
+      });
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressNamedPortName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .clickOptionWithLabel(namespace);
+
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example-named.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, namedPortServiceName);
+      // Select the port by NAME ("http") rather than by number ("8080").
+      ingressCreatePagePo.setPortValueByLabel(0, 'http');
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+
+          const path = response?.body?.spec?.rules?.[0]?.http?.paths?.[0];
+
+          expect(path.backend.service).to.deep.include({
+            name: namedPortServiceName,
+            port: { name: 'http' }
+          });
+          expect(path.backend.service.port).to.not.have.property('number');
+        });
+
+      // Round-trip: re-open in Edit mode and save without changes to confirm the named
+      // port survives the load -> save cycle and isn't silently rewritten as port.number.
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().actionMenu(ingressNamedPortName).getMenuItem('Edit Config').click();
+
+      const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressNamedPortName);
+
+      ingressEditPage.waitForPage('mode=edit', 'rules');
+
+      ingressEditPage.resourceDetail().createEditView().saveAndWaitForRequests('PUT', `/v1/networking.k8s.io.ingresses/${ namespace }/${ ingressNamedPortName }`)
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+
+          const path = response?.body?.spec?.rules?.[0]?.http?.paths?.[0];
+
+          expect(path.backend.service.port).to.deep.eq({ name: 'http' });
+        });
+
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressNamedPortName)
+        .checkVisible();
+    });
+
     after('clean up namespaced resources', () => {
       if (namespace) {
         cy.deleteNamespace([namespace]);
