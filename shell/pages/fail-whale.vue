@@ -9,11 +9,12 @@ import GrowlManager from '@shell/components/GrowlManager';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import PromptModal from '@shell/components/PromptModal';
 import { RcButton } from '@components/RcButton';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
 
   components: {
-    BrandImage, FixedBanner, GrowlManager, Header, PromptModal, RcButton
+    BrandImage, FixedBanner, GrowlManager, Header, PromptModal, RcButton, RcSeparator
   },
   mixins: [Brand, BrowserTabVisibility],
 
@@ -117,11 +118,10 @@ export default {
                   {{ t('nav.home') }}
                 </rc-button>
               </p>
-              <hr
+              <RcSeparator
                 class="custom-content"
                 :style="styles"
-                role="none"
-              >
+              />
               <p class="mt-20">
                 <rc-button
                   size="large"

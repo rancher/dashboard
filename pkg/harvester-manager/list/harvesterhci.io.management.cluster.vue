@@ -28,6 +28,7 @@ import {
 } from '@shell/utils/uiplugins';
 import { isRancherPrime, getVersionData } from '@shell/config/version';
 import { RcButton } from '@components/RcButton';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
@@ -40,6 +41,7 @@ export default {
     TypeDescription,
     Loading,
     RcButton,
+    RcSeparator,
   },
 
   props: {
@@ -447,10 +449,7 @@ export default {
         <div class="no-clusters">
           {{ t('harvesterManager.cluster.none') }}
         </div>
-        <hr
-          class="info-section"
-          role="none"
-        >
+        <RcSeparator class="info-section" />
       </div>
     </div>
     <template v-if="harvester.toInstall || harvester.toUpdate || !rows || !rows.length">

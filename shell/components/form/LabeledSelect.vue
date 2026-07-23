@@ -14,13 +14,14 @@ import { useLabeledFormElement, labeledFormElementProps } from '@shell/composabl
 import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref, toRef } from 'vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   name: 'LabeledSelect',
 
   inheritAttrs: false,
 
-  components: { LabeledTooltip },
+  components: { LabeledTooltip, RcSeparator },
   mixins:     [
     CompactInput,
     VueSelectOverrides,
@@ -507,7 +508,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr role="none">
+          <RcSeparator />
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">

@@ -1,10 +1,12 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import RcSeparator from '@shell/components/RcSeparator.vue';
 
 export default defineComponent({
 
-  name:  'Card',
-  props: {
+  name:       'Card',
+  components: { RcSeparator },
+  props:      {
     /**
      * The card's title.
      */
@@ -71,7 +73,7 @@ export default defineComponent({
           {{ title }}
         </slot>
       </div>
-      <hr role="none">
+      <RcSeparator />
       <div
         class="card-body"
         data-testid="card-body-slot"

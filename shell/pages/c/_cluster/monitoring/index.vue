@@ -11,13 +11,15 @@ import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } fr
 import Loading from '@shell/components/Loading';
 import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
 import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
     LazyImage,
     SimpleBox,
     AlertTable,
-    Loading
+    Loading,
+    RcSeparator,
   },
 
   async fetch() {
@@ -177,7 +179,7 @@ export default {
                   <i class="icon icon-external-link" />
                 </div>
               </div>
-              <hr role="none">
+              <RcSeparator />
               <div class="description">
                 <span>
                   <t :k="fel.description" />

@@ -19,6 +19,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
 import { useI18n } from '@shell/composables/useI18n';
+import RcSeparator from '@shell/components/RcSeparator';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -56,6 +57,7 @@ export default {
     AuthBanner,
     AuthProviderWarningBanners,
     RcButton,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -284,7 +286,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"

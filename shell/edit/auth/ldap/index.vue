@@ -15,6 +15,7 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import { useI18n } from '@shell/composables/useI18n';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const AUTH_TYPE = 'ldap';
 
@@ -27,7 +28,8 @@ export default {
     config,
     AuthBanner,
     Password,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -171,7 +173,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"

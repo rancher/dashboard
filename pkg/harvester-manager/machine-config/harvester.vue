@@ -39,6 +39,7 @@ import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 import { isEqual } from 'lodash';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';
@@ -86,7 +87,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    ArrayListSelect, Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox
+    ArrayListSelect, Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox, RcSeparator
   },
 
   mixins: [CreateEditView],
@@ -1478,10 +1479,7 @@ export default {
         </button>
       </div>
 
-      <hr
-        class="mt-10 mb-10"
-        role="none"
-      >
+      <RcSeparator class="mt-10 mb-10" />
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
@@ -1667,10 +1665,7 @@ export default {
           />
         </div>
 
-        <hr
-          class="divider mt-20"
-          role="none"
-        >
+        <RcSeparator class="divider mt-20" />
 
         <h3 class="mt-20">
           {{ t("workload.container.titles.nodeScheduling") }}
@@ -1694,10 +1689,7 @@ export default {
           @update="updateScheduling"
         />
 
-        <hr
-          class="divider mt-20"
-          role="none"
-        >
+        <RcSeparator class="divider mt-20" />
       </portal>
     </div>
     <div v-if="errors.length">

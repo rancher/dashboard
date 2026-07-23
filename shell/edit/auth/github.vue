@@ -19,6 +19,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
@@ -32,6 +33,7 @@ export default {
     FileSelector,
     GithubSteps,
     GithubAppSteps,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -226,7 +228,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="github"

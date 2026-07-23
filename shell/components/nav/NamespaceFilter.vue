@@ -22,12 +22,13 @@ import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { randomStr } from '@shell/utils/string';
 import { RcButton } from '@components/RcButton';
+import { RcDropdownSeparator } from '@components/RcDropdown';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
 
-  components: { RcButton },
+  components: { RcButton, RcDropdownSeparator },
 
   data() {
     return {
@@ -898,12 +899,10 @@ export default {
           v-for="(opt, i) in cachedFiltered"
           :key="opt.id"
         >
-          <hr
+          <RcDropdownSeparator
             v-if="opt.kind === NAMESPACE_FILTER_KINDS.DIVIDER"
-            role="separator"
-            aria-orientation="horizontal"
             class="ns-divider"
-          >
+          />
           <div
             v-else
             :id="opt.elementId"

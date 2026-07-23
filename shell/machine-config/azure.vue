@@ -17,6 +17,7 @@ import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -106,7 +107,8 @@ export default {
     LabeledInput,
     LabeledSelect,
     Loading,
-    RadioGroup
+    RadioGroup,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -611,10 +613,7 @@ export default {
         />
       </div>
     </div>
-    <hr
-      class="mt-20"
-      role="none"
-    >
+    <RcSeparator class="mt-20" />
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
@@ -680,10 +679,7 @@ export default {
           </div>
         </div>
       </div>
-      <hr
-        class="mt-20 mb-20"
-        role="none"
-      >
+      <RcSeparator class="mt-20 mb-20" />
       <h2>{{ t('cluster.machineConfig.azure.sections.purchasePlan') }}</h2>
       <div class="row mt-20">
         <div class="col span-6">
@@ -696,10 +692,7 @@ export default {
           />
         </div>
       </div>
-      <hr
-        class="mt-20"
-        role="none"
-      >
+      <RcSeparator class="mt-20" />
       <h2>{{ t('cluster.machineConfig.azure.sections.network') }}</h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
@@ -821,10 +814,7 @@ export default {
           />
         </div>
       </div>
-      <hr
-        class="mt-20 mb-20"
-        role="none"
-      >
+      <RcSeparator class="mt-20 mb-20" />
       <h2>{{ t('cluster.machineConfig.azure.sections.disks') }}</h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">

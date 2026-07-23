@@ -7,6 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ShellInput from '@shell/components/form/ShellInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import { computed, ref, watch } from 'vue';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const KINDS = [
   'none',
@@ -20,7 +21,7 @@ export default {
   emits: ['update:value'],
 
   components: {
-    LabeledInput, LabeledSelect, UnitInput, ShellInput, KeyValue,
+    LabeledInput, LabeledSelect, UnitInput, ShellInput, KeyValue, RcSeparator,
   },
 
   props: {
@@ -241,12 +242,11 @@ export default {
       </div>
 
       <div class="col span-1-of-13">
-        <hr
+        <RcSeparator
           v-if="kind && kind!=='none'"
           :style="{'position':'relative', 'margin':'0px'}"
           class="vertical"
-          role="none"
-        >
+        />
       </div>
 
       <!-- none -->

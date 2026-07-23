@@ -12,6 +12,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const NAME = 'googleoauth';
 
@@ -26,7 +27,8 @@ export default {
     FileSelector,
     AuthBanner,
     CopyToClipboardText,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -90,7 +92,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="googleoauth"

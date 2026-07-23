@@ -19,6 +19,7 @@ import { MONITORING } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import { createDefaultRouteName } from '@shell/utils/alertmanagerconfig';
 import Loading from '@shell/components/Loading';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
@@ -30,7 +31,8 @@ export default {
     LabeledSelect,
     Loading,
     Tab,
-    Tabbed
+    Tabbed,
+    RcSeparator,
   },
 
   mixins: [CreateEditView],
@@ -143,7 +145,7 @@ export default {
             </div>
           </div>
         </div>
-        <hr class="divider">
+        <RcSeparator class="divider" />
         <div class="row mb-10">
           <div class="col span-6">
             <LabeledInput

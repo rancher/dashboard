@@ -1,10 +1,12 @@
 <script>
 import Type from '@shell/components/nav/Type';
 import { filterLocationValidParams } from '@shell/utils/router';
+import RcSeparator from '@shell/components/RcSeparator';
+
 export default {
   name: 'Group',
 
-  components: { Type },
+  components: { Type, RcSeparator },
 
   emits: ['expand', 'close'],
 
@@ -333,7 +335,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr role="none">
+          <RcSeparator />
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN

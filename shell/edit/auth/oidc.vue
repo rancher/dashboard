@@ -21,6 +21,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const PKCE_S256 = 'S256';
 
@@ -39,6 +40,7 @@ export default {
     RadioGroup,
     Checkbox,
     CopyToClipboardText,
+    RcSeparator,
   },
 
   emits: ['validationChanged'],
@@ -373,7 +375,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"
