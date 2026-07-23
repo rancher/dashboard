@@ -34,7 +34,7 @@ require('cypress-terminal-report/src/installLogsCollector')({
  */
 afterEach(function() {
   // We use a regular function to have access to `this.currentTest`.
-  if (this.currentTest.state === 'failed') {
+  if (this.currentTest?.state === 'failed' && Cypress.env('hasHostStats')) {
     cy.task<{ processCpu: string; memory: string }>('getHostStats').then((stats) => {
       cy.log('**Host Stats on Failure**');
       cy.log(`Process CPU: ${ stats.processCpu }`);
