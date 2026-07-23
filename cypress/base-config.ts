@@ -167,6 +167,22 @@ const baseConfig = defineConfig({
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
+      // On CI runners Chrome can crash between specs (small /dev/shm) or be too
+      // slow to connect on first launch under CPU contention, both surfacing as
+      // "Timed out waiting for the browser to connect" / "Missing browserCriClient
+      // in connectToNewSpec". Point shared memory at /tmp (disk), and drop the GPU
+      // + sandbox startup work Chrome can't use headless so it launches faster and
+      // connects within Cypress' fixed 60s window.
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--no-sandbox');
+        }
+
+        return launchOptions;
+      });
+
       on('task', {
         removeDirectory,
         getHostStats: async() => {
