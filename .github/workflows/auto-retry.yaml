@@ -18,9 +18,10 @@ permissions:
   contents: read
   pull-requests: write # Required to comment on the associated PR
 
-# A `bot/auto-retry/<N>` label on the PR keeps retrying up to <N> times (hard
-# capped at RETRY_CAP). Without the label, the default applies: a single retry
-# on the first failure, plus a comment on the PR.
+# Retries are PR-scoped: only runs with an associated open PR are retried
+# (push/scheduled runs are ignored). A `bot/auto-retry/<N>` label on the PR keeps
+# retrying up to <N> times (hard capped at RETRY_CAP). Without the label, the
+# default applies: a single retry on the first failure, plus a comment on the PR.
 env:
   RETRY_LABEL_PREFIX: bot/auto-retry
   RETRY_CAP: 20
@@ -37,18 +38,32 @@ jobs:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
         run: |
           # The original run is attempt 1; each retry increments run_attempt.
           ATTEMPT="${RUN_ATTEMPT:-1}"
           RETRIES_DONE=$((ATTEMPT - 1))
 
-          # Resolve the PR number from the workflow_run payload, falling back to
-          # the PR associated with the head commit (covers manual dispatch too).
-          PR_NUMBER=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
-            --jq '.pull_requests[0].number // empty' 2>/dev/null || true)
-          if [ -z "$PR_NUMBER" ] && [ -n "$HEAD_SHA" ]; then
-            PR_NUMBER=$(gh api "/repos/$REPO/commits/$HEAD_SHA/pulls" \
+          # Resolve the associated OPEN PR from the run's head repository and
+          # branch (`head=<owner>:<branch>`). This is the reliable identifier for
+          # BOTH same-repo and fork PRs, and it is naturally empty for push and
+          # scheduled runs (their branch has no open PR). We deliberately avoid
+          # the run's "pull_requests" field, which for push/schedule runs is a
+          # bogus constant (the repo's oldest PR), and the head-commit lookup,
+          # which misses fork PRs (the commit lives in the fork, not the base).
+          if [ -z "$HEAD_BRANCH" ]; then
+            # Manual workflow_dispatch: read head info from the target run.
+            HEAD_BRANCH=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_branch // empty' 2>/dev/null || true)
+          fi
+          if [ -z "$HEAD_OWNER" ]; then
+            HEAD_OWNER=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_repository.owner.login // empty' 2>/dev/null || true)
+          fi
+          PR_NUMBER=""
+          if [ -n "$HEAD_BRANCH" ] && [ -n "$HEAD_OWNER" ]; then
+            PR_NUMBER=$(gh api "/repos/$REPO/pulls?head=$HEAD_OWNER:$HEAD_BRANCH&state=open" \
               --jq '.[0].number // empty' 2>/dev/null || true)
           fi
 
@@ -70,7 +85,11 @@ jobs:
           fi
 
           SHOULD_RETRY=false
-          if [ "$HAS_LABEL" = "true" ]; then
+          if [ -z "$PR_NUMBER" ]; then
+            # No associated open PR (e.g. push to master, scheduled run): the
+            # retry feature is PR-scoped, so do nothing.
+            echo "No open PR associated with this run; skipping retry."
+          elif [ "$HAS_LABEL" = "true" ]; then
             # Label present: keep retrying until we reach the requested count.
             if [ "$RETRIES_DONE" -lt "$MAX_RETRIES" ]; then
               SHOULD_RETRY=true
