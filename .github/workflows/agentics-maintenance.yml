@@ -174,7 +174,7 @@ jobs:
             await main();
 
       - name: Install gh-aw
-        uses: github/gh-aw-actions/setup-cli@b8068426813005612b960b5ab0b8bd2c27142323 # v0.71.5
+        uses: github/gh-aw-actions/setup-cli@a95cb3861440650dd6b6e25f6488a4bc1c29cd74 # v0.81.3
         with:
           version: v0.71.5
 
@@ -309,7 +309,7 @@ jobs:
             await main();
 
       - name: Install gh-aw
-        uses: github/gh-aw-actions/setup-cli@b8068426813005612b960b5ab0b8bd2c27142323 # v0.71.5
+        uses: github/gh-aw-actions/setup-cli@a95cb3861440650dd6b6e25f6488a4bc1c29cd74 # v0.81.3
         with:
           version: v0.71.5
 
@@ -355,7 +355,7 @@ jobs:
             await main();
 
       - name: Install gh-aw
-        uses: github/gh-aw-actions/setup-cli@b8068426813005612b960b5ab0b8bd2c27142323 # v0.71.5
+        uses: github/gh-aw-actions/setup-cli@a95cb3861440650dd6b6e25f6488a4bc1c29cd74 # v0.81.3
         with:
           version: v0.71.5
 
@@ -489,7 +489,7 @@ jobs:
             await main();
 
       - name: Install gh-aw
-        uses: github/gh-aw-actions/setup-cli@b8068426813005612b960b5ab0b8bd2c27142323 # v0.71.5
+        uses: github/gh-aw-actions/setup-cli@a95cb3861440650dd6b6e25f6488a4bc1c29cd74 # v0.81.3
         with:
           version: v0.71.5
 
