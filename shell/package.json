@@ -148,7 +148,7 @@
     "roarr": "7.0.4",
     "semver": "7.5.4",
     "ws": "8.21.0",
-    "serialize-javascript": "7.0.3",
+    "serialize-javascript": "7.0.5",
     "linkify-it": "5.0.2",
     "@types/lodash": "4.17.5",
     "@types/node": "25.3.3",
