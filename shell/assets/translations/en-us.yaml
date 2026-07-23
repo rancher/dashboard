@@ -706,6 +706,11 @@ authConfig:
     okta: Configure an Okta account
     ping: Configure a Ping account
     shibboleth: Configure a Shibboleth account
+    genericsaml: Configure a generic SAML provider
+    nameIDFormat: NameID Format
+    signatureMethod: Signature Algorithm
+    allowIdpInitiated: Allow IdP-initiated login
+    forceAuthn: Force re-authentication
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
     search:
@@ -8163,6 +8168,7 @@ model:
       freeipa: FreeIPA
       googleoauth: Google
       genericoidc: Generic OIDC
+      genericsaml: Generic SAML
       keycloakoidc: Keycloak
       cognito: Amazon Cognito
 

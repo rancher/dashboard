@@ -10,6 +10,7 @@ import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -47,6 +48,7 @@ export default {
     Loading,
     CruResource,
     LabeledInput,
+    LabeledSelect,
     Banner,
     AllowedPrincipals,
     Checkbox,
@@ -98,8 +100,19 @@ export default {
 
   data() {
     return {
-      showLdap:        false,
-      showLdapDetails: false
+      showLdap:            false,
+      showLdapDetails:     false,
+      nameIDFormatOptions: [
+        { value: 'unspecified', label: 'unspecified' },
+        { value: 'emailAddress', label: 'emailAddress' },
+        { value: 'transient', label: 'transient' },
+        { value: 'persistent', label: 'persistent' },
+      ],
+      signatureMethodOptions: [
+        { value: 'RSA-SHA256', label: 'RSA-SHA256' },
+        { value: 'RSA-SHA1', label: 'RSA-SHA1' },
+        { value: 'RSA-SHA512', label: 'RSA-SHA512' },
+      ],
     };
   },
 
@@ -108,6 +121,32 @@ export default {
   },
 
   computed: {
+    isGenericSaml() {
+      return this.NAME === 'genericsaml';
+    },
+
+    // The model is (re)assigned by the auth-config mixin's fetch(), so defaults
+    // can't be seeded in created(). Instead default on read and write on change,
+    // matching how oidc.vue handles its generic defaults. An untouched default is
+    // saved empty and the backend applies the same default (unspecified / RSA-SHA256).
+    nameIDFormat: {
+      get() {
+        return this.model?.nameIDFormat || 'unspecified';
+      },
+      set(value) {
+        this.model.nameIDFormat = value;
+      }
+    },
+
+    signatureMethod: {
+      get() {
+        return this.model?.signatureMethod || 'RSA-SHA256';
+      },
+      set(value) {
+        this.model.signatureMethod = value;
+      }
+    },
+
     validationPassed() {
       if (this.model?.enabled && !this.editConfig) {
         return true;
@@ -231,6 +270,14 @@ export default {
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+            <template v-if="isGenericSaml">
+              <tr data-testid="genericsaml-view-fields">
+                <td>{{ t(`authConfig.saml.nameIDFormat`) }}: </td><td>{{ nameIDFormat }}</td>
+              </tr>
+              <tr><td>{{ t(`authConfig.saml.signatureMethod`) }}: </td><td>{{ signatureMethod }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.allowIdpInitiated`) }}: </td><td>{{ model.allowIdpInitiated ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
+              <tr><td>{{ t(`authConfig.saml.forceAuthn`) }}: </td><td>{{ model.forceAuthn ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
+            </template>
             <tr v-if="isLogoutAllSupported">
               <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
@@ -308,6 +355,7 @@ export default {
               name="displayNameField"
               :label="t(`authConfig.saml.displayName`)"
               :mode="mode"
+              data-testid="saml-display-name-field"
               required
             />
           </div>
@@ -317,6 +365,7 @@ export default {
               name="userNameField"
               :label="t(`authConfig.saml.userName`)"
               :mode="mode"
+              data-testid="saml-user-name-field"
               required
             />
           </div>
@@ -329,6 +378,7 @@ export default {
               name="uidField"
               :label="t(`authConfig.saml.UID`)"
               :mode="mode"
+              data-testid="saml-uid-field"
               required
             />
           </div>
@@ -338,6 +388,7 @@ export default {
               name="groupsField"
               :label="t(`authConfig.saml.groups`)"
               :mode="mode"
+              data-testid="saml-groups-field"
               required
             />
           </div>
@@ -345,13 +396,14 @@ export default {
 
         <div class="row mb-20">
           <div
-            v-if="NAME === 'keycloak' || NAME === 'ping'"
+            v-if="NAME === 'keycloak' || NAME === 'ping' || NAME === 'genericsaml'"
             class="col span-6"
           >
             <LabeledInput
               v-model:value="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
               :mode="mode"
+              data-testid="saml-entity-id-field"
             />
           </div>
           <div class="col span-6">
@@ -360,6 +412,7 @@ export default {
               name="rancherApiHost"
               :label="t(`authConfig.saml.api`)"
               :mode="mode"
+              data-testid="saml-rancher-api-host"
               required
             />
           </div>
@@ -373,6 +426,7 @@ export default {
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
+              data-testid="saml-key"
               required
               type="multiline"
             />
@@ -390,6 +444,7 @@ export default {
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
+              data-testid="saml-cert"
               required
               type="multiline"
             />
@@ -407,6 +462,7 @@ export default {
               :label="t(`authConfig.saml.metadata.label`)"
               :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
+              data-testid="saml-metadata"
               required
               type="multiline"
             />
@@ -418,6 +474,52 @@ export default {
             />
           </div>
         </div>
+
+        <!-- Generic SAML options -->
+        <template v-if="isGenericSaml">
+          <div data-testid="genericsaml-fields">
+            <div class="row mb-20">
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model:value="nameIDFormat"
+                  :label="t('authConfig.saml.nameIDFormat')"
+                  :options="nameIDFormatOptions"
+                  :mode="mode"
+                  data-testid="saml-nameid-format"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model:value="signatureMethod"
+                  :label="t('authConfig.saml.signatureMethod')"
+                  :options="signatureMethodOptions"
+                  :mode="mode"
+                  data-testid="saml-signature-algorithm"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-12">
+                <Checkbox
+                  v-model:value="model.allowIdpInitiated"
+                  :label="t('authConfig.saml.allowIdpInitiated')"
+                  :mode="mode"
+                  data-testid="saml-allow-idp-initiated"
+                />
+              </div>
+            </div>
+            <div class="row mb-20">
+              <div class="col span-12">
+                <Checkbox
+                  v-model:value="model.forceAuthn"
+                  :label="t('authConfig.saml.forceAuthn')"
+                  :mode="mode"
+                  data-testid="saml-force-authn"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
 
         <!-- SLO logout -->
         <div

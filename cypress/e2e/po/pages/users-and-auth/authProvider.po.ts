@@ -7,6 +7,7 @@ export enum AuthProvider {
   AMAZON_COGNITO = 'Amazon Cognito', // eslint-disable-line no-unused-vars
   AZURE = 'Microsoft Entra ID', // eslint-disable-line no-unused-vars
   GITHUB_APP = 'GitHub App', // eslint-disable-line no-unused-vars
+  GENERIC_SAML = 'Generic SAML', // eslint-disable-line no-unused-vars
 }
 
 export class AuthProviderPo extends PagePo {

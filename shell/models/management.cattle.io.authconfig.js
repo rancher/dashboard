@@ -12,6 +12,7 @@ export const configType = {
   keycloak:        'saml',
   okta:            'saml',
   shibboleth:      'saml',
+  genericsaml:     'saml',
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
@@ -25,6 +26,7 @@ const imageOverrides = {
   azuread:      'entraid',
   keycloakoidc: 'keycloak',
   genericoidc:  'openid',
+  genericsaml:  'custom',
 };
 
 export default class AuthConfig extends SteveModel {
