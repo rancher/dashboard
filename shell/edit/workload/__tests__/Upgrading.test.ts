@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Upgrading from '@shell/edit/workload/Upgrading.vue';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 
 describe('component: Upgrading', () => {
   it('should display all the inputs', () => {
@@ -23,6 +24,20 @@ describe('component: Upgrading', () => {
     input.trigger('blur');
 
     expect(wrapper.props('value')?.[key]).toBe(newValue);
+  });
+
+  it.each([
+    WORKLOAD_TYPES.REPLICA_SET,
+    WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+  ])('should persist minReadySeconds into value for %p', (type) => {
+    const wrapper = mount(Upgrading, { props: { type } });
+    const input = wrapper.find('[data-testid="input-policy-min"]').find('input');
+    const newValue = 123;
+
+    input.setValue(newValue);
+    input.trigger('blur');
+
+    expect(wrapper.props('value')?.minReadySeconds).toBe(newValue);
   });
 
   it.each([
