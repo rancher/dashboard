@@ -6,6 +6,7 @@ import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { generateWorkloadSelector, WORKLOAD_ID_FULL_ANNOTATION } from '@shell/utils/workload-selector';
 
 export default class WorkloadService extends SteveModel {
   get stateDisplay() {
@@ -156,11 +157,23 @@ export default class WorkloadService extends SteveModel {
   }
 
   get workloadSelector() {
-    return {
-      'workload.user.cattle.io/workloadselector': `${ this._type ? this._type : this.type }-${
-        this.metadata.namespace
-      }-${ this.metadata.name }`
-    };
+    const type = this._type ? this._type : this.type;
+    const namespace = this.metadata.namespace;
+    const name = this.metadata.name;
+
+    const { labelValue, fullID } = generateWorkloadSelector(type, namespace, name);
+
+    // If fullID is set, the label was truncated - store annotation
+    if (fullID) {
+      // Ensure annotations object exists
+      if (!this.metadata.annotations) {
+        this.metadata.annotations = {};
+      }
+      // Store full workload ID for debugging
+      this.metadata.annotations[WORKLOAD_ID_FULL_ANNOTATION] = fullID;
+    }
+
+    return { 'workload.user.cattle.io/workloadselector': labelValue };
   }
 
   // create clusterip, nodeport, loadbalancer services from container port spec
