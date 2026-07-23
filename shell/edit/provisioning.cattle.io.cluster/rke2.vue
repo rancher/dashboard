@@ -1008,10 +1008,12 @@ export default {
       this.value.spec.cloudCredentialSecretName = val;
 
       if (this.extensionProvider?.onEvent) {
-        const p = this.extensionProvider.onEvent('credentialChange', { credentialId: val, infrastructureCluster: this.infrastructureCluster }, this.value);
+        try {
+          const p = this.extensionProvider.onEvent('credentialChange', { credentialId: val, infrastructureCluster: this.infrastructureCluster }, this.value);
 
-        if (p) {
-          p.catch((err) => this.errors.push(err));
+          Promise.resolve(p).catch((err) => this.errors.push(err));
+        } catch (err) {
+          this.errors.push(err);
         }
       }
     },
@@ -2322,10 +2324,12 @@ export default {
           k8sChangePayload.newVersion = value;
           k8sChangePayload.oldVersion = old;
           k8sChangePayload.infrastructureCluster = this.infrastructureCluster;
-          const p = this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value);
+          try {
+            const p = this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value);
 
-          if (p) {
-            p.catch((err) => this.errors.push(err));
+            Promise.resolve(p).catch((err) => this.errors.push(err));
+          } catch (err) {
+            this.errors.push(err);
           }
         }
       }

@@ -937,57 +937,34 @@ describe('component: rke2', () => {
   });
 
   describe('extensionProvider.onEvent error handling', () => {
-    const makeWrapper = (onEvent: jest.Mock) => {
-      const mockExtClass = jest.fn().mockImplementation(() => ({ onEvent }));
-
-      return shallowMount(rke2, {
-        props: {
-          mode:  _CREATE,
-          value: {
-            spec: {
-              ...defaultSpec,
-              cloudCredentialSecretName: '',
-            },
-            agentConfig: {},
-          },
-          provider: 'awsmachinetemplate',
-        },
-        global: {
-          mocks: {
-            ...defaultMocks,
-            $store: {
-              dispatch: jest.fn(),
-              getters:  {
-                ...defaultGetters,
-                'rancher/byId': jest.fn(),
-              },
-            },
-            $extension: { getDynamic: jest.fn(() => mockExtClass) },
-          },
-          stubs: defaultStubs,
-        },
-      });
-    };
+    const makeVm = (onEvent: jest.Mock) => ({
+      extensionProvider:        { onEvent },
+      errors:                   [] as unknown[],
+      infrastructureCluster:    null,
+      value:                    { spec: {} },
+      togglePsaDefault:         jest.fn(),
+      updateNginxConfiguration: jest.fn(),
+      isHarvesterDriver:        false,
+      serverConfig:             {},
+    });
 
     describe('method: handleKubernetesChange', () => {
       it('pushes error to this.errors when onEvent rejects', async() => {
         const err = new Error('prepareProvCluster failed');
-        const onEvent = jest.fn().mockReturnValue(Promise.reject(err));
-        const wrapper = makeWrapper(onEvent);
-        const vm = wrapper.vm as any;
+        const onEvent = jest.fn().mockImplementation(() => Promise.reject(err));
+        const vm = makeVm(onEvent) as any;
 
-        vm.handleKubernetesChange('v1.30.0+rke2r1', 'v1.29.0+rke2r1');
+        (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
         await new Promise(process.nextTick);
 
         expect(vm.errors).toContain(err);
       });
 
       it('does not push to this.errors when onEvent resolves', async() => {
-        const onEvent = jest.fn().mockReturnValue(Promise.resolve());
-        const wrapper = makeWrapper(onEvent);
-        const vm = wrapper.vm as any;
+        const onEvent = jest.fn().mockImplementation(() => Promise.resolve());
+        const vm = makeVm(onEvent) as any;
 
-        vm.handleKubernetesChange('v1.30.0+rke2r1', 'v1.29.0+rke2r1');
+        (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
         await new Promise(process.nextTick);
 
         expect(vm.errors).toHaveLength(0);
@@ -995,10 +972,9 @@ describe('component: rke2', () => {
 
       it('does not push to this.errors when onEvent is synchronous', async() => {
         const onEvent = jest.fn().mockReturnValue(undefined);
-        const wrapper = makeWrapper(onEvent);
-        const vm = wrapper.vm as any;
+        const vm = makeVm(onEvent) as any;
 
-        vm.handleKubernetesChange('v1.30.0+rke2r1', 'v1.29.0+rke2r1');
+        (rke2.methods as any).handleKubernetesChange.call(vm, 'v1.30.0+rke2r1', 'v1.29.0+rke2r1');
         await new Promise(process.nextTick);
 
         expect(vm.errors).toHaveLength(0);
@@ -1006,36 +982,46 @@ describe('component: rke2', () => {
     });
 
     describe('watcher: credentialId', () => {
+      const credentialIdWatcher = (rke2.watch as any).credentialId as (val: string) => void;
+
       it('pushes error to this.errors when onEvent rejects on credential change', async() => {
         const err = new Error('credential onEvent failed');
-        const onEvent = jest.fn().mockReturnValue(Promise.reject(err));
-        const wrapper = makeWrapper(onEvent);
-        const vm = wrapper.vm as any;
+        const onEvent = jest.fn().mockImplementation(() => Promise.reject(err));
+        const vm = {
+          ...makeVm(onEvent),
+          $store: { getters: { 'rancher/byId': jest.fn() } },
+        } as any;
 
-        await wrapper.setData({ credentialId: 'cred-123' });
+        credentialIdWatcher.call(vm, 'cred-123');
         await new Promise(process.nextTick);
 
         expect(vm.errors).toContain(err);
       });
 
       it('does not push to this.errors when onEvent resolves on credential change', async() => {
-        const onEvent = jest.fn().mockReturnValue(Promise.resolve());
-        const wrapper = makeWrapper(onEvent);
+        const onEvent = jest.fn().mockImplementation(() => Promise.resolve());
+        const vm = {
+          ...makeVm(onEvent),
+          $store: { getters: { 'rancher/byId': jest.fn() } },
+        } as any;
 
-        await wrapper.setData({ credentialId: 'cred-123' });
+        credentialIdWatcher.call(vm, 'cred-123');
         await new Promise(process.nextTick);
 
-        expect((wrapper.vm as any).errors).toHaveLength(0);
+        expect(vm.errors).toHaveLength(0);
       });
 
       it('does not push to this.errors when onEvent is synchronous on credential change', async() => {
         const onEvent = jest.fn().mockReturnValue(undefined);
-        const wrapper = makeWrapper(onEvent);
+        const vm = {
+          ...makeVm(onEvent),
+          $store: { getters: { 'rancher/byId': jest.fn() } },
+        } as any;
 
-        await wrapper.setData({ credentialId: 'cred-123' });
+        credentialIdWatcher.call(vm, 'cred-123');
         await new Promise(process.nextTick);
 
-        expect((wrapper.vm as any).errors).toHaveLength(0);
+        expect(vm.errors).toHaveLength(0);
       });
     });
   });
