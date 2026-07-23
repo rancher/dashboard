@@ -269,6 +269,19 @@ export default {
         @keyup.enter="groupSelected()"
         @keyup.space="groupSelected()"
       >
+        <!-- <div
+        v-if="showHeader"
+        class="header"
+        :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
+        :role="hasChildren ? 'button' : undefined"
+        :tabindex="hasChildren ? (fixedOpen ? -1 : 0) : undefined"
+        :aria-label="hasChildren ? (group.labelDisplay || group.label || '') : undefined"
+        :aria-expanded="hasChildren ? (!canCollapse || isExpanded) : undefined"
+        :aria-controls="hasChildren ? (!canCollapse ? null : `group-${id}`) : undefined"
+        @click="groupSelected()"
+        @keyup.enter="groupSelected()"
+        @keyup.space="groupSelected()"
+      > -->
         <slot name="header">
           <!-- Group overview with link -->
           <router-link
