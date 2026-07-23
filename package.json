@@ -228,6 +228,7 @@
     "mocha/minimatch": "5.1.8",
     "mocha/js-yaml": "4.3.0",
     "@cypress/code-coverage/js-yaml": "4.3.0",
-    "webpack-dev-server": "5.2.6"
+    "webpack-dev-server": "5.2.6",
+    "postcss": "8.5.10"
   }
 }
