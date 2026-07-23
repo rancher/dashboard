@@ -11,6 +11,7 @@ import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';
 import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
 
@@ -25,7 +26,8 @@ export default {
     KeyValue,
     AdvancedSection,
     Banner,
-    UnitInput
+    UnitInput,
+    RcSeparator,
   },
 
   mixins: [FormValidation],
@@ -366,10 +368,7 @@ export default {
         />
       </div>
     </div>
-    <hr
-      class="mt-10"
-      role="none"
-    >
+    <RcSeparator class="mt-10" />
     <component
       :is="configComponent"
       v-if="value.config && configComponent"

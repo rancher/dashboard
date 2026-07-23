@@ -9,6 +9,7 @@ import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
 import { RcButton } from '@components/RcButton';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
@@ -18,6 +19,7 @@ export default {
     TypeDescription,
     Loading,
     RcButton,
+    RcSeparator,
   },
 
   props: {
@@ -177,10 +179,7 @@ export default {
       <div class="no-clusters">
         {{ t('harvesterManager.cluster.none') }}
       </div>
-      <hr
-        class="info-section"
-        role="none"
-      >
+      <RcSeparator class="info-section" />
       <div class="logo">
         <BrandImage
           file-name="harvester.png"

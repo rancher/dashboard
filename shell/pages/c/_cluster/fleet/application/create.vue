@@ -10,6 +10,7 @@ import FleetUtils from '@shell/utils/fleet';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import suseLogo from '@shell/assets/images/content/suse.svg';
 import suseLogoDark from '@shell/assets/images/content/dark/suse.svg';
+import RcSeparator from '@shell/components/RcSeparator';
 
 interface Subtype {
   id: string;
@@ -219,7 +220,7 @@ const cancel = () => {
                 class="flex-right"
               >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
             </div>
-            <hr v-if="subtype.description">
+            <RcSeparator v-if="subtype.description" />
             <div
               v-if="subtype.description"
               class="description"

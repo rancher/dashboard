@@ -19,6 +19,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useFormValidation } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -68,7 +69,8 @@ export default {
     CopyToClipboardText,
     AllowedPrincipals,
     AuthBanner,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -455,7 +457,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="azuread"

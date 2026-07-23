@@ -18,13 +18,15 @@ import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
     BrandImage,
     ClusterIconMenu,
     IconOrSvg,
-    Pinned
+    Pinned,
+    RcSeparator,
   },
 
   data() {
@@ -774,7 +776,7 @@ export default {
                   v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
-                  <hr role="none">
+                  <RcSeparator />
                 </div>
               </div>
 
@@ -888,7 +890,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr role="none">
+                <RcSeparator />
                 <span>
                   {{ t('nav.categories.multiCluster') }}
                 </span>
@@ -921,7 +923,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr role="none">
+                <RcSeparator />
                 <span>
                   {{ t('nav.categories.configuration') }}
                 </span>

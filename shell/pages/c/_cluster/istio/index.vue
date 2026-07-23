@@ -4,8 +4,10 @@ import { SERVICE } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import kialiSvg from '~shell/assets/images/vendor/kiali.svg';
 import jaegerSvg from '~shell/assets/images/vendor/jaeger.svg';
+import RcSeparator from '@shell/components/RcSeparator';
+
 export default {
-  components: { Loading },
+  components: { Loading, RcSeparator },
 
   async fetch() {
     if (this.$store.getters['cluster/schemaFor'](SERVICE)) {
@@ -112,7 +114,7 @@ export default {
               <t k="istio.links.kiali.label" />
               <i class="icon icon-external-link pull-right" />
             </a>
-            <hr role="none">
+            <RcSeparator />
             <div class="description">
               <span v-clean-html="t('istio.links.kiali.description', {link: monitoringUrl}, true)" />
             </div>
@@ -148,7 +150,7 @@ export default {
               <t k="istio.links.jaeger.label" />
               <i class="icon icon-external-link pull-right" />
             </a>
-            <hr role="none">
+            <RcSeparator />
             <div class="description">
               <span v-clean-html="t('istio.links.jaeger.description', true)" />
             </div>

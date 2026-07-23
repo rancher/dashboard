@@ -5,9 +5,14 @@ import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import neuvectorSvg from '~shell/assets/images/vendor/neuvector.svg';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
-  components: { LazyImage, Loading },
+  components: {
+    LazyImage,
+    Loading,
+    RcSeparator,
+  },
 
   data() {
     return {
@@ -66,7 +71,7 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr role="none">
+            <RcSeparator />
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

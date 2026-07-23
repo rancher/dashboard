@@ -5,10 +5,11 @@ import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
 import longhornSvg from '~shell/assets/images/vendor/longhorn.svg';
 import Loading from '@shell/components/Loading';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   components: {
-    IconMessage, LazyImage, Loading
+    IconMessage, LazyImage, Loading, RcSeparator
   },
 
   async fetch() {
@@ -88,7 +89,7 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr role="none">
+            <RcSeparator />
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

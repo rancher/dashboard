@@ -47,6 +47,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -99,7 +100,8 @@ export default {
     YamlEditor,
     Wizard,
     SelectOrCreateAuthSecret,
-    PrivateRegistry
+    PrivateRegistry,
+    RcSeparator,
   },
 
   mixins: [
@@ -1776,7 +1778,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr role="none">
+                    <RcSeparator />
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>

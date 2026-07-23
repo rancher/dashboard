@@ -10,12 +10,13 @@ import { MANAGEMENT } from '@shell/config/types';
 import { STACK_PREFS } from './tabs/networking/index.vue';
 
 import { sanitizeKey, sanitizeIP, sanitizeValue } from '@shell/utils/string';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export default {
   emits: ['copied-windows'],
 
   components: {
-    Banner, Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints
+    Banner, Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints, RcSeparator
   },
 
   props: {
@@ -287,10 +288,7 @@ export default {
       />
 
       <template v-if="cluster.supportsWindows">
-        <hr
-          class="mt-20 mb-20"
-          role="none"
-        >
+        <RcSeparator class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <Banner
           v-if="readyForWindows"

@@ -17,6 +17,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
 import { RcButton } from '@components/RcButton';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
+import RcSeparator from '@shell/components/RcSeparator';
 
 const ADD_NEW_TOKEN = '__add_new__';
 
@@ -249,7 +250,7 @@ onMounted(async() => {
     </div>
 
     <div class="appco-credentials-page-footer">
-      <hr class="footer-divider">
+      <RcSeparator class="footer-divider" />
       <div class="footer">
         <RcButton
           variant="secondary"

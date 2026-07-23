@@ -22,6 +22,7 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import RcSeparator from '@shell/components/RcSeparator';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -37,7 +38,8 @@ export default {
     CruResourceFooter,
     ResourceYaml,
     Wizard,
-    TableOfContents
+    TableOfContents,
+    RcSeparator,
   },
 
   props: {
@@ -765,10 +767,7 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr
-                    v-if="subtype.description"
-                    role="none"
-                  >
+                  <RcSeparator v-if="subtype.description" />
                   <div
                     v-if="subtype.description"
                     class="description"

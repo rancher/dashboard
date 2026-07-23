@@ -19,6 +19,7 @@ import FileSelector from '@shell/components/form/FileSelector.vue';
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import * as AWS from '@shell/types/aws-sdk';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
+import RcSeparator from '@shell/components/RcSeparator';
 
 // map between fields in rancher eksConfig and amazon launch templates
 const launchTemplateFieldMapping: {[key: string]: string} = {
@@ -55,7 +56,8 @@ export default defineComponent({
     Checkbox,
     UnitInput,
     FileSelector,
-    RadioGroup
+    RadioGroup,
+    RcSeparator,
   },
 
   props: {
@@ -798,10 +800,7 @@ export default defineComponent({
         </KeyValue>
       </div>
     </div>
-    <hr
-      class="mb-20"
-      role="none"
-    >
+    <RcSeparator class="mb-20" />
     <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"
