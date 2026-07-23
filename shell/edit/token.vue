@@ -7,13 +7,26 @@ import { Banner } from '@components/Banner';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import {
+  filterHiddenLocalCluster,
+  filterOnlyKubernetesClusters,
+  paginationFilterClusters
+} from '@shell/utils/cluster';
 import { SETTING } from '@shell/config/settings';
+import { STORE } from '@shell/store/store-types';
+import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
+
+// Sentinel value for the "no scope" option. vue-select treats an empty string as
+// "nothing selected" (see its `selectedValue` computed), so an option whose value is ''
+// can never be rendered as the selected one. We use a truthy sentinel in the dropdown and
+// map it back to '' when reading/writing value.clusterId (see the `clusterScope` computed).
+const NO_SCOPE = '__no_scope__';
 
 export default {
   components: {
@@ -21,7 +34,7 @@ export default {
     DetailText,
     Footer,
     LabeledInput,
-    LabeledSelect,
+    ResourceLabeledSelect,
     RadioGroup,
     Select,
   },
@@ -46,25 +59,89 @@ export default {
         customExpiry:      0,
         customExpiryUnits: 'minute',
       },
-      created:    null,
-      ttlLimited: false,
-      accessKey:  '',
-      secretKey:  '',
+      created:            null,
+      ttlLimited:         false,
+      accessKey:          '',
+      secretKey:          '',
       maxTTL,
+      MANAGEMENT_CLUSTER: MANAGEMENT.CLUSTER,
+      noScopeOption:      {
+        value: NO_SCOPE, label: this.$store.getters['i18n/t']('accountAndKeys.apiKeys.add.noScope'), kind: LABEL_SELECT_KINDS.NONE
+      },
+      MANAGEMENT_STORE: STORE.MANAGEMENT
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    scopes() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
-      let out = kubeClusters.map((opt) => ({ value: opt.id, label: opt.nameDisplay }));
 
-      out = sortBy(out, ['label']);
-      out.unshift( { value: '', label: this.t('accountAndKeys.apiKeys.add.noScope') } );
+    /**
+     * Proxy between the scope dropdown and value.clusterId. The dropdown uses a truthy
+     * sentinel for "no scope" (see NO_SCOPE) but the token stores '' for that case.
+     */
+    clusterScope: {
+      get() {
+        return this.value.clusterId || NO_SCOPE;
+      },
+      set(neu) {
+        this.value.clusterId = neu === NO_SCOPE ? '' : neu;
+      },
+    },
 
-      return out;
+    /**
+     * ResourceLabeledSelect settings used when pagination is OFF: everything is fetched up front,
+     * so filter & map the clusters client-side (as before) and inject the "no scope" option.
+     */
+    scopeAllSettings() {
+      return {
+        updateResources: (clusters) => {
+          const filtered = filterHiddenLocalCluster(filterOnlyKubernetesClusters(clusters, this.$store), this.$store);
+          const mapped = sortBy(filtered.map((c) => ({ value: c.id, label: c.nameDisplay })), ['label']);
+
+          mapped.unshift(this.noScopeOption);
+
+          return mapped;
+        },
+      };
+    },
+
+    /**
+     * ResourceLabeledSelect settings used when pagination is ON: filter the clusters server-side
+     * and inject the "no scope" option into each page.
+     */
+    scopePaginatedSettings() {
+      const store = this.$store;
+
+      return {
+        updateResources: (clusters) => {
+          const mapped = clusters
+            // updateResources runs over the accumulated pages, so drop any previously injected "no scope"...
+            .filter((c) => c.value !== NO_SCOPE)
+            // Paginated results are transient raw JSON (not model instances), so read spec.displayName directly.
+            .map((c) => (c.value !== undefined ? c : { value: c.id, label: c.spec?.displayName || c.id }));
+
+          mapped.unshift(this.noScopeOption);
+
+          return mapped;
+        },
+        requestSettings: (opts) => {
+          const { filter } = opts.opts;
+
+          // User's search text - mgmt clusters display by spec.displayName, not metadata.name
+          const filters = filter ? [PaginationParamFilter.createSingleField({
+            field: 'spec.displayName', value: filter, exact: false
+          })] : [];
+
+          // Server-side equivalent of the old filterOnlyKubernetesClusters + filterHiddenLocalCluster
+          filters.push(...paginationFilterClusters(store));
+
+          opts.filters = filters;
+          opts.groupByNamespace = false;
+          opts.sort = [{ asc: true, field: 'spec.displayName' }];
+
+          return opts;
+        },
+      };
     },
 
     expiryOptions() {
@@ -185,11 +262,15 @@ export default {
         :min-height="30"
       />
 
-      <LabeledSelect
-        v-model:value="value.clusterId"
+      <ResourceLabeledSelect
+        v-model:value="clusterScope"
         class="mt-20 scope-select"
         label-key="accountAndKeys.apiKeys.add.scope"
-        :options="scopes"
+        :resource-type="MANAGEMENT_CLUSTER"
+        :in-store="MANAGEMENT_STORE"
+        context="token"
+        :all-resources-settings="scopeAllSettings"
+        :paginated-resource-settings="scopePaginatedSettings"
       />
 
       <h5 class="pt-20">
