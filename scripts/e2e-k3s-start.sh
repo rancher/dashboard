@@ -237,9 +237,9 @@ fi
 
 echo "Dashboard UI is ready"
 
-# wait 20 minutes (sleep 10 * wait 10 *  6 = 20 minutes)
-# if it regularly takes 20 minutes we have problems...
-wait=120
+# wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
+# if it regularly takes 10 minutes we have problems...
+wait=60
 
 echo "Waiting for rancher-webhook to be running..."
 okay=0
