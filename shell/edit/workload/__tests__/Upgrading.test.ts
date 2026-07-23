@@ -29,13 +29,13 @@ describe('component: Upgrading', () => {
   it.each([
     WORKLOAD_TYPES.REPLICA_SET,
     WORKLOAD_TYPES.REPLICATION_CONTROLLER,
-  ])('should persist minReadySeconds into value for %p', (type) => {
+  ])('should persist minReadySeconds into value for %p', async(type) => {
     const wrapper = mount(Upgrading, { props: { type } });
     const input = wrapper.find('[data-testid="input-policy-min"]').find('input');
     const newValue = 123;
 
-    input.setValue(newValue);
-    input.trigger('blur');
+    await input.setValue(newValue);
+    await input.trigger('blur');
 
     expect(wrapper.props('value')?.minReadySeconds).toBe(newValue);
   });
