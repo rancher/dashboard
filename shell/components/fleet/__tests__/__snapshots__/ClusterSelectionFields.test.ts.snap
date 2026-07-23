@@ -35,6 +35,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       rules=""
       searchable="false"
       selectable="[Function]"
+      size="large"
       taggable="true"
       value="cluster-1"
     />
@@ -98,6 +99,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       rules=""
       searchable="false"
       selectable="[Function]"
+      size="large"
       taggable="true"
       value=""
     />
@@ -138,6 +140,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       rules=""
       searchable="false"
       selectable="[Function]"
+      size="large"
       taggable="true"
       value="cluster-1"
     />
@@ -201,6 +204,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       rules=""
       searchable="false"
       selectable="[Function]"
+      size="large"
       taggable="true"
       value=""
     />

@@ -121,6 +121,11 @@ export default {
       type:    Array,
       default: () => []
     },
+    size: {
+      type:      String,
+      default:   'large',
+      validator: (value) => ['small', 'medium', 'large'].includes(value)
+    },
 
     name: {
       type:    String,
@@ -417,7 +422,8 @@ export default {
         taggable: $attrs.multiple,
         hoverable: hoverTooltip,
         'compact-input': isCompact,
-        'no-label': !hasLabel
+        'no-label': !hasLabel,
+        [`ls-${size}`]: true
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
@@ -633,6 +639,48 @@ export default {
 
     :deep() .vs__actions:after {
       top: 0;
+    }
+  }
+
+  &.no-label.ls-medium {
+    height: $labeled-select-height-medium;
+    padding: 0;
+
+    .labeled-container {
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :deep(.vs__dropdown-toggle) {
+      height: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 0 $input-padding-sm;
+      align-items: center;
+    }
+
+    :deep(.vs__actions) {
+      &:after {
+        // reset large-mode sizing hacks (height, padding-top, top:-10px) so flexbox centers the icon
+        height: auto;
+        padding-top: 0;
+        line-height: 1;
+        top: 0;
+      }
+    }
+
+    :deep(.vs__selected-options) {
+      margin-top: 0; // reset global -5px
+    }
+
+    :deep(.vs__selected) {
+      margin-top: 0;
+      margin-left: 0;
+    }
+
+    :deep(.vs__search) {
+      margin-left: 0; // prevent text shift on open
     }
   }
 

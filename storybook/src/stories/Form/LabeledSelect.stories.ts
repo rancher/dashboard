@@ -7,6 +7,10 @@ const meta: Meta<typeof LabeledSelect> = {
     label:       { control: 'text' },
     options:     { control: 'array' },
     placeholder: { control: 'text' },
+    size:        {
+      control: 'select',
+      options: ['small', 'medium', 'large'],
+    },
   },
 };
 
@@ -25,5 +29,14 @@ export const Default: Story = {
     label:       'System',
     options:     ['System01', 'System02', 'System03', 'System04'],
     placeholder: 'Select option',
+  },
+};
+
+export const SizeMedium: Story = {
+  ...Default,
+  args: {
+    options:     ['System01', 'System02', 'System03', 'System04'],
+    placeholder: 'Select option',
+    size:        'medium',
   },
 };
