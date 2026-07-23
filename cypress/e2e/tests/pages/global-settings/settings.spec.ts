@@ -16,7 +16,7 @@ const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
-const settingsOriginal: { [id: string]: any} = {};
+const settingsOriginal: { [id: string]: any } = {};
 const resetSettings: string[] = [];
 
 describe('Settings', { testIsolation: 'off' }, () => {
