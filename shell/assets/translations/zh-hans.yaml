@@ -7057,65 +7057,11 @@ performance:
   label: UI 性能设置
   settingName: 性能
   experimental: 此设置是实验性的，可能会在后续版本中删除或更新。
-  incrementalLoad:
-    label: 增量加载
-    setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
-    description: |-
-      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于来自 Kubernetes API 的资源
-    checkboxLabel: 启用增量加载
-    inputLabel: 资源阈值
-    incompatibleDescription: "增量加载与命名空间/项目过滤不兼容，无法同时启用。"
-  manualRefresh:
-    label: 手动刷新
-    setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
-    buttonTooltip: 刷新列表
-    description: |-
-      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于来自 Kubernetes API 的资源
-    checkboxLabel: 启用列表数据的手动刷新
-    inputLabel: 资源阈值
-    incompatibleDescription: "手动刷新与命名空间/项目过滤不兼容，无法同时启用。"
   websocketNotification:
     label: WebSocket 通知
     description: |-
       启用后，UI 检测到断开连接时不会出现 WebSocket 通知。
     checkboxLabel: 禁用 WebSocket 通知
-  gc:
-    label: 资源垃圾回收
-    description: UI 将在本地缓存 Kubernetes 资源，避免这些资源被重新抓取。在某些情况下，这可能会导致浏览器中存储了大量数据。你可以启用此设置进行定期删除。
-    checkboxLabel: 启用垃圾回收
-    whenRun:
-      description: 垃圾回收运行的时候更新
-      intervalCheckBox:
-        label: 定期运行垃圾回收
-      interval:
-        inputLabel: 运行间隔
-      route:
-        description: 在换页时运行垃圾回收
-        inputLabel: 换页
-    howRun:
-      description: 更新垃圾回收的运行方式
-      age:
-        description: "必须在此期间内未访问过资源，才能考虑进行垃圾回收。"
-        inputLabel: 资源存活时间
-      count:
-        description: 资源必须超过此数量才能考虑进行垃圾回收。
-        inputLabel: 资源数量
-  nsFiltering:
-    label: 要求命名空间/项目过滤
-    description: 用户需要选择命名空间和/或项目。这将限制查看列表时获取的资源数量，有助于在具有大量资源的系统中提高 UI 的响应速度。
-    checkboxLabel: 启用要求命名空间/项目过滤
-    incompatibleDescription: "\"要求命名空间/项目过滤\"与手动刷新和增量加载不兼容，无法同时启用。"
-  advancedWorker:
-    label: Websocket Web Worker
-    description: 推送到 UI 的资源更新来自 WebSocket，并在 UI 线程中处理。启用此选项可在单独的线程中处理 Web Worker 中的集群 WebSocket 更新。这有助于提高 UI 在资源经常变化的系统中的响应能力。
-    checkboxLabel: 启用高级 Websocket Web Worker
-  inactivity:
-    title: 闲置状态
-    checkboxLabel: 启用闲置会话过期
-    inputLabel: 闲置超时时间（分钟）
-    information: 要更改自动注销行为，请在"设置"页面编辑授权和/或会话 Token 超时值（<code>auth-user-session-ttl-minutes</code> 和 <code>auth-token-max-ttl-minutes</code>)。
-    description: 启用后，如果用户在指定的超时时间内未有活动，UI 将不再刷新页面内容，用户必须重新加载页面才能继续。
-    authUserTTL: 该超时时间不能超过用户会话超时时间 auth-user-session-ttl-minutes（当前为 {current} 分钟）。
 
 
 banner:
