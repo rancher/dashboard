@@ -109,7 +109,11 @@ describe('component: Workload', () => {
       ['StatefulSet', true, false, true, 'workload.container.titles.upgrading'],
       ['non-replicable (e.g. DaemonSet)', false, false, false, 'workload.container.titles.upgrading'],
     ])('should label the upgrading tab correctly for %p', (_name, isReplicable, isDeployment, isStatefulSet, expected) => {
-      const typeMixin = { computed: { isReplicable: () => isReplicable, isDeployment: () => isDeployment, isStatefulSet: () => isStatefulSet } };
+      const typeMixin = {
+        computed: {
+          isReplicable: () => isReplicable, isDeployment: () => isDeployment, isStatefulSet: () => isStatefulSet
+        }
+      };
       const MockedWorkload = {
         ...Workload,
         mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }, typeMixin]
