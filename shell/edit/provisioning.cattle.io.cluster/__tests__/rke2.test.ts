@@ -991,13 +991,13 @@ describe('component: rke2', () => {
 
       it('serializes rapid calls: runs first, then only the latest pending', async() => {
         let resolveFirst!: () => void;
-        const firstSettled = new Promise<void>((res) => {
-          resolveFirst = res;
+        const firstSettled = new Promise<void>((resolve) => {
+          resolveFirst = resolve;
         });
 
         const onEvent = jest.fn()
-          .mockImplementationOnce(() => new Promise<void>((res) => {
-            firstSettled.then(res);
+          .mockImplementationOnce(() => new Promise<void>((resolve) => {
+            firstSettled.then(resolve);
           }))
           .mockImplementation(() => Promise.resolve());
 
