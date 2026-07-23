@@ -108,6 +108,11 @@ const baseConfig = defineConfig({
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
+  // Don't retain per-test DOM snapshots across the run. On Cypress 11 (no
+  // experimentalMemoryManagement, which needs 11.4+) these accumulate over a 24-spec
+  // run until the runner is memory-starved and Chrome can't relaunch between specs,
+  // crashing with "Missing browserCriClient in connectToNewSpec". 0 = keep none.
+  numTestsKeptInMemory:  0,
   retries:               {
     runMode:  2,
     openMode: 0
@@ -166,6 +171,22 @@ const baseConfig = defineConfig({
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
+
+      // On CI runners Chrome can crash between specs (small /dev/shm) or be too
+      // slow to connect on first launch under CPU contention, both surfacing as
+      // "Timed out waiting for the browser to connect" / "Missing browserCriClient
+      // in connectToNewSpec". Point shared memory at /tmp (disk), and drop the GPU
+      // + sandbox startup work Chrome can't use headless so it launches faster and
+      // connects within Cypress' fixed 60s window.
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--no-sandbox');
+        }
+
+        return launchOptions;
+      });
 
       on('task', {
         removeDirectory,
