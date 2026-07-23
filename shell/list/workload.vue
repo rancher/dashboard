@@ -101,6 +101,7 @@ export default {
 
     const workloadIncludeAssociatedData = paginationEnabled && [
       WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.REPLICA_SET,
       WORKLOAD_TYPES.DAEMON_SET,
       WORKLOAD_TYPES.STATEFUL_SET,
       WORKLOAD_TYPES.JOB,

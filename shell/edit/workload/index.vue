@@ -49,6 +49,14 @@ export default {
      */
     yamlModifiers() {
       return this.value.type === POD ? { collapseEmptyObjects: true } : undefined;
+    },
+
+    upgradingTabLabel() {
+      // ReplicaSet / ReplicationController have no rollout strategy; this tab only
+      // exposes minReadySeconds for them, so frame it as availability, not upgrades.
+      const noUpgradePolicy = this.isReplicable && !this.isDeployment && !this.isStatefulSet;
+
+      return noUpgradePolicy ? this.t('workload.container.titles.availability') : this.t('workload.container.titles.upgrading');
     }
   },
   methods: {
@@ -420,7 +428,7 @@ export default {
               />
             </Tab>
             <Tab
-              :label="t('workload.container.titles.upgrading')"
+              :label="upgradingTabLabel"
               name="upgrading"
               :weight="tabWeightMap['upgrading']"
             >

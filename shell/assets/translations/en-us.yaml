@@ -7801,6 +7801,7 @@ workload:
       status: Status
       volumeClaimTemplates: Volume Claim Templates
       upgrading: Scaling and Upgrade Policy
+      availability: Availability
   cronSchedule: Schedule
   detail:
     services: Services
