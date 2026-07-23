@@ -108,6 +108,11 @@ const baseConfig = defineConfig({
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
+  // Don't retain per-test DOM snapshots across the run. On Cypress 11 (no
+  // experimentalMemoryManagement, which needs 11.4+) these accumulate over a 24-spec
+  // run until the runner is memory-starved and Chrome can't relaunch between specs,
+  // crashing with "Missing browserCriClient in connectToNewSpec". 0 = keep none.
+  numTestsKeptInMemory:  0,
   retries:               {
     runMode:  2,
     openMode: 0
