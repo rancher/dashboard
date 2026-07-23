@@ -49,6 +49,7 @@
     ]
   },
   "resolutions": {
+    "uuid": "11.1.1",
     "cheerio": "1.0.0-rc.12",
     "webpack": "5.105.4",
     "ws": "8.21.0",

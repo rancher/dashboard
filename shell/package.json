@@ -134,6 +134,7 @@
     "yarn": "1.22.22"
   },
   "resolutions": {
+    "uuid": "11.1.1",
     "d3-color": "3.1.0",
     "ejs": "3.1.9",
     "follow-redirects": "1.15.2",
