@@ -16,6 +16,9 @@ TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 # state (e.g. cattle-capi-system missing, auth failures downstream). PROVISION_ROLL counts the rebuilds.
 PROVISION_ROLL="${PROVISION_ROLL:-1}"
 PROVISION_MAX="${PROVISION_MAX:-3}"
+# Captured here so reprovision() can re-exec the script with its original args (inside a
+# function `$@` refers to the function's args, not the script's).
+SCRIPT_ARGS=("$@")
 
 # --------------------------------------
 # ----------------------- Setup Env Vars
@@ -247,6 +250,33 @@ fi
 
 echo "Dashboard UI is ready"
 
+# On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
+# k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
+# step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
+# for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
+reprovision() {
+  local reason="$1"
+
+  if [ "$PROVISION_ROLL" -ge "$PROVISION_MAX" ]; then
+    echo "$reason - and Rancher never converged after $PROVISION_MAX full rebuilds. Failing the step."
+    kubectl -n cattle-system logs deploy/rancher --tail=120 2>/dev/null || true
+    exit 1
+  fi
+
+  echo "$reason - REBUILDING the whole environment from scratch (rebuild $((PROVISION_ROLL + 1))/$PROVISION_MAX)..."
+  kubectl -n cattle-system logs deploy/rancher --tail=60 2>/dev/null || true
+
+  if [ "$KUBE_TYPE" = "K3S" ] && [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+    echo "Tearing down k3s..."
+    sudo /usr/local/bin/k3s-uninstall.sh || echo "WARN: k3s-uninstall.sh returned non-zero (continuing to reinstall)"
+  else
+    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE, /usr/local/bin/k3s-uninstall.sh missing) - re-running anyway"
+  fi
+
+  echo "Re-running provisioning from scratch..."
+  exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
+}
+
 # wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
 # if it regularly takes 10 minutes we have problems...
 wait=60
@@ -264,8 +294,7 @@ while [ $okay -lt $wait ] ; do
 done
 
 if [ $okay -eq $wait ]; then
-  echo "Rancher webhook did not become ready in a reasonable time"
-  exit 1
+  reprovision "Rancher webhook did not become ready in a reasonable time"
 fi
 
 echo "Waiting for capi-webhook-service to exist..."
@@ -283,8 +312,7 @@ while [ $okay -lt $wait ] ; do
 done
 
 if [ $okay -eq $wait ]; then
-  echo "CAPI webhook service did not become available in a reasonable time"
-  exit 1
+  reprovision "CAPI webhook service did not become available in a reasonable time"
 fi
 
 echo "Waiting for rancher imperative api to be running..."
@@ -302,8 +330,7 @@ while [ $okay -lt $wait ] ; do
 done
 
 if [ $okay -eq $wait ]; then
-  echo "Rancher imperative api did not become ready in a reasonable time"
-  exit 1
+  reprovision "Rancher imperative api did not become ready in a reasonable time"
 fi
 
 echo "Rancher is ready"
