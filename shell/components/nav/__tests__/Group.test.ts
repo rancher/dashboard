@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import Group from '@shell/components/nav/Group.vue';
+import Type from '@shell/components/nav/Type.vue';
 
 describe('component: Group', () => {
   it('isOverview ignores query parameters and hash strings when checking active state', () => {
@@ -123,6 +124,127 @@ describe('component: Group', () => {
       expect(link.exists()).toBe(true);
       expect(h6.exists()).toBe(true);
       expect(h6.find('span').html()).toContain('My Group');
+    });
+  });
+
+  /**
+   * Regression guard for the nested-interactive a11y fix (issue #17260).
+   *
+   * PR #16352 introduced a pattern where root-group children are promoted to
+   * top-level nav items with `children: []`. Group.vue must NOT render those
+   * items as `role="button"`, because they already contain an <a> link via the
+   * Type component — nesting an interactive element inside another interactive
+   * element violates the nested-interactive WCAG rule.
+   */
+  describe('header role and ARIA attributes (nested-interactive a11y fix)', () => {
+    const routerMocks = {
+      $route: {
+        params:   {},
+        path:     '/test/route',
+        fullPath: '/test/route',
+        matched:  [],
+      },
+      $router: {
+        resolve:   jest.fn().mockReturnValue({ path: '/test/route', fullPath: '/test/route' }),
+        getRoutes: jest.fn().mockReturnValue([]),
+      },
+      t: (key: string) => key,
+    };
+
+    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group,
+        canCollapse: true,
+        idPrefix:    '',
+        ...extraProps,
+      },
+      global: { mocks: routerMocks },
+    });
+
+    describe('when group has children (standard collapsible group)', () => {
+      const group = {
+        name:     'test',
+        label:    'My Group',
+        children: [{ route: { name: 'child-route', params: {} } }],
+      };
+
+      it('renders header with role="button"', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes('role')).toBe('button');
+      });
+
+      it('renders header with tabindex="0" when not fixedOpen', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes('tabindex')).toBe('0');
+      });
+
+      it('renders header with tabindex="-1" when fixedOpen is true', () => {
+        const wrapper = mountGroupWithMocks(group, { fixedOpen: true });
+
+        expect(wrapper.find('.header').attributes('tabindex')).toBe('-1');
+      });
+
+      it('renders header with aria-label from group label', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes('aria-label')).toBe('My Group');
+      });
+
+      it('renders header with aria-expanded attribute', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes('aria-expanded')).toBeDefined();
+      });
+
+      it('renders header with aria-controls pointing to group body', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        // id = idPrefix + group.name = '' + 'test' = 'test'
+        expect(wrapper.find('.header').attributes('aria-controls')).toBe('group-test');
+      });
+
+      it('omits aria-controls when canCollapse is false', () => {
+        const wrapper = mountGroupWithMocks(group, { canCollapse: false });
+
+        expect(wrapper.find('.header').attributes('aria-controls')).toBeUndefined();
+      });
+    });
+
+    describe('when group has no children (simple nav item, root group promotion from PR #16352)', () => {
+      // Mirrors the data shape produced by SideNav.vue's root-group unpacking:
+      //   rootGroup.children.forEach(child => addObject(out, { ...child, children: [] }))
+      const group = {
+        name:     'cluster-dashboard',
+        label:    'Cluster',
+        route:    { name: 'c-cluster-explorer', params: {} },
+        children: [],
+      };
+
+      it.each([
+        ['role'],
+        ['tabindex'],
+        ['aria-label'],
+        ['aria-expanded'],
+        ['aria-controls'],
+      ])('does not set %s on the header div (avoids nested-interactive violation)', (attr) => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes(attr)).toBeUndefined();
+      });
+
+      it('still renders the Type component as the nav link', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.findComponent(Type).exists()).toBe(true);
+      });
+
+      it('passes the group object as the type prop to the Type component', () => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.findComponent(Type).props('type')).toStrictEqual(group);
+      });
     });
   });
 });
