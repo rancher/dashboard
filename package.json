@@ -223,7 +223,7 @@
     "form-data": "4.0.6",
     "qs": "6.15.2",
     "cross-spawn": "7.0.6",
-    "serialize-javascript": "7.0.3",
+    "serialize-javascript": "7.0.5",
     "linkify-it": "5.0.2",
     "mocha/minimatch": "5.1.8",
     "mocha/js-yaml": "4.3.0",

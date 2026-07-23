@@ -52,7 +52,7 @@
     "cheerio": "1.0.0-rc.12",
     "webpack": "5.105.4",
     "ws": "8.21.0",
-    "serialize-javascript": "7.0.3",
+    "serialize-javascript": "7.0.5",
     "webpack-dev-server": "5.2.6",
     "linkify-it": "5.0.2"
   },
