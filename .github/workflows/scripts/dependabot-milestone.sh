@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# Assigns the branch-derived milestone to Dependabot pull requests.
+# Sets up Dependabot pull requests: assigns the branch-derived milestone and
+# adds the auto-retry label so flaky test runs get retried automatically.
 #
 # The milestone for a PR is derived from its base branch using the canonical
 # helper `scripts/get-branch-metadata.sh` (which reads branches-metadata.json).
@@ -9,11 +10,12 @@ set -eo pipefail
 # the milestone here lets Dependabot PRs pass that check automatically.
 #
 # Modes (via the MODE environment variable):
-#   event (default) - assign the milestone to the single PR given by PR_NUMBER
-#                     (base branch BASE_REF), read from the workflow event.
-#   sweep           - assign the milestone to every open Dependabot PR.
+#   event (default) - process the single PR given by PR_NUMBER (base BASE_REF),
+#                     read from the workflow event.
+#   sweep           - process every open Dependabot PR.
 #
-# The branch-derived milestone is always (re)applied to the target open PR(s).
+# The branch-derived milestone and the retry label are always (re)applied to the
+# target open PR(s).
 #
 # Environment:
 #   GH_TOKEN            - token with pull-requests:write (required, used by gh)
@@ -22,12 +24,15 @@ set -eo pipefail
 #   PR_NUMBER, BASE_REF - required in event mode
 #   METADATA_LOCAL      - when 'true', read the checked-out branches-metadata.json
 #                         instead of fetching it from the master branch
+#   RETRY_LABEL         - label added to trigger auto-retry (default bot/auto-retry/10)
 
 # Configuration (all overridable via the environment; defaults suit local runs)
 GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-rancher/dashboard}
 MODE=${MODE:-event}
 # GitHub search/author handle for the Dependabot app (used to filter PRs)
 DEPENDABOT_AUTHOR="app/dependabot"
+# Label that tells the auto-retry workflow how many times to retry failed tests
+RETRY_LABEL=${RETRY_LABEL:-bot/auto-retry/10}
 
 # By default get-branch-metadata.sh fetches the metadata from the master branch;
 # '--local' makes it read the checked-out branches-metadata.json instead.
@@ -72,6 +77,16 @@ assign_milestone() {
   gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --milestone "$version"
 }
 
+# Add the auto-retry label to a PR so failed test runs get retried automatically.
+# Non-fatal: a missing label (e.g. on a fork) warns but does not fail the run.
+add_retry_label() {
+  local number="$1"
+
+  echo "  PR #${number}: adding label '${RETRY_LABEL}'"
+  gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --add-label "$RETRY_LABEL" ||
+    echo "  ⚠️  PR #${number}: could not add label '${RETRY_LABEL}' (does it exist in the repo?), continuing"
+}
+
 if [ "$MODE" = "sweep" ]; then
   # Safety-net path: find every open Dependabot PR and (re)apply its milestone.
   echo "Sweeping all open Dependabot pull requests in ${GITHUB_REPOSITORY}..."
@@ -91,6 +106,7 @@ if [ "$MODE" = "sweep" ]; then
       echo "  ⚠️  PR #${number}: failed to set milestone, continuing"
       failed=1
     }
+    add_retry_label "$number"
   done <<< "$pr_list"
 
   if [ "$failed" != "0" ]; then
@@ -106,4 +122,5 @@ else
 
   echo "Processing Dependabot PR #${PR_NUMBER} (base branch '${BASE_REF}')"
   assign_milestone "$PR_NUMBER" "$BASE_REF"
+  add_retry_label "$PR_NUMBER"
 fi
