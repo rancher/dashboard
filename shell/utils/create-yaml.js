@@ -70,6 +70,27 @@ export const ACTIVELY_REMOVE = [
 
 const INDENT = 2;
 
+/**
+ * True when a value holds no meaningful data: null/undefined/'', an array whose
+ * items are all empty, or an object whose values are all empty (recursively).
+ * `0` and `false` count as meaningful.
+ */
+export function isDeepEmpty(val) {
+  if (val === null || val === undefined || val === '') {
+    return true;
+  }
+
+  if (Array.isArray(val)) {
+    return val.every(isDeepEmpty);
+  }
+
+  if (typeof val === 'object') {
+    return Object.values(val).every(isDeepEmpty);
+  }
+
+  return false;
+}
+
 export function createYamlWithOptions(schemas, type, data, options, commentFieldsOptions) {
   return createYaml(
     schemas,
@@ -404,6 +425,17 @@ export function createYaml(
 
     if ( subDef ) {
       let chunk;
+
+      // When the caller opts in, a defined-but-empty object (e.g. an affinity
+      // block the form seeded as `{ requiredDuring...: [], preferredDuring...: [] }`)
+      // is rendered as `{}` instead of recursing into commented placeholders -
+      // which would otherwise leave a valueless key that parses back to `null`.
+      // Keeps the same data serialising consistently (see annotations/resources).
+      if (dataOptions?.collapseEmptyObjects && data[key] && typeof data[key] === 'object' && !Array.isArray(data[key]) && isDeepEmpty(data[key])) {
+        out += ' {}';
+
+        return out;
+      }
 
       if (subDef?.resourceFields && !isEmpty(subDef?.resourceFields)) {
         chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions, commentFieldsOptions);
