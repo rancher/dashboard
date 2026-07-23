@@ -1,0 +1,66 @@
+name: Dependabot Milestone
+
+# Automatically assigns the branch-derived milestone (see branches-metadata.json,
+# resolved via scripts/get-branch-metadata.sh) to Dependabot pull requests so they
+# satisfy the milestone validation performed by valid-pr.yaml / pr-check-milestone.sh.
+#
+# - pull_request_target: assigns the milestone as soon as a Dependabot PR opens.
+#   This trigger is used (instead of pull_request) because Dependabot's
+#   pull_request token is read-only and cannot set a milestone. No PR code is
+#   checked out or executed, only the trusted script from the base branch runs.
+# - schedule / workflow_dispatch: sweeps every open Dependabot PR as a safety net.
+on:
+  pull_request_target:
+    types: [opened, reopened]
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+# Restrictive baseline permissions for all jobs
+permissions:
+  contents: read
+
+jobs:
+  assign-on-open:
+    name: Assign milestone on Dependabot PR open
+    if: >-
+      github.repository_owner == 'rancher' &&
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Assign milestone
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: event
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          # Read the checked-out branches-metadata.json (no network dependency)
+          METADATA_LOCAL: 'true'
+        run: ./.github/workflows/scripts/dependabot-milestone.sh
+
+  sweep-open-prs:
+    name: Sweep open Dependabot PRs
+    if: >-
+      github.repository_owner == 'rancher' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Sweep and assign milestones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: sweep
+          # Read the checked-out branches-metadata.json (no network dependency)
+          METADATA_LOCAL: 'true'
+        run: ./.github/workflows/scripts/dependabot-milestone.sh
