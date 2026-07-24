@@ -229,6 +229,8 @@
     "markdown-it": "14.2.0",
     "mocha/minimatch": "5.1.8",
     "mocha/js-yaml": "4.3.0",
+    "mocha/diff": "5.2.2",
+    "diff2html/diff": "5.2.2",
     "@cypress/code-coverage/js-yaml": "4.3.0",
     "webpack-dev-server": "5.2.6",
     "postcss": "8.5.10"
