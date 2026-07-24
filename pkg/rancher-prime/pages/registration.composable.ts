@@ -286,24 +286,47 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Download is also on its own a form of registration as it uses the same secret
-   * @param asyncButtonResolution Async button callback
+   * Generate the offline registration request by creating the entrypoint secret
+   * and polling for the operator-produced offline-request secret.
+   * Returns null when the entrypoint secret could not be created; throws on poll timeout/failure
+   * so the caller can resolve the async button and surface errors.
    */
-  const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
-    registrationStatus.value = 'registration-request';
+  const generateOfflineRequest = async(): Promise<string | null> => {
     await preRegistration();
     const originalHash = secretHash.value;
 
     secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
-    registrationCode.value = null;
-    const data = await pollResource(originalHash, findOfflineRequest, getRegistrationRequest);
+    if (!secret.value) {
+      return null;
+    }
 
-    await downloadFile(REGISTRATION_REQUEST_FILENAME, data ? btoa(data) : data, 'application/json')
-      .catch(() => {
+    registrationCode.value = null;
+    // Offline request generation can take longer while the SCC operator prepares resources
+    return await pollResource(originalHash, findOfflineRequest, getRegistrationRequest, undefined, 250, 60000);
+  };
+
+  /**
+   * Download is also on its own a form of registration as it uses the same secret
+   * @param asyncButtonResolution AsyncButton callback
+   */
+  const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
+    registrationStatus.value = 'registration-request';
+
+    try {
+      const data = await generateOfflineRequest();
+
+      if (data === null) {
         asyncButtonResolution(false);
-        onError(new Error('Registration request download not found'));
-      });
-    asyncButtonResolution(true);
+
+        return;
+      }
+
+      await downloadFile(REGISTRATION_REQUEST_FILENAME, data ? btoa(data) : data, 'application/json');
+      asyncButtonResolution(true);
+    } catch (error) {
+      asyncButtonResolution(false);
+      onError(error);
+    }
   };
 
   /**
@@ -426,21 +449,68 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get unique secret code with hardcoded namespace and name
    */
   const getSecret = async(): Promise<PartialSecret | null> => {
-    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
+    const result = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
+    const secrets: PartialSecret[] = Array.isArray(result) ? result : [];
 
     return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name === REGISTRATION_SECRET) ?? null;
   };
 
   /**
-   * Delete any secret before creating a new one
+   * Tracked timer used by waitForSecretDeleted so the pending wait can be cleared
+   * when it completes (avoids leaking a setTimeout after the composable is done).
+   */
+  let deleteWaitTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Wait until the cluster entrypoint secret is gone so a follow-up create does not
+   * hit AlreadyExists/409 while finalizers run. Only invoked after an actual remove.
+   * The backing setTimeout is tracked and cleared on completion.
+   */
+  const waitForSecretDeleted = async(timeoutMs = 30000): Promise<void> => {
+    const start = Date.now();
+
+    return new Promise<void>((resolve) => {
+      const check = async() => {
+        const stillThere = await getSecret();
+
+        if (!stillThere || Date.now() - start >= timeoutMs) {
+          if (deleteWaitTimer) {
+            clearTimeout(deleteWaitTimer);
+            deleteWaitTimer = null;
+          }
+          resolve();
+
+          return;
+        }
+
+        deleteWaitTimer = setTimeout(check, 250);
+      };
+
+      check();
+    });
+  };
+
+  /**
+   * Delete any secret before creating a new one.
+   * Resolve the cluster secret by name (not only the in-memory ref) so a stale cluster
+   * secret is removed even after a page reload, then wait for it to be gone when we did
+   * remove something so a follow-up create does not hit AlreadyExists/409.
    */
   const deleteSecret = async() => {
-    if (secret.value) {
-      try {
-        await secret.value.remove();
-      } catch (error) {}
+    const existing = secret.value || await getSecret();
+
+    secret.value = null;
+
+    if (!existing?.remove) {
+      return;
     }
+
+    try {
+      await existing.remove();
+    } catch (error) {}
+
+    await waitForSecretDeleted();
   };
 
   /**
@@ -489,11 +559,38 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Whether the current entrypoint secret (or UI flow) is offline registration.
+   * Offline secrets intentionally omit regCode; only registrationType is set.
+   */
+  const isOfflineRegistrationSecret = (): boolean => {
+    if (registrationStatus.value === 'registration-request' || registrationStatus.value === 'registering-offline') {
+      return true;
+    }
+
+    const registrationType = secret.value?.data?.registrationType;
+
+    if (!registrationType) {
+      return registration.value?.mode === 'offline';
+    }
+
+    try {
+      return atob(registrationType) === 'offline';
+    } catch (error) {
+      return registrationType === 'offline';
+    }
+  };
+
+  /**
    * Generic fallback in case of unhandled errors based on existing resources
    * @param polling
    * @returns
    */
   const getError = (polling?: boolean): string => {
+    // Offline registration never has a regCode; a poll timeout must not claim the code secret is missing
+    if (polling && isOfflineRegistrationSecret()) {
+      return t('registration.errors.timeout-offline-request');
+    }
+
     if (polling && !secret.value?.data?.regCode) {
       return t('registration.errors.missing-code');
     }
