@@ -7,6 +7,7 @@ import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -22,8 +23,8 @@ export default class HomePagePo extends PagePo {
     // To help with this be super sure the page is ready
 
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
-      'v1/counts?exclude=metadata.managedFields',
-      'v1/namespaces?exclude=metadata.managedFields',
+      `v1/counts?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
+      `v1/namespaces?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
     ]);
 
     const homePage = new HomePagePo();
