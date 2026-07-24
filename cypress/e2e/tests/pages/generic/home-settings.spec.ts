@@ -1,6 +1,7 @@
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { qase } from '@/cypress/support/qase';
+import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
 
 describe('Home Page Settings', () => {
   const homePage = new HomePagePo();
@@ -8,7 +9,7 @@ describe('Home Page Settings', () => {
   qase(3002, it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
 
-    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+    cy.intercept('GET', `/v1/management.cattle.io.settings?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`).as('settingsReq');
 
     homePage.goTo();
 

@@ -6,6 +6,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { createPrivateLabelSettingsResponse, createPutSettingsResponse } from '@/cypress/e2e/blueprints/settings/branding-settings';
+import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
 
 const loginPage = new LoginPagePo();
 const homePage = new HomePagePo();
@@ -97,7 +98,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     // Mock the GET settings request that happens after reload
-    cy.intercept('GET', '**/management.cattle.io.settings?exclude=metadata.managedFields',
+    cy.intercept('GET', `**/management.cattle.io.settings?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
       createPrivateLabelSettingsResponse(settings.privateLabel.new)
     ).as('getSettingsAfterReload');
 
