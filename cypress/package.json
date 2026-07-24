@@ -67,6 +67,7 @@
     "publish-pkg": "./scripts/publish.sh --npm"
   },
   "resolutions": {
+    "@babel/core": "7.29.7",
     "uuid": "11.1.1",
     "@cypress/request": "4.0.1",
     "ws": "8.21.0",

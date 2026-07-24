@@ -49,6 +49,7 @@
     ]
   },
   "resolutions": {
+    "@babel/core": "7.29.7",
     "uuid": "11.1.1",
     "cheerio": "1.0.0-rc.12",
     "webpack": "5.105.4",
