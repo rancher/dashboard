@@ -11,7 +11,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });

@@ -4,10 +4,11 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import { HELM_STARTUP_DELAY_OPT } from '@/cypress/support/utils/timeouts';
+import { PAGINATION_UTILS } from '@/cypress/support/types/shell';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
-describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@explorer2', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths', '@elemental', '@noVai', '@virtualizationMgmt', '@accessibility'] }, () => {
+describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@explorer2', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths', '@elemental', '@virtualizationMgmt', '@accessibility'] }, () => {
   const rancherSetupLoginPage = new RancherSetupLoginPagePo();
   const rancherSetupConfigurePage = new RancherSetupConfigurePage();
   const homePage = new HomePagePo();
@@ -21,7 +22,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   });
 
   it('Confirm correct number of settings requests made', () => {
-    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+    cy.intercept('GET', `/v1/management.cattle.io.settings?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`).as('settingsReq');
     cy.intercept('POST', '/v1-public/login').as('bootstrapReq');
 
     rancherSetupLoginPage.goTo();

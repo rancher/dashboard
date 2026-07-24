@@ -129,7 +129,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
     let detailsPageCronJob = SortableTablePo.firstByDefaultName('detailscron');
     let cronJobNamesList: string[] = [];

@@ -1,4 +1,3 @@
-import { STEVE_CACHE } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { EXT_IDS } from '@shell/core/plugin';
 import { PaginationResourceContext } from '@shell/types/store/pagination.types';
@@ -159,13 +158,6 @@ describe('pagination-utils', () => {
         'type-map/configuredPaginationHeaders': jest.fn().mockReturnValue(false),
         'type-map/hasCustomList':               jest.fn().mockReturnValue(false),
       };
-    });
-
-    it('should return false if steve cache is disabled', () => {
-      mockRootGetters['features/get'].mockImplementation((feature: string) => feature === STEVE_CACHE ? false : undefined);
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
-
-      expect(result).toBe(false);
     });
 
     it('should return false if pagination settings are not defined', () => {

@@ -16,4 +16,3 @@ Some additional configuration can be supplied, see the `paginatedResourceSetting
 
 1. `LabeledSelect` component has been replaced with `ResourceLabeledSelect`
 1. Configuration has been supplied, given the resource type and requirements
-1. Changes have been validated when Server-Side Pagination is enabled and disabled via the `ui-sql-cache` Feature Flag

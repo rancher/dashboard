@@ -18,7 +18,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let podNamesList = [];
     let nsName1: string;

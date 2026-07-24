@@ -267,7 +267,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.incremental.pageByNumber && getters.isSteveCacheUrl(parse(opt.url).path)) {
+      if (opt.incremental.pageByNumber && getters.isSteveUrl(parse(opt.url).path)) {
         // Set the configuration for the rest of the incremental requests
         pageByNumber = {
           url:      opt.url,

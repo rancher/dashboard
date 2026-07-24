@@ -144,7 +144,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { delay: true });
     });

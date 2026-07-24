@@ -327,7 +327,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');

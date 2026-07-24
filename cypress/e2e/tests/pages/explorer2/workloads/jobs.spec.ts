@@ -94,7 +94,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
     let uniqueJob = SortableTablePo.firstByDefaultName('job');

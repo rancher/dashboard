@@ -180,7 +180,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

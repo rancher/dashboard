@@ -1275,22 +1275,6 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-/**
- * Check if the vai FF is enabled
- */
-Cypress.Commands.add('isVaiCacheEnabled', () => {
-  return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
-    .then((res) => {
-      // copy of shell/models/management.cattle.io.feature.js enabled
-
-      if (res?.body?.status?.lockedValue !== null && res?.body?.status?.lockedValue !== undefined) {
-        return res.body.status.lockedValue;
-      }
-
-      return (res?.body?.spec?.value !== null && res?.body?.spec?.value !== undefined) ? res.body.spec.value : res?.body?.status?.default;
-    });
-});
-
 Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, config?: { delay: boolean }) => {
   const {
     clusterName, groupBy, namespaceFilter, allNamespaces

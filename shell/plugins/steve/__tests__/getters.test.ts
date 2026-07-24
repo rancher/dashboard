@@ -68,14 +68,8 @@ describe('steve: getters:', () => {
   });
 
   describe('urlOptions', () => {
-    const urlOptionsGetter = urlOptions(undefined, {
-      isSteveUrl:      isSteveUrl(),
-      isSteveCacheUrl: () => false,
-    });
-    const urlOptionsGetterVaiOn = urlOptions(undefined, {
-      isSteveUrl:      isSteveUrl(),
-      isSteveCacheUrl: () => true,
-    });
+    const urlOptionsGetter = urlOptions(undefined, { isSteveUrl: isSteveUrl() });
+    const urlOptionsGetterVaiOn = urlOptions(undefined, { isSteveUrl: isSteveUrl() });
 
     it('expects urlOptions to return a function', () => {
       expect(typeof urlOptions()).toBe('function');
@@ -93,19 +87,19 @@ describe('steve: getters:', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz' } })).toBe('foo?bar=baz');
     });
     it('returns a string with a single filter statement applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz' } })).toBe('/v1/foo?filter=bar=baz&exclude=metadata.managedFields');
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz' } })).toBe('/v1/foo?filter=bar~baz&exclude=metadata.managedFields');
     });
     it('returns a string with a single filter statement applied and formatted for steve if a single filter statement is applied and the url starts with "/k8s/clusters/c-m-n4x45x4b/v1/"', () => {
-      expect(urlOptionsGetter('/k8s/clusters/c-m-n4x45x4b/v1/foo', { filter: { bar: 'baz' } })).toBe('/k8s/clusters/c-m-n4x45x4b/v1/foo?filter=bar=baz&exclude=metadata.managedFields');
+      expect(urlOptionsGetter('/k8s/clusters/c-m-n4x45x4b/v1/foo', { filter: { bar: 'baz' } })).toBe('/k8s/clusters/c-m-n4x45x4b/v1/foo?filter=bar~baz&exclude=metadata.managedFields');
     });
     it('returns a string with a multiple filter statements applied if a single filter statement is applied', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('foo?bar=baz&far=faz');
     });
     it('returns a string with a multiple filter statements applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar~baz&far~faz&exclude=metadata.managedFields');
     });
     it('returns a string with correct equality for vai off', () => {
-      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar~baz&far~faz&exclude=metadata.managedFields');
     });
     it('returns a string with correct equality for vai on', () => {
       expect(urlOptionsGetterVaiOn('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar~baz&far~faz&exclude=metadata.managedFields');
@@ -114,7 +108,7 @@ describe('steve: getters:', () => {
       expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b' })).toBe('/v1/foo?labelSelector=a=b&exclude=metadata.managedFields');
     });
     it('returns a string with a labelSelector and filter, and formatted for steve if the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b', filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?labelSelector=a=b&filter=bar=baz&far=faz&exclude=metadata.managedFields');
+      expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b', filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?labelSelector=a=b&filter=bar~baz&far~faz&exclude=metadata.managedFields');
     });
     it('returns a string with an exclude statement for "bar" if excludeFields is a single element array with the string "bar" and the url starts with "/v1/"', () => {
       expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar');

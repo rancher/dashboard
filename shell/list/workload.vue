@@ -1,11 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import {
-  WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
-} from '@shell/config/types';
+import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import { STEVE_CACHE } from '@shell/store/features';
 
 const workloadSchema = {
   id:         'workload',
@@ -17,21 +14,10 @@ const workloadSchema = {
   metadata: { name: 'workload' },
 };
 
-const $loadingResources = ($route, $store) => {
-  const allowedResources = [];
-
-  Object.values(LIST_WORKLOAD_TYPES).forEach((type) => {
-    // You may not have RBAC to see some of the types
-    if ($store.getters['cluster/schemaFor'](type) ) {
-      allowedResources.push(type);
-    }
-  });
-
-  const allTypes = $route.params.resource === workloadSchema.id;
-
+const $loadingResources = ($route) => {
   return {
-    loadResources:     allTypes ? allowedResources : [$route.params.resource],
-    loadIndeterminate: allTypes,
+    loadResources:     [$route.params.resource],
+    loadIndeterminate: false,
   };
 };
 
@@ -52,11 +38,7 @@ export default {
       return;
     }
 
-    if (this.allTypes && this.loadResources.length) {
-      this.$initializeFetchData(this.loadResources[0], this.loadResources);
-    } else {
-      this.$initializeFetchData(this.$route.params.resource);
-    }
+    this.$initializeFetchData(this.$route.params.resource);
 
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
@@ -69,35 +51,22 @@ export default {
 
     this.loadHeathResources();
 
-    if ( this.allTypes ) {
-      this.resources = await Promise.all(this.loadResources.map((allowed) => {
-        return this.$fetchType(allowed, this.loadResources);
-      }));
-    } else {
-      const type = this.$route.params.resource;
+    const type = this.$route.params.resource;
 
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$fetchType(type);
+    if ( this.$store.getters['cluster/schemaFor'](type) ) {
+      const resource = await this.$fetchType(type);
 
-        this.resources = [resource];
-      }
+      this.resources = [resource];
     }
   },
 
   data() {
-    const allTypes = this.$route.params.resource === workloadSchema.id;
-
-    if (allTypes && this.$store.getters['features/get'](STEVE_CACHE)) {
-      this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource: workloadSchema.id }, true)));
-
-      return;
-    }
     // Ensure these are set on load (to determine if the NS filter is required) rather than too late on `fetch`
     const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
 
     const { params:{ resource: type } } = this.$route;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
-    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+    const paginationEnabled = this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
 
     const workloadIncludeAssociatedData = paginationEnabled && [
       WORKLOAD_TYPES.DEPLOYMENT,
@@ -107,7 +76,6 @@ export default {
     ].includes(type);
 
     return {
-      allTypes,
       schema,
       paginationEnabled,
       resources: [],
@@ -127,7 +95,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (!this.allTypes || !row.ownedByWorkload) {
+          if (!row.ownedByWorkload) {
             out.push(row);
           }
         }
@@ -157,22 +125,17 @@ export default {
       }
 
       // Fetch these in the background
-      if ( this.allTypes ) {
-        this.$fetchType(POD);
+      const type = this.$route.params.resource;
+
+      if (type === WORKLOAD_TYPES.JOB || type === POD) {
+        // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
+        return;
+      }
+
+      if (type === WORKLOAD_TYPES.CRON_JOB) {
         this.$fetchType(WORKLOAD_TYPES.JOB);
       } else {
-        const type = this.$route.params.resource;
-
-        if (type === WORKLOAD_TYPES.JOB || type === POD) {
-          // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
-          return;
-        }
-
-        if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$fetchType(WORKLOAD_TYPES.JOB);
-        } else {
-          this.$fetchType(POD);
-        }
+        this.$fetchType(POD);
       }
     }
   },
