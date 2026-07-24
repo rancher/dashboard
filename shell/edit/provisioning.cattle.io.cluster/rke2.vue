@@ -840,6 +840,44 @@ export default {
       return this.extensionProvider?.extensionInfrastructureSection || null;
     },
 
+    extensionInfrastructureSectionProps() {
+      const defaultProps = {
+        value:               this.infrastructureCluster,
+        mode:                this.mode,
+        provider:            this.provider,
+        credentialId:        this.credentialId,
+        provisioningCluster: this.value,
+      };
+
+      const extensionProps = this.extensionProvider?.extensionInfrastructureSectionProps;
+
+      if (typeof extensionProps === 'function') {
+        const extensionContext = { ...defaultProps };
+
+        extensionContext.infrastructureCluster = this.infrastructureCluster;
+        extensionContext.cluster = this.value;
+        extensionContext.isCreate = this.isCreate;
+        extensionContext.isEdit = this.isEdit;
+        extensionContext.isView = this.isView;
+
+        let out;
+
+        try {
+          out = extensionProps(extensionContext);
+        } catch {
+          return defaultProps;
+        }
+
+        if (out && typeof out === 'object') {
+          return { ...defaultProps, ...out };
+        }
+      } else if (extensionProps && typeof extensionProps === 'object') {
+        return { ...defaultProps, ...extensionProps };
+      }
+
+      return defaultProps;
+    },
+
     showForm() {
       return !!this.credentialId || !this.needCredential;
     },
@@ -974,6 +1012,12 @@ export default {
       }
 
       this.value.spec.cloudCredentialSecretName = val;
+
+      if (this.extensionProvider?.onEvent) {
+        const payload = { credentialId: val, infrastructureCluster: this.infrastructureCluster };
+
+        this._scheduleOnEvent(() => this.extensionProvider.onEvent('credentialChange', payload, this.value));
+      }
     },
 
     addonNames(neu, old) {
@@ -2274,11 +2318,56 @@ export default {
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Allow extension providers to react to the version change
+        if (this.extensionProvider?.onEvent) {
+          const k8sChangePayload = {};
+
+          k8sChangePayload.newVersion = value;
+          k8sChangePayload.oldVersion = old;
+          k8sChangePayload.infrastructureCluster = this.infrastructureCluster;
+
+          // Use latest-only scheduling: if a previous onEvent is still in-flight, the
+          // intermediate call is replaced so only the most-recent version change runs next.
+          this._scheduleOnEvent(() => this.extensionProvider.onEvent('kubernetesVersionChange', k8sChangePayload, this.value));
+        }
       }
     },
 
     handleShowDeprecatedPatchVersionsChanged(value) {
       this.showDeprecatedPatchVersions = value;
+    },
+
+    /**
+     * Schedules an onEvent call using a latest-only queue: one call runs at a time, and
+     * any new call while one is in-flight replaces the pending slot, so only the most
+     * recent call runs after the current in-flight one settles.
+     *
+     * This prevents out-of-order mutations when extension providers perform async work
+     * (e.g. rapid Kubernetes version changes).
+     */
+    _scheduleOnEvent(fn) {
+      this._onEventPending = fn;
+      if (this._onEventInFlight) {
+        return;
+      }
+
+      const run = () => {
+        const next = this._onEventPending;
+
+        if (!next) {
+          this._onEventInFlight = false;
+
+          return;
+        }
+        this._onEventPending = null;
+        this._onEventInFlight = true;
+        new Promise((resolve) => resolve(fn()))
+          .catch((err) => this.errors.push(err))
+          .finally(run);
+      };
+
+      run();
     },
     /**
      * Track Machine Pool validation status
@@ -2541,11 +2630,7 @@ export default {
           <component
             :is="extensionInfrastructureSection"
             v-if="extensionInfrastructureSection"
-            :value="infrastructureCluster"
-            :mode="mode"
-            :provider="provider"
-            :credential-id="credentialId"
-            :provisioning-cluster="value"
+            v-bind="extensionInfrastructureSectionProps"
             data-testid="extension-top-section"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"
