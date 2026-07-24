@@ -258,6 +258,12 @@ export interface TypeMapVirtualType {
   overview?: boolean;
   /** Whether this custom page has an exact path match */
   'exact-path'?: boolean;
+  /**
+   * `navResources` is an optional array of resource types. The nav item stays
+   * highlighted while on a route for one of those resources. For example, some
+   * create/edit pages of a type have no nav entry of their own.
+   */
+  navResources?: string[];
 }
 
 /**

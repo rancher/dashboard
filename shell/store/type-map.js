@@ -53,6 +53,9 @@
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
+//                            -- `navResources` is an optional array of resource types. The nav item stays
+//                               highlighted while on a route for one of those resources. For example, some
+//                               create/edit pages of a type have no nav entry of their own.
 //
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
@@ -783,6 +786,7 @@ export const getters = {
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
+          navResources: typeObj.navResources,
         });
       }
 
