@@ -3,7 +3,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
-import { filterLocationValidParams } from '@shell/utils/router';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -68,38 +68,7 @@ export default {
     },
 
     isActive() {
-      // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
-      const typePath = this.$router.resolve(this.typeRoute)?.path.toLowerCase();
-      const pagePath = this.$route.path?.toLowerCase();
-      const routeMetaNav = this.$route.meta?.nav;
-
-      // If the route explicitly declares the nav path that should be highlighted, then use that
-      if (routeMetaNav) {
-        const cluster = this.$route.params?.cluster;
-        const product = this.$route.params?.product;
-        const navPath = routeMetaNav
-          .replace(':cluster', cluster)
-          .replace(':product', product);
-
-        if (navPath === typePath) {
-          return true;
-        }
-      }
-
-      if ( !this.type.exact) {
-        const typeSplit = typePath.split('/');
-        const pageSplit = pagePath.split('/');
-
-        for (let index = 0; index < typeSplit.length; ++index) {
-          if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
-            return false;
-          }
-        }
-
-        return true;
-      }
-
-      return typePath === pagePath;
+      return isNavItemActive(this.$router, this.$route, this.type);
     },
 
     typeRoute() {
