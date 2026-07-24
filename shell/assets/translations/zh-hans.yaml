@@ -5925,6 +5925,7 @@ workload:
       status: 状态
       volumeClaimTemplates: 卷声明模板
       upgrading: 扩缩容和升级策略
+      availability: Availability
   cronSchedule: 调度
   detail:
     services: 服务

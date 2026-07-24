@@ -193,6 +193,11 @@ export default {
         });
         break;
       }
+      case WORKLOAD_TYPES.REPLICA_SET:
+      case WORKLOAD_TYPES.REPLICATION_CONTROLLER: {
+        Object.assign(this.value, { minReadySeconds });
+        break;
+      }
       default:
         break;
       }
