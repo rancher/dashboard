@@ -137,7 +137,7 @@
     "@babel/core": "7.29.7",
     "uuid": "11.1.1",
     "d3-color": "3.1.0",
-    "ejs": "3.1.9",
+    "ejs": "3.1.10",
     "follow-redirects": "1.16.0",
     "glob": "7.2.3",
     "glob-parent": "6.0.2",
