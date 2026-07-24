@@ -34,9 +34,11 @@ import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeploym
 import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
-import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
+import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
+import { computed } from 'vue';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -90,7 +92,29 @@ export default {
   },
 
   setup(props) {
-    return { defaultMastheadProps: useDefaultMastheadProps(props.value) };
+    const titleBarProps = useDefaultTitleBarProps(props.value);
+    const metadataProps = useDefaultMetadataForLegacyPagesProps(props.value);
+
+    const customMastheadProps = computed(() => {
+      const resource = props.value.mgmt || props.value;
+
+      return {
+        titleBarProps: {
+          ...titleBarProps.value,
+          // Show the mgmt cluster state instead of provisioning state
+          // This now matches the prov list where we show mgmt cluster state
+          // (mgmt cluster is the single-source of truth)
+          // `badge` is of type @Badge
+          badge: {
+            color: resource?.stateBackground,
+            label: resource?.stateDisplay,
+          },
+        },
+        metadataProps: metadataProps.value,
+      };
+    });
+
+    return { customMastheadProps };
   },
 
   async fetch() {
@@ -858,7 +882,7 @@ export default {
 <template>
   <DetailPage :loading="$fetchState.pending">
     <template #top-area>
-      <Masthead v-bind="defaultMastheadProps">
+      <Masthead v-bind="customMastheadProps">
         <template #additional-actions>
           <button
             data-testid="detail-explore-button"
