@@ -66,6 +66,118 @@ describe('component: Group', () => {
     expect((wrapper.vm as any).hasActiveRoute()).toBe(true);
   });
 
+  it('hasActiveRoute stays true on a route for a resource a child claims via navResources', () => {
+    const group = {
+      name:     'cluster',
+      children: [
+        {
+          name:         'projects-namespaces',
+          route:        { name: 'c-cluster-product-projectsnamespaces', params: { cluster: 'local', product: 'explorer' } },
+          navResources: ['management.cattle.io.project']
+        }
+      ]
+    };
+
+    const wrapper = shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          // Creating a project uses the generic resource create route, which no nav item links to
+          $route: {
+            params: {
+              cluster: 'local', product: 'explorer', resource: 'management.cattle.io.project'
+            },
+            path:     '/c/local/explorer/management.cattle.io.project/create',
+            fullPath: '/c/local/explorer/management.cattle.io.project/create',
+            matched:  []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/c/local/explorer/projectsnamespaces' }),
+            getRoutes: jest.fn().mockReturnValue([])
+          },
+          t: (key: string) => key
+        }
+      }
+    });
+
+    expect((wrapper.vm as any).hasActiveRoute()).toBe(true);
+  });
+
+  it('hasActiveRoute is false on a route for a resource no child claims', () => {
+    const group = {
+      name:     'cluster',
+      children: [
+        {
+          name:         'projects-namespaces',
+          route:        { name: 'c-cluster-product-projectsnamespaces', params: { cluster: 'local', product: 'explorer' } },
+          navResources: ['management.cattle.io.project']
+        }
+      ]
+    };
+
+    const wrapper = shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            params: {
+              cluster: 'local', product: 'explorer', resource: 'apps.deployment'
+            },
+            path:     '/c/local/explorer/apps.deployment/create',
+            fullPath: '/c/local/explorer/apps.deployment/create',
+            matched:  []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/c/local/explorer/projectsnamespaces' }),
+            getRoutes: jest.fn().mockReturnValue([])
+          },
+          t: (key: string) => key
+        }
+      }
+    });
+
+    expect((wrapper.vm as any).hasActiveRoute()).toBe(false);
+  });
+
+  it('hasActiveRoute stays true on a page nested under a child route', () => {
+    // The Providers group in Cluster Management. There is no current cluster under /c/_, so nav items
+    // resolve without a cluster param and the nav level check can't match on its own
+    const group = {
+      name:     'providers',
+      children: [
+        { name: 'rke-kontainer-providers', route: { name: 'c-cluster-manager-driver-kontainerdriver', params: {} } },
+        { name: 'rke-node-providers', route: { name: 'c-cluster-manager-driver-nodedriver', params: {} } }
+      ]
+    };
+
+    const mountOnPath = (path: string) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            params: { cluster: '_' }, path, matched: []
+          },
+          $router: {
+            resolve:   jest.fn((route: any) => ({ path: route.name === 'c-cluster-manager-driver-kontainerdriver' ? '/c/_/manager/kontainerDriver' : '/c/_/manager/nodeDriver' })),
+            getRoutes: jest.fn().mockReturnValue([])
+          },
+          t: (key: string) => key
+        }
+      }
+    });
+
+    expect((mountOnPath('/c/_/manager/kontainerDriver').vm as any).hasActiveRoute()).toBe(true);
+    // Clicking Create must not collapse the group out from under the highlighted child
+    expect((mountOnPath('/c/_/manager/kontainerDriver/create').vm as any).hasActiveRoute()).toBe(true);
+    expect((mountOnPath('/c/_/manager/hostedprovider').vm as any).hasActiveRoute()).toBe(false);
+  });
+
   describe('group header label', () => {
     const mountGroup = (group: any) => shallowMount(Group as any, {
       props: {

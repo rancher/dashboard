@@ -1,6 +1,6 @@
 <script>
 import Type from '@shell/components/nav/Type';
-import { filterLocationValidParams } from '@shell/utils/router';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { RcSeparator } from '@components/RcSeparator';
 
 export default {
@@ -207,14 +207,19 @@ export default {
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+
+          // Keep the group open wherever the child itself is highlighted, otherwise pages nested under a
+          // child's route (its create/detail pages) would collapse the group out from under it
+          if (matchesNavLevel || isNavItemActive(this.$router, this.$route, item)) {
+            return true;
+          }
+
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
 
           // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
           const itemPath = this.$router.resolve(validItemRoute).path;
 
-          if (matchesNavLevel || itemPath === this.$route.path) {
-            return true;
-          } else if (parentPath && itemPath === parentPath) {
+          if (parentPath && itemPath === parentPath) {
             return true;
           }
         }

@@ -78,6 +78,80 @@ export const getResourceFromRoute = (to) => {
 };
 
 /**
+ * Some pages have no side nav entry of their own. For example, creating a
+ * Project uses the generic `management.cattle.io.project` route, while the
+ * associated list route is 'projectsnamespaces'. Nav entries can use
+ * `navResources` to claim disparate routes and keep nav entries highlighted
+ * while they are active.
+ *
+ * @param {*} navItem a side nav entry, as built by the type-map `getTree` getter
+ * @param {*} to a VueRouter Route object
+ * @returns true if the nav item claims the route's resource, false otherwise
+ */
+export const navItemClaimsRoute = (navItem, to) => {
+  const resource = to ? getResourceFromRoute(to) : undefined;
+
+  return !!resource && !!navItem?.navResources?.includes(resource);
+};
+
+/**
+ * Whether a side nav entry should be highlighted for the given route. Both the
+ * nav item and the group containing it use this to determine what is active.
+ *
+ * An item is active when any of these hold true:
+ * - it claims the route's resource via `navResources`
+ * - the route names the nav path it belongs to via `meta.nav`
+ * - its own path matches the route. Unless the item is `exact`, pages nested
+ *   under that path count too, so `/c/_/manager/kontainerDriver` stays active
+ *   on `/c/_/manager/kontainerDriver/create`
+ *
+ * @param {*} router VueRouter instance
+ * @param {*} to a VueRouter Route object
+ * @param {*} navItem a side nav entry, as built by the type-map `getTree` getter
+ * @returns true if the nav item should be highlighted, false otherwise
+ */
+export const isNavItemActive = (router, to, navItem) => {
+  if (!navItem?.route) {
+    return false;
+  }
+
+  if (navItemClaimsRoute(navItem, to)) {
+    return true;
+  }
+
+  // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+  const itemPath = router.resolve(filterLocationValidParams(router, navItem.route))?.path?.toLowerCase();
+  const routePath = to?.path?.toLowerCase();
+
+  if (!itemPath || !routePath) {
+    return false;
+  }
+
+  // If the route explicitly declares the nav path that should be highlighted, then use that
+  const routeMetaNav = findMeta(to, 'nav');
+
+  if (routeMetaNav) {
+    const navPath = Object.entries(to.params || {})
+      .reduce((path, [param, value]) => path.replace(`:${ param }`, value), routeMetaNav)
+      .toLowerCase();
+
+    if (navPath === itemPath) {
+      return true;
+    }
+  }
+
+  if (navItem.exact) {
+    return itemPath === routePath;
+  }
+
+  // Compare whole path segments, so `/foo/bar` is not treated as a parent of `/foo/barbaz`
+  const itemSegments = itemPath.split('/');
+  const routeSegments = routePath.split('/');
+
+  return itemSegments.every((segment, index) => segment === routeSegments[index]);
+};
+
+/**
  * Given a route it will look through the matching parent routes to see if any match the fn (predicate) criteria
  *
  * @param {*} to a VueRouter Route object
