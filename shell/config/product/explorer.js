@@ -600,6 +600,7 @@ export function init(store) {
     route:        { name: 'c-cluster-product-members' },
     exact:        false,
     'exact-path': true,
+    navResources: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
     ifHaveType:   {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       store: 'management'
@@ -616,6 +617,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
+    navResources:     [MANAGEMENT.PROJECT, NAMESPACE],
   });
 
   virtualType({
@@ -640,6 +642,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
+    navResources:     [NAMESPACE],
   });
 
   virtualType({
