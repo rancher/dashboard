@@ -100,17 +100,6 @@ describe('zodValidators', () => {
       });
     });
 
-    describe('field(key).url(keyOverride) — key override', () => {
-      const schema = field('myKey').url('overrideKey');
-
-      it('uses the override key in the URL error message', () => {
-        const result = schema.safeParse('not-a-url');
-
-        expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(URL_MSG('overrideKey'));
-      });
-    });
-
     describe('field(key).required().url() — required URL', () => {
       const schema = field('myKey').required().url();
 
@@ -148,24 +137,6 @@ describe('zodValidators', () => {
 
         expect(result.success).toBe(false);
         expect(result.error?.issues[0].message).toBe(URL_MSG('myKey'));
-      });
-    });
-
-    describe('field(key).required(keyOverride) — key override', () => {
-      it('uses the override key in the required error message', () => {
-        const schema = field('myKey').required('overrideKey');
-        const result = schema.safeParse('');
-
-        expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(REQUIRED_MSG('overrideKey'));
-      });
-
-      it('falls back to the field key when no override is given', () => {
-        const schema = field('myKey').required();
-        const result = schema.safeParse('');
-
-        expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe(REQUIRED_MSG('myKey'));
       });
     });
 

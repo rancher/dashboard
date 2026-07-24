@@ -9,17 +9,16 @@ export type Transform = (schema: ZodString) => ZodTypeAny;
 type TransformFactory = (...args: any[]) => Transform;
 
 // Factories for validators that append a Transform to a field's pipeline. Each
-// closes over the field's own key so it can default messages to it (e.g. url's
-// keyOverride || fieldKey || undefined). Add new transform-style
-// validators here. FieldBuilder and makeBuilder pick them up automatically.
+// closes over the field's own key so its message names the field it belongs to,
+// falling back to a generic message when the field has no key. Add new
+// transform-style validators here. FieldBuilder and makeBuilder pick them up
+// automatically. Validators must not accept a key override - a message that
+// needs to read differently for a given field warrants its own translation key,
+// not a different key passed at the call site.
 function createTransformFactories(t: I18n['t'], fieldKey: string) {
-  const key = (override?: string) => override || fieldKey;
-
   return {
-    url: (keyOverride?: string): Transform => {
-      const k = key(keyOverride) || undefined;
-
-      return (s) => s.url(k ? t('validation.url', { key: t(k) }) : t('validation.genericUrl'));
+    url: (): Transform => {
+      return (s) => s.url(fieldKey ? t('validation.url', { key: t(fieldKey) }) : t('validation.genericUrl'));
     },
   };
 }
@@ -36,7 +35,7 @@ type TransformFactories = ReturnType<typeof createTransformFactories>;
 // resulting z.object({...}) shape as a whole, or add a transform-style
 // validator to createTransformFactories instead.
 export type FieldBuilder = ZodTypeAny & {
-  required(keyOverride?: string): FieldBuilder;
+  required(): FieldBuilder;
 } & {
   [K in keyof TransformFactories]: (...args: Parameters<TransformFactories[K]>) => FieldBuilder;
 };
@@ -50,10 +49,10 @@ export function zodValidators(t: I18n['t']) {
       .issues[0];
   };
 
-  function buildSchema(transforms: Transform[], requiredKey?: string): ZodTypeAny {
+  function buildSchema(key: string, transforms: Transform[], isRequired: boolean): ZodTypeAny {
     // Plain optional case (field() with no chained validators). Skip the
     // superRefine wrapper entirely since it would always be a no-op.
-    if (transforms.length === 0 && requiredKey === undefined) {
+    if (transforms.length === 0 && !isRequired) {
       return z.preprocess((v) => (v ?? '').toString(), z.string());
     }
 
@@ -61,7 +60,7 @@ export function zodValidators(t: I18n['t']) {
     // call (e.g. every keystroke revalidation) since none of these depend on
     // `v`.
     const compiledTransforms = transforms.map((transform) => transform(z.string()));
-    const requiredSchema = requiredKey !== undefined ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(requiredKey) })) : undefined;
+    const requiredSchema = isRequired ? z.string().refine((val) => val.trim().length > 0, t('validation.required', { key: t(key) })) : undefined;
 
     return z.preprocess(
       (v) => (v ?? '').toString(),
@@ -76,24 +75,24 @@ export function zodValidators(t: I18n['t']) {
     );
   }
 
-  function makeBuilder(key: string, transforms: Transform[], requiredKey?: string): FieldBuilder {
-    const schema = buildSchema(transforms, requiredKey);
+  function makeBuilder(key: string, transforms: Transform[], isRequired: boolean): FieldBuilder {
+    const schema = buildSchema(key, transforms, isRequired);
     const factories = Object.entries(createTransformFactories(t, key)) as [string, TransformFactory][];
 
     const transformMethods = Object.fromEntries(factories.map(([name, factory]) => [
       name,
-      (...args: unknown[]) => makeBuilder(key, [...transforms, factory(...args)], requiredKey),
+      (...args: unknown[]) => makeBuilder(key, [...transforms, factory(...args)], isRequired),
     ]));
 
     return Object.assign(
       schema,
       transformMethods,
-      { required: (keyOverride?: string) => makeBuilder(key, transforms, keyOverride ?? key) }
+      { required: () => makeBuilder(key, transforms, true) }
     ) as unknown as FieldBuilder;
   }
 
   function field(key = ''): FieldBuilder {
-    return makeBuilder(key, []);
+    return makeBuilder(key, [], false);
   }
 
   return { field };
