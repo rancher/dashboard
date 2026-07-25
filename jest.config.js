@@ -18,6 +18,16 @@ module.exports = {
   // https://kulshekhar.github.io/ts-jest/docs/27.1/getting-started/paths-mapping#jest-config-with-helper
   modulePaths:      ['<rootDir>'],
   moduleNameMapper: {
+    // Pin singletons to the root node_modules. Under Yarn Berry the shell/
+    // subproject is a separate project with its own node_modules, so a test
+    // file under shell/ would otherwise resolve a second copy of these
+    // packages - breaking the shared @vue/test-utils config and vee-validate
+    // reactivity when the subproject is installed in the same tree. (CI only
+    // installs at the root, but this keeps local runs deterministic too.)
+    '^vue$':               '<rootDir>/node_modules/vue',
+    '^@vue/test-utils$':   '<rootDir>/node_modules/@vue/test-utils',
+    '^vee-validate$':      '<rootDir>/node_modules/vee-validate',
+    '^@vee-validate/zod$': '<rootDir>/node_modules/@vee-validate/zod',
     '^~/(.*)$':                                                                      '<rootDir>/$1',
     '^~~/(.*)$':                                                                     '<rootDir>/$1',
     '^@/(.*)$':                                                                      '<rootDir>/$1',
@@ -66,6 +76,10 @@ module.exports = {
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+    // Under Yarn Berry the subprojects have their own node_modules when
+    // installed locally; never instrument those (CI installs at root only).
+    '!<rootDir>/shell/node_modules/**',
+    '!<rootDir>/storybook/node_modules/**',
   ],
   coveragePathIgnorePatterns: [
     '\\.d\\.ts'
