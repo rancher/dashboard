@@ -9,6 +9,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "packageManager": "yarn@4.17.1",
   "workspaces": [
     "pkg/rancher-components"
   ],
@@ -26,10 +27,10 @@
     "type-check:baseline": "node scripts/type-check-diff.mjs --update",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest --watch",
     "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent",
-    "install:ci": "yarn install --frozen-lockfile",
-    "install:no-lock": "./scripts/yarn-no-lock.sh install",
-    "add:no-lock": "./scripts/yarn-no-lock.sh add",
-    "upgrade:no-lock": "./scripts/yarn-no-lock.sh upgrade",
+    "install:ci": "yarn install --immutable",
+    "install:no-lock": "yarn install",
+    "add:no-lock": "yarn add",
+    "upgrade:no-lock": "yarn up",
     "dev": "bash -c 'source ./scripts/version && NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve'",
     "mem-dev": "bash -c 'source ./scripts/version && NODE_ENV=dev node --max-old-space-size=8192 ./node_modules/.bin/vue-cli-service serve'",
     "docker:local:start": "./scripts/local-docker-start",
@@ -57,9 +58,9 @@
     "e2e:prod": "BUILD_DASHBOARD=$BUILD_DASHBOARD GREP_TAGS=$GREP_TAGS TEST_USERNAME=$TEST_USERNAME TEST_BASE_URL=$TEST_BASE_URL/dashboard API=$API yarn cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "cd storybook && yarn storybook",
-    "build-storybook": "cd storybook && yarn install --frozen-lockfile && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
+    "build-storybook": "cd storybook && yarn install --immutable && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
     "storybook-test": "cd storybook && yarn test-storybook --stories-json ",
-    "docs:install": "cd docusaurus/ && yarn install --frozen-lockfile",
+    "docs:install": "cd docusaurus/ && yarn install --immutable",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
     "docs:serve": "cd docusaurus/ && yarn serve",
@@ -222,8 +223,7 @@
     "webpack-virtual-modules": "0.6.2",
     "worker-loader": "3.0.8",
     "ws": "8.21.0",
-    "yaml-lint": "1.7.0",
-    "yarn": "1.22.22"
+    "yaml-lint": "1.7.0"
   },
   "resolutions": {
     "uuid": "11.1.1",
