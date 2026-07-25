@@ -742,7 +742,7 @@ describe('formRules', () => {
   it('"servicePort" : returns undefined when servicePort is valid', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: '8083',
       idx:        0
@@ -755,7 +755,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when servicePort name is empty', () => {
     const testValue = {
       name:       '',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: '8083',
       idx:        0
@@ -780,10 +780,38 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-  it('"servicePort" : returns correct message when servicePort port is not an integer', () => {
+  it('"servicePort" : returns correct message when servicePort nodePort is below the valid range', () => {
     const testValue = {
       name:       'portName',
       nodePort:   '8081',
+      port:       '8082',
+      targetPort: '8083',
+      idx:        0
+    };
+    const formRuleResult = formRules.servicePort(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.service.ports.nodePort.between', position: 1 });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"servicePort" : returns correct message when servicePort nodePort is above the valid range', () => {
+    const testValue = {
+      name:       'portName',
+      nodePort:   '32768',
+      port:       '8082',
+      targetPort: '8083',
+      idx:        0
+    };
+    const formRuleResult = formRules.servicePort(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.service.ports.nodePort.between', position: 1 });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"servicePort" : returns correct message when servicePort port is not an integer', () => {
+    const testValue = {
+      name:       'portName',
+      nodePort:   '30080',
       port:       'test',
       targetPort: '8083',
       idx:        0
@@ -797,7 +825,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when port is not provided', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       targetPort: '8083',
       idx:        0
     };
@@ -810,7 +838,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when targetPort port is not an integer but is a valid dnsLabelIanaServiceName', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: 'test',
       idx:        0
@@ -823,7 +851,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when targetPort port is not an integer but is not a valid dnsLabelIanaServiceName', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: 'te st',
       idx:        0
@@ -839,7 +867,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when targetPort port is below the valid range', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: '0',
       idx:        0
@@ -853,7 +881,7 @@ describe('formRules', () => {
   it('"servicePort" : returns correct message when targetPort port is above the valid range', () => {
     const testValue = {
       name:       'portName',
-      nodePort:   '8081',
+      nodePort:   '30080',
       port:       '8082',
       targetPort: '65536',
       idx:        0

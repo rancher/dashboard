@@ -5670,7 +5670,7 @@ validation:
         required: '端口规则 [{position}] - 端口名称是必填项。'
       nodePort:
         requiredInt: '端口规则 [{position}] - 如果包含 Node Port，Node Port 必须是整数。'
-        between: '端口规则 [{position}] - Node Port 的取值范围是：1-65535'
+        between: '端口规则 [{position}] - Node Port 的取值范围是：30000-32767'
       port:
         required: '端口规则 [{position}] - 端口是必填项，'
         requiredInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'

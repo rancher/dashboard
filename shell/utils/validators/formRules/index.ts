@@ -412,7 +412,7 @@ export default function(
     if (!nodePort.empty) {
       if (!nodePort.isInt) {
         return t('validation.service.ports.nodePort.requiredInt', { position: idx + 1 });
-      } else if (nodePort.int < 1 || nodePort.int > 65535) {
+      } else if (nodePort.int < 30000 || nodePort.int > 32767) {
         return t('validation.service.ports.nodePort.between', { position: idx + 1 });
       }
     }

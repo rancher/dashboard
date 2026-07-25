@@ -7449,7 +7449,7 @@ validation:
         required: 'Port Rule [{position}] - Name is required.'
       nodePort:
         requiredInt: 'Port Rule [{position}] - Node Port must be integer values if included.'
-        between: 'Port Rule [{position}] - Node Port must be between 1 and 65535'
+        between: 'Port Rule [{position}] - Node Port must be between 30000 and 32767'
       port:
         required: 'Port Rule [{position}] - Port is required.'
         requiredInt: 'Port Rule [{position}] - Port must be integer values if included.'

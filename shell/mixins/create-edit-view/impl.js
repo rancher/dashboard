@@ -193,7 +193,7 @@ export default {
     },
 
     async actuallySave(url) {
-      if ( this.isCreate ) {
+      if ( this.isCreate && !this.value?.id ) {
         url = url || this.schema.linkFor('collection');
         const res = await this.value.save({ url });
 
