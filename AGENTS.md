@@ -38,7 +38,7 @@ You are an expert Senior Software Engineer specializing in Vue.js and TypeScript
 
 ## Tools
 
-- **Install dependencies**: `yarn install --frozen-lockfile`
+- **Install dependencies**: `yarn install --immutable`
 - **Start development server**: `API=<Rancher_Backend_URL> yarn dev`
   - The `API` environment variable should point to a running Rancher server (e.g., `https://localhost`).
   - The dashboard will be available at `https://127.0.0.1:8005`.
@@ -174,11 +174,11 @@ Agentic workflows may update github issue and pull requests labels. In addition 
 
 ## Node Dependencies
 
-Dependencies are managed via `package.json` and `yarn`
+Dependencies are managed via `package.json` and `yarn` (Yarn Berry, pinned through the `packageManager` field and activated with Corepack)
 
-- To install dependencies use `yarn install`. This will fail if dependencies and versions listed in `package.json` are out of step with the `yarn.lock` file
-- To add a dependency use `yarn run add:no-lock ...` instead of `yarn add`
-- To upgrade a dependency use `yarn run upgrade:no-lock ...` instead of `yarn upgrade`
+- To install dependencies use `yarn install`. CI uses `yarn install --immutable`, which fails if the dependencies and versions listed in `package.json` are out of step with the `yarn.lock` file
+- To add a dependency use `yarn add ...`
+- To upgrade a dependency use `yarn up ...`
 ## Milestone guidance
 
 - All issues must first be resolved in the `master` branch
