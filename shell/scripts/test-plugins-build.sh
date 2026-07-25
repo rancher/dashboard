@@ -119,7 +119,7 @@ createTestComponent() {
 
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
-yarn install --frozen-lockfile
+yarn install --immutable
 export TAG="shell-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
@@ -151,7 +151,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   pushd test-app > /dev/null
 
-  yarn install --frozen-lockfile
+  yarn install --immutable
   # this is the "same" as doing a yarn dev (in a build sense)
   # it's to make sure the dev environment is running properly
   FORCE_COLOR=true yarn build | cat
@@ -177,7 +177,7 @@ pushd $BASE_DIR
 # Now try a plugin within the dashboard codebase
 echo "Validating in-tree package"
 
-yarn install --frozen-lockfile
+yarn install --immutable
 
 if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
@@ -220,7 +220,7 @@ function clone_repo_test_extension_build() {
   printf '\n--frozen-lockfile false\n' >> .yarnrc
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
-  yarn install --frozen-lockfile
+  yarn install --immutable
 
   # set registry to local verdaccio (to install new shell)
   yarn config set registry ${VERDACCIO_NPM_REGISTRY}

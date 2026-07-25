@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# Activate the Corepack-managed Yarn (Berry) pinned via packageManager
+corepack enable
+
 SKELETON_APP_NAME="test-pkg"
 
 
@@ -40,7 +43,7 @@ validate_tagged_extension_creator() {
   cd ${SKELETON_APP_NAME}
 
   # install dependencies
-  yarn install --frozen-lockfile
+  yarn install --immutable
 
   # test build of pkg inside skeleton app
   yarn build-pkg ${SKELETON_APP_NAME} | cat
@@ -70,7 +73,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install --frozen-lockfile
+    yarn install --immutable
 
     cat package.json
 
@@ -93,7 +96,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install --frozen-lockfile
+    yarn install --immutable
 
     yarn build-pkg ${SKELETON_APP_NAME} | cat
   fi

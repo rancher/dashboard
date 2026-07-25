@@ -28,6 +28,9 @@ jobs:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
+      - name: Enable Corepack
+        run: corepack enable
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
@@ -75,6 +78,9 @@ jobs:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
+      - name: Enable Corepack
+        run: corepack enable
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'

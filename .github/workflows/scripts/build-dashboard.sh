@@ -29,6 +29,8 @@ echo Creating release directory
 mkdir $RELEASE_DIR
 
 echo Installing dependencies
+# Activate the Corepack-managed Yarn (Berry) pinned via packageManager
+corepack enable
 yarn install:ci
 
 echo Building
