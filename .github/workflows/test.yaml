@@ -375,7 +375,7 @@ jobs:
       - name: Verify Cypress build
         working-directory: ./cypress
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build-pkg --verify
 
   # Store the PR number in an artifact for use in TestHub registration since workflow_run triggered by PRs doesn't include the PR number in the head branch or commit message

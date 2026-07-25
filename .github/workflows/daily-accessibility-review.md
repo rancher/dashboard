@@ -57,12 +57,14 @@ steps:
     with:
       fetch-depth: 1
       persist-credentials: false
+  - name: Enable Corepack
+    run: corepack enable
   - name: Setup env
     uses: actions/setup-node@v6.4.0
     with:
       node-version-file: '.nvmrc'
   - name: Install packages
-    run: yarn install --frozen-lockfile --ignore-engines
+    run: yarn install --immutable
   - name: Run Rancher
     run: |
       # Same as .github/workflows/test.yaml -> yarn e2e:docker -> scripts/e2e-docker-start

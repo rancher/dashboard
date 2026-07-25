@@ -121,6 +121,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enable Corepack
+        if: ${{ matrix.folder != '_skip_' }}
+        run: corepack enable
+
       - name: Install Node
         if: ${{ matrix.folder != '_skip_' }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
@@ -131,7 +135,7 @@ jobs:
       - name: Install Dependencies
         if: ${{ matrix.folder != '_skip_' }}
         shell: bash
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: "Build extension: ${{ matrix.folder }}"
         if: ${{ matrix.folder != '_skip_' }}
