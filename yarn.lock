@@ -9401,6 +9401,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:8.62.0"
     "@typescript-eslint/parser": "npm:8.62.0"
     "@vee-validate/zod": "npm:4.15.0"
+    "@vue/cli-plugin-babel": "npm:5.0.9"
     "@vue/cli-service": "npm:5.0.8"
     "@vue/test-utils": "npm:2.4.6"
     "@vue/vue3-jest": "npm:29.2.6"
