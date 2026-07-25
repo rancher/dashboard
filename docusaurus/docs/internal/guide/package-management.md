@@ -11,12 +11,6 @@ All dependencies in any `package.json` should be pinned to a specific patch vers
 
 ## Restrictions
 
-We use a `./.yarnrc` file to ensure all `yarn install` commands use `--frozen-lockfile`. This ensures that no malicious dependency bump is installed/used in cases where a dependency does not pin to a specific version.
+CI runs `yarn install --immutable` (Yarn Berry). The `--immutable` flag fails the install if `package.json` and `yarn.lock` are out of step, which ensures no malicious or unexpected dependency bump is installed/used in cases where a dependency does not pin to a specific version.
 
-This does mean changes to the lock file that include `yarn install` (install, add, upgrade) need special treatment. Either
-
-- Run the command with special targets
-  - use `yarn run add:no-lock ...` instead of `yarn add`
-  - use `yarn run upgrade:no-lock ...` instead of `yarn upgrade`
-- Run the command with `--no-default-rc`
-- Temporarily remove `--frozen-lockfile true` from the lock file
+Locally, `yarn install`, `yarn add ...` and `yarn up ...` update `yarn.lock` as needed. Commit the resulting `yarn.lock` changes and review them carefully.
