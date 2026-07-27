@@ -252,7 +252,9 @@ describe('component: Group', () => {
         name:     'cluster',
         label:    'Cluster',
         children: [
-          { route: { name: 'c-cluster-explorer', params: {} }, overview: true, exact: true },
+          {
+            route: { name: 'c-cluster-explorer', params: {} }, overview: true, exact: true
+          },
           { route: { name: 'c-cluster-workloads', params: {} } },
         ],
       };
