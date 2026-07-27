@@ -12,11 +12,14 @@
 //
 // Exit codes:
 //   0  no new violations (or soft mode, or --update succeeded)
-//   1  new violations found (hard mode)
+//   1  new violations found (enforcing mode)
 //   2  report missing/empty/malformed — refuse to compare a hollow run
 //
-// Soft rollout: set A11Y_RATCHET_ENFORCE=false (or pass --soft) to report new
-// violations without failing, while the baseline stabilises.
+// Soft rollout: enforcement is OPT-IN. New violations are reported without
+// failing the build until A11Y_RATCHET_ENFORCE is explicitly 'true' (or
+// --enforce is passed), so the baseline can stabilise first. This default
+// matters in CI: an undefined `vars.*` is injected as an empty string, which
+// must not be mistaken for "enforce".
 
 /* eslint-disable no-console -- this is a CLI; console is its output channel. */
 
@@ -29,7 +32,10 @@ const BASELINE_PATH = process.env.A11Y_BASELINE_PATH || 'cypress/e2e/tests/acces
 
 const argv = process.argv.slice(2);
 const isUpdate = argv.includes('--update');
-const isSoft = argv.includes('--soft') || process.env.A11Y_RATCHET_ENFORCE === 'false';
+
+// Tolerate the casing/padding a hand-entered repo variable tends to pick up.
+const enforceEnv = String(process.env.A11Y_RATCHET_ENFORCE ?? '').trim().toLowerCase();
+const isSoft = argv.includes('--soft') || !(argv.includes('--enforce') || enforceEnv === 'true');
 
 const IMPACT_ICON = {
   critical: '🔴', serious: '🟠', moderate: '🟡', minor: '⚪', unknown: '❔',
@@ -108,7 +114,7 @@ if (added.length) {
   added.forEach((v) => (isSoft ? console.log : console.error)(line(v)));
 
   if (isSoft) {
-    console.log('\n⚠️  Soft mode (A11Y_RATCHET_ENFORCE=false): reporting only, not failing the build.');
+    console.log('\n⚠️  Soft mode: reporting only, not failing the build. Set A11Y_RATCHET_ENFORCE=true to enforce.');
     process.exit(0);
   }
 
