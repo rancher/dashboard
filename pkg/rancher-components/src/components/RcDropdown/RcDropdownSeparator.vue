@@ -1,6 +1,7 @@
+<script setup lang="ts">
+import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
+</script>
+
 <template>
-  <hr
-    role="separator"
-    aria-orientation="horizontal"
-  >
+  <RcSeparator :decorative="false" />
 </template>

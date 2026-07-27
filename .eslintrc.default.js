@@ -197,7 +197,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/RcDropdownSeparator.vue', '**/RcSeparator.vue'],
+      files: ['**/RcSeparator.vue'],
       rules: { 'local-rules/no-hr-element': 'off' }
     },
     {

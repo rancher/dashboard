@@ -17,7 +17,7 @@ import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },

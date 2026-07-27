@@ -13,7 +13,7 @@ module.exports = {
           context.report({
             node,
             loc:     node.loc,
-            message: 'Use <RcSeparator> instead of <hr>. For menu/listbox separators use <RcDropdownSeparator>.'
+            message: 'Use <RcSeparator> (import { RcSeparator } from \'@components/RcSeparator\') instead of <hr>. For menu/listbox separators use <RcDropdownSeparator>.'
           });
         }
       }

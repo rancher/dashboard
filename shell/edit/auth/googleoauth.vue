@@ -12,7 +12,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const NAME = 'googleoauth';
 

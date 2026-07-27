@@ -19,7 +19,7 @@ import FileSelector from '@shell/components/form/FileSelector.vue';
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import * as AWS from '@shell/types/aws-sdk';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 // map between fields in rancher eksConfig and amazon launch templates
 const launchTemplateFieldMapping: {[key: string]: string} = {

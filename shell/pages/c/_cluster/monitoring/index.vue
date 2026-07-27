@@ -11,7 +11,7 @@ import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } fr
 import Loading from '@shell/components/Loading';
 import grafanaSrc from '~shell/assets/images/vendor/grafana.svg';
 import prometheusSrc from '~shell/assets/images/vendor/prometheus.svg';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {

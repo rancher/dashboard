@@ -17,7 +17,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
 import { RcButton } from '@components/RcButton';
 import AppCoPageHeader from '@shell/components/fleet/AppCoPageHeader.vue';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const ADD_NEW_TOKEN = '__add_new__';
 

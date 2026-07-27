@@ -10,7 +10,7 @@ import FleetUtils from '@shell/utils/fleet';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import suseLogo from '@shell/assets/images/content/suse.svg';
 import suseLogoDark from '@shell/assets/images/content/dark/suse.svg';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 interface Subtype {
   id: string;

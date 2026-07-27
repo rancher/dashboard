@@ -14,7 +14,7 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import AuthScopes from './AuthScopes.vue';
 import { GKEImageTypes } from '@shell/components/google/util/gcp';
 import type { GKEMachineTypeOption } from '@shell/components/google/types/index.d.ts';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default defineComponent({
   name: 'GKENodePool',

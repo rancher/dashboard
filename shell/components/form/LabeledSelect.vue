@@ -14,7 +14,7 @@ import { useLabeledFormElement, labeledFormElementProps } from '@shell/composabl
 import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref, toRef } from 'vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   name: 'LabeledSelect',

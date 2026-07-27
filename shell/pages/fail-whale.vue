@@ -9,7 +9,7 @@ import GrowlManager from '@shell/components/GrowlManager';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import PromptModal from '@shell/components/PromptModal';
 import { RcButton } from '@components/RcButton';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
 

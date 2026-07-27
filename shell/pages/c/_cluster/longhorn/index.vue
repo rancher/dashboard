@@ -5,7 +5,7 @@ import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
 import longhornSvg from '~shell/assets/images/vendor/longhorn.svg';
 import Loading from '@shell/components/Loading';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {

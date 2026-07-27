@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ShellInput from '@shell/components/form/ShellInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import { computed, ref, watch } from 'vue';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const KINDS = [
   'none',

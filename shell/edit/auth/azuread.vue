@@ -19,7 +19,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useFormValidation } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 

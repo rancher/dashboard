@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import RcSeparator from '@shell/components/RcSeparator.vue';
+import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 
 export default defineComponent({
 
