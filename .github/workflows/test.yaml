@@ -225,11 +225,23 @@ jobs:
           TEST_NO_VIDEOS: true          
 
       - name: Upload report
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
-        
+
+      # Ratchet gate: fail only on a11y violations that are not in the committed
+      # baseline (cypress/e2e/tests/accessibility/baseline.json). Runs report-only
+      # while A11Y_RATCHET_ENFORCE is unset/false; set the repo variable to 'true'
+      # to hard-fail on new regressions. Runs on failure too so it can inspect a
+      # completed report even when an earlier test step failed.
+      - name: A11y ratchet
+        if: always()
+        run: yarn a11y:compare
+        env:
+          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE }}
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
