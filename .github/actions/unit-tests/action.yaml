@@ -11,4 +11,12 @@ runs:
       shell: bash
       run: |
         yarn test:ci
-        
+
+    # The a11y ratchet scripts live under cypress/, which jest.config.js excludes
+    # via modulePathIgnorePatterns, so they need their own (node:test) runner.
+    # `if: always()` so a jest failure doesn't mask a broken ratchet.
+    - name: Run a11y ratchet script tests
+      if: always()
+      shell: bash
+      run: |
+        yarn a11y:test
