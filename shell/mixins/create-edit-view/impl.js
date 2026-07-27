@@ -193,15 +193,10 @@ export default {
     },
 
     async actuallySave(url) {
-      if ( this.isCreate && !this.value?.id ) {
-        url = url || this.schema.linkFor('collection');
-        const res = await this.value.save({ url });
+      const res = await this.value.save({ url });
 
-        if (res) {
-          Object.assign(this.value, res);
-        }
-      } else {
-        await this.value.save();
+      if (res && this.isCreate) {
+        Object.assign(this.value, res);
       }
     },
 
