@@ -11,7 +11,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -21,6 +21,8 @@ let dir;
 let reportPath;
 let baselinePath;
 let cleanReportPath;
+let hollowReportPath;
+let malformedReportPath;
 
 before(() => {
   dir = mkdtempSync(join(tmpdir(), 'a11y-ratchet-'));
@@ -48,6 +50,13 @@ before(() => {
   }));
 
   writeFileSync(baselinePath, JSON.stringify({ version: 1, violations: [] }));
+
+  // A crashed run still writes a report, just an empty one.
+  hollowReportPath = join(dir, 'hollow-report.json');
+  writeFileSync(hollowReportPath, JSON.stringify({ stats: { totalTests: 0 }, children: [] }));
+
+  malformedReportPath = join(dir, 'malformed-report.json');
+  writeFileSync(malformedReportPath, '{ not json');
 });
 
 after(() => rmSync(dir, { recursive: true, force: true }));
@@ -55,16 +64,18 @@ after(() => rmSync(dir, { recursive: true, force: true }));
 /**
  * Run the CLI against the fixtures.
  *
- * @param {{ enforce?: string, args?: string[], report?: string }} opts
+ * @param {{ enforce?: string, args?: string[], report?: string, baseline?: string }} opts
  *   `enforce` is omitted from the environment entirely when undefined, which is
  *   distinct from passing an empty string.
  * @returns {{ status: number, stdout: string, stderr: string }}
  */
-function run({ enforce, args = [], report } = {}) {
+function run({
+  enforce, args = [], report, baseline
+} = {}) {
   const env = {
     ...process.env,
     A11Y_REPORT_PATH:   report ?? reportPath,
-    A11Y_BASELINE_PATH: baselinePath,
+    A11Y_BASELINE_PATH: baseline ?? baselinePath,
   };
 
   delete env.A11Y_RATCHET_ENFORCE;
@@ -127,4 +138,52 @@ test('enforcing passes when there are no new violations', () => {
 
   assert.equal(status, 0);
   assert.match(stdout, /No new accessibility violations/);
+});
+
+// An unusable report is normally a symptom of an earlier CI step that has already
+// failed, so soft mode should not pile on a second failure — but it must still say
+// out loud that nothing was compared.
+const UNUSABLE = () => [
+  ['missing', join(dir, 'does-not-exist.json')],
+  ['hollow (0 tests)', hollowReportPath],
+  ['malformed', malformedReportPath],
+];
+
+test('soft mode warns but passes when the report is unusable', () => {
+  for (const [label, report] of UNUSABLE()) {
+    const { status, stdout } = run({ report });
+
+    assert.equal(status, 0, `${ label } report should not fail the build in soft mode`);
+    assert.match(stdout, /no comparison was made/i, `${ label } report should say nothing was compared`);
+    assert.doesNotMatch(stdout, /No new accessibility violations/, `${ label } report must not report a clean pass`);
+  }
+});
+
+test('enforcing mode still refuses to compare an unusable report', () => {
+  for (const [label, report] of UNUSABLE()) {
+    assert.equal(run({ enforce: 'true', report }).status, 2, `${ label } report should exit 2 when enforcing`);
+  }
+});
+
+test('--update refuses an unusable report and leaves the baseline untouched', () => {
+  // Soft mode is the default, so without this guard `yarn a11y:baseline` after a
+  // crashed run would quietly overwrite the accepted set with an empty one.
+  for (const [label, report] of UNUSABLE()) {
+    const baseline = join(dir, 'update-target.json');
+    const original = JSON.stringify({
+      version:    1,
+      violations: [{
+        fingerprint: 'abc', where: 'w', rule: 'r'
+      }]
+    });
+
+    writeFileSync(baseline, original);
+
+    const { status } = run({
+      report, baseline, args: ['--update']
+    });
+
+    assert.equal(status, 2, `--update with a ${ label } report should exit 2`);
+    assert.equal(readFileSync(baseline, 'utf8'), original, `--update must not rewrite the baseline from a ${ label } report`);
+  }
 });

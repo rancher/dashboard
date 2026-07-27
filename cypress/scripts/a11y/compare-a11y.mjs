@@ -14,6 +14,7 @@
 //   0  no new violations (or soft mode, or --update succeeded)
 //   1  new violations found (enforcing mode)
 //   2  report missing/empty/malformed — refuse to compare a hollow run
+//      (soft mode warns and exits 0 instead; --update always refuses)
 //
 // Soft rollout: enforcement is OPT-IN. New violations are reported without
 // failing the build until A11Y_RATCHET_ENFORCE is explicitly 'true' (or
@@ -43,16 +44,39 @@ const IMPACT_ICON = {
 
 const line = (v) => `   - ${ IMPACT_ICON[v.impact] ?? IMPACT_ICON.unknown } [${ v.impact }] ${ v.rule } @ ${ v.where }`;
 
+/**
+ * Abort because there is nothing trustworthy to compare against.
+ *
+ * Soft mode promises never to fail the build, and an absent report is usually a
+ * symptom of an earlier step that has already gone red — failing here just adds a
+ * second, less informative X. So warn and pass instead, making it explicit that no
+ * comparison happened (silence would read as "no new violations").
+ *
+ * `--update` is never softened: writing a baseline from a hollow run would discard
+ * the entire accepted set. Enforcing mode is never softened either — refusing to
+ * compare is the whole point of the guard.
+ *
+ * @param {string} message Why we cannot compare.
+ */
+function bail(message) {
+  if (isSoft && !isUpdate) {
+    console.log(`⚠️  ${ message }`);
+    console.log('⚠️  Soft mode: no comparison was made, not failing the build.');
+    process.exit(0);
+  }
+
+  console.error(`❌ ${ message }`);
+  process.exit(2);
+}
+
 function readJson(path, label) {
   if (!existsSync(path)) {
-    console.error(`❌ ${ label } not found at ${ path }`);
-    process.exit(2);
+    bail(`${ label } not found at ${ path }`);
   }
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (e) {
-    console.error(`❌ ${ label } at ${ path } is not valid JSON: ${ e.message }`);
-    process.exit(2);
+    bail(`${ label } at ${ path } is not valid JSON: ${ e.message }`);
   }
 }
 
@@ -64,8 +88,7 @@ const report = readJson(REPORT_PATH, 'a11y report');
 const totalTests = report?.stats?.totalTests ?? 0;
 
 if (totalTests === 0) {
-  console.error('❌ a11y report contains 0 tests — the run likely crashed. Refusing to compare.');
-  process.exit(2);
+  bail('a11y report contains 0 tests — the run likely crashed. Refusing to compare.');
 }
 
 const current = flatten(report);
