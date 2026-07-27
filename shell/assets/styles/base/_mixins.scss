@@ -2,6 +2,11 @@
 // This file contains all application-wide Sass mixins.
 // -----------------------------------------------------------------------------
 
+// Auto-generated cap-height trim mixin (see scripts/generate-cap-trim.mjs).
+// Imported here so `cap-trim` is exposed everywhere `_mixins.scss` is, including
+// the standalone rancher-components library build.
+@import "cap-trim.generated";
+
 /// Clear inner floats
 @mixin clearfix() {
   &:before,
