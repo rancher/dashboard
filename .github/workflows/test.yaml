@@ -202,11 +202,20 @@ jobs:
           TEST_NO_VIDEOS: true          
 
       - name: Upload report
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
-        
+
+      # Runs report-only while A11Y_RATCHET_ENFORCE is unset/false. Set the repo
+      # variable to 'true' fail CI on new A11y regressions.
+      - name: A11y ratchet
+        if: always()
+        run: yarn a11y:compare
+        env:
+          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE }}
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
