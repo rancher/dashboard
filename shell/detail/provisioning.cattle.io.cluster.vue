@@ -94,7 +94,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch(`management/find`, { type: MANAGEMENT.CLUSTER, id: this.value.mgmtClusterId });
+    await this.value.waitForMgmt();
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
@@ -167,7 +167,7 @@ export default {
     }
 
     if ( this.value.isImported || this.value.isCustom || this.value.isHostedKubernetesProvider ) {
-      fetchOne.clusterToken = this.value.getOrCreateToken();
+      fetchOne.clusterToken = await this.value.getOrCreateToken();
     }
 
     // Need to get Norman clusters so that we can check if user has permissions to access the local cluster
