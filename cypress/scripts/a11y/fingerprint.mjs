@@ -20,6 +20,30 @@ import { createHash } from 'node:crypto';
 /** Collapse runs of whitespace and trim — mirrors the `.replace(/\s+/g, ' ')` the spec uses on titles. */
 export const norm = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 
+// When a check is made without an explicit description, the a11y command names the
+// node `<test title> (#<n>)` — see `testPath.push(description || ...)` in
+// cypress/support/commands/accessiblity.ts. That <n> is a running count of violation
+// *nodes* seen earlier in the same test, so it shifts whenever any earlier check in
+// that test gains or loses a violation. Baking it into the fingerprint would mean
+// fixing one violation renumbers every later check in the test and reports them all
+// as brand new regressions.
+const AUTO_CHECK_SUFFIX = /\s*\(#\d+\)$/;
+
+/**
+ * Is `name` the auto-generated per-check node for `parent` (i.e. `<parent> (#n)`)?
+ * Explicit descriptions passed to checkPageAccessibility/checkElementAccessibility
+ * are stable and deliberately left alone.
+ *
+ * @param {string} name   Candidate node name.
+ * @param {string} parent Name of the node directly above it.
+ * @returns {boolean}
+ */
+function isAutoCheckNode(name, parent) {
+  const normalised = norm(name);
+
+  return AUTO_CHECK_SUFFIX.test(normalised) && normalised.replace(AUTO_CHECK_SUFFIX, '') === norm(parent);
+}
+
 /**
  * Coarse, stable identity for a violation: the test path (spec > describe > ... > it)
  * plus the axe rule id. All instances of one rule on one page collapse to a single
@@ -56,7 +80,11 @@ export function flatten(report) {
 }
 
 function walk(node, ancestors, out) {
-  const path = [...ancestors, node?.name].filter(Boolean);
+  // Drop auto-generated per-check nodes so they collapse onto their test. This also
+  // makes multi-check tests agree with single-check ones, which the report plugin's
+  // tidy() already collapses to the bare test title.
+  const isAutoCheck = isAutoCheckNode(node?.name, ancestors[ancestors.length - 1]);
+  const path = isAutoCheck ? [...ancestors] : [...ancestors, node?.name].filter(Boolean);
 
   for (const violation of node?.violations ?? []) {
     const fp = fingerprint(path, violation.id);
