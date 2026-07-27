@@ -1,0 +1,720 @@
+{
+  "version": 1,
+  "description": "Accepted a11y violations (ratchet baseline). CI fails on any violation not listed here. Regenerate with `yarn a11y:baseline` after running the a11y suite.",
+  "violations": [
+    {
+      "fingerprint": "027b9fcc88d33f162bce93d46c19b8e641d78173d2d96e38589a9fa319039bc5",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Preferences page",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "04728c517186b8d12513cee2c2bb7d9ae9d4b563b91a09e850c6927df2edcf65",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Settings page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "05246846d2bbd9fa2ab679bce305326241bb4bbda409b41f032a104ca78f8bd8",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "05fb47e30266ab9ff47c8113710de46869498e00433ec20175877d5160487a92",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean Cloud Credential",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "0923b1190d66b3d13e48f09445332f648b3e3054f1036caff6bdb716edb1fe5d",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "09d9e65aea45a71943ccc1f9a5742d07cf3c1c4e88f9d67702162e4c83ca5488",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "0b950a339cb91b3069a95122e775d8ec3c7ea2212344a5c42275387bb8fe7c83",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
+      "rule": "landmark-main-is-top-level",
+      "impact": "moderate",
+      "help": "Main landmark should not be contained in another landmark"
+    },
+    {
+      "fingerprint": "0c400538e9da3c9a3dd171bac6ec321a6c2f7adc76766a6b0514073f708b967f",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "11a6d5cb739b47fb9ca40ed91f55cebbfa00b516746c512c04e65daf93ae6ed4",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "12387d61f2c9a83e4f48cffa2a7489e4327cfe1a336a7d7365e69e5effd38aa5",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster drivers page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "14d7587ad7b5642f98478b206324af4bd5a4191d42aca5f43cfe12b73c2a30e9",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users - Create page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "15deae9e2e0697da58aaf174004bc3a2643de13ebc850bf81c38562d5edd7b8d",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Preferences page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "160b0f4531ab6fca349802f283ed9308d5ea92a1b0aa8485a093277b0744fdb0",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "198f1273552bb5bc5f8656180f156dff50e9df688cd95501cc2a4fead580a3c6",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Change Password dialog",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "1f27ebb960847468747c05b38ae78c14c408f6e81543f886ccef46a4cd3bd9d1",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "28d9c37330c22d797c2464af3cffcca37684c70de712010458eeec0d8f700213",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "2df935066fdeac848165224bb48638d502eb5e0b9bced2e457e0aa9f332cf9c1",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "312e498a4249525f1c2ce2a7a25e46afcd3e5d6061a8105bc80dc080708b0e84",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#10)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "347656f7e8af9adaf668d60ad12415d91c3422122a5f03e0bc63981d72c9600a",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Banners page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "3501fd35ffe85b2f64c176949316ec23798f6f0c2ec9e0c48b8c97b9fc019ad1",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Create",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "353ded635ab94ae6d8c71141b4edd5922f66590192a56f7d9a440abe8e2d3a5f",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#13)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "369701d3305beb3059f2d21821bceb5be66d7f4b579e5dff93351ee30c7959e4",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Import Extension Catalog Modal",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "36dc27d6cf88c7d2dc107f45ff5ee5ed40468467654f81a507e3e98d3793af02",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Create page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "396c1b86e37ce34fa995fe7fa994d1b412e6c9f2ebe565ab988263179d5e7ee5",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "39ba4a0305dec99dd0f3a1a34a0efa7205adf9eb99556d92803e798fac00676b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "3acd6a15b5ac1fe41bd5e463c958013f9aa88753c0186d7ce8cd53154a99d459",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "3b0d859d23b03eba6796451bffbaeff60a6374a2efcb3e9400142f0195f1139d",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "44f1dc5f73870f9ee1dcef8ac4b2bcd2a703de2295068a5febf706e1502f5e3b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "48ebbcb7bb2c6f52c076e6cb5f8c427adb309bc1a5d3d4d371abd291c1e0c304",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > User Retention Settings",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "5130a9b1133d382e6009ce47f9dd16f013560b13712084e0f480cc1c8fe6c95d",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "571b0f490e90402fa8ff335b92a4572ff2a8970ce700af399dd3127d627df15b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Home Links page",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "594af1b6c579afe73385423c49298b724c87e5dfcb6f168c87204304ebf05e10",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Cluster events page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "5b55f060f3a21d7b8ea60fe785d93ec390515ebb1d0e7832b5f4bba99cfb2042",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > About page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "5b9fb5a2441817d866e7b9bded61ab14a51d4720f7bf98739332fbaeb31ccc69",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Change Password dialog",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "5d99bc68de5c8e216d8afff48f2e29a8bbb31d9ad49f8b6155d836f1b30d514e",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "5fe6faf2621449a54eed0a3b440aa2d7798eeb9dd3dac0b529f8141e38ea1464",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
+      "rule": "landmark-unique",
+      "impact": "moderate",
+      "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
+    },
+    {
+      "fingerprint": "603172f197f685ed09f96678389335cb53ca32a37f0813a885e0a65901f19b24",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#19)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "66ea721ca762053554b2f01f3bffcc7417002f20f41f6e03182e3be33046ee59",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "6886de1a4d72dac1274704ab1f45abf4f11b43d3f8cab9148140a0a6fdc601e8",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "6979c0a44c3479ff66544fb94667d0969e74a63b2d7d14c3546be5676ccf431e",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster drivers page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "6c611b0ca4e191e4f95e508089e93542d9b31797fe20e811ab29d6606f2bd3e9",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "list",
+      "impact": "serious",
+      "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements"
+    },
+    {
+      "fingerprint": "6ec6a20945b42eb736487ec4b4d873abb50ce1bbfa9909104f9eca7faeea83c2",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "734bf6f75c7177ce9a0cda790f457d7abcb184b85fe349369142b2d6b9617182",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Add Rancher Repositories Modal",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "75cd6c6a1bad5943e1b8b75425d62256f1605209b2809eec1d4c2175fc797fb7",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "76058ead5c3ba0e73cbdf166bf8bb8b98291349f9810c8d3cd5ef7a31aaa885e",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Create",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "7895883ac83e414f646c37e4fc9ebb4623ad568ae3d4c20b065359b9aeca909a",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#1)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "7fb217d91e57c2d45380ca1be1f5e9619399c473c6b26d5c8cf5c76951062ade",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "image-redundant-alt",
+      "impact": "minor",
+      "help": "Alternative text of images should not be repeated as text"
+    },
+    {
+      "fingerprint": "81951242bafd7018eb6183ec13678267e27d4ec876bb04d1a9676c939d5f2c86",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
+      "rule": "landmark-unique",
+      "impact": "moderate",
+      "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
+    },
+    {
+      "fingerprint": "83dafd3fa18b39452acf284009585655d0bac95cad95425c81c608e7cd5e17ab",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Create page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "848477f4b8f56e05aa4119096aefa1f236daf2b8ab5e98ef94bdbfed2d535454",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > Deployments page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "85a0005e35daa2262c7558cfeae5f45bff4be7a8995393a92f73821b15e757ab",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > DeamonSets - Create",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "8a4f17cc3488acd54ba007f00e25f5c33cbddf1a67314045b3146766b980b7ef",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "8b7dac544134c42002817a46a5e10844110253974037a89d3dadd6e3d736dcfc",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Burger Menu",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "8bbe670e2e84fc6b427c4ceec097a747b271ce0751443db1cad36dbf6ae2efbf",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Add Project Member",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "8d0d368314eb1b5fbd8b80cbd972fdb8c887dad875948f2d200cb528da4cc53b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Resource Search",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "90fb6660bfd0b22bfa4f4879bf7fd9b8cce7e09bad933e39284e8ad8826ce7d9",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Cluster events page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "9277350eac9e6d8bc80ced980c3c04cf03170f39c00c40113f4a5ef57ee892b3",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "93d65181ec200400a1e5d3c23eb04a2fe4030beee85ba2af6da28c16b8277bb2",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Add Project Member",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "965746bd5dfad665eec904bc51041c9ec004e52a6947b14848d17ca1231c04bc",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Move dialog",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "9a428989340b5d13fb19e61bb2d7d7f7c4c868a39f3bb48eaa5b852fa8453b0b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "9ae7461f062c7060dc0770ac201eee0c7e9d291873ff7f9d6ff31a5af3ae5151",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#7)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "9b6654bc172d4301c94ada825be750cb2ee4f6d92dc0e634f2928e15754422d3",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces Page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "9d97f987ba07d14586f12275be30f868b4daf792a4ae6d3d424bdc880da66f53",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Move dialog",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "a037e42cc4bcc68a81570a990dc6606842dd80103b64d81ab0f40f9413542834",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Burger Menu",
+      "rule": "aria-allowed-attr",
+      "impact": "critical",
+      "help": "Elements must only use supported ARIA attributes"
+    },
+    {
+      "fingerprint": "a1e83abfd7d4666b59c233b2ff32812e425ccd1e01e0191fca7b8747f0a9176c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Branding page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "a2519d7431a121d41e7675154c436748e8d3385e65790431c55664c6a779e89c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Delete Project dialog",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "a5aab643028cd70e4b1770bf573c2f368ba1a7918219d5d447cf7f36f87e61f7",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Pod Security Admissions - Create page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "a8a98395f85c590e1c6d9fddc46889d09f71f058caafb12e28e326741a2c3605",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "aa55ef2d082fcaebe7543833303df48214f78f3d5ed1b05e3fa25b271dc6a381",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Events > Create event from YAML",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "aa5827793e0e2a6014909003dd3e9f7da60c4fc0e81da07cda87fa2b7f679334",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Pod Security Admissions - Create page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "aae6b1ac09ac211cf0167c8c30322ff61cd0787a05710faddc278c35a2701490",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Secret - Describe Resource",
+      "rule": "region",
+      "impact": "moderate",
+      "help": "All page content should be contained by landmarks"
+    },
+    {
+      "fingerprint": "af0252bd5cf3a5b728f7f0dc382bc81e22913617e3bdade9a5d934383a0eb6df",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#4)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "af1ffe69f8e8ab664dea470a81f0b95877b5344cac7f09bcb1272e3c4c8b79a6",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Charts page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "b3f7befa88bc4944baba1512570bb3d9bd0fce7d928a1a63da3196ab4e92df58",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "aria-valid-attr-value",
+      "impact": "critical",
+      "help": "ARIA attributes must conform to valid values"
+    },
+    {
+      "fingerprint": "b855145e3d48c17aef6aec1679950b75d2f2472b63d4ee0eb106e78e9ba1afe0",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#16)",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "bad0c989cb99c28e786aef0acf74051ba378bf64e3cb9d11f4434cc4679bd9af",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Branding page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "c3d603998d1b6e0b4d4c98296db86325819fb3edec20127c39c3de7c3cf0fb42",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "c71400568c9e60043c9da8d29ed7aa0937bd219e6d39415da422e07448864423",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Fleet GitRepo - Add Repository page",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "c891df633d7324eddf6e3517a69be99dbfd629eea0313a382482dc8a7f9e4579",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "ca8e9c8177266ce3b70255bc66faa5305e042f8c53cb963354059bb63b1dae36",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Tools > Cluster Tools Page",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "d4bd27796187497ace6b66e19eca22a215eb50906d39431252b3be8952436c4c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "d6b8aa7bd3471fce81430eecf717b1f6a4418365ed4974a5cbdd2301b4310866",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Settings page",
+      "rule": "empty-heading",
+      "impact": "minor",
+      "help": "Headings should not be empty"
+    },
+    {
+      "fingerprint": "d76482d5cbc36b44f93ddeb706ec5aa43a826c115d3d906b0b3adf30c1568f7b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > API Key - Delete",
+      "rule": "aria-dialog-name",
+      "impact": "serious",
+      "help": "ARIA dialog and alertdialog nodes should have an accessible name"
+    },
+    {
+      "fingerprint": "d9c856f3e8cfa53ebfe88ddb5e8ef59d70eb22a3678e1c8fc733b5b5f061561a",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Workloads > Deployments page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "dbf01a9c3537deadc6f8c954ff2924a0444a35b10fadfbcd28a268d51ca95717",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Repositories - Create page",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "de1aa1173cd257e091fb224233be2ae05227b31fe8670d6fecc98d1e6a4ccc25",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
+      "rule": "aria-valid-attr-value",
+      "impact": "critical",
+      "help": "ARIA attributes must conform to valid values"
+    },
+    {
+      "fingerprint": "dea093628e44bf0cfdffae2412f65f8b3d69cec9c08ccc5b629dae41b2c31d14",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Import Extension Catalog Modal",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "fingerprint": "dfc24c7d0d6a8325b12e194c5c821d67f105d808cc4494fc1774ef9240776d97",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces Page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "e5cb02b18f6bda486eba815c7beea8bc85f8b6ffc55299b88e934e95c7b92b62",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "e6c02a243cf61e541dae1bb13980dfd07aa9e98e23bc0affb538469cd3bc6bf7",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "ee9713241f3b8c4189ccd77d385a2e1498afbbbcb860f738844aa33ed0c14fbe",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
+      "rule": "aria-required-parent",
+      "impact": "critical",
+      "help": "Certain ARIA roles must be contained by particular parents"
+    },
+    {
+      "fingerprint": "eeb34082ef29b97b78ac092eaafad13230bd803347222acfb0a981ce4710dfb1",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Project",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "f0747d6c4f756fed824d2efc579321ae06c1251446de598192b8fcb1bf059f1c",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "f55046a0ca68902676d6a71a172f6663a8fb584f73c8cf5b73ce2b4e4b924003",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Users > Users page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "f7f97ead31f6c0e2eb957ee247df5123c6b79ca4ab1f28168bba0f44c10f1364",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Account and API Keys > Account and API Keys Page",
+      "rule": "empty-table-header",
+      "impact": "minor",
+      "help": "Table header text should not be empty"
+    },
+    {
+      "fingerprint": "f8837549b3bf00e7b8d9446f8a2e9507661543c546be387288bc4c9c98feef4e",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Tools > Cluster Tools Page",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
+      "fingerprint": "f9e962e634b0b6233454fc6b502ce62be34add83c54c75e7f4307f8ead2ec6f4",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Storage > Storage Class - Create",
+      "rule": "aria-required-children",
+      "impact": "critical",
+      "help": "Certain ARIA roles must contain particular children"
+    },
+    {
+      "fingerprint": "fba081df1bc390c34f350363403f29ae9849704463ec191a942b142b506136b1",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Chart Detail Page - Kubecost",
+      "rule": "landmark-no-duplicate-main",
+      "impact": "moderate",
+      "help": "Document should not have more than one main landmark"
+    },
+    {
+      "fingerprint": "fba1a03675fe62c40deeb993693fceb611ade4304f7d3fc623f3527a4d0acb94",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "fc58fe6f4a8dfb4e76c48d40399064d53bb742f9be5150ed1894943402699642",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Cluster Management > Cluster - Create Digital Ocean",
+      "rule": "listitem",
+      "impact": "serious",
+      "help": "<li> elements must be contained in a <ul> or <ol>"
+    },
+    {
+      "fingerprint": "fef801ac9ff170924a647a96e7b72ba02f85f01ea718f6e0657112f9b7f77a3b",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Resource Search",
+      "rule": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    }
+  ]
+}
