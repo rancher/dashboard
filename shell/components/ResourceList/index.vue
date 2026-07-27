@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
+import FailWhale from '@shell/components/FailWhale';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -20,6 +21,7 @@ export default {
   components: {
     Loading,
     ResourceTable,
+    FailWhale,
     Masthead,
     ResourceLoadingIndicator,
     IconMessage,
@@ -50,7 +52,6 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
     const resource = this.resource;
 
     const schema = this.schema;
@@ -84,7 +85,9 @@ export default {
 
     if ( !this.componentWillFetch ) {
       if ( !schema ) {
-        store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true));
 
         return;
       }
@@ -103,7 +106,9 @@ export default {
       const canList = this.$store.getters[`${ inStore }/canList`](this.resource);
 
       if (!canList) {
-        this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true));
       }
     }
   },
@@ -122,6 +127,9 @@ export default {
 
     return {
       schema,
+      // When set, the resource type could not be found/listed. The error is rendered
+      // in-context (in place of the list) instead of redirecting to the fail-whale page
+      resourceNotFoundError:            null,
       overrideInStore:                  undefined,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
@@ -272,8 +280,12 @@ export default {
 </script>
 
 <template>
+  <FailWhale
+    v-if="resourceNotFoundError"
+    :error="resourceNotFoundError"
+  />
   <IconMessage
-    v-if="namespaceFilterRequired"
+    v-else-if="namespaceFilterRequired"
     :vertical="true"
     :subtle="false"
     icon="icon-filter_alt"
