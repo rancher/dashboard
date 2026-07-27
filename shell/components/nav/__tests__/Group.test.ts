@@ -151,14 +151,14 @@ describe('component: Group', () => {
       t: (key: string) => key,
     };
 
-    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}) => shallowMount(Group as any, {
+    const mountGroupWithMocks = (group: any, extraProps: Record<string, unknown> = {}, stubs: Record<string, unknown> = {}) => shallowMount(Group as any, {
       props: {
         group,
         canCollapse: true,
         idPrefix:    '',
         ...extraProps,
       },
-      global: { mocks: routerMocks },
+      global: { mocks: routerMocks, stubs },
     });
 
     describe('when group has children (standard collapsible group)', () => {
@@ -244,6 +244,37 @@ describe('component: Group', () => {
         const wrapper = mountGroupWithMocks(group);
 
         expect(wrapper.findComponent(Type).props('type')).toStrictEqual(group);
+      });
+    });
+
+    describe('when group has children AND an overview link (nested-interactive regression guard)', () => {
+      const group = {
+        name:     'cluster',
+        label:    'Cluster',
+        children: [
+          { route: { name: 'c-cluster-explorer', params: {} }, overview: true, exact: true },
+          { route: { name: 'c-cluster-workloads', params: {} } },
+        ],
+      };
+
+      it.each([
+        ['role'],
+        ['tabindex'],
+        ['aria-label'],
+        ['aria-expanded'],
+        ['aria-controls'],
+      ])('does not set %s on the header div when group has an overview link', (attr) => {
+        const wrapper = mountGroupWithMocks(group);
+
+        expect(wrapper.find('.header').attributes(attr)).toBeUndefined();
+      });
+
+      it('renders the overview router-link without tabindex', () => {
+        const wrapper = mountGroupWithMocks(group, {}, { 'router-link': { template: '<a><slot /></a>' } });
+        const link = wrapper.find('.header a');
+
+        expect(link.exists()).toBe(true);
+        expect(link.attributes('tabindex')).toBeUndefined();
       });
     });
   });

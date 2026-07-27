@@ -260,11 +260,11 @@ export default {
         v-if="showHeader"
         class="header"
         :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
-        :role="hasChildren ? 'button' : undefined"
-        :tabindex="hasChildren ? (fixedOpen ? -1 : 0) : undefined"
-        :aria-label="hasChildren ? (group.labelDisplay || group.label || '') : undefined"
-        :aria-expanded="hasChildren ? (!canCollapse || isExpanded) : undefined"
-        :aria-controls="hasChildren ? (!canCollapse ? null : `group-${id}`) : undefined"
+        :role="hasChildren && !hasOverview ? 'button' : undefined"
+        :tabindex="hasChildren && !hasOverview ? (fixedOpen ? -1 : 0) : undefined"
+        :aria-label="hasChildren && !hasOverview ? (group.labelDisplay || group.label || '') : undefined"
+        :aria-expanded="hasChildren && !hasOverview ? (!canCollapse || isExpanded) : undefined"
+        :aria-controls="hasChildren && !hasOverview ? (!canCollapse ? null : `group-${id}`) : undefined"
         @click="groupSelected()"
         @keyup.enter="groupSelected()"
         @keyup.space="groupSelected()"
@@ -275,7 +275,6 @@ export default {
             v-if="hasOverview && hasChildren"
             :to="headerRoute"
             :exact="group.children[0].exact"
-            :tabindex="-1"
           >
             <h6>
               <span v-clean-html="group.labelDisplay || group.label" />
@@ -400,6 +399,11 @@ export default {
       }
       &:focus{
         outline:none;
+
+        h6 span {
+          @include focus-outline;
+          // outline-offset: -6px;
+        }
       }
     }
   }
