@@ -402,7 +402,6 @@ export default {
 
         h6 span {
           @include focus-outline;
-          // outline-offset: -6px;
         }
       }
     }
