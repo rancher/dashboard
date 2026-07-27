@@ -13,6 +13,10 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters({ options: 'action-menu/optionsArray' }),
+
+    hasDescription() {
+      return !!this.t(`advancedSettings.descriptions.${ this.value.id }`);
+    }
   },
 };
 </script>
@@ -36,7 +40,9 @@ export default {
             class="modified"
           >{{ t('advancedSettings.modified') }}</span>
         </h1>
-        <h2>{{ t(`advancedSettings.descriptions.${value.id}`) }}</h2>
+        <h2 v-if="hasDescription">
+          {{ t(`advancedSettings.descriptions.${value.id}`) }}
+        </h2>
       </div>
       <div
         v-if="value.hasActions"

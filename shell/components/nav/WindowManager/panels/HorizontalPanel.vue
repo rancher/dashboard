@@ -63,7 +63,7 @@ const {
         role="tab"
         :aria-selected="tab.id === activeTab[props.position]"
         :aria-label="tab.label"
-        :aria-controls="`panel-${tab.id}`"
+        :aria-controls="`wm-panel-body-${ props.position }-${ tab.id.replace(/[^a-zA-Z0-9_-]/g, '-') }`"
         tabindex="0"
         @click="setTabActive({ position: props.position, id: tab.id })"
         @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
