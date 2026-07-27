@@ -617,7 +617,7 @@ export default {
       class="kv-container"
       role="grid"
       :aria-label="title || t('generic.ariaLabel.keyValue')"
-      :aria-rowcount="rows.length > 0 ? rows.length + 1 : isView ? 2 : 0"
+      :aria-rowcount="rows.length > 0 ? rows.length : isView ? 1 : 0"
       :aria-colcount="extraColumns.length + 2 + (canRemove ? 1 : 0)"
       :style="containerStyle"
     >
@@ -633,7 +633,6 @@ export default {
             <div
               class="text-label key-value-label"
               role="columnheader"
-              aria-rowindex="1"
               aria-colindex="1"
             >
               {{ _keyLabel }}
@@ -649,7 +648,6 @@ export default {
             <div
               class="text-label key-value-label"
               role="columnheader"
-              aria-rowindex="1"
               aria-colindex="2"
             >
               {{ _valueLabel }}
@@ -666,7 +664,6 @@ export default {
               v-for="(c, i) in extraColumns"
               :key="i"
               role="columnheader"
-              aria-rowindex="1"
               :aria-colindex="i+3"
             >
               <slot :name="'label:'+c">
@@ -676,9 +673,12 @@ export default {
             <div
               v-if="canRemove"
               role="columnheader"
-              aria-rowindex="1"
               :aria-colindex="extraColumns.length+3"
-            />
+            >
+              <slot name="remove">
+                <span />
+              </slot>
+            </div>
           </div>
         </div>
       </template>
@@ -694,7 +694,7 @@ export default {
             <div
               class="kv-item key text-muted"
               role="gridcell"
-              aria-rowindex="2"
+              aria-rowindex="1"
               aria-colindex="1"
             >
               &mdash;
@@ -702,7 +702,7 @@ export default {
             <div
               class="kv-item key text-muted"
               role="gridcell"
-              aria-rowindex="2"
+              aria-rowindex="1"
               aria-colindex="2"
             >
               &mdash;
@@ -727,7 +727,7 @@ export default {
             <div
               class="kv-item key"
               role="gridcell"
-              :aria-rowindex="i+2"
+              :aria-rowindex="i+1"
               :aria-colindex="1"
               :class="{
                 'labeled-input-key': keyErrors[row.key],
@@ -780,7 +780,7 @@ export default {
               :data-testid="`kv-item-value-${i}`"
               class="kv-item value"
               role="gridcell"
-              :aria-rowindex="i+2"
+              :aria-rowindex="i+1"
               :aria-colindex="2"
             >
               <slot
@@ -811,7 +811,7 @@ export default {
                     :as-text-area="true"
                     :mode="mode"
                     :options="{
-                      screenReaderLabel: t('generic.ariaLabel.value', { index: i })
+                      screenReaderLabel: t('generic.ariaLabel.value', { index: i+1 })
                     }"
                     @onInput="onInputMarkdownMultiline(i, $event)"
                     @onFocus="onFocusMarkdownMultiline(i, $event)"
@@ -864,7 +864,7 @@ export default {
               :key="`${i}-${j}`"
               class="kv-item extra"
               role="gridcell"
-              :aria-rowindex="i+2"
+              :aria-rowindex="i+1"
               :aria-colindex="j+3"
             >
               <slot
@@ -879,7 +879,7 @@ export default {
               :key="i"
               class="kv-item remove"
               role="gridcell"
-              :aria-rowindex="i+2"
+              :aria-rowindex="i+1"
               :aria-colindex="extraColumns.length+3"
               :data-testid="`remove-column-${i}`"
             >

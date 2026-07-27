@@ -383,9 +383,9 @@ describe('component: KeyValue', () => {
 
     describe('aria-rowcount', () => {
       it.each([
-        ['1 data row in edit mode', { value: { k: 'v' }, mode: 'edit' }, 2],
-        ['2 data rows in edit mode', { value: { k: 'v', k2: 'v2' }, mode: 'edit' }, 3],
-        ['no rows in view mode', { value: {}, mode: 'view' }, 2],
+        ['1 data row in edit mode', { value: { k: 'v' }, mode: 'edit' }, 1],
+        ['2 data rows in edit mode', { value: { k: 'v', k2: 'v2' }, mode: 'edit' }, 2],
+        ['no rows in view mode', { value: {}, mode: 'view' }, 1],
         ['no rows in edit mode', { value: {}, mode: 'edit' }, 0],
       ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
         const wrapper = mountKV(props);
@@ -416,56 +416,56 @@ describe('component: KeyValue', () => {
     });
 
     describe('header columnheader cells', () => {
-      it('key and value headers have role="columnheader" with aria-rowindex="1" and sequential aria-colindex', () => {
+      it('key and value headers have role="columnheader" with sequential aria-colindex and no aria-rowindex', () => {
         const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
         const headers = wrapper.findAll('[role="columnheader"]');
 
-        expect(headers[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[0].attributes('aria-rowindex')).toBeUndefined();
         expect(headers[0].attributes('aria-colindex')).toStrictEqual('1');
-        expect(headers[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[1].attributes('aria-rowindex')).toBeUndefined();
         expect(headers[1].attributes('aria-colindex')).toStrictEqual('2');
       });
 
-      it('remove column header has aria-colindex equal to extraColumns.length + 3', () => {
+      it('remove column header has aria-colindex equal to extraColumns.length + 3 and no aria-rowindex', () => {
         const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: true });
         const headers = wrapper.findAll('[role="columnheader"]');
 
-        expect(headers[2].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(headers[2].attributes('aria-rowindex')).toBeUndefined();
         expect(headers[2].attributes('aria-colindex')).toStrictEqual('3');
       });
     });
 
     describe('data gridcell aria-rowindex and aria-colindex', () => {
-      it('first data row cells have aria-rowindex="2" to account for the header row', () => {
+      it('first data row cells have aria-rowindex="1" (header is not counted as a row)', () => {
         const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
         const cells = wrapper.findAll('[role="gridcell"]');
 
-        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
         expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
-        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
         expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
       });
 
-      it('second data row cells have aria-rowindex="3"', () => {
+      it('second data row cells have aria-rowindex="2"', () => {
         const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, removeAllowed: false });
         const cells = wrapper.findAll('[role="gridcell"]');
 
         // 2 rows × 2 cells (no remove), second row starts at cells[2]
-        expect(cells[2].attributes('aria-rowindex')).toStrictEqual('3');
+        expect(cells[2].attributes('aria-rowindex')).toStrictEqual('2');
         expect(cells[2].attributes('aria-colindex')).toStrictEqual('1');
-        expect(cells[3].attributes('aria-rowindex')).toStrictEqual('3');
+        expect(cells[3].attributes('aria-rowindex')).toStrictEqual('2');
         expect(cells[3].attributes('aria-colindex')).toStrictEqual('2');
       });
     });
 
     describe('no-data placeholder in view mode', () => {
-      it('placeholder cells have aria-rowindex="2" and sequential aria-colindex', () => {
+      it('placeholder cells have aria-rowindex="1" and sequential aria-colindex', () => {
         const wrapper = mountKV({ value: {}, mode: 'view' });
         const cells = wrapper.findAll('[role="gridcell"]');
 
-        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
         expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
-        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
         expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
       });
     });
