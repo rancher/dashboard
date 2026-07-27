@@ -19,11 +19,30 @@ export default {
       type:    [Object, Error],
       default: null,
     },
+
+    /**
+     * Optional 'did you mean ...?' suggestion, rendered as a link below the message.
+     * Shape: `{ label, url }` where `url` is the resolved href to the suggested resource.
+     */
+    suggestion: {
+      type:    Object,
+      default: null,
+    },
   },
 
   computed: {
     displayError() {
       return this.error?.data ? this.error.data : stringify(this.error);
+    },
+
+    // The link is part of the translated string (see `nav.failWhale.didYouMean`) so it can
+    // be positioned per locale, then rendered via `v-clean-html`
+    suggestionHtml() {
+      if (!this.suggestion) {
+        return null;
+      }
+
+      return this.t('nav.failWhale.didYouMean', { url: this.suggestion.url, resource: this.suggestion.label }, true);
     },
   },
 };
@@ -52,6 +71,12 @@ export default {
       >
         {{ displayError }}
       </h2>
+      <h2
+        v-if="suggestionHtml"
+        v-clean-html="suggestionHtml"
+        class="text-secondary mt-20"
+        data-testid="fail-whale-suggestion"
+      />
       <slot name="actions" />
     </div>
   </div>

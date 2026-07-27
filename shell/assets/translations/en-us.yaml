@@ -319,6 +319,7 @@ nav:
     resourceListNotListable: Resource type { resource } cannot be listed
     resourceListNotFound: Resource type { resource } not found, unable to display list
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
+    didYouMean: 'Did you mean <a href="{url}">{resource}</a>?'
     reload: Reload
     separator: or
 
