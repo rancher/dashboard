@@ -301,6 +301,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     }
 
     registrationCode.value = null;
+
     // Offline request generation can take longer while the SCC operator prepares resources
     return await pollResource(originalHash, findOfflineRequest, getRegistrationRequest, undefined, 250, 60000);
   };

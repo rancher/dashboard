@@ -154,7 +154,7 @@ describe('registration composable', () => {
           name:      REGISTRATION_SECRET,
           labels:    { [REGISTRATION_LABEL]: hash }
         },
-        data: { registrationType: btoa('offline') },
+        data:   { registrationType: btoa('offline') },
         save:   () => Promise.resolve(),
         remove: () => Promise.resolve(),
       };
@@ -202,7 +202,7 @@ describe('registration composable', () => {
           name:      REGISTRATION_SECRET,
           labels:    {}
         },
-        data: { registrationType: btoa('offline') },
+        data:   { registrationType: btoa('offline') },
         save:   () => Promise.resolve(),
         remove: () => Promise.resolve(),
       };
