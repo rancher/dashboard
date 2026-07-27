@@ -122,13 +122,6 @@
       "help": "Certain ARIA roles must contain particular children"
     },
     {
-      "fingerprint": "312e498a4249525f1c2ce2a7a25e46afcd3e5d6061a8105bc80dc080708b0e84",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#10)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
-    },
-    {
       "fingerprint": "347656f7e8af9adaf668d60ad12415d91c3422122a5f03e0bc63981d72c9600a",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Global Settings > Banners page",
       "rule": "nested-interactive",
@@ -141,13 +134,6 @@
       "rule": "aria-required-parent",
       "impact": "critical",
       "help": "Certain ARIA roles must be contained by particular parents"
-    },
-    {
-      "fingerprint": "353ded635ab94ae6d8c71141b4edd5922f66590192a56f7d9a440abe8e2d3a5f",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#13)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
     },
     {
       "fingerprint": "369701d3305beb3059f2d21821bceb5be66d7f4b579e5dff93351ee30c7959e4",
@@ -255,13 +241,6 @@
       "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination"
     },
     {
-      "fingerprint": "603172f197f685ed09f96678389335cb53ca32a37f0813a885e0a65901f19b24",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#19)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
-    },
-    {
       "fingerprint": "66ea721ca762053554b2f01f3bffcc7417002f20f41f6e03182e3be33046ee59",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Cluster > Projects-Namespaces > Projects-Namespaces - Create Namespace",
       "rule": "listitem",
@@ -316,13 +295,6 @@
       "rule": "heading-order",
       "impact": "moderate",
       "help": "Heading levels should only increase by one"
-    },
-    {
-      "fingerprint": "7895883ac83e414f646c37e4fc9ebb4623ad568ae3d4c20b065359b9aeca909a",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#1)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
     },
     {
       "fingerprint": "7fb217d91e57c2d45380ca1be1f5e9619399c473c6b26d5c8cf5c76951062ade",
@@ -416,18 +388,18 @@
       "help": "ARIA dialog and alertdialog nodes should have an accessible name"
     },
     {
+      "fingerprint": "9979aa7cc5b57611cc7cb8ae591e0ec876714c3067a7a8343cb086059b2dff33",
+      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation",
+      "rule": "nested-interactive",
+      "impact": "serious",
+      "help": "Interactive controls must not be nested"
+    },
+    {
       "fingerprint": "9a428989340b5d13fb19e61bb2d7d7f7c4c868a39f3bb48eaa5b852fa8453b0b",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Extensions > Extensions page",
       "rule": "aria-required-children",
       "impact": "critical",
       "help": "Certain ARIA roles must contain particular children"
-    },
-    {
-      "fingerprint": "9ae7461f062c7060dc0770ac201eee0c7e9d291873ff7f9d6ff31a5af3ae5151",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#7)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
     },
     {
       "fingerprint": "9b6654bc172d4301c94ada825be750cb2ee4f6d92dc0e634f2928e15754422d3",
@@ -500,13 +472,6 @@
       "help": "All page content should be contained by landmarks"
     },
     {
-      "fingerprint": "af0252bd5cf3a5b728f7f0dc382bc81e22913617e3bdade9a5d934383a0eb6df",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#4)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
-    },
-    {
       "fingerprint": "af1ffe69f8e8ab664dea470a81f0b95877b5344cac7f09bcb1272e3c4c8b79a6",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Charts > Charts page",
       "rule": "nested-interactive",
@@ -519,13 +484,6 @@
       "rule": "aria-valid-attr-value",
       "impact": "critical",
       "help": "ARIA attributes must conform to valid values"
-    },
-    {
-      "fingerprint": "b855145e3d48c17aef6aec1679950b75d2f2472b63d4ee0eb106e78e9ba1afe0",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Menus > Product Side navigation > Product Side navigation (#16)",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
     },
     {
       "fingerprint": "bad0c989cb99c28e786aef0acf74051ba378bf64e3cb9d11f4434cc4679bd9af",
