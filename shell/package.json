@@ -158,7 +158,7 @@
     "@types/node": "25.3.3",
     "@vue/cli-service/html-webpack-plugin": "^5.0.0",
     "webpack-dev-server": "5.2.6",
-    "postcss": "8.5.12",
+    "postcss": "8.5.18",
     "@tootallnate/once": "^2.0.1"
   },
   "nyc": {
