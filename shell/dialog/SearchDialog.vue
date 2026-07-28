@@ -1,7 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import Group from '@shell/components/nav/Group';
-import { isMac } from '@shell/utils/platform';
+import { isMac, KEY } from '@shell/utils/platform';
 import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
 
@@ -72,7 +72,65 @@ export default {
 
         g.hidden = !!hidden;
       });
-    }
+    },
+
+    // Keyboard support
+    visibleLinks() {
+      return Array.from(this.$refs.results?.querySelectorAll('li.child.nav-type a.type-link') || []);
+    },
+
+    focusLink(direction) {
+      const links = this.visibleLinks();
+
+      if (!links.length) {
+        return;
+      }
+
+      const index = links.indexOf(document.activeElement);
+      // Down from the input (or past either end of the list) wraps around
+      const next = index === -1 ? (direction > 0 ? 0 : links.length - 1) : (index + direction + links.length) % links.length;
+
+      links[next].focus();
+      links[next].scrollIntoView?.({ block: 'nearest' });
+    },
+
+    inputKeyHandler(e) {
+      switch (e.keyCode) {
+      case KEY.DOWN:
+        e.preventDefault();
+        this.focusLink(1);
+        break;
+      case KEY.UP:
+        e.preventDefault();
+        this.focusLink(-1);
+        break;
+      case KEY.CR:
+        e.preventDefault();
+        this.visibleLinks()[0]?.click();
+        break;
+      }
+    },
+
+    resultsKeyHandler(e) {
+      switch (e.keyCode) {
+      case KEY.DOWN:
+        e.preventDefault();
+        this.focusLink(1);
+        break;
+      case KEY.UP:
+        e.preventDefault();
+        this.focusLink(-1);
+        break;
+      case KEY.ESCAPE:
+        this.$emit('close');
+        break;
+      default:
+        // Typing returns focus to the input so the user can keep refining the filter
+        if (e.key === 'Backspace' || (e.key?.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey)) {
+          this.$refs.input.focus();
+        }
+      }
+    },
   },
 };
 </script>
@@ -99,9 +157,14 @@ export default {
         :aria-label="t('nav.resourceSearch.label')"
         aria-describedby="describe-filter-resource-search"
         @keyup.esc="$emit('close')"
+        @keydown="inputKeyHandler($event)"
       >
     </div>
-    <div class="results">
+    <div
+      ref="results"
+      class="results"
+      @keydown="resultsKeyHandler($event)"
+    >
       <div
         v-for="g in groups"
         :key="g.name"
@@ -160,5 +223,10 @@ export default {
     background-color: var(--dropdown-bg);
     border-top: 1px solid var(--dropdown-border);
     height: 75vh;
+
+    // Match the row hover style when a result is focused via the keyboard
+    :deep() li.child a.type-link:focus {
+      background-color: var(--nav-hover);
+    }
   }
 </style>
