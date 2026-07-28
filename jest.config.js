@@ -24,10 +24,10 @@ module.exports = {
     // packages - breaking the shared @vue/test-utils config and vee-validate
     // reactivity when the subproject is installed in the same tree. (CI only
     // installs at the root, but this keeps local runs deterministic too.)
-    '^vue$':               '<rootDir>/node_modules/vue',
-    '^@vue/test-utils$':   '<rootDir>/node_modules/@vue/test-utils',
-    '^vee-validate$':      '<rootDir>/node_modules/vee-validate',
-    '^@vee-validate/zod$': '<rootDir>/node_modules/@vee-validate/zod',
+    '^vue$':                                                                         '<rootDir>/node_modules/vue',
+    '^@vue/test-utils$':                                                             '<rootDir>/node_modules/@vue/test-utils',
+    '^vee-validate$':                                                                '<rootDir>/node_modules/vee-validate',
+    '^@vee-validate/zod$':                                                           '<rootDir>/node_modules/@vee-validate/zod',
     '^~/(.*)$':                                                                      '<rootDir>/$1',
     '^~~/(.*)$':                                                                     '<rootDir>/$1',
     '^@/(.*)$':                                                                      '<rootDir>/$1',
