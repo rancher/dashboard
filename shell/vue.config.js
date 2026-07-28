@@ -457,6 +457,23 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
 });
 
 /**
+ * Drop the `js` rule contributed by `@vue/cli-plugin-babel`.
+ *
+ * `@vue/cli-plugin-babel` is declared at the root purely so `babel-jest` can resolve
+ * `@vue/cli-plugin-babel/preset`. `vue-cli-service` registers every `@vue/cli-plugin-*` it finds in
+ * `package.json`, which also adds a babel-loader step this build has never run - webpack handles the
+ * syntax we ship directly. Worse, `processShellFiles` below widens that rule's `exclude`, so it would
+ * transpile pre-built dependencies too.
+ */
+const removeBabelLoaderRule = (config) => {
+  config.module.rules = config.module.rules.filter((rule) => {
+    const uses = Array.isArray(rule.use) ? rule.use : [];
+
+    return !uses.some((use) => typeof use?.loader === 'string' && use.loader.includes('cli-plugin-babel'));
+  });
+};
+
+/**
  * Ensure we process files in the @rancher/shell folder
  */
 const processShellFiles = (config, SHELL_ABS) => {
@@ -635,6 +652,7 @@ module.exports = function(dir, appConfig = {}) {
       }
 
       config.resolve.symlinks = false;
+      removeBabelLoaderRule(config);
       processShellFiles(config, SHELL_ABS);
       config.module.rules.push(...getLoaders(SHELL_ABS, dir));
       instrumentCode(config);
