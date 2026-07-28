@@ -9128,16 +9128,15 @@ html-tags@^2.0.0:
     pretty-error "^4.0.0"
     tapable "^2.0.0"
 
-html-webpack-plugin@5.0.0, html-webpack-plugin@^5.1.0:
-  version "5.0.0"
-  resolved "https://registry.npmjs.org/html-webpack-plugin/-/html-webpack-plugin-5.0.0.tgz#457a9defb33ce368135078b4e0387a27f3fe244d"
-  integrity sha512-kxTyb8cyZwEyUqXTgdHRUOF4C7uCrquzw2T+YTudehm/yspodgCkREjdmc4dXI8k2P4NEjqOVbnOOlPZg4TKJA==
+html-webpack-plugin@^5.1.0:
+  version "5.6.8"
+  resolved "https://registry.yarnpkg.com/html-webpack-plugin/-/html-webpack-plugin-5.6.8.tgz#5425dbc63eb533ffa59e92342be94894a125fc23"
+  integrity sha512-MZmKQcTnhEh1SPSyMiEytIeDZDUoBZVorNHivQGXMASHf/BSGGOrKa2xQ5bGx3TCe1n109ecCt+cpww7wwWhKA==
   dependencies:
-    "@types/html-minifier-terser" "^5.0.0"
-    html-minifier-terser "^5.0.1"
-    loader-utils "^2.0.0"
-    lodash "^4.17.20"
-    pretty-error "^2.1.1"
+    "@types/html-minifier-terser" "^6.0.0"
+    html-minifier-terser "^6.0.2"
+    lodash "^4.17.21"
+    pretty-error "^4.0.0"
     tapable "^2.0.0"
 
 htmlparser2@^6.1.0:
