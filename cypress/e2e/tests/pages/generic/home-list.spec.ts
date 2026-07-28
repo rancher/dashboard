@@ -32,19 +32,23 @@ describe('Home Page List', { testIsolation: false }, () => {
     homePage.waitForPage();
 
     // Ensure the cluster list has fully loaded before reading values. Otherwise an
-    // async re-render of the still-streaming list can detach the row mid-read,
-    // failing the subsequent `.invoke('text')` under Cypress 12+.
+    // async re-render of the still-streaming list can detach the row mid-read.
     homeClusterList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     homeClusterList.resourceTable().sortableTable().rowWithName(clusterName).checkVisible();
 
     // Verify version is present before proceeding
     homeClusterList.version(clusterName).should('not.contain', '—');
 
-    // Get text values and store as aliases
-    homeClusterList.state(clusterName).invoke('text').as('stateText');
-    homeClusterList.name(clusterName).invoke('text').as('nameText');
-    homeClusterList.version(clusterName).invoke('text').as('versionText');
-    homeClusterList.provider(clusterName).invoke('text').as('providerText');
+    // Get text values and store as aliases.
+    // The home cluster list keeps re-rendering rows as the CPU/Memory/Pods metrics
+    // stream in, which can detach the row between `.contains()` and `.invoke('text')`
+    // under Cypress 12+. Ending each read with a `.should()` makes the whole
+    // `contains -> column -> invoke('text')` chain retry, re-querying a fresh
+    // (attached) row until the text is read successfully.
+    homeClusterList.state(clusterName).invoke('text').should('not.be.empty').as('stateText');
+    homeClusterList.name(clusterName).invoke('text').should('not.be.empty').as('nameText');
+    homeClusterList.version(clusterName).invoke('text').should('not.be.empty').as('versionText');
+    homeClusterList.provider(clusterName).invoke('text').should('not.be.empty').as('providerText');
 
     clusterMgmtClusterList.goTo();
     clusterMgmtClusterList.waitForPage();
