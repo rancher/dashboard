@@ -299,8 +299,8 @@ jobs:
           node-version-file: '.nvmrc'
       
       - name: Install packages
-        run: yarn install:ci
-      
+        run: yarn install --immutable
+
       - name: Run i18n string check
         run: |
           # Falure won't fail the job (remove -x when all current issues are fixed)
@@ -317,8 +317,8 @@ jobs:
           node-version-file: '.nvmrc'
       
       - name: Install packages
-        run: yarn install:ci
-      
+        run: yarn install --immutable
+
       - name: Run check of all http links in the i18n files (broken link check)
         run: |
           ./scripts/check-i18n-links
