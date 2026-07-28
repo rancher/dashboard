@@ -31,6 +31,12 @@ describe('Home Page List', { testIsolation: false }, () => {
     HomePagePo.navTo();
     homePage.waitForPage();
 
+    // Ensure the cluster list has fully loaded before reading values. Otherwise an
+    // async re-render of the still-streaming list can detach the row mid-read,
+    // failing the subsequent `.invoke('text')` under Cypress 12+.
+    homeClusterList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    homeClusterList.resourceTable().sortableTable().rowWithName(clusterName).checkVisible();
+
     // Verify version is present before proceeding
     homeClusterList.version(clusterName).should('not.contain', '—');
 

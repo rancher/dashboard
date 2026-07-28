@@ -48,11 +48,16 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can close first menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.expandedGroup().first().as('openGroup');
-    productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
-      .should('be.visible')
-      .click();
-    cy.get('@openGroup').should('not.have.class', 'expanded');
+    // Capture a static reference to the currently open group. We can't use a DOM
+    // alias here: in Cypress 12+ `cy.get('@alias')` re-runs the query, so after the
+    // click it would resolve to the newly-opened group instead of the original one.
+    productNavPo.expandedGroup().first().then(($openGroup) => {
+      productNavPo.groups().not('.expanded').should('have.length.gte', 1).eq(0)
+        .should('be.visible')
+        .click();
+
+      cy.wrap($openGroup).should('not.have.class', 'expanded');
+    });
   });
 
   it('Should flag second menu group as active on navigation', () => {
