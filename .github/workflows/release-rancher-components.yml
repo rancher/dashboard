@@ -33,7 +33,7 @@ jobs:
       run: npm install -g npm@latest
 
     - name: Install
-      run: yarn install:ci
+      run: yarn install --immutable
 
     - name: Lint
       run: yarn lint:lib
