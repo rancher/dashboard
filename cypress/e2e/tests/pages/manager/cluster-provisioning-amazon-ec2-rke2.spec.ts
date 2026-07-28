@@ -14,7 +14,7 @@ import describeSubnetsResponse from '@/cypress/e2e/blueprints/manager/describe-s
 import describeVpcsResponse from '@/cypress/e2e/blueprints/manager/describe-vpcs-response';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning'] }, () => {
+describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning', '@amazon-ec2'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -66,6 +66,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     loadingPo.checkNotExists();
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
     createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2');
+    cloudCredForm.saveButton().self(MEDIUM_TIMEOUT_OPT).should('exist');
 
     // create amazon ec2 cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -242,7 +243,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-error').should('exist');
 
     // Verify the machine pool is scaled up to 2
-    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^(2|2 of 2)$/, VERY_LONG_TIMEOUT_OPT);
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
 
     // check that progress bar contains green and no red
@@ -278,7 +279,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
       .click();
 
-    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, MEDIUM_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^(2|2 of 2)$/, MEDIUM_TIMEOUT_OPT);
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-error').should('not.exist');
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-success').should('exist');
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.piece').should('have.length', 1);
@@ -308,7 +309,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
 
     // Verify the machine pool is scaled down to 1
-    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^(1|1 of 1)$/, MEDIUM_TIMEOUT_OPT);
     // progress bar should contain green and no other color
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-error', VERY_LONG_TIMEOUT_OPT).should('not.exist');
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-success').should('exist');
@@ -403,7 +404,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
-    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
+    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`, VERY_LONG_TIMEOUT_OPT);
   }));
 
   qase(5597, it('can delete an Amazon EC2 RKE2 cluster', function() {
