@@ -134,7 +134,11 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
+    // Assert the container exists before .contains() runs. Under Cypress 12's
+    // grouped-query retries, a transiently empty container (e.g. during SPA
+    // navigation) would otherwise flow an empty jQuery{0} subject into
+    // .contains(), which rejects it ("requires a DOM element").
+    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string) {
