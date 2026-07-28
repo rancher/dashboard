@@ -197,6 +197,10 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/RcSeparator.vue'],
+      rules: { 'local-rules/no-hr-element': 'off' }
+    },
+    {
       files: [
         '**/*.{js,ts,vue}'
       ],
