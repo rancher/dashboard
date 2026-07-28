@@ -86,6 +86,7 @@ const sidebars = {
         'folder-structure',
         'configuration',
         'unit-testing',
+        'linting',
         {
           type:  'category',
           label: 'Performance',

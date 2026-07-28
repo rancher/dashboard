@@ -55,6 +55,10 @@ export default [
       'cypress/dist/',
       'cypress/bin/',
       'cypress/template/',
+      // Extension scaffold templates: these are copied into a generated extension and are
+      // linted there (their `eslint.config.mjs` imports `@rancher/shell`, unresolvable here),
+      // so they must not be linted by this repo.
+      'creators/**/files/**',
     ],
   },
 
