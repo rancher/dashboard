@@ -4,7 +4,7 @@ import { SERVICE } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import kialiSvg from '~shell/assets/images/vendor/kiali.svg';
 import jaegerSvg from '~shell/assets/images/vendor/jaeger.svg';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: { Loading, RcSeparator },

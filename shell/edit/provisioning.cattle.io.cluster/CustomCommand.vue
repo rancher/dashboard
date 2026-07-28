@@ -10,7 +10,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { STACK_PREFS } from './tabs/networking/index.vue';
 
 import { sanitizeKey, sanitizeIP, sanitizeValue } from '@shell/utils/string';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   emits: ['copied-windows'],

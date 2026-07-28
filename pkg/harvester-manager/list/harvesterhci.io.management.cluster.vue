@@ -28,7 +28,7 @@ import {
 } from '@shell/utils/uiplugins';
 import { isRancherPrime, getVersionData } from '@shell/config/version';
 import { RcButton } from '@components/RcButton';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 

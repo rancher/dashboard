@@ -19,7 +19,7 @@ import { MONITORING } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import { createDefaultRouteName } from '@shell/utils/alertmanagerconfig';
 import Loading from '@shell/components/Loading';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {

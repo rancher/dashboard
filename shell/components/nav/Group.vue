@@ -1,7 +1,7 @@
 <script>
 import Type from '@shell/components/nav/Type';
 import { filterLocationValidParams } from '@shell/utils/router';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   name: 'Group',

@@ -39,7 +39,7 @@ import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 import { isEqual } from 'lodash';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';

@@ -7,7 +7,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { _VIEW } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 import { FLEET } from '@shell/config/labels-annotations';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   name: 'CruFleetCluster',

@@ -5,7 +5,7 @@ import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import neuvectorSvg from '~shell/assets/images/vendor/neuvector.svg';
-import RcSeparator from '@shell/components/RcSeparator';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {
