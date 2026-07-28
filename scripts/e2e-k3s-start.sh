@@ -105,8 +105,11 @@ if [ "$KUBE_TYPE" = "K3S" ]; then
   chmod 600 "$KUBECONFIG"
   
   echo "Installing helm.........."
+  # Pin the get-helm-3 installer to a fixed release tag rather than `main`. `main` is a moving ref, so
+  # whenever upstream updates this script the download drifts away from HELM_CHECKSUM and the guard below
+  # fails on every run (not just a flake). The v4.2.3 tag is immutable and already matches HELM_CHECKSUM.
   export HELM_CHECKSUM=38b65f882d9cae3891755bdb03becc6a01ae6f9cb24826c191f219ddfee70a5d
-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/v4.2.3/scripts/get-helm-3
 
   DOWNLOADED_CHECKSUM=$(sha256sum get_helm.sh | awk '{print $1}')
   if [ "$DOWNLOADED_CHECKSUM" != "${HELM_CHECKSUM}" ]; then
