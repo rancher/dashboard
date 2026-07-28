@@ -95,6 +95,11 @@ export default {
         return;
       }
 
+      // Avoid fetch if we've errored here or previously
+      if (this.resourceNotFoundError) {
+        return;
+      }
+
       // See comment for `namespaceFilter` and `pagination` watchers, skip fetch if we're not ready yet... and something is going to call fetch later on
       if (!this.namespaceFilterRequired && (!this.canPaginate || this.refreshFlag)) {
         await this.$fetchType(resource);
