@@ -541,6 +541,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
 
+    // The installed list can take a while to render this card after an uncached
+    // login + reload. Wait for it to be visible before opening its action menu,
+    // otherwise the card lookup times out mid-render.
+    extensionsPo.extensionCard(UNAUTHENTICATED_EXTENSION_NAME, { timeout: 30000 }).self().should('be.visible');
+
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
