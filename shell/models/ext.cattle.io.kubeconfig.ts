@@ -11,6 +11,11 @@ export default class Kubeconfig extends SteveModel {
   declare spec: {
     clusters?: string[];
     ttl?: number;
+    /**
+     * Whether to include the legacy `rancher` cluster/user/context entry pointing at the Rancher server root.
+     * Defaults to `true` in the backend when omitted.
+     */
+    includeDefaultEntry?: boolean;
   };
 
   declare metadata: {
