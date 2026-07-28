@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "author": "SUSE",
   "private": false,
+  "packageManager": "yarn@4.17.1",
   "bin": "./init",
   "files": [
     "**/*.*",

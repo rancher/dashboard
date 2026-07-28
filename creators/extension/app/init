@@ -109,6 +109,12 @@ if (creatorPkg._pkgs) {
   });
 }
 
+// The skeleton ships a .yarnrc.yml, so it needs the matching Yarn Berry pin for
+// Corepack to activate. Track the creator's own pin rather than a second copy.
+if (creatorPkg.packageManager) {
+  pkg.packageManager = creatorPkg.packageManager;
+}
+
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 
 // Add workflow folder if needed
