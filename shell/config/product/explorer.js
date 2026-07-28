@@ -105,7 +105,6 @@ export function init(store) {
   ], 'storage');
   basicType([
     WORKLOAD_DASHBOARD,
-    // WORKLOAD,
     WORKLOAD_TYPES.DEPLOYMENT,
     WORKLOAD_TYPES.DAEMON_SET,
     WORKLOAD_TYPES.STATEFUL_SET,
