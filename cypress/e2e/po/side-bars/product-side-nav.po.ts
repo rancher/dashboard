@@ -12,7 +12,10 @@ export default class ProductNavPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   groups(): Cypress.Chainable {
-    return this.self().find('.accordion.has-children');
+    // Scope to top-level (depth-0) groups only. The app implements the
+    // "one open group collapses its siblings" behaviour at the top level, so
+    // matching nested subgroups here breaks collapse-on-click assertions.
+    return this.self().find('.accordion.depth-0.has-children');
   }
 
   /**
@@ -28,7 +31,8 @@ export default class ProductNavPo extends ComponentPo {
    * @returns
    */
   expandedGroup(): Cypress.Chainable {
-    return this.self().find('.accordion.expanded');
+    // Scope to top-level (depth-0) expanded groups only, to match groups().
+    return this.self().find('.accordion.depth-0.expanded');
   }
 
   /**
