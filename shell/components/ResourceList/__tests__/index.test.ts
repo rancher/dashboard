@@ -1,4 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
+import ResourceList from '@shell/components/ResourceList/index.vue';
 
 jest.mock('@shell/mixins/resource-fetch', () => ({
   __esModule: true,
@@ -34,9 +35,6 @@ jest.mock('@shell/mixins/resource-fetch', () => ({
   },
 }));
 
-// eslint-disable-next-line import/first
-import ResourceList from '@shell/components/ResourceList/index.vue';
-
 type StoreOpts = {
   schema?: any;
   canList?: boolean;
@@ -47,6 +45,7 @@ const createStore = ({ schema, canList = true }: StoreOpts) => ({
     'i18n/t':                 (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
     currentStore:             () => 'cluster',
     'cluster/schemaFor':      () => schema,
+    'cluster/all':            () => [],
     'cluster/canList':        () => canList,
     'type-map/hasCustomList': () => false,
     'type-map/optionsFor':    () => ({ showListMasthead: false }),
