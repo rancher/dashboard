@@ -8,6 +8,7 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
+import * as jsyaml from 'js-yaml';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
@@ -99,8 +100,23 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     ClusterDashboardPagePo.navTo();
 
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     header.downloadKubeconfig().click();
-    cy.readFile(downloadedFilename).should('contain', 'kind: Config');
+    cy.wait('@generateKubeConfig');
+
+    // A single click must only ever generate one kubeconfig, as each request mints at least one token.
+    // See https://github.com/rancher/rancher/issues/55672
+    cy.get('@generateKubeConfig.all').should('have.length', 1);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      expect(obj.kind).to.equal('Config');
+
+      // The legacy `rancher` entry pointing at the Rancher server root is excluded
+      expect(obj.clusters.map((cluster: { name: string }) => cluster.name)).to.not.include('rancher');
+      expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
+    });
   });
 
   it('can copy the kubeconfig to clipboard', () => {
