@@ -1,5 +1,8 @@
-<script>
+<script setup lang="ts">
+import { computed, type PropType } from 'vue';
+import { useStore } from 'vuex';
 import BrandImage from '@shell/components/BrandImage';
+import { useI18n } from '@shell/composables/useI18n';
 import { stringify } from '@shell/utils/error';
 
 /**
@@ -10,42 +13,54 @@ import { stringify } from '@shell/utils/error';
  * used both as a full page (see `shell/pages/fail-whale.vue`) and in-context in
  * place of a resource list/detail (retaining the side menu and cluster context).
  */
-export default {
-  name:       'FailWhale',
-  components: { BrandImage },
+interface Suggestion {
+  label: string;
+  url: string;
+}
 
-  props: {
-    error: {
-      type:    [Object, Error],
-      default: null,
-    },
+/**
+ * Error shapes handled here: a plain `Error`, or an API error carrying an HTTP
+ * `status`/`statusText` and/or a `data` payload used as the display message.
+ * All fields are optional so a plain `Error` instance is also assignable.
+ */
+interface FailWhaleError {
+  status?: number | string;
+  statusText?: string;
+  data?: string;
+}
 
-    /**
-     * Optional 'did you mean ...?' suggestion, rendered as a link below the message.
-     * Shape: `{ label, url }` where `url` is the resolved href to the suggested resource.
-     */
-    suggestion: {
-      type:    Object,
-      default: null,
-    },
+const props = defineProps({
+  error: {
+    type:    Object as PropType<FailWhaleError | null>,
+    default: null,
   },
 
-  computed: {
-    displayError() {
-      return this.error?.data ? this.error.data : stringify(this.error);
-    },
-
-    // The link is part of the translated string (see `nav.failWhale.didYouMean`) so it can
-    // be positioned per locale, then rendered via `v-clean-html`
-    suggestionHtml() {
-      if (!this.suggestion) {
-        return null;
-      }
-
-      return this.t('nav.failWhale.didYouMean', { url: this.suggestion.url, resource: this.suggestion.label }, true);
-    },
+  /**
+   * Optional 'did you mean ...?' suggestion, rendered as a link below the message.
+   * Shape: `{ label, url }` where `url` is the resolved href to the suggested resource.
+   */
+  suggestion: {
+    type:    Object as PropType<Suggestion | null>,
+    default: null,
   },
-};
+});
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const displayError = computed(() => {
+  return props.error?.data ? props.error.data : stringify(props.error);
+});
+
+// The link is part of the translated string (see `nav.failWhale.didYouMean`) so it can
+// be positioned per locale, then rendered via `v-clean-html`
+const suggestionHtml = computed(() => {
+  if (!props.suggestion) {
+    return null;
+  }
+
+  return t('nav.failWhale.didYouMean', { url: props.suggestion.url, resource: props.suggestion.label }, true);
+});
 </script>
 
 <template>
@@ -97,12 +112,6 @@ export default {
 
     h1 {
       font-size: 5rem;
-    }
-
-    .desert-landscape {
-      img {
-        max-width: 100%;
-      }
     }
   }
 </style>
