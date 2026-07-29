@@ -214,12 +214,16 @@ export default {
             return true;
           }
 
+          if (!parentPath) {
+            continue;
+          }
+
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
 
           // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
           const itemPath = this.$router.resolve(validItemRoute).path;
 
-          if (parentPath && itemPath === parentPath) {
+          if (itemPath === parentPath) {
             return true;
           }
         }
