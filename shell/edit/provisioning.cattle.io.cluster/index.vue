@@ -158,18 +158,23 @@ export default {
     let subType = null;
 
     subType = this.$route.query[SUB_TYPE] || null;
+    const subTypeFromAnnotation = this.value?.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
     if ( this.$route.query[SUB_TYPE]) {
       subType = this.$route.query[SUB_TYPE];
+      // check the UI_CUSTOM_PROVIDER annotation - used to load custom provisioning forms when value.provisioner can't/shouldn't be overwritten
+    } else if (subTypeFromAnnotation && this.extensions.some((ext) => ext.id === subTypeFromAnnotation)) {
+      subType = subTypeFromAnnotation;
     } else if (this.value.isImported) {
       // Default imported clusters to the generic imported subType.
-      // Imported hosted clusters (e.g. AKS, EKS, GKE) that have an extension-provided
+      // Imported clusters (e.g. AKS, EKS, GKE) that have an extension-provided
       // component will be overridden below to load the correct custom form.
       subType = IMPORTED;
     } else if (this.value.isLocal) {
       subType = LOCAL;
     }
 
-    // For imported hosted clusters, check if the provisioner has a matching extension
+    // For imported clusters, check if the provisioner has a matching extension
     // component and override the subType so the correct custom form loads instead of
     // the generic imported configuration page.
     if (subType === IMPORTED && this.value?.id && this.value.provisioner) {
@@ -183,12 +188,7 @@ export default {
 
     // Auto-detect subType for existing clusters being edited
     if ( !subType && this.value?.id ) {
-      // Check for extension annotation first
-      const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-      if (fromAnnotation) {
-        subType = fromAnnotation;
-      } else if ( this.value.isRke2 ) {
+      if ( this.value.isRke2 ) {
         // For custom RKE2 clusters
         if ( this.value.isCustom && (this.realMode === _EDIT || (this.as === _CONFIG && this.realMode === _VIEW)) ) {
           subType = 'custom';
