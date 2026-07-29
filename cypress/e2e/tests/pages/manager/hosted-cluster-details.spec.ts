@@ -2,6 +2,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -248,6 +249,12 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
 
       clusterList.list().name(name).click();
       hostedDetailsPage.waitForPage();
+
+      // Unlike the single-cluster tests above, this one navigates through three
+      // detail pages in a row (each via the burger menu), so a later iteration can
+      // exceed the default 10s command timeout on a loaded CI runner. Wait for the
+      // tab bar to render before reading the tab names.
+      hostedDetailsPage.resourceDetail().tabs().self(MEDIUM_TIMEOUT_OPT).should('exist');
       hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
     });
   });

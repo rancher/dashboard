@@ -70,6 +70,9 @@ describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsJobDetailsPage.containerImage().set(containerImageName);
       workloadsJobDetailsPage.resourceDetail().createEditView().save();
 
+      // Navigate back to the list page and wait for it to load
+      workloadsJobsListPage.goTo();
+      workloadsJobsListPage.waitForPage();
       workloadsJobsListPage.list().resourceTable().sortableTable().rowElementWithName(jobName2)
         .should('exist');
 
