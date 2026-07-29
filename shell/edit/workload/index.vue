@@ -43,7 +43,7 @@ export default {
 
     serviceOptions() {
       const noneOption = {
-        label: this.t('generic.none') || 'None',
+        label: this.t('generic.none'),
         value: null
       };
 
@@ -52,11 +52,13 @@ export default {
         value: service.metadata.name
       }));
 
-      return [noneOption, ...services];
+      services.unshift(noneOption);
+
+      return services;
     },
     optionalServiceName: {
       get() {
-        return this.spec.serviceName;
+        return this.spec.serviceName ?? undefined;
       },
       set(value) {
         if (!value) {
@@ -192,6 +194,7 @@ export default {
             option-label="label"
             :reduce="opt=>opt.value"
             :mode="mode"
+            :disabled="!isCreate"
             :label="t('workload.serviceName')"
             :options="serviceOptions"
           />
