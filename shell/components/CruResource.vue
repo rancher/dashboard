@@ -684,9 +684,10 @@ export default {
       @keydown.enter="onPressEnter($event)"
     >
       <div
-        v-if="hasErrors"
         id="cru-errors"
         class="cru__errors"
+        role="alert"
+        aria-live="assertive"
       >
         <Banner
           v-for="(err, i) in errors"
@@ -696,7 +697,6 @@ export default {
           :label="stringify(mappedErrors[err].message)"
           :icon="mappedErrors[err].icon"
           :closable="true"
-          role="alert"
           @close="closeError(i)"
         />
       </div>

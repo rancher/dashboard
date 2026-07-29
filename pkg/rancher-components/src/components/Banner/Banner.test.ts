@@ -81,24 +81,18 @@ describe('component: Banner', () => {
 
     const mainContainer = wrapper.find('.banner');
     const bannerIcon = wrapper.find('.banner__icon i');
-    const bannerContent = wrapper.find('.banner__content');
     const bannerCloseBtn = wrapper.find('.banner__content__closer');
     const bannerCloseIcon = wrapper.find('.icon-close.closer-icon');
 
-    const mainContainerRole = mainContainer.attributes('role');
-    const mainContainerAriaLabelledBy = mainContainer.attributes('aria-labelledby');
-
     const bannerIconAlt = bannerIcon.attributes('alt');
-
-    const bannerContentId = bannerContent.attributes('id');
 
     const bannerCloseBtnRole = bannerCloseBtn.attributes('role');
     const bannerCloseBtnAriaLabel = bannerCloseBtn.attributes('aria-label');
 
     const bannerCloseIconAlt = bannerCloseIcon.attributes('alt');
 
-    expect(mainContainerRole).toBe('region');
-    expect(mainContainerAriaLabelledBy).toBe(bannerContentId);
+    expect(mainContainer.attributes('role')).toBeUndefined();
+    expect(mainContainer.attributes('aria-labelledby')).toBeUndefined();
     expect(bannerIconAlt).toBeDefined();
     expect(bannerCloseIconAlt).toBeDefined();
     expect(bannerCloseBtnRole).toBe('button');
@@ -106,37 +100,46 @@ describe('component: Banner', () => {
   });
 
   describe('a11y: role prop (live region)', () => {
-    it('should default to role="region" when no role prop is provided', () => {
+    it('should have no role attribute by default', () => {
       const wrapper = mount(Banner, { propsData: { label: 'test' } });
       const mainContainer = wrapper.find('.banner');
 
-      expect(mainContainer.attributes('role')).toBe('region');
+      expect(mainContainer.attributes('role')).toBeUndefined();
     });
 
-    it('should render role="alert" for dynamically-injected error messages', () => {
+    it('should render role="alert" for persistent live-region containers announcing errors', () => {
       const wrapper = mount(Banner, { propsData: { label: 'Something went wrong', role: 'alert' } });
       const mainContainer = wrapper.find('.banner');
 
       expect(mainContainer.attributes('role')).toBe('alert');
     });
 
-    it('should render role="status" for polite notifications and state changes', () => {
+    it('should render role="status" for persistent live-region containers announcing polite notifications', () => {
       const wrapper = mount(Banner, { propsData: { label: 'Cluster is provisioning', role: 'status' } });
       const mainContainer = wrapper.find('.banner');
 
       expect(mainContainer.attributes('role')).toBe('status');
     });
 
-    it('should preserve aria-labelledby regardless of the role prop value', () => {
-      const cases = ['region', 'alert', 'status'] as const;
+    it('should apply aria-labelledby only when role="region"', () => {
+      const regionWrapper = mount(Banner, { propsData: { label: 'test', role: 'region' } });
+      const bannerContent = regionWrapper.find('.banner__content');
 
-      cases.forEach((role) => {
-        const wrapper = mount(Banner, { propsData: { label: 'test', role } });
-        const mainContainer = wrapper.find('.banner');
-        const bannerContent = wrapper.find('.banner__content');
+      expect(regionWrapper.find('.banner').attributes('aria-labelledby')).toBe(bannerContent.attributes('id'));
+    });
 
-        expect(mainContainer.attributes('aria-labelledby')).toBe(bannerContent.attributes('id'));
-      });
+    it('should not apply aria-labelledby when role is alert or status', () => {
+      const alertWrapper = mount(Banner, { propsData: { label: 'test', role: 'alert' } });
+      const statusWrapper = mount(Banner, { propsData: { label: 'test', role: 'status' } });
+
+      expect(alertWrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
+      expect(statusWrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
+    });
+
+    it('should not apply aria-labelledby when no role is set', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'test' } });
+
+      expect(wrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
     });
   });
 });

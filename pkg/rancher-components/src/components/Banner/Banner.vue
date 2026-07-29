@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { nlToBr, generateRandomAlphaString } from '@shell/utils/string';
+import { nlToBr } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
 /**
@@ -14,7 +14,7 @@ export interface Props {
   closable?: boolean;
   stacked?: boolean;
   disabled?: boolean;
-  role?: 'region' | 'alert' | 'status';
+  role?: 'alert' | 'status' | null;
 }
 
 export default defineComponent({
@@ -70,20 +70,17 @@ export default defineComponent({
       default: false
     },
     /**
-     * ARIA live region role. Use 'alert' for error messages that appear dynamically (e.g. form
-     * validation failures), 'status' for polite notifications (e.g. state changes, warnings), and
-     * 'region' (default) for static informational banners.
-     * @values region, alert, status
+     * ARIA live region role for persistent banners whose live-region responsibility is not
+     * handled by a wrapper element. Use 'alert' for error announcements (assertive) and
+     * 'status' for polite notifications. Omit when the wrapper div owns the live region.
+     * @values alert, status
      */
     role: {
       type:    String,
-      default: 'region'
+      default: null
     },
   },
-  emits: ['close'],
-  data() {
-    return { labelledbyId: `banner-labelledby-${ generateRandomAlphaString(12) }` };
-  },
+  emits:    ['close'],
   computed: {
     /**
      * Return message text as label.
@@ -102,8 +99,7 @@ export default defineComponent({
       [color]: true,
       'banner-disabled': disabled
     }"
-    :role="role"
-    :aria-labelledby="labelledbyId"
+    :role="role || undefined"
     tabindex="0"
   >
     <div
@@ -118,7 +114,6 @@ export default defineComponent({
       />
     </div>
     <div
-      :id="labelledbyId"
       class="banner__content"
       data-testid="banner-content"
       :class="{

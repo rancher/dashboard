@@ -410,6 +410,24 @@ export default {
 </script>
 
 <template>
+  <div
+    id="cru-errors"
+    class="cru__errors"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <Banner
+      v-for="(err, i) in errors"
+      :key="i"
+      color="error"
+      :data-testid="`error-banner${i}`"
+      :label="stringify(mappedErrors[err].message)"
+      :icon="mappedErrors[err].icon"
+      :closable="true"
+      @close="closeError(i)"
+    />
+  </div>
   <Loading v-if="$fetchState.pending || notFound" />
   <component
     :is="showComponent"
@@ -449,23 +467,6 @@ export default {
         :value="liveModel"
       />
     </Masthead>
-    <div
-      v-if="hasErrors"
-      id="cru-errors"
-      class="cru__errors"
-    >
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        :data-testid="`error-banner${i}`"
-        :label="stringify(mappedErrors[err].message)"
-        :icon="mappedErrors[err].icon"
-        :closable="true"
-        role="alert"
-        @close="closeError(i)"
-      />
-    </div>
 
     <ResourceYaml
       v-if="isYaml"

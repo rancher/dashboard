@@ -56,16 +56,21 @@ export default defineComponent({
     <div class="spacer-small" />
 
     <div
-      v-for="(err,idx) in errors"
-      :key="idx"
+      role="alert"
+      aria-live="assertive"
+      style="display: contents"
     >
-      <Banner
-        color="error"
-        :label="err"
-        :closable="true"
-        role="alert"
-        @close="closeError(idx)"
-      />
+      <div
+        v-for="(err,idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="err"
+          :closable="true"
+          @close="closeError(idx)"
+        />
+      </div>
     </div>
     <div class="buttons">
       <div class="left">

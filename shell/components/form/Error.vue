@@ -52,16 +52,21 @@ export default defineComponent({
 });
 </script>
 <template>
-  <Banner
-    v-if="!!asBanner && !!validationMessage"
-    color="error"
-    :label="validationMessage"
-    :icon="icon"
+  <div
     role="alert"
-  />
-  <span
-    v-else-if="!!validationMessage"
-    class="text-error"
-    data-testid="error-span"
-  >{{ validationMessage }}</span>
+    aria-atomic="true"
+    style="display: contents"
+  >
+    <Banner
+      v-if="!!asBanner && !!validationMessage"
+      color="error"
+      :label="validationMessage"
+      :icon="icon"
+    />
+    <span
+      v-else-if="!!validationMessage"
+      class="text-error"
+      data-testid="error-span"
+    >{{ validationMessage }}</span>
+  </div>
 </template>

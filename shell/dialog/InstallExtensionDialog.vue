@@ -327,18 +327,28 @@ export default {
         <p>
           {{ t(`plugins.${ buttonMode }.prompt`) }}
         </p>
-        <Banner
-          v-if="chartVersionLoadsWithoutAuth"
-          color="warning"
-          :label="t('plugins.warnNoAuth')"
+        <div
           role="status"
-        />
-        <Banner
-          v-if="!plugin?.certified"
-          color="warning"
-          :label="t('plugins.install.warnNotCertified')"
+          aria-atomic="true"
+          style="display: contents"
+        >
+          <Banner
+            v-if="chartVersionLoadsWithoutAuth"
+            color="warning"
+            :label="t('plugins.warnNoAuth')"
+          />
+        </div>
+        <div
           role="status"
-        />
+          aria-atomic="true"
+          style="display: contents"
+        >
+          <Banner
+            v-if="!plugin?.certified"
+            color="warning"
+            :label="t('plugins.install.warnNotCertified')"
+          />
+        </div>
         <LabeledSelect
           v-if="showVersionSelector"
           v-model:value="version"

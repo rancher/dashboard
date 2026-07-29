@@ -441,17 +441,22 @@ export default {
         :activeStep="activeStep"
       >
         <div
-          v-for="(err,idx) in errorStrings"
-          :key="idx"
+          role="alert"
+          aria-live="assertive"
+          style="display: contents"
         >
-          <Banner
-            color="error"
-            :label="err"
-            :closable="true"
-            class="footer-error"
-            role="alert"
-            @close="errors.splice(idx, 1)"
-          />
+          <div
+            v-for="(err,idx) in errorStrings"
+            :key="idx"
+          >
+            <Banner
+              color="error"
+              :label="err"
+              :closable="true"
+              class="footer-error"
+              @close="errors.splice(idx, 1)"
+            />
+          </div>
         </div>
         <div
           id="wizard-footer-controls"

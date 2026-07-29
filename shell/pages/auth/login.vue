@@ -382,20 +382,25 @@ export default {
           data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
         >
-          <Banner
-            v-if="errorToDisplay"
-            :label="errorToDisplay"
-            color="error"
+          <div
             role="alert"
-          />
+            aria-atomic="true"
+            style="display: contents"
+          >
+            <Banner
+              v-if="errorToDisplay"
+              :label="errorToDisplay"
+              color="error"
+            />
+          </div>
           <h4
-            v-else-if="loggedOut"
+            v-if="!errorToDisplay && loggedOut"
             class="text-success text-center"
           >
             {{ loggedOutSuccessMsg }}
           </h4>
           <h4
-            v-else-if="timedOut"
+            v-if="!errorToDisplay && !loggedOut && timedOut"
             class="text-error text-center"
           >
             {{ t('login.loginAgain') }}

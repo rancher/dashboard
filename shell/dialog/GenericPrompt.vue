@@ -107,13 +107,18 @@ export default {
 
     <template #actions>
       <div class="bottom">
-        <Banner
-          v-for="(err, i) in allErrors"
-          :key="i"
-          color="error"
-          :label="err"
+        <div
           role="alert"
-        />
+          aria-live="assertive"
+          style="display: contents"
+        >
+          <Banner
+            v-for="(err, i) in allErrors"
+            :key="i"
+            color="error"
+            :label="err"
+          />
+        </div>
         <div class="buttons">
           <button
             class="btn role-secondary mr-10"

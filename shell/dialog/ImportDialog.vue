@@ -185,13 +185,18 @@ export default {
         class="yaml-editor"
         @onReady="onReadyYamlEditor"
       />
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        :label="err"
+      <div
         role="alert"
-      />
+        aria-live="assertive"
+        style="display: contents"
+      >
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
+        />
+      </div>
     </template>
     <template #actions>
       <div
