@@ -125,7 +125,8 @@ export const SETTING = {
    */
   DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
-  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled'
+  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled',
+  DELETE_MACHINE_ON_FAILURE_AFTER:               'delete-machine-on-failure-after',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -193,6 +194,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
   [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
   [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
+  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:               { kind: 'string' },
 };
 
 /**
@@ -209,7 +211,8 @@ export const PROVISIONING_SETTINGS = [
   SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
   SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
   SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
-  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT
+  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT,
+  SETTING.DELETE_MACHINE_ON_FAILURE_AFTER,
 ];
 
 /**

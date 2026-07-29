@@ -18,7 +18,7 @@ These annotations allow you to specify compatibility with Kubernetes, Rancher Ma
 ### Other properties
 | Property | Value | Description |
 | ------ | :------: | --------------|
-| `noAuth` | `Boolean` | If `noAuth` is set to `true` then the extension will be loaded even when the user is logged out. (Rancher 2.9 - Extensions API 2.0) |
+| `noAuth` | `Boolean` | If `noAuth` is set to `true` then the extension will be loaded even when the user is logged out |
 
 ### Example
 

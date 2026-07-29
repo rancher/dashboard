@@ -83,7 +83,7 @@ Example 1:
 {}
 ```
 
-Passing an empty object as a `LocationObject` will apply a given extension enhancement to all locations where it can be apllied.
+Passing an empty object as a `LocationConfig` will apply a given extension enhancement to all locations where it can be applied.
 
 Example 2:
 ```ts

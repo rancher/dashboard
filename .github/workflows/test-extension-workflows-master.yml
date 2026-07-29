@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branch: [master, release-2.9, release-2.8]
+        branch: [master]
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -61,12 +61,10 @@ jobs:
 
   test-build-extension-charts-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@9bf23dff6650116673346447bcf0b088e0edb27f # creators-pkg-v3.0.12
     permissions:
-      actions: write
       contents: write
-      deployments: write
-      pages: write
+      pull-requests: write
     with:
       target_branch: 'gh-pages'
       tagged_release:  ${{ needs.retrieve-tags-master.outputs.EXTENSION_TAG }}
@@ -76,7 +74,7 @@ jobs:
 
   test-build-extension-catalog-master:
     needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@9eb70a732e9be146722e1dbab431338366c2afc6 # creators-pkg-v3.0.10
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@9bf23dff6650116673346447bcf0b088e0edb27f # creators-pkg-v3.0.12
     permissions:
       actions: write
       contents: read

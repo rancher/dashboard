@@ -5,10 +5,20 @@
 # ----------------------- Input
 # ---------------------------------
 
-USE_LOCAL_BRANCH_METADATA=true # we use an updated branch_metadata. once that's in master we can toggle this to false
+USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
 KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
+
+# On a probe wedge (steve/RBAC not converged) we do a FULL REBUILD: k3s-uninstall + re-run this whole
+# script from scratch — a genuinely clean instance — rather than just restarting the Rancher pod. A pod
+# restart re-reads the persisted k3s/etcd state and can leave CAPI/RBAC/impersonation in a half-broken
+# state (e.g. cattle-capi-system missing, auth failures downstream). PROVISION_ROLL counts the rebuilds.
+PROVISION_ROLL="${PROVISION_ROLL:-1}"
+PROVISION_MAX="${PROVISION_MAX:-3}"
+# Captured here so reprovision() can re-exec the script with its original args (inside a
+# function `$@` refers to the function's args, not the script's).
+SCRIPT_ARGS=("$@")
 
 # --------------------------------------
 # ----------------------- Setup Env Vars
@@ -105,8 +115,11 @@ if [ "$KUBE_TYPE" = "K3S" ]; then
   chmod 600 "$KUBECONFIG"
   
   echo "Installing helm.........."
+  # Pin the get-helm-3 installer to a fixed release tag rather than `main`. `main` is a moving ref, so
+  # whenever upstream updates this script the download drifts away from HELM_CHECKSUM and the guard below
+  # fails on every run (not just a flake). The v4.2.3 tag is immutable and already matches HELM_CHECKSUM.
   export HELM_CHECKSUM=38b65f882d9cae3891755bdb03becc6a01ae6f9cb24826c191f219ddfee70a5d
-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/v4.2.3/scripts/get-helm-3
 
   DOWNLOADED_CHECKSUM=$(sha256sum get_helm.sh | awk '{print $1}')
   if [ "$DOWNLOADED_CHECKSUM" != "${HELM_CHECKSUM}" ]; then
@@ -219,9 +232,12 @@ if [ "$OVERRIDE_UIS" == "true" ]; then
   kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
   kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
 
-  # Copy local builds to root folders that should contain UIs
-  mv $DASHBOARD_DIST dashboard
-  mv $EMBER_DIST ui
+  # Copy local builds to root folders that should contain UIs.
+  # Guard the mv so a REBUILD re-run is idempotent: on the first provision we move $DASHBOARD_DIST/$EMBER_DIST
+  # into ./dashboard and ./ui; on a rebuild those source dirs are already gone, so we keep the moved copies and
+  # just re-cp them into the freshly-provisioned pod.
+  [ -d dashboard ] || mv $DASHBOARD_DIST dashboard
+  [ -d ui ] || mv $EMBER_DIST ui
   kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
   kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
@@ -237,28 +253,87 @@ fi
 
 echo "Dashboard UI is ready"
 
+# On a readiness-check failure, a Rancher pod restart is not enough: it re-reads the persisted
+# k3s/etcd state and tends to leave CAPI/RBAC/impersonation half-broken. So instead of failing the
+# step outright, tear the WHOLE environment down (k3s-uninstall) and re-run this script from scratch
+# for a genuinely clean instance, up to PROVISION_MAX times; only then fail. $1 is the reason to log.
+reprovision() {
+  local reason="$1"
+
+  if [ "$PROVISION_ROLL" -ge "$PROVISION_MAX" ]; then
+    echo "$reason - and Rancher never converged after $PROVISION_MAX full rebuilds. Failing the step."
+    kubectl -n cattle-system logs deploy/rancher --tail=120 2>/dev/null || true
+    exit 1
+  fi
+
+  echo "$reason - REBUILDING the whole environment from scratch (rebuild $((PROVISION_ROLL + 1))/$PROVISION_MAX)..."
+  kubectl -n cattle-system logs deploy/rancher --tail=60 2>/dev/null || true
+
+  if [ "$KUBE_TYPE" = "K3S" ] && [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+    echo "Tearing down k3s..."
+    sudo /usr/local/bin/k3s-uninstall.sh || echo "WARN: k3s-uninstall.sh returned non-zero (continuing to reinstall)"
+  else
+    echo "WARN: cannot cleanly tear down (KUBE_TYPE=$KUBE_TYPE, /usr/local/bin/k3s-uninstall.sh missing) - re-running anyway"
+  fi
+
+  echo "Re-running provisioning from scratch..."
+  exec env PROVISION_ROLL=$((PROVISION_ROLL + 1)) bash "$0" "${SCRIPT_ARGS[@]}"
+}
+
+# wait 10 minutes (sleep 10 seconds * 60 iteration = 600 seconds = 10 minutes)
+# if it regularly takes 10 minutes we have problems...
+wait=60
+
 echo "Waiting for rancher-webhook to be running..."
 okay=0
-while [ $okay -lt 30 ] ; do
+while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
   else
-    echo "Webhook not ready, checking again in 10s..."
+    echo "Webhook not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
     sleep 10
   fi
 done
 
+if [ $okay -eq $wait ]; then
+  reprovision "Rancher webhook did not become ready in a reasonable time"
+fi
+
 echo "Waiting for capi-webhook-service to exist..."
 okay=0
-while [ $okay -lt 30 ] ; do
+while [ $okay -lt $wait ] ; do
   if kubectl -n cattle-capi-system get service capi-webhook-service | grep '443/TCP' ; then
     break
   else
-    echo "capi-webhook-service does not exist, checking again in 10s..."
+    echo "capi-webhook-service does not exist, checking again in 10s (total time waited: $((okay * 10))s)..."
+    kubectl get service --all-namespaces
+    kubectl -n cattle-capi-system describe service capi-webhook-service
     okay=$((okay+1))
     sleep 10
   fi
 done
+
+if [ $okay -eq $wait ]; then
+  reprovision "CAPI webhook service did not become available in a reasonable time"
+fi
+
+echo "Waiting for rancher imperative api to be running..."
+okay=0
+while [ $okay -lt $wait ] ; do
+  STATUS=$(kubectl get apiservice v1.ext.cattle.io -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null)
+
+  if [ "$STATUS" = "True" ]; then
+    break
+  else
+    echo "Rancher imperative api not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
+    okay=$((okay+1))
+    sleep 10
+  fi
+done
+
+if [ $okay -eq $wait ]; then
+  reprovision "Rancher imperative api did not become ready in a reasonable time"
+fi
 
 echo "Rancher is ready"

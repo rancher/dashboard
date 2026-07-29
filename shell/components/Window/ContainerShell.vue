@@ -13,6 +13,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
 } from '@shell/utils/socket';
+import { readTextFromClipboard } from '@shell/utils/clipboard';
 import Window from './Window';
 import dayjs from 'dayjs';
 
@@ -24,6 +25,9 @@ const commands = {
   ],
   windows: ['cmd']
 };
+
+// Button number for the middle button with a mousedown event
+const MIDDLE_BUTTON = 1;
 
 export default {
   components: { Window, Select },
@@ -157,6 +161,9 @@ export default {
     this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.removeEventListener('focusout', this.focusOutHandler);
 
+    document.removeEventListener('mousedown', this.handleMouseDown);
+    document.removeEventListener('copy', this.handleCopyEvent);
+
     clearInterval(this.keepAliveTimer);
     this.cleanup();
   },
@@ -165,6 +172,8 @@ export default {
     document.addEventListener('keyup', this.handleKeyPress);
     this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.addEventListener('focusout', this.focusOutHandler);
+    document.addEventListener('mousedown', this.handleMouseDown);
+    document.addEventListener('copy', this.handleCopyEvent);
 
     const nodeId = this.pod.spec?.nodeName;
 
@@ -199,6 +208,20 @@ export default {
       this.currFocusedElem = undefined;
     },
 
+    handleMouseDown(ev) {
+      // Paste from clipboard on middle click if the xterm is focused. This is a common behavior in Linux terminals.
+      if (this.isXtermFocused && ev.button === MIDDLE_BUTTON) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        readTextFromClipboard().then((text) => {
+          if (text) {
+            this.terminal.paste(text);
+          }
+        });
+      }
+    },
+
     handleKeyPress(ev) {
       ev.preventDefault();
       ev.stopPropagation();
@@ -213,6 +236,17 @@ export default {
       // if parent container is focused and we press a trigger, focus goes to the shell inside
       if (this.isXtermContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
         this.terminal?.textarea?.focus();
+      }
+    },
+
+    // Copy the selected text from the terminal to the clipboard when the user uses the browser copy
+    handleCopyEvent(ev) {
+      if (this.isXtermFocused && this.terminal?.hasSelection()) {
+        const txt = this.terminal.getSelection();
+
+        ev.clipboardData.setData('text/plain', txt);
+        ev.preventDefault();
+        ev.stopPropagation();
       }
     },
 

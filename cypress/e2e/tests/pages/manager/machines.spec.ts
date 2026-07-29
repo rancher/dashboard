@@ -119,14 +119,6 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
     cy.wait('@deleteCloudCred');
     machinesPage.waitForPage();
 
-    cy.getRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, 200).then((resp) => {
-      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
-      const resource = resp.body;
-
-      delete resource.metadata.finalizers;
-      cy.setRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, resource);
-    });
-
     // check list details
     cy.contains(this.machineName).should('not.exist');
   });

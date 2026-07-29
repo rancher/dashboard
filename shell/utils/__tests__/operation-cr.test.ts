@@ -20,7 +20,10 @@ describe('util: operation-cr', () => {
         namespace:    'c-m-1',
         generateName: 'cluster-name-'
       },
-      spec,
+      spec: {
+        ...spec,
+        ttl: 60,
+      },
     }, { root: true });
     expect(save).toHaveBeenCalledWith();
     expect(out).toStrictEqual({ id: 'op-1' });

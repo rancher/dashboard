@@ -1,6 +1,6 @@
-name: Observability
+name: SUSE Observability
 author: SUSE
 authorUrl: https://www.rancher.com/products/rancher-platform
-description: SUSE's comprehensive monitoring and management for modern IT environments
+description: Analyzes multi-cluster telemetry with AI-powered insights for accelerated incident resolution
 url: https://www.suse.com/solutions/observability
-icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/refs/heads/main/icons/observability/2.0.0-rancher-observability.svg
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/main/patches/observability/files/icon.svg

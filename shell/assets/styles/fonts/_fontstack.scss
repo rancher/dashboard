@@ -20,6 +20,26 @@
 
 /**
  * Lato Font (Latin) (see: https://www.latofonts.com/)
+ *
+ * The vendored LatoLatin webfonts here have been patched to normalize their
+ * vertical metrics back to the pre-2.15 (lato-v17) line box. The official
+ * LatoLatin build is metrically identical to the old build EXCEPT that it sets
+ * the OS/2 USE_TYPO_METRICS flag, which makes browsers lay text out with Lato's
+ * typo ascent/descent plus a 20% line-gap instead of the hhea metrics the old
+ * build used. That shifts every glyph within its line box and knocked page
+ * headers, input labels/values, tabs, the namespace filter, buttons and radios
+ * out of alignment app-wide.
+ *
+ * The fix clears the OS/2 fsSelection USE_TYPO_METRICS bit (bit 7) in each
+ * .woff2/.woff so the browser uses Lato's native hhea box, exactly reproducing
+ * the old font's rendering. This is done at the font level rather than via CSS
+ * `ascent-override` on purpose: the override descriptors take a different
+ * layout path that macOS Firefox does not position identically to native
+ * metrics (it shifts text down ~1px there), whereas patching the font uses the
+ * same native path every browser/OS handled correctly for years.
+ *
+ * If these fonts are ever re-vendored from upstream, re-clear the bit (see the
+ * font-metric guard follow-up issue) or the app-wide misalignment returns.
  **/
 
 /* Webfont: Lato-Light (300) */

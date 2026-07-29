@@ -122,6 +122,11 @@ export default {
       default: true,
     },
 
+    showLabelDescription: {
+      type:    Boolean,
+      default: true,
+    },
+
     addIcon: {
       type:    String,
       default: '',
@@ -185,7 +190,10 @@ export default {
             :on-label="t('labels.labels.show')"
           />
         </div>
-        <p class="mt-10 mb-10">
+        <p
+          v-if="showLabelDescription"
+          class="mt-10 mb-10"
+        >
           <t k="labels.labels.description" />
         </p>
         <div :class="columnsClass">

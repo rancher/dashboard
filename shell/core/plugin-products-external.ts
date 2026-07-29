@@ -300,8 +300,9 @@ type _ProductMetadata = LabelOrLabelKey & {
     hideSystemResources?: boolean;
 
     /**
-    * The vuex store that this product should use by default i.e. 'management'
-    */
+     * The vuex store that this product caches its resources in. By default this is `management` which represents resources in the Rancher `local` cluster.
+     * This can be changed to `cluster` if the Product uses a specific downstream cluster (cluster ID must be defined in Vue Route) or a custom store if the extension defines one
+     */
     store?: string;
   }
 

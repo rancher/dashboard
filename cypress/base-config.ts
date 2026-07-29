@@ -108,6 +108,11 @@ const baseConfig = defineConfig({
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
+  // Don't retain per-test DOM snapshots across the run. On Cypress 11 (no
+  // experimentalMemoryManagement, which needs 11.4+) these accumulate over a 24-spec
+  // run until the runner is memory-starved and Chrome can't relaunch between specs,
+  // crashing with "Missing browserCriClient in connectToNewSpec". 0 = keep none.
+  numTestsKeptInMemory:  0,
   retries:               {
     runMode:  2,
     openMode: 0
@@ -137,7 +142,6 @@ const baseConfig = defineConfig({
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:                 process.env.GREP_TAGS,
-    VAI_ENABLED:              process.env.VAI_ENABLED,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:             process.env.AWS_SECRET_ACCESS_KEY,
@@ -167,6 +171,22 @@ const baseConfig = defineConfig({
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
+      // On CI runners Chrome can crash between specs (small /dev/shm) or be too
+      // slow to connect on first launch under CPU contention, both surfacing as
+      // "Timed out waiting for the browser to connect" / "Missing browserCriClient
+      // in connectToNewSpec". Point shared memory at /tmp (disk), and drop the GPU
+      // + sandbox startup work Chrome can't use headless so it launches faster and
+      // connects within Cypress' fixed 60s window.
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--no-sandbox');
+        }
+
+        return launchOptions;
+      });
+
       on('task', {
         removeDirectory,
         getHostStats: async() => {
@@ -182,6 +202,12 @@ const baseConfig = defineConfig({
           };
         },
       });
+      // Signals to the shared `afterEach` in `support/e2e.ts` that the `getHostStats`
+      // task has been registered by this config. Consumers of `@rancher/cypress` that
+      // supply their own `setupNodeEvents` (e.g. Jenkins runners) won't set this
+      // flag, so the `afterEach` will skip calling the task and avoid failing the
+      // hook (which would skip all remaining tests in the spec).
+      config.env.hasHostStats = true;
       websocketTasks(on, config);
 
       require('cypress-terminal-report/src/installLogsPrinter')(on, {

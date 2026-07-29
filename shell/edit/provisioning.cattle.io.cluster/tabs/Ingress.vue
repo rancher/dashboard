@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { _CREATE, _VIEW, _EDIT } from '@shell/config/query-params';
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, computed, useTemplateRef, watch } from 'vue';
 import { useStore } from 'vuex';
+import semver from 'semver';
 import { useI18n } from '@shell/composables/useI18n';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { Banner } from '@components/Banner';
@@ -51,6 +52,42 @@ const showTraefikBanner = ref<Boolean>(false);
 const traefikMerged = ref(initYamlEditor(traefikChart));
 const nginxMerged = ref(initYamlEditor(nginxChart));
 const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[nginxChart]);
+
+// in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX
+const traefikNginxKey = computed(() => {
+  const chartVersion = versionInfo[traefikChart]?.chart?.version;
+
+  // regex: replace zeros that follow . and precede digits with just the .<digit> eg 32.1.002 -> 32.1.2
+  // semver coerce will return null if version has leading zeros
+  const cleaned = chartVersion?.replace(/\.0+(\d)/g, '.$1');
+  const coerced = cleaned ? semver.coerce(cleaned) : null;
+
+  if (coerced && semver.lt(coerced, '40.0.0')) {
+    return 'kubernetesIngressNginx';
+  }
+
+  return 'kubernetesIngressNGINX';
+});
+
+watch(traefikNginxKey, (newKey, oldKey) => {
+  if (oldKey && newKey !== oldKey) {
+    const oldValues = get(traefikMerged.value, `providers.${ oldKey }`);
+
+    if (oldValues) {
+      set(traefikMerged.value, `providers.${ newKey }`, oldValues);
+      delete (traefikMerged.value as any)?.providers?.[oldKey];
+
+      // Only emit if the user had previously saved values under the old key
+      // this will cover the scenario where a user is using 'dual mode' then upgrades k8s version to one that uses a newer traefik version
+      const savedOldValues = get(userChartValues[traefikChart], `providers.${ oldKey }`);
+
+      if (savedOldValues) {
+        emit('update-values', traefikChart, traefikMerged.value);
+        updateYaml(traefikYaml.value, traefikMerged.value);
+      }
+    }
+  }
+});
 
 const ingressSelection = computed(() => {
   if (Array.isArray(value) ) {
@@ -110,13 +147,15 @@ function initYamlEditor(chart: string) {
 }
 
 function setCompatibilityModeValues(val: boolean) {
-  set(traefikMerged.value, 'providers.kubernetesIngressNginx.enabled', val);
+  const key = traefikNginxKey.value;
+
+  set(traefikMerged.value, `providers.${ key }.enabled`, val);
   if (!val) {
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', INGRESS_CLASS_DEFAULT);
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', INGRESS_CONTROLLER_CLASS_DEFAULT);
+    set(traefikMerged.value, `providers.${ key }.ingressClass`, INGRESS_CLASS_DEFAULT);
+    set(traefikMerged.value, `providers.${ key }.controllerClass`, INGRESS_CONTROLLER_CLASS_DEFAULT);
   } else {
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.ingressClass', INGRESS_CLASS_MIGRATION);
-    set(traefikMerged.value, 'providers.kubernetesIngressNginx.controllerClass', INGRESS_CONTROLLER_CLASS_MIGRATION);
+    set(traefikMerged.value, `providers.${ key }.ingressClass`, INGRESS_CLASS_MIGRATION);
+    set(traefikMerged.value, `providers.${ key }.controllerClass`, INGRESS_CONTROLLER_CLASS_MIGRATION);
   }
 }
 
@@ -170,7 +209,7 @@ const traefikHttps = computed({
 
 const compatibilityMode = computed({
   get() {
-    return get(traefikMerged.value, 'providers.kubernetesIngressNginx.enabled');
+    return get(traefikMerged.value, `providers.${ traefikNginxKey.value }.enabled`);
   },
   set(val: boolean) {
     setCompatibilityModeValues(val);

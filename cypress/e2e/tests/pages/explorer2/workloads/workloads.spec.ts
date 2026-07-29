@@ -6,7 +6,7 @@ import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/wor
 import NodeSchedulingPo from '@/cypress/e2e/po/components/workloads/node-scheduling.po';
 import { qase } from '@/cypress/support/qase';
 
-describe('Workloads', { tags: ['@noVai', '@adminUser'] }, () => {
+describe('Workloads', { tags: ['@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

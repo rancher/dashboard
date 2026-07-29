@@ -146,11 +146,12 @@ export default class ProvCluster extends SteveModel {
         bulkable:   true,
         enabled:    this.mgmt?.canCreateKubeconfig,
       }, {
-        action:   'copyKubeConfig',
-        label:    this.t('cluster.copyConfig'),
-        bulkable: false,
-        enabled:  this.mgmt?.canCreateKubeconfig,
-        icon:     'icon icon-copy',
+        action:     'copyKubeConfig',
+        bulkAction: 'copyKubeConfigBulk',
+        label:      this.t('cluster.copyConfig'),
+        bulkable:   true,
+        enabled:    this.mgmt?.canCreateKubeconfig,
+        icon:       'icon icon-copy',
       }, {
         action:     'snapshotAction',
         label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
@@ -325,7 +326,7 @@ export default class ProvCluster extends SteveModel {
    * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
    */
   get isImportedWithDayTwoOps() {
-    const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationExists = typeof this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
     const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
     const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
     const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
@@ -551,6 +552,10 @@ export default class ProvCluster extends SteveModel {
 
   downloadKubeConfigBulk(items) {
     return this.mgmt?.downloadKubeConfigBulk(items);
+  }
+
+  copyKubeConfigBulk(items) {
+    return this.mgmt?.copyKubeConfigBulk(items);
   }
 
   async snapshotAction() {

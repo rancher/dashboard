@@ -504,7 +504,7 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted permissions equal to the currently logged in Rancher user. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
-  bannerEnableAuthProvider: "The \"Disable Local Authentication\" setting is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access."
+  bannerEnableAuthProvider: "The \"Disable Local Authentication\" setting is enabled. Enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access. Please see {vendor} documentation for more information."
   githubapp:
     clientId:
       label: Client ID
@@ -1367,8 +1367,8 @@ catalog:
         generatedNewImagePullSecret: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated"
         generatedImagePullSecretBannerFromPreviousAuth: "A new Image Pull Secret <b>{ imagePullSecretName }</b> will be generated from the Repository secret <b>{ repoAuthenticationName }</b>."
         usePreviouslyGeneratedImagePullSecretBanner: "Image Pull Secret <b>{ imagePullSecretName }</b> was already created previously from the Repository secret <b>{ repoAuthenticationName }</b> and will be used."
-        oldMonitoringChartWarning: "From v2.15.0 this chart is deprecated, instead please use the new Rancher Monitoring Dashboard chart."
-        newMonitoringChartWarning: "Before installing the new Rancher Monitoring Dashboard chart please make sure any applications using the old Rancher Monitoring Chart have been uninstalled and dependencies such as Prometheus have been installed."
+        oldMonitoringChartWarning: 'From v2.15.0 this chart is deprecated, instead please use the new Rancher Monitoring Dashboard chart. For more information please see <a href="{docsBase}/integrations-in-rancher/monitoring-and-alerting#monitoring-dashboard" target="_blank" rel="noopener noreferrer">the documentation</a><span class="sr-only">Opens in a new tab</span>.'
+        newMonitoringChartWarning: 'Before installing the new Rancher Monitoring Dashboard chart please make sure any applications using the old Rancher Monitoring Chart have been uninstalled and dependencies such as Prometheus have been installed. For more information please see <a href="{docsBase}/integrations-in-rancher/monitoring-and-alerting#monitoring-dashboard" target="_blank" rel="noopener noreferrer">the documentation</a><span class="sr-only">Opens in a new tab</span>.'
       clusterTplVersion:
         label: Version
         subtext: Select a version of the template
@@ -5932,6 +5932,9 @@ projectNamespaces:
   isIstioInjectionEnabled: Istio automatic sidecar injection is enabled for this namespace
 
 prometheusRule:
+  labels:
+    title: Prometheus Match Labels
+    tooltip: These labels must match the ruleSelector configured on the Prometheus resource. The Prometheus Operator uses this selector to discover which PrometheusRule resources to evaluate.
   alertingRules:
     addLabel: Add Alert
     annotations:
@@ -9019,8 +9022,9 @@ advancedSettings:
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
     'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
     'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
+    'delete-machine-on-failure-after': Defines the number of seconds after which Rancher will delete infrastructure machines that have failed provisioning. Set to 0 to disable automatic deletion of failed machines.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
-    'imported-cluster-day2-ops-enabled': Controls whether newly imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This does not affect previously imported clusters.
+    'imported-cluster-day2-ops-enabled': Controls whether imported RKE2/K3s clusters will have day 2 operations (etcd snapshots, restores, encryption key rotations) enabled by default. This will affect all clusters using the default configuration, and can be overridden at the cluster level.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
@@ -9049,7 +9053,7 @@ advancedSettings:
 
 featureFlags:
   description:
-    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access
+    'hide-local-auth-provider': Activating this feature and enabling an Authentication Provider will prevent users from logging in with local credentials. In the event of a Provider failure no user will be able to log in. Ensure you have continued API or CLI access to Rancher to disable the feature and regain access. Please see {vendor} documentation for more information.
   label: Feature Flags
   title: "Are you sure?"
   warning: |-

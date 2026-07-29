@@ -2,7 +2,7 @@
 
 This guide will walk through setting up your development environment and creating a new Rancher extension.
 
-For an easy follow of this guide, there is two different concepts that a developer should understand:
+The following two concepts are important to understand for UI extension development:
 - A `Development app` is the environment on which you will develop and test your Rancher extensions. In a `Development app` you can have multiple `extensions`/`packages`
 - An `extension`/`package` is the actual extension code
 
@@ -38,15 +38,9 @@ npm init @rancher/extension@latest my-app
 cd my-app && yarn install
 ```
 
-This command will create a new development app in a folder called `my-app` and also create you first extension package also named `my-app` (inside `/pkg` folder) populating it with the minimum files needed for your extension.
+This command will create a new development app in a folder called `my-app` and also creates your first extension package, also named `my-app` (inside `/pkg` folder), populating it with the minimum files needed for your extension.
 
-If you want want to add another `extension` inside the same development app, you'll need to be inside the root folder of the development app and just run the init command with the desired name for the other extension:
-
-```sh
-npm init @rancher/extension@latest another-extension
-```
-
-> NOTE: the `npm init` command must always use the same tag as the one that generated it. Also check examples below.
+> NOTE: the `npm init` command must always use the same tag as the one that generated it. See examples below.
 
 ### _Extension Options_
 
@@ -70,7 +64,7 @@ npm init @rancher/extension@latest new-extension -- --app-name my-app
 
 This will create a development app named `my-app` and an extension package named `new-extension`.
 
-- If you are already within a development app and want to create another extension package within the same application, simply run the same command:
+- If you are already within a development app and want to create another extension package within the same application, make sure you are inside the root folder of the development app and run the same command:
 
 ```sh
 npm init @rancher/extension@latest another-extension
@@ -95,20 +89,22 @@ As stated before, when you generate/support multiple extensions fom the same dev
 
 ## Running the Development app
 
-After you've generated your development app and You can run the app with:
+After you've generated your development app, you can run the app with:
 
 ```sh
 yarn install
 API=<Rancher Backend URL> yarn dev
 ```
 
-You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your development app is a full Rancher UI - but referenced via `npm`.
+You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your development app runs the full Rancher UI, with the core dashboard sourced from the `@rancher/shell` npm package rather than from source.
 
 ## Developing your first Extension
 
 To develop your first extension, you can check the documentation for the **[Extensions API](./api/overview.md)** to learn all the resources that an extension can use, or you can just follow the **[Usecases/Examples](./usecases/overview.md)** that we have included in our documentation for the most common usecases. Nevertheless, we will include a very quick guide below for you to follow.
 
 ### Basic extension example
+
+By the end of this example you'll have a new item in Rancher's main navigation sidebar that leads to a custom page. If your dev server is already running (`yarn dev`), saving the files below will hot-reload the browser automatically — no restart needed.
 
 Replace the contents of the file `./pkg/my-app/index.ts` with:
 
@@ -133,6 +129,12 @@ export default function (plugin: IPlugin) {
   plugin.addRoutes(extensionRouting);
 }
 ```
+
+**What these calls do:**
+- **`importTypes(plugin)`** — auto-registers any model, detail, or edit view components placed in conventional folders (`./models/`, `./detail/`, `./edit/`). Safe to omit if your extension has no custom Kubernetes resource views.
+- **`plugin.metadata`** — reads `name`, `version`, and `description` from your `package.json` and exposes them to Rancher's Extensions marketplace. Without this, installed extensions show no display name.
+- **`plugin.addProduct`** — loads your `product.ts` and registers the top-level navigation product it defines.
+- **`plugin.addRoutes`** — registers the Vue Router routes from your routing file so Rancher knows which component to render when a user navigates to your extension's pages.
 
 Next, create a new file `./pkg/my-app/product.ts` with this content:
 
@@ -162,9 +164,11 @@ export function init($extension: IPlugin, store: any) {
 }
 ```
 
-And finally create a file + folder `/routing/extension-routing.js` with the content:
+> **Note on `BLANK_CLUSTER = '_'`:** This is a Rancher convention meaning "this product does not operate in the context of a specific downstream cluster". Global products (like Fleet or Cluster Management) use `'_'` because they manage resources across all clusters. If you were building a cluster-scoped product you would use `'cluster'` as the `inStore` value instead. See [Concepts](./api/concepts.md#what-is-a-cluster-level-product) for the distinction.
 
-```js
+And finally create a file + folder `/routing/extension-routing.ts` with the content:
+
+```ts
 // Don't forget to create a VueJS page called index.vue in the /pages folder!!!
 import Dashboard from '../pages/index.vue';
 
@@ -237,7 +241,7 @@ Go to the three dot menu and select 'Developer load' - you'll get a dialog allow
 In the top input box `Extension URL`, enter:
 
 ```
-https://127.0.0.1:8005/pkg/my-app-0.1.0/my-app-0.1.0.umd.min.js
+http://127.0.0.1:4500/my-app-0.1.0/my-app-0.1.0.umd.min.js
 ```
 
 Press 'Load' and the extension will be loaded, you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
@@ -277,7 +281,7 @@ Creating a Release for your extension is the official avenue for loading extensi
 
 For the Getting Started guide, we will only focus on releasing your extension as a [Helm Chart](./publishing#publishing-an-extension-as-a-helm-chart). For that we recommend following the **[baked-in automated publish on Github](./publishing.md#helm-chart-automated-approach)** that we offer via Github workflows.
 
-> Note: GitLab support is offered through leverging the ECI build. For configuration instructions, follow the setps in the [Gitlab Integration](./publishing#gitlab-integration) section.
+> Note: GitLab support is offered through leveraging the ECI build. For configuration instructions, follow the steps in the [Gitlab Integration](./publishing#gitlab-integration) section.
 
 
 ### Release Prerequisites

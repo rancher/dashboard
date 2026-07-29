@@ -64,7 +64,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const daemonSetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
     let uniqueDaemonSet = SortableTablePo.firstByDefaultName('daemonset');

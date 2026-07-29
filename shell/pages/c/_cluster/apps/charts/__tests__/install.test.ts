@@ -594,42 +594,42 @@ describe('page: Install', () => {
       });
     };
 
-    it('showMonitoringBanner should return translation key if releaseName matches rancher-monitoring (install or edit)', () => {
+    it('monitoringChartWarning should return translation key if releaseName matches rancher-monitoring (install or edit)', () => {
       const wrapper1 = setupComponent(true, 'rancher-monitoring', '', '');
 
-      expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
+      expect((wrapper1.vm as any).monitoringChartWarning).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
 
       const wrapper2 = setupComponent(true, '', 'rancher-monitoring', 'rancher-monitoring');
 
-      expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
+      expect((wrapper2.vm as any).monitoringChartWarning).toBeNull();
 
       const wrapper3 = setupComponent(false, 'rancher-monitoring', '', '');
 
-      expect((wrapper3.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
+      expect((wrapper3.vm as any).monitoringChartWarning).toBe('catalog.install.steps.basics.oldMonitoringChartWarning');
     });
 
-    it('showMonitoringBanner should return translation key if existing is false and releaseName matches rancher-monitoring-dashboards', () => {
+    it('monitoringChartWarning should return translation key if existing is false and releaseName matches rancher-monitoring-dashboards', () => {
       const wrapper1 = setupComponent(false, 'rancher-monitoring-dashboards', '', '');
 
-      expect((wrapper1.vm as any).showMonitoringBanner).toBe('catalog.install.steps.basics.newMonitoringChartWarning');
+      expect((wrapper1.vm as any).monitoringChartWarning).toBe('catalog.install.steps.basics.newMonitoringChartWarning');
 
       const wrapper2 = setupComponent(false, '', 'rancher-monitoring-dashboards', 'rancher-monitoring-dashboards');
 
-      expect((wrapper2.vm as any).showMonitoringBanner).toBeNull();
+      expect((wrapper2.vm as any).monitoringChartWarning).toBeNull();
 
       const wrapper3 = setupComponent(true, 'rancher-monitoring-dashboards', '', '');
 
-      expect((wrapper3.vm as any).showMonitoringBanner).toBeNull();
+      expect((wrapper3.vm as any).monitoringChartWarning).toBeNull();
     });
 
-    it('showMonitoringBanner should return null when the chart is not Rancher-certified, even if the release name matches', () => {
+    it('monitoringChartWarning should return null when the chart is not Rancher-certified, even if the release name matches', () => {
       const oldChartThirdParty = setupComponent(false, 'rancher-monitoring', '', '', [], 'partner');
 
-      expect((oldChartThirdParty.vm as any).showMonitoringBanner).toBeNull();
+      expect((oldChartThirdParty.vm as any).monitoringChartWarning).toBeNull();
 
       const newChartThirdParty = setupComponent(false, 'rancher-monitoring-dashboards', '', '', [], '');
 
-      expect((newChartThirdParty.vm as any).showMonitoringBanner).toBeNull();
+      expect((newChartThirdParty.vm as any).monitoringChartWarning).toBeNull();
     });
   });
 });

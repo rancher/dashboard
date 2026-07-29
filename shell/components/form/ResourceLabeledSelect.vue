@@ -32,6 +32,14 @@ export default defineComponent({
       required: true
     },
 
+    /**
+     * Used with @resourceType to determine if pagination is enabled
+     */
+    context: {
+      type:    String,
+      default: null,
+    },
+
     inStore: {
       type:    String,
       default: undefined,

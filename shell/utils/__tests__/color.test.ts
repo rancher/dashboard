@@ -191,9 +191,64 @@ describe('shell/utils/color', () => {
         '--primary-banner-bg',
         '--primary-light-bg',
         '--primary-keyboard-focus',
+        '--active',
+        '--active-nav',
+        '--active-hover',
+        '--on-active',
+        '--category-active',
+        '--non-primary-hover',
+        '--secondary-border',
+        '--on-secondary',
       ];
 
       expect(Object.keys(vars)).toStrictEqual(expectedKeys);
+    });
+
+    // Regression test for https://github.com/rancher/dashboard/issues/16905
+    // The side-nav / top-nav in the modern theme are painted with these vars, which don't
+    // derive from --primary, so a custom branding color must override them too.
+    it('overrides the modern-theme nav/active vars with the custom primary color', () => {
+      const vars = createCssVars('#4a90d9', 'light', 'primary');
+
+      expect(vars['--active']).toStrictEqual('#4a90d9');
+      expect(vars['--active-nav']).toStrictEqual('#4a90d9');
+      expect(vars['--active-hover']).toBeDefined();
+      expect(vars['--on-active']).toBeDefined();
+      expect(vars['--category-active']).toContain('rgba');
+      expect(vars['--non-primary-hover']).toContain('rgba');
+      expect(vars['--secondary-border']).toStrictEqual('#4a90d9');
+      expect(vars['--on-secondary']).toStrictEqual('#4a90d9');
+    });
+
+    it('does not emit primary-only nav/active vars for the link name', () => {
+      const vars = createCssVars('#4a90d9', 'light', 'link');
+
+      expect(vars).not.toHaveProperty('--active');
+      expect(vars).not.toHaveProperty('--active-nav');
+      expect(vars).not.toHaveProperty('--category-active');
+      expect(vars).not.toHaveProperty('--non-primary-hover');
+      expect(vars).not.toHaveProperty('--secondary-border');
+      expect(vars).not.toHaveProperty('--on-secondary');
+    });
+
+    // Regression test for https://github.com/rancher/dashboard/issues/16905
+    // The Prime (.suse) theme decouples the tertiary family from --link and hardcodes it green,
+    // so a custom link color must override the tertiary vars to reach the nav icons on Prime.
+    it('overrides the tertiary family with the custom link color for the link name', () => {
+      const vars = createCssVars('#bda400', 'light', 'link');
+
+      expect(vars['--on-tertiary']).toStrictEqual('#bda400');
+      expect(vars['--on-tertiary-hover']).toStrictEqual('#bda400');
+      expect(vars['--on-tertiary-header']).toStrictEqual('#bda400');
+      expect(vars['--on-tertiary-header-hover']).toStrictEqual('#bda400');
+      expect(vars['--tertiary-hover-app-bar']).toStrictEqual('#bda400');
+    });
+
+    it('does not emit tertiary vars for the primary name', () => {
+      const vars = createCssVars('#4a90d9', 'light', 'primary');
+
+      expect(vars).not.toHaveProperty('--on-tertiary');
+      expect(vars).not.toHaveProperty('--tertiary-hover-app-bar');
     });
 
     it('sets --primary to the input color', () => {

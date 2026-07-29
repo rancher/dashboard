@@ -1,5 +1,49 @@
 # Concepts
 
+## Plugin lifecycle
+
+When Rancher loads an extension, it calls the extension's **default export function**, passing an `IPlugin` instance:
+
+```ts
+export default function(plugin: IPlugin) {
+  // register everything here
+}
+```
+
+This function is called once at load time. All products, routes, and UI injections must be registered inside it.
+
+---
+
+## IPlugin
+
+`IPlugin` (imported from `@shell/core/types`) is the object through which your extension registers everything it contributes. The key properties and methods are:
+
+| Property / Method | Purpose |
+|---|---|
+| `plugin.metadata` | Set display name, version, and description shown in the Extensions marketplace |
+| `plugin.addProduct(def)` | Register a top-level product (loads your `product.ts`) |
+| `plugin.addRoutes(routes)` | Register Vue Router routes for your product's pages |
+| `plugin.DSL(store, productName)` | Get the DSL helper functions scoped to a named product |
+
+UI injection methods (`addTab`, `addPanel`, `addAction`, `addCard`, `addTableColumn`) are documented individually in the [Extensions API](./overview.md).
+
+---
+
+## The DSL
+
+`plugin.DSL(store, productName)` returns a set of helpers that define a product's navigation structure. "DSL" stands for Domain-Specific Language — a thin layer that translates your product config into the format Rancher's router and nav system expects.
+
+| Helper | Purpose |
+|---|---|
+| `product(config)` | Register the product: its icon, which store it uses, and its default landing route |
+| `basicType(names)` | Add page names to the product's side menu |
+| `virtualType(config)` | Define a fully custom page (not backed by a Kubernetes resource) |
+| `configureType(resource, config)` | Configure how a Kubernetes resource is displayed as a page in your product |
+
+These helpers work together: `virtualType` or `configureType` defines a page; `basicType` makes it visible in the side menu.
+
+---
+
 ## What is a top-level product?
 
 A "top-level product" inside the Rancher UI is a product that interacts with the Rancher cluster and **may** interact with one or several downstream clusters, depending on the code you develop for it. 
@@ -56,7 +100,7 @@ All the pages that you register inside this product will appear as links on it's
 
 ## Overview on routing structure for Rancher Dashboard
 
-To become familiar with routing on VueJS and route definition we recommend that you should give a read about the [Essentials on Vue Router](https://v3.router.vuejs.org/guide/) and also the definition of a [Vue Router route](https://v3.router.vuejs.org/api/#routes).
+To become familiar with routing on VueJS and route definition we recommend that you should give a read about the [Essentials on Vue Router](https://router.vuejs.org/guide/) and also the definition of a [Vue Router route](https://router.vuejs.org/api/).
 
 Rancher Dashboard follows a specific route pattern that needs to be fulfilled in order for Extensions to work properly with the current overall logic of the application. That pattern needs on the url path to include which `product` we are trying to load and which `cluster` we are using.
 

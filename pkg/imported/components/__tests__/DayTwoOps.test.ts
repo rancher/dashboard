@@ -2,58 +2,84 @@ import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import DayTwoOps from '../DayTwoOps.vue';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { DAY_2_OPS_DEFAULT as DEFAULT } from '../../util/shared';
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
     const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
 
-    return { global: { plugins: [store] } };
+    return {
+      global: {
+        plugins: [store],
+        stubs:   { Banner: { template: '<div v-bind="$attrs"><slot /></div>' } }
+      }
+    };
   };
 
-  it('should render with default props', () => {
+  it('should render the title and radio group with default props', () => {
     const wrapper = shallowMount(DayTwoOps, {
       props: { globalSetting: true },
       ...defaultSetup()
     });
 
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
+
     expect(wrapper.find('h3').exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'Checkbox' }).exists()).toBe(true);
+    expect(radioGroup.exists()).toBe(true);
+    expect(radioGroup.props('value')).toBe(DEFAULT);
+    expect(radioGroup.props('mode')).toBe(_EDIT);
   });
 
-  it('should pass value prop to checkbox', () => {
+  it('should pass the correct options to the radio group when the global setting is enabled', () => {
+    const wrapper = shallowMount(DayTwoOps, {
+      props: { globalSetting: true },
+      ...defaultSetup()
+    });
+
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
+
+    expect(radioGroup.props('options')).toStrictEqual([
+      { value: DEFAULT, label: 'imported.basics.dayTwoOpsEnabled.globalEnabledDefault' },
+      { value: 'true', label: 'imported.basics.dayTwoOpsEnabled.enabled' },
+      { value: 'false', label: 'imported.basics.dayTwoOpsEnabled.disabled' },
+    ]);
+  });
+
+  it('should pass the correct options to the radio group when the global setting is disabled', () => {
+    const wrapper = shallowMount(DayTwoOps, {
+      props: { globalSetting: false },
+      ...defaultSetup()
+    });
+
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
+
+    expect(radioGroup.props('options')).toStrictEqual([
+      { value: DEFAULT, label: 'imported.basics.dayTwoOpsEnabled.globalDisabledDefault' },
+      { value: 'true', label: 'imported.basics.dayTwoOpsEnabled.enabled' },
+      { value: 'false', label: 'imported.basics.dayTwoOpsEnabled.disabled' },
+    ]);
+  });
+
+  it('should emit update:value when the radio group is updated', async() => {
     const wrapper = shallowMount(DayTwoOps, {
       props: {
-        value:         true,
+        value:         DEFAULT,
         globalSetting: true,
       },
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
 
-    expect(checkbox.props('value')).toBe(true);
-  });
-
-  it('should emit update:value when checkbox is updated', async() => {
-    const wrapper = shallowMount(DayTwoOps, {
-      props: {
-        value:         false,
-        globalSetting: true,
-      },
-      ...defaultSetup()
-    });
-
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
-
-    await checkbox.vm.$emit('update:value', true);
+    await radioGroup.vm.$emit('update:value', 'true');
     await nextTick();
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')?.[0]).toEqual([true]);
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['true']);
   });
 
-  it('should pass mode prop to checkbox', () => {
+  it('should pass the mode prop to the radio group', () => {
     const wrapper = shallowMount(DayTwoOps, {
       props: {
         mode:          _VIEW,
@@ -62,118 +88,108 @@ describe('component: DayTwoOps', () => {
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
 
-    expect(checkbox.props('mode')).toBe(_VIEW);
+    expect(radioGroup.props('mode')).toBe(_VIEW);
   });
 
-  it('should use default _EDIT mode when not provided', () => {
+  it('should render the global summary text for enabled global setting', () => {
     const wrapper = shallowMount(DayTwoOps, {
       props: { globalSetting: true },
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
-
-    expect(checkbox.props('mode')).toBe(_EDIT);
+    expect(wrapper.text()).toContain('imported.basics.dayTwoOpsEnabled.globallyEnabled');
   });
 
-  it('should show globally enabled tooltip when globalSetting is true', () => {
-    const wrapper = shallowMount(DayTwoOps, {
-      props: { globalSetting: true },
-      ...defaultSetup()
-    });
-
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
-    const tooltip = checkbox.props('tooltip');
-
-    // Tooltip should exist and contain relevant text
-    expect(tooltip).toBeTruthy();
-    expect(typeof tooltip).toBe('string');
-  });
-
-  it('should show globally disabled tooltip when globalSetting is false', () => {
+  it('should render the global summary text for disabled global setting', () => {
     const wrapper = shallowMount(DayTwoOps, {
       props: { globalSetting: false },
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
-    const tooltip = checkbox.props('tooltip');
-
-    // Tooltip should exist and contain relevant text
-    expect(tooltip).toBeTruthy();
-    expect(typeof tooltip).toBe('string');
+    expect(wrapper.text()).toContain('imported.basics.dayTwoOpsEnabled.globallyDisabled');
   });
 
-  it('should update tooltip when globalSetting prop changes', async() => {
+  it.each([
+    [{ globalSetting: false, value: DEFAULT }, 'imported.basics.dayTwoOpsEnabled.summary.canEnable'],
+    [{ globalSetting: true, value: 'true' }, 'imported.basics.dayTwoOpsEnabled.summary.willEnable'],
+    [{ globalSetting: true, value: 'false' }, 'imported.basics.dayTwoOpsEnabled.summary.willDisable'],
+  ])('should render the expected cluster summary text', (props, expectedText) => {
     const wrapper = shallowMount(DayTwoOps, {
-      props: { globalSetting: true },
+      props: {
+        oldValue: DEFAULT,
+        ...props,
+      },
       ...defaultSetup()
     });
 
-    let checkbox = wrapper.findComponent({ name: 'Checkbox' });
-    const initialTooltip = checkbox.props('tooltip');
-
-    expect(initialTooltip).toBeTruthy();
-    expect(typeof initialTooltip).toBe('string');
-
-    await wrapper.setProps({ globalSetting: false });
-    await nextTick();
-
-    checkbox = wrapper.findComponent({ name: 'Checkbox' });
-    const updatedTooltip = checkbox.props('tooltip');
-
-    // Tooltip should update when prop changes
-    expect(updatedTooltip).toBeTruthy();
-    expect(typeof updatedTooltip).toBe('string');
+    expect(wrapper.text()).toContain(expectedText);
   });
 
-  it('should pass label prop to checkbox', () => {
+  it.each([
+    [{
+      oldValue: DEFAULT, value: 'true', mode: _EDIT
+    }, 'imported.basics.dayTwoOpsEnabled.banner.edit.defaultToNonDefault'],
+    [{
+      oldValue: 'true', value: DEFAULT, mode: _EDIT
+    }, 'imported.basics.dayTwoOpsEnabled.banner.edit.nonDefaultToDefault'],
+  ])('should show the edit banner when switching to or from the default value', (props, expectedText) => {
     const wrapper = shallowMount(DayTwoOps, {
-      props: { globalSetting: true },
+      props: {
+        globalSetting: true,
+        ...props,
+      },
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
-    const label = checkbox.props('label');
+    const banner = wrapper.find('[data-testid="day-two-ops-banner"]');
 
-    // Label should exist and be a string
-    expect(label).toBeTruthy();
-    expect(typeof label).toBe('string');
+    expect(banner.exists()).toBe(true);
+    expect(wrapper.text()).toContain(expectedText);
   });
 
-  it('should render title from i18n', () => {
+  it.each([
+    {
+      oldValue: DEFAULT, value: DEFAULT, mode: _EDIT
+    },
+    {
+      oldValue: 'true', value: 'false', mode: _EDIT
+    },
+    {
+      oldValue: DEFAULT, value: 'true', mode: _CREATE
+    },
+  ])('should not show the banner when the change does not involve the default state in edit mode', (props) => {
     const wrapper = shallowMount(DayTwoOps, {
-      props: { globalSetting: true },
+      props: {
+        globalSetting: true,
+        ...props,
+      },
       ...defaultSetup()
     });
 
-    const h3 = wrapper.find('h3');
-
-    // Title should be rendered in an h3 element
-    expect(h3.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="day-two-ops-banner"]').exists()).toBe(false);
   });
 
   it('should handle multiple emit events', async() => {
     const wrapper = shallowMount(DayTwoOps, {
       props: {
-        value:         false,
+        value:         DEFAULT,
         globalSetting: true,
       },
       ...defaultSetup()
     });
 
-    const checkbox = wrapper.findComponent({ name: 'Checkbox' });
+    const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
 
-    await checkbox.vm.$emit('update:value', true);
+    await radioGroup.vm.$emit('update:value', 'true');
     await nextTick();
 
-    await checkbox.vm.$emit('update:value', false);
+    await radioGroup.vm.$emit('update:value', DEFAULT);
     await nextTick();
 
     expect(wrapper.emitted('update:value')).toHaveLength(2);
-    expect(wrapper.emitted('update:value')?.[0]).toEqual([true]);
-    expect(wrapper.emitted('update:value')?.[1]).toEqual([false]);
+    expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['true']);
+    expect(wrapper.emitted('update:value')?.[1]).toStrictEqual([DEFAULT]);
   });
 });

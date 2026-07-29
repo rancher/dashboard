@@ -69,4 +69,4 @@ The allowed parameters for the `product` function are:
 | `svg` | Module | SVG icon (alernative to above). Typically use the `require` method with a path of an SVG file|
 | `inStore` | String |  Which store should the product be registered on. Use `management` for a top-level product and `cluster` for a cluster-level product |
 | `weight` | Int |  Side menu ordering (bigger number on top) |
-| `to` | [Vue Router route config](https://v3.router.vuejs.org/api/#routes) |  Route to where the click on the product top-level menu should lead to |
+| `to` | [Vue Router route config](https://router.vuejs.org/api/) |  Route to where the click on the product top-level menu should lead to |
