@@ -878,45 +878,40 @@ describe('topLevelMenu', () => {
     });
 
     describe('toggle button aria-label', () => {
-      const mountWithI18n = (shownState = false) => {
-        const baseStore = generateStore([]);
-
+      const mountToggleButton = (shownState = false) => {
         return mount(TopLevelMenu, {
           data:   () => ({ shown: shownState }),
           global: {
             mocks: {
               $route: {},
-              $store: {
-                ...baseStore,
-                getters: { ...baseStore.getters, 'i18n/t': (key: string) => key },
-              },
+              $store: { ...generateStore([]) },
             },
             stubs: ['BrandImage', 'router-link'],
           },
         });
       };
 
-      it('should show "expandAppBar" key as aria-label when menu is collapsed', () => {
-        const wrapper = mountWithI18n(false);
+      it('should use "expandAppBar" translation key as aria-label when menu is collapsed', () => {
+        const wrapper = mountToggleButton(false);
 
-        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('nav.expandAppBar');
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('%nav.expandAppBar%');
       });
 
-      it('should show "collapseAppBar" key as aria-label when menu is expanded', () => {
-        const wrapper = mountWithI18n(true);
+      it('should use "collapseAppBar" translation key as aria-label when menu is expanded', () => {
+        const wrapper = mountToggleButton(true);
 
-        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('nav.collapseAppBar');
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('%nav.collapseAppBar%');
       });
 
       it('should update aria-label reactively when shown state changes', async() => {
-        const wrapper = mountWithI18n(false);
+        const wrapper = mountToggleButton(false);
         const button = wrapper.find('[data-testid="top-level-menu"]');
 
-        expect(button.attributes('aria-label')).toStrictEqual('nav.expandAppBar');
+        expect(button.attributes('aria-label')).toStrictEqual('%nav.expandAppBar%');
 
         await wrapper.setData({ shown: true });
 
-        expect(button.attributes('aria-label')).toStrictEqual('nav.collapseAppBar');
+        expect(button.attributes('aria-label')).toStrictEqual('%nav.collapseAppBar%');
       });
     });
 
