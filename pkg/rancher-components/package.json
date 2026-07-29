@@ -15,7 +15,7 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "build:lib": "vue-cli-service build --skip-plugins eslint --target lib --name @rancher/components src/main.ts",
-    "lint": "node -r ../../scripts/eslint-typescript-shim.js ../../node_modules/.bin/eslint --max-warnings 0 ."
+    "lint": "node -r ../../scripts/typescript-js-api-shim.js ../../node_modules/.bin/eslint --max-warnings 0 ."
   },
   "engines": {
     "node": ">=24.0.0"

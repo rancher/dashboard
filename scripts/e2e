@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 SPEC_ARG=""
 
+# Cypress transpiles `cypress.config.ts` with its bundled `ts-node`, which needs the
+# TypeScript compiler JS API. This repo's `typescript` is the native TS 7 package, which
+# ships none, so `ts-node` fails and Node falls back to loading the config natively as
+# ESM - where the extensionless `./cypress/base-config` import does not resolve.
+# Preload the shim that points `require('typescript')` at a JS-API TypeScript. It has to
+# go through `NODE_OPTIONS` (not `node -r`) so it reaches the forked config child too.
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+export NODE_OPTIONS="-r ${SCRIPT_DIR}/typescript-js-api-shim.js ${NODE_OPTIONS}"
+
 # check if script invoke contains any argument. If so, add spec to run
 if [ $# -eq 1 ]; then
   echo "Running e2e tests with spec: $1"
