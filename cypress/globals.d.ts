@@ -247,19 +247,14 @@ declare global {
       fetchRevision(): Chainable<string>;
 
       /**
-       * Check if the vai FF is enabled
-       */
-      isVaiCacheEnabled(): Chainable<boolean>;
-
-      /**
        * Run an accessibility check on the current page or the specified element
        */
-      checkPageAccessibility(description?: string);
+      checkPageAccessibility(description?: string): void;
 
       /**
        * Run an accessibility check on the specified element
        */
-      checkElementAccessibility(selector: any, description?: string);
+      checkElementAccessibility(selector: any, description?: string): void;
 
       /**
        * Custom command to delete Cypress.config('downloadsFolder') folder

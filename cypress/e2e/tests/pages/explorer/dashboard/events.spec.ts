@@ -13,19 +13,13 @@ const pageSize = 10;
 const podCount = 15;
 
 const countHelper = {
-  setupCount: (vaiCacheEnabled: boolean, initialCount: number) => {
-    if (vaiCacheEnabled) {
-      cy.intercept('GET', '/v1/events?*').as('getCount');
-    } else {
-      cy.wrap(initialCount).as('count');
-    }
+  setupCount: () => {
+    cy.intercept('GET', '/v1/events?*').as('getCount');
   },
-  handleCount: (vaiCacheEnabled: boolean) => {
-    if (vaiCacheEnabled) {
-      cy.wait('@getCount').then((interception) => {
-        cy.wrap(interception.response.body.count).as('count');
-      });
-    }
+  handleCount: () => {
+    cy.wait('@getCount').then((interception) => {
+      cy.wrap(interception.response.body.count).as('count');
+    });
   },
   getCount: () => cy.get('@count').then((count) => count as any as number),
 };
@@ -35,7 +29,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let nsName1: string;
     let nsName2: string;
@@ -85,21 +79,9 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       EventsPageListPo.navTo();
       events.waitForPage();
 
-      let vaiCacheEnabled = false;
-
-      cy.isVaiCacheEnabled()
-        .then((isVaiCacheEnabled) => {
-          vaiCacheEnabled = isVaiCacheEnabled;
-
-          return cy.getRancherResource('v1', 'events');
-        })
+      cy.getRancherResource('v1', 'events')
         .then((resp: Cypress.Response<any>) => {
-          let initialCount = resp.body.count;
-
-          if (!vaiCacheEnabled && resp.body.count > 500) {
-            // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
-            initialCount = 500;
-          }
+          const initialCount = resp.body.count;
 
           // Test break down if less than 3 pages...
           expect(initialCount).to.be.greaterThan(3 * pageSize);
@@ -137,11 +119,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             });
 
           // navigate to next page - right button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .rightButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -162,11 +144,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .isEnabled();
 
           // navigate to first page - left button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .leftButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -188,12 +170,12 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .isDisabled();
 
           // navigate to last page - end button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .endButton()
             .scrollIntoView()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -216,11 +198,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
           });
 
           // navigate to first page - beginning button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .beginningButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()

@@ -104,7 +104,7 @@ skipGeometric=true`;
       .and('be.visible');
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const uniqueConfigMap = SortableTablePo.firstByDefaultName('cm');
     let cmNamesList = [];
     let nsName1: string;

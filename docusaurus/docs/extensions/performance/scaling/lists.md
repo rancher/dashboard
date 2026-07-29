@@ -138,4 +138,3 @@ Paths must also be indexed server-side. This happens by default or automatically
    - `fetchSecondaryResources` and `fetchPageSecondaryResources` should can use `findAll` when server-side pagination is disabled
    - `fetchSecondaryResources` and `fetchPageSecondaryResources` should cannot use `findAll` and should use `findPage` when server-side pagination is disabled
 1. If lists do not show all of a resource and required additional filtering both `api-filter` and `local-filter` have been passed into `PaginatedResourceTable`  
-1. Changes have been validated when Server-Side Pagination is enabled and disabled via the `ui-sql-cache` Feature Flag

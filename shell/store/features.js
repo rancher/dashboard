@@ -33,7 +33,11 @@ export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
 export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
 export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-population', false);
-export const STEVE_CACHE = create('ui-sql-cache', false);
+// The `ui-sql-cache` feature flag has been removed and the feature is always enabled.
+// Ideally we can remove this entry however extensions built from older shells will still expect it and throw an exception if it's not found.
+// So keep this until 2.15 is EOL, or we're sure all extensions have been built with a 2.15 based shell)
+export const STEVE_CACHE = create('ui-sql-cache', true);
+
 export const UIEXTENSION = create('uiextension', true);
 export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
 export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);

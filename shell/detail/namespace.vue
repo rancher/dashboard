@@ -190,7 +190,17 @@ export default {
         // findAll on each workload type here, argh! however...
         // - results are shown in a single table containing all workloads rather than an SSP compatible way (one table per type)
         // - we're restricting by namespace. not great, but a big improvement
-        .map((type) => this.$store.dispatch('cluster/findAll', { type, opt: { namespaced: this.namespaceId } }))
+        .map((type) => {
+          let url = this.$store.getters['cluster/urlFor'](type, null, { namespaced: this.namespaceId });
+
+          // Fetch additional data to power the health column (which needs pod/job data)
+          if (this.$store.getters['cluster/paginationEnabled']({ id: type })) {
+            // In theory workload types should always be enabled and we shouldn't even check, doing this just in case though
+            url += '&includeAssociatedData=true';
+          }
+
+          return this.$store.dispatch('cluster/findAll', { type, opt: { namespaced: this.namespaceId, url } });
+        })
       );
     },
 

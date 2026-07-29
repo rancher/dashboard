@@ -21,7 +21,7 @@ const configMapPayload = {
   __clone: true
 };
 
-describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser', '@noVai'] }, () => {
+describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   const testChartsRepoName = 'test-charts';
   const testChartsGitRepoUrl = 'https://github.com/richard-cox/rodeo';
   const testChartsBranchName = 'master';

@@ -107,7 +107,7 @@ describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardU
 //     });
 //   });
 
-//   describe('List', { tags: ['@noVai', '@userMenu', '@adminUser'] }, () => {
+//   describe('List', { tags: ['@userMenu', '@adminUser'] }, () => {
 //     const tokenDesc = 'e2e-test-description';
 //     const uniqueTokenDesc = 'aaa-e2e-test-description';
 //     let initialCount: number;
