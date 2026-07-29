@@ -22,10 +22,6 @@ set -eo pipefail
 #   GITHUB_REPOSITORY   - 'owner/repo' (provided by the Actions runner)
 #   MODE                - 'event' or 'sweep' (default 'event')
 #   PR_NUMBER, BASE_REF - required in event mode
-#   METADATA_LOCAL      - when 'true', read the checked-out branches-metadata.json
-#                         instead of the canonical copy in master. Only for local
-#                         development of a change to branches-metadata.json itself;
-#                         the workflow deliberately leaves this unset.
 #   RETRY_LABEL         - label added to trigger auto-retry (default bot/auto-retry/10)
 
 # Configuration (all overridable via the environment; defaults suit local runs)
@@ -36,22 +32,15 @@ DEPENDABOT_AUTHOR="app/dependabot"
 # Label that tells the auto-retry workflow how many times to retry failed tests
 RETRY_LABEL=${RETRY_LABEL:-bot/auto-retry/10}
 
-# get-branch-metadata.sh reads the canonical branches-metadata.json from master, which is
-# the only copy we maintain — a release branch's checked-out copy can be stale. '--local'
-# is an opt-in escape hatch for developing a change to that file itself.
-METADATA_FLAG=""
-if [ "$METADATA_LOCAL" = "true" ]; then
-  METADATA_FLAG="--local"
-fi
-
 # Resolve the milestone version for a branch via the canonical helper.
 # Echoes the version (empty if the branch has no milestone / is unknown).
 milestone_for_branch() {
   local branch="$1"
   local data version
 
-  # The helper exits non-zero for an unknown branch; treat that as "no milestone"
-  if data=$(./scripts/get-branch-metadata.sh $METADATA_FLAG "$branch" 2>/dev/null); then
+  # The helper reads the canonical branches-metadata.json from master (the only copy we
+  # maintain). It exits non-zero for an unknown branch; treat that as "no milestone".
+  if data=$(./scripts/get-branch-metadata.sh "$branch" 2>/dev/null); then
     # Metadata found - pull the milestone version out of the JSON
     version=$(echo "$data" | jq -r '.milestone.version // ""')
   else
