@@ -12,8 +12,6 @@
     "./cypress.config.ts",
     "docusaurus",
     "scripts/standalone",
-    "storybook",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "storybook"
   ]
 }
