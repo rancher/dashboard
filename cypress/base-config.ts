@@ -245,7 +245,6 @@ const baseConfig = defineConfig({
     baseUrl
   },
   videoCompression:       15,
-  videoUploadOnPasses:    false,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
   video:                  process.env.TEST_NO_VIDEOS !== 'true'
 });

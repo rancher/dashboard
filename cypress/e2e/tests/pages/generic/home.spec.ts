@@ -172,7 +172,7 @@ describe('Home Page', { testIsolation: false }, () => {
 
     cy.getRancherVersion().then((version) => {
       cy.window().then((win) => {
-        cy.stub(win, 'open', () => {}).as('openReleaseNotes');
+        cy.stub(win, 'open').callsFake(() => {}).as('openReleaseNotes');
       });
 
       item.primaryActionButton().click();
