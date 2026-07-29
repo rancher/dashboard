@@ -41,8 +41,6 @@ jobs:
           MODE: event
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
-          # Read the checked-out branches-metadata.json (no network dependency)
-          METADATA_LOCAL: 'true'
         run: ./.github/workflows/scripts/dependabot-milestone.sh
 
   sweep-open-prs:
@@ -61,6 +59,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODE: sweep
-          # Read the checked-out branches-metadata.json (no network dependency)
-          METADATA_LOCAL: 'true'
         run: ./.github/workflows/scripts/dependabot-milestone.sh

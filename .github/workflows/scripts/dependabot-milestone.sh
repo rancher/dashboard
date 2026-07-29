@@ -23,7 +23,9 @@ set -eo pipefail
 #   MODE                - 'event' or 'sweep' (default 'event')
 #   PR_NUMBER, BASE_REF - required in event mode
 #   METADATA_LOCAL      - when 'true', read the checked-out branches-metadata.json
-#                         instead of fetching it from the master branch
+#                         instead of the canonical copy in master. Only for local
+#                         development of a change to branches-metadata.json itself;
+#                         the workflow deliberately leaves this unset.
 #   RETRY_LABEL         - label added to trigger auto-retry (default bot/auto-retry/10)
 
 # Configuration (all overridable via the environment; defaults suit local runs)
@@ -34,8 +36,9 @@ DEPENDABOT_AUTHOR="app/dependabot"
 # Label that tells the auto-retry workflow how many times to retry failed tests
 RETRY_LABEL=${RETRY_LABEL:-bot/auto-retry/10}
 
-# By default get-branch-metadata.sh fetches the metadata from the master branch;
-# '--local' makes it read the checked-out branches-metadata.json instead.
+# get-branch-metadata.sh reads the canonical branches-metadata.json from master, which is
+# the only copy we maintain — a release branch's checked-out copy can be stale. '--local'
+# is an opt-in escape hatch for developing a change to that file itself.
 METADATA_FLAG=""
 if [ "$METADATA_LOCAL" = "true" ]; then
   METADATA_FLAG="--local"
