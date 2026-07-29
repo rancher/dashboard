@@ -696,6 +696,7 @@ export default {
           :label="stringify(mappedErrors[err].message)"
           :icon="mappedErrors[err].icon"
           :closable="true"
+          role="alert"
           @close="closeError(i)"
         />
       </div>

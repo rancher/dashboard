@@ -63,6 +63,7 @@ export default defineComponent({
         color="error"
         :label="err"
         :closable="true"
+        role="alert"
         @close="closeError(idx)"
       />
     </div>

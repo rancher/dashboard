@@ -60,6 +60,7 @@ const store = useStore();
         description: 'Status Message'
       }"
       class="new state-banner"
+      role="status"
       v-bind="bannerProps"
     />
     <Metadata

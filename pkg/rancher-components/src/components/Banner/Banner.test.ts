@@ -104,4 +104,39 @@ describe('component: Banner', () => {
     expect(bannerCloseBtnRole).toBe('button');
     expect(bannerCloseBtnAriaLabel).toBeDefined();
   });
+
+  describe('a11y: role prop (live region)', () => {
+    it('should default to role="region" when no role prop is provided', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'test' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBe('region');
+    });
+
+    it('should render role="alert" for dynamically-injected error messages', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'Something went wrong', role: 'alert' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBe('alert');
+    });
+
+    it('should render role="status" for polite notifications and state changes', () => {
+      const wrapper = mount(Banner, { propsData: { label: 'Cluster is provisioning', role: 'status' } });
+      const mainContainer = wrapper.find('.banner');
+
+      expect(mainContainer.attributes('role')).toBe('status');
+    });
+
+    it('should preserve aria-labelledby regardless of the role prop value', () => {
+      const cases = ['region', 'alert', 'status'] as const;
+
+      cases.forEach((role) => {
+        const wrapper = mount(Banner, { propsData: { label: 'test', role } });
+        const mainContainer = wrapper.find('.banner');
+        const bannerContent = wrapper.find('.banner__content');
+
+        expect(mainContainer.attributes('aria-labelledby')).toBe(bannerContent.attributes('id'));
+      });
+    });
+  });
 });

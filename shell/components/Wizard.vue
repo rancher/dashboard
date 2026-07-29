@@ -449,6 +449,7 @@ export default {
             :label="err"
             :closable="true"
             class="footer-error"
+            role="alert"
             @close="errors.splice(idx, 1)"
           />
         </div>

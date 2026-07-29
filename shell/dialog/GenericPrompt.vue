@@ -112,6 +112,7 @@ export default {
           :key="i"
           color="error"
           :label="err"
+          role="alert"
         />
         <div class="buttons">
           <button

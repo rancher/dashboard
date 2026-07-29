@@ -57,6 +57,7 @@ export default defineComponent({
     color="error"
     :label="validationMessage"
     :icon="icon"
+    role="alert"
   />
   <span
     v-else-if="!!validationMessage"

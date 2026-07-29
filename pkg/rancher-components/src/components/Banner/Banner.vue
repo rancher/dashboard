@@ -14,6 +14,7 @@ export interface Props {
   closable?: boolean;
   stacked?: boolean;
   disabled?: boolean;
+  role?: 'region' | 'alert' | 'status';
 }
 
 export default defineComponent({
@@ -68,6 +69,16 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+    /**
+     * ARIA live region role. Use 'alert' for error messages that appear dynamically (e.g. form
+     * validation failures), 'status' for polite notifications (e.g. state changes, warnings), and
+     * 'region' (default) for static informational banners.
+     * @values region, alert, status
+     */
+    role: {
+      type:    String,
+      default: 'region'
+    },
   },
   emits: ['close'],
   data() {
@@ -91,7 +102,7 @@ export default defineComponent({
       [color]: true,
       'banner-disabled': disabled
     }"
-    role="region"
+    :role="role"
     :aria-labelledby="labelledbyId"
     tabindex="0"
   >

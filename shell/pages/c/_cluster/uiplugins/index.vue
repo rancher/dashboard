@@ -1122,6 +1122,7 @@ export default {
         color="warning"
         class="add-repos-banner mb-20"
         data-testid="extensions-new-repos-banner"
+        role="status"
       >
         <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
         <button

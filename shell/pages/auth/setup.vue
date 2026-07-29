@@ -409,6 +409,7 @@ export default {
                   color="warning"
                   :label="t('validation.setting.serverUrl.localhost')"
                   data-testid="setup-serverurl-localhost-warning"
+                  role="status"
                 />
                 <Banner
                   v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
@@ -416,6 +417,7 @@ export default {
                   color="error"
                   :label="err"
                   data-testid="setup-error-banner"
+                  role="alert"
                 />
                 <LabeledInput
                   v-model:value="serverUrl"

@@ -386,6 +386,7 @@ export default {
             v-if="errorToDisplay"
             :label="errorToDisplay"
             color="error"
+            role="alert"
           />
           <h4
             v-else-if="loggedOut"

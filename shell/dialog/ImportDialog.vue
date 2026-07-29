@@ -190,6 +190,7 @@ export default {
         :key="i"
         color="error"
         :label="err"
+        role="alert"
       />
     </template>
     <template #actions>
