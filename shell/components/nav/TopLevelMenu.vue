@@ -558,7 +558,7 @@ export default {
         <div class="title">
           <div
             data-testid="top-level-menu"
-            :aria-label="t('nav.expandCollapseAppBar')"
+            :aria-label="shown ? t('nav.collapseAppBar') : t('nav.expandAppBar')"
             role="button"
             tabindex="0"
             class="menu"

@@ -877,6 +877,49 @@ describe('topLevelMenu', () => {
       });
     });
 
+    describe('toggle button aria-label', () => {
+      const mountWithI18n = (shownState = false) => {
+        const baseStore = generateStore([]);
+
+        return mount(TopLevelMenu, {
+          data:   () => ({ shown: shownState }),
+          global: {
+            mocks: {
+              $route: {},
+              $store: {
+                ...baseStore,
+                getters: { ...baseStore.getters, 'i18n/t': (key: string) => key },
+              },
+            },
+            stubs: ['BrandImage', 'router-link'],
+          },
+        });
+      };
+
+      it('should show "expandAppBar" key as aria-label when menu is collapsed', () => {
+        const wrapper = mountWithI18n(false);
+
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('nav.expandAppBar');
+      });
+
+      it('should show "collapseAppBar" key as aria-label when menu is expanded', () => {
+        const wrapper = mountWithI18n(true);
+
+        expect(wrapper.find('[data-testid="top-level-menu"]').attributes('aria-label')).toStrictEqual('nav.collapseAppBar');
+      });
+
+      it('should update aria-label reactively when shown state changes', async() => {
+        const wrapper = mountWithI18n(false);
+        const button = wrapper.find('[data-testid="top-level-menu"]');
+
+        expect(button.attributes('aria-label')).toStrictEqual('nav.expandAppBar');
+
+        await wrapper.setData({ shown: true });
+
+        expect(button.attributes('aria-label')).toStrictEqual('nav.collapseAppBar');
+      });
+    });
+
     describe('clusterMenuClick', () => {
       it('should navigate normally on non-explorer c-cluster route even with routeCombo set', async() => {
         const mockPush = jest.fn();
