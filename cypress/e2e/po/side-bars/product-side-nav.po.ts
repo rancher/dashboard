@@ -2,6 +2,9 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import VersionNumberPo from '~/cypress/e2e/po/components/version-number.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
+/**
+ * This is the side menu
+ */
 export default class ProductNavPo extends ComponentPo {
   constructor() {
     super('.side-nav');

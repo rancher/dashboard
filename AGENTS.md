@@ -83,6 +83,24 @@ To get started, follow the `Getting Started` section.
   - `shell/`: Core application logic, components, and pages.
   - `storybook/`: Component documentation source
 
+When either created, editing, viewing or listing a kubernetes resource the following core components are used
+- Listing resources
+  - Root component
+    - shell/pages/c/_cluster/_product/_resource/index.vue
+  - shell/components/ResourceList/index.vue
+    - This contains a generic component for the list's header
+    - Then either a ResourceTable or a custom page for that specific resource type
+      - custom components are either supplied via components in `shell/list` or externally via a UI Extension
+- Create / Edit a resource, or Viewing a Resource
+  - Root component
+    - Create / Edit - shell/pages/c/_cluster/_product/_resource/create.vue
+    - Viewing - shell/pages/c/_cluster/_product/_resource/_id.vue
+  - shell/components/ResourceDetail/index.vue
+    - Contains either
+      - a totally custom page for that resource type and mode,
+      - or a generic component for header, handling YAML or a custom component to show a form
+    - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
+
 
 ## Unit Tests
 

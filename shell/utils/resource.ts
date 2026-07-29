@@ -1,10 +1,23 @@
 import { canViewResource } from '@shell/utils/auth';
-import { getResourceFromRoute } from '@shell/utils/router';
+import { getResourceFromRoute, findMeta } from '@shell/utils/router';
 import { RouteLocation } from 'vue-router';
 import { Store } from 'vuex';
 
 /**
+ * Route `meta` flag opting a route out of the global fail whale redirect for an unknown resource.
+ *
+ * When set (see `shell/config/router/routes.js`), navigation is allowed to continue so the error
+ * can be shown in-context (in place of the route's content, see `ResourceList`) - retaining the
+ * side menu and cluster context - rather than redirecting to the global fail whale page.
+ */
+export const INVALID_RESOURCE_IN_CONTEXT = 'invalidResourceInContext';
+
+/**
  * Check that the resource is valid, if not redirect to fail whale
+ *
+ * The exception is routes flagged with the `invalidResourceInContext` meta - there we allow
+ * navigation to continue so the error can be shown in-context (retaining the cluster explorer
+ * context). See `ResourceList`.
  *
  * This requires that
  * - product is set
@@ -25,7 +38,15 @@ export function validateResource(store: Store<any>, to: RouteLocation) {
     return false;
   }
 
-  // Unknown resource, redirect to fail whale
+  // Unknown resource.
+  // If the route opts in via meta, let navigation continue so the error is rendered in-context
+  // (in place of the route's content) - retaining the side menu and cluster context.
+  // The page (e.g. `ResourceList`) detects the missing schema and renders the error itself.
+  if (findMeta(to, INVALID_RESOURCE_IN_CONTEXT)) {
+    return false;
+  }
+
+  // Otherwise redirect to fail whale
 
   const error = new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true));
 

@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
+import FailWhale from '@shell/components/FailWhale';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -9,6 +10,8 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import { nearestMatches } from '@shell/utils/fuzzy';
+import { SCHEMA } from '@shell/config/types';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import { BadgeState } from '@components/BadgeState';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
@@ -20,6 +23,7 @@ export default {
   components: {
     Loading,
     ResourceTable,
+    FailWhale,
     Masthead,
     ResourceLoadingIndicator,
     IconMessage,
@@ -50,7 +54,6 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
     const resource = this.resource;
 
     const schema = this.schema;
@@ -84,8 +87,16 @@ export default {
 
     if ( !this.componentWillFetch ) {
       if ( !schema ) {
-        store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true));
+        this.resourceSuggestion = this.nearestResourceSuggestion(resource);
 
+        return;
+      }
+
+      // Avoid fetch if we've errored here or previously
+      if (this.resourceNotFoundError) {
         return;
       }
 
@@ -103,7 +114,9 @@ export default {
       const canList = this.$store.getters[`${ inStore }/canList`](this.resource);
 
       if (!canList) {
-        this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true));
       }
     }
   },
@@ -122,6 +135,11 @@ export default {
 
     return {
       schema,
+      // When set, the resource type could not be found/listed. The error is rendered
+      // in-context (in place of the list) instead of redirecting to the fail-whale page
+      resourceNotFoundError:            null,
+      // When set, a 'did you mean ...?' link to the closest matching resource type
+      resourceSuggestion:               null,
       overrideInStore:                  undefined,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
@@ -194,6 +212,32 @@ export default {
   },
 
   methods: {
+    /**
+     * Find the closest matching, listable resource type for an unknown resource and,
+     * if one exists, return a `{ label, to }` suggestion for the fail whale link.
+     */
+    nearestResourceSuggestion(resource) {
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA) || [];
+      const ids = schemas.map((s) => s.id).filter(Boolean);
+
+      const [match] = nearestMatches(resource, ids, 1);
+
+      if (!match) {
+        return null;
+      }
+
+      const { href } = this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          ...this.$route.params,
+          resource: match
+        }
+      });
+
+      return { label: match, url: href };
+    },
+
     clearStateFilter() {
       const query = { ...this.$route.query };
 
@@ -272,8 +316,13 @@ export default {
 </script>
 
 <template>
+  <FailWhale
+    v-if="resourceNotFoundError"
+    :error="resourceNotFoundError"
+    :suggestion="resourceSuggestion"
+  />
   <IconMessage
-    v-if="namespaceFilterRequired"
+    v-else-if="namespaceFilterRequired"
     :vertical="true"
     :subtle="false"
     icon="icon-filter_alt"
