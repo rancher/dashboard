@@ -41,13 +41,15 @@ jobs:
           GITHUB_TOKEN: ${{ env.GH_TOKEN }}
           JENKINS_AUTH: ${{ secrets.INSPECTOR_JENKINS_AUTH }}
           JENKINS_BASE_URL: ${{ secrets.INSPECTOR_JENKINS_BASE_URL }}
-          JENKINS_JOB_PATH: rancher_qa/ui-automation-ansible-job
+          JENKINS_JOB_PATH: ${{ secrets.INSPECTOR_JENKINS_JOB_PATH }}
           GITHUB_ORG: rancher
           GITHUB_REPO: qa-tasks
-          GITHUB_PROJECT_NUMBER: '40'
+          GITHUB_PROJECT_NUMBER: ${{ vars.INSPECTOR_GITHUB_PROJECT_NUMBER }}
           GITHUB_PROJECT_OWNER: org
           GITHUB_ISSUE_LABELS: area/automation-test-ui,kind/flaky-test
-          STATUS_FIELD_ID: PVTSSF_lADOAI6QIs4APE0XzgJn5b4
-          BACKLOG_OPTION_ID: f75ad846
+          STATUS_FIELD_ID: ${{ secrets.INSPECTOR_STATUS_FIELD_ID }}
+          BACKLOG_OPTION_ID: ${{ secrets.INSPECTOR_BACKLOG_OPTION_ID }}
+          INSPECTOR_BUILD_WINDOW: ${{ vars.INSPECTOR_BUILD_WINDOW }}
+          INSPECTOR_ANCHOR_DESCRIPTION: ${{ vars.INSPECTOR_ANCHOR_DESCRIPTION }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: node src/inspect.js

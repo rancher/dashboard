@@ -75,9 +75,15 @@ async function groupAndCreateIssues(failures) {
       }
 
       if (existing?.state === 'closed') {
-        // Test was fixed but is failing again — reopen and move back to Backlog
+        // Test was fixed but is failing again — reopen and move back to Backlog.
+        // Always call addToProject on reopen: addProjectV2ItemById is idempotent so it's safe
+        // even if the issue is already on the board, and it ensures the status resets to Backlog.
         await githubClient.reopenIssue(existing.id, failure.environments);
-        await githubClient.addToProject(existing.nodeId);
+        try {
+          await githubClient.addToProject(existing.nodeId);
+        } catch (e) {
+          console.error(`  Warning: could not add #${ existing.id } to project: ${ e.message }`);
+        }
         console.log(`  REOPEN #${ existing.id }: ${ failure.testTitle }`);
         issueUrls.push(existing.url);
         reopened++;
@@ -116,13 +122,27 @@ async function main() {
   console.log('');
 
   console.log('Step 1: Finding today\'s build batch...');
-  const { anchorNumber, batch, failures } = await jenkinsClient.collectTodayFailures();
+  const {
+    anchorNumber, batch, inProgressBuilds, failures
+  } = await jenkinsClient.collectTodayFailures();
 
   console.log(`  Anchor build: #${ anchorNumber }`);
   console.log(`  Builds in batch (${ batch.length }):`);
   batch.forEach((b) => console.log(`    #${ b.number }: ${ b.description }`));
+  if (inProgressBuilds.length > 0) {
+    console.warn(`  Warning: ${ inProgressBuilds.length } build(s) still in progress (#${ inProgressBuilds.map((b) => b.number).join(', #') }) — results may be incomplete`);
+  }
   console.log(`  Raw failing tests collected: ${ failures.length }`);
   console.log('');
+
+  if (batch.length === 0) {
+    if (inProgressBuilds.length > 0) {
+      console.warn(`No completed builds in today's batch — ${ inProgressBuilds.length } build(s) still in progress. Jenkins may be mid-flight.`);
+      process.exit(2);
+    }
+    console.warn('No completed builds found in today\'s batch. Exiting.');
+    process.exit(2);
+  }
 
   if (failures.length === 0) {
     console.log('No failures found. Exiting.');

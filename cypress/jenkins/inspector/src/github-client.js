@@ -5,6 +5,8 @@
  * Configuration is via environment variables — see README.md for the full list.
  */
 
+import { fetchWithRetry } from './fetch-utils.js';
+
 const GH_API = 'https://api.github.com';
 
 class GitHubClient {
@@ -26,7 +28,7 @@ class GitHubClient {
 
   async _request(method, path, body) {
     const url = path.startsWith('http') ? path : `${ GH_API }${ path }`;
-    const res = await fetch(url, {
+    const res = await fetchWithRetry(url, {
       method,
       headers: this.headers,
       body:    body ? JSON.stringify(body) : undefined
@@ -56,13 +58,16 @@ class GitHubClient {
 
   async fetchExistingIssues() {
     // Fetch all [UI][Auto] issues (open + closed) upfront — avoids per-failure search API calls.
+    // Filters by the full label set so deduplication doesn't miss issues if labels change.
     // Returns a Map keyed by issue title for O(1) lookup during processing.
+    const MAX_PAGES = 20;
     const map = new Map();
+    const labelParam = encodeURIComponent(this.labels.join(','));
     let page = 1;
 
-    while (true) {
+    while (page <= MAX_PAGES) {
       const issues = await this._get(
-        `/repos/${ this.org }/${ this.repo }/issues?state=all&labels=${ encodeURIComponent(this.labels[0]) }&per_page=100&page=${ page }`
+        `/repos/${ this.org }/${ this.repo }/issues?state=all&labels=${ labelParam }&per_page=100&page=${ page }`
       );
 
       for (const issue of issues) {
@@ -75,7 +80,12 @@ class GitHubClient {
       }
 
       if (issues.length < 100) break;
+
       page++;
+
+      if (page > MAX_PAGES) {
+        console.warn(`fetchExistingIssues: reached ${ MAX_PAGES }-page ceiling — some older issues may not be loaded`);
+      }
     }
 
     return map;
@@ -144,16 +154,18 @@ ${ failure.stacktrace || 'No stack trace available' }
     // Cache the project node ID after first fetch — avoids redundant GraphQL calls
     if (this._projectId) return this._projectId;
 
-    const ownerQuery = this.projectOwnerType === 'org' ? `organization(login: "${ this.org }")` : `user(login: "${ this.org }")`;
-
+    const ownerField = this.projectOwnerType === 'org' ? 'organization' : 'user';
     const query = `
-      query {
-        ${ ownerQuery } {
-          projectV2(number: ${ this.project }) { id }
+      query($login: String!, $number: Int!) {
+        ${ ownerField }(login: $login) {
+          projectV2(number: $number) { id }
         }
       }
     `;
-    const response = await this._post('/graphql', { query });
+    const response = await this._post('/graphql', {
+      query,
+      variables: { login: this.org, number: this.project }
+    });
 
     if (response.errors) throw new Error(response.errors[0].message);
 
@@ -167,34 +179,48 @@ ${ failure.stacktrace || 'No stack trace available' }
   async addToProject(issueNodeId) {
     try {
       const projectId = await this._getProjectId();
+      const canSetStatus = !!this.statusFieldId && !!this.backlogOptionId;
 
       // addProjectV2ItemById is idempotent — if already on board it returns the existing item
       const addRes = await this._post('/graphql', {
         query: `
-          mutation {
-            addProjectV2ItemById(input: {projectId: "${ projectId }", contentId: "${ issueNodeId }"}) {
+          mutation($projectId: ID!, $contentId: ID!) {
+            addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
               item { id }
             }
           }
-        `
+        `,
+        variables: { projectId, contentId: issueNodeId }
       });
 
       if (addRes.errors) throw new Error(addRes.errors[0].message);
 
       const itemId = addRes.data.addProjectV2ItemById.item.id;
 
+      if (!canSetStatus) {
+        console.warn('STATUS_FIELD_ID or BACKLOG_OPTION_ID not set — skipping status assignment');
+
+        return { projectItemId: itemId };
+      }
+
       // Set status to Backlog
       const updateRes = await this._post('/graphql', {
         query: `
-          mutation {
+          mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
             updateProjectV2ItemFieldValue(input: {
-              projectId: "${ projectId }"
-              itemId: "${ itemId }"
-              fieldId: "${ this.statusFieldId }"
-              value: { singleSelectOptionId: "${ this.backlogOptionId }" }
+              projectId: $projectId
+              itemId: $itemId
+              fieldId: $fieldId
+              value: { singleSelectOptionId: $optionId }
             }) { projectV2Item { id } }
           }
-        `
+        `,
+        variables: {
+          projectId,
+          itemId,
+          fieldId:  this.statusFieldId,
+          optionId: this.backlogOptionId
+        }
       });
 
       if (updateRes.errors) throw new Error(updateRes.errors[0].message);
