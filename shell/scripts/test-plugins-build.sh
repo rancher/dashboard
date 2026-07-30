@@ -11,6 +11,18 @@ SHELL_VERSION="99.99.99"
 DEFAULT_NPM_REGISTRY="https://registry.npmjs.org/"
 VERDACCIO_NPM_REGISTRY="http://localhost:4873"
 
+# Yarn Berry has no global `yarn config set`; settings come from `.yarnrc.yml` files
+# and `YARN_*` environment variables, and only the environment reaches the throwaway
+# projects this script builds outside the repository. Everything published below goes
+# to Verdaccio, which is served over plain HTTP and holds versions published seconds
+# earlier, so whitelist the host and drop the release age cooldown for this run.
+export YARN_UNSAFE_HTTP_WHITELIST="localhost,127.0.0.1"
+export YARN_NPM_MINIMAL_AGE_GATE=0
+
+# Corepack downloads the pinned Yarn on demand and asks for confirmation when doing
+# so interactively, which would hang an unattended run
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
 echo ${SCRIPT_DIR}
 
 SKIP_SETUP="false"
@@ -120,7 +132,7 @@ ${SHELL_DIR}/scripts/publish-shell.sh
 yarn build:lib
 
 npm set registry ${VERDACCIO_NPM_REGISTRY}
-yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+export YARN_NPM_REGISTRY_SERVER=${VERDACCIO_NPM_REGISTRY}
 yarn publish:lib
 
 # We pipe into cat for cleaner logging - we need to set pipefail
@@ -139,7 +151,10 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   pushd test-app > /dev/null
 
-  yarn install --immutable
+  # --no-immutable is required: the skeleton ships enableImmutableInstalls, and CI
+  # sets it by default anyway, but Berry fails an immutable install when it would
+  # have to create the lockfile, and the app has just been scaffolded without one
+  yarn install --no-immutable
   # this is the "same" as doing a yarn dev (in a build sense)
   # it's to make sure the dev environment is running properly
   FORCE_COLOR=true yarn build | cat
@@ -181,6 +196,15 @@ if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   rm -rf ./pkg/test-pkg
 fi
 
+# The extension repositories cloned below are still on Yarn Classic and ship v1
+# lockfiles. They are cloned inside this repository, so Corepack would otherwise walk
+# up to the dashboard `packageManager` field and run Berry against them, which cannot
+# install a v1 lockfile. Pin each clone to Classic, the Yarn those repositories build
+# with themselves.
+pin_yarn_classic() {
+  node -e 'const fs = require("fs"); const pkg = JSON.parse(fs.readFileSync("package.json", "utf8")); pkg.packageManager = "yarn@1.22.22"; fs.writeFileSync("package.json", `${ JSON.stringify(pkg, null, 2) }\n`);'
+}
+
 # function to clone repos and install dependencies (including the newly published shell version)
 function clone_repo_test_extension_build() {
   REPO_ORG=$1
@@ -188,9 +212,6 @@ function clone_repo_test_extension_build() {
   PKG_NAME=$3
 
   echo -e "\nSetting up $REPO_NAME repository locally\n"
-
-  # set registry to default (to install all of the other dependencies)
-  yarn config set registry ${DEFAULT_NPM_REGISTRY}
 
   if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${BASE_DIR}/$REPO_NAME"
@@ -201,11 +222,11 @@ function clone_repo_test_extension_build() {
   git clone https://github.com/$REPO_ORG/$REPO_NAME.git
   pushd ${BASE_DIR}/$REPO_NAME
 
-  echo -e "\nInstalling dependencies for $REPO_NAME\n"
-  yarn install --immutable
+  pin_yarn_classic
 
-  # set registry to local verdaccio (to install new shell)
-  yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+  echo -e "\nInstalling dependencies for $REPO_NAME\n"
+  # everything but the shell comes from the public registry
+  yarn install --frozen-lockfile --registry ${DEFAULT_NPM_REGISTRY}
 
   # update package.json to use a specific version of shell
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
@@ -213,8 +234,8 @@ function clone_repo_test_extension_build() {
 
   echo -e "\nInstalling newly built shell version\n"
 
-  # installing new version of shell
-  yarn add @rancher/shell@${SHELL_VERSION} -W 
+  # installing new version of shell from the local Verdaccio registry
+  yarn add @rancher/shell@${SHELL_VERSION} -W --registry ${VERDACCIO_NPM_REGISTRY}
 
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
@@ -230,7 +251,6 @@ function clone_repo_test_extension_build() {
   # delete folder
   echo "Removing folder ${BASE_DIR}/$REPO_NAME"
   rm -rf ${BASE_DIR}/$REPO_NAME
-  yarn config set registry ${DEFAULT_NPM_REGISTRY}
 }
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
