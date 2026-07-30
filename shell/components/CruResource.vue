@@ -290,13 +290,6 @@ export default {
     ...mapActions('cru-resource', ['setCreateNamespace']),
 
     /**
-     * Prevent issues for malformed types injection
-     */
-    hasErrors() {
-      return this.errors?.length && Array.isArray(this.errors);
-    },
-
-    /**
      * Replace returned string with new picked value and icon
      */
     mappedErrors() {

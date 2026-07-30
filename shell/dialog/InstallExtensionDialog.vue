@@ -337,12 +337,6 @@ export default {
             color="warning"
             :label="t('plugins.warnNoAuth')"
           />
-        </div>
-        <div
-          role="status"
-          aria-atomic="true"
-          style="display: contents"
-        >
           <Banner
             v-if="!plugin?.certified"
             color="warning"

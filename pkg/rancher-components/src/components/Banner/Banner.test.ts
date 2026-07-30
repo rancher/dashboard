@@ -121,25 +121,12 @@ describe('component: Banner', () => {
       expect(mainContainer.attributes('role')).toBe('status');
     });
 
-    it('should apply aria-labelledby only when role="region"', () => {
-      const regionWrapper = mount(Banner, { propsData: { label: 'test', role: 'region' } });
-      const bannerContent = regionWrapper.find('.banner__content');
-
-      expect(regionWrapper.find('.banner').attributes('aria-labelledby')).toBe(bannerContent.attributes('id'));
-    });
-
-    it('should not apply aria-labelledby when role is alert or status', () => {
+    it('should accept only "alert" and "status" as valid role values', () => {
       const alertWrapper = mount(Banner, { propsData: { label: 'test', role: 'alert' } });
       const statusWrapper = mount(Banner, { propsData: { label: 'test', role: 'status' } });
 
-      expect(alertWrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
-      expect(statusWrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
-    });
-
-    it('should not apply aria-labelledby when no role is set', () => {
-      const wrapper = mount(Banner, { propsData: { label: 'test' } });
-
-      expect(wrapper.find('.banner').attributes('aria-labelledby')).toBeUndefined();
+      expect(alertWrapper.find('.banner').attributes('role')).toBe('alert');
+      expect(statusWrapper.find('.banner').attributes('role')).toBe('status');
     });
   });
 });

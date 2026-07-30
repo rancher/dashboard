@@ -76,8 +76,9 @@ export default defineComponent({
      * @values alert, status
      */
     role: {
-      type:    String,
-      default: null
+      type:      String,
+      default:   null,
+      validator: (value: string | null) => ['alert', 'status', null].includes(value),
     },
   },
   emits:    ['close'],

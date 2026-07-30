@@ -300,9 +300,6 @@ export default {
 
       return null;
     },
-    hasErrors() {
-      return this.errors?.length && Array.isArray(this.errors);
-    },
     mappedErrors() {
       return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
         ...acc,
@@ -411,7 +408,7 @@ export default {
 
 <template>
   <div
-    id="cru-errors"
+    id="resource-detail-errors"
     class="cru__errors"
     role="alert"
     aria-live="assertive"
