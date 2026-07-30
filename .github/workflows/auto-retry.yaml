@@ -21,7 +21,8 @@ permissions:
 # Retries are PR-scoped: only runs with an associated open PR are retried
 # (push/scheduled runs are ignored). A `bot/auto-retry/<N>` label on the PR keeps
 # retrying up to <N> times (hard capped at RETRY_CAP). Without the label, the
-# default applies: a single retry on the first failure, plus a comment on the PR.
+# default applies: a single retry on the first failure, recorded as a new row in a
+# single, reused Auto-Retry comment on the PR.
 env:
   RETRY_LABEL_PREFIX: bot/auto-retry
   RETRY_CAP: 20
@@ -40,6 +41,7 @@ jobs:
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           # The original run is attempt 1; each retry increments run_attempt.
           ATTEMPT="${RUN_ATTEMPT:-1}"
@@ -60,6 +62,11 @@ jobs:
           if [ -z "$HEAD_OWNER" ]; then
             HEAD_OWNER=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
               --jq '.head_repository.owner.login // empty' 2>/dev/null || true)
+          fi
+          # Commit the failed run was triggered for, reported in the PR comment.
+          if [ -z "$HEAD_SHA" ]; then
+            HEAD_SHA=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_sha // empty' 2>/dev/null || true)
           fi
           PR_NUMBER=""
           if [ -n "$HEAD_BRANCH" ] && [ -n "$HEAD_OWNER" ]; then
@@ -109,6 +116,7 @@ jobs:
           echo "max_retries=$MAX_RETRIES" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "should_retry=$SHOULD_RETRY" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Retry failed workflow
         if: ${{ steps.decide.outputs.should_retry == 'true' }}
@@ -116,6 +124,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
+          HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
         run: |
           RUN_URL="${{ github.server_url }}/$REPO/actions/runs/$RUN_ID"
           echo "Retrying workflow run: $RUN_ID"
@@ -123,15 +132,17 @@ jobs:
           {
             echo "### Auto-Retry Failed Run :arrows_counterclockwise:"
             echo ""
-            echo "Retrying workflow run [\`$RUN_ID\`]($RUN_URL)."
+            echo "Retrying workflow run [\`$RUN_ID\`]($RUN_URL) for commit \`$HEAD_SHA\`."
             echo ""
             echo "Follow up on the run here: $RUN_URL"
           } >> "$GITHUB_STEP_SUMMARY"
           sleep 30
           gh run rerun $RUN_ID --failed --repo $REPO
 
-      # Only comment for the default single retry. When the `bot/auto-retry/<N>`
-      # label drives the retry we stay silent to avoid spamming the PR.
+      # A PR gets a single Auto-Retry comment: the first retry creates it and every
+      # later retry appends a row (commit + run) to that same comment, so the PR
+      # conversation is not bumped once per retry. Only the default single retry
+      # comments; when the `bot/auto-retry/<N>` label drives the retry we stay silent.
       - name: Comment on the associated PR
         if: ${{ steps.decide.outputs.should_retry == 'true' && steps.decide.outputs.has_label == 'false' && steps.decide.outputs.pr_number != '' }}
         env:
@@ -139,15 +150,46 @@ jobs:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
           PR_NUMBER: ${{ steps.decide.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
+          SERVER_URL: ${{ github.server_url }}
         run: |
-          RUN_URL="${{ github.server_url }}/$REPO/actions/runs/$RUN_ID"
+          set -euo pipefail
 
-          echo "Commenting on PR #$PR_NUMBER"
-          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat <<EOF
-          🔄 **Auto-Retry Failed Run**
+          # Hidden marker used to find the comment again on the next retry.
+          MARKER="<!-- auto-retry-comment -->"
+          RUN_URL="$SERVER_URL/$REPO/actions/runs/$RUN_ID"
 
-          The [Tests workflow run \`$RUN_ID\`]($RUN_URL) failed and has been automatically retried.
+          if [ -n "$HEAD_SHA" ]; then
+            COMMIT_CELL="[\`${HEAD_SHA:0:7}\`]($SERVER_URL/$REPO/commit/$HEAD_SHA)"
+          else
+            COMMIT_CELL="_unknown_"
+          fi
+          ROW="| $COMMIT_CELL | [\`$RUN_ID\`]($RUN_URL) | $(date -u '+%Y-%m-%d %H:%M UTC') |"
 
-          Follow up on the retried run here if needed: $RUN_URL
-          EOF
-          )"
+          COMMENT_ID=$(gh api "/repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq "[.[] | select((.body // \"\") | contains(\"$MARKER\"))] | last | .id // empty" \
+            2>/dev/null || true)
+
+          BODY_FILE="$RUNNER_TEMP/auto-retry-comment.md"
+
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Appending to the existing Auto-Retry comment $COMMENT_ID on PR #$PR_NUMBER"
+            gh api "/repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body' > "$BODY_FILE"
+            printf '%s\n' "$ROW" >> "$BODY_FILE"
+            gh api --method PATCH "/repos/$REPO/issues/comments/$COMMENT_ID" \
+              -F body=@"$BODY_FILE" --silent
+          else
+            echo "Creating the Auto-Retry comment on PR #$PR_NUMBER"
+            {
+              echo "$MARKER"
+              echo "🔄 **Auto-Retry Failed Run**"
+              echo ""
+              echo "The Tests workflow failed for the commits below and has been automatically retried."
+              echo "Follow up on a retried run through its link if needed."
+              echo ""
+              echo "| Commit | Workflow run | Retried at |"
+              echo "| --- | --- | --- |"
+              printf '%s\n' "$ROW"
+            } > "$BODY_FILE"
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file "$BODY_FILE"
+          fi
