@@ -605,6 +605,7 @@ export default {
         </h4>
         <SelectIconGrid
           :rows="obj.types"
+          :aria-label="obj.label"
           key-field="id"
           name-field="label"
           side-label-field="tag"

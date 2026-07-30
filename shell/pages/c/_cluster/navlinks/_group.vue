@@ -29,6 +29,7 @@ export default {
     <h1>{{ groupName }}</h1>
     <SelectIconGrid
       :rows="entries"
+      :aria-label="groupName"
       name-field="labelDisplay"
       description-field="spec.description"
       key-field="_key"
