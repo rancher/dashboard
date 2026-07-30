@@ -116,7 +116,7 @@ export default {
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
       v-clean-tooltip="get(r, tooltipField) || null"
-      :role="asLink ? null : 'button'"
+      :role="asLink ? null : 'link'"
       :aria-disabled="get(r, disabledField) === true ? true : null"
       :aria-label="get(r, nameField)"
       :tabindex="get(r, disabledField) === true ? -1 : 0"

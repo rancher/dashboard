@@ -66,12 +66,12 @@ describe('component: SelectIconGrid', () => {
       });
     });
 
-    it('should have role="button" on each item when asLink is false', () => {
+    it('should have role="link" on each item when asLink is false', () => {
       const wrapper = shallowMount(SelectIconGrid, { props: { rows: mockRows } });
       const items = wrapper.findAll('.item');
 
       items.forEach((item) => {
-        expect(item.attributes('role')).toBe('button');
+        expect(item.attributes('role')).toBe('link');
       });
     });
 
