@@ -1,6 +1,3 @@
-// Currently loading these rules with the --rulesdir argument. In the future we could make use of `eslint-plugin-local-rules`.
-const vueUtils = require('eslint-plugin-vue/lib/utils');
-
 module.exports = {
   meta: {
     type:   'problem',
@@ -8,7 +5,12 @@ module.exports = {
     schema: [],
   },
   create(context) {
-    return vueUtils.defineTemplateBodyVisitor(context, {
+    // `vue-eslint-parser` exposes `defineTemplateBodyVisitor` via parserServices at runtime.
+    // (eslint-plugin-vue v10 removed the `eslint-plugin-vue/lib/utils` re-export this used to use.)
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const parserServices = sourceCode.parserServices ?? context.parserServices;
+
+    return parserServices.defineTemplateBodyVisitor({
       VAttribute(node) {
         // v-tooltip is a VDirectiveKey
         if (node?.key?.type !== 'VDirectiveKey') {
