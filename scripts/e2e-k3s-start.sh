@@ -78,6 +78,16 @@ echo "OVERRIDE_UIS: ${OVERRIDE_UIS}"
 echo "TEST_BASE_URL: ${TEST_BASE_URL}"
 echo "--------------------------------------"
 
+if [ -z "${KUBE_VERSION}" ] || [ "${KUBE_VERSION}" = "null" ]; then
+  echo "Error: KUBE_VERSION is not set"
+  exit 1
+fi
+
+if [ -z "${RANCHER_HELM_REPO_URL}" ] || [ "${RANCHER_HELM_REPO_URL}" = "null" ]; then
+  echo "Error: RANCHER_HELM_REPO_URL is not set"
+  exit 1
+fi
+
 
 DASHBOARD_URL="${TEST_BASE_URL#https://}"
 RANCHER_NAMESPACE=cattle-system
