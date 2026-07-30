@@ -9,15 +9,6 @@ declare module '@shell/store/type-map' {
 
 declare module '@shell/plugins/dashboard-store';
 
-declare module '@shell/config/query-params' {
-  export const _DETAIL: string;
-  export const SECRET_SCOPE: 'scope';
-  export const SECRET_QUERY_PARAMS: {
-    NAMESPACED: 'namespaced',
-    PROJECT_SCOPED: 'project-scoped'
-  };
-}
-
 declare module '@shell/config/version' {
   export const CURRENT_RANCHER_VERSION: string;
   export function getVersionData(): any;
