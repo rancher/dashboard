@@ -2,7 +2,6 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { provisioningClusters, managementClusters, nodes, namespaces } from '@/cypress/e2e/blueprints/manager/hosted-cluster-mocks';
 import ClusterManagerDetailHostedPagePo from '~/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-hosted.po';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
   // ids from hosted-cluster-mocks
@@ -109,7 +108,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('aks-mock-cluster').click();
+    clusterList.list().name('aks-mock-cluster').find('a').should('be.visible')
+      .click();
     aksDetailsPage.waitForPage();
 
     aksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
@@ -152,7 +152,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('eks-mock-cluster').click();
+    clusterList.list().name('eks-mock-cluster').find('a').should('be.visible')
+      .click();
     eksDetailsPage.waitForPage();
     eksDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
@@ -192,7 +193,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('gke-mock-cluster').click();
+    clusterList.list().name('gke-mock-cluster').find('a').should('be.visible')
+      .click();
     gkeDetailsPage.waitForPage();
     gkeDetailsPage.resourceDetail().tabs().tabNames().should('include', 'Node Pools');
 
@@ -247,14 +249,15 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
       cy.wait('@provClustersGet');
       cy.wait('@mgmtClustersGet');
 
-      clusterList.list().name(name).click();
+      // Click the link itself, not the surrounding cell. `name()` yields the <td>
+      // (`column(2)`), and Cypress clicks an element's centre — in a column wider than the
+      // cluster name that centre lands on cell padding beside the <a> rendered by the
+      // ClusterLink formatter, so the click silently doesn't navigate and `waitForPage`
+      // below times out with the URL still on the list.
+      clusterList.list().name(name).find('a').should('be.visible')
+        .click();
       hostedDetailsPage.waitForPage();
 
-      // Unlike the single-cluster tests above, this one navigates through three
-      // detail pages in a row (each via the burger menu), so a later iteration can
-      // exceed the default 10s command timeout on a loaded CI runner. Wait for the
-      // tab bar to render before reading the tab names.
-      hostedDetailsPage.resourceDetail().tabs().self(MEDIUM_TIMEOUT_OPT).should('exist');
       hostedDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Autoscaler');
     });
   });
@@ -269,7 +272,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@provClustersGet');
     cy.wait('@mgmtClustersGet');
 
-    clusterList.list().name('imported-mock-cluster').click();
+    clusterList.list().name('imported-mock-cluster').find('a').should('be.visible')
+      .click();
     importDetailsPage.waitForPage();
     importDetailsPage.resourceDetail().tabs().tabNames().should('not.include', 'Provisioning Log');
   });
