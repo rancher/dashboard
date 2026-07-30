@@ -25,7 +25,9 @@ export const coreStoreState = (namespace, baseUrl, isClusterStore) => ({
   },
   types:       {},
   savedCounts: {}, // Saved counts for resource types (from paginated API called where marked)
-  $ctx:        markRaw({}),
+  // Annotated so `typegen.sh` can emit a declaration for this module; without it
+  // declaration emit fails on the private `RawSymbol` type behind `markRaw`.
+  $ctx:        /** @type {any} */ (markRaw({})),
 });
 
 export default (vuexModule, config, init) => {
