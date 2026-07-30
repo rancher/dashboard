@@ -39,6 +39,17 @@
           "namespace": "rancher",
           "name": "rancher",
           "tag": "v2.15-head"
+        },
+        "rancher-agent": {
+          "namespace": "rancher",
+          "name": "rancher-agent",
+          "tag": "v2.15-head"
+        },
+        "helm": {
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.15"
+        },
+        "kube": {
+          "version": "v1.35.2+k3s1"
         }
       },
       "rancher-rancher-repo": {
