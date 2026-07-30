@@ -38,8 +38,12 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and clicking a group collapses its siblings — so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
     productNavPo.expandedGroup().should('have.length.gte', 1);
@@ -63,8 +67,12 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and clicking a group collapses its siblings — so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
     // Wait for the group to expand and then click the first visible link
     cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
