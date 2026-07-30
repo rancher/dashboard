@@ -114,6 +114,7 @@ export default {
     </Banner>
     <SelectIconGrid
       :rows="rows"
+      :aria-label="displayName"
       :color-for="colorFor"
       name-field="provider"
       @clicked="(row) => goTo(row.id)"
