@@ -888,7 +888,7 @@ export default {
     :group-by="computedGroupBy"
     :group="group"
     :group-options="_groupOptions"
-    :search="search"
+    :search="showTableViews ? false : search"
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
