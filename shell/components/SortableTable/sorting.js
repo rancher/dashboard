@@ -11,7 +11,9 @@ const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
 export default {
   computed: {
     sortFields() {
-      let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
+      // A `groupBy` function has no property path behind it, so it can't contribute to the sort
+      const groupField = this.groupSort || (typeof this.groupBy === 'function' ? null : this.groupBy);
+      let fromGroup = ( this.groupBy ? groupField : null) || [];
       let fromColumn = [];
 
       const column = (this.columns || this.headers).find((x) => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
