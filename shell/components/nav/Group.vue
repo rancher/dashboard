@@ -312,7 +312,7 @@ export default {
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
         tabindex="0"
-        :aria-label="t('nav.ariaLabel.collapseExpand')"
+        :aria-label="isExpanded ? t('nav.ariaLabel.collapse', { group: group.labelDisplay || group.label }) : t('nav.ariaLabel.expand', { group: group.labelDisplay || group.label })"
         :aria-expanded="isExpanded"
         :aria-controls="`group-${id}`"
         @click="peek($event, true)"
