@@ -5,37 +5,27 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
   class="appco-select-clusters"
 >
   <!-- Select by cluster name -->
+  <!-- The underlying select doesn't preventDefault on Enter, so inside a &lt;form&gt; it would trigger an
+         implicit submit (firing the first button, e.g. "Add cluster selector"). Catch Enter in the
+         capture phase - before the select stops propagation - and prevent that default submit. -->
   <div>
     <h4>
-      %fleet.clusterTargets.clusters.byName.title%
+      fleet.clusterTargets.clusters.byName.title
     </h4>
-    <labeled-select-stub
-      appendtobody="true"
+    <resource-labeled-select-stub
+      allresourcessettings="[object Object]"
       class=""
-      clearable="false"
-      closeonselect="false"
+      close-on-select="false"
       data-testid="fleet-target-cluster-name-selector"
-      disabled="false"
-      filterable="true"
-      hovertooltip="true"
-      instore="cluster"
-      label="%fleet.clusterTargets.clusters.byName.label%"
-      loading="false"
-      localizedlabel="false"
-      lockedoptions=""
+      instore="management"
+      label="fleet.clusterTargets.clusters.byName.label"
       mode="edit"
       multiple="true"
-      nooptionslabelkey="labelSelect.noOptions.empty"
-      optionlabel="label"
-      options="[object Object]"
-      placeholder="%fleet.clusterTargets.clusters.byName.placeholder%"
-      reduce="[Function]"
-      required="false"
-      requiredirty="true"
-      rules=""
-      searchable="false"
-      selectable="[Function]"
-      taggable="true"
+      paginatedresourcesettings="[object Object]"
+      paginatemode="DYNAMIC"
+      placeholder="fleet.clusterTargets.clusters.byName.placeholder"
+      resourcetype="fleet.cattle.io.cluster"
+      taggable="false"
       value="cluster-1"
     />
   </div>
@@ -46,7 +36,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
     <h4
       class=""
     >
-      %fleet.clusterTargets.clusters.byLabel.title%
+      fleet.clusterTargets.clusters.byLabel.title
     </h4>
     
     
@@ -70,7 +60,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
     <h4
       class=""
     >
-      %fleet.clusterTargets.clusterGroups.title%
+      fleet.clusterTargets.clusterGroups.title
     </h4>
     <labeled-select-stub
       appendtobody="true"
@@ -82,7 +72,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       filterable="true"
       hovertooltip="true"
       instore="cluster"
-      label="%fleet.clusterTargets.clusterGroups.byName.label%"
+      label="fleet.clusterTargets.clusterGroups.byName.label"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
@@ -91,7 +81,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options=""
-      placeholder="%fleet.clusterTargets.clusterGroups.byName.placeholder%"
+      placeholder="fleet.clusterTargets.clusterGroups.byName.placeholder"
       reduce="[Function]"
       required="false"
       requiredirty="true"
@@ -110,35 +100,25 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
   class=""
 >
   <!-- Select by cluster name -->
+  <!-- The underlying select doesn't preventDefault on Enter, so inside a &lt;form&gt; it would trigger an
+         implicit submit (firing the first button, e.g. "Add cluster selector"). Catch Enter in the
+         capture phase - before the select stops propagation - and prevent that default submit. -->
   <div>
     <!--v-if-->
-    <labeled-select-stub
-      appendtobody="true"
+    <resource-labeled-select-stub
+      allresourcessettings="[object Object]"
       class="mmt-4"
-      clearable="false"
-      closeonselect="false"
+      close-on-select="false"
       data-testid="fleet-target-cluster-name-selector"
-      disabled="false"
-      filterable="true"
-      hovertooltip="true"
-      instore="cluster"
-      label="%fleet.clusterTargets.clusters.byName.label%"
-      loading="false"
-      localizedlabel="false"
-      lockedoptions=""
+      instore="management"
+      label="fleet.clusterTargets.clusters.byName.label"
       mode="edit"
       multiple="true"
-      nooptionslabelkey="labelSelect.noOptions.empty"
-      optionlabel="label"
-      options="[object Object]"
-      placeholder="%fleet.clusterTargets.clusters.byName.placeholder%"
-      reduce="[Function]"
-      required="false"
-      requiredirty="true"
-      rules=""
-      searchable="false"
-      selectable="[Function]"
-      taggable="true"
+      paginatedresourcesettings="[object Object]"
+      paginatemode="DYNAMIC"
+      placeholder="fleet.clusterTargets.clusters.byName.placeholder"
+      resourcetype="fleet.cattle.io.cluster"
+      taggable="false"
       value="cluster-1"
     />
   </div>
@@ -149,7 +129,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
     <h4
       class="m-0"
     >
-      %fleet.clusterTargets.clusters.byLabel.title%
+      fleet.clusterTargets.clusters.byLabel.title
     </h4>
     
     
@@ -173,7 +153,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
     <h3
       class="m-0"
     >
-      %fleet.clusterTargets.clusterGroups.title%
+      fleet.clusterTargets.clusterGroups.title
     </h3>
     <labeled-select-stub
       appendtobody="true"
@@ -185,7 +165,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       filterable="true"
       hovertooltip="true"
       instore="cluster"
-      label="%fleet.clusterTargets.clusterGroups.byName.label%"
+      label="fleet.clusterTargets.clusterGroups.byName.label"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
@@ -194,7 +174,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options=""
-      placeholder="%fleet.clusterTargets.clusterGroups.byName.placeholder%"
+      placeholder="fleet.clusterTargets.clusterGroups.byName.placeholder"
       reduce="[Function]"
       required="false"
       requiredirty="true"

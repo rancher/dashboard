@@ -43,16 +43,10 @@ export default {
 
   async fetch() {
     try {
+      // Clusters / cluster-groups are intentionally NOT fetched here: the summary column only needs
+      // to know whether the repo targets any clusters, which FleetSummaryGraph now derives from
+      // status (status.desiredReadyClusters) instead of the (expensive) targetClusters getter.
       const hash = await checkSchemasForFindAllHash({
-        cluster: {
-          inStoreType: 'management',
-          type:        FLEET.CLUSTER
-        },
-        clusterGroups: {
-          inStoreType: 'management',
-          type:        FLEET.CLUSTER_GROUP
-        },
-
         gitRepos: {
           inStoreType: 'management',
           type:        FLEET.GIT_REPO

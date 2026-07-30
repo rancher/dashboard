@@ -157,8 +157,10 @@ describe('view: fleet.cattle.io.bundle', () => {
       global: fullMountGlobal,
     });
 
-    // Simulate fetch completion by setting allBundleDeployments
+    // Simulate fetch completion by setting allBundleDeployments + the clusters they reference
+    // (fetched by id from the deployment labels).
     (wrapper.vm as any).allBundleDeployments = mockBundleDeployments;
+    (wrapper.vm as any).clusters = mockValueWithResources.targetClusters;
     await wrapper.vm.$nextTick();
 
     expect(wrapper.html()).toMatchSnapshot();

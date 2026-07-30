@@ -1,5 +1,6 @@
 <script>
-import { FLEET } from '@shell/config/types';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { CAPI } from '@shell/config/labels-annotations';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
@@ -46,6 +47,15 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * When provided (detail usage), use these clusters for the Harvester filter instead of
+     * fetching every cluster - the owning page already fetched just the relevant clusters.
+     */
+    clusters: {
+      type:    Array,
+      default: null,
     }
   },
 
@@ -53,14 +63,9 @@ export default {
     let hash;
 
     try {
-      const toFetch = {
-        cluster: {
-          inStoreType: 'management',
-          type:        FLEET.CLUSTER
-        }
-      };
+      const toFetch = {};
 
-      // Only fetch bundles if in list mode
+      // Only fetch bundles if in list mode (the list's own resource)
       if (this.isListMode) {
         toFetch.bundle = {
           inStoreType: 'management',
@@ -68,7 +73,9 @@ export default {
         };
       }
 
-      hash = await checkSchemasForFindAllHash(toFetch, this.$store);
+      if (Object.keys(toFetch).length) {
+        hash = await checkSchemasForFindAllHash(toFetch, this.$store);
+      }
     } catch (e) {
     }
 
@@ -78,7 +85,19 @@ export default {
       this.rows = hash.bundle;
     }
 
-    this.allFleet = hash?.cluster || [];
+    // Clusters are only needed to hide single-target Harvester bundles. Skip entirely when the
+    // parent already provided clusters or when Harvester hosts are visible; otherwise fetch ONLY the
+    // Harvester clusters (server-side, by provider label) rather than every cluster.
+    if (!this.clusters && !this.$store.getters['features/get'](HARVESTER_CONTAINER) && this.$store.getters['management/schemaFor'](FLEET.CLUSTER)) {
+      try {
+        this.allFleet = await this.$store.dispatch('management/findLabelSelector', {
+          type:     FLEET.CLUSTER,
+          matching: { labelSelector: { matchLabels: { [CAPI.PROVIDER]: VIRTUAL_HARVESTER_PROVIDER } } },
+        }) || [];
+      } catch (e) {
+        this.allFleet = [];
+      }
+    }
   },
 
   data() {
@@ -118,7 +137,7 @@ export default {
     harvesterClusters() {
       const harvester = {};
 
-      this.allFleet.forEach((c) => {
+      (this.clusters || this.allFleet).forEach((c) => {
         if (isHarvesterCluster(c)) {
           harvester[c.metadata.name] = c;
         }

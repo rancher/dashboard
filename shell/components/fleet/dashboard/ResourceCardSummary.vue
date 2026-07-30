@@ -30,11 +30,17 @@ export default {
     },
 
     countsPerCluster() {
-      return ((this.value.targetClusters || []) as { id: string }[]).map(({ id }) => this.value.status?.perClusterResourceCounts?.[id] || { desiredReady: 0 });
+      // The dashboard only loads state-count summaries, so the application's clusters aren't in the
+      // store and `targetClusters` is empty. Read the per-cluster counts straight from status (keyed
+      // by cluster id) so the cluster count is correct without needing the cluster objects loaded.
+      return Object.values(this.value.status?.perClusterResourceCounts || {}) as { desiredReady?: number, ready?: number }[];
     },
 
     summary() {
-      const { desiredReady, ready } = this.counts;
+      // `ready` is omitted from `resourceCounts` when nothing is ready, so coerce both to numbers to
+      // avoid `desiredReady - undefined` producing NaN.
+      const desiredReady = this.counts.desiredReady || 0;
+      const ready = this.counts.ready || 0;
 
       const partial = desiredReady === ready ? ready : desiredReady - ready;
       const total = desiredReady;

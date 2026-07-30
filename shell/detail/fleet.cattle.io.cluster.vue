@@ -39,7 +39,20 @@ export default {
       helmOps:           this.$store.dispatch('management/findAll', { type: FLEET.HELM_OP }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
       clusterGroups:     this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }), // Needed for calculating targetClusters
-      bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
+      // Only this cluster's deployments (server-side filtered by the cluster / cluster-namespace
+      // labels) rather than every BundleDeployment in the cluster. findLabelSelector uses the
+      // paginated sql-cache api when available and falls back to a native labelSelector list.
+      bundleDeployments: this.$store.dispatch('management/findLabelSelector', {
+        type:     FLEET.BUNDLE_DEPLOYMENT,
+        matching: {
+          labelSelector: {
+            matchLabels: {
+              [FLEET_LABELS.CLUSTER]:           this.value.metadata.name,
+              [FLEET_LABELS.CLUSTER_NAMESPACE]: this.value.metadata.namespace,
+            }
+          }
+        },
+      })
     });
 
     this.rancherCluster = hash.rancherCluster;
