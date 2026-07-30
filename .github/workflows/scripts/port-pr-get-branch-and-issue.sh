@@ -48,6 +48,9 @@ else # Fallback on branch given milestone in branches-metadata
     exit 1
   }
   TARGET_BRANCH=$(echo "$METADATA_JSON" | jq -r --arg milestone "$TARGET_MILESTONE" '.branches | to_entries[] | select(.value.milestone.version == $milestone) | .key')
+  if [ -z "$TARGET_BRANCH" ]; then
+    echo "No branch found for milestone ${TARGET_MILESTONE} in branches-metadata.json"
+  fi
 fi
 
 # Confirm target branch exists
