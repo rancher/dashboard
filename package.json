@@ -234,6 +234,7 @@
     "@cypress/code-coverage/js-yaml": "4.3.0",
     "webpack-dev-server": "5.2.6",
     "postcss": "8.5.18",
-    "@tootallnate/once": "^2.0.1"
+    "@tootallnate/once": "^2.0.1",
+    "cookie": "0.7.2"
   }
 }
