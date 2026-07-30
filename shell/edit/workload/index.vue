@@ -299,10 +299,9 @@ export default {
                   {{ t('workload.container.ports.expose') }}
                   <i
                     v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
-                    v-stripped-aria-label="t('workload.container.ports.toolTip')"
+                    :aria-label="t('generic.moreInfo')"
                     class="icon icon-info"
                     tabindex="0"
-                    role="tooltip"
                   />
                 </h3>
                 <p class="padded">

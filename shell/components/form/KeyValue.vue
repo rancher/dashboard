@@ -628,10 +628,9 @@ export default {
               <i
                 v-if="_protip && !isView && addAllowed"
                 v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="_protip"
+                :aria-label="t('generic.moreInfo')"
                 class="icon icon-info"
                 tabindex="0"
-                role="tooltip"
               />
             </div>
             <div
@@ -642,10 +641,9 @@ export default {
               <i
                 v-if="protipValue && !isView && addAllowed"
                 v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
-                v-stripped-aria-label="protipValue"
+                :aria-label="t('generic.moreInfo')"
                 class="icon icon-info"
                 tabindex="0"
-                role="tooltip"
               />
             </div>
             <div
