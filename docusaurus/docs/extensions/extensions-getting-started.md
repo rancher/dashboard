@@ -35,10 +35,12 @@ To create a `development app` with an extension targeting Rancher `v2.10` or lat
 
 ```sh
 npm init @rancher/extension@latest my-app
-cd my-app && yarn install
+cd my-app && yarn install --no-immutable
 ```
 
 This command will create a new development app in a folder called `my-app` and also creates your first extension package, also named `my-app` (inside `/pkg` folder), populating it with the minimum files needed for your extension.
+
+> NOTE: `--no-immutable` is only needed for this very first install. The development app ships a `.yarnrc.yml` with `enableImmutableInstalls: true`, and Yarn refuses to *create* a missing `yarn.lock` under an immutable install. Once the lockfile exists, use plain `yarn install` so that an unexpected dependency bump fails the install instead of being silently written to `yarn.lock`. Commit the generated `yarn.lock`.
 
 > NOTE: the `npm init` command must always use the same tag as the one that generated it. See examples below.
 

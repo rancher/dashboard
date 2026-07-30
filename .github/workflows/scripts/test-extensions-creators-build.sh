@@ -44,9 +44,10 @@ validate_tagged_extension_creator() {
   cd ${SKELETON_APP_NAME}
 
   # install dependencies
-  # Not --immutable: Berry fails an immutable install when it would have to create
-  # the lockfile, and no install in this script starts with one on disk.
-  yarn install
+  # --no-immutable is required: the skeleton ships enableImmutableInstalls, and CI
+  # sets it by default anyway, but Berry fails an immutable install when it would
+  # have to create the lockfile. No install in this script starts with one on disk.
+  yarn install --no-immutable
 
   # test build of pkg inside skeleton app
   yarn build-pkg ${SKELETON_APP_NAME} | cat
@@ -76,7 +77,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --no-immutable
 
     cat package.json
 
@@ -101,7 +102,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install
+    yarn install --no-immutable
 
     yarn build-pkg ${SKELETON_APP_NAME} | cat
   fi
