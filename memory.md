@@ -50,6 +50,7 @@
 - useRuntimeFlag.ts: `featureDropdownMenu` is module-level computed; use `jest.resetModules()` + `jest.mock('@shell/utils/version', ...)` + dynamic `require()` in beforeEach to get fresh computed per test
 - useLabeledSelect.ts: mock `@shell/utils/width` (getWidth/setWidth); use `jest.spyOn(el, 'querySelector')` for DOM mocking; `await nextTick()` after resizeHandler to flush callback
 - useI18n.ts: needs `jest.unmock('@shell/composables/useI18n')` at top (jest.setup.js stubs it globally); mock `@shell/plugins/i18n`; null-store path: use try/catch on `useI18n(null)` to get store=null after getting t reference
+- useClickOutside.ts: mount composable in defineComponent wrapper with @vue/test-utils; jsdom has no PointerEvent — use `new MouseEvent('pointerdown', ...)` instead; override target+composedPath via Object.defineProperty; ignore selectors only affect shouldListen via detail=0 or pointerdown paths (not direct click with detail=1)
 
 ## Testing Backlog (Prioritized)
 
@@ -57,10 +58,10 @@
 2. `shell/store/prefs.js` remaining actions — `set`, `loadServer`, `loadTheme`, `setBrandStyle`
 3. `shell/store/i18n.js` remaining actions — `switchTo`, `init`, `load`, `mergeLoad`
 4. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
-5. `shell/composables/useClickOutside.ts` — click-outside detection, ignore list, shouldListen logic
 
 ## Completed Work (Summary)
 
+- 2026-07-30: PR (test-assist/click-outside-composable-tests): 12 new tests for useClickOutside.ts — click outside, on element, inside element, null ref, ignore selectors, keyboard click (detail=0), lifecycle mount/unmount; 0%→95% stmts, 0%→94% branches, 0%→100% fns
 - 2026-07-04: PR (test-assist/labeled-form-element-composable-tests): 30 new tests for useLabeledFormElement.ts — raised/focused state, validation messages, required-field detection, emit assertions; 0%→100% stmts/lines, 93.33% branches
 - 2026-07-03: PR #18267 (test-assist/favicon-utils-tests): 15 new tests for favicon.js — haveSetFavIcon state, setFavIcon brand selection (suse/csp/harvester), findIconLink; 0%→100% stmts/fns, 94.7% branches
 - 2026-07-02: PR #18249 (test-assist/auth-utils-tests): 25 new tests for auth.js — checkSchemasForFindAllHash, canViewResource, authProvidersInfo, findMe, noAuth, notLoggedIn, isLoggedIn, tryInitialSetup; ~35%→82.82% stmts, 95.91% branches
@@ -85,6 +86,7 @@
 
 ## Task Round-Robin History
 
+- 2026-07-30: Task 3 (useClickOutside.ts, 12 tests) + Task 7
 - 2026-07-04: Task 4 (all 4 PRs CI green) + Task 3 (useLabeledFormElement.ts, 30 tests) + Task 7
 - 2026-07-03: Task 4 (PRs #18249/#18235 CI green) + Task 3 (favicon.js, 15 tests) + Task 7
 - 2026-07-02: Task 4 (PRs #18235/#18210 CI green) + Task 3 (auth.js, 25 tests) + Task 7
