@@ -7120,6 +7120,44 @@ storageClass:
       placeholder: Storage class name on the host [[Harvester]] cluster
       tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
+tableViews:
+  matches: "{count} matching"
+  tabs:
+    all: All
+    unsaved: Unsaved view
+  query:
+    placeholder: 'Filter by field, eg state:error namespace:default'
+    inUse: "{count} in use"
+    label: Label
+  columns:
+    label: Columns
+    tableColumns: Table columns
+    labelColumns: Show label as column
+    reset: Reset to defaults
+  group:
+    label: 'Group: {field}'
+    none: None
+    empty: (none)
+  export:
+    label: Export
+    scope:
+      selection: Selected rows
+      page: Current page
+      all: All matching rows
+    format:
+      csv: CSV
+      json: JSON
+  save:
+    label: Save
+    save: Save
+    newView: Save as new view
+    namePlaceholder: View name
+    updateExisting: Update saved view
+    delete: Delete view
+    share: Share
+    copyLink: Copy link to this view
+    copied: Link copied
+
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler

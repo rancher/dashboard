@@ -12,6 +12,22 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
+import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
+import { downloadFile } from '@shell/utils/download';
+import {
+  LABEL_FIELD_PREFIX,
+  applyQuery,
+  decodeView,
+  fieldValue,
+  fieldsFor,
+  findField,
+  headerFieldId,
+  isIgnoredColumn,
+  parseQuery,
+  rowsToCsv,
+  rowsToJson,
+  stringifyValue,
+} from '@shell/utils/table-views';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -48,7 +64,7 @@ export default {
   emits: ['clickedActionButton'],
 
   components: {
-    ButtonGroup, SortableTable, ToggleSwitch
+    ButtonGroup, SortableTable, TableViewsBar, ToggleSwitch
   },
 
   mixins: [
@@ -223,14 +239,32 @@ export default {
       default: undefined,
     },
 
+    /**
+     * Show the table views toolbar (query, columns, group by, export, saved views).
+     * Null means "decide automatically" - on for any table showing a known resource type
+     */
+    tableViews: {
+      type:    Boolean,
+      default: null,
+    },
+
   },
 
   data() {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.overrideInStore || (this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined);
 
+    // A shared view can arrive in the url, eg ?view=<encoded>
+    const shared = decodeView(this.$route?.query?.view);
+
     return {
       inStore,
+      view: {
+        query:        shared?.query || '',
+        columns:      shared?.columns || null,
+        labelColumns: shared?.labelColumns || [],
+        groupBy:      shared?.groupBy || null,
+      },
       /**
        * Override the sortGenerationFn given changes in the rows we pass through to sortable table
        *
@@ -478,6 +512,102 @@ export default {
       });
     },
 
+    /**
+     * Whether to show the table views toolbar above this table
+     */
+    showTableViews() {
+      if (this.tableViews !== null) {
+        return this.tableViews;
+      }
+
+      return !!this.schema?.id && !this.hasAdvancedFiltering && this.search;
+    },
+
+    /**
+     * Everything the user can filter on, group by, or add as a column
+     */
+    viewFields() {
+      return fieldsFor(this._headers, this.filteredRows, (key) => this.t(key));
+    },
+
+    viewTerms() {
+      return parseQuery(this.view.query, this.viewFields);
+    },
+
+    /**
+     * Rows left once the view's query has been applied
+     */
+    viewRows() {
+      if (!this.showTableViews || !this.viewTerms.length) {
+        return this.filteredRows;
+      }
+
+      return applyQuery(this.filteredRows, this.viewTerms, this.viewFields);
+    },
+
+    viewGroupField() {
+      if (!this.showTableViews || !this.view.groupBy) {
+        return null;
+      }
+
+      return findField(this.viewFields, this.view.groupBy) || null;
+    },
+
+    /**
+     * The headers to show, after the view has hidden columns and added label columns
+     */
+    viewHeaders() {
+      const headers = this._headers;
+
+      if (!this.showTableViews) {
+        return headers;
+      }
+
+      let out = headers;
+
+      if (this.view.columns) {
+        out = headers.filter((header) => isIgnoredColumn(header) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
+      }
+
+      if (this.view.labelColumns?.length) {
+        out = out.slice();
+
+        // Put label columns after age, or at the end if there's no age column
+        const ageIndex = out.findIndex((header) => header.name === AGE.name);
+        const at = ageIndex >= 0 ? ageIndex : out.length;
+
+        this.view.labelColumns.forEach((key, i) => {
+          out.splice(at + i, 0, {
+            name:   `${ LABEL_FIELD_PREFIX }${ key }`,
+            label:  key,
+            value:  (row) => row?.metadata?.labels?.[key] || '',
+            sort:   false,
+            search: false,
+          });
+        });
+      }
+
+      return out;
+    },
+
+    /**
+     * Columns to write out when exporting
+     */
+    exportColumns() {
+      return this.viewHeaders
+        .filter((header) => !isIgnoredColumn(header) && (header.label || header.labelKey))
+        .map((header) => {
+          const label = header.label || this.t(header.labelKey);
+
+          return {
+            label,
+            field: {
+              id: headerFieldId(header), label, isLabel: false, header
+            }
+          };
+        });
+    },
+
     _group: mapPref(GROUP_RESOURCES),
 
     // The group stored in the preference (above) might not be valid for this resource table - so ensure we
@@ -519,6 +649,15 @@ export default {
     },
 
     computedGroupBy() {
+      // A group chosen in the table views toolbar wins - it can be any field, including a label,
+      // so the key is a function rather than a path
+      if (this.viewGroupField) {
+        const field = this.viewGroupField;
+        const empty = this.t('tableViews.group.empty');
+
+        return (row) => stringifyValue(fieldValue(row, field)) || empty;
+      }
+
       // If we're not showing grouping options we shouldn't have a group by property
       if (!this.showGrouping) {
         return null;
@@ -628,7 +767,7 @@ export default {
      * Whether we should show namespace counts in group tabs
      */
     showNamespaceCounts() {
-      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter && !this.viewGroupField;
     },
   },
 
@@ -703,7 +842,37 @@ export default {
       }
 
       this.hasSearchFilter = !!arg?.filtering?.searchQuery;
-    }
+    },
+
+    /**
+     * Export the rows for the requested scope in the requested format.
+     *
+     * Selection and page come from the table itself, everything else is what the view's
+     * query has left us with.
+     */
+    handleExport({ format, scope }) {
+      const table = this.$refs.table;
+      let rows;
+
+      if (scope === 'selection') {
+        rows = table?.selectedRows || [];
+      } else if (scope === 'page') {
+        rows = table?.pagedRows || [];
+      } else {
+        rows = this.viewRows;
+      }
+
+      if (!rows.length) {
+        return;
+      }
+
+      const columns = this.exportColumns;
+      const name = (this.schema?.id || 'resources').replace(/[^a-z0-9]+/gi, '-');
+      const content = format === 'json' ? rowsToJson(rows, columns) : rowsToCsv(rows, columns);
+      const contentType = format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8';
+
+      downloadFile(`${ name }-${ scope }.${ format }`, content, contentType);
+    },
   }
 };
 </script>
@@ -712,8 +881,8 @@ export default {
   <SortableTable
     ref="table"
     v-bind="$attrs"
-    :headers="_headers"
-    :rows="filteredRows"
+    :headers="viewHeaders"
+    :rows="viewRows"
     :loading="loading"
     :alt-loading="altLoading"
     :group-by="computedGroupBy"
@@ -746,6 +915,21 @@ export default {
     @enter="handleEnterKeyPress"
     @sortable-table-interaction="handleSortableTableInteraction"
   >
+    <template
+      v-if="showTableViews"
+      #table-views
+    >
+      <TableViewsBar
+        :view="view"
+        :fields="viewFields"
+        :rows="filteredRows"
+        :match-count="viewRows.length"
+        :resource-type="schema ? schema.id : ''"
+        @update:view="view = $event"
+        @export="handleExport"
+      />
+    </template>
+
     <template
       v-if="showGrouping && _groupOptions.length > 1"
       #header-middle

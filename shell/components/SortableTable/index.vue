@@ -125,13 +125,14 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by, row[groupBy] must be something that can be a map key
-      type:    String,
+      // Field to group rows by, row[groupBy] must be something that can be a map key.
+      // A function receiving the row can be given instead, for keys that aren't a simple path
+      type:    [String, Function],
       default: null
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
-      type:    String,
+      type:    [String, Function],
       default: null,
     },
     groupSort: {
@@ -1132,6 +1133,7 @@ export default {
     ref="container"
     :data-testid="componentTestid + '-list-container'"
   >
+    <slot name="table-views" />
     <div
       :class="{'titled': $slots.title && $slots.title.length}"
       class="sortable-table-header"
